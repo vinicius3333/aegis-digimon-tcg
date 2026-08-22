@@ -280,7 +280,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           faceDown: disposition.faceDown ?? true,
         });
       else if (disposition.to === "placeUnder")
-        toPlaceUnder.push({ instanceId: c.instanceId, underFilter: disposition.underFilter, faceDown: disposition.faceDown });
+        toPlaceUnder.push({
+          instanceId: c.instanceId,
+          underFilter: disposition.underFilter,
+          faceDown: disposition.faceDown,
+        });
       else if (disposition.to === "underTamer")
         toUnderTamer.push({
           instanceId: c.instanceId,
@@ -334,7 +338,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"
   if (toPlaceUnder.length > 0) {
-  for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
+    for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
       const candidates = ctx.game.player(seat).battleArea.filter((p) => {
         if (!p.topCard || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
         return underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source);
@@ -663,11 +667,13 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
       });
       if (selectedIds.length === 0) {
         ctx.lastEffectActed = false;
+        ctx.fx.shuffleSecurity(ctx.source.ownerSeat);
         return false;
       }
       const played = await ctx.fx.playInstances(selectedIds, { payCost: action.then.payCost });
       ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
       ctx.lastEffectActed = ctx.lastPlayedPermanentIds.length > 0;
+      ctx.fx.shuffleSecurity(ctx.source.ownerSeat);
       return false;
     }
     case "Reveal": {
