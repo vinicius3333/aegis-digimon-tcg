@@ -8,7 +8,7 @@ const compiled: CompiledCard = {
   effects: [{
     trigger: "WhenDigivolving",
     actions: [
-      { kind: "Trash", target: { filter: { zone: "hand", controller: "mine", kind: ["Digimon", "Tamer", "Option"] }, count: 1 }, bindResultAs: "trashedCard", optional: true },
+      { kind: "Trash", target: { filter: { zone: "hand", controller: "mine", kind: ["Digimon", "Tamer", "Option"] }, count: 1, upTo: true }, bindResultAs: "trashedCard" },
       { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "colorFromLastTrashed", duration: "forTheTurn", condition: trashedThisEffect },
       { kind: "Draw", controller: "mine", amount: 2, condition: { kind: "allOf", conditions: [trashedThisEffect, { kind: "selfColorCount", op: "gte", value: 2 }] } },
     ],
