@@ -80,7 +80,7 @@ describe("AD1-007 Siriusmon", () => {
         1: {
           battleArea: [
             { card: "BT1-010", as: "first-target", dp: 12000 },
-            { card: "BT1-010", as: "second-target", dp: 12000 },
+            { card: "BT1-010", as: "second-target", dp: 12000, suspended: true },
           ],
         },
       },
