@@ -19,6 +19,8 @@ describe("BT12-092 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.OnTappedAnyone, source).length).toBeGreaterThan(0);
   });
 
   it("pays 1 memory and becomes a 3000 DP Digimon when Agumon or Greymon is present", async () => {
