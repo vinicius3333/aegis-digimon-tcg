@@ -11,12 +11,26 @@ export const compiled: CompiledCard = {
           kind: "WaiveColorRequirement",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon", "Tamer"],
-              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
-            },
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon", "Tamer"],
+                  nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+                },
+              },
+              {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  zone: "breeding",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+                },
+              },
+            ],
             raw: "you have an [Appmon] trait Digimon or Tamer on the field",
           },
         },
@@ -71,6 +85,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
+          requiresDelayArmed: true,
           target: {
             filter: {
               controller: "mine",
