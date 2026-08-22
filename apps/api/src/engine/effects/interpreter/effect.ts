@@ -60,7 +60,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
   // actually declare it (BT21-040, BT21-010, and the same generated shape in later sets).
   if (
     effect.trigger === "YourTurn" &&
-    effect.actions.some((action) => ["Digivolve", "DnaDigivolve", "AppFuse"].includes(action.kind))
+    (effect.actions ?? []).some((action) => ["Digivolve", "DnaDigivolve", "AppFuse"].includes(action.kind))
   ) {
     return EffectTiming.OnDeclaration;
   }
@@ -192,7 +192,7 @@ export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean)
   if (effect.isInherited && effect.trigger === "WhenAttacking") {
     return [primary, EffectTiming.OnAllyAttack];
   }
-  if (effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "Replacement")) {
+  if (effect.trigger === "AllTurns" && (effect.actions ?? []).some((action) => action.kind === "Replacement")) {
     return [primary, EffectTiming.OnLeaveFieldAnyone];
   }
   return [primary];
@@ -289,7 +289,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
   if (effect.isSecurity || effect.trigger === "Security") return security;
   if (
     effect.trigger === "YourTurn" &&
-    effect.actions.some((action) => ["Digivolve", "DnaDigivolve", "AppFuse"].includes(action.kind))
+    (effect.actions ?? []).some((action) => ["Digivolve", "DnaDigivolve", "AppFuse"].includes(action.kind))
   ) {
     return activated;
   }
