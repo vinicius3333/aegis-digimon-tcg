@@ -8,6 +8,14 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-095.js";
 
 describe("BT12-095 handwritten module", () => {
+  it("keeps the DP and Blocker clauses on the same selected Digimon", async () => {
+    const compiled = getEffectModule("BT12-095");
+    const source = { instanceId: "source-095", cardId: "BT12-095" } as CardSource;
+    const effects = compiled!.effectsForTiming(EffectTiming.OnPlay, source);
+    expect(effects).toHaveLength(1);
+    expect((effects[0]!.actions[1]!.target as { sameTarget?: boolean }).sameTarget).toBe(true);
+  });
+
   it("registers its printed OnPlay effect without declarative effect record", () => {
     const module = getEffectModule("BT12-095");
     expect(module?.cardId).toBe("BT12-095");
