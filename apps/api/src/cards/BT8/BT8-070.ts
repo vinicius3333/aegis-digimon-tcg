@@ -13,9 +13,9 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, budget: 6, upTo: true, condition: both },
-        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Digimon"] }, budget: 6, upTo: true, condition: onlyRed },
-        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Tamer"] }, budget: 6, upTo: true, condition: onlyBlack },
+        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, budget: 6, upTo: true, chooseTargets: true, condition: both },
+        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Digimon"] }, budget: 6, upTo: true, chooseTargets: true, condition: onlyRed },
+        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Tamer"] }, budget: 6, upTo: true, chooseTargets: true, condition: onlyBlack },
       ],
     },
     {
