@@ -38,7 +38,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
           kind: "Restrict",
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
-          target: { count: "all" },
+          target: { count: "all", filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } },
         }),
       ],
     });

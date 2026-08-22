@@ -38,6 +38,7 @@ describe("BT13-062 Chuumon", () => {
         expect.objectContaining({
           kind: "PlayWithoutCost",
           from: ["trash"],
+          payCost: false,
           suspended: true,
           optional: true,
           condition: { kind: "selfHasNameContaining", names: ["Sukamon", "Etemon"] },

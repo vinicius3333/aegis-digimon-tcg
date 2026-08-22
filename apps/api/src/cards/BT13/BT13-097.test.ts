@@ -29,7 +29,11 @@ describe("BT13-097 Thomas H. Norstein", () => {
         kind: "Draw",
         controller: "mine",
         amount: 1,
-        cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+        cost: {
+          kind: "suspend",
+          raw: "by suspending this Tamer",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
       },
       { kind: "Draw", controller: "opponent", amount: 1, condition: { kind: "ifThisEffectActed", raw: "you did" } },
     ]);

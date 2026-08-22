@@ -22,9 +22,7 @@ describe("BT13-055 Lamortmon", () => {
             count: 1,
           },
           into: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["Lamortmon"] }] },
-          additionalCosts: [
-            { kind: "place", position: "bottom", host: "target", destination: "digivolutionStack", from: ["hand"] },
-          ],
+          additionalCosts: [{ kind: "place", position: "bottom", host: "target", destination: "digivolutionStack" }],
         },
       ],
     });
