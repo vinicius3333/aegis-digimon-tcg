@@ -7,7 +7,7 @@ import { observe } from "../../engine/testkit/observe.js";
 
 describe("ST19-14 Arisa Kinosaki", () => {
   it("matches memory, Puppet/Token Rush, and Security play wording", () => {
-    const card = getCardDefinition("ST19-14");
+    const card = getCardDefinition("ST19-14")!;
     expect(card.effectText).toContain("set your memory to 3");
     expect(card.effectText).toContain("gains ＜Rush＞");
     expect(card.securityEffectText).toBe("[Security] Play this card without paying the cost.");
@@ -23,23 +23,36 @@ describe("ST19-14 Arisa Kinosaki", () => {
   });
 
   it("suspends to grant Rush to a Familiar Token played by an effect", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST19-14", as: "arisa" }, { card: "ST19-10", as: "host" }],
-        hand: [{ card: "ST19-12", as: "cendrill" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST19-14", as: "arisa" },
+            { card: "ST19-10", as: "host" },
+          ],
+          hand: [{ card: "ST19-12", as: "cendrill" }],
+        },
+        1: {},
       },
-      1: {},
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("cendrill").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.cardId === "TOKEN-Familiar-Token" && observe(s.engine).hasKeyword(permanent, "Rush"),
-    ));
-    const token = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("cendrill").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) =>
+          permanent.topCard.cardId === "TOKEN-Familiar-Token" && observe(s.engine).hasKeyword(permanent, "Rush"),
+      ),
+    );
+    const token = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token",
+    );
     expect(token).toBeDefined();
     expect(observe(s.engine).hasKeyword(s.perm("arisa"), "Rush")).toBe(false);
     expect(s.perm("arisa").isSuspended).toBe(true);

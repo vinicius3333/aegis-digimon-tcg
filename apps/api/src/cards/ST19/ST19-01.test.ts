@@ -50,7 +50,7 @@ describe("ST19-01 Kyaromon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("attacker").suspended);
+    await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawn").instanceId]);
   });
