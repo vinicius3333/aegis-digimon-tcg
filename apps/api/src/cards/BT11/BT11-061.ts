@@ -51,8 +51,8 @@ const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
-  coverage: "partial",
-  residual: ["missing-primitive(unaudited): include up to 50 copies of cards with this card's card number in your deck"],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT11-061", compiled);
