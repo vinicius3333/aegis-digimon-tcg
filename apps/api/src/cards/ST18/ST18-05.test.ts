@@ -36,6 +36,7 @@ describe("ST18-05 Muchomon", () => {
       1: { battleArea: [{ card: "ST18-03", as: "victim" }] },
     });
     const before = s.perm("vortexTarget").currentDP;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
     await advance(s.engine).fireSubTrigger("whenEffectSuspends", {
       subjectPermanentId: s.perm("victim").permanentId,
       suspendedPermanentId: s.perm("victim").permanentId,

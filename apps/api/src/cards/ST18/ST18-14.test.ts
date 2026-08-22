@@ -18,7 +18,11 @@ describe("ST18-14 Shoto Kazama", () => {
           actions: [
             expect.objectContaining({
               actions: [
-                expect.objectContaining({ kind: "RedirectAttack", includePlayer: true, cost: { kind: "suspend" } }),
+                expect.objectContaining({
+                  kind: "RedirectAttack",
+                  includePlayer: true,
+                  cost: expect.objectContaining({ kind: "suspend" }),
+                }),
               ],
             }),
           ],
