@@ -170,3 +170,19 @@ it("does not apply the inherited effect when the host top card has no Save text"
   await settle(() => s.state.players[1]!.battleArea.length === 1);
   expect(s.perm("victim").currentDP).toBe(10000);
 });
+
+it("applies the inherited Save reduction only once per turn", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-041"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
+    },
+    { autoSelectCards: true },
+  );
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+  await settle(() => s.perm("victim").currentDP === 8000);
+  await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+  await settle(() => s.perm("victim").currentDP === 8000);
+  expect(s.perm("victim").currentDP).toBe(8000);
+});
