@@ -28,6 +28,13 @@ export const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
     { trigger: "OnPlay", actions: [altCostDelete] },
     { trigger: "WhenDigivolving", actions: [altCostDelete] },
+    {
+      trigger: "OnDeletion",
+      isInherited: true,
+      actions: [
+        { kind: "Trash", target: { filter: { controller: "opponent", zone: "hand" }, count: 1 }, chooser: "opponent" },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
