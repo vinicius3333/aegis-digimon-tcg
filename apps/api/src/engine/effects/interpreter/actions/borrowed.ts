@@ -8,6 +8,7 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { looseCardsInZone } from "../targeting/loose.js";
 import { CardKind } from "@aegis/shared";
+import { MemoryGauge } from "../../../MemoryGauge.js";
 import type { Action, CardEffect, EffectTrigger, Filter, ZoneRef } from "@aegis/shared";
 
 /** A foreign card eligible to lend a borrowed effect (its instance + the borrowable effects). */
@@ -262,7 +263,10 @@ export async function runUseOptionWithoutCost(
   // cost is used for the whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
   if (action.payCost === true && chosenCard !== undefined) {
     const chosenDef = ctx.game.definitionOf({ cardId: chosenCard.cardId } as never);
-    const reducedCost = Math.max(0, chosenDef.playCost - (action.reduceCostBy ?? 0));
+    const dynamicReduction = action.reduceCostByOpponentMemory === true
+      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
+      : 0;
+    const reducedCost = Math.max(0, chosenDef.playCost - (action.reduceCostBy ?? 0) - dynamicReduction);
     if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
   }
 
