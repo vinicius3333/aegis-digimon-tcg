@@ -91,6 +91,7 @@ export interface ModifyDPAction extends ActionBase {
   /** Override continuous-pass inference for audited edge cases with a triggered duration. */
   continuous?: boolean;
 }
+export interface AddDPFromTrashedCardAction extends ActionBase { kind: "AddDPFromTrashedCard"; cost: Cost; target: Target; duration: EffectDurationRef; }
 
 export interface AddDPFromTrashedCardAction extends ActionBase {
   kind: "AddDPFromTrashedCard";
