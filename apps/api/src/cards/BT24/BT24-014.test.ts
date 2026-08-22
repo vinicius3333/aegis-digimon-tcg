@@ -141,6 +141,7 @@ describe("BT24-014 Aegiochusmon", () => {
         type: "digivolve",
         permanentId: s.perm("aegiomon").permanentId,
         instanceId: s.inst("aegiochusmon").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("aegiomon").topCard.instanceId === s.inst("aegiochusmon").instanceId);
