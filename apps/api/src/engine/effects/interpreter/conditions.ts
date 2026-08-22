@@ -1,6 +1,6 @@
 // Evaluating an IR Condition against live game state.
 
-import { attackedWithDigimonInCurrentOrPreviousTurn } from "../../turnActivity.js";
+import { attackedWithDigimonThisTurn } from "../../turnActivity.js";
 import type { EffectContext } from "../EffectContext.js";
 import { COLOR_MAP } from "./maps.js";
 import { definitionMatches, matchNameOrTrait } from "./matching/definition.js";
@@ -146,7 +146,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "youDigivolvedThisTurn":
       return ctx.game.digivolvedThisTurn?.(mine) ?? false;
     case "opponentDidNotAttackWithDigimonThisTurn":
-      return !attackedWithDigimonInCurrentOrPreviousTurn(ctx.game.state, opp);
+      return !attackedWithDigimonThisTurn(ctx.game.state, opp);
     // The condition kind sets the DEFAULT side, but an explicit `controller` in the IR
     // filter wins: the runtime record emits e.g. `youHave {controller:"opponent"}` for a
     // CanSelectPermanentCondition ("there is an opponent permanent to target"), and that
