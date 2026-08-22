@@ -56,6 +56,7 @@ describe("BT12-089 handwritten module", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    s.state.memory = 4;
     const before = s.perm("guilmon").currentDP;
 
     await advance(s.engine).fire(EffectTiming.OnUseOption, s.perm("takato"));
