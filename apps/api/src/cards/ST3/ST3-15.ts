@@ -4,8 +4,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
   effects: [
-    { trigger: "Main", actions: [{ kind: "GainKeyword", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 }, keyword: { keyword: "SecurityAttack", amount: -3 }, duration: "untilOpponentTurnEnd" }] },
-    { trigger: "Security", actions: [{ kind: "GainKeyword", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: "all" }, keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "forTheTurn" }], isSecurity: true },
+    { trigger: "Main", actions: [{ kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, keyword: { keyword: "SecurityAttack", amount: -3 }, duration: "untilOpponentTurnEnd" }] },
+    { trigger: "Security", actions: [{ kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" }, keyword: { keyword: "SecurityAttack", amount: -1 }, playerScoped: true, playerScopedController: "opponent", duration: "forTheTurn" }], isSecurity: true },
   ],
   coverage: "full",
   residual: [],

@@ -238,12 +238,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       if (
         ((action as Action & { playerScoped?: boolean }).playerScoped === true ||
           ctx.trigger.securityInstanceId !== undefined ||
-          ctx.activeTiming === "Security") &&
+          (ctx.activeTiming === "Security" &&
+            (action.target?.filter.controller === "mine" || action.target?.filter.controllerDefault === "mine"))) &&
         kw === "SecurityAttack" &&
         action.target?.count === "all" &&
         action.target.filter.kind?.includes("Digimon")
       ) {
-        ctx.fx.grantPlayerKeyword(ctx.source.ownerSeat, kw, duration, keyword.amount);
+        const playerScopedController = (action as Action & { playerScopedController?: "mine" | "opponent" }).playerScopedController;
+        const playerSeat = playerScopedController === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+        ctx.fx.grantPlayerKeyword(playerSeat, kw, duration, keyword.amount);
         return false;
       }
       // `count` grants the keyword N times to each target (default 1). Each call to
