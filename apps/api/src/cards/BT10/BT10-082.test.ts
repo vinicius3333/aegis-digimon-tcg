@@ -53,6 +53,7 @@ describe("BT10-082 Beelzemon", () => {
       },
       1: { battleArea: [{ card: "BT1-015", as: "level4" }] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
+    const startingTrashCount = s.state.players[0]!.trash.length;
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, {
@@ -63,7 +64,7 @@ describe("BT10-082 Beelzemon", () => {
     await settle(() => s.perm("xrosHeartBase").topCard.instanceId === s.inst("evolving").instanceId);
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.state.players[0]!.trash).toHaveLength(10);
+    expect(s.state.players[0]!.trash).toHaveLength(startingTrashCount + 3);
     expect(s.state.memory).toBe(0);
   });
 
