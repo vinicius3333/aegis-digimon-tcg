@@ -1,8 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import type { Primitives as EnginePrimitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import module from "./BT26-002.js";
+import { compiled } from "./BT26-002.js";
 import "../index.js";
 
 function primitives(s: ReturnType<typeof setupEngine>): EnginePrimitives {
@@ -10,10 +9,11 @@ function primitives(s: ReturnType<typeof setupEngine>): EnginePrimitives {
 }
 
 describe("BT26-002 Budmon", () => {
-  it("is a continuous inherited watcher rather than a start-turn snapshot", () => {
-    const effect = module.effectsForTiming(EffectTiming.None, {} as never)[0];
-    expect(effect).toMatchObject({ isInherited: true });
-    expect(module.effectsForTiming(EffectTiming.OnStartTurn, {} as never)).toHaveLength(0);
+  it("is compiled as a once-per-turn inherited Your Turn watcher", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      effects: [{ trigger: "YourTurn", frequency: "OncePerTurn", isInherited: true }],
+    });
   });
 
   it("draws when an effect trashes a card under your Tamer and only once that turn", async () => {
