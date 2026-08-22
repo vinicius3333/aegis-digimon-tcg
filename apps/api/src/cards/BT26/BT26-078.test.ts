@@ -11,7 +11,7 @@ describe("BT26-078 compiled behavior", () => {
         actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { playCostLte: 12, nameOrTrait: [
           { tokens: ["Chronomon"], match: "text" },
           { tokens: ["Titan"], match: "trait" },
-        ] }, count: 1 }, cost: { kind: "delete", target: { isSelf: true } } }],
+        ] }, count: 1 }, cost: { kind: "deleteOwn", target: { isSelf: true } } }],
       });
     }
   });

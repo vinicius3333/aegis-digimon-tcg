@@ -16,7 +16,7 @@ const deleteToPlay = {
   from: ["trash"],
   payCost: false,
   optional: true,
-  cost: { kind: "delete", target: self },
+  cost: { kind: "deleteOwn", target: self },
 };
 
 export const compiled: CompiledCard = {
