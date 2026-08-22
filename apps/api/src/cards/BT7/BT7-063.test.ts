@@ -54,23 +54,12 @@ describe("BT7-063 DarkKnightmon", () => {
       instanceId: s.inst("darkKnightmon").instanceId,
     })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const skullChoice = s.decisions.at(-1)!.req;
+    const materials = s.decisions.at(-1)!.req;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
-      decisionId: skullChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("skullKnightmon").instanceId] },
-    })).toEqual({ ok: true });
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "selectCards" && latest.decisionId !== skullChoice.decisionId &&
-        latest.decisionId === s.state.pendingDecision?.decisionId;
-    });
-    const axeChoice = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: axeChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("deadlyAxemon").instanceId] },
-    })).toEqual({ ok: true });
+      decisionId: materials.decisionId,
+      response: { kind: "selectCards", instanceIds: [s.inst("skullKnightmon").instanceId, s.inst("deadlyAxemon").instanceId] },
+    })).toMatchObject({ ok: false, reason: "decision-pending" });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;

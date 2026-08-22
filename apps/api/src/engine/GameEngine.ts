@@ -737,6 +737,7 @@ export class GameEngine {
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
       (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      (permanentId) => this.modifiers.rawDp(this.state, permanentId),
     );
     return this.gameAccess;
   }

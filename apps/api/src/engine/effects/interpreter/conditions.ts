@@ -526,8 +526,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const sp = ctx.source.permanent();
       return sp !== undefined && sp.isSuspended !== true;
     }
-    case "selfDpAtLeast":
-      return (ctx.source.permanent()?.currentDP ?? -1) >= (cond.value ?? 0);
+    case "selfDpAtLeast": {
+      const self = ctx.source.permanent();
+      return (ctx.game.effectiveDP?.(self?.permanentId ?? "") ?? self?.currentDP ?? -1) >= (cond.value ?? 0);
+    }
     case "selfDigivolutionCountAtLeast": {
       // "If this Digimon has N or more digivolution cards" — the SOURCE permanent's stack size
       // (BT22-007 "10 or more digivolution cards", KB Q4858). An off-field source => 0 => false.

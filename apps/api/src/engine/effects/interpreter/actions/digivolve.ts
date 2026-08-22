@@ -78,7 +78,7 @@ function digivolveIntoTarget(action: Extract<Action, { kind: "Digivolve" }>): Ta
   if (action.into === undefined) return undefined;
   const encoded = action.into as Filter | Target;
   return "filter" in encoded
-    ? ({ ...encoded, count: encoded.count ?? 1 } as Target)
+    ? ({ ...encoded, count: encoded.count ?? 1, ...(encoded.upTo === true ? { upTo: true } : {}) } as Target)
     : { filter: encoded as Filter, count: 1 };
 }
 
