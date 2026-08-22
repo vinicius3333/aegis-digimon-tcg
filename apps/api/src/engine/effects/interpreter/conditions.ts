@@ -644,6 +644,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // effect (KB P-004 "when YOU trash a digivolution card"). An opponent-driven trash of the
       // same opponent Digimon must not fire this.
       return ctx.trigger.byEffectSeat === mine;
+    case "triggerByYourDigimonEffect": {
+      const byEffect = ctx.trigger.addedToHand?.byEffect;
+      return byEffect?.ownerSeat === mine && byEffect.isDigimonEffect === true;
+    }
     case "triggerEnteredByEffect":
       // OnPlay/WhenDigivolving: this card entered the battle area BY AN EFFECT (the entry was
       // gating BT25-084's "after, if played or digivolved by an effect". A manual entry and every

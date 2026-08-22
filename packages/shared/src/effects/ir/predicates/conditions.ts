@@ -70,6 +70,7 @@ export interface Condition {
     | "triggerSecurityIsOpponents"
     | "triggerAddedSecurityHasTrait" // whenAddSecurity: a just-added card matches `filter`
     | "triggerByYourEffect" // whenDigivolutionTrashed: byEffectSeat === ownerSeat (KB P-004 "when YOU trash")
+    | "triggerByYourDigimonEffect" // whenEffectAddsToHand: your Digimon effect added cards to hand
     | "triggerEnteredByEffect" // entered play BY an effect, not a manual play/digivolve (BT25-084). A When Attacking entry never sets it.
     | "triggerPlayedOrDigivolvedByEffect" // either a whenPlayed effect event or an effect-driven digivolve (BT25-077)
     | "selfEnteredByEffect" // the live source permanent's current top entered by an effect (BT25-080)

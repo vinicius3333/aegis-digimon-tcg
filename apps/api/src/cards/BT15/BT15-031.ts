@@ -115,6 +115,7 @@ const compiled: CompiledCard = {
     {
       "trigger": "Static",
       "actions": [],
+      "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }],
       "isInherited": true
     }
   ],
