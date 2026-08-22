@@ -47,6 +47,7 @@ const compiled = {
     {
       trigger: "WhenAttacking" as const,
       isInherited: true,
+      keywords: [{ keyword: "Alliance" as const, raw: "＜Alliance＞" }],
       actions: [
         {
           kind: "AddDPFromSuspendedCost" as const,

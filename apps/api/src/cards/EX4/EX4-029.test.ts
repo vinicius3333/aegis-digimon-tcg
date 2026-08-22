@@ -9,7 +9,7 @@ describe("EX4-029 Antylamon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")).toMatchObject({ isInherited: true, actions: [{ kind: "AddDPFromSuspendedCost", dpSource: { kind: "suspendedTarget" }, duration: "forThisAttack", alsoGainKeywords: [{ keyword: "SecurityAttack", amount: 1 }] }] });
   });
   it("places the top deck card into security at three or fewer security", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "placeFromDeck", toTop: true, condition: { kind: "youHave", count: 3, comparison: "lte" } });
+    expect(compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "placeFromDeck", toTop: true, condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 } });
   });
 
   it("restores security and reduces an opponent after an attack", async () => {
