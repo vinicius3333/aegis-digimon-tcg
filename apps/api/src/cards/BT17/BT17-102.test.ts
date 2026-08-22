@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-102.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT17-102 (Greymon, White Lv.4):
 //   [When Digivolving] If this Digimon's name is [Koromon], it gains +3000 DP for the

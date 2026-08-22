@@ -85,10 +85,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   const isPlainMain = (e: CardEffect): boolean =>
     e.trigger === "Main" && !e.isSecurity && !(e.keywords ?? []).some((kw) => kw.keyword === "Delay");
   // Pre-bucket effects by their target EffectTiming so effectsForTiming is O(1).
-  const byTiming = new Map<
-    EffectTiming,
-    { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]
-  >();
+  const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]>();
   let index = 0;
   for (const effect of effects) {
     // The intrinsic keyword is consumed by GameEngine.payDigisorption through the side registry;
@@ -275,22 +272,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * mask a genuine conflict between two distinct IR cards. `registerCard` still throws
  * for a hand-written double-port that does not go through this bulk path.
  */
-export function registerIrCard(cardId: string, compiled: CompiledCard | EffectModule, legacyModule?: EffectModule): EffectModule {
-  // A small compatibility seam remains for older handwritten modules that passed their
-  // EffectModule as the second argument. New card implementations must pass CompiledCard
-  // (and may use the third argument only while an explicit legacy module is being migrated).
-  const isLegacySecondArgument = "effectsForTiming" in compiled;
-  const compiledRecord: CompiledCard = isLegacySecondArgument
-    ? { effects: [], coverage: "full", residual: [] }
-    : compiled;
-  const runtimeModule = isLegacySecondArgument ? compiled : legacyModule;
-  registeredCompiledCards.set(cardId, compiledRecord);
-  if (runtimeModule !== undefined) {
-    const existingRuntimeModule = getEffectModule(cardId);
-    if (existingRuntimeModule !== undefined && existingRuntimeModule !== runtimeModule) unregisterCard(cardId);
-    registerCard(runtimeModule);
-    registeredIrModules.delete(cardId);
-    return runtimeModule;
+export function registerIrCard(cardId: string, compiled: CompiledCard, legacyModule?: EffectModule): EffectModule {
+  registeredCompiledCards.set(cardId, compiled);
+  if (legacyModule !== undefined) {
+    registerCard(legacyModule);
+    return legacyModule;
   }
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
@@ -300,7 +286,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard | EffectMo
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = irCardModule(cardId, compiledRecord);
+  const module = irCardModule(cardId, compiled);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;
