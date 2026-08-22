@@ -52,8 +52,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
           {
             kind: "Replacement",
             event: "wouldLeavePlay",
+            mode: "prevent",
             sourceFilter: { isSelfRef: true },
-            actions: [{ kind: "Prevent", cost: { kind: "return" } }],
+            cost: { kind: "return" },
           },
         ],
       },
@@ -173,7 +174,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     await s.ready();
     expect([...s.perm("holy").keywords]).toEqual(expect.arrayContaining(["Piercing", "Engage"]));
 
-    expect(await primitives(s).deletePermanent([s.perm("holy").permanentId], "byEffect")).toBe(0);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("holy").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.deck.at(-1)).toMatchObject({ cardId: "BT1-009", faceUp: false });

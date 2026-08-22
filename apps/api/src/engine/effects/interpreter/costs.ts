@@ -866,6 +866,16 @@ export async function payCost(
         if (out) out.paidCount = chosen.length;
         return true;
       }
+      if (cost.target.filter.zone === "security") {
+        const candidates = candidateLooseInstances(ctx, cost.target, ["security"]);
+        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+        if (n <= 0 || candidates.length < n) return false;
+        const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        if (chosen.length < n) return false;
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+        if (out) out.paidCount = chosen.length;
+        return true;
+      }
       // Trash-zone return cost ("by returning 1 [Apocalymon] from your trash to the bottom of the
       // deck", BT17-068): resolve the loose trash cards matching the filter and return them to the
       // deck (bottom unless the raw says "top"). The prose compiler leaves the zone in the raw
