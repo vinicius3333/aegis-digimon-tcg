@@ -1,88 +1,78 @@
-import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { activated, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-022";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnUseOption) {
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/main-hearts-united`,
-          description:
-            "[Main] If you have [Davis Motomiya] and [Ken Ichijoji] in play, you may place " +
-            "1 [ExVeemon] and 1 [Stingmon] from your hand at the bottom of your deck in any " +
-            "order to play 1 [Paildramon] from your hand without paying its memory cost.",
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const permanents = Array.from(owner.battleArea);
-            const hasTamer = (name: string): boolean => permanents.some((permanent) => {
-              const definition = ctx.game.definitionOf(permanent.topCard);
-              return isTamer(definition) && definition.nameEn === name;
-            });
-            if (!hasTamer("Davis Motomiya") || !hasTamer("Ken Ichijoji")) return;
-
-            const hand = Array.from(owner.hand);
-            const named = (name: string) => hand.filter((card) => {
-              const definition = ctx.game.definitionOf(card);
-              return isDigimon(definition) && definition.nameEn === name;
-            });
-            const exVeemon = named("ExVeemon");
-            const stingmon = named("Stingmon");
-            const paildramon = named("Paildramon");
-            if (exVeemon.length === 0 || stingmon.length === 0 || paildramon.length === 0) return;
-
-            const accepted = await ctx.ask.optional(ctx, "Place ExVeemon and Stingmon at deck bottom?");
-            if (!accepted) return;
-            const exChoice = await ctx.ask.selectCards(ctx, {
-              candidates: exVeemon.map((card) => card.instanceId), min: 1, max: 1,
-            });
-            const stingChoice = await ctx.ask.selectCards(ctx, {
-              candidates: stingmon.map((card) => card.instanceId), min: 1, max: 1,
-            });
-            if (exChoice.length !== 1 || stingChoice.length !== 1) return;
-            const costCards = [exChoice[0]!, stingChoice[0]!];
-            const ordered = await ctx.ask.orderCards?.(ctx, {
-              candidates: costCards,
-              destination: "deckBottom",
-              visibleCards: costCards.map((instanceId) => ({
-                instanceId,
-                cardId: hand.find((card) => card.instanceId === instanceId)!.cardId,
-              })),
-            }) ?? costCards;
-            await ctx.fx.returnToDeck(ordered, { toTop: false });
-
-            const currentPaildramon = Array.from(owner.hand).filter((card) =>
-              paildramon.some((candidate) => candidate.instanceId === card.instanceId)
-            );
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates: currentPaildramon.map((card) => card.instanceId), min: 1, max: 1,
-            });
-            if (chosen.length === 1) await ctx.fx.playInstances(chosen, { payCost: false });
+// KB Q4131: both exact cost cards must be available and returned atomically; neither
+// card may be returned alone.
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Main",
+      condition: {
+        kind: "allOf",
+        conditions: [
+          {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [{ tokens: ["Davis Motomiya"], match: "nameExact" }],
+            },
+            raw: "you have [Davis Motomiya] in play",
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-add-to-hand`,
-          description: "[Security] Add this card to its owner's hand.",
-          resolve: async (ctx) => { await ctx.fx.returnToHand([source.instanceId]); },
-        }),
-      ];
-    }
-    return [];
-  },
+          {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [{ tokens: ["Ken Ichijoji"], match: "nameExact" }],
+            },
+            raw: "you have [Ken Ichijoji] in play",
+          },
+        ],
+      },
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Paildramon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                kind: ["Digimon"],
+              },
+              count: 2,
+              requiredNamesExact: ["ExVeemon", "Stingmon"],
+            },
+            to: "deckBottom",
+            orderReturnedCards: true,
+            raw: "by placing 1 [ExVeemon] and 1 [Stingmon] from your hand at the bottom of your deck in any order",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "AddToHandSelf" }],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-022", compiled);

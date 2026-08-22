@@ -98,8 +98,8 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
   });
 
   it("keeps the same printed clause through Palmon and exact-Mimi selections", async () => {
-    const s = setupEngine({
-      0: {
+    const s = setupEngine(
+      { 0: {
         battleArea: [
           { card: "BT1-089", as: "firstMimi" },
           { card: "BT3-096", as: "secondMimi" },
@@ -109,8 +109,9 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
           { card: "BT5-047", as: "secondPalmon" },
           { card: P_021, as: "option" },
         ],
-      },
-    });
+      } },
+      { autoAcceptOptional: true },
+    );
     const firstMimi = s.perm("firstMimi");
     const secondMimi = s.perm("secondMimi");
     const firstPalmonId = s.inst("firstPalmon").instanceId;

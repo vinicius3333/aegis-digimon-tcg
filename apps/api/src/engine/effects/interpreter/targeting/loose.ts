@@ -34,10 +34,17 @@ export interface LooseCandidate {
 export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef): LooseCandidate[] {
   const p = ctx.game.player(seat);
   const out: LooseCandidate[] = [];
-  const collect = (cards: ArrayLike<{ instanceId: string; cardId: string; ownerSeat: Seat }>): void => {
+  const collect = (
+    cards: ArrayLike<{ instanceId: string; cardId: string; ownerSeat: Seat; faceUp?: boolean }>,
+  ): void => {
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i]!;
-      out.push({ instanceId: c.instanceId, cardId: c.cardId, ownerSeat: c.ownerSeat });
+      out.push({
+        instanceId: c.instanceId,
+        cardId: c.cardId,
+        ownerSeat: c.ownerSeat,
+        ...(c.faceUp !== undefined ? { faceUp: c.faceUp } : {}),
+      });
     }
   };
   switch (zone) {
@@ -200,6 +207,13 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         const matchedFilter = allFilters.find(
           (filter) => definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat),
         );
+        if (matchedFilter?.sameColorAsSelectionRef !== undefined) {
+          const referenceId = ctx.selections?.get(matchedFilter.sameColorAsSelectionRef);
+          const reference = referenceId === undefined ? undefined : ctx.game.permanentById(referenceId);
+          if (reference?.topCard === undefined) continue;
+          const referenceColors = ctx.game.effectiveColors?.(reference) ?? ctx.game.definitionOf(reference.topCard).colors;
+          if (!def.colors.some((color) => referenceColors.includes(color))) continue;
+        }
         if (matchedFilter?.faceUp === true && cand.faceUp !== true) continue;
         if (matchedFilter?.faceUp === false && cand.faceUp === true) continue;
         if (matchedFilter?.faceDown === true && cand.faceUp === true) continue;
@@ -292,6 +306,7 @@ export async function pickLoose(
   const requireDifferentColors = target.filter?.differentColors === true;
   const requireDistinctNames = target.filter?.distinctNames === true || target.distinctNames === true;
   const requireDistinctCardNumbers = target.distinctCardNumbers === true;
+  const requireDistinctLevels = target.distinctLevels === true;
   const requiredNamesExact = target.requiredNamesExact ?? [];
   const requiredNamesExactUpTo = target.requiredNamesExactUpTo ?? [];
   if (requiredNamesExact.length > 0) {
@@ -429,6 +444,40 @@ export async function pickLoose(
       const candidate = candidates.find((item) => item.instanceId === instanceId);
       if (candidate === undefined || seenCardIds.has(candidate.cardId)) continue;
       seenCardIds.add(candidate.cardId);
+      chosen.push(instanceId);
+    }
+    return chosen;
+  }
+  if (requireDistinctLevels) {
+    const chosen: string[] = [];
+    const usedLevels = new Set<number>();
+    const distinctLevelCount = new Set(
+      candidates
+        .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).level)
+        .filter((level): level is number => level !== undefined),
+    ).size;
+    const distinctWant = target.count === "all" ? distinctLevelCount : Math.min(want, distinctLevelCount);
+    if (!target.upTo && distinctLevelCount < want) return [];
+    while (chosen.length < distinctWant) {
+      const eligible = candidates.filter((candidate) => {
+        const level = ctx.game.definitionOf({ cardId: candidate.cardId } as never).level;
+        return level !== undefined && !usedLevels.has(level) && !chosen.includes(candidate.instanceId);
+      });
+      if (eligible.length === 0) break;
+      const picked = await asker.selectCards(ctx, {
+        candidates: eligible.map((candidate) => candidate.instanceId),
+        min: target.upTo ? 0 : 1,
+        max: 1,
+        visible,
+        visibleCards,
+      });
+      const instanceId = picked[0];
+      if (instanceId === undefined) break;
+      const candidate = eligible.find((item) => item.instanceId === instanceId);
+      if (candidate === undefined) break;
+      const level = ctx.game.definitionOf({ cardId: candidate.cardId } as never).level;
+      if (level === undefined) break;
+      usedLevels.add(level);
       chosen.push(instanceId);
     }
     return chosen;

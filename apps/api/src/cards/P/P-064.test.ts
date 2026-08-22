@@ -68,6 +68,31 @@ describe("P-064 Kiyoshiro Higashimitarai", () => {
     expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Jamming")).toBe(false);
   });
 
+  it("does not treat TeslaJellymon as the exact Jellymon source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-064", as: "kiyoshiro" },
+            { card: "BT1-009", as: "attacker", under: ["BT9-025"] },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true },
+    );
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("kiyoshiro").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Jamming")).toBe(false);
+  });
+
   it("plays itself from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "P-064", as: "kiyoshiro", faceUp: true }] } });
     const kiyoshiroId = s.inst("kiyoshiro").instanceId;

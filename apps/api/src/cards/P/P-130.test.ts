@@ -16,4 +16,24 @@ describe("P-130 Lui Ohwada", () => {
     expect(s.state.memory).toBe(7);
     assertNoLoudGap(s);
   });
+
+  it("Q4242 cannot move a level-less Digimon from breeding", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "P-130", as: "lui" }],
+        breeding: { card: "BT19-077", as: "calumon" },
+      },
+    }, { autoAcceptOptional: true });
+    s.state.phase = Phase.Main;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("lui").instanceId,
+    })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT19-077");
+    expect(s.state.memory).toBe(7);
+  });
 });

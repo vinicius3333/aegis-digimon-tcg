@@ -193,7 +193,11 @@ export async function runReplacement(
         }
       },
       protects: (subCtx, leavingId) => {
-        if (protectsSelf) return subCtx.source.permanent()?.permanentId === leavingId;
+        if (protectsSelf) {
+          const leaving = subCtx.game.permanentById(leavingId);
+          if (leaving === undefined || subCtx.source.permanent()?.permanentId !== leavingId) return false;
+          return action.sourceFilter === undefined || permanentMatchesFilter(subCtx, leaving, action.sourceFilter, subCtx.source);
+        }
         const leaving = subCtx.game.permanentById(leavingId);
         if (leaving === undefined || protectsFilter === undefined) return false;
         // Controller gate ("any of YOUR Digimon"): permanentMatchesFilter checks definition
@@ -333,6 +337,7 @@ export async function runReplacement(
       ...(interactiveCost !== undefined || interactiveOptional
         ? {
             controllerSeat: ownerSeat,
+            ...(self === undefined ? { activationContext: ctx } : {}),
             appliesTo: (target: Permanent) =>
               target.controllerSeat === ownerSeat &&
               !target.inBreeding &&
@@ -361,6 +366,11 @@ export async function runReplacement(
                 (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true)
               ) {
                 return self !== undefined && runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") === true;
+              }
+              if (action.amountFromPaidCost === true) {
+                const paid = { paidCount: 0 };
+                const succeeded = await payCost(runtimeCtx, interactiveCost, paid);
+                return succeeded ? paid.paidCount : false;
               }
               return payCost(runtimeCtx, interactiveCost);
             },

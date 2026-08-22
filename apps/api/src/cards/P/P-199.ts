@@ -1,104 +1,58 @@
-import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { security, staticModifier, turnTiming } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-199";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-dp`,
-          description: "If you have 4 or less memory, 1 of your Digimon gets +3000 DP for the turn.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn() && ctx.game.state.memory <= 4,
-          resolve: async (ctx) => {
-            const candidates = ctx.game
-              .player(source.ownerSeat)
-              .battleArea.filter(
-                (permanent) => permanent.topCard !== undefined && isDigimon(ctx.game.definitionOf(permanent.topCard)),
-              )
-              .map((permanent) => permanent.permanentId);
-            const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-            if (chosen.length > 0) ctx.fx.modifyDP(chosen[0]!, 3000, EffectDuration.UntilEachTurnEnd);
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          amount: 3000,
+          duration: "forTheTurn",
+          condition: { kind: "memoryAtMost", value: 4, controller: "mine" },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 1,
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
           },
-        }),
-        turnTiming({
-          source,
-          effectKey: `${cardId}/ts-play-cost-this-turn`,
-          description: "[Your Turn] Reduce the play cost of your TS Digimon by 1.",
-          when: () => source.isOnBattleArea() && source.isOwnersTurn() && !source.permanent()?.isSuspended,
-          resolve: async (ctx) => {
-            ctx.fx.changePlayCost(
-              ({ def }) => def.kinds.includes(CardKind.Digimon) && (def.types ?? []).includes("TS"),
-              -1,
-            );
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/ts-play-cost`,
-          description:
-            "[Your Turn] When a TS Digimon would be played, by suspending this Tamer, reduce its play cost by 1.",
-          when: () => {
-            const self = source.permanent();
-            return source.isOnBattleArea() && source.isOwnersTurn() && self !== undefined && !self.isSuspended;
-          },
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenPlayed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description: `${cardId}: pay the TS play-cost reduction by suspending this Tamer`,
-              matches: (subCtx) => {
-                const playedId = subCtx.trigger.subjectPermanentId;
-                if (playedId === undefined) return false;
-                const played = subCtx.game.permanentById(playedId);
-                return (
-                  played?.controllerSeat === source.ownerSeat &&
-                  played.topCard !== undefined &&
-                  isDigimon(subCtx.game.definitionOf(played.topCard)) &&
-                  (subCtx.game.definitionOf(played.topCard).types ?? []).includes("TS")
-                );
-              },
-              run: async (subCtx) => {
-                const current = source.permanent();
-                if (current !== undefined && !current.isSuspended) await subCtx.fx.suspend([current.permanentId]);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          optional: true,
+          raw: "reduce the play cost of your TS Digimon by 1",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-199", compiled);

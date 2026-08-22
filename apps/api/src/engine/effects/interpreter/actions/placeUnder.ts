@@ -166,13 +166,24 @@ export async function runPlaceUnder(
       excludeToken: true,
     };
     if (underFilter) {
+      const sourcePerm =
+        ctx.source.permanent() ??
+        ctx.game
+          .player(ctx.source.ownerSeat)
+          .battleArea.find(
+            (permanent) =>
+              permanent.topCard?.instanceId === ctx.source.instanceId ||
+              permanent.topCard?.cardId === ctx.source.cardId,
+          );
       // `lastPlayed`: the host is whatever this effect's own PlayWithoutCost just played
       // ("place this card as the PLAYED Digimon's bottom digivolution card" — EX9-005),
       // not a fresh choice among the controller's board.
       const destIds =
         action.underFilter?.lastPlayed === true
           ? (ctx.lastPlayedPermanentIds ?? [])
-          : await resolvePermanentTargets(ctx, { filter: underFilter, count: 1 });
+          : candidatePermanents(ctx, { filter: underFilter, count: 1 })
+              .map((permanent) => permanent.permanentId)
+              .filter((permanentId) => permanentId !== sourcePerm?.permanentId);
       if (destIds.length === 0) return;
       const chosen =
         destIds.length === 1 ? destIds : await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 });
@@ -180,7 +191,6 @@ export async function runPlaceUnder(
       // When the source is a battle-area permanent, relocate the whole permanent
       // (top card + digivolution stack) under the chosen Tamer. The placeUnder
       // primitive only handles loose cards and cannot remove a permanent's top card.
-      const sourcePerm = ctx.source.permanent();
       if (sourcePerm !== undefined) {
         const options = { belowTop: action.position !== "bottom" };
         await relocateByEffect(ctx, chosen[0]!, sourcePerm.permanentId, options);
@@ -381,7 +391,7 @@ export async function runTrashDigivolution(
 ): Promise<boolean> {
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
-  const minimum = action.minAmount ?? (typeof amount === "number" ? amount : undefined);
+  const minimum = action.minAmount;
   const isDigiBurst = /Digi-?Burst/i.test(action.raw ?? "");
   const trashOptions = {
     byEffectSeat: ctx.source.ownerSeat,

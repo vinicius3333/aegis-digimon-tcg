@@ -38,7 +38,9 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const self = ctx.source.permanent();
     if (self === undefined) return false;
     const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
-    const candidates = self.stack.filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)));
+    const candidates = self.stack
+      .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)))
+      .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
@@ -106,7 +108,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       cost.target.filter.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const available = ctx.game.player(seat).security.length;
     const n = cost.target.count === "all" ? available : cost.target.count;
-    return n > 0 && available >= n;
+    return cost.target.upTo === true ? true : n > 0 && available >= n;
   }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "trash") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
@@ -471,7 +473,18 @@ export async function payCost(
           cost.target.filter.controller === "opponent"
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
-        const n = cost.target.count === "all" ? ctx.game.player(seat).security.length : cost.target.count;
+        let n = cost.target.count === "all" ? ctx.game.player(seat).security.length : cost.target.count;
+        if (cost.target.upTo === true) {
+          const cap = Math.min(n, ctx.game.player(seat).security.length);
+          n = await ctx.ask.chooseOption(
+            ctx,
+            Array.from({ length: cap + 1 }, (_, count) => `Trash ${count} security`),
+          );
+          if (n === 0) {
+            if (out) out.paidCount = 0;
+            return true;
+          }
+        }
         if (n <= 0 || ctx.game.player(seat).security.length < n) return false;
         // "the top OR bottom card" is a CONTROLLER CHOICE, not a fixed end (BT15-003, BT8-044):
         // prompt per trashed card via the shared binary-choice helper (index 0 = top, 1 = bottom),
@@ -490,7 +503,8 @@ export async function payCost(
         const isBottom =
           cost.target.filter.position === "bottom" ||
           (cost.target.filter.position === undefined && /bottom/i.test(raw));
-        await ctx.fx.trashFromSecurity(seat, n, { fromTop: !isBottom });
+        const moved = await ctx.fx.trashFromSecurity(seat, n, { fromTop: !isBottom });
+        if (out) out.paidCount = moved.length;
         return true;
       }
       // "By trashing 1 of your Digimon's link cards" (BT25-073) — the cost trashes a ＜Link＞
@@ -849,8 +863,18 @@ export async function payCost(
         const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
-        const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        let chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
+        if (cost.orderReturnedCards === true && chosen.length > 1) {
+          chosen =
+            (await ctx.ask.orderCards?.(ctx, {
+              candidates: chosen,
+              visibleCards: candidates
+                .filter((candidate) => chosen.includes(candidate.instanceId))
+                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+              destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
+            })) ?? chosen;
+        }
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
@@ -907,6 +931,27 @@ export async function payCost(
         } else {
           await ctx.fx.returnToHand(chosen);
         }
+        if (out) out.paidCount = chosen.length;
+        return true;
+      }
+      if (cost.target.filter.zone === "hand") {
+        const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+        if (n <= 0 || candidates.length < n) return false;
+        let chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        if (chosen.length < n) return false;
+        if (cost.orderReturnedCards === true && chosen.length > 1) {
+          chosen =
+            (await ctx.ask.orderCards?.(ctx, {
+              candidates: chosen,
+              visibleCards: candidates
+                .filter((candidate) => chosen.includes(candidate.instanceId))
+                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+              destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
+            })) ?? chosen;
+        }
+        if (cost.to === "hand") return false;
+        await ctx.fx.returnToDeck(chosen, { toTop: cost.to === "deckTop" });
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -983,12 +1028,22 @@ export async function payCost(
         }
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
-        const chosen = await ctx.ask.selectCards(ctx, {
+        let chosen = await ctx.ask.selectCards(ctx, {
           candidates: candidates.map((c) => c.instanceId),
           min: n,
           max: n,
         });
         if (chosen.length < n) return false;
+        if (cost.orderReturnedCards === true && chosen.length > 1) {
+          chosen =
+            (await ctx.ask.orderCards?.(ctx, {
+              candidates: chosen,
+              visibleCards: candidates
+                .filter((candidate) => chosen.includes(candidate.instanceId))
+                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+              destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
+            })) ?? chosen;
+        }
         recordTrackedColors(candidates, chosen);
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;

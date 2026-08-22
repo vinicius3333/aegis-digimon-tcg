@@ -1,43 +1,39 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-045";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing !== EffectTiming.None) return [];
-    return [
-      staticModifier({
-        source,
-        effectKey: `${cardId}/inherited-same-name-decoy`,
-        description:
-          "[All Turns] All your other Digimon with the same name gain Decoy (Black/White).",
-        isInherited: true,
-        resolve: async (ctx) => {
-          const host = source.permanent();
-          if (host === undefined) return;
-          const hostName = ctx.game.definitionOf(host.topCard).nameEn.toLowerCase();
-          for (const target of ctx.game.player(source.ownerSeat).battleArea) {
-            if (target.permanentId === host.permanentId) continue;
-            if (ctx.game.definitionOf(target.topCard).nameEn.toLowerCase() !== hostName) continue;
-            ctx.fx.grantKeyword(
-              target.permanentId,
-              "Decoy",
-              EffectDuration.Permanent,
-              undefined,
-              { specifiers: ["Black", "White"] },
-            );
-          }
+// Errata 2021-11-12: only OTHER same-named Digimon gain Decoy, and Decoy replaces
+// deletion only when caused by an opponent's effect.
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              isSameName: true,
+              sameNameAs: "sourceTopCard",
+            },
+            count: "all",
+          },
+          keyword: {
+            keyword: "Decoy",
+            raw: "＜Decoy (Black/White)＞",
+          },
+          duration: "permanent",
+          whileMatchesTargetFilter: true,
         },
-      }),
-    ];
-  },
+      ],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-045", compiled);

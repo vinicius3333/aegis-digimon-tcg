@@ -38,6 +38,8 @@ export interface ReplacementAction extends ActionBase {
   amount?: number;
   /** Remove a successful digivolution-cost reduction after the payment is calculated. */
   consumeOnActivate?: boolean;
+  /** Use the number of cards/resources actually paid as this replacement's cost reduction. */
+  amountFromPaidCost?: boolean;
   /**
    * Mutually exclusive reduceCost amounts the controller chooses between, never summed — for
    * text offering a base reduction plus a conditional larger one "instead" (EX6-006; KB Q3700

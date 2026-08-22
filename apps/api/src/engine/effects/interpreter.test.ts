@@ -4609,7 +4609,7 @@ describe("CostModifier mode:set (absolute cost set)", () => {
     const calls = recorder.calls.filter((c) => c.verb === "changeEvoCost");
     expect(calls).toHaveLength(1);
     expect(calls[0]!.args[1]).toBe(3); // the resolved absolute cost (security count)
-    expect(calls[0]!.args[2]).toEqual({ setFixed: true });
+    expect(calls[0]!.args[2]).toEqual({ setFixed: true, continuous: true });
   });
 
   it("a SET with a security count of 0 still records cost 0 (no early-return)", async () => {
@@ -4622,7 +4622,7 @@ describe("CostModifier mode:set (absolute cost set)", () => {
     const calls = recorder.calls.filter((c) => c.verb === "changeEvoCost");
     expect(calls).toHaveLength(1);
     expect(calls[0]!.args[1]).toBe(0); // a count of 0 is a meaningful absolute cost
-    expect(calls[0]!.args[2]).toEqual({ setFixed: true });
+    expect(calls[0]!.args[2]).toEqual({ setFixed: true, continuous: true });
   });
 
   // P-116: "While you have [Agumon] AND [Pulsemon] AND [Gammamon], this card costs 0."

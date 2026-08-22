@@ -8,6 +8,7 @@ import { unsupported } from "../errors.js";
 import { GRANTED_EFFECT_LIBRARY } from "../grantedEffects.js";
 import { scaleFactor } from "../scaling.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { SUBTRIGGER_EVENT_MAP } from "./subTrigger.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target } from "@aegis/shared";
@@ -20,7 +21,12 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
       // condition gives (it lapses the moment the gate fails). The battle-area guard
       // is implicit (no source permanent => no candidates).
       if (action.while !== undefined && !evaluateCondition(ctx, action.while)) return false;
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      const hasDynamicSelfConstraint = action.target.filter.colors !== undefined || action.target.filter.dp !== undefined;
+      const ids = (await resolvePermanentTargets(ctx, action.target)).filter((id) => {
+        if (!hasDynamicSelfConstraint) return true;
+        const permanent = ctx.game.permanentById(id);
+        return permanent !== undefined && permanentMatchesFilter(ctx, permanent, action.target.filter, ctx.source);
+      });
       const duration = EffectDuration.UntilEachTurnEnd;
       for (const id of ids) {
         switch (action.effect.kind) {

@@ -12,7 +12,7 @@ describe("P-070 Dorumon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const promoId = s.inst("promoDorumon").instanceId;
     const revealedId = s.inst("revealedDorumon").instanceId;
@@ -55,6 +55,13 @@ describe("P-070 Dorumon", () => {
       type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
       target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: decision.decisionId,
+      response: { kind: "selectCards", instanceIds: [] },
     })).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.hand.some((card) => card.instanceId === promoId) &&

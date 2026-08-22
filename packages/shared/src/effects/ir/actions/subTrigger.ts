@@ -96,6 +96,8 @@ export interface SubTriggerAction extends ActionBase {
    * added card must match for the watcher to fire.
    */
   addedDigivolutionCardFilter?: Filter;
+  /** For whenLinked, at least one card newly linked by this event must match. */
+  linkedCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */
   effectSourceFilter?: Filter;
   /** Do not fire when this card's own effect caused the deck trash (EX2-039). */

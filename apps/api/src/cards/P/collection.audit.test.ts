@@ -8,33 +8,6 @@ const pCards = allCards()
   .filter((card) => /^P-\d{3}$/.test(card.cardId))
   .sort((a, b) => Number(a.cardId.slice(2)) - Number(b.cardId.slice(2)));
 
-const residualCards = [
-  "P-012",
-  "P-016",
-  "P-021",
-  "P-043",
-  "P-048",
-  "P-070",
-  "P-072",
-  "P-075",
-  "P-077",
-  "P-085",
-  "P-086",
-  "P-123",
-  "P-130",
-  "P-156",
-  "P-158",
-  "P-199",
-  "P-215",
-  "P-217",
-  "P-218",
-  "P-220",
-  "P-233",
-  "P-234",
-  "P-242",
-  "P-244",
-];
-
 describe("P collection audit ledger guards", () => {
   it("covers every committed P catalog entry from P-001 through P-244", () => {
     expect(pCards).toHaveLength(243);
@@ -52,10 +25,13 @@ describe("P collection audit ledger guards", () => {
     expect(missingIr).toEqual([]);
   });
 
-  it("keeps the committed residual list explicit instead of treating it as verified behavior", () => {
+  it("has full executable IR coverage with no residual behavior", () => {
     const observed = pCards
-      .filter((card) => (getCompiledCard(card.cardId)?.residual?.length ?? 0) > 0)
+      .filter((card) => {
+        const compiled = runtimeCompiledCard(card.cardId);
+        return compiled?.coverage !== "full" || (compiled.residual?.length ?? 0) > 0;
+      })
       .map((card) => card.cardId);
-    expect(observed).toEqual(residualCards);
+    expect(observed).toEqual([]);
   });
 });

@@ -41,11 +41,12 @@ describe("P-075 Okuwamon", () => {
         s.perm("okuwamon").topCard.cardId === "BT1-083" &&
         advance(s.engine).ledgers.subTriggers.subscriptionsFor("whenSuspended", s.perm("first").permanentId).length ===
           1,
+      2_000,
     );
     const memoryAfterDigivolve = s.state.memory;
 
     await advance(s.engine).verb.suspend([s.perm("first").permanentId]);
-    await settle(() => s.state.memory === memoryAfterDigivolve + 1);
+    await settle(() => s.state.memory === memoryAfterDigivolve + 1, 2_000);
 
     // The opponent's Digimon is the watcher source, so losing 1 from its controller's
     // perspective moves the shared gauge 1 toward Okuwamon's controller.

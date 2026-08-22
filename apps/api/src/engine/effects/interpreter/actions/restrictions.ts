@@ -41,6 +41,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       return false;
     }
     case "Restrict": {
+      if (action.target === undefined) return false;
       const gate = action.while ?? action.condition;
       if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
       const duration = toDuration(action.duration);

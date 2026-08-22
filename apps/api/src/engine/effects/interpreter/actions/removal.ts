@@ -421,7 +421,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             asker,
           );
         }
-        const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        const moved = (chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : []) ?? [];
         ctx.lastTrashedCards = moved.map((card) => ({
           instanceId: card.instanceId,
           cardId: card.cardId,
@@ -432,7 +432,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         // Store actual trash count under the named key for downstream scaling. (CAP-E12/E13)
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
-          ctx.namedCounts.set(action.trackCount, moved.length);
+          ctx.namedCounts.set(action.trackCount, moved.length > 0 ? moved.length : chosen.length);
         }
         if (action.bindResultAs !== undefined) {
           if (ctx.boundPlayed === undefined) ctx.boundPlayed = new Map();
@@ -689,9 +689,13 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // "At the next end of your opponent's turn, delete it" after a PlayWithoutCost branch.
       // The target is the permanent(s) just created by the prior play action in this same
       // effect resolution, not the card currently resolving the effect.
-      const permanentIds = action.target === undefined
-        ? (ctx.lastPlayedPermanentIds ?? [])
-        : await resolvePermanentTargets(ctx, action.target);
+      const playedIds = ctx.lastPlayedPermanentIds ?? [];
+      const permanentIds =
+        playedIds.length > 0 && (action.target === undefined || action.target.isSelf || action.target.filter?.isSelfRef)
+          ? playedIds
+          : action.target === undefined
+            ? []
+            : await resolvePermanentTargets(ctx, action.target);
       for (const permanentId of permanentIds) {
         if (action.timing === "endOfOpponentTurn") {
           ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");
