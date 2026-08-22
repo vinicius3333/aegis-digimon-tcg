@@ -28,20 +28,23 @@ describe("P-220 Millenniummon", () => {
       P5B: { kinds: ["Digimon"], level: 5, types: ["Ver.3"] },
       P6: { kinds: ["Digimon"], level: 6, types: ["Ver.5"] },
     };
-    const owner = { trash: cards.slice(), battleArea: [] };
+    const owner = { trash: cards.slice(), battleArea: [], hand: [], deck: [], security: [], eggDeck: [] };
+    const opponent = { trash: [], battleArea: [], hand: [], deck: [], security: [], eggDeck: [] };
     const selections: string[][] = [];
     const played: string[][] = [];
     const effect = getEffectModule("P-220")!.effectsForTiming(EffectTiming.OnDestroyedAnyone, {
       ownerSeat: 0,
+      definition: { effectText: "" },
     } as any)[0]!;
     await effect.resolve({
       source: { ownerSeat: 0 } as any,
       game: {
-        player: () => owner,
+        player: (seat: number) => (seat === 0 ? owner : opponent),
         definitionOf: (card: { cardId: string }) => definitions[card.cardId],
         opponentOf: () => 1,
       } as any,
       ask: {
+        optional: async () => true,
         selectCards: async (_ctx: unknown, options: { candidates: string[] }) => {
           selections.push(options.candidates);
           return selections.length === 1
