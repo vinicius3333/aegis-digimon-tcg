@@ -55,9 +55,10 @@ describe("BT13-080 ProtoGizmon", () => {
   });
 
   it("draws one card and then trashes one card from hand on play", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-080", as: "proto" }], deck: ["BT1-001"], hand: ["BT1-002"] },
-    });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT13-080", as: "proto" }], deck: ["BT1-001"], hand: ["BT1-002"] } },
+      { autoSelectCards: true },
+    );
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("proto"));
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
