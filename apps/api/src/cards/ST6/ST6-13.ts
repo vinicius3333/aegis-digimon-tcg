@@ -13,6 +13,14 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          kind: "TrashDigivolution",
+          target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 },
+          amount: 2,
+          choose: true,
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
           kind: "PlayWithoutCost",
           target: {
             filter: { controller: "mine", kind: ["Digimon"], colors: ["Purple"], levels: [3] },
@@ -21,12 +29,8 @@ const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           optional: true,
+          condition: { kind: "ifThisEffectActed" },
           abortOnDecline: true,
-          cost: {
-            kind: "trash",
-            target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 },
-            raw: "＜Digi-Burst 2＞",
-          },
         },
       ],
       keywords: [{ keyword: "DigiBurst", amount: 2, raw: "＜Digi-Burst 2＞" }],
