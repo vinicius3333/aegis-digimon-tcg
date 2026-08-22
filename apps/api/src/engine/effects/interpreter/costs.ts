@@ -816,17 +816,17 @@ export async function payCost(
           const allowZero = (cost.target as Target & { allowZero?: boolean }).allowZero === true;
           const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: allowZero ? 0 : 1, max: cap });
           if (chosen.length < 1) return false;
-          await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
-          if (out) out.paidCount = chosen.length;
-          return true;
+          const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+          if (out) out.paidCount = moved.length;
+          return moved.length >= 1;
         }
         const want = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
         if (candidates.length < want) return false;
         const chosen = await pickLoose(ctx, { ...handTarget, count: want }, candidates);
         if (chosen.length < want) return false;
-        await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
-        if (out) out.paidCount = chosen.length;
-        return true;
+        const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        if (out) out.paidCount = moved.length;
+        return moved.length === want;
       }
       const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, cost.target));
       if (ids.length === 0) return false;

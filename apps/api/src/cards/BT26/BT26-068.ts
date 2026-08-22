@@ -26,14 +26,12 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectAddsToOpponentHand",
-          optional: true,
+          cost: { kind: "trash", target: { filter: ownHand, count: 1 } },
           actions: [
             {
               kind: "Trash",
               target: { filter: opponentHand, count: 1 },
               chooser: "opponent",
-              optional: true,
-              cost: { kind: "trash", target: { filter: ownHand, count: 1 } },
             },
           ],
         },
@@ -44,7 +42,8 @@ export const compiled: CompiledCard = {
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1, cost: { kind: "trash", target: { filter: ownHand, count: 1 } } },
+        { kind: "Draw", controller: "mine", amount: 1 },
+        { kind: "Trash", target: { filter: ownHand, count: 1 } },
       ],
     },
   ],

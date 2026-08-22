@@ -56,11 +56,11 @@ describe("BT26-068 Devimon", () => {
     expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenEffectAddsToOpponentHand",
+      cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } },
       actions: [
         {
           kind: "Trash",
           chooser: "opponent",
-          cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } },
         },
       ],
     });
@@ -68,7 +68,7 @@ describe("BT26-068 Devimon", () => {
       trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "Draw", amount: 1, cost: { kind: "trash" } }],
+      actions: [{ kind: "Draw", amount: 1 }, { kind: "Trash" }],
     });
   });
 
@@ -150,7 +150,7 @@ describe("BT26-068 Devimon", () => {
 
     owner.hand.push(instance("sixth"));
     draw.mockClear();
-    expect(effect.canActivate(ctx)).toBe(false);
+    expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
     expect(draw).not.toHaveBeenCalled();
   });
@@ -223,6 +223,7 @@ describe("BT26-068 Devimon", () => {
     const game = {
       player: (seat: Seat) => (seat === 0 ? { hand: [ownCard] } : { hand: [opponentCard] }),
       opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      definitionOf: () => definition(),
     } as unknown as GameAccess;
     const opponentSelect = vi.fn(async () => [opponentCard.instanceId]);
     const declinedCtx = {
@@ -272,10 +273,10 @@ describe("BT26-068 Devimon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("cerberusmon"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cerberusmon"));
     await settle(() => s.state.players[0]!.deck.length === 1 && s.state.players[0]!.trash.length === 1);
 
-    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("cerberusmon"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cerberusmon"));
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);

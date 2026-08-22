@@ -799,12 +799,21 @@ export async function runSubTrigger(
           }
         }
         if (activationCostOptions.length > 0) {
-          if (!(await payOneCostOption(subCtx, activationCostOptions))) return;
+          if (!(await payOneCostOption(subCtx, activationCostOptions))) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         } else if (activationCost !== undefined) {
-          if (!(await payCost(subCtx, activationCost))) return;
+          if (!(await payCost(subCtx, activationCost))) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         }
         for (const cost of additionalCosts) {
-          if (!(await payCost(subCtx, cost))) return;
+          if (!(await payCost(subCtx, cost))) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         }
       }
       for (const a of action.actions) {
