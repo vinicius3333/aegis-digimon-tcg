@@ -36,8 +36,8 @@ invented.
 | EX6-072 | Mega Digimon Assembly! | full | none found | 6605805a1d31 | fe49ab4d14f2 | NR |
 | EX6-071 | Pandemonium Lost | full | none found | 49fd6a52a04c | 6df0686bc2c5 | NR |
 | EX6-070 | Phantom Pain | full | none found | 5af178e85fb6 | 4c8ae50ebf8d | NR |
-| EX6-069 | Rise of the Seven Great Demon Lords | full | none found | 69677fce8d9a | 9ff61e18f7ec | NR |
-| EX6-068 | Descent of the Three Great Angels | full | none found | 91dfaf7151c5 | a41b5a2f0431 | NR |
+| EX6-069 | Rise of the Seven Great Demon Lords | full | none found | 69677fce8d9a | 34066b658e9f | NR |
+| EX6-068 | Descent of the Three Great Angels | full | none found | 91dfaf7151c5 | a9629ab1071d | NR |
 | EX6-067 | Final Excalibur | full | none found | 0ee4729f1245 | a31d35372b47 | NR |
 | EX6-066 | Sea of Destruction | full | none found | 0faa1205b112 | c03215f52ce5 | NR |
 | EX6-065 | Mythical Arms of Salvation! | full | none found | bedf266d804c | 685a860a2b7b | NR |
