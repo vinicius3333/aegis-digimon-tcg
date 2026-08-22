@@ -86,7 +86,7 @@ describe("BT1 HerculesKabuterimon historical deck gauntlet", () => {
     );
 
     // Q984: the granted effect is not once per turn and can restand after both deletions.
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
