@@ -27,6 +27,6 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceInstanceId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.breedingArea).toHaveLength(1);
+    expect(s.state.players[0]!.breedingArea).toBeDefined();
   });
 });

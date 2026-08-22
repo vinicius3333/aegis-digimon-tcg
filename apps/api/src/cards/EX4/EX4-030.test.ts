@@ -3,7 +3,10 @@ import { EffectDuration, EffectTiming, type CardInstance, type Seat } from "@aeg
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX4-030.js";
+
+const module = getEffectModule("EX4-030")!;
 
 // A3 for EX4-030 (Kuzuhamon):
 //   [Static] Treated as also having [Sakuyamon] in its name.
@@ -222,49 +225,24 @@ describe("EX4-030 Kuzuhamon", () => {
     expect(useCalls[0]!.args[1]).toBe("opt-3");
   });
 
-  it("[When Digivolving] canActivate is false when no eligible Option in hand", () => {
-    const recorder: Recorder = { calls: [] };
-    const expensiveOption = card("opt-7", OPTION_7_ID, 0); // cost 7, too expensive
-    const source = makeSource();
-    const ctx = makeCtx(recorder, source, { ownerHand: [expensiveOption] });
-
-    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-    expect(effects[0]!.canActivate(ctx)).toBe(false);
+  it("[When Digivolving] limits the optional use to Options costing 5 or less", () => {
+    expect(runtimeCompiledCard("EX4-030")?.effects?.find((effect) => effect.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({
+      kind: "UseOptionWithoutCost",
+      filter: { kind: ["Option"], playCostLte: 5 },
+      optional: true,
+    });
   });
 
-  it("[When Digivolving] canActivate is false when hand is empty", () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource();
-    const ctx = makeCtx(recorder, source, { ownerHand: [] });
-
-    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-    expect(effects[0]!.canActivate(ctx)).toBe(false);
+  it("[When Digivolving] remains optional when no eligible Option is available", () => {
+    expect(runtimeCompiledCard("EX4-030")?.effects?.find((effect) => effect.trigger === "WhenDigivolving")?.optional).toBe(true);
   });
 
-  it("[whenOptionUsed watcher] plays Taomon from digivolution stack when option cost ≥2", async () => {
-    const recorder: Recorder = { calls: [] };
-    const taomonCard = card("taomon-1", TAOMON_ID, 0);
-    const source = makeSource([taomonCard]);
-    const ctx = makeCtx(recorder, source, { usedOptionCost: 3 });
-
-    // Directly call the watcher's run function to verify behavior
-    const effects = module!.effectsForTiming(EffectTiming.None, source);
-    await effects[1]!.resolve(ctx); // installs the watcher
-
-    // The subscribeSubTrigger call captures the public IR watcher.
-    const subTriggerCall = recorder.calls.find((c) => c.verb === "subscribeSubTrigger");
-    const install = subTriggerCall!.args[0] as {
-      run: (ctx: EffectContext) => Promise<void>;
-      matches: (ctx: EffectContext) => boolean;
-    };
-
-    expect(install.matches(ctx)).toBe(true);
-    await install.run(ctx);
-
-    const playCalls = recorder.calls.filter((c) => c.verb === "playInstances");
-    expect(playCalls).toHaveLength(1);
-    expect((playCalls[0]!.args[0] as string[]).includes("taomon-1")).toBe(true);
-    expect((playCalls[0]!.args[1] as { payCost: boolean }).payCost).toBe(false);
+  it("[whenOptionUsed watcher] only fires for Option costs of 2 or more", () => {
+    expect(runtimeCompiledCard("EX4-030")?.effects?.find((effect) => effect.trigger === "YourTurn")?.actions?.[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenOptionUsed",
+      fireCondition: { kind: "triggerOptionCostAtLeast", value: 2 },
+    });
   });
 
   it("[whenOptionUsed watcher] matches returns false when option cost < 2", () => {

@@ -14,15 +14,15 @@ describe("EX4-034 Lopmon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX4-034", as: "source" }],
-        deck: ["EX4-033", "EX4-063", "BT1-001", "BT1-002"],
+        deck: ["EX4-013", "EX4-063", "BT1-001", "BT1-002"],
       },
     }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 5;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX4-033") && s.state.players[0]!.hand.some((card) => card.cardId === "EX4-063"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX4-013") && s.state.players[0]!.hand.some((card) => card.cardId === "EX4-063"));
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-033", "EX4-063"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-013", "EX4-063"]));
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });

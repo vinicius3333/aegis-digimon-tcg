@@ -17,11 +17,12 @@ describe("EX4-065 Trident Gaia", () => {
       1: { security: ["BT1-001", "BT1-001"], battleArea: [{ card: "BT1-011", as: "highest", dp: 13000 }, { card: "BT1-009", as: "lower", dp: 12000 }] },
     }, { autoSelectCards: true });
     s.state.memory = 10;
+    const highestInstanceId = s.perm("highest").topCard.instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.cardId !== "BT1-011"));
 
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("highest").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === highestInstanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
