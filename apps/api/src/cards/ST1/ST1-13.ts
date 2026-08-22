@@ -42,6 +42,7 @@ const compiled: CompiledCard = {
             "amount": 1,
             "raw": "＜Security Attack +1＞"
           },
+          "playerScoped": true,
           "duration": "untilYourTurnEnd"
         }
       ],
