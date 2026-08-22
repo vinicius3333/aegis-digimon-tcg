@@ -822,6 +822,15 @@ export async function payCost(
         if (out) out.paidCount = chosen.length;
         return true;
       }
+      // A security-/hand-/trash-resident effect can pay "by trashing this card" while its
+      // source is a loose instance rather than a permanent (ST22-10's face-up security
+      // replacement). Permanent target resolution cannot see that source, so route the exact
+      // self instance through the zone-agnostic trash primitive and require an actual move.
+      if (cost.target.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
+        const moved = await ctx.fx.trash([ctx.source.instanceId], { byEffectSeat: ctx.source.ownerSeat });
+        if (out) out.paidCount = moved.length;
+        return moved.some((card) => card.instanceId === ctx.source.instanceId);
+      }
       const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, cost.target));
       if (ids.length === 0) return false;
       await ctx.fx.trash(ids, { byEffectSeat: ctx.source.ownerSeat });
@@ -1155,8 +1164,11 @@ export async function payCost(
               if (permanent?.topCard === undefined) return false;
               await ctx.fx.addSecurity(permanent.controllerSeat, [permanent.topCard.instanceId], {
                 toTop: cost.position !== "bottom",
-                detachPermanentTop: true,
               });
+              // The cost is paid only if the permanent actually left. A leave-prevention
+              // replacement can keep it in the battle area (ST22-06 Q5425), in which case the
+              // dependent effect must not resolve even though the placement was attempted.
+              if (ctx.game.permanentById(sourcePermanentId) !== undefined) return false;
             }
             if (out) out.paidCount = sourceIds.length;
             return true;

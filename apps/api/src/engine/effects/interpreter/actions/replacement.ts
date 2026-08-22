@@ -150,9 +150,9 @@ export async function runReplacement(
   // guards) + a preventCheck (prompt + pay the cost; true => the removal is prevented). The
   // engine's leave-prevention consult runs these when a permanent would be deleted/leave.
   if (mode === "prevent") {
+    const protectsFilter = action.target?.filter ?? action.sourceFilter;
     const protectsSelf =
-      action.target === undefined || action.target.isSelf === true || action.target.filter?.isSelfRef === true;
-    const protectsFilter = action.target?.filter;
+      protectsFilter === undefined || action.target?.isSelf === true || protectsFilter.isSelfRef === true;
     // The reaction's owner seat (whose permanents it protects). Used to gate the removal
     // cause: "your effects" / "opponent's effect" are relative to this seat.
     const ownerSeat = ctx.source.ownerSeat;
