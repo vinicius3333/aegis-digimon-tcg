@@ -18,14 +18,7 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "GrantAuraToOpponents",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
+          "kind": "SubTrigger",
           "event": "onDeletionOf",
           "actions": [
             {
