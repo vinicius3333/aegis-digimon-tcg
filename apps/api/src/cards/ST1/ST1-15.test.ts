@@ -38,6 +38,32 @@ describe("ST1-15 Giga Destroyer", () => {
     );
   });
 
+  it("may decline to delete any eligible Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["ST1-03"], hand: [{ card: "ST1-15", as: "option" }] },
+      1: { battleArea: [{ card: "ST1-04", as: "eligible" }] },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "ST1-15"));
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("eligible").permanentId,
+    ]);
+  });
+
   it("activates the same deletion effect from security", async () => {
     const s = setupEngine(
       {
