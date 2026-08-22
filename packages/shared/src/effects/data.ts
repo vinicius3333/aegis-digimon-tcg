@@ -371,6 +371,15 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  "BT8-042": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Blue", level: 4 },
+      ],
+    },
+  ],
 };
 
 export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequirement[] {
@@ -745,6 +754,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // base must BE that card — substring would wrongly accept relatives ("Veemon" ⊂ "ExVeemon").
   // Armor digivolve (BT8 [Armor Form] line):
   "BT8-012": [{ cost: 2, isAlternate: true, namesExact: ["Veemon"] }],
+  "BT8-032": [{ cost: 2, isAlternate: true, names: ["Dragon Mode"] }],
   "BT8-023": [{ cost: 2, isAlternate: true, namesExact: ["Armadillomon"] }],
   "BT8-026": [{ cost: 2, isAlternate: true, namesExact: ["Hawkmon"] }],
   "BT8-038": [{ cost: 3, isAlternate: true, namesExact: ["Veemon"] }],
@@ -1012,6 +1022,16 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // AD1-006: DigiXros -2 requires all six distinct named slots. The generated aggregate retained
+  // only OmniShoutmon, which made the server accept an incomplete recipe.
+  "AD1-006": [
+    {
+      materials: ["OmniShoutmon", "ZeigGreymon", "Ballistamon", "Dorulumon", "Starmons", "Sparrowmon"].map(
+        (name) => ({ names: [name] }),
+      ),
+      count: 2,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {

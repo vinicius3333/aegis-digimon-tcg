@@ -70,4 +70,43 @@ describe("ST16-13 SkullMammothmon — whenHandTrashed plays Lv.4-or-lower purple
     expect(p0.battleArea.length).toBe(initialCount);
     expect(p0.trash.some((c) => c.instanceId === trashTargetId)).toBe(true);
   });
+
+  it("plays at most once per turn when multiple hand cards are trashed separately", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST16-13", as: "skull" }],
+          trash: [{ card: "BT10-074", as: "firstTarget" }, { card: "ST16-09", as: "secondTarget" }],
+          hand: [{ card: "BT1-001", as: "firstHand" }, { card: "BT1-002", as: "secondHand" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.engine.recomputeContinuousEffects();
+
+    await primitivesOf(s).trash([s.inst("firstHand").instanceId], { byEffectSeat: 0 });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await primitivesOf(s).trash([s.inst("secondHand").instanceId], { byEffectSeat: 0 });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondHand").instanceId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.trash.filter((card) => ["BT10-074", "ST16-09"].includes(card.cardId))).toHaveLength(1);
+  });
+
+  it("does not trigger when an opponent's effect trashes the owner's hand card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST16-13", as: "skull" }],
+        trash: [{ card: "BT10-074", as: "trashTarget" }],
+        hand: [{ card: "BT1-001", as: "handCard" }],
+      },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    await primitivesOf(s).trash([s.inst("handCard").instanceId], { byEffectSeat: 1 });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCard").instanceId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashTarget").instanceId)).toBe(true);
+  });
 });

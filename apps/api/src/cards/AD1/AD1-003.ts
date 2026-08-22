@@ -113,6 +113,7 @@ const compiled: CompiledCard = {
         {
           "kind": "Replacement",
           "event": "wouldLeavePlay",
+          "leaveCause": "otherThanYourEffect",
           "sourceFilter": {
             "controllerDefault": "mine",
             "kind": [

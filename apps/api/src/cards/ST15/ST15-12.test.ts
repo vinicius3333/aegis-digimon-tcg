@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("ST15-12 WarGreymon", () => {
+  it("has Blocker and exposes Blast Digivolve from hand", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST15-12", as: "field" }], hand: [{ card: "ST15-12", as: "counter" }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("field"), "Blocker")).toBe(true);
+    expect(registeredCompiledCards.get("ST15-12")?.effects).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        trigger: "Counter",
+        isFromHand: true,
+        keywords: [expect.objectContaining({ keyword: "BlastDigivolve" })],
+      }),
+    ]));
+  });
+
   it("unsuspends itself when either player's security loses a card", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST15-12", as: "wargreymon", suspended: true }] },

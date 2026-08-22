@@ -182,13 +182,13 @@ export async function runPlaceUnder(
       // primitive only handles loose cards and cannot remove a permanent's top card.
       const sourcePerm = ctx.source.permanent();
       if (sourcePerm !== undefined) {
-        await relocateByEffect(ctx, chosen[0]!, sourcePerm.permanentId, {
-          belowTop: action.position !== "bottom",
-        });
+        const options = { belowTop: action.position !== "bottom" };
+        await relocateByEffect(ctx, chosen[0]!, sourcePerm.permanentId, options);
       } else {
-        await ctx.fx.placeUnder(chosen[0]!, [ctx.source.instanceId], {
+        const placed = await ctx.fx.placeUnder(chosen[0]!, [ctx.source.instanceId], {
           belowTop: action.position !== "bottom",
         });
+        ctx.lastEffectActed = placed.length > 0;
       }
       if (action.bindHostAs) {
         ctx.boundPlayed ??= new Map();
@@ -454,10 +454,6 @@ export async function runTrashDigivolution(
     ctx.lastEffectActed = false;
     return false;
   }
-  if (minimum !== undefined && resolvedIds.some((id) => (ctx.game.permanentById(id)?.stack.length ?? 0) < minimum)) {
-    ctx.lastEffectActed = false;
-    return false;
-  }
   // Redirect BEFORE selecting which cards to take (KB BT10-084 Q2002-Q2008): a "would trash"
   // reaction may collapse this whole operation onto ONE reacting Digimon's stack instead. The
   // loop below then re-applies the SAME fromTop/choose/amount logic to whichever ids come back,
@@ -465,6 +461,13 @@ export async function runTrashDigivolution(
   const permanentIds = ctx.fx.redirectDigivolutionTrashHosts
     ? await ctx.fx.redirectDigivolutionTrashHosts(resolvedIds)
     : resolvedIds;
+  // Check the supply only after replacement chooses the actual host. Q2007 explicitly
+  // permits SnowAgumon to choose a source-free Digimon and have Tactimon supply the
+  // digivolution card instead; checking the original host would suppress that window.
+  if (minimum !== undefined && permanentIds.some((id) => (ctx.game.permanentById(id)?.stack.length ?? 0) < minimum)) {
+    ctx.lastEffectActed = false;
+    return false;
+  }
   // An optional fixed-count action that gates the rest of its effect is an atomic
   // activation cost (for example BT5-111: "by trashing 2 ... end the attack").
   // If any selected host cannot supply the printed count, do not partially trash its

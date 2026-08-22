@@ -42,4 +42,41 @@ describe("ST22-14 Barbamon", () => {
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === lowLevelId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === highLevelId)).toBe(true);
   });
+
+  it("gives the opponent the discard decision before applying the five-card deletion check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST22-14", as: "barbamon" }] },
+      1: {
+        hand: [
+          { card: "BT1-009", as: "chosenDiscard" },
+          "BT1-010",
+          "BT1-011",
+          "BT1-012",
+          "BT1-013",
+          "BT1-014",
+        ],
+        battleArea: [{ card: "BT1-009", as: "lowest" }],
+      },
+    });
+    await s.ready();
+
+    const resolution = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("barbamon"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(decision.seat).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("chosenDiscard").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("chosenDiscard").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.hand).toHaveLength(5);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });

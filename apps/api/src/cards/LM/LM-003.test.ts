@@ -16,7 +16,7 @@ describe("LM-003 TeslaJellymon", () => {
   });
 
   it("draws from the inherited effect at seven cards, but not at eight", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "LM-003", as: "host", dp: 4000 }], hand: ["BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029"] }, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine({ 0: { battleArea: [{ card: "LM-004", as: "host", under: ["LM-003"], dp: 7000 }], hand: ["BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029"], deck: ["BT1-027"] }, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     const host = s.perm("host");
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } })).toEqual({ ok: true });

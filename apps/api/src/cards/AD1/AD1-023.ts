@@ -20,7 +20,7 @@ const placeHybridBody = () => [
       upTo: true,
       from: ["hand", "trash"],
     },
-    underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+    underFilter: { isSelfRef: true },
     trackCount: "placedHybrid",
     optional: true,
   },

@@ -56,4 +56,28 @@ describe("ST22-10 OnDiscardSecurity (effect trashes this card from security)", (
     // Trashed, but no DP change anywhere (no opponent Digimon to target).
     expect(p0.trash.some((c) => c.instanceId === st22Id)).toBe(true);
   });
+
+  it("trashes itself from face-up security to prevent a named Digimon's effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: ST22, as: "st22", faceUp: true }],
+          battleArea: [{ card: "ST22-03", as: "taomon" }],
+        },
+        1: { battleArea: [{ card: OPP_DIGIMON, dp: 12000, as: "oppPerm" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("taomon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("st22").instanceId));
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("taomon").permanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("st22").instanceId)).toBe(false);
+    expect(s.perm("oppPerm").currentDP).toBe(3000);
+  });
 });

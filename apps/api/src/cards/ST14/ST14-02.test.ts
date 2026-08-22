@@ -52,4 +52,16 @@ describe("ST14-02 Impmon", () => {
     expect(s.perm("imp").topCard.cardId).toBe("ST14-02");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST14-10")).toBe(true);
   });
+
+  it("cannot use the trash digivolution below 20 cards", async () => {
+    const trash = [...Array.from({ length: 18 }, () => "BT1-009"), { card: "ST14-08", as: "beel" }];
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST14-02", as: "imp" }], trash } }, {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("imp"));
+    expect(s.perm("imp").topCard.cardId).toBe("ST14-02");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST14-08")).toBe(true);
+  });
 });

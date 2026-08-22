@@ -144,7 +144,6 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
     case "ModifyDP": {
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
-      const amount = scale === undefined ? action.amount : action.amount * scale;
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
       const continuous =
         action.continuous === true ||
@@ -152,6 +151,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           ["Static", "AllTurns", "YourTurn", "OpponentsTurn"].includes(ctx.activeTiming ?? "") &&
           Object.keys(ctx.trigger ?? {}).length === 0);
       for (const id of ids) {
+        const targetScale =
+          action.scaling?.unit === "targetFaceDownDigivolutionCards"
+            ? Math.floor(
+                (ctx.game.permanentById(id)?.stack.filter((card) => card.faceUp !== true).length ?? 0) /
+                  Math.max(1, action.scaling.per),
+              )
+            : scale;
+        const amount = targetScale === undefined ? action.amount : action.amount * targetScale;
+        if (amount === 0) continue;
         ctx.fx.modifyDP(
           id,
           amount,

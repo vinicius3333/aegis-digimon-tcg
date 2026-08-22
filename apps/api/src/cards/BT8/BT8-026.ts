@@ -39,7 +39,16 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": []
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "names": [
+        "Hawkmon"
+      ],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ]
 };
 
 registerIrCard("BT8-026", compiled);

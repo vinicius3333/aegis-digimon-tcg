@@ -39,6 +39,7 @@ export async function runReplacement(
     unsupported(ctx, action, `Replacement event "${action.event}" is not a known game event`);
     return;
   }
+  if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
   if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
   const self = ctx.source.permanent();
   if (event === "wouldTrashDigivolutionCard" && self !== undefined) {
@@ -149,9 +150,9 @@ export async function runReplacement(
   // guards) + a preventCheck (prompt + pay the cost; true => the removal is prevented). The
   // engine's leave-prevention consult runs these when a permanent would be deleted/leave.
   if (mode === "prevent") {
+    const protectsFilter = action.target?.filter ?? action.sourceFilter;
     const protectsSelf =
-      action.target === undefined || action.target.isSelf === true || action.target.filter?.isSelfRef === true;
-    const protectsFilter = action.target?.filter;
+      protectsFilter === undefined || action.target?.isSelf === true || protectsFilter.isSelfRef === true;
     // The reaction's owner seat (whose permanents it protects). Used to gate the removal
     // cause: "your effects" / "opponent's effect" are relative to this seat.
     const ownerSeat = ctx.source.ownerSeat;
@@ -212,6 +213,26 @@ export async function runReplacement(
           const targetId = subCtx.trigger.deletedPermanentId;
           if (targetId === undefined) return false;
           return (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !== undefined;
+        }
+        if (action.playAndRelocateSourceUnder !== undefined) {
+          const host = subCtx.source.permanent();
+          if (host === undefined) return false;
+          const owner = subCtx.game.state.players[subCtx.source.ownerSeat]!;
+          const candidates = [
+            ...(action.playAndRelocateSourceUnder.from.includes("digivolutionCards") ? host.stack : []),
+            ...(action.playAndRelocateSourceUnder.from.includes("trash") ? owner.trash : []),
+          ].filter((card) => definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)));
+          if (candidates.length === 0) return false;
+          const selected = await subCtx.ask.selectCards(subCtx, {
+            candidates: candidates.map((card) => card.instanceId),
+            min: 1,
+            max: 1,
+          });
+          if (selected.length === 0) return false;
+          const played = await subCtx.fx.playInstances(selected, { payCost: false });
+          const playedPermanent = played[0];
+          if (playedPermanent === undefined) return false;
+          return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });
         }
         const runCtx: EffectContext =
           action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
@@ -393,6 +414,9 @@ export async function runReplacement(
       return true;
     },
     apply: async (subCtx) => {
+      if (action.optional === true && !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))) {
+        return;
+      }
       for (const a of action.actions ?? []) {
         const abort = await runAction(subCtx, a);
         if (abort) break;

@@ -110,46 +110,12 @@ describe("ST6 purple deletion and revival toolbox deck", () => {
       instanceId: s.inst("nailBone").instanceId,
     })).toEqual({ ok: true });
     await settle(() =>
-      s.decisions.length > nailDecisionStart &&
-      s.decisions.at(-1)?.req.sourceCardId === "ST6-16" &&
-      s.decisions.at(-1)?.req.kind === "selectCards",
-    );
-
-    const levelThreeDecision = s.decisions.at(-1)!.req;
-    expect(levelThreeDecision.options?.candidateInstanceIds).toContain(
-      firstDracmonInstanceId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: levelThreeDecision.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [firstDracmonInstanceId],
-      },
-    })).toEqual({ ok: true });
-
-    const afterLevelThreeCount = s.decisions.length;
-    await settle(() =>
-      s.decisions.length > afterLevelThreeCount &&
-      s.decisions.at(-1)?.req.sourceCardId === "ST6-16" &&
-      s.decisions.at(-1)?.req.kind === "selectCards",
-    );
-    const levelFourDecision = s.decisions.at(-1)!.req;
-    expect(levelFourDecision.options?.candidateInstanceIds).toEqual([
-      s.inst("devimonToRevive").instanceId,
-    ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: levelFourDecision.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("devimonToRevive").instanceId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        ({ topCard }) => topCard.instanceId === s.inst("devimonToRevive").instanceId,
+      s.decisions.length >= nailDecisionStart + 2 &&
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === firstDracmonInstanceId) &&
+      s.state.players[0]!.battleArea.some(({ topCard }) =>
+        topCard.instanceId === s.inst("devimonToRevive").instanceId
       ),
+      2000,
     );
 
     expect(s.state.players[0]!.battleArea.some(

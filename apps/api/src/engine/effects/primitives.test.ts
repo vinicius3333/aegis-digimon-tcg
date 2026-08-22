@@ -1318,7 +1318,9 @@ describe("primitives: placeUnder / link", () => {
     const destId = h.s.perm("dest").permanentId;
     const sourceId = h.s.perm("source").permanentId;
     const sourceInstanceId = h.s.perm("source").topCard!.instanceId;
+    h.fx.enterEffectResolution?.(1);
     expect(await h.fx.relocatePermanentByEffect?.(destId, sourceId)).toBe(true);
+    h.fx.leaveEffectResolution?.();
 
     expect(h.subTriggerFires).toContainEqual({
       event: "onAddDigivolutionCards",
@@ -1326,6 +1328,7 @@ describe("primitives: placeUnder / link", () => {
     });
     expect(h.subTriggerFires.find((entry) => entry.event === "onAddDigivolutionCards")?.payload).toMatchObject({
       addedDigivolutionCardInstanceIds: [sourceInstanceId],
+      byEffectSeat: 1,
     });
     expect(h.s.perm("dest").stack.map(({ cardId }) => cardId)).toContain(DIGIMON);
   });
@@ -2310,6 +2313,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     materialSave: true,
     minDpFloor: true,
     modifyDP: true,
+    restoreDpReductions: true,
     modifySecurityDp: true,
     movePermanentZone: true,
     payActivationCost: true,

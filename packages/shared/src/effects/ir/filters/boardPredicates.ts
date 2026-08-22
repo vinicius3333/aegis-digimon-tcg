@@ -68,7 +68,7 @@ export interface BoardPredicates {
    * `"hasNone"` is the explicit complement of `"hasAny"` (BT17-064, BT17-100); `"hasAny"` also
    * covers the Mind Link guard's "no Tamer cards" reading when combined with kind Digimon.
    */
-  digivolutionCards?: "none" | "hasNone" | "hasAny";
+  digivolutionCards?: "none" | "hasNone" | "hasAny" | "hasFaceDown";
   /** Alias for `digivolutionCards: "hasAny"` (BT17-098). */
   hasDigivolutionCards?: boolean;
   /** Candidate color matches at least one color in the source Digimon's stack (EX9-074). */

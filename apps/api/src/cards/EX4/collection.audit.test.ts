@@ -15,81 +15,12 @@ describe("EX4 collection registration evidence", () => {
     expect(EX4_IDS.filter((cardId) => getEffectModule(cardId) === undefined)).toEqual([]);
   });
 
-  it("keeps the migrated EX4-036 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-036");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
+  it("keeps every EX4 IR record full and residual-free", () => {
+    const incomplete = EX4_IDS.filter((cardId) => {
+      const compiled = runtimeCompiledCard(cardId);
+      return compiled?.coverage !== "full" || compiled.residual.length !== 0;
+    });
 
-  it("keeps the migrated EX4-037 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-037");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-069 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-069");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-068 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-068");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-030 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-030");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-021 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-021");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-060 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-060");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-059 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-059");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-062 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-062");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-073 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-073");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-072 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-072");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-051 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-051");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
-  });
-
-  it("keeps the migrated EX4-049 IR record full and residual-free", () => {
-    const compiled = runtimeCompiledCard("EX4-049");
-    expect(compiled?.coverage).toBe("full");
-    expect(compiled?.residual).toEqual([]);
+    expect(incomplete).toEqual([]);
   });
 });

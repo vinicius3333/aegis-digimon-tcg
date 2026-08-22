@@ -54,9 +54,12 @@ export function candidatePermanents(
   // lose a produced permanent to an unrelated board-enumeration filter.
   if (target.filter.boundRef !== undefined) {
     const bound = ctx.boundPlayed?.get(target.filter.boundRef);
-    if (bound === undefined) return [];
+    const selected = ctx.selections?.get(target.filter.boundRef);
+    if (bound === undefined && selected === undefined) return [];
     const boundPermanents: Permanent[] = [];
-    for (const permanentId of bound) {
+    const permanentIds = new Set(bound ?? []);
+    if (selected !== undefined) permanentIds.add(selected);
+    for (const permanentId of permanentIds) {
       const permanent = ctx.game.permanentById(permanentId);
       if (permanent !== undefined && permanentMatchesFilter(ctx, permanent, target.filter, source)) {
         boundPermanents.push(permanent);

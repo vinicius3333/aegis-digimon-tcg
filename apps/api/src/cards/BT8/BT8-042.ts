@@ -7,6 +7,21 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
+  "dnaDigivolveRequirement": [
+    {
+      "cost": 0,
+      "materials": [
+        {
+          "color": "Yellow",
+          "level": 4
+        },
+        {
+          "color": "Blue",
+          "level": 4
+        }
+      ]
+    }
+  ],
   "effects": [
     {
       "trigger": "WhenDigivolving",

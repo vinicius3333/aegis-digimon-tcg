@@ -11,4 +11,27 @@ describe("BT8-003 Frimon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("does not grant DP with only 2 security cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-042", as: "host", under: ["BT8-003"] }],
+        security: ["BT8-034", "BT8-034"],
+      },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
+
+  it("does not grant DP during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-042", as: "host", under: ["BT8-003"] }],
+        security: ["BT8-034", "BT8-034", "BT8-034"],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });

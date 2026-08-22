@@ -221,7 +221,7 @@ describe("EX4-049 CresGarurumon", () => {
       isOwnersTurn: () => true,
       hasColor: () => true,
     };
-    const effect = getEffectModule("EX4-049")!.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]!;
+    const effect = getEffectModule("EX4-049")!.effectsForTiming(EffectTiming.OnUseAttack, source)[0]!;
     await effect.resolve({
       source,
       trigger: {},

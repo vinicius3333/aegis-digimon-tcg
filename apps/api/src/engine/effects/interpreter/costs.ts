@@ -113,6 +113,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return cost.target.upTo === true ? candidates.length >= (cost.stopIfZero === true ? 1 : 0) : candidates.length >= required;
   }
+  if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "hand") {
+    const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
+  }
   if (
     cost.kind === "trash" &&
     (cost.target?.filter.zone === "digivolutionCards" ||
@@ -817,6 +822,15 @@ export async function payCost(
         if (out) out.paidCount = chosen.length;
         return true;
       }
+      // A security-/hand-/trash-resident effect can pay "by trashing this card" while its
+      // source is a loose instance rather than a permanent (ST22-10's face-up security
+      // replacement). Permanent target resolution cannot see that source, so route the exact
+      // self instance through the zone-agnostic trash primitive and require an actual move.
+      if (cost.target.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
+        const moved = await ctx.fx.trash([ctx.source.instanceId], { byEffectSeat: ctx.source.ownerSeat });
+        if (out) out.paidCount = moved.length;
+        return moved.some((card) => card.instanceId === ctx.source.instanceId);
+      }
       const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, cost.target));
       if (ids.length === 0) return false;
       await ctx.fx.trash(ids, { byEffectSeat: ctx.source.ownerSeat });
@@ -831,6 +845,16 @@ export async function payCost(
         if (cost.to === "deckTop") return true;
         return /\bto the top\b/i.test(cost.raw ?? "");
       };
+      if (cost.target.filter.zone === "hand") {
+        const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+        if (n <= 0 || candidates.length < n) return false;
+        const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        if (chosen.length < n) return false;
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+        if (out) out.paidCount = chosen.length;
+        return true;
+      }
       // Combined trash-OR-digivolution-cards return cost ("by returning 4 [Negamon] from your
       // trash or your Digimon's digivolution cards to the bottom of the Digi-Egg deck" —
       // EX9-057). All-or-nothing across the pooled candidates from both zones; always returns
@@ -1160,8 +1184,11 @@ export async function payCost(
               if (permanent?.topCard === undefined) return false;
               await ctx.fx.addSecurity(permanent.controllerSeat, [permanent.topCard.instanceId], {
                 toTop: cost.position !== "bottom",
-                detachPermanentTop: true,
               });
+              // The cost is paid only if the permanent actually left. A leave-prevention
+              // replacement can keep it in the battle area (ST22-06 Q5425), in which case the
+              // dependent effect must not resolve even though the placement was attempted.
+              if (ctx.game.permanentById(sourcePermanentId) !== undefined) return false;
             }
             if (out) out.paidCount = sourceIds.length;
             return true;
@@ -1422,8 +1449,12 @@ export async function payCost(
       );
       if (chosen.length < want) return false;
       let hostId: string | undefined;
-      if (cost.underFilter) {
-        const destTarget: Target = { filter: cost.underFilter, count: 1 };
+      // Older compiled records place the destination selector on the cost target,
+      // while newer hand-authored IR uses the cost-level field. Both encode the
+      // same printed "under this Digimon or one of your Tamers" destination.
+      const underFilter = cost.underFilter ?? (cost.target as Target & { underFilter?: Filter }).underFilter;
+      if (underFilter) {
+        const destTarget: Target = { filter: underFilter, count: 1 };
         const destIds = await resolvePermanentTargets(ctx, destTarget);
         if (destIds.length === 0) return false;
         hostId =

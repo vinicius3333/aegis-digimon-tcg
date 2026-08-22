@@ -38,7 +38,7 @@ const compiled: CompiledCard = {
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": ["Digimon", "Option"],
+                  "kind": ["Digimon", "Tamer", "Option"],
                   "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
                 },
                 "count": 1
@@ -59,8 +59,7 @@ const compiled: CompiledCard = {
                 },
                 "raw": "by suspending this Tamer"
               },
-              "costReduction": 1,
-              "scaling": {
+              "costReductionScaling": {
                 "per": 2,
                 "filter": {
                   "controller": "mine",

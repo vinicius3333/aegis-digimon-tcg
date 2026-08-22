@@ -121,6 +121,8 @@ const compiled: CompiledCard = {
         {
           "kind": "Replacement",
           "event": "wouldLeavePlay",
+          "optional": true,
+          "raw": "When this Digimon would leave the battle area other than by DigiXros, you may place cards under a Tamer and play 1 such card.",
           "sourceFilter": {
             "isSelfRef": true
           },
@@ -129,47 +131,70 @@ const compiled: CompiledCard = {
               "kind": "PlaceUnder",
               "target": {
                 "filter": {
-                  "or": [
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "nameOrTrait": [
                     {
-                      "keyword": "Xros Heart"
-                    },
-                    {
-                      "keyword": "Blue Flare"
+                      "tokens": [
+                        "Xros Heart",
+                        "Blue Flare"
+                      ],
+                      "match": "trait"
                     }
                   ],
-                  "cardType": "Digimon"
+                  "zone": "digivolutionCards",
+                  "hostFilter": {
+                    "isSelfRef": true
+                  }
                 },
                 "count": 4,
                 "upTo": true,
-                "controller": "mine",
-                "zone": "digivolutionCards",
-                "source": "thisDigimon"
+                "minimum": 1
               },
+              "from": [
+                "digivolutionCards"
+              ],
               "underFilter": {
-                "cardType": "Tamer",
-                "count": 1,
-                "controller": "mine"
+                "controller": "mine",
+                "kind": [
+                  "Tamer"
+                ]
               }
             },
             {
-              "kind": "PlayWithoutCost",
+              "kind": "PlayFromZone",
               "target": {
                 "filter": {
-                  "or": [
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "nameOrTrait": [
                     {
-                      "keyword": "Xros Heart"
-                    },
-                    {
-                      "keyword": "Blue Flare"
+                      "tokens": [
+                        "Xros Heart",
+                        "Blue Flare"
+                      ],
+                      "match": "trait"
                     }
                   ],
-                  "cardType": "Digimon"
+                  "hostFilter": {
+                    "isSelfRef": true
+                  }
                 },
-                "count": 1,
-                "controller": "mine",
-                "zone": "underTamer"
+                "count": 1
               },
-              "payCost": false
+              "from": [
+                "digivolutionCards"
+              ],
+              "payCost": false,
+              "digiXrosMaterialsFrom": [
+                "battleArea",
+                "underTamers"
+              ],
+              "digiXrosSourceMaterialName": "Shoutmon"
             }
           ]
         }
@@ -195,6 +220,31 @@ const compiled: CompiledCard = {
         {
           "names": [
             "OmniShoutmon"
+          ]
+        },
+        {
+          "names": [
+            "ZeigGreymon"
+          ]
+        },
+        {
+          "names": [
+            "Ballistamon"
+          ]
+        },
+        {
+          "names": [
+            "Dorulumon"
+          ]
+        },
+        {
+          "names": [
+            "Starmons"
+          ]
+        },
+        {
+          "names": [
+            "Sparrowmon"
           ]
         }
       ],

@@ -23,7 +23,9 @@ const compiled: CompiledCard = {
                   {
                     "tokens": [
                       "Vegetation",
-                      "Plant"
+                      "Plant",
+                      "Ancient Plant",
+                      "Carnivorous Plant"
                     ],
                     "match": "trait"
                   }

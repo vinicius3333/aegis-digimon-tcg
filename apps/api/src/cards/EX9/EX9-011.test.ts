@@ -8,7 +8,7 @@ import "../index.js";
 describe("EX9-011", () => {
   it("reduces its play cost by trashing a Cyborg or Ver.1 card and places a trash Digimon underneath when deleting opposing Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({ kind: "Replacement", actions: [{ mode: "reduceCost", amount: 2, cost: { kind: "trash" } }] });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "Delete", optional: true, cost: { kind: "place", destination: "digivolutionStack", faceDown: true } });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "Delete", optional: true, target: { totalDpCap: 5000 }, totalDpCapScaling: { unit: "selfFaceDownDigivolutionCards", amount: 2000 }, cost: { kind: "place", destination: "digivolutionStack", faceDown: true } });
   });
 
   it("scales the deletion limit only from face-down digivolution cards", async () => {

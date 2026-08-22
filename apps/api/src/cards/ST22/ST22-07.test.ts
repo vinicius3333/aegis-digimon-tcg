@@ -24,4 +24,31 @@ describe("ST22-07 Rika Nonaka", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.state.memory).toBe(1);
   });
+
+  it("suspends itself to use a cost-6 Option under it when a level-6 Sakuyamon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: [{ card: "BT1-009", as: "drawn" }],
+          battleArea: [
+            { card: "ST22-07", as: "rika", under: [{ card: "ST22-10", as: "mandala" }] },
+            { card: "ST22-06", as: "attacker" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttacking", {
+      subjectPermanentId: s.perm("attacker").permanentId,
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("mandala").instanceId));
+
+    expect(s.perm("rika").isSuspended).toBe(true);
+    expect(s.perm("rika").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("mandala").instanceId)).toBe(true);
+  });
 });

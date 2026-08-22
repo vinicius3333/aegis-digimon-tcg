@@ -23,6 +23,13 @@ export function observe(engine: GameEngine) {
       return internals.continuous.hasRestriction(idOf(permanent), restriction);
     },
 
+    /** Whether an effect from the named card kind is blocked for this permanent. */
+    isRestrictedByEffect(permanent: Permanent | string, restriction: Restriction, sourceKind: string): boolean {
+      return internals.continuous.hasRestriction(idOf(permanent), restriction, sourceKind, {
+        byOpponentEffect: true,
+      });
+    },
+
     /** Whether a keyword is active on a permanent (printed or continuously granted). */
     hasKeyword(permanent: Permanent | string, keyword: string): boolean {
       return internals.continuous.hasKeyword(idOf(permanent), keyword);

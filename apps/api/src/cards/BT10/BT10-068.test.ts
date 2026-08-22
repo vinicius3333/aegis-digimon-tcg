@@ -33,7 +33,7 @@ describe("BT10-068 Gankoomon (X Antibody)", () => {
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 1;
-    await advance(s.engine).modifyDP(s.perm("base").permanentId, -3000, EffectDuration.Permanent);
+    await advance(s.engine).verb.modifyDP(s.perm("base").permanentId, -3000, EffectDuration.Permanent);
     expect(s.perm("base").currentDP).toBe(9000);
 
     expect(s.engine.applyIntent(0, {

@@ -16,7 +16,10 @@ describe("BT8-054 Pistmon", () => {
   });
 
   it("gives its host +1000 DP for each other suspended Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-057", as: "host", under: ["BT8-054"] }, { card: "BT8-046", suspended: true }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-057", as: "host", under: ["BT8-054"], suspended: true }, { card: "BT8-046", suspended: true }] },
+      1: { battleArea: [{ card: "BT8-046", suspended: true }] },
+    });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });

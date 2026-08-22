@@ -33,7 +33,13 @@ describe("ST13-06 RagnaLoardmon", () => {
         instanceId: s.inst("ragnaLoardmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
+    await settle(() => {
+      const ragna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST13-06");
+      return Boolean(ragna)
+        && observe(s.engine).hasKeyword(ragna!, "Blitz")
+        && s.state.players[1]!.battleArea.length === 0
+        && s.state.players[1]!.security.length === 1;
+    });
 
     const ragna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST13-06")!;
     expect(ragna.stack).toHaveLength(8);
@@ -41,7 +47,7 @@ describe("ST13-06 RagnaLoardmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not run the DNA-only effect on an ordinary digivolution", async () => {
+  it("gains Blitz but does not run the DNA-only removal on an ordinary digivolution", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "ST13-05", as: "red", under: ["ST13-02", "ST13-03", "ST13-04"] }],
@@ -61,11 +67,13 @@ describe("ST13-06 RagnaLoardmon", () => {
         instanceId: s.inst("ragnaLoardmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("red").topCard.cardId === "ST13-06");
+    await settle(() =>
+      s.perm("red").topCard.cardId === "ST13-06"
+      && observe(s.engine).hasKeyword(s.perm("red"), "Blitz"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
-    expect(observe(s.engine).hasKeyword(s.perm("red"), "Blitz")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("red"), "Blitz")).toBe(true);
   });
 
   it("unsuspends once per turn when either player loses security", async () => {
