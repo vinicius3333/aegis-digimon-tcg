@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-102.js";
 
 describe("BT12-102 handwritten module", () => {
@@ -18,4 +19,17 @@ describe("BT12-102 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
   });
+});
+
+it("returns an opposing Digimon to its owner's deck", async () => {
+  const s = setupEngine({
+    0: { hand: [{ card: "BT12-102", as: "option" }], battleArea: [{ card: "BT1-029", as: "blue" }] },
+    1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009"] },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  s.state.memory = 9;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toContain("BT1-009");
 });
