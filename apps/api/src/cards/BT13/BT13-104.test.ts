@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT13-104.js";
 
 describe("BT13-104 Final Shining Burst", () => {
@@ -10,5 +14,33 @@ describe("BT13-104 Final Shining Burst", () => {
 
   it("activates its Main effect in security", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")?.actions?.[0]).toMatchObject({ kind: "ActivateMain" });
+  });
+
+  it("reduces an opposing Digimon and plays Marcus Damon from hand without paying", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT13-104", as: "option" }, { card: "BT13-095", as: "marcus" }] },
+        1: { battleArea: [{ card: "BT13-111", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-095"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(false);
+    expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("activates the same Main effect when revealed from security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT13-104", as: "securityOption", faceUp: true }], hand: [{ card: "BT13-095", as: "marcus" }] },
+      1: { battleArea: [{ card: "BT13-111", as: "target" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-095"));
+    expect(s.perm("target").currentDP).toBe(1000);
   });
 });
