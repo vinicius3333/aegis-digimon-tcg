@@ -6,7 +6,7 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "SelectBind", target: { filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 }, bindAs: "chosenHost" },
+        { kind: "SelectBind", target: { filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1, bindAs: "chosenHost" } },
         {
           kind: "PlayWithoutCost",
           target: {
