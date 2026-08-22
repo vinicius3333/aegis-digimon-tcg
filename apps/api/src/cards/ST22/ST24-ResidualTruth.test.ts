@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import st24Lilamon from "../ST24/ST24-10.js";
 import "../index.js";
 
 describe("ST22/ST24 remaining complex clauses", () => {
@@ -68,8 +67,7 @@ describe("ST22/ST24 remaining complex clauses", () => {
     const opponent = s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT1-009");
     expect(opponent?.isSuspended ?? true).toBe(true);
     if (opponent !== undefined) expect(observe(s.engine).isRestricted(opponent, "unsuspend")).toBe(true);
-    expect(s.perm("lilamon").topCard?.cardId).toBe("BT25-021");
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(st24Lilamon.cardId).toBe("ST24-10");
+    expect(s.perm("lilamon").topCard?.cardId).toBe("BT25-021");
   });
 });
