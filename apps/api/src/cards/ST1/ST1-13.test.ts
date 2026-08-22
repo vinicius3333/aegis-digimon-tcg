@@ -3,9 +3,16 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./ST1-13.js";
+import { compiled } from "./ST1-13.js";
 
 describe("ST1-13 Shadow Wing", () => {
+  it("registers both exact option clauses as complete IR", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
+      { trigger: "Main", actions: [{ kind: "ModifyDP", amount: 3000, duration: "forTheTurn" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "GainKeyword", duration: "untilYourTurnEnd" }] },
+    ] });
+  });
+
   it("gives one of your Digimon +3000 DP", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST1-03", as: "target" }], hand: [{ card: "ST1-13", as: "option" }] },
