@@ -165,7 +165,7 @@ describe("BT25-101 Divine Arms Version Ω", () => {
           security: [{ card: "AD1-001", as: "security" }],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("piercingLink").instanceId);
     await s.ready();
