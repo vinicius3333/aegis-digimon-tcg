@@ -11,7 +11,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "RevealAdd", revealCount: 3, add: { filter: dm, count: 1, to: "hand", optional: true }, rest: "deckBottom" },
+        { kind: "RevealAdd", revealCount: 3, add: [{ filter: dm, count: 1, to: "hand", optional: true }], rest: "deckBottom" },
         { kind: "PlaceInBattleAreaSelf" },
       ],
     },
@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
       ] }],
     },
     { trigger: "Security", isSecurity: true, actions: [
-      { kind: "RevealAdd", revealCount: 3, add: { filter: dm, count: 1, to: "hand", optional: true }, rest: "deckBottom" },
+      { kind: "RevealAdd", revealCount: 3, add: [{ filter: dm, count: 1, to: "hand", optional: true }], rest: "deckBottom" },
       { kind: "PlaceInBattleAreaSelf" },
     ] },
   ],

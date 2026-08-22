@@ -6,14 +6,14 @@ const revealAndTrash = [
   {
     kind: "RevealAdd",
     revealCount: 3,
-    add: {
+    add: [{
       filter: { nameOrTrait: [{ tokens: ["Aqua"], match: "trait" }] },
       orFilters: [
         { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
         { nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
       ],
       count: 1,
-    },
+    }],
     rest: "deckBottom",
   },
   {
