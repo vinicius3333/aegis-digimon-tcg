@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-043.js";
 
@@ -117,5 +117,6 @@ it("allows the alternate evolution from a level 5 RizeGreymon", async () => {
   await s.ready();
   s.state.memory = 3;
   await advance(s.engine).verb.digivolveFromInstance(s.perm("rize").permanentId, s.inst("shine").instanceId);
+  await settle(() => s.perm("rize").topCard?.cardId === "BT12-043");
   expect(s.perm("rize").topCard?.cardId).toBe("BT12-043");
 });
