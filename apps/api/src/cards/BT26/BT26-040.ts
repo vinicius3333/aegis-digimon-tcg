@@ -27,11 +27,7 @@ export const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "Training", raw: "＜Training＞" }, { keyword: "Piercing", raw: "＜Piercing＞" }] },
     { trigger: "WhenMoving", actions },
     { trigger: "OnPlay", actions },
-    {
-      trigger: "None",
-      isInherited: true,
-      actions: [{ kind: "GainKeyword", keyword: { keyword: "Piercing" }, duration: "permanent" }],
-    },
+    { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] },
   ],
   coverage: "full",
   residual: [],

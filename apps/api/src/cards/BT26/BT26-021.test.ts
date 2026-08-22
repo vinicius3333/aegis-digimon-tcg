@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, digivolutionRequirementsFor, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -12,6 +12,10 @@ import { compiled } from "./BT26-021.js";
 
 const CARD_ID = "BT26-021";
 const MAIN_KEY = "main-play-ts-tamer-from-trash";
+
+it("exposes the printed level-3 TS evolution", () => {
+  expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
+});
 
 it("encodes normal TS targeting, reduced trash Tamer play, and inherited bottom-source cost", () => {
   expect(compiled.effects).toMatchObject([
