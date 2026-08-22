@@ -27,6 +27,7 @@ export interface Scaling {
     | "selfAndDigivolutionCardColors"
     /** Stack size of ONE matching permanent — the largest when several match (BT19-100). */
     | "digivolutionCardsOfFiltered"
+    | "targetFaceDownDigivolutionCards"
     | "linkCards" // linked cards across matching permanents, not the permanents (BT25-075)
     | "deletedThisEffect"
     | "namedCount" // a count already in `EffectContext.namedCounts`

@@ -15,6 +15,8 @@ export interface DeleteAction extends ActionBase {
   at?: "endOfTurn";
   /** Add to the target DP ceiling per unit counted. */
   dpCeilingScaling?: Scaling & { amount: number };
+  /** Add to a total-DP deletion budget per live scaling unit. */
+  totalDpCapScaling?: Scaling & { amount: number };
   /** Dynamically raise a printed play-cost ceiling on the delete target. */
   playCostCeiling?: {
     base: number;

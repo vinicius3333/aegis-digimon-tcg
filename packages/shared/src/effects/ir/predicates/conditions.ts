@@ -97,6 +97,7 @@ export interface Condition {
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
     | "noTamerInDigivolution"
+    | "noFaceUpSecurity"
     | "selfHasNoDigivolutionCards" // played directly, not digivolved into (BT19-101). Off-field source => false.
     | "selfHadDigivolutionCards" // the stack the source held when it was deleted, still readable once it left the field
     | "notEnteredThisTurn" // the ＜Delay＞ option gate: enterFieldTurnCount differs from turnCount
