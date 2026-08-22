@@ -17,8 +17,6 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "into": {
-            "zone": "trash",
-            "controller": "mine",
             "kind": [
               "Digimon"
             ],
