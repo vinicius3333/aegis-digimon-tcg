@@ -19,6 +19,9 @@ export const compiled: CompiledCard = { effects: [
     { kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true }, count: "all" }, restriction: "digivolve", duration: "untilOpponentTurnEnd" },
     { kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true }, count: "all" }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
   ] },
-], coverage: "full", residual: [], digivolutionRequirement: [{ level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true }] };
+], coverage: "full", residual: [], digivolutionRequirement: [
+  { level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true },
+  { cost: 0, isAlternate: true, names: ["Rosemon"], burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] } },
+] };
 registerIrCard("BT26-050", compiled);
 export default compiled;
