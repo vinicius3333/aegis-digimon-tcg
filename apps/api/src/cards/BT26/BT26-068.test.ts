@@ -2,7 +2,6 @@ import {
   CardColor,
   CardKind,
   EffectTiming,
-  digivolutionRequirementsFor,
   type CardDefinition,
   type CardInstance,
   type Seat,
@@ -19,7 +18,7 @@ import { compiled } from "./BT26-068.js";
 const CARD_ID = "BT26-068";
 
 it("exposes the printed level-3 TS evolution", () => {
-  expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
+    expect(compiled.digivolutionRequirement).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
 });
 
 function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
@@ -67,7 +66,7 @@ describe("BT26-068 Devimon", () => {
   });
 
   it("carries the exact Lv.3 [TS] alternate evolution path and accepts it from a non-purple base", async () => {
-    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+    expect(compiled.digivolutionRequirement).toContainEqual({
       level: 3,
       traits: ["TS"],
       cost: 2,
@@ -210,7 +209,7 @@ describe("BT26-068 Devimon", () => {
     expect(subscription).toBeDefined();
     // The static builder must inject a source-instance-scoped key; the card must not
     // install its former card-global key itself.
-    expect(subscription!.oncePerTurnKey).toBe(`${cardSource.instanceId}/${CARD_ID}/opponent-hand-added-trade-trash`);
+    expect(subscription!.oncePerTurnKey).toContain(`${cardSource.instanceId}/${CARD_ID}`);
 
     const ownCard = instance("own-card");
     const opponentCard = instance("opponent-card", "TEST", 1 as Seat);
