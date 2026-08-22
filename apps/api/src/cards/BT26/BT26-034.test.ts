@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-034.js";
 import "../index.js";
 describe("BT26-034 Palmon", () => {
   it("compiles the conditional free hand digivolution", () => {
+    expect(digivolutionRequirementsFor("BT26-034")).toContainEqual({ level: 2, traits: ["TS"], cost: 0, isAlternate: true });
     expect(compiled.coverage).toBe("full"); expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]).toMatchObject({ trigger: "StartOfYourMainPhase", actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, optional: true, condition: { kind: "memoryAtMost", value: 4 } }] });
   });
