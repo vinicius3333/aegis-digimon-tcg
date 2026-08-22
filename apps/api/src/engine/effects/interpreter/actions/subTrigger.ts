@@ -434,7 +434,7 @@ export async function runSubTrigger(
   const effectAddsToDeckGate =
     event === "whenEffectAddsToDeck"
       ? (subCtx: EffectContext): boolean => {
-          const seat = subCtx.trigger?.effectAddedToDeckBySeat;
+          const seat = subCtx.trigger?.effectAddedToDeckBySeat ?? subCtx.trigger?.effectAddedToDeckSeat;
           return seat !== undefined && seat === subCtx.source.ownerSeat;
         }
       : undefined;

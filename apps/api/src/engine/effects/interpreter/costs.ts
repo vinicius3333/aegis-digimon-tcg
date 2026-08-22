@@ -774,10 +774,24 @@ export async function payCost(
           const selections = [...byHost].flatMap(([hostPermanentId, instanceIds]) =>
             instanceIds.map((instanceId) => ({ hostPermanentId, instanceId })),
           );
-          const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, n, {
-            byEffectSeat: ctx.source.ownerSeat,
-          });
-          if (moved.length !== n) return false;
+          if (ctx.fx.trashDigivolutionCardsAtomic !== undefined) {
+            const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, n, {
+              byEffectSeat: ctx.source.ownerSeat,
+            });
+            if (moved.length !== n) return false;
+          } else {
+            // Lightweight/internal primitive implementations may predate the atomic seam.
+            // Preserve the per-host watcher path for them; production uses the atomic
+            // operation above so leave replacements cannot partially pay the cost.
+            let movedCount = 0;
+            for (const [hostId, ids] of byHost) {
+              const moved = await ctx.fx.trashDigivolutionCards(hostId, ids, {
+                byEffectSeat: ctx.source.ownerSeat,
+              });
+              movedCount += moved.length;
+            }
+            if (movedCount !== n) return false;
+          }
         } else {
           if (chosen.some((instanceId) => ctx.fx.canTrashDigivolutionCard?.(instanceId) === false)) return false;
           for (const [hostId, ids] of byHost) {

@@ -46,7 +46,12 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (action.kind === "Delete" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
     return action.abortOnDecline === true;
   }
-  if (action.kind === "Return" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
+  if (
+    action.kind === "Return" &&
+    action.cost !== undefined &&
+    action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
+    (await resolvePermanentTargets(ctx, action.target)).length === 0
+  ) {
     return action.abortOnDecline === true;
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
