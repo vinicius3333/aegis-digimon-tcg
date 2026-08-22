@@ -54,7 +54,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Training") ||
-        e.actions.some(
+        (e.actions ?? []).some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Training" &&

@@ -1,10 +1,10 @@
-import { EffectTiming, EffectDuration, isDigimon, CardColor, type CompiledCard } from "@aegis/shared";
+import { EffectTiming, EffectDuration, isDigimon, CardColor } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { turnTiming } from "../../engine/effects/builders.js";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * EX4-037 — Rapidmon X (EX4, Green Lv.5 Digimon).
@@ -72,56 +72,39 @@ const module: EffectModule = {
     if (timing === EffectTiming.OnUnTappedAnyone) {
       return [
         {
-          kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] }, count: 2 },
-          keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
-          duration: "untilOpponentTurnEnd",
+          effectKey: `${cardId}/unsuspend-self`,
+          description:
+            "[All Turns][Once Per Turn] When another Digimon becomes suspended, you may unsuspend this Digimon.",
+          optional: true,
+          isInherited: false,
+          isSecurity: false,
+          isLinked: false,
+          maxPerTurn: 1,
+          canTrigger: (ctx) => {
+            if (!ctx.source.isOnBattleArea()) return false;
+            const suspendedId = ctx.trigger.suspendedPermanentId;
+            if (suspendedId === undefined) return false;
+            if (suspendedId === ctx.source.instanceId) return false;
+            const suspended = ctx.game.permanentById(suspendedId);
+            if (!suspended) return false;
+            return suspended.topCard !== undefined && isDigimon(ctx.game.definitionOf(suspended.topCard));
+          },
+          canActivate: (ctx) => {
+            const self = ctx.source.permanent();
+            return self !== undefined && self.isSuspended;
+          },
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (!self) return;
+            await ctx.fx.unsuspend([self.permanentId]);
+          },
         },
-        {
-          kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] }, count: 2 },
-          keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
-          duration: "untilOpponentTurnEnd",
-        },
-      ],
-      frequency: "OncePerTurn",
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "onSuspend",
-          sourceFilter: { kind: ["Digimon"], excludeSelf: true },
-          actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true }],
-        },
-      ],
-      frequency: "OncePerTurn",
-    },
-  ],
-  coverage: "full",
-  residual: [],
-  digivolutionRequirement: [
-    { level: 5, multicolor: true, colors: ["Green"], cost: 4, isAlternate: true },
-    { level: 5, names: ["Rapidmon"], cost: 4, isAlternate: true },
-  ],
+      ];
+    }
+
+    return [];
+  },
 };
 
-const compiled: CompiledCard = {
-  effects: [
-    {
-      trigger: "EndOfYourTurn",
-      actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Green", "Black"] }, count: 2 }, keywords: [{ keyword: "Blocker" }, { keyword: "Reboot" }], keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }],
-      frequency: "OncePerTurn",
-    },
-    {
-      trigger: "AllTurns",
-      actions: [{ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }], frequency: "OncePerTurn" }],
-    },
-  ],
-  coverage: "full",
-  residual: [],
-};
-
-registerIrCard(cardId, compiled);
+registerCard(module);
 export default module;

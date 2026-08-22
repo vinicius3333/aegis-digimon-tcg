@@ -1,28 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardDefinition } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { onPlay, whenDigivolving, turnTiming, staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-const recoveryAndBreed = (trigger: "OnPlay" | "WhenDigivolving") => ({
-  trigger,
-  actions: [
-    {
-      kind: "GainKeyword",
-      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-      keyword: { keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" },
-      duration: "permanent",
-    },
-    {
-      kind: "Digivolve",
-      target: { filter: { zone: "breedingArea", controller: "mine", kind: ["Digimon"] }, count: 1 },
-      into: { controllerDefault: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }] },
-      payCost: false,
-      from: ["hand", "trash"],
-      optional: true,
-      condition: { kind: "duringAttack", raw: "during an attack" },
-      abortOnDecline: true,
-    },
-  ],
-});
+const cardId = "BT20-056";
 
 function hasChronicleTraitLv6OrLower(def: CardDefinition): boolean {
   if (!isDigimon(def)) return false;
@@ -43,6 +27,7 @@ async function recoveryAndBreedingDigivolve(ctx: Parameters<Effect["resolve"]>[0
 
   // Then, if there is a Digimon in our breeding area and a Chronicle Lv.<=6 card in hand/trash,
   // optionally digivolve it.
+  // Note: "if during an attack" guard is a residual.
   const owner = ctx.game.player(seat);
   const breedingPermanent = owner.breeding;
   if (breedingPermanent === undefined) return;
@@ -78,8 +63,6 @@ async function recoveryAndBreedingDigivolve(ctx: Parameters<Effect["resolve"]>[0
     payCost: false,
   });
 }
-
-export { module };
 
 const module: EffectModule = {
   cardId,
@@ -139,7 +122,7 @@ const module: EffectModule = {
           description:
             "[On Play] ＜Recovery +1 (Deck)＞. Then, 1 of your Digimon in the breeding area " +
             "may digivolve into a level 6 or lower [Chronicle] trait Digimon in hand or trash " +
-            "without paying the cost.",
+            "without paying the cost. (Note: 'if during an attack' guard is a residual.)",
           optional: false,
           resolve: recoveryAndBreedingDigivolve,
         }),
@@ -155,7 +138,7 @@ const module: EffectModule = {
           description:
             "[When Digivolving] ＜Recovery +1 (Deck)＞. Then, 1 of your Digimon in the breeding " +
             "area may digivolve into a level 6 or lower [Chronicle] trait Digimon in hand or trash " +
-            "without paying the cost.",
+            "without paying the cost. (Note: 'if during an attack' guard is a residual.)",
           optional: false,
           resolve: recoveryAndBreedingDigivolve,
         }),
@@ -212,4 +195,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("BT20-056", compiled);
+registerCard(module);
+export default module;

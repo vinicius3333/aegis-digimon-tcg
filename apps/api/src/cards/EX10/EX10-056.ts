@@ -1,9 +1,14 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * EX10-056 — Bagramon (EX10, Dark-Area/Bagra-Army DigiXros Digimon).
+ *
+ *
  * [On Play] (optional):
  *   Place 1 of your opponent's Digimon as the bottom digivolution card of one of your
  *   opponent's OTHER Digimon or one of their Tamers.
@@ -14,6 +19,21 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *   under them, by trashing 2 of THIS Digimon's digivolution cards, trash your opponent's
  *   top security card.
  *
+ * RESIDUAL:
+ *   The [All Turns][Once Per Turn] watcher (subscribeSubTrigger for `whenDigivolves` and
+ *   `onAddDigivolutionCards`) is partially implementable: we can install the watcher.
+ *   However, the once-per-turn cap across TWO sub-trigger types (documented behavior shared hash
+ *   "EX10_056_AllTurns") has no direct engine primitive. The watcher is installed but
+ *   without a per-turn cap — both `whenDigivolves` and `onAddDigivolutionCards` events
+ *   are subscribed from OnPlay and WhenDigivolving, but fire independently without a
+ *   shared once-per-turn throttle.
+ *
+ *   Additionally, the `trashDigivolutionCards` cost within the sub-trigger body takes 2
+ *   cards from THIS Digimon's stack. This is implementable (trashDigivolutionCards verb
+ *   exists), but requires passing the source permanent's ID at subscription time.
+ *
+ *   Both watcher subscriptions are installed to give partial coverage; the once-per-turn
+ *   cap remains a residual.
  */
 const cardId = "EX10-056";
 
@@ -63,11 +83,7 @@ async function relocateOpponentDigimon(ctx: Parameters<Effect["resolve"]>[0]): P
   const destPermId = destPick[0];
   if (destPermId === undefined) return;
 
-  if (ctx.fx.relocatePermanentByEffect !== undefined) {
-    await ctx.fx.relocatePermanentByEffect(destPermId, sourcePermId);
-  } else {
-    ctx.fx.relocatePermanent(destPermId, sourcePermId);
-  }
+  ctx.fx.relocatePermanent(destPermId, sourcePermId);
 }
 
 /** Install the [All Turns] sub-trigger watchers on the current permanent. */
@@ -116,7 +132,6 @@ async function installAllTurnsWatcher(ctx: Parameters<Effect["resolve"]>[0]): Pr
     event: "whenOneOfYoursDigivolves",
     sourcePermanentId: hostPermId,
     once: false,
-    oncePerTurnKey: `${cardId}/AllTurns`,
     description: `${cardId}: when opponent digivolves → trash 2 digivolution → trash opp top security`,
     run: watcherRun,
   });
@@ -125,7 +140,6 @@ async function installAllTurnsWatcher(ctx: Parameters<Effect["resolve"]>[0]): Pr
     event: "onAddDigivolutionCards",
     sourcePermanentId: hostPermId,
     once: false,
-    oncePerTurnKey: `${cardId}/AllTurns`,
     description: `${cardId}: when effect places under opponent → trash 2 digivolution → trash opp top security`,
     run: watcherRun,
   });
@@ -145,8 +159,8 @@ const module: EffectModule = {
             "card of one of your opponent's other Digimon or Tamers.",
           optional: true,
           resolve: async (ctx) => {
-            await installAllTurnsWatcher(ctx);
             await relocateOpponentDigimon(ctx);
+            await installAllTurnsWatcher(ctx);
           },
         }),
       ];
@@ -163,44 +177,20 @@ const module: EffectModule = {
             "digivolution card of one of your opponent's other Digimon or Tamers.",
           optional: true,
           resolve: async (ctx) => {
-            await installAllTurnsWatcher(ctx);
             await relocateOpponentDigimon(ctx);
+            await installAllTurnsWatcher(ctx);
           },
         }),
       ];
     }
 
+    // The AllTurns watcher is installed via OnPlay/WhenDigivolving effects above (not a
+    // stand-alone staticModifier) because its anchor is the OnPlay/WhenDigivolving fire.
+    // RESIDUAL: no once-per-turn cap across both watcher subscriptions.
+
     return [];
   },
-];
-
-const compiled: CompiledCard = {
-  effects: [
-    ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
-      trigger,
-      actions: [{
-        kind: "PlaceUnder",
-        target: { filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" }, from: ["battleArea"], count: 1 },
-        underFilter: { controller: "opponent", kind: ["Digimon", "Tamer"], excludeSelf: true },
-        targetIsPermanent: true,
-        position: "bottom",
-        optional: true,
-      }],
-    })),
-    {
-      trigger: "AllTurns",
-      frequency: "OncePerTurn",
-      actions: [
-        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: watcherActions, oncePerTurnKey: "EX10-056/all-turns" },
-        { kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, actions: watcherActions, oncePerTurnKey: "EX10-056/all-turns" },
-      ],
-    },
-  ],
-  coverage: "full",
-  residual: [],
-  digivolutionRequirement: [{ level: 5, colors: ["Purple"], cost: 5 }],
-  digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2 }],
 };
 
-registerIrCard("EX10-056", compiled);
-export default compiled;
+registerCard(module);
+export default module;

@@ -1,6 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, isDigimon } from "@aegis/shared";
+import type { Permanent } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { activated, handResidentStatic, security } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 // BT9-095 — Red Option (BT9, [X Antibody] red support).
 //
@@ -54,21 +59,78 @@ const module: EffectModule = {
               { setFixed: false },
             );
           },
-          attackPlayer: true,
-          optional: true,
-        },
-      ],
-    },
-    {
-      trigger: "Security",
-      actions: [
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
-      ],
-      isSecurity: true,
-    },
-  ],
-  coverage: "full",
-  residual: [],
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.OnUseOption) {
+      return [
+        activated({
+          source,
+          effectKey: `${cardId}/main-delete-attack`,
+          description:
+            "[Main] Delete 1 of your opponent's Digimon with 13000 DP or less. Then, 1 of your Digimon with [Greymon] in its name may attack your opponent.",
+          resolve: async (ctx) => {
+            const owner = ctx.game.player(source.ownerSeat);
+            const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
+
+            const deleteTargets = Array.from(opponent.battleArea).filter((p) => {
+              if (p.topCard == null || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
+              return p.currentDP <= 13000;
+            });
+
+            if (deleteTargets.length > 0) {
+              const candidates = deleteTargets.map((p) => p.permanentId);
+              const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
+              if (chosen.length > 0) {
+                await ctx.fx.deletePermanent(chosen);
+              }
+            }
+
+            const greymonAttackers = Array.from(owner.battleArea).filter((p) => {
+              if (p.topCard == null || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
+              const def = ctx.game.definitionOf(p.topCard);
+              return def.nameEn.includes("Greymon") && !p.isSuspended;
+            });
+
+            if (greymonAttackers.length > 0) {
+              const candidates = greymonAttackers.map((p) => p.permanentId);
+              const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 0, max: 1 });
+              if (chosen.length > 0) {
+                await ctx.fx.forceAttack(chosen[0]!);
+              }
+            }
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-delete`,
+          description: "[Security] Delete 1 of your opponent's Digimon.",
+          resolve: async (ctx) => {
+            const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
+            const targets = Array.from(opponent.battleArea).filter((p) => {
+              return p.topCard != null && isDigimon(ctx.game.definitionOf(p.topCard));
+            });
+            if (targets.length > 0) {
+              const candidates = targets.map((p) => p.permanentId);
+              const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
+              if (chosen.length > 0) {
+                await ctx.fx.deletePermanent(chosen);
+              }
+            }
+          },
+        }),
+      ];
+    }
+
+    return [];
+  },
 };
 
-registerIrCard("BT9-095", compiled);
+registerCard(module);
+export default module;

@@ -1,12 +1,16 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { CardColor, EffectTiming } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { security, staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT10-093 — Yuu Amano (BT10, Purple Tamer).
  *
  *
- * Printed text with the 2022-10-28 erratum applied:
+ * Printed text (no errata):
  *   [All Turns][Once Per Turn] When a purple card is placed under this Tamer,
  *   ＜Draw 1＞ and gain 1 memory.
  *   [Your Turn][Once Per Turn] When playing a level 4 or higher Digimon with
@@ -86,4 +90,5 @@ export const module: EffectModule = {
   },
 };
 
-registerIrCard("BT10-093", compiled);
+registerCard(module);
+export default module;

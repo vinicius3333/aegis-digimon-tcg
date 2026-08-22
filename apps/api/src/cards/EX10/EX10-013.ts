@@ -1,6 +1,12 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
+import type { CardDefinition, CardInstance } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { staticModifier, turnTiming, whenDigivolving } from "../../engine/effects/builders.js";
+import { canDigivolveOnto } from "../../engine/cards/cardData.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 // Lucemon — EX10-013 (Yellow Lv.3 Digimon).
 //
@@ -9,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // keyword on a Static effect, but the interpreter only runs `effect.actions`, never
 // `effect.keywords`, so a keyword-only Static is a silent no-op), and emitted both the
 // [When Digivolving] "may move" and the [End of Your Turn] "return 5 / digivolve"
-// clauses as RawUnparsed. Removing the AUTO-GENERATED header preserves this
+// clauses as RawUnparsed (loud gaps). Removing the AUTO-GENERATED header preserves this
 // file across regeneration (card-module contract + the file-header convention).
 //
 // Printed `effectText` (cards.json) is authoritative here (KB reports NO errata):
@@ -127,7 +133,7 @@ const module: EffectModule = {
           description: "[Breeding] [When Digivolving] This Digimon may move (to the battle area).",
           optional: true,
           // Only relevant while this Digimon is in the breeding area (source
-          // IsExistOnBreedingAreaDigimon). A battle-area digivolve does not satisfy this gate.
+          // IsExistOnBreedingAreaDigimon). A battle-area digivolve makes the clause inert.
           canActivate: (ctx) => {
             const self = ctx.source.permanent();
             return self !== undefined && self.inBreeding;

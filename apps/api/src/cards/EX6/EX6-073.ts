@@ -10,19 +10,36 @@ export const compiled: CompiledCard = {
   ...generated,
   effects: generated.effects.map((effect) => ({
     ...effect,
-    actions: effect.actions.map((action) => {
-      if (action.kind === "Delete") {
-        return { ...action, target: { ...action.target, upTo: true }, trackCount: deletedCountSource };
-      }
-      if (action.kind === "SecurityManipulation" && action.op === "trashTop") {
-        return {
-          ...action,
-          amount: undefined,
-          amountFromNamedCount: { base: 7, countSource: deletedCountSource, per: -1, floor: 0 },
-        };
-      }
-      return action;
-    }),
+    actions: effect.actions
+      .filter((action) => !(action.kind === "RawUnparsed" && action.text.includes("reduce the cards trashed by 1")))
+      .map((action) => {
+        if (action.kind === "Delete") {
+          return {
+            ...action,
+            target: { ...action.target, upTo: true },
+            cost:
+              action.cost?.kind === "return"
+                ? {
+                    ...action.cost,
+                    position: "bottom",
+                    target: {
+                      ...action.cost.target,
+                      filter: { ...action.cost.target.filter, zone: "digivolutionCards", sameHost: true },
+                    },
+                  }
+                : action.cost,
+            trackCount: deletedCountSource,
+          };
+        }
+        if (action.kind === "SecurityManipulation" && action.op === "trashTop") {
+          return {
+            ...action,
+            amount: undefined,
+            amountFromNamedCount: { base: 7, countSource: deletedCountSource, per: -1, floor: 0 },
+          };
+        }
+        return action;
+      }),
   })),
   coverage: "full",
   residual: [],

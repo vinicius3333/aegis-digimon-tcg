@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
     if (effect === generatedMain) {
       return {
         ...effect,
+        effectKey: "EX6-010/main-place-and-delete",
         actions: [
           {
             ...generatedMain.actions[0],
@@ -35,7 +36,18 @@ export const compiled: CompiledCard = {
                 ],
                 destination: "digivolutionStack",
                 position: "bottom",
-                host: "target",
+                host: {
+                  filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 6 } },
+                  count: 1,
+                  orFilters: [
+                    { controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 6 } },
+                    {
+                      controller: "mine",
+                      kind: ["Digimon"],
+                      nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }],
+                    },
+                  ],
+                },
                 bindHostAs: "placementTarget",
                 raw: "and placing this card as the bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms] trait",
               },

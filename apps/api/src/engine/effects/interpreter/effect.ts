@@ -25,6 +25,7 @@ import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { linkEligible } from "../mindLink.js";
 import { candidateLooseInstances } from "./targeting/loose.js";
+import { candidatePermanents } from "./targeting/permanents.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
@@ -570,6 +571,33 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
       return candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).some(
         (candidate) => linkEligible(ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
       );
+    }
+    const extraCosts = [
+      ...(((action as Action & { additionalCosts?: unknown[] }).additionalCosts ?? []) as Array<{
+        kind?: string;
+        host?: { filter?: unknown; orFilters?: unknown[] };
+      }>),
+      ...((action as Action & { additionalCost?: unknown }).additionalCost !== undefined
+        ? [
+            (
+              action as Action & {
+                additionalCost: { kind?: string; host?: { filter?: unknown; orFilters?: unknown[] } };
+              }
+            ).additionalCost,
+          ]
+        : []),
+    ];
+    if (extraCosts.some((cost) => cost.kind === "place" && cost.host?.filter !== undefined)) {
+      return extraCosts
+        .filter((cost) => cost.kind === "place" && cost.host?.filter !== undefined)
+        .every(
+          (cost) =>
+            candidatePermanents(ctx, {
+              filter: cost.host!.filter as never,
+              orFilters: cost.host!.orFilters as never,
+              count: 1,
+            } as never).length > 0,
+        );
     }
     return true;
   };

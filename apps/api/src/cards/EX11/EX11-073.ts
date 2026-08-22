@@ -1,6 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
+import type { CardDefinition } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { whenDigivolving, turnTiming, staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * EX11-073 — ExMaquinamon (EX11, Multi-Color Lv.7 Digimon).
@@ -13,6 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *   For each link card, trash 1 of your opponent's top security cards AND return 1 of your
  *   opponent's Digimon to the bottom of their deck.
  *
+ * RESIDUAL: none — all non-DNA clauses are implementable. The DNA check uses ctx.trigger.isDnaDigivolve.
  * The [End of Opponent's Turn] uses OnEndTurn timing gated on !isOwnersTurn().
  */
 const cardId = "EX11-073";
@@ -36,7 +41,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.Permanent, 1);
+              ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1);
             }
           },
         }),
@@ -47,7 +52,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.Permanent);
+              ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.UntilEachTurnEnd);
             }
           },
         }),
@@ -58,7 +63,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) {
-              ctx.fx.grantLinkMax(self.permanentId, 2, EffectDuration.Permanent);
+              ctx.fx.grantLinkMax(self.permanentId, 2, EffectDuration.UntilEachTurnEnd);
             }
           },
         }),
@@ -182,4 +187,5 @@ const module: EffectModule = {
   },
 };
 
-export default registerIrCard("EX11-073", compiled);
+registerCard(module);
+export default module;
