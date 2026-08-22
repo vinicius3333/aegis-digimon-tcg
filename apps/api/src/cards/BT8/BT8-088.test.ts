@@ -32,4 +32,10 @@ describe("BT8-088 Davis Motomiya & Ken Ichijoji", () => {
 
     expect(s.state.memory).toBe(2);
   });
+
+  it("plays itself from a face-up Security check without memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT8-088", as: "securityDavisKen", faceUp: true }] } });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityDavisKen"));
+    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard.instanceId === s.inst("securityDavisKen").instanceId)).toBe(true);
+  });
 });
