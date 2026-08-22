@@ -396,6 +396,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "SearchSecurity":
     case "Reveal":
     case "RevealAdd":
+    case "HandRevealAdd":
     case "RevealChooseDeleteBudget":
       return await runRevealAction(ctx, action);
     default: {

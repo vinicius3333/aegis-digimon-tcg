@@ -25,6 +25,7 @@ import {
   applyOverflow,
   extractCardAt,
   extractPermanentAt,
+  findPermanentInState,
   insertCard,
   placePermanent as appendPermanent,
   takeBottom,
@@ -400,8 +401,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   /** Whether the engine is currently re-firing persistent effects (see PrimitivesEngine). */
-  const continuousPass = (): boolean =>
-    (engine.inContinuousPass?.() ?? false) && !(engine.inResolvingWindow?.() ?? false);
+  const continuousPass = (): boolean => engine.inContinuousPass?.() ?? false;
   /** `{ continuous: true }` while re-firing persistent effects, else undefined. */
   const continuousOpt = (): { continuous: boolean } | undefined =>
     continuousPass() ? { continuous: true } : undefined;
@@ -700,6 +700,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       suppressOnPlayEffects?: boolean;
       effectSourceCardId?: string;
       digiXrosMaterialInstanceIds?: string[];
+      hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]> => {
     const created: Permanent[] = [];
@@ -738,7 +739,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
       }
-      const instance = removeLooseInstance(state, instanceId);
+      // Preserve the resolved host when moving stack material.  A material selected from
+      // the breeding stack must be detached from that exact permanent before the new
+      // permanent is placed; falling back to the global loose lookup can otherwise retain
+      // stale breeding material when the same instance id is observed through another view.
+      const resolvedHostPermanentId =
+        hostOfStackInstance(state, instanceId)?.hostPermanentId ?? opts?.hostPermanentIds?.[instanceId];
+      const instance = removeLooseInstance(state, instanceId, true, resolvedHostPermanentId);
       if (instance === undefined) continue;
       instance.faceUp = true;
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
@@ -4618,7 +4625,21 @@ function locateInSecurity(state: GameState, instanceId: string): LocatedInZone |
  * from your trash"). The one verb that must NOT pull from trash is `trash` itself (it
  * moves cards INTO trash), so it passes `false`; every other caller wants the full set.
  */
-function removeLooseInstance(state: GameState, instanceId: string, includeTrash = true): CardInstance | undefined {
+function removeLooseInstance(
+  state: GameState,
+  instanceId: string,
+  includeTrash = true,
+  hostPermanentId?: string,
+): CardInstance | undefined {
+  if (hostPermanentId !== undefined) {
+    const host = findPermanentInState(state, hostPermanentId);
+    if (host !== undefined) {
+      const fromStack = spliceById(host.stack, instanceId);
+      if (fromStack) return fromStack;
+      const fromLinked = spliceById(host.linked, instanceId);
+      if (fromLinked) return fromLinked;
+    }
+  }
   for (const owner of state.players) {
     // See the matching note in peekLooseInstance: a resolving Option's own effect is allowed
     // to move it out of the transient `resolvingOption` slot into a real area (§9-1-5's

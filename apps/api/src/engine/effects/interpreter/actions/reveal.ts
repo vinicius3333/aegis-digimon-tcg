@@ -55,6 +55,21 @@ export async function runReveal(ctx: EffectContext, action: Extract<Action, { ki
   unsupported(ctx, action, `Reveal from unsupported zone "${String(targetZone)}"`);
 }
 
+export async function runHandRevealAdd(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "HandRevealAdd" }>,
+): Promise<void> {
+  const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
+  const chosen = await pickLoose(ctx, action.target, candidates);
+  if (chosen.length === 0) return;
+  const card = candidates.find((candidate) => candidate.instanceId === chosen[0]);
+  if (card === undefined) return;
+  const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+  if (definitionMatches(action.securityFilter, definition)) {
+    await ctx.fx.addSecurity(ctx.source.ownerSeat, chosen, { toTop: action.toTop ?? true, faceUp: false });
+  }
+}
+
 /**
  * Reveal the top N, then dispatch each matching revealed card per its `to`
  * disposition (add to hand / play without cost), and send the rest to the deck
@@ -288,7 +303,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           faceDown: disposition.faceDown ?? true,
         });
       else if (disposition.to === "placeUnder")
-        toPlaceUnder.push({ instanceId: c.instanceId, underFilter: disposition.underFilter, faceDown: disposition.faceDown });
+        toPlaceUnder.push({
+          instanceId: c.instanceId,
+          underFilter: disposition.underFilter,
+          faceDown: disposition.faceDown,
+        });
       else if (disposition.to === "underTamer")
         toUnderTamer.push({
           instanceId: c.instanceId,
@@ -350,7 +369,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"
   if (toPlaceUnder.length > 0) {
-  for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
+    for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
       const candidates = ctx.game.player(seat).battleArea.filter((p) => {
         if (!p.topCard || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
         return underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source);
@@ -680,6 +699,10 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
     }
     case "RevealAdd": {
       await runRevealAdd(ctx, action);
+      return false;
+    }
+    case "HandRevealAdd": {
+      await runHandRevealAdd(ctx, action);
       return false;
     }
     case "RevealChooseDeleteBudget": {

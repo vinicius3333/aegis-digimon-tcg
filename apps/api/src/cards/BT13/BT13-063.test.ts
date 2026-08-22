@@ -6,7 +6,18 @@ describe("BT13-063 Dorumon", () => {
   it("grants inherited DP only with X Antibody", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [expect.objectContaining({ kind: "Aura", while: expect.objectContaining({ kind: "selfHasTrait" }), effect: { kind: "modifyDP", amount: 1000 } })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          while: { kind: "selfHasTrait", filter: { nameOrTrait: [{ match: "trait", tokens: ["X Antibody"] }] } },
+          effect: { kind: "modifyDP", amount: 1000 },
+        },
+      ],
+    });
   });
 
   it("loads the compiled Dorumon implementation into a live permanent", async () => {

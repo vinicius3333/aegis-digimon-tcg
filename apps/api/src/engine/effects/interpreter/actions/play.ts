@@ -57,10 +57,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
     case "PlayWithoutCost": {
       // Bind "the Digimon this effect played" from whichever branch resolves the play, so a later
       // action (e.g. BT16-015's Delete with dp.valueFrom) can reference exactly what was played.
-      const bindPlayWithoutCost = () => {
-        if (action.bindResultAs && ctx.lastPlayedPermanentIds && ctx.lastPlayedPermanentIds.length > 0) {
+      const bindPlayWithoutCost = (playedPermanentIds = ctx.lastPlayedPermanentIds) => {
+        if (action.bindResultAs && playedPermanentIds !== undefined) {
           ctx.boundPlayed ??= new Map();
-          ctx.boundPlayed.set(action.bindResultAs, new Set(ctx.lastPlayedPermanentIds));
+          ctx.boundPlayed.set(action.bindResultAs, new Set(playedPermanentIds));
         }
       };
       // ＜Delay＞-armed gate: if the action is marked requiresDelayArmed, the source permanent
@@ -192,13 +192,30 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         }
         return { ...scaledPlayTarget, filter: { ...scaledPlayTarget.filter, dp: { ...origDp, value: newValue } } };
       })();
+      const levelCeilingAdjustedTarget =
+        ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
+          ? playTarget
+          : {
+              ...playTarget,
+              filter: {
+                ...playTarget.filter,
+                levelComparison:
+                  playTarget.filter.levelComparison?.op === "lte" &&
+                  playTarget.filter.levelComparison.value !== undefined
+                    ? {
+                        ...playTarget.filter.levelComparison,
+                        value: playTarget.filter.levelComparison.value + ctx.playLevelCeilingDelta,
+                      }
+                    : playTarget.filter.levelComparison,
+              },
+            };
       // playCostCeiling: dynamically raise the playCostLte ceiling before resolving candidates.
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
       const playCostAdjustedTarget = (() => {
         const ceiling = action.playCostCeiling;
-        if (ceiling === undefined) return playTarget;
+        if (ceiling === undefined) return levelCeilingAdjustedTarget;
         const mine = ctx.source.ownerSeat;
         const opp = ctx.game.opponentOf(mine);
         const f = ceiling.filter;
@@ -219,7 +236,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
         }
         const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
-        return { ...playTarget, filter: { ...playTarget.filter, playCostLte: computedCeiling } };
+        return {
+          ...levelCeilingAdjustedTarget,
+          filter: { ...levelCeilingAdjustedTarget.filter, playCostLte: computedCeiling },
+        };
       })();
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
@@ -327,6 +347,16 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
+        const hostPermanentIds = Object.fromEntries(
+          permanentIds
+            .map((instanceId) => {
+              const hostPermanentId = candidates.find(
+                (candidate) => candidate.instanceId === instanceId,
+              )?.hostPermanentId;
+              return hostPermanentId === undefined ? undefined : [instanceId, hostPermanentId];
+            })
+            .filter((entry): entry is [string, string] => entry !== undefined),
+        );
         const played =
           permanentIds.length > 0
             ? await ctx.fx.playInstances(permanentIds, {
@@ -336,9 +366,12 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 effectSourceCardId: ctx.source.cardId,
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
+                hostPermanentIds,
               })
             : [];
-        ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
+        const playedPermanentIds = (played ?? []).map((p) => p.permanentId);
+        ctx.lastPlayedPermanentIds = playedPermanentIds;
+        bindPlayWithoutCost(playedPermanentIds);
       } else {
         ctx.lastPlayedPermanentIds = [];
       }
@@ -398,12 +431,16 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
         });
         ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
-        if (action.bindResultAs && ctx.lastPlayedPermanentIds.length > 0) {
+        if (action.bindResultAs) {
           if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
           ctx.boundPlayed!.set(action.bindResultAs, new Set(ctx.lastPlayedPermanentIds));
         }
       } else {
         ctx.lastPlayedPermanentIds = [];
+        if (action.bindResultAs) {
+          if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
+          ctx.boundPlayed!.set(action.bindResultAs, new Set());
+        }
       }
       ctx.lastEffectActed = pfzChosen.length > 0;
       return false;

@@ -99,7 +99,13 @@ import type {
   RestrictUnsuspendedDigivolveAction,
   StackTrashLockAction,
 } from "./restrictions.js";
-import type { RevealAction, RevealAddAction, SearchAction, SearchSecurityAction } from "./reveal.js";
+import type {
+  HandRevealAddAction,
+  RevealAction,
+  RevealAddAction,
+  SearchAction,
+  SearchSecurityAction,
+} from "./reveal.js";
 import type {
   DisableSecurityEffectAction,
   ModifySecurityDPAction,
@@ -167,6 +173,7 @@ export type Action =
   | DigiXrosMaterialZoneExpansionAction
   | AllowDigiXrosMaterialsFromTrashAction
   | RevealAddAction
+  | HandRevealAddAction
   | RevealAction
   | SearchAction
   | SearchSecurityAction

@@ -294,15 +294,19 @@ function digivolveReducerScale(ctx: EffectContext, reducer: WouldDigivolveSelfRe
   if (reducer.scaling === undefined) return 1;
   if (target !== undefined && reducer.scaling.unit === "digivolutionCards") {
     const filter = reducer.scaling.filter ?? {};
-    const count = target.stack.filter((card) =>
-      (filter.faceDown !== true || card.faceUp !== true) && (filter.faceUp !== true || card.faceUp === true),
+    const count = target.stack.filter(
+      (card) => (filter.faceDown !== true || card.faceUp !== true) && (filter.faceUp !== true || card.faceUp === true),
     ).length;
     return Math.floor(count / Math.max(1, reducer.scaling.per));
   }
   return scaleFactor(ctx, reducer.scaling);
 }
 
-export function potentialWouldDigivolveSelfReduction(ctx: EffectContext, reducer: WouldDigivolveSelfReducer, target?: Permanent): number {
+export function potentialWouldDigivolveSelfReduction(
+  ctx: EffectContext,
+  reducer: WouldDigivolveSelfReducer,
+  target?: Permanent,
+): number {
   const scale = digivolveReducerScale(ctx, reducer, target);
   if (reducer.cost === undefined) return Math.max(0, reducer.amount * scale);
   if (reducer.cost.target?.upTo !== true || typeof reducer.cost.target.count !== "number") {

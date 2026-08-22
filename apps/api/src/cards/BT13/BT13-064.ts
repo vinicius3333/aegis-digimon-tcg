@@ -6,80 +6,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 3
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Chessmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+          kind: "CostModifier",
+          mode: "raiseCeiling",
+          costType: "level",
+          amount: 2,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Chessmon"], match: "name" }],
             },
-            "count": 1
+            count: 8,
+            raw: "you have 8 or more Digimon cards with [Chessmon] in their names in your trash",
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "isOpponentsTurn",
-            "raw": "it's your opponent's turn"
-          },
-          "optional": true
         },
         {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "level",
-          "amount": 2,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 3,
+              },
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Chessmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Chessmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 8,
-            "raw": "you have 8 or more Digimon cards with [Chessmon] in their names in your trash"
-          }
-        }
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "isOpponentsTurn",
+            raw: "it's your opponent's turn",
+          },
+          optional: true,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    }
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-064", compiled);

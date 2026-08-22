@@ -6,8 +6,29 @@ describe("BT13-051 Mikemon", () => {
   it("grants temporary Piercing and preserves the inherited trait aura", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [expect.objectContaining({ kind: "GainKeyword", keyword: expect.objectContaining({ keyword: "Piercing" }), duration: "forTheTurn" })] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [expect.objectContaining({ kind: "Aura", effect: { kind: "modifyDP", amount: 2000 } })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          keyword: { keyword: "Piercing" },
+          duration: "forTheTurn",
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: { kind: "modifyDP", amount: 2000 },
+          while: { kind: "anyOf" },
+        },
+      ],
+    });
   });
 
   it("loads the compiled Mikemon implementation into a live permanent", async () => {

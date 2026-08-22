@@ -11,25 +11,66 @@ describe("BT13-076 KingEtemon", () => {
     expect(trigger).toMatchObject({
       kind: "SubTrigger",
       event: "onDeletionOf",
-      sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
+      sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], excludeSelf: true },
     });
     expect(trigger.sourceFilter).toMatchObject({ nameOrTrait: [{ match: "name", tokens: ["Etemon", "Sukamon"] }] });
-    expect(trigger.actions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd" }),
-      expect.objectContaining({ kind: "GainKeyword", keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: -1 }), duration: "untilOpponentTurnEnd" }),
-    ]));
+    expect(trigger.actions).toEqual([
+      {
+        kind: "ModifyDP",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        amount: -3000,
+        duration: "untilOpponentTurnEnd",
+      },
+      {
+        kind: "GainKeyword",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
+        duration: "untilOpponentTurnEnd",
+      },
+    ]);
   });
 
   it("grants Blocker and protects Etemon/Sukamon Digimon from returning", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn");
-    expect(effect?.actions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: "GainKeyword", keyword: expect.objectContaining({ keyword: "Blocker" }), duration: "permanent" }),
-      expect.objectContaining({ kind: "Restrict", restriction: "cannotReturnToHandOrDeck", duration: "permanent" }),
-    ]));
+    expect(effect?.actions).toEqual([
+      {
+        kind: "GainKeyword",
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ match: "name", tokens: ["Etemon", "Sukamon"] }],
+          },
+          count: "all",
+        },
+        keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+        duration: "permanent",
+      },
+      {
+        kind: "Restrict",
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ match: "name", tokens: ["Etemon", "Sukamon"] }],
+          },
+        },
+        restriction: "cannotReturnToHandOrDeck",
+        duration: "permanent",
+      },
+    ]);
   });
 
   it("reduces an opposing Digimon when your Etemon is deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-076", as: "king" }, { card: "BT11-041", as: "etemon" }] }, 1: { battleArea: [{ card: "BT1-015", as: "target" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT13-076", as: "king" },
+          { card: "BT11-041", as: "etemon" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+    });
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("etemon").permanentId]);
