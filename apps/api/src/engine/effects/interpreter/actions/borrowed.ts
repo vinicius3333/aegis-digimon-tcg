@@ -226,7 +226,16 @@ export async function runUseOptionWithoutCost(
 
   // Cost cap: honor playCostLte from the resolved filter; fall back to 5 (historical EX8-037 default).
   const exactCosts = filter?.playCostOneOf ?? [];
-  const costCap = filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
+  const attackerLevelCap =
+    filter?.playCostLteAttackerLevel === true
+      ? (() => {
+          const attackerId = ctx.trigger.attackerPermanentId;
+          const attacker = attackerId === undefined ? undefined : ctx.game.permanentById(attackerId);
+          return attacker?.topCard === undefined ? undefined : ctx.game.definitionOf(attacker.topCard).level;
+        })()
+      : undefined;
+  const costCap =
+    attackerLevelCap ?? filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
   // Server-side eligibility: a single-color Option within the cost cap matching the filter, not
   // under a CanNotPlayThisOption play restriction.
   const candidates: string[] = [];
