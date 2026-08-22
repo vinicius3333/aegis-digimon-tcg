@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
                 optional: true,
               },
               add: [],
-              rest: "deckBottom",
+              rest: "deckBottomAnyOrder",
               cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
               optional: true,
               abortOnDecline: true,

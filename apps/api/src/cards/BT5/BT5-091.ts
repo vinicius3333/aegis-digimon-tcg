@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
           },
           gainedTrigger: "whenAttacking",
           gainedActions: [{ kind: "GainMemory", amount: -1 }],
-          duration: "untilEachTurnEnd",
+          duration: "forTheTurn",
         },
       ],
     },

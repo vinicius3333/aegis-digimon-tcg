@@ -10,7 +10,7 @@ const compiled: CompiledCard = {
         {
           kind: "ReducePlayCost",
           payment: {
-            kind: "deleteOwn",
+            kind: "sacrificePermanent",
             target: {
               filter: {
                 controller: "mine",
