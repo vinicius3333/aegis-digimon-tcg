@@ -1319,7 +1319,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     .player(source.ownerSeat)
                     .trash.filter(
                       (item) =>
-                        isDigimon(ctx.game.definitionOf(item)) && hasText(ctx.game.definitionOf(item), "bagra army"),
+                        isDigimon(ctx.game.definitionOf(item)) && cardHasTrait(ctx.game.definitionOf(item), "Bagra Army"),
                     );
                   const selected = await ctx.ask.selectCards(ctx, {
                     candidates: cards.map(({ instanceId }) => instanceId),
