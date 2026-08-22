@@ -72,19 +72,15 @@ const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
+          "kind": "SubTrigger",
+          "event": "whenEffectAddsToHand",
+          "fireCondition": { "kind": "triggerByYourDigimonEffect", "raw": "one of your Digimon's effects adds cards to your hand" },
+          "actions": [{
+            "kind": "Restrict",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "restriction": "suspend",
+            "duration": "untilOpponentTurnEnd"
+          }]
         }
       ],
       "frequency": "OncePerTurn"
