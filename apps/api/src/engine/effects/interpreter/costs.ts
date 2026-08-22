@@ -764,7 +764,7 @@ export async function payCost(
         if (cost.target.upTo === true) {
           const max = typeof cost.target.count === "number" ? cost.target.count : candidates.length;
           const cap = Math.min(max, candidates.length);
-          const min = cost.target.allowZero === true ? 0 : 1;
+          const min = (cost.target as Target & { allowZero?: boolean }).allowZero === true ? 0 : 1;
           if (cap < min) return false;
           let chosen = await ctx.ask.selectCards(ctx, {
             candidates: candidates.map((candidate) => candidate.instanceId),
