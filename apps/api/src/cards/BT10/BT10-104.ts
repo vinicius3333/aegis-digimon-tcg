@@ -1,7 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { getCompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-104 — Immortal Ruler (BT10, Black Option).
@@ -40,7 +39,7 @@ function isDarkKnightmon(def: CardDefinition): boolean {
   return def.nameEn === "DarkKnightmon";
 }
 
-const legacyModule: EffectModule = {
+const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     const ownerSeat = source.ownerSeat as 0 | 1;
@@ -152,7 +151,5 @@ const legacyModule: EffectModule = {
   },
 };
 
-const compiled: CompiledCard = getCompiledCard("BT10-104")!;
-void legacyModule;
 export { compiled };
-registerIrCard("BT10-104", compiled);
+registerIrCard("BT10-104", runtimeCompiledCard("BT10-104")!, module);

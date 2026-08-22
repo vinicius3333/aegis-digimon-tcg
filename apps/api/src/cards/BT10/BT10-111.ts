@@ -1,7 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { getCompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT10-111";
 
@@ -15,7 +14,7 @@ function topCardHasShoutmonName(ctx: EffectContext, source: CardSource): boolean
   return ctx.game.definitionOf(perm.topCard).nameEn?.includes("Shoutmon") === true;
 }
 
-const legacyModule: EffectModule = {
+const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     const ownerSeat = source.ownerSeat as 0 | 1;
@@ -110,7 +109,5 @@ const legacyModule: EffectModule = {
   },
 };
 
-const compiled: CompiledCard = getCompiledCard("BT10-111")!;
-void legacyModule;
-registerIrCard("BT10-111", compiled);
+registerIrCard("BT10-111", runtimeCompiledCard("BT10-111")!, module);
 export { compiled };
