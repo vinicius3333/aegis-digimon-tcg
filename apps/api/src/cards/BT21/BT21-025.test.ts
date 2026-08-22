@@ -82,9 +82,9 @@ describe("BT21-025 compiled implementation", () => {
 
     await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
 
-    expect(
-      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("qualifying").instanceId),
-    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("qualifying").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
