@@ -12,4 +12,6 @@ if (endOfTurn !== undefined) {
     condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
   }];
 }
+compiled.coverage = "full";
+compiled.residual = [];
 registerIrCard("BT12-083", compiled);

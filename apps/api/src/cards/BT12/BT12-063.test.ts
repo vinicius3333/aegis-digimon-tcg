@@ -105,6 +105,14 @@ function makeCtx(opts: {
 }
 
 describe("BT12-063 Shoutmon DX [On Play]", () => {
+  it("registers the Save-text blocker clause without a residual gap", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-063")!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
+  });
+
   it("calls playInstances when a [Taiki Kudo] is among the revealed cards", async () => {
     const playInstancesCalls: string[][] = [];
     const taiki = { cardId: "taiki-001", instanceId: "taiki-inst", name: "Taiki Kudo" };

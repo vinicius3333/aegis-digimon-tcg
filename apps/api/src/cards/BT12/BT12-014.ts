@@ -13,4 +13,6 @@ if (whenDigivolving !== undefined) {
 const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
 const attack = inherited?.actions[0];
 if (attack?.kind === "Delete") attack.condition = { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] } };
+compiled.coverage = "full";
+compiled.residual = [];
 registerIrCard("BT12-014", compiled);

@@ -113,6 +113,14 @@ function makeCtx(opts: {
 }
 
 describe("BT12-083 Machinedramon [End of Your Turn]", () => {
+  it("registers the end-of-turn attack clause without a residual gap", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-083")!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
+  });
+
   it("calls forceAttack(withoutSuspending: true) when stack has 4+ digivolution cards", async () => {
     const forceAttackCalls: ForceAttackCall[] = [];
     const selfPerm = makeStackedPerm(4); // exactly 4 cards

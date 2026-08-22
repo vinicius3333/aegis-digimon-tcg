@@ -11,4 +11,6 @@ if (staticEffect !== undefined) {
     while: { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] } },
   }];
 }
+compiled.coverage = "full";
+compiled.residual = [];
 registerIrCard("BT12-063", compiled);

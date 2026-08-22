@@ -4,6 +4,14 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-014.js";
 describe("BT12-014 OmniShoutmon", () => {
+  it("registers the deletion-budget clause without a residual gap", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-014")!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
+  });
+
   it("adds 3000 to its deletion budget per 2 digivolution cards", async () => {
     const s = setupEngine(
       {
