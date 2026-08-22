@@ -27,4 +27,30 @@ describe("ST19-10 ExTyrannomon", () => {
     expect(observe(s.engine).hasKeyword(p, "Armor Purge")).toBe(true);
     expect(observe(s.engine).hasKeyword(p, "Barrier")).toBe(true);
   });
+
+  it("plays through the printed DigiXros -2 recipe with a named and Puppet Lv.4 material", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-016", as: "tyranno", dp: 5000 },
+          { card: "ST19-07", as: "puppet", dp: 5000 },
+        ],
+        hand: [{ card: "ST19-10", as: "exty" }],
+      },
+    });
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("exty").instanceId,
+      digiXros: { materialInstanceIds: [s.inst("tyranno").instanceId, s.inst("puppet").instanceId] },
+    })).toEqual({ ok: true });
+    await s.ready();
+    const exty = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-10");
+    expect(exty).toBeDefined();
+    expect(exty?.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
+      s.inst("tyranno").instanceId,
+      s.inst("puppet").instanceId,
+    ]));
+    expect(s.state.memory).toBe(0);
+  });
 });
