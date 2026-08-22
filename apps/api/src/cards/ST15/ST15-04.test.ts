@@ -12,6 +12,7 @@ describe("ST15-04 Solarmon", () => {
       },
     });
 
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({
       ok: true,
     });
@@ -29,6 +30,7 @@ describe("ST15-04 Solarmon", () => {
       },
     });
 
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({
       ok: true,
     });
