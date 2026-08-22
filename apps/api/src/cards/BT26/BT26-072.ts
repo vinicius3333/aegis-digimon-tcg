@@ -10,6 +10,7 @@ const altCostDelete = { kind: "Modal", choose: 1, options: [[deleteWithTrash], [
 
 export const compiled: CompiledCard = {
   effects: [
+    { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
     { trigger: "OnPlay", actions: [altCostDelete] },
     { trigger: "WhenDigivolving", actions: [altCostDelete] },
     { trigger: "OnDeletion", isInherited: true, actions: [{ kind: "Trash", chooser: "opponent", target: { filter: { controllerDefault: "opponent", zone: "hand" }, count: 1 }, optional: true }] },
