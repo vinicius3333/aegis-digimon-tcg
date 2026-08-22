@@ -27,7 +27,8 @@ export interface Scaling {
     | "digivolutionCardsOfFiltered"
     | "linkCards" // linked cards across matching permanents, not the permanents (BT25-075)
     | "deletedThisEffect"
-    | "namedCount"; // a count already in `EffectContext.namedCounts`
+    | "namedCount" // a count already in `EffectContext.namedCounts`
+    | "memory"; // memory held by the selected side relative to the source
   /** Name to read when `unit` is `"namedCount"`, usually written by a prior `trackCount`. */
   countSource?: string;
   /**

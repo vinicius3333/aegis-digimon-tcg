@@ -144,6 +144,12 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     return Math.floor(ids.length / per);
   }
   switch (scaling.unit) {
+    case "memory": {
+      const ownPerspective = ctx.source.ownerSeat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
+      const controller = filter.controller ?? "mine";
+      raw = controller === "opponent" ? Math.max(0, -ownPerspective) : Math.max(0, ownPerspective);
+      break;
+    }
     case "cards":
       if (filter.zone === "revealed") {
         raw = (ctx.lastRevealedCards ?? []).filter((card) =>
