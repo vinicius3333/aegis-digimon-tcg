@@ -41,7 +41,29 @@ describe("BT24-053 Protecmon", () => {
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("protecmon").instanceId);
 
     expect(s.state.memory).toBe(3);
-    expect(observe(s.engine).hasKeyword(s.perm("egg"), "Blocker")).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("also uses its normal black level-2 evolution requirement for cost 0", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT17-005", as: "egg" },
+        hand: [{ card: "BT24-053", as: "protecmon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("protecmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.instanceId === s.inst("protecmon").instanceId);
+
+    expect(s.state.memory).toBe(3);
   });
 
   it("links to an Appmon for cost 1, adds 2000 DP, and grants Blocker", async () => {
@@ -63,9 +85,31 @@ describe("BT24-053 Protecmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("protecmon").instanceId));
+    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Blocker"));
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+  });
+
+  it("rejects linking to a non-Appmon host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host" }],
+        hand: [{ card: "BT24-053", as: "protecmon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("protecmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "link-requirement-unmet" });
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("protecmon").instanceId)).toBe(true);
   });
 });
