@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -74,7 +75,7 @@ describe("BT10-023 Thetismon", () => {
       0: { battleArea: [{ card: "BT10-023", as: "thetismon", suspended: true }], hand: Array.from({ length: 7 }, () => "BT1-001") },
     });
 
-    await advance(s.engine).fire("WhenAttacking" as never, s.perm("thetismon"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("thetismon"));
 
     expect(s.perm("thetismon").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(7);
