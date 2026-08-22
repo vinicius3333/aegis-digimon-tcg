@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for BT11-093 (Yuuya Kuga — Black Tamer).
@@ -27,6 +28,12 @@ import "../index.js";
 //   BT1-001   — filler
 
 describe("BT11-093 Yuuya Kuga", () => {
+  it("has complete registered IR coverage", () => {
+    const compiled = runtimeCompiledCard("BT11-093")!;
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toHaveLength(0);
+  });
+
   it("[Start of Your Turn] sets memory to 3 when memory <= 2", async () => {
     const s = setupEngine(
       {
