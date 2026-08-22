@@ -190,7 +190,7 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
         decisionId: blancCost.decisionId,
         response: { kind: "optional", accept: true },
       }),
-    ).toEqual({ ok: true });
+    ).toEqual({ ok: false, reason: "decision-pending" });
 
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
