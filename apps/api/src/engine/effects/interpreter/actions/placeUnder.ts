@@ -410,6 +410,10 @@ export async function runTrashDigivolution(
     }
   }
   ctx.lastEffectActed = totalTrashed > 0;
+  if (action.trackCount !== undefined) {
+    ctx.namedCounts ??= new Map();
+    ctx.namedCounts.set(action.trackCount, totalTrashed);
+  }
   if (amount === "all") return totalTrashed > 0;
   return totalTrashed === amount * permanentIds.length;
 }

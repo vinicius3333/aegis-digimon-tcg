@@ -169,6 +169,8 @@ export interface TrashDigivolutionAction extends ActionBase {
    * of a deterministic `fromTop`/bottom slice.
    */
   choose?: boolean;
+  /** Store the number of cards actually trashed for a later named-count scaling. */
+  trackCount?: string;
 }
 
 /**
