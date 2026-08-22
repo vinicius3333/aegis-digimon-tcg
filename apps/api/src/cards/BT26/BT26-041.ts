@@ -8,6 +8,6 @@ const action = [
 ];
 export const compiled: CompiledCard = { effects: [
   { trigger: "OnPlay", actions: action }, { trigger: "WhenDigivolving", actions: action },
-  { trigger: "AllTurns", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{ kind: "GainMemory", amount: 1 }] }] },
+  { trigger: "YourTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{ kind: "GainMemory", amount: 1 }] }] },
 ], coverage: "full", residual: [] };
 registerIrCard("BT26-041", compiled);
