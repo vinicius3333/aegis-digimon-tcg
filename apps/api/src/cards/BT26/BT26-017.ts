@@ -4,8 +4,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const shambalaTarget = { count: 1, filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }] } };
 const grantActions = [
-  { kind: "Aura", target: shambalaTarget, effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } }, while: { kind: "true" } },
-  { kind: "Aura", target: shambalaTarget, effect: { kind: "keyword", keyword: { keyword: "Progress" } }, while: { kind: "true" } },
+  { kind: "SelectBind", target: { ...shambalaTarget, bindAs: "zanbamonGrantTarget" } },
+  { kind: "GainKeyword", target: { fromSelectionRef: "zanbamonGrantTarget" }, keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "forTheTurn" },
+  { kind: "GainKeyword", target: { fromSelectionRef: "zanbamonGrantTarget" }, keyword: { keyword: "Progress" }, duration: "forTheTurn" },
 ];
 const playTrash = { kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { count: 1, filter: { controller: "mine", playCostLte: 5, nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }, { tokens: ["TS"], match: "trait" }] } } };
 

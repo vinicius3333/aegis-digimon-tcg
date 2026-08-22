@@ -10,6 +10,13 @@ describe("BT26-017 Zanbamon", () => {
   it("compiles Blocker/Retaliation and both trigger paths", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((e) => e.trigger)).toEqual(["Static", "OnPlay", "WhenDigivolving", "OnDeletion"]);
+    for (const effect of compiled.effects.slice(1, 3)) {
+      expect(effect.actions).toMatchObject([
+        { kind: "SelectBind", target: { bindAs: "zanbamonGrantTarget" } },
+        { kind: "GainKeyword", target: { fromSelectionRef: "zanbamonGrantTarget" }, duration: "forTheTurn" },
+        { kind: "GainKeyword", target: { fromSelectionRef: "zanbamonGrantTarget" }, duration: "forTheTurn" },
+      ]);
+    }
   });
   it("exposes its Shambala evolution and Assembly requirements", () => {
     expect(digivolutionRequirementsFor("BT26-017")).toContainEqual({ level: 5, traits: ["Shambala", "TS"], cost: 3, isAlternate: true });
@@ -21,5 +28,35 @@ describe("BT26-017 Zanbamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Progress"));
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Progress")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "SecurityAttack")).toBe(true);
+  });
+
+  it("publishes Blocker and Retaliation while Zanbamon is the top card", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-017", as: "self" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("self"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("self"), "Retaliation")).toBe(true);
+  });
+
+  it("on deletion may play exactly one play-cost-5-or-less Shambala or TS card from trash", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-017", as: "self" }],
+        trash: [
+          { card: "BT26-012", as: "eligible" },
+          { card: "BT26-014", as: "tooExpensive" },
+        ],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.inst("eligible").instanceId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
+      s.inst("self").instanceId,
+      s.inst("tooExpensive").instanceId,
+    ]));
   });
 });
