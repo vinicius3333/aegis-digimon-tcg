@@ -295,7 +295,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ((action as Action & { playerScoped?: boolean }).playerScoped === true ||
           ctx.trigger.securityInstanceId !== undefined ||
           (ctx.activeTiming === "Security" &&
-            (action.target?.filter.controller === "mine" || action.target?.filter.controllerDefault === "mine"))) &&
+            (action.target?.filter?.controller === "mine" || action.target?.filter?.controllerDefault === "mine"))) &&
         kw === "SecurityAttack" &&
         action.target?.count === "all" &&
         action.target.filter.kind?.includes("Digimon")
