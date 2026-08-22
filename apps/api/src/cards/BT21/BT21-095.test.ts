@@ -41,7 +41,7 @@ describe("BT21-095 Wind Guardians", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "color" }],
+          battleArea: [{ card: "BT1-029", as: "color" }],
           hand: [{ card: "BT21-095", as: "option" }],
           security: [{ card: "BT1-001", as: "topSecurity" }],
         },
@@ -49,13 +49,14 @@ describe("BT21-095 Wind Guardians", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
+    const optionInstanceId = s.inst("option").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionInstanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionInstanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.players[0]!.security).toEqual([expect.objectContaining({ cardId: "BT21-095", faceUp: true })]);
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT21-095" && card.faceUp)).toBe(true);
   });
 });

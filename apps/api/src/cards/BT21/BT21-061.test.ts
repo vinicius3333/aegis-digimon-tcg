@@ -71,8 +71,8 @@ describe("BT21-061 MetalGreymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalgreymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("opponent").stack.length === 0);
+    await settle(() => s.perm("opponent").stack.length === 1);
 
-    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

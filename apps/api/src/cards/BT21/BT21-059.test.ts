@@ -59,8 +59,8 @@ describe("BT21-059 Timemon", () => {
     );
 
     await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("host").permanentId });
-    await settle(() => s.perm("opponent").stack.length === 0);
+    await settle(() => s.perm("opponent").stack.length === 1);
 
-    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

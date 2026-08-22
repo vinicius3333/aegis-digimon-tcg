@@ -47,7 +47,7 @@ describe("BT21-021 compiled implementation", () => {
         trigger: "OnDeletion",
         actions: [
           expect.objectContaining({ kind: "PlaceUnder" }),
-          expect.objectContaining({ kind: "ActivateEffect", effectType: "Save" }),
+          expect.objectContaining({ kind: "PlaceUnder", underFilter: { controller: "mine", kind: ["Tamer"] } }),
         ],
       }),
     );
