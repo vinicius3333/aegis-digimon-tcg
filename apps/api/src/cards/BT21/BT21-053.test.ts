@@ -53,7 +53,9 @@ describe("BT21-053 Watchmon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("watchmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("watchmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
 
     expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
