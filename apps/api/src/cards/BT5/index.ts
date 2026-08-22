@@ -52,6 +52,7 @@ import "./BT5-050.js";
 import "./BT5-051.js";
 import "./BT5-052.js";
 import "./BT5-053.js";
+import "./BT5-054.js";
 import "./BT5-055.js";
 import "./BT5-056.js";
 import "./BT5-057.js";
