@@ -81,6 +81,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         return false;
       }
       const ids = await resolvePermanentTargets(ctx, action.target);
+      if (action.includePlayer) ids.push("player");
       await ctx.fx.redirectAttack(ids, { optional: action.optional ?? false });
       return false;
     }
