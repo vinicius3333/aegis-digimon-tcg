@@ -1178,7 +1178,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                       const definition = ctx.game.definitionOf(item);
                       return cardHasTrait(definition, "Machine") || cardHasTrait(definition, "Cyborg");
                     }),
-                    true,
                   );
                   if (!card) return;
                   const discarded = ctx.game.definitionOf(
