@@ -33,6 +33,7 @@ const compiled: CompiledCard = {
     {
       "trigger": "Static",
       "actions": [],
+      "keywords": [{ "keyword": "Jamming", "raw": "＜Jamming＞" }],
       "isInherited": true
     }
   ],
