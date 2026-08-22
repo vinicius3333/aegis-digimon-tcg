@@ -6,7 +6,13 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
-      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2, raw: "you have 2 or less memory" } }],
+      actions: [
+        {
+          kind: "SetMemory",
+          value: 3,
+          condition: { kind: "memoryAtMost", value: 2, raw: "you have 2 or less memory" },
+        },
+      ],
     },
     {
       trigger: "YourTurn",
@@ -14,7 +20,11 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          sourceFilter: { controller: "mine", kind: ["Digimon"], orFilters: [{ isToken: true }, { nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] }] },
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            orFilters: [{ isToken: true }, { nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] }],
+          },
           effectSourceFilter: { controller: "mine" },
           actions: [
             {
@@ -22,7 +32,11 @@ const compiled: CompiledCard = {
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
               keyword: { keyword: "Rush", raw: "＜Rush＞" },
               duration: "forTheTurn",
-              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 }, raw: "by suspending this Tamer" },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1 },
+                raw: "by suspending this Tamer",
+              },
               optional: true,
             },
           ],
@@ -30,7 +44,13 @@ const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }], isSecurity: true },
+    {
+      trigger: "Security",
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+      isSecurity: true,
+    },
   ],
   coverage: "full",
   residual: [],

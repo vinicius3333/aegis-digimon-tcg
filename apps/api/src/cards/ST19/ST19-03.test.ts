@@ -6,14 +6,23 @@ import "./ST19-03.js";
 
 describe("ST19-03 Shoemon", () => {
   it("reveals three, adds one Puppet and one LIBERATOR, and bottoms the rest", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "ST19-03", as: "shoemon" }],
-        deck: [{ card: "ST19-02", as: "puppet" }, { card: "ST19-14", as: "liberator" }, { card: "BT1-010", as: "rest" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST19-03", as: "shoemon" }],
+          deck: [
+            { card: "ST19-02", as: "puppet" },
+            { card: "ST19-14", as: "liberator" },
+            { card: "BT1-010", as: "rest" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 20;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("puppet").instanceId,
@@ -29,14 +38,23 @@ describe("ST19-03 Shoemon", () => {
   });
 
   it("adds the only eligible card when the reveal has no second matching trait", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "ST19-03", as: "shoemon" }],
-        deck: [{ card: "ST19-02", as: "puppet" }, { card: "BT1-010", as: "first" }, { card: "BT1-011", as: "second" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST19-03", as: "shoemon" }],
+          deck: [
+            { card: "ST19-02", as: "puppet" },
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 20;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("puppet").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("puppet").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([

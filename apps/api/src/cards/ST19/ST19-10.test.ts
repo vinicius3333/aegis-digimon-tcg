@@ -39,18 +39,19 @@ describe("ST19-10 ExTyrannomon", () => {
       },
     });
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("exty").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("tyranno").instanceId, s.inst("puppet").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("exty").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("tyranno").instanceId, s.inst("puppet").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await s.ready();
     const exty = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-10");
     expect(exty).toBeDefined();
-    expect(exty?.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("tyranno").instanceId,
-      s.inst("puppet").instanceId,
-    ]));
+    expect(exty?.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("tyranno").instanceId, s.inst("puppet").instanceId]),
+    );
     expect(s.state.memory).toBe(0);
   });
 });

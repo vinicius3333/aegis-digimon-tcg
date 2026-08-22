@@ -17,32 +17,45 @@ describe("ST19-12 Familiar Token", () => {
     expect(tokenDefinition).toMatchObject({ dp: 3000, colors: ["Yellow"], isToken: true });
 
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("cendrill").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "TOKEN-Familiar-Token").length === 2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("cendrill").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "TOKEN-Familiar-Token").length === 2,
+    );
     const token = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "TOKEN-Familiar-Token");
     expect(token).toBeDefined();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: token!.permanentId,
-      target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: token!.permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => (s.perm("opponent").currentDP ?? 7000) === 4000);
     expect(s.perm("opponent").currentDP).toBe(4000);
   });
 
   it("uses Overclock by deleting a Token, then attacks without suspending", async () => {
-    const s = setupEngine({
-      0: { hand: ["AD1-001"], deck: ["AD1-001", "AD1-001"], battleArea: [
-        { card: "ST19-12", as: "cendrill", dp: 11000 },
-        { card: "TOKEN-Familiar-Token", as: "fodder", dp: 3000 },
-      ] },
-      1: { hand: ["AD1-001"], deck: ["AD1-001", "AD1-001"], security: ["AD1-001"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["AD1-001"],
+          deck: ["AD1-001", "AD1-001"],
+          battleArea: [
+            { card: "ST19-12", as: "cendrill", dp: 11000 },
+            { card: "TOKEN-Familiar-Token", as: "fodder", dp: 3000 },
+          ],
+        },
+        1: { hand: ["AD1-001"], deck: ["AD1-001", "AD1-001"], security: ["AD1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
     expect(observe(s.engine).hasKeyword(s.perm("cendrill"), "Blocker")).toBe(true);
     s.state.turnSeat = 0;
     const turn = s.engine.runOneTurn();

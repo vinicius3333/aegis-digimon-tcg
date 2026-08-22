@@ -11,23 +11,34 @@ describe("ST19-13 ShinMonzaemon", () => {
   });
 
   it("plays a level 5-or-lower Puppet from trash under itself when played", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "ST19-13", as: "shin" }],
-        trash: [{ card: "ST19-02", as: "eligible" }, { card: "BT1-010", as: "ineligible" }],
-        deck: ["BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST19-13", as: "shin" }],
+          trash: [
+            { card: "ST19-02", as: "eligible" },
+            { card: "BT1-010", as: "ineligible" },
+          ],
+          deck: ["BT1-009"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 20;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("shin").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.cardId === "ST19-13" &&
-      permanent.stack.some((card) => card.instanceId === s.inst("eligible").instanceId),
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("shin").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) =>
+          permanent.topCard.cardId === "ST19-13" &&
+          permanent.stack.some((card) => card.instanceId === s.inst("eligible").instanceId),
+      ),
+    );
 
     const shin = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-13");
     expect(shin?.stack.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);

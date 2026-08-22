@@ -13,7 +13,12 @@ const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           leaveCause: "byOpponentEffect",
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true, nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              excludeSelf: true,
+              nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }],
+            },
             count: 1,
           },
           mode: "prevent",
