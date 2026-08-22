@@ -1,6 +1,11 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { onPlay, onDeletion, whenAttacking } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-019 — MetalGreymon (BT10, Blue Lv.5 Digimon).
@@ -218,5 +223,5 @@ const module: EffectModule = {
   },
 };
 
-export { compiled };
-registerIrCard("BT10-019", compiled);
+registerCard(module);
+export default module;

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./EX6-059.js";
 
 describe("EX6-059 BeelStarmon", () => {
