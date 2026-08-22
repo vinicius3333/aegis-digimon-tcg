@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
@@ -16,6 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *   traits and your opponent has 2 or more Digimon in play, unsuspend this Digimon.
  */
 const cardId = "BT10-019";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasBlueFlare(def: { types?: string[] }): boolean {
   const types = def.types as string[] | undefined;
