@@ -161,7 +161,7 @@ describe("BT25-101 Divine Arms Version Ω", () => {
           ],
         },
         1: {
-          battleArea: [{ card: "BT25-020", as: "equalDpOpponent", suspended: true }],
+          battleArea: [{ card: "BT25-020", as: "equalDpOpponent", dp: 14000, suspended: true }],
           security: [{ card: "AD1-001", as: "security" }],
         },
       },
@@ -179,7 +179,8 @@ describe("BT25-101 Divine Arms Version Ω", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).hasPierce(s.perm("vulcanus")),
+      s.state.players[1]!.battleArea.length === 0 &&
+      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("piercingLink").instanceId),
     );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("vulcanus").permanentId)).toBe(true);
