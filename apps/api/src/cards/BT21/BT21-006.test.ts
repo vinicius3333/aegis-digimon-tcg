@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT21-006.js";
 
 describe("BT21-006 compiled implementation", () => {
@@ -35,5 +37,21 @@ describe("BT21-006 compiled implementation", () => {
         ],
       }),
     ]);
+  });
+
+  it("applies the inherited DP bonus only at the four-card boundary", () => {
+    const below = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-006", as: "below", under: ["BT21-056", "BT21-056", "BT21-056"] }],
+      },
+    });
+    const atBoundary = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-006", as: "atBoundary", under: ["BT21-056", "BT21-056", "BT21-056", "BT21-056"] }],
+      },
+    });
+
+    expect(below.perm("below").currentDP).toBe(1000);
+    expect(atBoundary.perm("atBoundary").currentDP).toBe(4000);
   });
 });
