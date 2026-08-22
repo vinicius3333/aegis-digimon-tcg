@@ -49,4 +49,5 @@ it("gives one opposing Digimon Security Attack -2 when digivolving", async () =>
   await s.ready();
   await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lamp"));
   expect(observe(s.engine).hasKeyword(s.perm("target"), "SecurityAttack")).toBe(true);
+  expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
 });
