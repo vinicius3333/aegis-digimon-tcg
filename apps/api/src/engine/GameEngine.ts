@@ -813,7 +813,10 @@ export class GameEngine {
         subTriggers: this.subTriggers,
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
-          this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), { deletedPermanentId: leavingId }),
+          this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), {
+            deletedPermanentId: leavingId,
+            deletedPermanentIds: permanentIds,
+          }),
         turnSeat: this.state.turnSeat,
         // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
         // (reset at each turn start alongside every other Once-Per-Turn limit).
