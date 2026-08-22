@@ -5,6 +5,7 @@ import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from ".
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT26-063.js";
 import "../index.js";
 
 const CARD_ID = "BT26-063";
@@ -57,6 +58,28 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
 }
 
 describe("BT26-063 Tellermon", () => {
+  it("encodes the linked reveal and lowest-level deletion effects in IR", () => {
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } }],
+    });
+    expect(compiled.effects?.[0]?.actions?.[0]?.actions?.[0]).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 3,
+      rest: "deckTopOrBottom",
+    });
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "Static",
+      isLinked: true,
+      actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } }],
+    });
+    expect(compiled.effects?.[1]?.actions?.[0]?.actions?.[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, superlative: "lowestLevel" },
+    });
+  });
+
   it("digivolves from a non-purple level 2 Appmon for the printed alternate cost 0", async () => {
     const s = setupEngine({
       0: {
