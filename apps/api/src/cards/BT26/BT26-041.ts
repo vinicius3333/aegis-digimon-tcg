@@ -6,8 +6,13 @@ const action = [
   { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 },
   { kind: "Suspend", target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } }, optional: true },
 ];
-export const compiled: CompiledCard = { effects: [
-  { trigger: "OnPlay", actions: action }, { trigger: "WhenDigivolving", actions: action },
-  { trigger: "YourTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{ kind: "GainMemory", amount: 1 }] }] },
-], coverage: "full", residual: [], digivolutionRequirement: [{ level: 3, traits: ["Larva", "Insectoid", "NSp"], cost: 2, isAlternate: true }] };
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "OnPlay", actions: action },
+    { trigger: "WhenDigivolving", actions: action },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [{ level: 3, traits: ["Larva", "Insectoid", "NSp"], cost: 2, isAlternate: true }],
+};
 registerIrCard("BT26-041", compiled);
