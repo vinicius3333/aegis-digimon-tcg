@@ -4,19 +4,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const sevenCode = { nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
+const linkFromTrash = {
+  kind: "Link",
+  target: {
+    filter: {
+      controller: "mine",
+      zone: "trash",
+      kind: ["Digimon", "Tamer"],
+      excludeColors: ["White"],
+      levelComparison: { op: "lte", value: 4 },
+      hasLinkRequirement: true,
+      nameOrTrait: [
+        { tokens: ["System"], match: "trait" },
+        { tokens: ["Seven Code"], match: "trait" },
+      ],
+    },
+    count: 1,
+  },
+  recipient: self,
+  from: ["trash"],
+  payCost: false,
+  optional: true,
+};
 
 export const compiled: CompiledCard = {
   keywords: [{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }],
   effects: [
+    { trigger: "WhenLinking", isLinked: true, actions: [linkFromTrash] },
     {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [
-        { kind: "RevealAdd", revealCount: 3, add: [
-          { filter: { controller: "mine", kind: ["Digimon"], ...sevenCode }, count: 1, to: "play", costDelta: -3, optional: true },
-          { filter: { controller: "mine", kind: ["Option"], ...sevenCode }, count: 1, to: "useOption", costDelta: -3, optional: true },
-        ], rest: "deckTopOrBottom" },
-      ] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
+                {
+                  filter: { controller: "mine", kind: ["Digimon"], ...sevenCode },
+                  count: 1,
+                  to: "play",
+                  costDelta: -3,
+                  optional: true,
+                },
+                {
+                  filter: { controller: "mine", kind: ["Option"], ...sevenCode },
+                  count: 1,
+                  to: "useOption",
+                  costDelta: -3,
+                  optional: true,
+                },
+              ],
+              rest: "deckTopOrBottom",
+            },
+          ],
+        },
+      ],
     },
   ],
   coverage: "full",

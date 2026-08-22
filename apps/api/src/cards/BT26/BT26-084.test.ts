@@ -11,19 +11,66 @@ describe("BT26-084 compiled behavior", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }]);
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
     expect(compiled.keywords).toEqual([{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }]);
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenLinking")).toMatchObject({
+      isLinked: true,
+      actions: [
+        {
+          kind: "Link",
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          recipient: { isSelf: true },
+          target: {
+            filter: {
+              excludeColors: ["White"],
+              levelComparison: { op: "lte", value: 4 },
+              hasLinkRequirement: true,
+              nameOrTrait: [
+                { tokens: ["System"], match: "trait" },
+                { tokens: ["Seven Code"], match: "trait" },
+              ],
+            },
+            count: 1,
+          },
+        },
+      ],
+    });
     const yourTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
-    expect(yourTurn).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" }] }] });
-    expect(yourTurn.actions[0].actions[0].add[0]).toMatchObject({ to: "play", costDelta: -3, optional: true, filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] } });
-    expect(yourTurn.actions[0].actions[0].add[1]).toMatchObject({ to: "useOption", costDelta: -3, optional: true, filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] } });
+    expect(yourTurn).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" }],
+        },
+      ],
+    });
+    expect(yourTurn.actions[0].actions[0].add[0]).toMatchObject({
+      to: "play",
+      costDelta: -3,
+      optional: true,
+      filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
+    });
+    expect(yourTurn.actions[0].actions[0].add[1]).toMatchObject({
+      to: "useOption",
+      costDelta: -3,
+      optional: true,
+      filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
+    });
   });
 
   it("reveals three linked-trigger cards and plays a revealed Seven Code Digimon for 3 less", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102", as: "pad" }] }],
-        deck: ["BT26-010", "BT1-001", "BT1-002"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102", as: "pad" }] }],
+          deck: ["BT26-010", "BT1-001", "BT1-002"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).fireSubTrigger("whenLinked", {
       subjectPermanentId: s.perm("copipemon").permanentId,
