@@ -23,11 +23,11 @@ const returnLevelFour = {
 
 export const compiled: CompiledCard = {
   digivolutionRequirement: [{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }],
-  keywords: [
-    { keyword: "Training", raw: "＜Training＞" },
-    { keyword: "Jamming", raw: "＜Jamming＞" },
-  ],
   effects: [
+    { trigger: "Static", actions: [], keywords: [
+      { keyword: "Training", raw: "＜Training＞" },
+      { keyword: "Jamming", raw: "＜Jamming＞" },
+    ] },
     { trigger: "OnPlay", actions: [returnLevelFour] },
     { trigger: "WhenAttacking", actions: [returnLevelFour] },
     {

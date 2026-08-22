@@ -9,19 +9,18 @@ import "../index.js";
 describe("BT26-023 Mojyamon", () => {
   it("encodes the printed evolution, Training/Jamming, and face-down hand cost", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }]);
-    expect(compiled.keywords).toEqual(
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "Training" }),
         expect.objectContaining({ keyword: "Jamming" }),
       ]),
     );
-    expect(compiled.effects).toMatchObject([
-      {
-        trigger: "OnPlay",
-        actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }],
-      },
-      { trigger: "WhenAttacking", actions: [{ kind: "Return", to: "deckBottom" }] },
-    ]);
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")).toMatchObject({
+      actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenAttacking" && !effect.isInherited)).toMatchObject({
+      actions: [{ kind: "Return", to: "deckBottom" }],
+    });
   });
 
   it("uses the exact level-3 DM alternate evolution for cost 2", async () => {
