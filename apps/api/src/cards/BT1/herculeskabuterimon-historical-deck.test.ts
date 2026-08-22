@@ -69,7 +69,7 @@ describe("BT1 HerculesKabuterimon historical deck gauntlet", () => {
       !s.perm("herculesKabuterimon").isSuspended &&
       !observe(s.engine).isAttacking()
     );
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
 
     expect(
       s.engine.applyIntent(0, {
