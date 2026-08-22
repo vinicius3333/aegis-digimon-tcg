@@ -3,6 +3,7 @@ import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, t
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT19-098.js";
 
 // A3 for BT19-098 (King Device — Purple Option). Covers every hand-written clause:
