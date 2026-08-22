@@ -25,4 +25,16 @@ describe("ST16-03 Gabumon", () => {
 
     expect(s.state.memory).toBe(0);
   });
+
+  it("does not count a Digimon in the opponent's breeding area (Q821)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST16-03", as: "gabumon" }] },
+      1: { breeding: { card: "BT1-009" } },
+    });
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("gabumon"));
+
+    expect(s.state.memory).toBe(0);
+  });
 });
