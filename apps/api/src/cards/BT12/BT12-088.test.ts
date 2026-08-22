@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-088.js";
 
 describe("BT12-088 handwritten module", () => {
@@ -17,5 +19,19 @@ describe("BT12-088 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source).length).toBeGreaterThan(0);
+  });
+
+  it("sets memory to 3 at the start of your turn only when memory is 2 or less", async () => {
+    const low = setupEngine({ 0: { battleArea: [{ card: "BT12-088", as: "takuya" }] } });
+    await low.ready();
+    low.state.memory = 2;
+    await advance(low.engine).fire(EffectTiming.OnStartTurn, low.perm("takuya"));
+    expect(low.state.memory).toBe(3);
+
+    const high = setupEngine({ 0: { battleArea: [{ card: "BT12-088", as: "takuya" }] } });
+    await high.ready();
+    high.state.memory = 3;
+    await advance(high.engine).fire(EffectTiming.OnStartTurn, high.perm("takuya"));
+    expect(high.state.memory).toBe(3);
   });
 });
