@@ -59,6 +59,7 @@ it("activates its Main deletion effect from security", async () => {
   await s.ready();
 
   await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
 
   expect(s.state.players[1]!.battleArea).toHaveLength(0);
 });
