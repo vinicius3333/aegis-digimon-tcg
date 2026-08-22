@@ -1,44 +1,6 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { activated, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "BT1-096";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnUseOption)
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/main`,
-          description: "[Main] 1 of your Digimon gets +3000 DP for the turn.",
-          resolve: async (ctx) => {
-            const candidates = ctx.game
-              .player(source.ownerSeat)
-              .battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
-              .map((p) => p.permanentId);
-            if (!candidates.length) return;
-            const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-            if (chosen[0]) ctx.fx.modifyDP(chosen[0], 3000, EffectDuration.UntilEachTurnEnd);
-          },
-        }),
-      ];
-    if (timing === EffectTiming.SecuritySkill)
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description: "[Security] Draw 1, then add this card to hand.",
-          resolve: async (ctx) => {
-            await ctx.fx.draw(source.ownerSeat, 1);
-            await ctx.fx.returnToHand([source.instanceId]);
-          },
-        }),
-      ];
-    return [];
-  },
-};
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+export const compiled: CompiledCard = { effects: [{ trigger: "Main", actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 3000, duration: "forTheTurn" }] }, { trigger: "Security", actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }] }], coverage: "full", residual: [] };
+registerIrCard("BT1-096", compiled);
+export default compiled;

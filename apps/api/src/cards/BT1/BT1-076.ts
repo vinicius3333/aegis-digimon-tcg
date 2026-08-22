@@ -1,32 +1,6 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "BT1-076";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing !== EffectTiming.OnUseAttack) return [];
-    return [
-      whenAttacking({
-        source,
-        effectKey: `${cardId}/memory`,
-        description: "[When Attacking] Gain 1 memory if the opponent has 2 suspended Digimon.",
-        isInherited: true,
-        canActivate: (ctx) =>
-          ctx.game
-            .player(ctx.game.opponentOf(source.ownerSeat))
-            .battleArea.filter(
-              (p) => p.isSuspended && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-            ).length >= 2,
-        resolve: async (ctx) => {
-          ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-        },
-      }),
-    ];
-  },
-};
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+export const compiled: CompiledCard = { effects: [{ trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "permanentCount", seat: "opponent", op: "gte", value: 2, filter: { kind: ["Digimon"], suspended: true } } }] }], coverage: "full", residual: [] };
+registerIrCard("BT1-076", compiled);
+export default compiled;

@@ -1,25 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onDeletion } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "BT1-035";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing !== EffectTiming.OnDestroyedAnyone) return [];
-    return [
-      onDeletion({
-        source,
-        effectKey: `${cardId}/memory`,
-        description: "[On Deletion] Gain 2 memory.",
-        resolve: async (ctx) => {
-          ctx.fx.gainMemoryForSeat(source.ownerSeat, 2);
-        },
-      }),
-    ];
-  },
-};
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+export const compiled: CompiledCard = { effects: [{ trigger: "OnDeletion", actions: [{ kind: "GainMemory", amount: 2 }] }], coverage: "full", residual: [] };
+registerIrCard("BT1-035", compiled);
+export default compiled;

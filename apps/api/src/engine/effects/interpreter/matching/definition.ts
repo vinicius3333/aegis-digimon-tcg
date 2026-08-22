@@ -233,11 +233,14 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
 }
 
 /** Does a card's printed text declare a keyword ability (e.g. ＜Save＞, ＜Blocker＞)? */
-export function textHasKeyword(def: { effectText?: string; inheritedEffectText?: string }, keyword: string): boolean {
+export function textHasKeyword(
+  def: { effectText?: string; inheritedEffectText?: string },
+  keyword: string | { keyword?: string },
+): boolean {
   const hay = `${def.effectText ?? ""} ${def.inheritedEffectText ?? ""}`.toLowerCase();
   // Normalize the keyword to its prose token (handles "DeDigivolve" -> "de-digivolve",
   // "SecurityAttack" -> "security attack", "IceClad" -> "ice clad").
-  const token = keyword
+  const token = (typeof keyword === "string" ? keyword : keyword.keyword ?? "")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/DeDigivolve/i, "De-Digivolve")
     .replace(/Digi Burst/i, "Digi-Burst")
