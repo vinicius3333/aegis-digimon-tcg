@@ -93,6 +93,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT11-106", // condition: you have a black Tamer -> Option use cost -1
   "BT11-107", // condition: you have X Antibody in play -> Option use cost -2
   "BT11-108", // condition: you have a black Tamer -> Option use cost -1
+  "BT11-110", // condition: you have a purple Tamer -> Option use cost -1
 ]);
 
 /**
