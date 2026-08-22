@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT12-081.js";
 
 describe("BT12-081 Astamon", () => {
@@ -11,6 +12,11 @@ describe("BT12-081 Astamon", () => {
     expect(card.coverage).toBe("full");
     expect(JSON.stringify(card)).not.toContain("RawUnparsed");
     expect(card.residual).toEqual([]);
+  });
+
+  it("limits the Save alternate evolution to yellow, green, or purple level 4 cards", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT12-081", "BT12-037")?.cost).toBe(5);
+    expect(matchingAlternateDigivolutionRequirement("BT12-081", "BT12-061")).toBeUndefined();
   });
 
   it("plays a level 4 Save Digimon from under a Tamer", async () => {

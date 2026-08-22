@@ -418,6 +418,11 @@ function matchGatedRequirement(
       if (!req.traits.some((t) => cardHasTrait(baseDef, t))) continue;
     }
 
+    // Color gate: base must have at least one of the listed printed colors.
+    if (req.colors && req.colors.length > 0) {
+      if (!req.colors.some((c) => baseDef.colors.includes(c as CardColor))) continue;
+    }
+
     // Exclude-trait gate: base must NOT carry any listed trait ("from a Digimon without
     // the [X Antibody] trait", EX8-037).
     if (req.excludeTraits && req.excludeTraits.length > 0) {
