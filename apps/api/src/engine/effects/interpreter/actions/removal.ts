@@ -74,6 +74,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ? await resolveTotalDpCapTargets(ctx, target)
           : await resolvePermanentTargets(ctx, target);
       const ids = survivorIds.length > 0 ? resolved.filter((id) => !survivorIds.includes(id)) : resolved;
+      ctx.lastDeleteTargetSelected = ids.length > 0;
       if (action.at === "endOfTurn") {
         for (const id of ids) ctx.fx.delayedDeletePlayed?.(id);
         ctx.lastDeleteCount = 0;
@@ -381,9 +382,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
         const deck = ctx.game.player(seat).deck;
-        const n = action.target.count === "all"
-          ? deck.length
-          : action.target.count * (scale ?? 1);
+        const n = action.target.count === "all" ? deck.length : action.target.count * (scale ?? 1);
         const topCards = deck.slice(0, n);
         const topIds = topCards.map((card) => card.instanceId);
         if (topIds.length > 0) {
@@ -454,16 +453,18 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // permanent for resolvePermanentTargets to find.
       if (action.from?.includes("digivolutionCards")) {
         const self = ctx.source.permanent();
-        const candidates = self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
+        const candidates =
+          self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
         if (candidates.length === 0) return false;
-        const picked = candidates.length === 1
-          ? [candidates[0]!.instanceId]
-          : await ctx.ask.selectCards(ctx, {
-              candidates: candidates.map((card) => card.instanceId),
-              min: 1,
-              max: 1,
-              visibleCards: candidates.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
-            });
+        const picked =
+          candidates.length === 1
+            ? [candidates[0]!.instanceId]
+            : await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((card) => card.instanceId),
+                min: 1,
+                max: 1,
+                visibleCards: candidates.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+              });
         if (picked.length === 0) return false;
         const pickedCard = candidates.find((card) => card.instanceId === picked[0]);
         const moved = await ctx.fx.returnToHand(picked);

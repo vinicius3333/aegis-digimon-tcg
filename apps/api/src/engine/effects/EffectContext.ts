@@ -1633,6 +1633,8 @@ export interface EffectContext {
    *   delete it" on a Digimon just played by this effect.
    */
   lastDeleteCount?: number;
+  /** Whether the most recent Delete selected a target, even if deletion was prevented. */
+  lastDeleteTargetSelected?: boolean;
   /**
    * The MAX printed level among permanents deleted by the most recent Delete (or `deleteOwn`
    * subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` binds its threshold
