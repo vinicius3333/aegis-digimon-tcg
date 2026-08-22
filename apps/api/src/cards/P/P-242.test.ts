@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
 import type { PlayerState, Seat } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./P-242.js";
 
 // A3 for P-242 (Rei Katsura) — [Start of Your Main Phase] by trashing 1 System/Life/
 // Transmutation trait card from hand, draw 1 and gain 1 memory. source: printed card text
@@ -35,6 +36,21 @@ async function driveTurn(s: ReturnType<typeof setupEngine>, seat: Seat): Promise
 const LIFE_TRAIT_CARD = "BT24-038"; // types: ["Life"]
 
 describe("P-242 [Start of Your Main Phase] trash Life/System/Transmutation card from hand, draw 1 + gain 1 memory", () => {
+  it("links an eligible trash card to a friendly Digimon with a one-memory reduction after suspending", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
+      actions: [
+        {
+          kind: "Link",
+          from: ["trash"],
+          costDelta: -1,
+          payCost: true,
+          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          cost: { kind: "suspend", target: { isSelf: true, count: 1 } },
+        },
+      ],
+    });
+  });
+
   it("trashes a Life-trait card, draws 1, and gains 1 memory at the start of the main phase", async () => {
     const s = setupEngine(
       {
