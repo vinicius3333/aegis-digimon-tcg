@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
         target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Damemon"], match: "name" }] }, count: 1 },
         from: ["trash"],
         payCost: false,
+        suspended: true,
         optional: true,
       }],
     },
@@ -37,6 +38,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ names: ["Damemon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("BT11-082", compiled);
