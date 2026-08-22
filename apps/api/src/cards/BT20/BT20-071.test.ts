@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./index.js";
 import { compiled } from "./BT20-071.js";
-import "../index.js";
 
 // A3 for BT20-071 (Soloogarmon — Purple Lv.6 Digimon).
 //
@@ -20,14 +20,14 @@ const BULKMON = "BT20-032";
 // BT1-010 Agumon — cheap filler for hand trash
 const AGUMON = "BT1-010";
 // BT1-001 Koromon — a Digimon to grant Raid+3000 to
-const KOROMON = "BT1-001";
+const KOROMON = "BT20-010";
 
 describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP", () => {
   it("compiles the hand cost, Tamer-stack trigger, and inherited Option suppression", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([{ kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } }, { kind: "ModifyDP", amount: 3000 }, { kind: "GainKeyword", keyword: { keyword: "Raid" } }]);
-    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { kind: ["Tamer"] }, triggerFilter: { isSelfRef: true } });
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { kind: ["Tamer"] }, triggerFilter: { isSelfRef: true }, addedDigivolutionCardFilter: { kind: ["Tamer"] } });
     expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "DisableSecurityEffect", sourceKind: "option", condition: { kind: "selfHasTrait" } }] });
   });
 
@@ -57,8 +57,8 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     const soloogarmonInst = s.inst("soloogarmonInst");
     const koromonPerm = s.perm("koromonPerm");
 
-    // Use enough memory to pay the 3-cost digivolve from a Lv.4 SEEKERS base.
-    s.state.memory = 3;
+    // Use enough memory to pay the printed 4-cost red/yellow evolution.
+    s.state.memory = 4;
 
     // Record initial DPs for all own Digimon (the effect picks the first candidate).
     const initialBulkmonDP = bulkmonPerm.currentDP;

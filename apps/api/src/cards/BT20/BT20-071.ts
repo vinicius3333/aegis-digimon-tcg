@@ -10,9 +10,9 @@ const raidAndBoost = [
     amount: 3000,
     duration: "forTheTurn",
   },
-  {
-    kind: "GainKeyword",
-    target: { fromSelectionRef: "soloogarmonTarget" },
+    {
+      kind: "GainKeyword",
+      target: { fromSelectionRef: "soloogarmonTarget" },
     keyword: { keyword: "Raid", raw: "＜Raid＞" },
     duration: "forTheTurn",
   },
@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
           event: "onAddDigivolutionCards",
           sourceFilter: { controllerDefault: "mine", kind: ["Tamer"] },
           triggerFilter: { isSelfRef: true },
+          addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
             {
               kind: "Delete",
@@ -48,10 +49,7 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           sourceKind: "option",
           duration: "permanent",
-          condition: {
-            kind: "selfHasTrait",
-            filter: { nameOrTrait: [{ tokens: ["SoC", "SEEKERS"], match: "trait" }] },
-          },
+          condition: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["SoC", "SEEKERS"], match: "trait" }] } },
         },
       ],
     },
