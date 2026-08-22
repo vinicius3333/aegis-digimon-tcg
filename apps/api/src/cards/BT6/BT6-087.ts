@@ -46,7 +46,7 @@ const compiled: CompiledCard = {
           "kind": "Digivolve",
           "target": {
             "filter": {
-              "controller": "mine",
+              "controllerDefault": "mine",
               "kind": [
                 "Digimon"
               ],
@@ -71,7 +71,7 @@ const compiled: CompiledCard = {
                 "tokens": [
                   "Agumon - Bond of Bravery"
                 ],
-                "match": "nameExact"
+                "match": "name"
               }
             ]
           },

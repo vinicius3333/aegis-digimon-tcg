@@ -12,6 +12,8 @@ const compiled: CompiledCard = {
           "mode": "reduce",
           "costType": "play",
           "amount": 1,
+          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
+          "duration": "permanent",
           "scaling": {
             "per": 1,
             "filter": {
