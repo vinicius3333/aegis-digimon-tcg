@@ -67,6 +67,7 @@ const GLOBAL_PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = PRINT
 const printedKeywordCache = new Map<string, readonly string[]>();
 
 const GRANT_CLAUSE = /\b(?:gain|gains|gained|getting|gets|has)\b/i;
+const CONDITIONAL_CLAUSE = /\b(?:if|unless|as long as|while)\b/i;
 const FILTER_CLAUSE = /\bwith(?:out)?\s+[^.!?\n]{0,80}$/i;
 const USE_CLAUSE = /\b(?:use|using)\s*$/i;
 
@@ -88,6 +89,8 @@ function scanPrintedKeywords(effectText: string): readonly string[] {
       const prefix = effectText.slice(0, match.index);
       const clauseStart = Math.max(prefix.lastIndexOf("."), prefix.lastIndexOf("\n")) + 1;
       const clausePrefix = prefix.slice(clauseStart);
+      const abilityStart = prefix.lastIndexOf("[");
+      const abilityPrefix = prefix.slice(abilityStart >= 0 ? abilityStart : clauseStart);
       // A marker referenced by a target filter ("Digimon with <Blocker>") or
       // produced by a grant clause isn't an intrinsic currently-active keyword.
       // Inspect the whole current clause so chained grants such as "gains
@@ -97,6 +100,10 @@ function scanPrintedKeywords(effectText: string): readonly string[] {
       if (GRANT_CLAUSE.test(clausePrefix)) continue;
       if (FILTER_CLAUSE.test(clausePrefix)) continue;
       if (USE_CLAUSE.test(clausePrefix)) continue;
+      // A keyword chained after a conditional clause (for example, "If DNA
+      // digivolving ... Then, ＜Blitz＞") is granted by that effect; it is not
+      // an intrinsic keyword available on every copy of the card.
+      if (CONDITIONAL_CLAUSE.test(abilityPrefix)) continue;
       found.push(name);
       break;
     }
