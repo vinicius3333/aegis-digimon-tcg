@@ -826,6 +826,7 @@ export async function runGainTriggeredEffect(
   action: Extract<Action, { kind: "GainTriggeredEffect" }>,
 ): Promise<void> {
   const event = SUBTRIGGER_EVENT_MAP[action.gainedTrigger];
+  const sourceFilter = action.sourceFilter;
   if (event === undefined) {
     unsupported(
       ctx,
@@ -838,6 +839,7 @@ export async function runGainTriggeredEffect(
   const grantingSeat = ctx.source.ownerSeat;
   const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
   for (const targetPermanentId of targetIds) {
+    const anchorPermanentId = targetPermanentId;
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;

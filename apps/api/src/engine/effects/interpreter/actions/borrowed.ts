@@ -208,6 +208,7 @@ export async function runUseOptionWithoutCost(
   // Bind the use OUTCOME on ctx up-front: false until an Option is actually used (read by a
   // subsequent "if this effect used" Condition; KB EX8-037 Q3923/Q4737).
   ctx.lastOptionUsed = false;
+  ctx.lastOptionUsedInstanceId = undefined;
 
   const seat = ctx.source.ownerSeat; // the printed form is always "from YOUR hand"
   // Resolve source zones: `action.from` (top-level) or `action.target.from` (wrapped form).
@@ -285,6 +286,7 @@ export async function runUseOptionWithoutCost(
     ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
   });
   ctx.lastOptionUsed = true;
+  ctx.lastOptionUsedInstanceId = chosenId;
 }
 
 /**

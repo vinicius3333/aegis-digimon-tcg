@@ -85,7 +85,7 @@ export interface SecurityManipulationAction extends ActionBase {
   /** For trashTop: the effect controller chooses the top or bottom card. */
   chooseTopOrBottom?: boolean;
   /** For placeAsSecurity: which cards are placed. */
-  source?: Target | "securityTop" | "deck" | "deckTop" | "revealed" | "reveal" | "rest" | "hand" | "handOrTrash";
+  source?: Target | "securityTop" | "deck" | "deckTop" | "revealed" | "reveal" | "rest" | "hand" | "handOrTrash" | "lastOptionUsed";
   /** For placeAsSecurity: which zone the placed cards come from. */
   from?: ZoneRef[];
   /** For placeAsSecurity; default top. */

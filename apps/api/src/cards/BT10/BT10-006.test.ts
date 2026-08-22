@@ -105,4 +105,28 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
+
+  it("draws only for Tokomon when an effect trashes it alongside another digivolution card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{
+          card: "BT1-009",
+          as: "host",
+          under: ["BT10-006", "BT1-010"],
+        }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    s.state.turnSeat = 1;
+    const deckBefore = s.state.players[0]!.deck.length;
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("host").permanentId,
+      s.perm("host").stack.slice(0, 2).map((card) => card.instanceId),
+      0,
+    );
+    await settle(() => s.state.players[0]!.deck.length === deckBefore - 1);
+
+    expect(s.state.players[0]!.deck.length).toBe(deckBefore - 1);
+  });
 });
