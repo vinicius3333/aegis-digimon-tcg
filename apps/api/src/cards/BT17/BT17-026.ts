@@ -14,10 +14,18 @@ const compiled: CompiledCard = {
           "kind": "Digivolve",
           "target": {
             "filter": {
-              "isSelfRef": true
+              "zone": "battleArea",
+              "controller": "mine",
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Koji Minamoto"
+                  ],
+                  "match": "name"
+                }
+              ]
             },
-            "count": 1,
-            "isSelf": true
+            "count": 1
           },
           "into": {
             "filter": {
@@ -95,7 +103,10 @@ const compiled: CompiledCard = {
             }
           ],
           "costOverride": 3,
-          "ignoreRequirements": true
+          "asLevel": 4,
+          "asColors": [
+            "Blue"
+          ]
         }
       ],
       "isFromHand": true
