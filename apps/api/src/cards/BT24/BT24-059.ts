@@ -49,7 +49,6 @@ export const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                suspended: true,
                 playCostLte: 7,
                 nameOrTrait: [
                   {
@@ -60,6 +59,7 @@ export const compiled: CompiledCard = {
               },
               count: 1,
               to: "play",
+              suspended: true,
               optional: true,
             },
           ],
@@ -94,6 +94,8 @@ export const compiled: CompiledCard = {
             position: "bottom",
             host: "self",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       isInherited: true,
