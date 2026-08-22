@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT13-060.js";
 
 describe("BT13-060 Rosemon: Burst Mode", () => {
@@ -59,5 +63,21 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
         },
       ],
     });
+  });
+
+  it("suspends an opposing Digimon and Tamer when digivolving", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-060", as: "roseBurst" }] },
+      1: {
+        battleArea: [
+          { card: "BT13-111", as: "digimon" },
+          { card: "BT13-095", as: "tamer" },
+        ],
+      },
+    });
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("roseBurst"));
+    await settle(() => s.perm("digimon").isSuspended && s.perm("tamer").isSuspended);
+    expect(s.perm("digimon").isSuspended).toBe(true);
+    expect(s.perm("tamer").isSuspended).toBe(true);
   });
 });
