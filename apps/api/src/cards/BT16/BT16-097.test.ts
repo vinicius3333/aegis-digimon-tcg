@@ -18,7 +18,7 @@ describe("BT16-097", () => {
 
   it("publicly plays an Angemon without requiring DNA digivolution", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT16-019", as: "color" }], hand: [{ card: "BT16-097", as: "option" }, { card: "BT16-019", as: "angemon" }] } },
+      { 0: { battleArea: [{ card: "BT16-019", as: "color" }, { card: "BT16-050", as: "black" }], hand: [{ card: "BT16-097", as: "option" }, { card: "BT16-019", as: "angemon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

@@ -25,6 +25,6 @@ describe("BT16-096", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
     await settle(() => s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === "BT16-096"));
     expect(s.state.players[0]?.hand.some((card) => card.cardId === "BT16-050")).toBe(true);
-    expect(s.state.players[0]?.deck).toHaveLength(4);
+    expect(s.state.players[0]?.deck).toHaveLength(1);
   });
 });

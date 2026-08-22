@@ -33,7 +33,7 @@ describe("BT16-095", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shine").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
     await settle(() => s.state.players[1]?.deck.length === 2);
     expect(s.state.players[1]?.deck).toHaveLength(2);
-    expect(s.perm("ally").topCard?.dp).toBe(6000);
+    expect(s.perm("ally").currentDP).toBe(6000);
     expect(s.state.players[1]?.battleArea).toHaveLength(1);
   });
 });
