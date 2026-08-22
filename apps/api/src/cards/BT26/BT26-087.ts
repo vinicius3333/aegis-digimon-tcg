@@ -6,7 +6,7 @@ const tsTrashCost = { kind: "trash", target: { count: 1, filter: { zone: "hand",
 export const compiled: CompiledCard = { effects: [
   { trigger: "StartOfYourMainPhase", actions: [
     { kind: "GainMemory", amount: 1, cost: { kind: "return", target: { count: 1, filter: { zone: "trash", controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } }, to: "deckBottom" }, optional: false },
-    { kind: "Return", to: "hand", target: { count: 1, filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Giant Slayer"], match: "name" }] } }, optional: true },
+    { kind: "Return", to: "hand", target: { count: 1, filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } }, optional: true },
   ] },
   { trigger: "OnPlay", actions: [{ kind: "Draw", controller: "mine", amount: 2, cost: tsTrashCost, optional: false }] },
   { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { count: 1, filter: { isSelfRef: true } }, payCost: false }] },

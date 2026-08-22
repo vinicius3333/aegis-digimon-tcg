@@ -10,6 +10,7 @@ describe("BT26-087 Toya Kuga", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "OnPlay", "Security"]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ optional: false });
+    expect(compiled.effects[0]?.actions[1]).toMatchObject({ target: { filter: { nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } } });
     expect(compiled.effects[1]?.actions[0]).toMatchObject({ optional: false });
   });
   it("returns a TS Digimon for memory and trashes a TS card for two draws", async () => {
