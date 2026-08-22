@@ -258,6 +258,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         ctx.source.permanent() ??
         ctx.game.player(ctx.source.ownerSeat).battleArea.find(
           (permanent) => permanent.topCard?.instanceId === ctx.source.instanceId,
+        ) ??
+        ctx.game.player(ctx.source.ownerSeat).battleArea.find(
+          (permanent) => permanent.topCard?.cardId === ctx.source.cardId,
         );
       const dedicatedBudgetBonus =
         sourcePerm !== undefined ? (ctx.fx.dpDeleteBudgetBonus?.(sourcePerm.permanentId) ?? 0) : 0;
