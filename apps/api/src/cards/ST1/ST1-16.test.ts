@@ -2,9 +2,16 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./ST1-16.js";
+import { compiled } from "./ST1-16.js";
 
 describe("ST1-16 Gaia Force", () => {
+  it("registers exact unrestricted deletion and Security activation as complete IR", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
+      { trigger: "Main", actions: [{ kind: "Delete", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ] });
+  });
+
   it("deletes any one opposing Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
