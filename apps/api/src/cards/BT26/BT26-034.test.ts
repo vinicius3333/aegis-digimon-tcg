@@ -42,4 +42,47 @@ describe("BT26-034 Palmon", () => {
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("palmon"));
     expect(s.perm("palmon").topCard.cardId).toBe("BT25-047");
   });
+
+  it("Q7007 does not offer the free digivolution at five memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-034", as: "palmon", under: ["BT26-001"] }],
+          hand: [{ card: "BT25-047", as: "vegetation" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("palmon"));
+
+    expect(s.perm("palmon").topCard.cardId).toBe("BT26-034");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("inherited When Attacking suspends one opponent Digimon only once per turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-035", as: "host", under: [{ card: "BT26-034" }] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
+    const trigger = { attackerPermanentId: s.perm("host").permanentId };
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), trigger);
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), trigger);
+
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(false);
+  });
 });
