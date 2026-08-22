@@ -36,22 +36,28 @@ describe("BT13-112 Omnimon", () => {
     );
     s.state.memory = 14;
     const targetId = s.perm("target").topCard!.instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === targetId)).toBe(false);
   });
 
   it("plays one of each distinct Royal Knight name from breeding, then trashes the breeding Digimon and grants Rush", async () => {
     const s = setupEngine(
-      { 0: {
-        hand: [{ card: "BT13-112", as: "omnimon" }],
-        breeding: { card: "BT13-007", as: "drasil", under: ["BT13-040", "BT13-111", "BT13-040"] },
-      } },
+      {
+        0: {
+          hand: [{ card: "BT13-112", as: "omnimon" }],
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT13-040", "BT13-111", "BT13-040"] },
+        },
+      },
       { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
     );
     s.state.memory = 14;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111"));
 
     expect(s.state.players[0]!.breeding).toBeUndefined();
@@ -71,7 +77,9 @@ describe("BT13-112 Omnimon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 14;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-112"));
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
   });
@@ -86,7 +94,13 @@ describe("BT13-112 Omnimon", () => {
     );
     s.state.memory = 4;
     const targetId = s.perm("target").topCard!.instanceId;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT13-112");
 
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-111")).toBe(true);
