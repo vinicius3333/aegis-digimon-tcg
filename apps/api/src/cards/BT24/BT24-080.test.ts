@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_080 } from "./BT24-080.js";
 import "../index.js";
 
@@ -18,5 +22,111 @@ describe("BT24-080 Megidramon", () => {
         target: { filter: { superlative: "lowestLevel" }, count: "all" },
       });
     }
+  });
+
+  it("digivolves a legal Dark Dragon into this trash card for free at four cards in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-076", as: "darkDragon" }],
+          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-005"],
+          trash: [{ card: "BT24-080", as: "megidramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.EndOfYourTurn, s.inst("megidramon"));
+    await settle(() => s.perm("darkDragon").topCard.instanceId === s.inst("megidramon").instanceId);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand).toHaveLength(5);
+  });
+
+  it("does not ignore evolution requirements for an ineligible level 4 Dark Dragon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-070", as: "darkDragon" }],
+          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          trash: [{ card: "BT24-080", as: "megidramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.EndOfYourTurn, s.inst("megidramon"));
+
+    expect(s.perm("darkDragon").topCard.cardId).toBe("BT24-070");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("megidramon").instanceId);
+  });
+
+  it("rechecks the hand gate before resolving a second trash copy after the bonus draw (Q5662)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-076", as: "firstHost" },
+            { card: "BT24-076", as: "secondHost" },
+          ],
+          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-005", "BT1-006"],
+          trash: [
+            { card: "BT24-080", as: "firstMegidramon" },
+            { card: "BT24-080", as: "secondMegidramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("firstHost").topCard.instanceId, s.perm("secondHost").topCard.instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.EndOfYourTurn, s.inst("firstMegidramon"));
+    await settle(() => s.perm("firstHost").topCard.instanceId === s.inst("firstMegidramon").instanceId);
+    await advance(s.engine).fireForInstance(EffectTiming.EndOfYourTurn, s.inst("secondMegidramon"));
+
+    expect(s.perm("secondHost").topCard.cardId).toBe("BT24-076");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("secondMegidramon").instanceId);
+  });
+
+  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving, EffectTiming.OnDeletion])(
+    "deletes all opposing Digimon tied for lowest level on %s",
+    async (timing) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT24-080", as: "megidramon" }] },
+          1: {
+            battleArea: [
+              { card: "BT1-009", as: "lowA" },
+              { card: "BT1-010", as: "lowB" },
+              { card: "BT1-014", as: "high" },
+            ],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      const lowAId = s.perm("lowA").permanentId;
+      const lowBId = s.perm("lowB").permanentId;
+      await s.ready();
+
+      await advance(s.engine).fire(timing, s.perm("megidramon"));
+
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowAId);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowBId);
+      expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    },
+  );
+
+  it("has Blocker", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT24-080", as: "megidramon" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("megidramon"), "Blocker")).toBe(true);
   });
 });
