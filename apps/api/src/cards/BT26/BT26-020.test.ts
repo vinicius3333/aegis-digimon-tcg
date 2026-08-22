@@ -7,7 +7,7 @@ describe("BT26-020 ShellNumemon", () => {
   it("compiles draw and same-target attack/block restriction plus inherited Evade", () => {
     expect(compiled.coverage).toBe("full"); expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions).toMatchObject([{ kind: "Draw" }, { kind: "Restrict", restriction: "attackOrBlock" }]);
-    expect(compiled.effects[1]).toMatchObject({ trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: "Evade" }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Evade" } }] });
   });
   it("draws and restricts exactly one opposing Digimon from attacking or blocking", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT26-020", as: "shell" }], deck: [{ card: "BT1-001", as: "drawn" }] }, 1: { battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }] } }, { autoSelectCards: true });

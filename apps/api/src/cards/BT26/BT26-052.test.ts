@@ -8,7 +8,7 @@ describe("BT26-052 Pristimon", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ count: 1 }, { count: 1 }] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: "Reboot" }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Reboot" } }] });
   });
 
   it("adds one Glowing Dawn card and one black BEATBREAK card, bottoming the rest", async () => {

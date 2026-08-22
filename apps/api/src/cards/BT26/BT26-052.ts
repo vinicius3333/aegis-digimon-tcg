@@ -8,7 +8,7 @@ export const compiled: CompiledCard = {
       { filter: { nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] }, count: 1, to: "hand" },
       { filter: { colors: ["Black"], nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] }, count: 1, to: "hand" },
     ], rest: "deckBottom" }] },
-    { trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: "Reboot", duration: "turn" }] },
+    { trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Reboot" }, duration: "turn" }] },
   ],
   coverage: "full",
   residual: [],
