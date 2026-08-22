@@ -43,4 +43,24 @@ describe("BT12-054 Jagamon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT12-052");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("BT1-009");
   });
+
+  it("never plays more than two matching cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-054", as: "jagamon" }],
+          hand: [
+            { card: "BT12-049", as: "yaki1" },
+            { card: "BT12-049", as: "yaki2" },
+            { card: "BT12-052", as: "potamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("jagamon").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+  });
 });
