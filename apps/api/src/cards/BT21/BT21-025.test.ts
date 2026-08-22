@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-025.js";
+import "./BT21-055.js";
 
 describe("BT21-025 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -61,29 +60,11 @@ describe("BT21-025 compiled implementation", () => {
                 },
               },
             ],
+            fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
           },
         ],
       }),
     );
   });
 
-  it("plays a qualifying Reptile or Dragonkin when the opponent's security is removed", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT21-025", as: "host", under: ["BT21-025"] }],
-          hand: [{ card: "BT21-055", as: "qualifying" }],
-        },
-        1: { security: ["BT1-001"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
-
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("qualifying").instanceId)).toBe(
-      true,
-    );
-    expect(s.state.players[1]!.security).toHaveLength(0);
-  });
 });

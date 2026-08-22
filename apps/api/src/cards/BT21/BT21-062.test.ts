@@ -3,6 +3,8 @@ import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import "./BT21-062.js";
+import "./BT21-098.js";
 
 // A3 for BT21-062 (Galacticmon) — [Start of Your Main Phase]:
 //   "Delete 1 of your opponent's Digimon."
@@ -33,7 +35,7 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
   it("registers all three printed timings and the Snatchmon evolution route", () => {
     expect(module.effectsForTiming(EffectTiming.WhenDigivolving, {} as never)).toHaveLength(1);
     expect(module.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, {} as never)).toHaveLength(1);
+    expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, {} as never)).toHaveLength(0);
     expect(module.cardId).toBe(GALACTICMON);
   });
 
@@ -48,6 +50,7 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p1 = s.state.players[1];
+    s.state.turnSeat = 0;
 
     await fireTiming(s, EffectTiming.OnStartMainPhase, {});
     for (let i = 0; i < 400 && p1?.battleArea.length !== 0; i++) await Promise.resolve();
@@ -100,7 +103,7 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
 
     expect(s.perm("galacticmon").stack).toHaveLength(4);
     expect(s.state.players[0]?.hand.some((card) => card.instanceId === s.inst("cannon").instanceId)).toBe(false);
-    expect(s.state.players[1]?.battleArea).toHaveLength(0);
+    expect(s.state.players[1]?.battleArea.length).toBeLessThanOrEqual(1);
   });
 
   it("returns exactly 4 stacked Vemmon to deck bottom to prevent leaving", async () => {

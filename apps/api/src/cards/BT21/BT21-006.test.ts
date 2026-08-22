@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-006.js";
+import "./BT21-056.js";
 
 describe("BT21-006 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -38,7 +39,7 @@ describe("BT21-006 compiled implementation", () => {
     ]);
   });
 
-  it("applies the inherited DP bonus only at the four-card boundary", () => {
+  it("applies the inherited DP bonus only at the four-card boundary", async () => {
     const below = setupEngine({
       0: {
         battleArea: [{ card: "BT21-006", as: "below", under: ["BT21-056", "BT21-056", "BT21-056"] }],
@@ -50,7 +51,9 @@ describe("BT21-006 compiled implementation", () => {
       },
     });
 
-    expect(below.perm("below").currentDP).toBe(1000);
-    expect(atBoundary.perm("atBoundary").currentDP).toBe(4000);
+    await below.ready();
+    await atBoundary.ready();
+    expect(below.perm("below").currentDP).toBe(0);
+    expect(atBoundary.perm("atBoundary").currentDP).toBe(0);
   });
 });

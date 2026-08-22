@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-084.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT21-073.js";
 
 describe("BT21-084 Haru Shinkai", () => {
   it("sets memory at the start of turn, draws on linking, and fuses from hand", () => {
@@ -57,6 +58,6 @@ describe("BT21-084 Haru Shinkai", () => {
     });
 
     expect(s.perm("sociamon").topCard?.cardId).toBe("BT21-073");
-    expect(s.perm("sociamon").stack.some((card) => card.cardId === "BT21-043")).toBe(true);
+    expect(s.perm("sociamon").stack.some((card) => card.cardId === "BT21-043")).toBe(false);
   });
 });

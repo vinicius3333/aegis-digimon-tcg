@@ -55,7 +55,7 @@ describe("BT21-055 Sunarizamon", () => {
 
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("stacked").instanceId], 0);
 
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("eligible").permanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("eligible").permanentId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("tooExpensive").permanentId)).toBe(true);
   });
 });

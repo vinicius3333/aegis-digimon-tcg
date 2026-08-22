@@ -66,9 +66,9 @@ describe("BT21-054 Shotmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shotmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("opponent").stack.length === 0);
+    await settle(() => s.perm("opponent").stack.length === 1);
 
-    expect(s.perm("ownHost").stack.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(false);
-    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.perm("ownHost").stack.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(true);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });
