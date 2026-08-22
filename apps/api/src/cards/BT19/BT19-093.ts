@@ -114,8 +114,105 @@ const compiled: CompiledCard = {
           "kind": "AddToHandSelf"
         }
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenTrashedByEffect",
+          sourceFilter: {
+            isSelfRef: true,
+            zone: "battleArea",
+          },
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              amount: -3000,
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+                sameTarget: true,
+              },
+              restriction: "cannotActivateWhenDigivolving",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          restriction: "cannotActivateWhenDigivolving",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -2,
+            raw: "＜Security Attack -2＞",
+          },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
   coverage: "full",
   residual: [],

@@ -8,6 +8,18 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          restriction: "attackPlayers",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {
@@ -27,6 +39,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
   digivolutionRequirement: [
     {
       level: 2,

@@ -23,7 +23,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  * `engine/security/securityCheck.ts` for every security check, both players,
  * while the revealed card is still face-up in the security stack — see that
  * file's `SecurityCheckAttacker`/`fireTiming` call). This mirrors the existing
- * hand-written pattern for the same engine-gap class (BT16-033, BT22-080).
+ * hand-written pattern for the same security-check timing (BT16-033, BT22-080).
  *
  * Authoritative text (cards.json effectText; no errata reported; Q&A binding):
  *   [Hand] [Counter] ＜Blast Digivolve＞ (Your Digimon may digivolve into this
@@ -54,7 +54,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  * battle entirely, satisfying "without battling" instead of double-resolving.
  *
  * The [Hand]/[Counter] ＜Blast Digivolve＞ grant and the [On Deletion] delete
- * are unaffected by the engine gap and are carried through the SAME compiled-IR
+ * are carried through the SAME compiled-IR
  * machinery (`irCardModule`) as any auto-generated card, so their behavior is
  * byte-identical to what the compiler would have produced.
  */
@@ -66,7 +66,7 @@ function isDevaDigimon(def: CardDefinition): boolean {
 }
 
 // The two clauses the compiler already encodes correctly (unaffected by the
-// OnSecurityCheck gap): the Blast Digivolve keyword grant and the On Deletion
+// OnSecurityCheck timing): the Blast Digivolve keyword grant and the On Deletion
 // delete-highest-play-cost. Run through the same interpreter machinery as an
 // auto-generated card so their behavior stays identical to compiler output.
 const baseCompiled: CompiledCard = {

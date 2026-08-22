@@ -83,6 +83,10 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   startOfYourMainPhase: "startOfYourMainPhase",
   // GainTriggeredEffect in card IR may encode the trigger with a capital 'S' (runtime record output).
   StartOfYourMainPhase: "startOfYourMainPhase",
+  // A gained printed [End of Your Turn] clause uses the same live end-of-turn bus as
+  // hand-authored EndOfYourTurn effects; runGainTriggeredEffect adds the granted owner's
+  // turn/battle-area gate below so it cannot fire on the granter's turn (EX10-058, Q5159).
+  EndOfYourTurn: "endOfTurn",
   endOfTurn: "endOfTurn",
   endOfOpponentTurn: "endOfOpponentTurn",
   // "When [matching Digimon] WOULD BE returned to hand/deck" — fires before the return executes.
@@ -158,6 +162,13 @@ export async function runSubTrigger(
   // The filter is evaluated against the freshly bound context's payload subject via the
   // canonical `permanentMatchesFilter` / `definitionMatches` — never a hand-rolled matcher.
   const sourceFilter = action.sourceFilter;
+  const hostFilterGate =
+    action.hostFilter === undefined
+      ? undefined
+      : (subCtx: EffectContext): boolean => {
+          const host = anchorPermanentId === undefined ? undefined : subCtx.game.permanentById(anchorPermanentId);
+          return host !== undefined && permanentMatchesFilter(subCtx, host, action.hostFilter!, subCtx.source);
+        };
   const hostFilter = (action as Action & { hostFilter?: Filter }).hostFilter;
   // Some deletion reactions explicitly require their host to survive the same deletion batch
   // (BT22-065 Q4923; BT22-068 Q4928; BT22-070 Q4929). Deletion seams publish the complete
@@ -256,7 +267,7 @@ export async function runSubTrigger(
         }
       : undefined;
   const deletionSourceFilterGate =
-      event === "onDeletionOf" && sourceFilter !== undefined
+    event === "onDeletionOf" && sourceFilter !== undefined
       ? (subCtx: EffectContext): boolean => {
           if (sourceFilter.isSelfRef === true) {
             const anchor = subCtx.source.permanent()?.permanentId;
@@ -268,7 +279,7 @@ export async function runSubTrigger(
             deletedSeat === undefined ||
             scope === undefined ||
             scope === "any" ||
-            deletedSeat === subCtx.source.ownerSeat === (scope === "mine");
+            (deletedSeat === subCtx.source.ownerSeat) === (scope === "mine");
           if (!seatMatches) return false;
           const deletedCardId = subCtx.trigger.deletedTopCardId;
           if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
@@ -281,7 +292,9 @@ export async function runSubTrigger(
   // has no subject sourceFilter; gate purely on the trashed hand being the watcher controller's own.
   const handTrashedGate =
     event === "whenHandTrashed"
-      ? (subCtx: EffectContext): boolean => subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat
+      ? (subCtx: EffectContext): boolean =>
+          action.fireCondition?.kind === "triggerHandTrashedSeat" ||
+          subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat
       : undefined;
   // "When THIS Digimon's attack target is switched" is host-scoped, which the IR marks with a
   // self-referencing sourceFilter. The event bus broadcasts every switch to every watcher, so
@@ -666,6 +679,7 @@ export async function runSubTrigger(
     triggerFilterGate,
     addedDigivolutionCardGate,
     inheritedHostNameGate,
+    hostFilterGate,
     deleteCauseGate,
     notSimultaneousGate,
     trashedDigivolutionTopGate,
@@ -816,6 +830,7 @@ export async function runGainTriggeredEffect(
   action: Extract<Action, { kind: "GainTriggeredEffect" }>,
 ): Promise<void> {
   const event = SUBTRIGGER_EVENT_MAP[action.gainedTrigger];
+  const sourceFilter = action.sourceFilter;
   if (event === undefined) {
     unsupported(
       ctx,
@@ -828,6 +843,7 @@ export async function runGainTriggeredEffect(
   const grantingSeat = ctx.source.ownerSeat;
   const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
   for (const targetPermanentId of targetIds) {
+    const anchorPermanentId = targetPermanentId;
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
@@ -843,6 +859,10 @@ export async function runGainTriggeredEffect(
       event === "startOfYourMainPhase"
         ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
         : undefined;
+    const ownerTurnEndGate =
+      event === "endOfTurn"
+        ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
+        : undefined;
     const grantedPermanentDeletionGate =
       event === "onDeletionOf"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.deletedPermanentId === targetPermanentId
@@ -855,7 +875,7 @@ export async function runGainTriggeredEffect(
     const grantedPermanentBattleDeleteGate =
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
-      : undefined;
+        : undefined;
     const whenDeletesInBattleSelfGate =
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
@@ -868,6 +888,7 @@ export async function runGainTriggeredEffect(
     };
     const gates = [
       ownerMainPhaseGate,
+      ownerTurnEndGate,
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
       whenDeletesInBattleSelfGate,
@@ -879,6 +900,7 @@ export async function runGainTriggeredEffect(
       event,
       sourcePermanentId: targetPermanentId,
       once: false,
+      ...(ctx.continuousPass === true ? { continuous: true } : {}),
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,

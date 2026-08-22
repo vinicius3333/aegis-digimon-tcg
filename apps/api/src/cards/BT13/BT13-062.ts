@@ -6,89 +6,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Sukamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Sukamon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          to: "hand",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Sukamon",
-                      "Etemon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Sukamon", "Etemon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with [Sukamon] or [Etemon] in its name in your hand"
+            raw: "By trashing 1 card with [Sukamon] or [Etemon] in its name in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: false,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Chuumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Chuumon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "suspended": true,
-          "condition": {
-            "kind": "selfHasNameContaining", "names": ["Sukamon","Etemon"],
-            "raw": "this Digimon had [Sukamon] or [Etemon] in its name"
+          from: ["trash"],
+          payCost: false,
+          suspended: true,
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Sukamon", "Etemon"],
+            raw: "this Digimon had [Sukamon] or [Etemon] in its name",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-062", compiled);

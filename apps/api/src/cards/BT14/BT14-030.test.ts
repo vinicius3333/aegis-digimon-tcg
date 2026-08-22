@@ -1,17 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { compiled } from "./BT14-030.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
-import "./BT14-030.js";
 
 describe("BT14-030", () => {
-  const source = { instanceId: "source", cardId: "BT14-030", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
   it("registers the return-to-hand effects on play and digivolution", () => {
-    expect(getEffectModule("BT14-030")!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
-    expect(getEffectModule("BT14-030")!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1);
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "Return", optional: true, abortOnDecline: true });
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({ kind: "Return", optional: true, abortOnDecline: true });
   });
-  it("registers the once-per-turn recovery watcher", () => expect(getEffectModule("BT14-030")!.effectsForTiming(EffectTiming.None, source)[0]?.maxPerTurn).toBe(1));
+  it("registers the once-per-turn recovery watcher", () => expect(compiled.effects[2]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDigimonReturnsToHand" }] }));
 
   it("recovers when another Digimon returns to hand during your turn", async () => {
     const s = setup({

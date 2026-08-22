@@ -148,7 +148,6 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
-          optional: true,
         },
       ],
       isSecurity: true,

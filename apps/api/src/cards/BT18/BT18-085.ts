@@ -70,6 +70,26 @@ const compiled: CompiledCard = {
             },
             "unit": "colors"
           }
+        },
+        {
+          "kind": "ModifyDP",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "amount": 2000,
+          "duration": "permanent",
+          "scaling": {
+            "per": 2,
+            "filter": {
+              "zone": "trash",
+              "controller": "opponent"
+            },
+            "unit": "colors"
+          }
         }
       ]
     }

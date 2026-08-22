@@ -45,11 +45,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Omnimon (X Antibody)"], match: "name" }],
-              hostFilter: {
-                controller: "mine",
-                nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }]
-              }
+              nameOrTrait: [{ tokens: ["Omnimon (X Antibody)"], match: "name" }]
             },
             count: 1
           },
@@ -81,8 +77,10 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  coverage: "full",
-  residual: []
+  coverage: "partial",
+  residual: [
+    "The On Deletion source filter cannot yet restrict digivolutionCards to cards under a King Drasil_7D6 host; hand sourcing is exact, under-King sourcing is conservatively widened to all own digivolution cards."
+  ]
 };
 
 registerIrCard("EX11-053", compiled);

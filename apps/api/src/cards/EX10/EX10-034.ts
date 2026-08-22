@@ -1,8 +1,5 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX10-034";
@@ -34,8 +31,8 @@ const module: EffectModule = {
               expiresOnTurnEndOf: opponent,
               description: `${cardId}: [Start of Your Main Phase] This Digimon attacks.`,
               matches: (subCtx) => subCtx.game.state.turnSeat === opponent,
-              run: async (_subCtx) => {
-                // Force attack — engine handles this via the attack subsystem
+              run: async (subCtx) => {
+                await subCtx.fx.forceAttack(chosen[0]!);
               },
             });
           },
@@ -62,8 +59,8 @@ const module: EffectModule = {
               expiresOnTurnEndOf: opponent,
               description: `${cardId}: [Start of Your Main Phase] This Digimon attacks.`,
               matches: (subCtx) => subCtx.game.state.turnSeat === opponent,
-              run: async (_subCtx) => {
-                // Force attack — engine handles this via the attack subsystem
+              run: async (subCtx) => {
+                await subCtx.fx.forceAttack(chosen[0]!);
               },
             });
           },
@@ -143,8 +140,8 @@ const module: EffectModule = {
                 });
                 if (toTrash.length < 2) return;
                 await subCtx.fx.trashDigivolutionCards(currentSelf.permanentId, toTrash);
-                ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilOwnerTurnEnd, 1);
-                ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilOwnerTurnEnd);
+                subCtx.fx.grantKeyword(currentSelf.permanentId, "SecurityAttack", EffectDuration.UntilOwnerTurnEnd, 1);
+                subCtx.fx.modifyDP(currentSelf.permanentId, 3000, EffectDuration.UntilOwnerTurnEnd);
               },
             });
           },
@@ -157,4 +154,6 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+
+export { module };
 export default module;

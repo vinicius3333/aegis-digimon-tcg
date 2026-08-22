@@ -17,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Audit: Replacement leaveCause:otherThanBattle gates "other than in battle."
 // Audit: DnaDigivolve is the <Delay> option — separate effect with Delay keyword.
 // Audit: PlaceInBattleAreaSelf is mandatory after optional play (optional:false).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -60,7 +60,6 @@ const compiled: CompiledCard = {
         {
           "kind": "Replacement",
           "event": "wouldLeavePlay",
-          "mode": "prevent",
           "leaveCause": "otherThanBattle",
           "sourceFilter": {
             "controller": "mine",

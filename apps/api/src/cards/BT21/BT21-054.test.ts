@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-054.js";
 
 describe("BT21-054 Shotmon", () => {
+  it("preserves both alternate Digivolution requirements and the Appmon link requirement", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 2, texts: ["Three Musketeers"], cost: 0, isAlternate: true },
+      { traits: ["Appmon"], cost: 0, isAlternate: true, level: 2 },
+    ]);
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
+  });
+
   it("requires trashing an Appmon or Three Musketeers card from a digivolution stack", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     const action = effect?.actions[0];
@@ -23,5 +32,43 @@ describe("BT21-054 Shotmon", () => {
         count: 1,
       },
     });
+  });
+
+  it("deletes one opposing play-cost-3-or-less Digimon when linked", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenLinking");
+    expect(effect).toEqual(
+      expect.objectContaining({
+        trigger: "WhenLinking",
+        isLinked: true,
+        actions: [
+          {
+            kind: "Delete",
+            target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 3 }, count: 1 },
+          },
+        ],
+      }),
+    );
+  });
+
+  it("trashes a qualifying own stack card to de-digivolve an opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-054", as: "shotmon" }],
+          battleArea: [{ card: "BT1-009", as: "ownHost", under: [{ card: "BT21-041", as: "costCard" }] }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").stack.length === 1);
+
+    expect(s.perm("ownHost").stack.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(true);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

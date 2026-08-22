@@ -4,61 +4,55 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "amount": 1,
-          "controller": "mine"
-        }
-      ]
+          kind: "Draw",
+          amount: 1,
+          controller: "mine",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Knight"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Knight"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["hand"],
-          "underFilter": {
-            "controller": "mine",
-            "zone": "breedingArea",
-            "nameOrTrait": [
+          from: ["hand"],
+          underFilter: {
+            controller: "mine",
+            zone: "breeding",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "King Drasil_7D6"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["King Drasil_7D6"],
+                match: "name",
+              },
+            ],
           },
-          "optional": true,
-          "position": "bottom"
-        }
-      ]
-    }
+          optional: true,
+          position: "bottom",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-093", compiled);

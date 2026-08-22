@@ -246,7 +246,12 @@ describe("BT10-094 (Breaclaw)", () => {
       ownerHand: [gammamonCard],
       definitions: {
         "BT3-019": { cardId: "BT3-019", nameEn: "Agumon", kinds: [CardKind.Digimon] as never, dp: 5000 },
-        "BT10-GammaBase": { cardId: "BT10-GammaBase", nameEn: "Gammamon", kinds: [CardKind.Digimon] as never, dp: 2000 },
+        "BT10-GammaBase": {
+          cardId: "BT10-GammaBase",
+          nameEn: "Gammamon",
+          kinds: [CardKind.Digimon] as never,
+          dp: 2000,
+        },
       },
       record,
     });

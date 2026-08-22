@@ -5,13 +5,56 @@ import "./EX6-068.js";
 
 describe("EX6-068 Angel Option", () => {
   it("registers Main placement and Security permanent effects", () => {
-    const source = { instanceId: "source", cardId: "EX6-068", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
+    const source = {
+      instanceId: "source",
+      cardId: "EX6-068",
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
     const module = getEffectModule("EX6-068")!;
     expect(module.effectsForTiming(EffectTiming.OnUseOption, source)[0]?.description).toContain("security stack");
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.description).toContain("battle-area permanent");
+    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.description).toContain(
+      "battle-area permanent",
+    );
   });
   it("registers the Angel deletion Delay watcher", () => {
-    const source = { instanceId: "source", cardId: "EX6-068", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
+    const source = {
+      instanceId: "source",
+      cardId: "EX6-068",
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
     expect(getEffectModule("EX6-068")!.effectsForTiming(EffectTiming.None, source)[0]?.description).toContain("Delay");
+  });
+
+  it("installs the deletion watcher", async () => {
+    const source = {
+      instanceId: "source",
+      cardId: "EX6-068",
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => ({ permanentId: "perm" }),
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
+    const installed: unknown[] = [];
+    await getEffectModule("EX6-068")!
+      .effectsForTiming(EffectTiming.None, source)[0]!
+      .resolve({
+        source,
+        game: { player: () => ({ security: [] }), permanentById: () => undefined },
+        fx: { subscribeSubTrigger: (sub: unknown) => installed.push(sub) },
+        ask: {},
+      } as never);
+    expect(installed[0]).toMatchObject({ event: "onDeletionOf", sourcePermanentId: "perm" });
   });
 });

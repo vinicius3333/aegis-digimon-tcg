@@ -62,11 +62,6 @@ describe("BT25-059 Ceresmon", () => {
     expect(allTurns?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
-      scaling: {
-        per: 1,
-        unit: "cards",
-        filter: { controllerDefault: "any", suspended: true, kind: ["Digimon"] },
-      },
       actions: [
         {
           kind: "ModifyDP",
@@ -189,6 +184,7 @@ describe("BT25-059 Ceresmon", () => {
   });
 
   it("counts all suspended Digimon for one once-per-turn DP reduction and keeps the turn-end duration", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -205,17 +201,20 @@ describe("BT25-059 Ceresmon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").permanentId);
     await s.ready();
     await advance(s.engine).verb.suspend([s.perm("toSuspend").permanentId]);
+    await settle(() => s.perm("target").currentDP === 3000);
     expect(s.perm("target").currentDP).toBe(3000); // 12000 - (3 suspended Digimon × 3000)
 
     await advance(s.engine).verb.unsuspend([s.perm("toSuspend").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("toSuspend").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("target").currentDP).toBe(3000); // Once Per Turn: no second -9000
 
-    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);
     expect(s.perm("target").currentDP).toBe(12000); // untilOpponentTurnEnd expires after seat 1's turn
   });

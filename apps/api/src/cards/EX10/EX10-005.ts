@@ -11,9 +11,10 @@ const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "Draw",
-          "amount": 1,
-          "controller": "mine"
+          "kind": "SubTrigger",
+          "event": "onDiscardLibrary",
+          "sourceFilter": { "controller": "opponent" },
+          "actions": [{ "kind": "Draw", "amount": 1, "controller": "mine" }]
         }
       ],
       "isInherited": true,
@@ -23,5 +24,7 @@ const compiled: CompiledCard = {
   "coverage": "full",
   "residual": []
 };
+
+export { compiled };
 
 registerIrCard("EX10-005", compiled);

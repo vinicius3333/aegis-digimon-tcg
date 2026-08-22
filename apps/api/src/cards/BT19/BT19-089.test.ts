@@ -37,9 +37,7 @@ describe("BT19-089 [Main] grant Option immunity + DP immunity", () => {
 
     // NEGATIVE CONTROL: with the [Main] clause back at OnDeclaration-only, this playCard
     // call sends the card straight to the trash and grants nothing.
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
 
     const continuous = (
       s.engine as unknown as {

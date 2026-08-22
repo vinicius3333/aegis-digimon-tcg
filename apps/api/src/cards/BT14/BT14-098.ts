@@ -24,17 +24,15 @@ const compiled: CompiledCard = {
           "amount": 1
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 6,
-            "upTo": true
+          "kind": "DeleteBudget",
+          "filter": {
+            "controller": "opponent",
+            "kind": [
+              "Digimon"
+            ]
           },
+          "budget": 6,
+          "upTo": true,
           "cost": {
             "kind": "return",
             "target": {

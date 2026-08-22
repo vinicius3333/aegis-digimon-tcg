@@ -6,6 +6,7 @@ import type { EffectContext, GameAccess, Primitives } from "../../engine/effects
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT26-070.js";
+import { compiled } from "./BT26-070.js";
 import "../index.js";
 
 const CARD_ID = "BT26-070";
@@ -39,6 +40,22 @@ function source(): CardSource {
 }
 
 describe("BT26-070 bottom face-down Tamer cost", () => {
+  it("encodes the full two-card Tamer cost and reduced Glowing Dawn Option play", () => {
+    expect(compiled.digivolutionRequirement).toContainEqual({ level: 3, traits: ["Glowing Dawn"], cost: 2, isAlternate: true });
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "Main",
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "UseOptionWithoutCost",
+        from: ["trash"],
+        payCost: true,
+        reduceCostBy: 2,
+        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
+      }],
+    });
+    expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, keywords: [{ keyword: "Retaliation" }] });
+  });
+
   it("digivolves from a non-purple level 3 [Glowing Dawn] Digimon for the alternate cost 2", async () => {
     const s = setupEngine(
       {
@@ -91,7 +108,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
       const ctx = {
         source: cardSource,
         trigger: {},
-        game: { player: () => ({ hand }) },
+        game: { player: () => ({ hand }), opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat },
         ask: {
           selectCards: vi.fn(async (_ctx, opts: { candidates: string[]; min: number; max: number }) => {
             expect(opts).toMatchObject({ candidates: ["kept", "drawn"], min: 1, max: 1 });
@@ -252,7 +269,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
 
     expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
-    expect(useOptionFromHand).toHaveBeenCalledWith(ctx, "new-option", 3);
+    expect(useOptionFromHand).toHaveBeenCalledWith(ctx, "new-option", 3, expect.objectContaining({ payCost: true, costDelta: -2 }));
     expect(ctx.fx.gainMemory).toHaveBeenCalledWith(-1);
   });
 });

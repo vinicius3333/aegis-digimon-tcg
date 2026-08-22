@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-095.js";
 
 describe("BT21-095 Wind Guardians", () => {
@@ -6,7 +7,7 @@ describe("BT21-095 Wind Guardians", () => {
     const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static");
     expect(staticEffect?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      condition: { kind: "youHaveNone" },
+      condition: { kind: "youHaveNone", filter: { zone: "security", faceUp: true } },
     });
 
     const securityAllTurns = compiled.effects.find((entry) => entry.trigger === "AllTurns");
@@ -32,5 +33,30 @@ describe("BT21-095 Wind Guardians", () => {
         filter: { levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["WG"], match: "trait" }] },
       },
     });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
+  it("returns the top security card and places itself face-up as security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-029", as: "color" }],
+          hand: [{ card: "BT21-095", as: "option" }],
+          security: [{ card: "BT1-001", as: "topSecurity" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const optionInstanceId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionInstanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionInstanceId));
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT21-095" && card.faceUp)).toBe(true);
   });
 });

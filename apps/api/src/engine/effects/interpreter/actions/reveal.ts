@@ -55,6 +55,21 @@ export async function runReveal(ctx: EffectContext, action: Extract<Action, { ki
   unsupported(ctx, action, `Reveal from unsupported zone "${String(targetZone)}"`);
 }
 
+export async function runHandRevealAdd(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "HandRevealAdd" }>,
+): Promise<void> {
+  const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
+  const chosen = await pickLoose(ctx, action.target, candidates);
+  if (chosen.length === 0) return;
+  const card = candidates.find((candidate) => candidate.instanceId === chosen[0]);
+  if (card === undefined) return;
+  const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+  if (definitionMatches(action.securityFilter, definition)) {
+    await ctx.fx.addSecurity(ctx.source.ownerSeat, chosen, { toTop: action.toTop ?? true, faceUp: false });
+  }
+}
+
 /**
  * Reveal the top N, then dispatch each matching revealed card per its `to`
  * disposition (add to hand / play without cost), and send the rest to the deck
@@ -86,6 +101,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   const toHand: string[] = [];
   const toTrash: string[] = [];
   const toPlay: { instanceId: string; costDelta?: number }[] = [];
+  const toUseOption: { instanceId: string; costDelta?: number }[] = [];
   const toDigivolve: { instanceId: string; target?: Target; payCost?: boolean }[] = [];
   const toSecurity: { instanceId: string; toTop: boolean; faceDown: boolean }[] = [];
   const toPlaceUnder: { instanceId: string; underFilter?: import("@aegis/shared").Filter; faceDown?: boolean }[] = [];
@@ -261,7 +277,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     for (const c of chosen) {
       taken.add(c.instanceId);
       let disposition: {
-        to?: "hand" | "trash" | "play" | "digivolve" | "placeUnder" | "underTamer" | "security";
+        to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
         underFilter?: import("@aegis/shared").Filter;
         toTop?: boolean;
         faceDown?: boolean;
@@ -276,6 +292,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         disposition = choices[picked] ?? disposition;
       }
       if (disposition.to === "play") toPlay.push({ instanceId: c.instanceId, costDelta: spec.costDelta });
+      else if (disposition.to === "useOption") toUseOption.push({ instanceId: c.instanceId, costDelta: spec.costDelta });
       else if (disposition.to === "trash") toTrash.push(c.instanceId);
       else if (disposition.to === "digivolve")
         toDigivolve.push({ instanceId: c.instanceId, target: spec.digivolveTarget });
@@ -286,7 +303,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           faceDown: disposition.faceDown ?? true,
         });
       else if (disposition.to === "placeUnder")
-        toPlaceUnder.push({ instanceId: c.instanceId, underFilter: disposition.underFilter, faceDown: disposition.faceDown });
+        toPlaceUnder.push({
+          instanceId: c.instanceId,
+          underFilter: disposition.underFilter,
+          faceDown: disposition.faceDown,
+        });
       else if (disposition.to === "underTamer")
         toUnderTamer.push({
           instanceId: c.instanceId,
@@ -338,9 +359,17 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       await ctx.fx.playInstances(ids, { payCost: true, costDelta });
     }
   }
+  if (toUseOption.length > 0) {
+    const optionIds = toUseOption.map((entry) => entry.instanceId);
+    await ctx.fx.returnToHand(optionIds, { silent: true });
+    for (const entry of toUseOption) {
+      const card = ctx.game.definitionOf({ cardId: revealed.find((item) => item.instanceId === entry.instanceId)!.cardId } as never);
+      await ctx.fx.useOptionFromHand(ctx, entry.instanceId, card.playCost, { payCost: true, costDelta: entry.costDelta });
+    }
+  }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"
   if (toPlaceUnder.length > 0) {
-  for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
+    for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
       const candidates = ctx.game.player(seat).battleArea.filter((p) => {
         if (!p.topCard || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
         return underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source);
@@ -657,11 +686,13 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
       });
       if (selectedIds.length === 0) {
         ctx.lastEffectActed = false;
+        ctx.fx.shuffleSecurity(ctx.source.ownerSeat);
         return false;
       }
       const played = await ctx.fx.playInstances(selectedIds, { payCost: action.then.payCost });
       ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
       ctx.lastEffectActed = ctx.lastPlayedPermanentIds.length > 0;
+      ctx.fx.shuffleSecurity(ctx.source.ownerSeat);
       return false;
     }
     case "Reveal": {
@@ -670,6 +701,10 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
     }
     case "RevealAdd": {
       await runRevealAdd(ctx, action);
+      return false;
+    }
+    case "HandRevealAdd": {
+      await runHandRevealAdd(ctx, action);
       return false;
     }
     case "RevealChooseDeleteBudget": {

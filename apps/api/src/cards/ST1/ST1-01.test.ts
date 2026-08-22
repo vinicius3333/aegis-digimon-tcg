@@ -1,8 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./ST1-01.js";
+import { compiled } from "./ST1-01.js";
 
 describe("ST1-01 Koromon", () => {
+  it("registers complete inherited IR without residual clauses", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [{ kind: "Aura", while: { kind: "selfDigivolutionCountAtLeast", value: 4 } }],
+        },
+      ],
+    });
+  });
+
   it("gives its host +1000 DP only with 4 or more digivolution cards", async () => {
     const s = setupEngine({
       0: {

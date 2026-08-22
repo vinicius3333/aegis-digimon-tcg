@@ -45,7 +45,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfOpponentsTurn",
-      effectKey: "EX11-073/end-opponents-turn-link-payoff",
       actions: [
         { kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1, scaling: linkCount },
         {

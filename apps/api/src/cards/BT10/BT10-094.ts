@@ -1,11 +1,6 @@
-import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardDefinition, CardInstance } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-094 — Breaclaw (BT10, Red Option).
@@ -25,6 +20,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     - Optional: select and play 1 Gammamon from hand or trash without cost.
  */
 const cardId = "BT10-094";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isGammamon(def: CardDefinition): boolean {
   if (!(def.kinds as string[]).includes(CardKind.Digimon as string)) return false;
@@ -32,15 +28,11 @@ function isGammamon(def: CardDefinition): boolean {
 }
 
 function gammamonCandidatesFromHand(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) =>
-    isGammamon(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) => isGammamon(ctx.game.definitionOf(c)));
 }
 
 function gammamonCandidatesFromTrash(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).trash).filter((c) =>
-    isGammamon(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).trash).filter((c) => isGammamon(ctx.game.definitionOf(c)));
 }
 
 const module: EffectModule = {
@@ -124,17 +116,13 @@ const module: EffectModule = {
         security({
           source,
           effectKey: `${cardId}/security-play-gammamon`,
-          description:
-            "[Security] You may play 1 [Gammamon] from your hand or trash without paying its memory cost.",
+          description: "[Security] You may play 1 [Gammamon] from your hand or trash without paying its memory cost.",
           optional: true,
           resolve: async (ctx) => {
             const fromHand = gammamonCandidatesFromHand(ctx, ownerSeat);
             const fromTrash = gammamonCandidatesFromTrash(ctx, ownerSeat);
 
-            const allCandidates = [
-              ...fromHand.map((c) => c.instanceId),
-              ...fromTrash.map((c) => c.instanceId),
-            ];
+            const allCandidates = [...fromHand.map((c) => c.instanceId), ...fromTrash.map((c) => c.instanceId)];
             if (allCandidates.length === 0) return;
 
             const chosen = await ctx.ask.selectCards(ctx, {
@@ -154,5 +142,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+export { compiled };
+registerIrCard("BT10-094", compiled);

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./EX5-040.js";
 
 // A3 for EX5-040 (Kumbhiramon) — [On Play] Draw 1, then you may play 1 [Deva] Digimon
 // from your hand WITHOUT paying its cost INTO THE BREEDING AREA.
@@ -16,7 +17,10 @@ describe("EX5-040 [On Play] play a [Deva] from hand without cost into the breedi
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "EX5-040", as: "kumbhi" }, { card: "BT10-079", as: "deva" }],
+          hand: [
+            { card: "EX5-040", as: "kumbhi" },
+            { card: "BT10-079", as: "deva" },
+          ],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
@@ -25,9 +29,9 @@ describe("EX5-040 [On Play] play a [Deva] from hand without cost into the breedi
     const p0 = s.state.players[0] as PlayerState;
     s.state.memory = 7; // exact play cost of EX5-040
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kumbhi").instanceId })).toEqual({
+      ok: true,
+    });
 
     await settle(() => p0.breeding?.topCard?.cardId === "BT10-079");
 
@@ -35,5 +39,26 @@ describe("EX5-040 [On Play] play a [Deva] from hand without cost into the breedi
     expect(p0.breeding?.topCard?.cardId).toBe("BT10-079");
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT10-079")).toBe(false);
     expect(p0.hand.some((c) => c.instanceId === s.inst("deva").instanceId)).toBe(false);
+  });
+
+  it("draws once when an opponent's Digimon becomes suspended", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+        },
+      ],
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Piercing" } }, while: { kind: "youHave" } },
+      ],
+    });
   });
 });

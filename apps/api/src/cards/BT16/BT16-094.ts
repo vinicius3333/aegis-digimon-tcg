@@ -12,155 +12,140 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // turn. Modeled as the existing Modal action (choose 1) composing PlayWithoutCost / Trash + the
 // per-branch ModifyDP tail — no new modal primitive (the chosen branch runs exactly one path, so a
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Four Great Dragons"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Four Great Dragons"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "colors": [
-                  "Yellow"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                colors: ["Yellow"],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          options: [
             [
               {
-                "kind": "PlayWithoutCost",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "nameOrTrait": [
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Trial of the Four Great Dragons"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["Trial of the Four Great Dragons"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "from": [
-                  "hand"
-                ],
-                "payCost": false,
-                "optional": true,
-                "raw": "place 1 [Trial of the Four Great Dragons] from your hand in the battle area"
-              }
+                from: ["hand"],
+                payCost: false,
+                raw: "place 1 [Trial of the Four Great Dragons] from your hand in the battle area",
+              },
             ],
             [
               {
-                "kind": "Trash",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "zone": "hand",
-                    "nameOrTrait": [
+                kind: "Trash",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "hand",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Four Great Dragons"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["Four Great Dragons"],
+                        match: "trait",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "raw": "you may trash 1 [Four Great Dragons] trait card in your hand"
-              }
-            ]
+                raw: "you may trash 1 [Four Great Dragons] trait card in your hand",
+              },
+            ],
           ],
-          "raw": "Place 1 [Trial of the Four Great Dragons] from your hand in the battle area, or you may trash 1 [Four Great Dragons] trait card in your hand."
+          raw: "Place 1 [Trial of the Four Great Dragons] from your hand in the battle area, or you may trash 1 [Four Great Dragons] trait card in your hand.",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -7000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if you did either (placed or trashed), 1 of your opponent's Digimon gets -7000 DP for the turn"
-          }
-        }
+          amount: -7000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if you did either (placed or trashed), 1 of your opponent's Digimon gets -7000 DP for the turn",
+          },
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -7000,
-          "duration": "forTheTurn"
+          amount: -7000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT16-094", compiled);

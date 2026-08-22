@@ -288,6 +288,15 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   };
   const legalIntoForBase = (basePermanentId: string, pool: LooseCandidate[]): LooseCandidate[] => {
     let candidates = pool;
+    if (action.nameIncludesDigivolvingTarget === true || action.differentNameFromDigivolvingTarget === true) {
+      const base = ctx.game.permanentById(basePermanentId);
+      const baseName = base?.topCard === undefined ? undefined : ctx.game.definitionOf(base.topCard).nameEn.toLowerCase();
+      candidates = baseName === undefined ? [] : candidates.filter((candidate) => {
+        const candidateName = ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn.toLowerCase();
+        return (action.nameIncludesDigivolvingTarget !== true || candidateName.includes(baseName)) &&
+          (action.differentNameFromDigivolvingTarget !== true || candidateName !== baseName);
+      });
+    }
     if (action.colorsMatchDigivolvingSource === true) {
       const base = ctx.game.permanentById(basePermanentId);
       const baseColors = base?.topCard ? ctx.game.definitionOf(base.topCard).colors : [];
@@ -379,4 +388,22 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       }
     }
   }
+}
+
+export async function runDigivolveViaPlacement(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "DigivolveViaPlacement" }>,
+): Promise<void> {
+  const hosts = await resolvePermanentTargets(ctx, { filter: action.placeCost.hostFilter, count: 1 });
+  if (hosts.length === 0) return;
+  const candidates = candidateLooseInstances(ctx, action.placeCost.target, ["trash"]);
+  const placed = await pickLoose(ctx, action.placeCost.target, candidates);
+  if (placed.length === 0) return;
+  await ctx.fx.placeUnder(hosts[0]!, placed, { belowTop: true, faceUp: true });
+  const result = await ctx.fx.digivolveFromInstance(hosts[0]!, ctx.source.instanceId, {
+    payCost: true,
+    costOverride: action.cost,
+    ignoreRequirements: action.ignoreDigivolutionRequirements === true,
+  });
+  if (result !== undefined) ctx.lastDigivolveResult = true;
 }

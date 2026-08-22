@@ -6,10 +6,19 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import { compiled } from "./BT26-019.js";
 
 const CARD_ID = "BT26-019";
 
 describe("BT26-019 Mailmon", () => {
+  it("encodes the hand boundary, Detach keyword, and linked suspension restriction", () => {
+    expect(compiled.keywords).toContainEqual(expect.objectContaining({ keyword: "Detach" }));
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenAttacking", actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }] },
+      { trigger: "Static", isLinked: true, actions: [{ kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" }] }] },
+    ]);
+  });
+
   it("uses the exact Lv.2 [Appmon] cost-0 evolution path and rejects a same-level near-match", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
       level: 2,

@@ -24,11 +24,12 @@ const compiled: CompiledCard = {
           },
           "duration": "permanent",
           "condition": {
-            "kind": "anyOf",
+            "kind": "allOf",
             "conditions": [
               {
                 "kind": "youHave",
                 "filter": {
+                  "controller": "any",
                   "nameOrTrait": [
                     {
                       "tokens": [
@@ -43,6 +44,7 @@ const compiled: CompiledCard = {
               {
                 "kind": "youHave",
                 "filter": {
+                  "controller": "any",
                   "nameOrTrait": [
                     {
                       "tokens": [
@@ -57,6 +59,7 @@ const compiled: CompiledCard = {
               {
                 "kind": "youHave",
                 "filter": {
+                  "controller": "any",
                   "nameOrTrait": [
                     {
                       "tokens": [

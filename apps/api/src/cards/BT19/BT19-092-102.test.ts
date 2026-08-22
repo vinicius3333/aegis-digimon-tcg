@@ -15,8 +15,17 @@ import "./BT19-102.js";
 describe("BT19-092 through BT19-102 audit contract", () => {
   it("has complete generated coverage for every card in the audited range", () => {
     for (const id of [
-      "BT19-092", "BT19-093", "BT19-094", "BT19-095", "BT19-096", "BT19-097",
-      "BT19-098", "BT19-099", "BT19-100", "BT19-101", "BT19-102",
+      "BT19-092",
+      "BT19-093",
+      "BT19-094",
+      "BT19-095",
+      "BT19-096",
+      "BT19-097",
+      "BT19-098",
+      "BT19-099",
+      "BT19-100",
+      "BT19-101",
+      "BT19-102",
     ]) {
       const compiled = runtimeCompiledCard(id);
       expect(compiled?.coverage, id).toBe("full");

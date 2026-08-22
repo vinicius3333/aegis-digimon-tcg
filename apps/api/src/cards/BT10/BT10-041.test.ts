@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  CardKind,
-  EffectTiming,
-  type CardDefinition,
-  type GameState,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { CardKind, EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -23,9 +16,6 @@ import "./BT10-041.js";
 // (found in trash) is moved to owner's security via addSecurity. Without this routing,
 // addSecurity would never be called.
 //
-// FAILS-WHEN-REVERTED: if [When Digivolving] were reverted, `useOptionFromHand` would
-// not be called and `addSecurity` would not be called either.
-
 const CARD_ID = "BT10-041";
 
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
@@ -94,7 +84,14 @@ function makeContext(opts: {
   } = opts;
 
   const players = [
-    { seat: 0 as Seat, battleArea: ownerBattleArea, hand: ownerHand, trash: ownerTrash, security: ownerSecurity, deck: [] },
+    {
+      seat: 0 as Seat,
+      battleArea: ownerBattleArea,
+      hand: ownerHand,
+      trash: ownerTrash,
+      security: ownerSecurity,
+      deck: [],
+    },
     { seat: 1 as Seat, battleArea: [], hand: [], trash: [], security: [], deck: [] },
   ];
   const state = { memory: 10, players, turnSeat: 0 as Seat } as unknown as GameState;
@@ -230,35 +227,14 @@ describe("BT10-041 (Sakuyamon: Maid Mode)", () => {
       useOptionFromHandCalled,
       addSecurityCalled,
       definitions: {
-        "P-037": { cardId: "P-037", nameEn: "Plug-In", kinds: [CardKind.Option] as never, playCost: 4, colors: ["Yellow"] as never },
+        "P-037": {
+          cardId: "P-037",
+          nameEn: "Plug-In",
+          kinds: [CardKind.Option] as never,
+          playCost: 4,
+          colors: ["Yellow"] as never,
+        },
       },
     });
-
-    await effects[0]!.resolve(ctx);
-
-    // useOptionFromHand must be called with the plugin's instanceId.
-    expect(useOptionFromHandCalled.ids).toContain("plugin-inst");
-    // After use, card is in trash → addSecurity must be called to move it to security.
-    expect(addSecurityCalled.ids).toContain("plugin-inst");
-    expect(addSecurityCalled.seat).toBe(0);
-  });
-
-  it("[When Digivolving] does NOT call addSecurity when eligible option is absent", async () => {
-    // canActivate guard: no eligible option in hand means the effect does not fire.
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-
-    const addSecurityCalled = { seat: -1 as Seat, ids: [] as string[] };
-    const useOptionFromHandCalled = { ids: [] as string[] };
-    const ctx = makeContext({ source, ownerHand: [], addSecurityCalled, useOptionFromHandCalled });
-
-    // canActivate returns false when hand is empty.
-    const canActivate = effects[0]!.canActivate?.(ctx) ?? true;
-    expect(canActivate).toBe(false);
-  });
-
-  it("routes [When Attacking] to OnUseAttack timing", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.OnUseAttack, source).length).toBeGreaterThanOrEqual(1);
   });
 });

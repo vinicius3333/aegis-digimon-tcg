@@ -1,18 +1,46 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./EX10-004.js";
 
 describe("EX10-004 Cupimon inherited move trigger", () => {
+  it("fires in the engine when a Lucemon moves from breeding to battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX10-013", as: "lucemon", under: ["EX10-004"] },
+          hand: [{ card: "BT1-009", as: "payment" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.phase = Phase.Breeding;
+    s.state.memory = 0;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.memory === 1 && s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
+    );
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
+  });
+
   it("trashes a hand card before drawing and gaining memory", async () => {
     const source: CardSource = {
       instanceId: "host#cupimon",
       cardId: "EX10-004",
       ownerSeat: 0,
       definition: getCardDefinition("EX10-004")!,
-      permanent: () => ({ permanentId: "host" } as never),
+      permanent: () => ({ permanentId: "host" }) as never,
       isOnBattleArea: () => true,
       isOwnersTurn: () => true,
       hasColor: () => true,
@@ -36,7 +64,9 @@ describe("EX10-004 Cupimon inherited move trigger", () => {
         definitionOf: (card: { cardId: string }) => getCardDefinition(card.cardId)!,
       },
       fx: {
-        subscribeSubTrigger: (sub: unknown) => { subscription = sub; },
+        subscribeSubTrigger: (sub: unknown) => {
+          subscription = sub;
+        },
       },
     };
     const effect = getEffectModule("EX10-004")!.effectsForTiming(EffectTiming.None, source)[0]!;
@@ -49,9 +79,15 @@ describe("EX10-004 Cupimon inherited move trigger", () => {
       trigger: { subjectPermanentId: "lucemon" },
       ask: { selectCards: async () => ["cost#1"] },
       fx: {
-        trash: async (ids: string[]) => { trashed.push(ids); },
-        draw: () => { drawn += 1; },
-        gainMemory: () => { gained += 1; },
+        trash: async (ids: string[]) => {
+          trashed.push(ids);
+        },
+        draw: () => {
+          drawn += 1;
+        },
+        gainMemory: () => {
+          gained += 1;
+        },
       },
     };
     await subscription.run(runCtx);

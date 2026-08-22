@@ -46,7 +46,9 @@ describe("BT10-111 Shoutmon (King Version)", () => {
     const ordinaryDigimonId = s.inst("ordinaryDigimon").instanceId;
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => player.hand.some((card) => card.instanceId === digiXrosCardId));
 
     expect(player.hand.map((card) => card.instanceId)).toContain(digiXrosCardId);
@@ -62,24 +64,30 @@ describe("BT10-111 Shoutmon (King Version)", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("kingVersion").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("kingVersion").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const pending = s.state.pendingDecision!;
 
     expect(JSON.parse(pending.payloadJson) as { min: number }).toMatchObject({ min: 1 });
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: pending.decisionId,
-      response: { kind: "selectCards", instanceIds: [] },
-    })).toEqual({ ok: false, reason: "decision-pending" });
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: pending.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("digixrosCard").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: false, reason: "decision-pending" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("digixrosCard").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digixrosCard").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digixrosCard").instanceId)).toBe(true);
@@ -98,23 +106,24 @@ describe("BT10-111 Shoutmon (King Version)", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId));
     const kingPermanent = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard?.instanceId === s.inst("kingVersion").instanceId,
     )!;
     await settle(() => observe(s.engine).hasKeyword(kingPermanent, "DigiXrosSubstitute"));
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("metalGreymon").instanceId,
-      digiXros: {
-        materialInstanceIds: [
-          kingPermanent.topCard.instanceId,
-          s.perm("mailbirdramon").topCard.instanceId,
-        ],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [kingPermanent.topCard.instanceId, s.perm("mailbirdramon").topCard.instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-024"));
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-024")!;
@@ -137,27 +146,29 @@ describe("BT10-111 Shoutmon (King Version)", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("kingVersion").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("metalGreymon").instanceId,
-    ));
-    const king = s.state.players[0]!.battleArea.find((permanent) =>
-      permanent.topCard.instanceId === s.inst("kingVersion").instanceId,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("kingVersion").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId));
+    const king = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("kingVersion").instanceId,
     )!;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("metalGreymon").instanceId,
-      digiXros: {
-        materialInstanceIds: [
-          s.perm("greymon").topCard.instanceId,
-          s.perm("mailbirdramon").topCard.instanceId,
-          king.topCard.instanceId,
-        ],
-      },
-    })).toEqual({ ok: false, reason: "invalid-material" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [
+            s.perm("greymon").topCard.instanceId,
+            s.perm("mailbirdramon").topCard.instanceId,
+            king.topCard.instanceId,
+          ],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
   });
 });

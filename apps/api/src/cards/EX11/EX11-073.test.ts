@@ -152,7 +152,10 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
     const ctx: EffectContext = {
       source,
       trigger: { isDnaDigivolve: false },
-      game: {} as never,
+      game: {
+        player: () => ({ hand: [], trash: [], battleArea: [self] }),
+        opponentOf: (seat: number) => (seat === 0 ? 1 : 0),
+      } as never,
       fx: {} as never,
       ask: { optional: async () => true } as never,
     };
@@ -166,7 +169,14 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
     const ctx: EffectContext = {
       source,
       trigger: { isDnaDigivolve: true },
-      game: {} as never,
+      game: {
+        player: () => ({ hand: [inst("EX11-001")], trash: [], battleArea: [self] }),
+        opponentOf: (seat: number) => (seat === 0 ? 1 : 0),
+        definitionOf: (card: CardInstance) =>
+          card.cardId === "EX11-001"
+            ? { nameEn: "Maquinamon", kinds: ["Digimon"], types: [] }
+            : { nameEn: "Unknown", kinds: ["Digimon"], types: [] },
+      } as never,
       fx: {} as never,
       ask: { optional: async () => true } as never,
     };

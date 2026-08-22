@@ -33,6 +33,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            sameTarget: true,
           },
           keyword: {
             keyword: "Retaliation",
@@ -68,6 +69,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            sameTarget: true,
           },
           keyword: {
             keyword: "Retaliation",

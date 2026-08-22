@@ -38,4 +38,25 @@ describe("BT1-024 MetalTyrannomon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 10000, currentDP: 10000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
+
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-024", as: "metalTyrannomon" }] } });
+    s.state.memory = -10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalTyrannomon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
+  it("rejects evolution from a green level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-069", as: "base" }], hand: [{ card: "BT1-024", as: "metalTyrannomon" }] },
+    });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("metalTyrannomon").instanceId,
+    })).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });

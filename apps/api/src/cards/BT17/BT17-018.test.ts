@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-018.js";
 
 describe("BT17-018", () => {
@@ -14,5 +17,12 @@ describe("BT17-018", () => {
 
   it("trashes security based on the number of cards in trash once per turn", () => {
     expect(compiled.effects?.[3]).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1, scaling: { per: 10, unit: "cards" } }] });
+  });
+
+  it("trashes one security card for each ten cards in both trashes", async () => {
+    const filler = Array.from({ length: 10 }, () => ({ card: "BT1-009" }));
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-018", as: "crimson" }], trash: filler }, 1: { trash: filler, security: ["BT1-009", "BT1-009", "BT1-009"] } });
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("crimson"));
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

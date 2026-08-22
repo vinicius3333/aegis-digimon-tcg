@@ -3,7 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-008.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX8-008", () => {
   it("gains 1 memory on deletion", () =>

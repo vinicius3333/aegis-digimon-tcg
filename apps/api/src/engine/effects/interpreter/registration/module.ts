@@ -85,7 +85,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   const isPlainMain = (e: CardEffect): boolean =>
     e.trigger === "Main" && !e.isSecurity && !(e.keywords ?? []).some((kw) => kw.keyword === "Delay");
   // Pre-bucket effects by their target EffectTiming so effectsForTiming is O(1).
-  const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect }[]>();
+  const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]>();
   let index = 0;
   for (const effect of effects) {
     // The intrinsic keyword is consumed by GameEngine.payDigisorption through the side registry;
@@ -99,7 +99,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const build = builderForTrigger(effect);
     for (const timing of timings) {
       const list = byTiming.get(timing) ?? [];
-      list.push({ effect, build });
+      list.push({ effect, build, isOptionPlayBody });
       byTiming.set(timing, list);
     }
     index++;
@@ -111,7 +111,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
       const entries = byTiming.get(timing);
       if (entries === undefined) return [];
-      return entries.map(({ effect, build }, i) => {
+      return entries.map(({ effect, build, isOptionPlayBody }, i) => {
         // ＜Delay＞ universal semantics: a Delay-keyworded [Main] clause is
         // routed here to OnDeclaration (timingForTrigger), where it becomes a "you may, by
         // trashing this card in your battle area, [payload]" activatable that "can't activate
@@ -244,6 +244,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           isLinked: effect.isLinked ?? false,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
+          isOptionPlayBody,
           continuousPriority: readsSelfKeyword(effect) ? 1 : 0,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
@@ -271,8 +272,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * mask a genuine conflict between two distinct IR cards. `registerCard` still throws
  * for a hand-written double-port that does not go through this bulk path.
  */
-export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
+export function registerIrCard(cardId: string, compiled: CompiledCard, legacyModule?: EffectModule): EffectModule {
   registeredCompiledCards.set(cardId, compiled);
+  if (legacyModule !== undefined) {
+    registerCard(legacyModule);
+    return legacyModule;
+  }
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
   // Registry precedence belongs to the concrete module, not merely to the fact that IR for
@@ -281,7 +286,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard): EffectMo
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = irCardModule(cardId, compiled);
+  const module = legacyModule ?? irCardModule(cardId, compiled);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;

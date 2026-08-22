@@ -6,124 +6,114 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "level": {
-                "max": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              level: {
+                max: 4,
               },
-              "kind": [
-                "Digimon"
-              ],
-              "location": "trash",
-              "controller": "opponent"
+              kind: ["Digimon"],
+              location: "trash",
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "controller": "opponent",
-          "suspend": true,
-          "ignoreOnPlay": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "level": {
-                "max": 4
-              },
-              "kind": [
-                "Digimon"
-              ],
-              "location": "trash",
-              "controller": "opponent"
-            },
-            "count": 1
-          },
-          "controller": "opponent",
-          "suspend": true,
-          "ignoreOnPlay": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "suppressOnPlayEffects",
-          "duration": "permanent"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Purple"
-                  ]
-                },
-                "count": 1
-              },
-              "from": [
-                "trash"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+          controller: "opponent",
+          suspend: true,
+          ignoreOnPlay: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
-    }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              level: {
+                max: 4,
+              },
+              kind: ["Digimon"],
+              location: "trash",
+              controller: "opponent",
+            },
+            count: 1,
+          },
+          controller: "opponent",
+          suspend: true,
+          ignoreOnPlay: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "suppressOnPlayEffects",
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            byEffect: true,
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Purple"],
+                  levelLteTriggerSource: true,
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-060", compiled);

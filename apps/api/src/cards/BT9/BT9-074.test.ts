@@ -22,9 +22,12 @@ import "./BT9-074.js";
  */
 describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacking turn player", () => {
   it("plays itself after its security battle without paying its play cost", async () => {
-    const s = setup({
-      0: { security: [{ card: "BT9-074", as: "securityMeicoomon", faceUp: true }] },
-    }, { autoOrderTriggers: true });
+    const s = setup(
+      {
+        0: { security: [{ card: "BT9-074", as: "securityMeicoomon", faceUp: true }] },
+      },
+      { autoOrderTriggers: true },
+    );
     const instanceId = s.inst("securityMeicoomon").instanceId;
     s.state.memory = 0;
 
@@ -41,20 +44,23 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
     // a permanent's own top card. So BT9-074 must die as MATERIAL under a host Digimon,
     // which loses the upcoming battle with low DP. It is seat 1's turn; seat 1 attacks it
     // directly.
-    const s = setup({
-      0: {
-        battleArea: [
-          {
-            card: "BT9-076",
-            dp: 1000,
-            as: "target",
-            suspended: true, // a permanent-target attack requires a suspended defender
-            under: [{ card: "BT9-074", as: "material" }],
-          },
-        ],
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT9-076",
+              dp: 1000,
+              as: "target",
+              suspended: true, // a permanent-target attack requires a suspended defender
+              under: [{ card: "BT9-074", as: "material" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-001", dp: 5000, as: "attacker" }] },
       },
-      1: { battleArea: [{ card: "AD1-001", dp: 5000, as: "attacker" }] },
-    }, { autoOrderTriggers: true });
+      { autoOrderTriggers: true },
+    );
     const p0 = s.state.players[0] as PlayerState;
     s.state.turnSeat = 1;
     const target = s.perm("target");
@@ -65,8 +71,7 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
     // turnSeat, so reading a seat's own-perspective value must account for whose turn
     // it is -- asserting on the raw sign of state.memory would silently pass for
     // whichever seat happens to be turnSeat, which is exactly the bug being caught here.
-    const memoryFor = (seat: 0 | 1): number =>
-      (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
+    const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
     expect(memoryFor(0)).toBe(0);
     expect(memoryFor(1)).toBe(0);
 
@@ -92,9 +97,12 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
   });
 
   it("does not gain memory when its deleted host has only 1 color", async () => {
-    const s = setup({
-      0: { battleArea: [{ card: "AD1-001", as: "host", under: [{ card: "BT9-074", as: "material" }] }] },
-    }, { autoOrderTriggers: true });
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "host", under: [{ card: "BT9-074", as: "material" }] }] },
+      },
+      { autoOrderTriggers: true },
+    );
     s.state.memory = 0;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId])).toBe(1);
@@ -104,9 +112,12 @@ describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacki
   });
 
   it("counts a color granted to the host before deletion", async () => {
-    const s = setup({
-      0: { battleArea: [{ card: "BT3-014", as: "host", under: [{ card: "BT9-074", as: "material" }] }] },
-    }, { autoOrderTriggers: true });
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT3-014", as: "host", under: [{ card: "BT9-074", as: "material" }] }] },
+      },
+      { autoOrderTriggers: true },
+    );
     s.state.turnSeat = 0;
     s.state.memory = 0;
     await s.engine.recomputeContinuousEffects();

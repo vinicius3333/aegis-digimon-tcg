@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-206.js";
 
 describe("P-206 Digimon Liberator", () => {
@@ -27,5 +28,23 @@ describe("P-206 Digimon Liberator", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT1-009", "BT1-085"]),
     );
+  });
+
+  it("reveals distinct Digimon and Tamer cards, then places itself", () => {
+    expect(runtimeCompiledCard("P-206")!.effects.find((effect) => effect.trigger === "Main" && !effect.keywords?.length)).toMatchObject({
+      actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ count: 1, to: "hand", filter: { kind: ["Digimon"] } }, { count: 1, to: "hand", filter: { kind: ["Tamer"] } }] }, { kind: "PlaceInBattleAreaSelf" }],
+    });
+  });
+
+  it("delays same-color Tamer play and offers a low-cost Security play followed by recovery", () => {
+    const card = runtimeCompiledCard("P-206")!;
+    expect(card.effects.find((effect) => effect.trigger === "Main" && effect.keywords?.length)).toMatchObject({
+      keywords: [{ keyword: "Delay" }],
+      actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: true, reduceCost: 4, target: { count: 1, filter: { kind: ["Tamer"], sameColorAsAnyOfYourDigimon: true } } }],
+    });
+    expect(card.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", optional: true, from: ["hand", "trash"], payCost: false, target: { count: 1, filter: { kind: ["Digimon"], playCostLte: 3 } } }, { kind: "AddToHandSelf" }],
+    });
   });
 });

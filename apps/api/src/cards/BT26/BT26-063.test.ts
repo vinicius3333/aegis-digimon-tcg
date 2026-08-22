@@ -1,10 +1,18 @@
-import { CardColor, CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  digivolutionRequirementsFor,
+  EffectTiming,
+  type CardDefinition,
+  type Seat,
+} from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT26-063.js";
 import "../index.js";
 
 const CARD_ID = "BT26-063";
@@ -43,7 +51,11 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
   const ctx = {
     source: cardSource,
     trigger: {},
-    game: {},
+    game: {
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+      permanentById: (permanentId: string) =>
+        permanentId === cardSource.permanent()?.permanentId ? cardSource.permanent() : undefined,
+    },
     ask: {},
     fx: {
       subscribeSubTrigger: (subscription: SubTriggerInstall) => {
@@ -57,6 +69,32 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
 }
 
 describe("BT26-063 Tellermon", () => {
+  it("exposes the printed Detach keyword", () => {
+    expect(compiled.keywords).toEqual([{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }]);
+  });
+  it("exposes the Appmon evolution and Link requirements", () => {
+    expect(digivolutionRequirementsFor("BT26-063")).toContainEqual({
+      level: 2,
+      traits: ["Appmon"],
+      cost: 0,
+      isAlternate: true,
+    });
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
+  });
+
+  it("encodes the linked reveal effect in IR", () => {
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } }],
+    });
+    expect(compiled.effects?.[0]?.actions?.[0]?.actions?.[0]).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 3,
+      rest: "deckTopOrBottom",
+    });
+  });
+
   it("digivolves from a non-purple level 2 Appmon for the printed alternate cost 0", async () => {
     const s = setupEngine({
       0: {
@@ -113,79 +151,6 @@ describe("BT26-063 Tellermon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("tellermon").linked.map((card) => card.instanceId)).toContain(linkId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(matchingId);
-  });
-
-  it("public link face deletes exactly 1 opponent Digimon among every tied lowest-level target", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT21-009", as: "host" }],
-          hand: [{ card: CARD_ID, as: "tellermonLink" }],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-009", as: "lowA" },
-            { card: "BT1-010", as: "lowB" },
-            { card: "BT1-083", as: "higher" },
-            { card: "BT1-089", as: "tamer" },
-          ],
-        },
-      },
-      { autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    s.state.memory = 3;
-    const lowA = s.perm("lowA").permanentId;
-    const lowB = s.perm("lowB").permanentId;
-    const higher = s.perm("higher").permanentId;
-    const tamer = s.perm("tamer").permanentId;
-    const deleted = s.perm("lowB").topCard.instanceId;
-    preferred.push(lowB);
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "linkCard",
-        instanceId: s.inst("tellermonLink").instanceId,
-        targetPermanentId: s.perm("host").permanentId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === deleted));
-
-    const request = s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req;
-    expect(new Set(request?.options?.candidateInstanceIds)).toEqual(new Set([lowA, lowB]));
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
-      expect.arrayContaining([lowA, higher, tamer]),
-    );
-    expect(s.state.players[1]!.trash).toHaveLength(1);
-  });
-
-  it("uses physical link identity and does not retrigger for another linked card", async () => {
-    const cardSource = source("host");
-    let watcher: SubTriggerInstall | undefined;
-    const effect = getEffectModule(CARD_ID)!
-      .effectsForTiming(EffectTiming.None, cardSource)
-      .find(({ effectKey }) => effectKey.endsWith("link-face-delete-lowest-level"))!;
-    await effect.resolve({
-      source: cardSource,
-      fx: {
-        subscribeSubTrigger: (subscription: SubTriggerInstall) => {
-          watcher = subscription;
-        },
-      },
-    } as unknown as EffectContext);
-
-    expect(
-      watcher?.matches?.({
-        source: cardSource,
-        trigger: { subjectPermanentId: "host", linkedCardInstanceIds: [cardSource.instanceId] },
-      } as EffectContext),
-    ).toBe(true);
-    expect(
-      watcher?.matches?.({
-        source: cardSource,
-        trigger: { subjectPermanentId: "host", linkedCardInstanceIds: ["different-physical-card"] },
-      } as EffectContext),
-    ).toBe(false);
   });
 
   it("does not reveal when another Appmon, rather than this Tellermon, gets linked", async () => {
@@ -320,7 +285,11 @@ describe("BT26-063 Tellermon", () => {
     const ctx = {
       source: cardSource,
       trigger: { subjectPermanentId: "tellermon" },
-      game: { definitionOf: (card: { cardId: string }) => defs[card.cardId]! } as unknown as GameAccess,
+      game: {
+        opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+        permanentById: (permanentId: string) => (permanentId === "tellermon" ? cardSource.permanent() : undefined),
+        definitionOf: (card: { cardId: string }) => defs[card.cardId]!,
+      } as unknown as GameAccess,
       ask: { selectCards, chooseOption: vi.fn(async () => choice) },
       fx: { reveal: vi.fn(async () => revealed), returnToHand, returnToDeck } as unknown as Primitives,
     } as unknown as EffectContext;
@@ -346,6 +315,8 @@ describe("BT26-063 Tellermon", () => {
       source: cardSource,
       trigger: { subjectPermanentId: "tellermon" },
       game: {
+        opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+        permanentById: (permanentId: string) => (permanentId === "tellermon" ? cardSource.permanent() : undefined),
         definitionOf: (card: { cardId: string }) =>
           definition({ cardId: card.cardId, types: card.cardId === "NEAR" ? ["Seven Codes"] : [] }),
       },

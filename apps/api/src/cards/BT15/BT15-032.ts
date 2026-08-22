@@ -55,6 +55,7 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenOpponentAttacks",
+          "sourceFilter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCardsCompareToSource": "lte" },
           "raw": "[Opponent's Turn] When an opponent's Digimon attacks, if [Plesiomon]/[X Antibody] is in this Digimon's digivolution cards, gain 2 memory.",
           "actions": [
             {

@@ -29,6 +29,8 @@ describe("ST15 collection audit ledger guards", () => {
       expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
       expect(runtimeCompiledCard(card.cardId)?.coverage, card.cardId).toBe("full");
       expect(runtimeCompiledCard(card.cardId)?.residual, card.cardId).toEqual([]);
+      expect(getCompiledCard(card.cardId)?.coverage, card.cardId).toBe("full");
+      expect(getCompiledCard(card.cardId)?.residual, card.cardId).toEqual([]);
     }
   });
 });

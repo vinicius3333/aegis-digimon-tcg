@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../../cards/index.js";
+import "./index.js";
 
 describe("BT22-080 Eater (Human Form)", () => {
   it("lets one inherited copy in breeding optionally reduce an Eater play by 1", async () => {

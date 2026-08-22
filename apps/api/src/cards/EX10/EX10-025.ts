@@ -23,12 +23,10 @@ const compiled: CompiledCard = {
                   "match": "trait"
                 }
               ]
-            },
-            "from": [
-              "trash"
-            ],
-            "count": 2
+            }
           },
+          "from": ["trash"],
+          "count": 2,
           "underFilter": {
             "controller": "mine",
             "kind": [
@@ -88,5 +86,7 @@ const compiled: CompiledCard = {
   "coverage": "full",
   "residual": []
 };
+
+export { compiled };
 
 registerIrCard("EX10-025", compiled);

@@ -266,6 +266,8 @@ export interface TriggerInfo {
   addedDigivolutionCardInstanceIds?: string[];
   /** Stack position used by an effect placing cards under a Digimon. */
   addedDigivolutionCardsPosition?: "top" | "bottom";
+  /** True when an effect rotated the host's own top card to the bottom of its stack. */
+  placedOwnTopAtStackBottom?: boolean;
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */
@@ -469,11 +471,17 @@ export interface GameAccess {
    * (HARD-01). Optional so lightweight test GameAccess literals fall back to static
    * kinds; the live engine always provides it via createGameAccess.
    */
-  effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
+  effectiveKinds?(
+    permanentId: string,
+    printedKinds?: readonly import("@aegis/shared").CardKind[],
+  ): import("@aegis/shared").CardKind[];
   /** A permanent's printed traits plus active runtime trait grants. */
   effectiveTraits?(permanentId: string): string[];
   /** A permanent's printed kinds plus active runtime kind grants. */
-  effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
+  effectiveKinds?(
+    permanentId: string,
+    printedKinds?: readonly import("@aegis/shared").CardKind[],
+  ): import("@aegis/shared").CardKind[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
   /** Current DP including active continuous modifiers during effect recomputation. */
@@ -533,7 +541,7 @@ export interface Primitives {
    * can't play <X>" effect blocks the opponent's effects (Q4676) but not the source player's
    * (Q4675). Token plays return false (exempt, Q3834). Optional on the port (test fakes skip).
    */
-  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move"): boolean;
+  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move", sourceZone?: string): boolean;
   /**
    * Record a security-effect disable on `attackerPermanentId` (the security half of the
    * source rule implementation split): while that permanent is the attacker, a flipped
@@ -595,6 +603,8 @@ export interface Primitives {
       effectSourceCardId?: string;
       /** Server-selected DigiXros materials to place before firing this effect-played card's On Play. */
       digiXrosMaterialInstanceIds?: string[];
+      /** Resolved host permanent for stack-origin instances, when the source is a stack zone. */
+      hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]>;
   /**
@@ -1351,6 +1361,8 @@ export interface SubTriggerInstall {
   /** Retained live context for a seat-scoped timed watcher with no permanent/card anchor. */
   activationContext?: EffectContext;
   once: boolean;
+  /** Marks a watcher installed by a persistent static effect for recompute teardown. */
+  continuous?: boolean;
   run: (ctx: EffectContext) => Promise<void>;
   /**
    * Per-install gate on the fired event's payload (the captured `sourceFilter`).
@@ -1598,6 +1610,8 @@ export interface EffectContext {
    * relevant printed clause instead of the card's full effect text. Display-only.
    */
   activeTiming?: string;
+  /** Internal marker for effects re-derived by the continuous-effect pass. */
+  continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
@@ -1655,6 +1669,7 @@ export interface EffectContext {
   lastDeletedLevel?: number;
   lastDigivolveResult?: boolean;
   lastOptionUsed?: boolean;
+  lastOptionUsedInstanceId?: string;
   lastEffectActed?: boolean;
   /** Whether the opponent declined the immediately preceding opponent-choice action. */
   lastOpponentDeclined?: boolean;
@@ -1689,6 +1704,8 @@ export interface EffectContext {
    * the delta (T-08-26). Undefined / 0 => no reduction (payment declined or none eligible).
    */
   playCostDelta?: number;
+  /** Temporary maximum-level adjustment for a subsequent effect-driven hand play. */
+  playLevelCeilingDelta?: number;
   /**
    * Battle-area permanent ids a `wouldBePlayed` self-reducer's cost body (BT12-112) selected to be
    * relocated as a digivolution card under the card being played — collected during

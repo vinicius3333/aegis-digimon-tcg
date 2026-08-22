@@ -13,7 +13,6 @@ const place = {
   target: { filter: mineralRock, count: 1 },
   from: ["hand", "trash"],
   position: "bottom",
-  underFilter: { isTriggerSource: true },
   cost: suspendCost,
   optional: true,
   abortOnDecline: true
@@ -38,8 +37,8 @@ const compiled: CompiledCard = {
       isSecurity: true
     }
   ],
-  coverage: "full",
-  residual: []
+  coverage: "partial",
+  residual: ["The PlaceUnder target currently resolves a matching Mineral/Rock Digimon rather than binding unambiguously to the triggered Digimon; a trigger-source host binding is required for full 10/10 evidence."]
 };
 
 registerIrCard("EX11-065", compiled);

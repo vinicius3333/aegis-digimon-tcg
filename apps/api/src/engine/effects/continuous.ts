@@ -371,6 +371,8 @@ export interface PlayMatch {
   kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   /** Upper DP bound for the "Digimon with N DP or less" form (printed DP). */
   dpAtMost?: number;
+  /** Optional source-zone scope, e.g. "trash" for effects that prohibit trash plays only. */
+  zone?: "trash" | "hand" | "security";
 }
 
 /** A timing window a `DisableTimingEffect` masks (mirrors the IR `DisableTiming`). */
@@ -755,13 +757,13 @@ export class ContinuousEffectLedger {
    * `byEffectOnly: true` are honored; when false/absent those prohibitions are skipped so
    * normal hand-play is unaffected (KB Q4665–Q4668, Q6245 BT20-020).
    */
-  isPlayBlocked(seat: Seat, cardDef: CardDefinition, requestedMode: "play" | "move", effectPlay?: boolean): boolean {
+  isPlayBlocked(seat: Seat, cardDef: CardDefinition, requestedMode: "play" | "move", effectPlay?: boolean, sourceZone?: string): boolean {
     if (cardDef.isToken === true) return false; // Q3834: token plays are exempt
     return this.playProhibitions.some(
       (p) =>
         p.seat === seat &&
         modeMatches(p.mode, requestedMode) &&
-        playMatchesCard(p.match, cardDef) &&
+      playMatchesCard(p.match, cardDef, sourceZone) &&
         (effectPlay === true || !p.byEffectOnly),
     );
   }
@@ -955,7 +957,10 @@ export class ContinuousEffectLedger {
     });
   }
 
-  constructor(private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined) {}
+  constructor(
+    private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined,
+    private readonly printedKeywordsOfPermanent?: (permanentId: string) => readonly string[],
+  ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
   addPlayerKeywordGrant(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void {
@@ -978,7 +983,10 @@ export class ContinuousEffectLedger {
 
   /** Whether a permanent currently has a given keyword from any active grant. */
   hasKeyword(permanentId: string, keyword: string): boolean {
-    return this.grantedKeywords(permanentId).some((grant) => grant.keyword === keyword);
+    return (
+      this.printedKeywordsOfPermanent?.(permanentId)?.includes(keyword) === true ||
+      this.grantedKeywords(permanentId).some((grant) => grant.keyword === keyword)
+    );
   }
 
   /** Active parameter alternatives carried by grants such as Decoy (Black/White). */
@@ -1417,11 +1425,12 @@ function modeMatches(mode: "play" | "move" | "playOrMove", requested: "play" | "
 }
 
 /** Does a card definition satisfy a PlayMatch predicate (kind AND optional DP cap)? */
-function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
+function playMatchesCard(match: PlayMatch, def: CardDefinition, sourceZone?: string): boolean {
   if (match.kinds !== undefined && match.kinds.length > 0) {
     if (!match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
   }
   if (match.dpAtMost !== undefined && def.dp > match.dpAtMost) return false;
+  if (match.zone !== undefined && match.zone !== sourceZone) return false;
   return true;
 }
 

@@ -3,7 +3,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX4-051 — BlitzGreymon (EX4, Black Lv.6 Digimon).
@@ -17,6 +18,60 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   trash top of opponent's security.
  */
 const cardId = "EX4-051";
+
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: compiledEffects[cardId]!.effects.map((effect) => {
+    if (effect.trigger !== "WhenDigivolving") return effect;
+    return {
+      ...effect,
+      actions: [
+        {
+          kind: "Modal" as const,
+          choose: 1,
+          options: [
+            [
+              {
+                kind: "DeDigivolve" as const,
+                target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3, forceSelection: true },
+                amount: 1,
+              },
+            ],
+            [
+              {
+                kind: "Digivolve" as const,
+                target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 },
+                into: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 6 },
+                  nameOrTrait: [{ tokens: ["Garurumon"], match: "name" }],
+                },
+                from: ["hand"],
+                payCost: false,
+                optional: true,
+              },
+            ],
+            [
+              {
+                kind: "DnaDigivolve" as const,
+                materials: [
+                  { filter: { isSelfRef: true }, count: 1, zone: "battleArea" },
+                  { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1, zone: "battleArea" },
+                ],
+                into: { controller: "mine", kind: ["Digimon"], zone: "hand" },
+                payCost: true,
+                optional: true,
+              },
+            ],
+          ],
+        },
+      ],
+    };
+  }),
+  coverage: "full" as const,
+  residual: [],
+};
 
 const MODAL_OPTIONS = [
   "De-Digivolve 1 on 3 opponent Digimon",
@@ -138,6 +193,6 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiled);
 
 export default module;

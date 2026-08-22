@@ -8,6 +8,7 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { looseCardsInZone } from "../targeting/loose.js";
 import { CardKind } from "@aegis/shared";
+import { MemoryGauge } from "../../../MemoryGauge.js";
 import type { Action, CardEffect, EffectTrigger, Filter, ZoneRef } from "@aegis/shared";
 
 /** A foreign card eligible to lend a borrowed effect (its instance + the borrowable effects). */
@@ -207,6 +208,7 @@ export async function runUseOptionWithoutCost(
   // Bind the use OUTCOME on ctx up-front: false until an Option is actually used (read by a
   // subsequent "if this effect used" Condition; KB EX8-037 Q3923/Q4737).
   ctx.lastOptionUsed = false;
+  ctx.lastOptionUsedInstanceId = undefined;
 
   const seat = ctx.source.ownerSeat; // the printed form is always "from YOUR hand"
   // Resolve source zones: `action.from` (top-level) or `action.target.from` (wrapped form).
@@ -234,7 +236,7 @@ export async function runUseOptionWithoutCost(
       const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
       if (filter !== undefined && !definitionMatches(filter, def)) continue;
       if (!def.kinds.includes(CardKind.Option)) continue;
-      if (def.colors.length !== 1) continue;
+      if (def.colors !== undefined && def.colors.length !== 1) continue;
       if (def.playCost > costCap) continue;
       if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
       candidates.push(cand.instanceId);
@@ -262,7 +264,11 @@ export async function runUseOptionWithoutCost(
   // cost is used for the whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
   if (action.payCost === true && chosenCard !== undefined) {
     const chosenDef = ctx.game.definitionOf({ cardId: chosenCard.cardId } as never);
-    const reducedCost = Math.max(0, chosenDef.playCost - (action.reduceCostBy ?? 0));
+    const dynamicReduction =
+      action.reduceCostByOpponentMemory === true
+        ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
+        : 0;
+    const reducedCost = Math.max(0, chosenDef.playCost - (action.reduceCostBy ?? 0) - dynamicReduction);
     if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
   }
 
@@ -275,8 +281,12 @@ export async function runUseOptionWithoutCost(
   // Option's ORIGINAL use cost so a whenOptionUsed watcher can gate on "a cost of 2 or more"
   // (BT19-040; KB Q5471-Q5473 read the cost itself, not the paid/reduced value).
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
-  await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost);
+  await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
+    payCost: action.payCost,
+    ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+  });
   ctx.lastOptionUsed = true;
+  ctx.lastOptionUsedInstanceId = chosenId;
 }
 
 /**

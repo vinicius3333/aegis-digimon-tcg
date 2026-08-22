@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT5-048.js";
 
 describe("BT5-048 Floramon", () => {
   it("has no card effects", async () => {

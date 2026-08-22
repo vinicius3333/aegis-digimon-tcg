@@ -377,6 +377,10 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         ctx.fx.changeEvoCost(predicate, delta, modifierOpts);
         return false;
       }
+      if (action.costType === "level") {
+        ctx.playLevelCeilingDelta = (ctx.playLevelCeilingDelta ?? 0) + delta;
+        return false;
+      }
       // Play/use-cost form ("reduce the play cost of your Digimon by N", "increase the
       // cost of your opponent's next Digimon by N"): the predicate matches card
       // DEFINITIONS (and the paying seat) rather than a board permanent, since the

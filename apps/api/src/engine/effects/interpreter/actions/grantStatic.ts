@@ -51,6 +51,22 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         for (const id of ids) ctx.fx.grantNameTrait(id, action.grant, tokens, duration);
         return false;
       }
+      if (action.grant === "colorFromLastTrashed") {
+        const trashedIds = ctx.boundPlayed?.get("trashedCard") ?? new Set<string>();
+        const grantDuration = toDuration(action.duration ?? "forTheTurn");
+        for (const trashedId of trashedIds) {
+          const trashed = ctx.game.player(ctx.source.ownerSeat).trash.find((card) => card.instanceId === trashedId);
+          if (trashed === undefined) continue;
+          const colors = ctx.game.definitionOf(trashed).colors as (keyof typeof COLOR_MAP)[];
+          for (const id of ids) {
+            for (const color of colors) {
+              const mapped = COLOR_MAP[color];
+              if (mapped !== undefined) ctx.fx.addColorGrant(id, mapped, grantDuration);
+            }
+          }
+        }
+        return false;
+      }
       if (action.grant === "color") {
         const colors = (action.tokens ?? []).filter((token): token is keyof typeof COLOR_MAP => token in COLOR_MAP);
         if (colors.length === 0) {
@@ -60,6 +76,21 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
         for (const id of ids) {
           for (const color of colors) ctx.fx.addColorGrant(id, COLOR_MAP[color], grantDuration);
+        }
+        return false;
+      }
+      // BT8-040: the preceding optional Trash action grants this Digimon every printed
+      // color of the card actually trashed, for the turn. The effect-result binding is
+      // intentionally read from the current resolution context, so a declined or
+      // unsuccessful trash grants nothing.
+      if (action.grant === "colorFromLastTrashed") {
+        const trashed = ctx.lastTrashedCards ?? [];
+        const grantDuration = toDuration(action.duration ?? "forTheTurn");
+        for (const record of trashed) {
+          const colors = ctx.game.definitionOf({ cardId: record.cardId } as never).colors;
+          for (const id of ids) {
+            for (const color of colors) ctx.fx.addColorGrant(id, color, grantDuration);
+          }
         }
         return false;
       }
@@ -183,7 +214,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const idx = await ctx.ask.chooseOption(ctx, labels);
         const chosen = COLOR_MAP[labels[idx] ?? labels[0]!];
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.addColorGrant(id, chosen, grantDuration);
+        for (const id of ids) ctx.fx.setOriginalCardInfo(id, { colors: [chosen] }, grantDuration);
         return false;
       }
       // The compiler's other encoding of the same "any color except X" choice (BT18-078):
@@ -206,7 +237,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const idx = await ctx.ask.chooseOption(ctx, labels);
         const chosen = COLOR_MAP[labels[idx] ?? labels[0]!];
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.addColorGrant(id, chosen, grantDuration);
+        for (const id of ids) ctx.fx.setOriginalCardInfo(id, { colors: [chosen] }, grantDuration);
         return false;
       }
       // { kind: "PreventSecurityActivation", cardType: "Option" } (BT1-025, BT20-015, BT20-074):

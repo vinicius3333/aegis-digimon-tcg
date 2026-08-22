@@ -6,9 +6,38 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
   it("restricts opponent unsuspension, charges suspension for attack, and trashes its top card at turn end", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [expect.objectContaining({ kind: "Suspend" }), expect.objectContaining({ kind: "Restrict", restriction: "unsuspend" })] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenAttacking", actions: [expect.objectContaining({ kind: "Unsuspend", cost: expect.objectContaining({ kind: "suspend" }) })] });
-    expect(compiled.effects[2]).toMatchObject({ trigger: "EndOfYourTurn", actions: [expect.objectContaining({ kind: "Trash", target: expect.objectContaining({ topCardOnly: true }) }), expect.objectContaining({ kind: "Unsuspend" })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+        {
+          kind: "Restrict",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          cost: {
+            kind: "suspend",
+            target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
+          },
+        },
+      ],
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "EndOfYourTurn",
+      actions: [
+        { kind: "Trash", target: { filter: { isSelfRef: true }, count: 1, isSelf: true, topCardOnly: true } },
+        { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" } },
+      ],
+    });
   });
 
   it("loads the compiled Leopardmon: Leopard Mode implementation", async () => {

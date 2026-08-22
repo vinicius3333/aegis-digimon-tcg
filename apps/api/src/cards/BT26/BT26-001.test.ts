@@ -1,62 +1,23 @@
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import module from "./BT26-001.js";
+import { compiled } from "./BT26-001.js";
 import "../index.js";
 
 const CARD_ID = "BT26-001";
 
-function source(instanceId = "yokomon"): CardSource {
-  return {
-    instanceId,
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: {} as CardDefinition,
-    permanent: () => ({ permanentId: `host-${instanceId}`, inBreeding: false }) as never,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  };
-}
-
 describe("BT26-001 Yokomon", () => {
-  it("Q6951 reacts to its controller's effect adding to either deck, not an opponent's effect", async () => {
-    const cardSource = source();
-    let subscription: SubTriggerInstall | undefined;
-    const chronomon = { instanceId: "chrono", cardId: "CHRONO" };
-    const ctx = {
-      source: cardSource,
-      game: {
-        player: () => ({ hand: [chronomon] }),
-        permanentById: () => ({
-          permanentId: "host-yokomon",
-          inBreeding: false,
-          topCard: { instanceId: "base", cardId: "BASE" },
-        }),
-        definitionOf: () =>
-          ({
-            kinds: [CardKind.Digimon],
-            nameEn: "Chronomon",
-            colors: ["Red"],
-            level: 4,
-            evoCosts: [{ color: "Red", level: 4, memoryCost: 4 }],
-          }) as CardDefinition,
-      },
-      fx: { subscribeSubTrigger: (sub: SubTriggerInstall) => (subscription = sub) },
-    } as unknown as EffectContext;
-
-    await module.effectsForTiming(EffectTiming.None, cardSource)[0]!.resolve(ctx);
-
-    expect(subscription!.oncePerTurnKey).toBe(`yokomon/${CARD_ID}/inherited-reactive-alt-digivolve`);
-    expect(subscription!.matches!({ ...ctx, trigger: { effectAddedToDeckSeat: 1, effectAddedToDeckBySeat: 0 } })).toBe(
-      true,
-    );
-    expect(subscription!.matches!({ ...ctx, trigger: { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 1 } })).toBe(
-      false,
-    );
+  it("encodes the inherited once-per-turn Chronomon-text digivolution watcher", () => {
+    expect(compiled.effects).toMatchObject([{
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      isInherited: true,
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenEffectAddsToDeck",
+        actions: [{ kind: "Digivolve", from: ["hand"], costDelta: -1, optional: true }],
+      }],
+    }]);
   });
 
   it("Q6948/Q6951 publicly evolves after its effect adds an opponent's card to their deck, pays printed cost -1, and draws", async () => {

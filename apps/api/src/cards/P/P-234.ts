@@ -21,112 +21,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (the text names no specific recipient, so it resolves like every other undirected "link ...
 // to 1 of your Digimon" clause in the catalog).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "System",
-                      "Navi",
-                      "Tool",
-                      "Leviathan"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenLinkTrashed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Link",
-              "optional": true,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                    tokens: ["System", "Navi", "Tool", "Leviathan"],
+                    match: "trait",
                   },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer"
+                ],
               },
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": ["System", "Navi", "Tool", "Leviathan"],
-                      "match": "trait"
-                    }
-                  ]
-                },
-                "count": 1
-              },
-              "recipient": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"]
-                },
-                "count": 1
-              },
-              "from": ["hand"],
-              "costDelta": -2,
-              "raw": "by suspending this Tamer, you may link 1 [System], [Navi], [Tool] or [Leviathan] trait card from your hand with the cost reduced by 2"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "raw": "whenLinkTrashed"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "SubTrigger",
+          event: "whenLinkTrashed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "payCost": false
-        }
+          actions: [
+            {
+              kind: "Link",
+              optional: true,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["System", "Navi", "Tool", "Leviathan"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              recipient: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              costDelta: -2,
+              raw: "by suspending this Tamer, you may link 1 [System], [Navi], [Tool] or [Leviathan] trait card from your hand with the cost reduced by 2",
+            },
+          ],
+          raw: "whenLinkTrashed",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-234", compiled);

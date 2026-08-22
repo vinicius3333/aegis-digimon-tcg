@@ -22,6 +22,8 @@ export interface Filter extends CardPredicates, BoardPredicates, ContextPredicat
 /** A resolved target specification for an action. */
 export interface Target {
   filter: Filter;
+  /** Force the public chooser even when the candidate pool exactly matches count. */
+  forceSelection?: boolean;
   /** Default 1. `"all"` for "all ...". */
   count: number | "all";
   /** Who makes a non-trivial choice. Defaults to the effect's controller. */
@@ -39,6 +41,8 @@ export interface Target {
   untilHandSize?: number;
   /** "up to N" rather than exactly N. */
   upTo?: boolean;
+  /** Allow selecting zero when an outer optional effect already owns the decline choice. */
+  allowZero?: boolean;
   /** "this Digimon", "this card". */
   isSelf?: boolean;
   /**

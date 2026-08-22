@@ -6,6 +6,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 2, "cost": 1, "colors": ["Purple", "Red"], "isAlternate": true },
+    { "names": ["Yaamon"], "cost": 0, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -47,15 +51,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Yaamon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-047", compiled);

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js"; // register the compiled cards so the real activateEffect path runs
 
 /**
@@ -25,6 +26,14 @@ const OPPONENT_CHEAP = "AD1-011"; // playCost 8 — must be deleted (not the hig
 const OPPONENT_COSTLY = "AD1-004"; // playCost 12 — the highest, must survive
 
 describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-cost opponent Digimon", () => {
+  it("retains the standard level 5 evolution requirement alongside both alternates", () => {
+    expect(runtimeCompiledCard(GALACTICMON)?.digivolutionRequirement).toEqual([
+      { level: 5, cost: 6, isAlternate: true },
+      { names: ["Snatchmon"], cost: 9, isAlternate: true },
+      { names: ["Galacticmon"], cost: 5, isAlternate: true },
+    ]);
+  });
+
   it("keeps the highest-play-cost opponent Digimon, deletes the rest", async () => {
     const s = setupEngine(
       {

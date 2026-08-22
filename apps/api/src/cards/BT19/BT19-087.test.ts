@@ -69,7 +69,10 @@ describe("BT19-087 DigiXros source-zone expansion (trash)", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: NENE, dp: 0, as: "tamer" }],
-        trash: [{ card: SHOUTMON, as: "m1" }, { card: BALLISTAMON, as: "m2" }],
+        trash: [
+          { card: SHOUTMON, as: "m1" },
+          { card: BALLISTAMON, as: "m2" },
+        ],
         hand: [{ card: XROS_DIGIMON, as: "xros" }],
       },
     });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-001.js";
 
 describe("EX8-001", () => {
@@ -32,6 +32,23 @@ describe("EX8-001", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.includes(target));
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("deletes an opposing Digimon when the inherited host has Tyrannomon in its name", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-016", as: "host", under: ["EX8-001"] }] },
+      1: { battleArea: [{ card: "BT1-011", as: "target" }] },
+    });
+    const target = s.perm("target");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.includes(target));
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-011")).toBe(true);
   });
 
   it("does not delete a 5000 DP Digimon at the inherited threshold", async () => {

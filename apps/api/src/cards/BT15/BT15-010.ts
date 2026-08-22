@@ -34,7 +34,8 @@ const compiled: CompiledCard = {
                   }
                 },
                 "count": 1
-              }
+              },
+              "condition": { "kind": "attackTargetsPlayer", "raw": "one of your Digimon attacks a player" }
             }
           ]
         }

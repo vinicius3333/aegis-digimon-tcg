@@ -69,7 +69,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "lastTargetDpGreaterThanSelf": {
       const source = ctx.source.permanent();
-      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const ids = (ctx.lastResolvedPermanentIds?.length ?? 0) > 0
+        ? ctx.lastResolvedPermanentIds!
+        : [ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId].filter((id): id is string => id !== undefined);
       return (
         source !== undefined &&
         ids.length > 0 &&
@@ -94,6 +96,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return (
         cond.filter !== undefined &&
         (ctx.lastRevealedCards ?? []).some((card) =>
+          definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
+        )
+      );
+    case "triggerAllRevealedMatchFilter":
+      return (
+        cond.filter !== undefined &&
+        (ctx.lastRevealedCards ?? []).length > 0 &&
+        (ctx.lastRevealedCards ?? []).every((card) =>
           definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
         )
       );
@@ -382,9 +392,19 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (deletedColors !== undefined) {
         return compareNumber(new Set(deletedColors).size, cond.op, cond.value ?? 0);
       }
+      const self = ctx.source.permanent();
+      if (self !== undefined && ctx.game.effectiveColors !== undefined) {
+        return compareNumber(
+          new Set(ctx.game.effectiveColors(self)).size,
+          cond.op,
+          cond.value ?? 0,
+        );
+      }
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
-      return compareNumber(new Set(def.colors ?? []).size, cond.op, cond.value ?? 0);
+      const permanent = ctx.source.permanent();
+      const colors = permanent === undefined ? def.colors ?? [] : ctx.game.effectiveColors?.(permanent) ?? def.colors ?? [];
+      return compareNumber(new Set(colors).size, cond.op, cond.value ?? 0);
     }
     case "selfLevelIs": {
       // "This Digimon is level N" — exact current top-card level.
@@ -650,6 +670,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // effect (KB P-004 "when YOU trash a digivolution card"). An opponent-driven trash of the
       // same opponent Digimon must not fire this.
       return ctx.trigger.byEffectSeat === mine;
+    case "triggerByYourDigimonEffect": {
+      const byEffect = ctx.trigger.addedToHand?.byEffect;
+      return byEffect?.ownerSeat === mine && byEffect.isDigimonEffect === true;
+    }
     case "triggerEnteredByEffect":
       // OnPlay/WhenDigivolving: this card entered the battle area BY AN EFFECT (the entry was
       // gating BT25-084's "after, if played or digivolved by an effect". A manual entry and every
@@ -690,6 +714,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // with a cost of 2 or more"). KB Q5471-Q5473: the gate reads the card's cost itself, not a
       // paid/reduced cost. Unset payload (cost unknown) is conservative => does not fire.
       return (ctx.trigger.usedOptionCost ?? -1) >= (cond.value ?? 0);
+    case "triggerOptionMatchesFilter": {
+      const instanceId = ctx.trigger.subjectPermanentId;
+      if (instanceId === undefined || cond.filter === undefined) return false;
+      const candidate = findLooseCandidateByInstance(ctx, instanceId);
+      return candidate !== undefined && definitionMatches(cond.filter, ctx.game.definitionOf({ cardId: candidate.cardId }));
+    }
     case "triggerSubjectHasColor":
       // whenPlayed/whenOneOfYoursDigivolves fire-time gate: the permanent that drove the event
       // (TriggerInfo.subjectPermanentId) has one of `filter.colors` on its top card. Read at
@@ -742,6 +772,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "triggerRemovedSecuritySeat": {
       const seat = cond.seat === "opponent" ? opp : mine;
       return ctx.trigger.removedFromSecuritySeat === seat;
+    }
+    case "triggerHandTrashedSeat": {
+      const seat = cond.seat === "opponent" ? opp : mine;
+      return ctx.trigger.handTrashedSeat === seat;
     }
     case "triggerRemovalCause":
       return ctx.trigger.removalCause === cond.removalCause;

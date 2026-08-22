@@ -49,9 +49,35 @@ describe("BT16-065", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkdramon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-065") === true);
+    await settle(
+      () => s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-065") === true,
+    );
 
     expect(s.state.memory).toBe(9);
     expect((s.state.players[0]?.trash.length ?? 0) + (s.state.players[0]?.deck.length ?? 0)).toBe(6);
+  });
+
+  it("reveals three, deletes within the chosen play-cost budget, and trashes the reveal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT16-065", as: "darkdramon" }],
+          deck: ["BT16-050", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(
+      s.state.players[0]!.trash.filter((card) => card.cardId === "BT16-050" || card.cardId === "BT1-009"),
+    ).toHaveLength(3);
   });
 });

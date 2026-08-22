@@ -4,6 +4,13 @@ import type { Filter, Target } from "../filters/filter.js";
 import type { Controller, ZoneRef } from "../filters/zones.js";
 import type { ActionBase } from "./base.js";
 
+export interface HandRevealAddAction extends ActionBase {
+  kind: "HandRevealAdd";
+  target: Target;
+  securityFilter: Filter;
+  toTop?: boolean;
+}
+
 export interface RevealAddAction extends ActionBase {
   kind: "RevealAdd";
   revealCount: number;
@@ -34,7 +41,7 @@ export interface RevealAddAction extends ActionBase {
     count: number | "all";
     /** Added to numeric `count` when a condition/scaling clause applies. */
     countModifier?: Target["countModifier"];
-    to?: "hand" | "trash" | "play" | "digivolve" | "placeUnder" | "underTamer" | "security";
+    to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
     /** For `to:"digivolve"`: which battle-area Digimon may receive the revealed card. */
     digivolveTarget?: Target;
     /** Place the selected card at the TOP of security (BT6-100). */
@@ -53,7 +60,7 @@ export interface RevealAddAction extends ActionBase {
      * default `to` and these.
      */
     orDispositions?: {
-      to: "hand" | "trash" | "play" | "digivolve" | "placeUnder" | "underTamer" | "security";
+      to: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
       underFilter?: Filter;
       /** Only offer this destination when the selected card also matches this filter. */
       filter?: Filter;

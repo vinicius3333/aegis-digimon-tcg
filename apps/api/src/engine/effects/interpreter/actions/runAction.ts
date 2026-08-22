@@ -55,6 +55,17 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       ctx.selections?.set(boundTo, ids[0]!);
     }
   }
+  // A BeforePayCost CostModifier may carry the printed payment required to earn its
+  // reduction (BT26-098). CostModifier is normally excluded from the generic activation
+  // cost path because passive modifiers have no cost; an explicit cost is different and
+  // must be paid before installing the modifier.
+  if (action.kind === "CostModifier" && action.cost !== undefined) {
+    if (action.optional && !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))) {
+      return action.abortOnDecline === true;
+    }
+    const paid = await payCost(ctx, action.cost, { paidCount: 0 });
+    if (!paid) return action.abortOnDecline === true;
+  }
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
   // offering "you may…" for an effect the controller cannot perform is misleading. The cost
@@ -83,6 +94,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // security must finish resolving when the controller has no Agumon/Gabumon to play.
     if (
       action.kind === "PlayWithoutCost" &&
+      action.cost === undefined &&
       !action.target?.isSelf &&
       action.target?.filter?.isSelfRef !== true &&
       action.fromOwnDigivolutionStack !== true
@@ -158,7 +170,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "PlayPerLevel" &&
     (action.costOptions?.length ?? 0) > 0
   ) {
-    const paid = await payOneCostOption(ctx, action.costOptions as Cost[]);
+    const paid = await payOneCostOption(ctx, action.costOptions as Cost[], costPayment);
     if (!paid) return action.abortOnDecline === true;
   } else if (
     action.kind !== "RawUnparsed" &&
@@ -285,7 +297,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "DeleteByDPBudget":
     case "AddToDPDeleteBudget":
     case "Trash":
+    case "ReturnToEggDeck":
     case "Return":
+    case "ReturnTopDigivolutionCards":
     case "DeletionMaxDpModifier":
     case "DelayedDelete":
     case "DelayedDeletePlayed":
@@ -297,6 +311,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "MovePermanent":
     case "Hatch":
     case "ModifyDP":
+    case "AddDPFromTrashedCard":
     case "AddDPFromSuspendedCost":
     case "AddDPFromTrashedCard":
     case "SetBaseDP":
@@ -384,6 +399,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "SearchSecurity":
     case "Reveal":
     case "RevealAdd":
+    case "HandRevealAdd":
     case "RevealChooseDeleteBudget":
       return await runRevealAction(ctx, action);
     default: {

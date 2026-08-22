@@ -3,8 +3,9 @@ import { EffectTiming } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+import { getEffectModule, unregisterCard } from "../../engine/effects/registry.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { getEffectModule, registerCard, unregisterCard } from "../../engine/effects/registry.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-055.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-055 Recomon", () => {
   it("trashes an Appmon Digimon from hand to draw two", () => {

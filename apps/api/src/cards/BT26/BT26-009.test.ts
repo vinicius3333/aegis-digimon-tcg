@@ -1,27 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor, type CardDefinition } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { describe, expect, it } from "vitest";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import module from "./BT26-009.js";
+import { compiled } from "./BT26-009.js";
 import "../index.js";
 
-const definition = (overrides: Partial<CardDefinition>): CardDefinition =>
-  ({
-    cardId: "TEST-001",
-    set: "TEST",
-    nameEn: "Test",
-    kinds: [],
-    colors: [],
-    playCost: 0,
-    dp: 0,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...overrides,
-  }) as CardDefinition;
-
 describe("BT26-009 Hyokomon", () => {
+  it("compiles both printed clauses with complete coverage", () => {
+    expect(compiled).toMatchObject({ coverage: "full", effects: [{ trigger: "StartOfYourMainPhase" }, { trigger: "WhenAttacking", isInherited: true }] });
+  });
   it("uses the exact off-color Lv.2 [TS] cost-0 evolution path and rejects a near-match", () => {
     expect(digivolutionRequirementsFor("BT26-009")).toContainEqual({
       level: 2,
@@ -103,7 +90,7 @@ describe("BT26-009 Hyokomon", () => {
     );
     preferred.push(s.inst("bottom").instanceId);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
 
@@ -124,78 +111,17 @@ describe("BT26-009 Hyokomon", () => {
         deck: [{ card: "BT1-005", as: "drawn" }],
       },
     });
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("ally"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("ally"), {
       attackerPermanentId: s.perm("ally").permanentId,
     });
     expect(s.state.players[0]!.hand).toHaveLength(4);
     expect(s.state.players[0]!.deck).toHaveLength(1);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
-  it("recognizes Chronomon in inherited text for its start-of-main cost (Q6963)", async () => {
-    const source = {
-      ownerSeat: 0,
-      permanent: () => ({ permanentId: "hyokomon" }),
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-    } as unknown as CardSource;
-    const inheritedMatch = { instanceId: "inherited-match", cardId: "TEST-002" };
-    const unrelated = { instanceId: "unrelated", cardId: "TEST-003" };
-    const selectCards = vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [
-      opts.candidates[0]!,
-    ]);
-    const trash = vi.fn<(...args: any[]) => any>(async () => [inheritedMatch]);
-    const draw = vi.fn<(...args: any[]) => any>(async () => undefined);
-    const gainMemory = vi.fn<(...args: any[]) => any>();
-    const ctx = {
-      source,
-      game: {
-        player: () => ({ hand: [inheritedMatch, unrelated] }),
-        definitionOf: (card: { cardId: string }) =>
-          card.cardId === inheritedMatch.cardId
-            ? definition({ cardId: card.cardId, inheritedEffectText: "[When Attacking] If [Chronomon]..." })
-            : definition({ cardId: card.cardId }),
-      },
-      ask: { selectCards },
-      fx: { trash, draw, gainMemory },
-    } as unknown as EffectContext;
-
-    const effect = module.effectsForTiming(EffectTiming.OnStartMainPhase, source)[0]!;
-    await effect.resolve(ctx);
-
-    expect(selectCards).toHaveBeenCalledWith(ctx, {
-      candidates: [inheritedMatch.instanceId],
-      min: 0,
-      max: 1,
-    });
-    expect(trash).toHaveBeenCalledWith([inheritedMatch.instanceId]);
-    expect(draw).toHaveBeenCalledWith(0, 1);
-    expect(gainMemory).toHaveBeenCalledWith(1);
-  });
-
-  it("grants neither draw nor memory when the selected trash cost does not actually move", async () => {
-    const source = { ownerSeat: 0, isOnBattleArea: () => true, isOwnersTurn: () => true } as unknown as CardSource;
-    const candidate = { instanceId: "candidate", cardId: "SHAMAN" };
-    const draw = vi.fn();
-    const gainMemory = vi.fn();
-    const ctx = {
-      source,
-      game: {
-        player: () => ({ hand: [candidate] }),
-        definitionOf: () => definition({ cardId: "SHAMAN", types: ["Shaman"] }),
-      },
-      ask: { selectCards: vi.fn(async () => [candidate.instanceId]) },
-      fx: { trash: vi.fn(async () => []), draw, gainMemory },
-    } as unknown as EffectContext;
-
-    await module.effectsForTiming(EffectTiming.OnStartMainPhase, source)[0]!.resolve(ctx);
-
-    expect(draw).not.toHaveBeenCalled();
-    expect(gainMemory).not.toHaveBeenCalled();
-  });
 });

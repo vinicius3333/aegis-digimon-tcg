@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT15-012.js";
 
 // A3 behavioral test for BT15-012 (Shoutmon X2):
 //   [On Play] Suspend 1 of your opponent's Digimon.
@@ -10,6 +11,12 @@ import "../index.js";
 // FAILS-WHEN-REVERTED: remove the [On Play] resolve body → the opp Digimon stays unsuspended.
 
 describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
+  it("encodes deletion prevention, the DigiXros restriction, and both treated-as names", () => {
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldBeDeleted", mode: "prevent", cost: { kind: "place" } }] });
+    expect(compiled.effects?.[2]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Suspend" }, { kind: "Restrict", condition: { kind: "digiXrosCount", minimum: 2 } }] });
+    expect(compiled.effects?.[3]).toMatchObject({ trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Shoutmon", "Ballistamon"] }] });
+  });
+
   it("playing BT15-012 suspends 1 of the opponent's Digimon", async () => {
     const s = setup(
       {

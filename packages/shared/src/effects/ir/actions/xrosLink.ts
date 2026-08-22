@@ -30,6 +30,8 @@ export interface AllowDigiXrosMaterialsFromTrashAction extends ActionBase {
 export interface LinkAction extends ActionBase {
   kind: "Link";
   target: Target;
+  /** Require every selected link card to have a distinct printed name. */
+  differentNames?: boolean;
   /** Negative means cheaper. */
   costDelta?: number;
   /** False skips the link cost entirely ("without paying the cost"). */
