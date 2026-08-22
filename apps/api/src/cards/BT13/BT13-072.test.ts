@@ -6,8 +6,51 @@ describe("BT13-072 DoruGreymon", () => {
   it("places an X Antibody reveal under itself and grants conditional DP immunity", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 3, add: [expect.objectContaining({ to: "placeUnder" })] }), expect.objectContaining({ kind: "Restrict", restriction: "dpImmune", condition: expect.objectContaining({ kind: "ifThisEffectActed" }) })] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "EndOfYourTurn", isInherited: true, frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "PlaceUnder", optional: true })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: { controllerDefault: "mine", nameOrTrait: [{ match: "trait", tokens: ["X Antibody"] }] },
+              count: 1,
+              to: "placeUnder",
+            },
+          ],
+          rest: "trash",
+        },
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "dpImmune",
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "ifThisEffectActed" },
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "EndOfYourTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "trait", tokens: ["X Antibody"] }],
+            },
+            count: 1,
+            from: ["hand"],
+          },
+          optional: true,
+        },
+      ],
+    });
   });
 
   it("loads the compiled DoruGreymon implementation into a live permanent", async () => {
