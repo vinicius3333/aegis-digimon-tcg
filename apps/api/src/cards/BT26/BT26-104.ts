@@ -10,24 +10,42 @@ export const compiled: CompiledCard = {
     { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", amount: 1 }] },
     {
       trigger: "OnPlay",
-      actions: [{
-        kind: "Draw",
-        controller: "mine",
-        amount: 2,
-        cost: { kind: "trash", target: { filter: { controller: "mine", zone: "hand", ...shambala }, count: 1 } },
-      }],
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: { kind: "trash", target: { filter: { controller: "mine", zone: "hand", ...shambala }, count: 1 } },
+        },
+      ],
     },
     {
       trigger: "EndOfYourTurn",
-      condition: { kind: "youHave", filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Tentei Hachibushu"], match: "trait" }] } },
-      actions: [{
-        kind: "UseOptionWithoutCost",
-        filter: { controller: "mine", zone: "hand", kind: ["Option"], ...shambala },
-        from: ["hand"],
-        payCost: false,
-        optional: true,
-        cost: { kind: "suspend", target: self },
-      }],
+      condition: {
+        kind: "youHave",
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Tentei Hachibushu"], match: "trait" }],
+        },
+      },
+      actions: [
+        {
+          kind: "UseOptionWithoutCost",
+          filter: { controller: "mine", zone: "hand", kind: ["Option"], ...shambala },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          cost: { kind: "suspend", target: self },
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
     },
   ],
   coverage: "full",

@@ -9,6 +9,10 @@ describe("BT26-104 compiled fidelity", () => {
   it("registers memory, Shambala trash-to-draw, conditional Option use, and Security play", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+    });
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "GainMemory", amount: 1 },
     ]);
@@ -23,13 +27,16 @@ describe("BT26-104 compiled fidelity", () => {
   });
 
   it("trashes a Shambala card to draw two on play", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-104", as: "kunlun" }],
-        hand: [{ card: "BT26-013", as: "shambalaCost" }],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-104", as: "kunlun" }],
+          hand: [{ card: "BT26-013", as: "shambalaCost" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("kunlun"));
 
