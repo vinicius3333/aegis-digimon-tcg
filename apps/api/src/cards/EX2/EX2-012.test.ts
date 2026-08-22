@@ -8,6 +8,7 @@ import type {
   Primitives,
 } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-012.js";
 
 // A3 for EX2-012 (Megidramon):
@@ -171,6 +172,16 @@ function makeCtx(
 }
 
 describe("EX2-012 Megidramon", () => {
+  it("registers full compiled IR for every printed clause", () => {
+    const compiled = registeredCompiledCards.get("EX2-012");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+    expect(compiled?.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] }),
+      ]),
+    );
+  });
   const module = getEffectModule("EX2-012");
 
   it("is registered on import", () => {
