@@ -1668,6 +1668,8 @@ export interface EffectContext {
    * the delta (T-08-26). Undefined / 0 => no reduction (payment declined or none eligible).
    */
   playCostDelta?: number;
+  /** Temporary maximum-level adjustment for a subsequent effect-driven hand play. */
+  playLevelCeilingDelta?: number;
   /**
    * Battle-area permanent ids a `wouldBePlayed` self-reducer's cost body (BT12-112) selected to be
    * relocated as a digivolution card under the card being played — collected during

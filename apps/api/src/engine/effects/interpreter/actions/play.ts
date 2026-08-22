@@ -192,13 +192,29 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         }
         return { ...scaledPlayTarget, filter: { ...scaledPlayTarget.filter, dp: { ...origDp, value: newValue } } };
       })();
+      const levelCeilingAdjustedTarget =
+        ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
+          ? playTarget
+          : {
+              ...playTarget,
+              filter: {
+                ...playTarget.filter,
+                levelComparison:
+                  playTarget.filter.levelComparison?.op === "lte"
+                    ? {
+                        ...playTarget.filter.levelComparison,
+                        value: playTarget.filter.levelComparison.value + ctx.playLevelCeilingDelta,
+                      }
+                    : playTarget.filter.levelComparison,
+              },
+            };
       // playCostCeiling: dynamically raise the playCostLte ceiling before resolving candidates.
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
       const playCostAdjustedTarget = (() => {
         const ceiling = action.playCostCeiling;
-        if (ceiling === undefined) return playTarget;
+        if (ceiling === undefined) return levelCeilingAdjustedTarget;
         const mine = ctx.source.ownerSeat;
         const opp = ctx.game.opponentOf(mine);
         const f = ceiling.filter;
@@ -219,7 +235,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
         }
         const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
-        return { ...playTarget, filter: { ...playTarget.filter, playCostLte: computedCeiling } };
+        return {
+          ...levelCeilingAdjustedTarget,
+          filter: { ...levelCeilingAdjustedTarget.filter, playCostLte: computedCeiling },
+        };
       })();
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);

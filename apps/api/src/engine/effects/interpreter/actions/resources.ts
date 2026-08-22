@@ -15,9 +15,12 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
   switch (action.kind) {
     case "Draw": {
       const seat = action.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-      const requested = action.untilHandSize === undefined
-        ? (scale === undefined ? action.amount : action.amount * scale)
-        : Math.max(0, action.untilHandSize - ctx.game.player(seat).hand.length);
+      const requested =
+        action.untilHandSize === undefined
+          ? scale === undefined
+            ? action.amount
+            : action.amount * scale
+          : Math.max(0, action.untilHandSize - ctx.game.player(seat).hand.length);
       const drawn = await ctx.fx.draw(seat, requested);
       // Bind "If you do" to an ACTUAL draw. Drawing from an empty deck does not satisfy the
       // clause (ST10-01), while one or more cards drawn does and enables the following action.
@@ -331,6 +334,10 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
           };
         }
         ctx.fx.changeEvoCost(predicate, delta, modifierOpts);
+        return false;
+      }
+      if (action.costType === "level") {
+        ctx.playLevelCeilingDelta = (ctx.playLevelCeilingDelta ?? 0) + delta;
         return false;
       }
       // Play/use-cost form ("reduce the play cost of your Digimon by N", "increase the
