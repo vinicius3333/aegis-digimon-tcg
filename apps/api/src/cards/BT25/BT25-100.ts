@@ -15,14 +15,12 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Collision", raw: "＜Collision＞" },
           duration: "permanent",
-          continuous: true,
         },
         {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
           duration: "permanent",
-          continuous: true,
         },
         {
           kind: "ModifyDP",
