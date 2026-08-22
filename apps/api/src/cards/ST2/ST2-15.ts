@@ -1,4 +1,4 @@
-import type { CompiledCard } from "@aegis/shared";
+import { compiledEffects, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
@@ -25,4 +25,5 @@ const compiled: CompiledCard = {
   residual: [],
 };
 
+compiledEffects["ST2-15"] = compiled;
 registerIrCard("ST2-15", compiled);
