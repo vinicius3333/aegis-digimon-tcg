@@ -13,6 +13,6 @@ describe("BT5-040 SuperStarmon", () => {
 
   it("is registered with complete, residual-free runtime coverage", () => {
     expect(getEffectModule("BT5-040")).toBeDefined();
-    expect(runtimeCompiledCard("BT5-040")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("BT5-040")).toMatchObject({ effects: [], coverage: "full", residual: [] });
   });
 });
