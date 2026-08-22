@@ -17,7 +17,10 @@ const decode = {
   sourceFilter: { isSelfRef: true },
   actions: [{ kind: "PlayWithoutCost", target: { filter: plutomon, count: 1 }, fromOwnDigivolutionStack: true, payCost: false, optional: true }],
 };
-const trimHands = { kind: "RawUnparsed", text: "Both players trash cards in their hands so that they have 4 left; each player chooses their own cards (Q7111)." };
+const trimHands = [
+  { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: "all", untilHandSize: 4 } },
+  { kind: "Trash", target: { filter: { controller: "opponent", zone: "hand" }, count: "all", untilHandSize: 4 }, chooser: "opponent" },
+];
 const shared = { frequency: "OncePerTurn", sharedUseKey: "bt26-079-trash-cost-delete", actions: [deleteLevel6] };
 
 export const compiled: CompiledCard = {
@@ -33,12 +36,12 @@ export const compiled: CompiledCard = {
     { trigger: "WhenDigivolving", ...shared },
     { trigger: "WhenAttacking", ...shared },
     { trigger: "AllTurns", frequency: "OncePerTurn", sharedUseKey: "bt26-079-hand-trim", actions: [
-      { kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: [trimHands] },
-      { kind: "SubTrigger", event: "whenAnyDigivolves", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: [trimHands] },
+      { kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: trimHands },
+      { kind: "SubTrigger", event: "whenAnyDigivolves", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: trimHands },
     ] },
   ],
-  coverage: "partial",
-  residual: ["All-Turns hand trimming to exactly four cards per player remains RawUnparsed because IR has no dynamic TrashUntilHandSize action; Q7111's own-hand chooser semantics are preserved in the residual."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [
     { names: ["Plutomon"], cost: 1, isAlternate: true },
     { level: 5, traits: ["TS"], cost: 3, isAlternate: true },
