@@ -35,7 +35,7 @@ invented.
 | EX6-073 | Ogudomon | direct | none found | 29595eb28e0c | c199dadaece2 | NR |
 | EX6-072 | Mega Digimon Assembly! | full | none found | 6605805a1d31 | fe49ab4d14f2 | NR |
 | EX6-071 | Pandemonium Lost | full | none found | 49fd6a52a04c | 6df0686bc2c5 | NR |
-| EX6-070 | Phantom Pain | direct | none found | 6e962facdc98 | 40e52bf07340 | NR |
+| EX6-070 | Phantom Pain | full | none found | 5af178e85fb6 | 4c8ae50ebf8d | NR |
 | EX6-069 | Rise of the Seven Great Demon Lords | direct | none found | a8d8e2f41eb | 91c82aa8915c | NR |
 | EX6-068 | Descent of the Three Great Angels | direct | none found | 8e7d47addfc2 | 8a014aac50c0 | NR |
 | EX6-067 | Final Excalibur | full | none found | 0ee4729f1245 | a31d35372b47 | NR |
@@ -121,7 +121,7 @@ EX6-001 was migrated from its legacy hand-written module to typed IR. Its
 exact added-card `[Legend-Arms]` filter, with complete coverage and a public
 IR evidence test.
 
-EX6-010, EX6-030, EX6-059, EX6-061, EX6-063, and EX6-071 were likewise migrated to `registerIrCard` because their
+EX6-010, EX6-030, EX6-059, EX6-061, EX6-063, EX6-070, and EX6-071 were likewise migrated to `registerIrCard` because their
 committed IR already has complete coverage and matches the direct-module
 clause inventory. The remaining legacy direct modules are retained while
 their IR entries still expose unsupported primitives; replacing those modules
