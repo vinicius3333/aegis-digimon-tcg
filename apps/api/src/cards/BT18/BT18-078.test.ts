@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT18-078.js";
@@ -40,22 +40,31 @@ describe("BT18-078 Duskmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT18-078", as: "duskmon" },
             { card: "BT18-094", as: "koichi" },
+            { card: "BT18-078", as: "duskmon" },
           ],
           trash: ["BT1-032", "BT18-077", "BT18-076"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: false },
     );
     s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("duskmon"));
+    const firing = advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("duskmon"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const decision = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
+    const targetCard = s.state.players[0]!.trash.find((card) => card.cardId === "BT18-077")!;
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: decision.decisionId,
+      response: { kind: "selectCards", instanceIds: [targetCard.instanceId] },
+    })).toEqual({ ok: true });
+    await firing;
     await s.ready();
 
     expect(s.perm("koichi").topCard?.cardId).toBe("BT18-077");
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-032", "BT18-076"]);
   });
 
@@ -74,7 +83,7 @@ describe("BT18-078 Duskmon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("duskmon"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("duskmon"));
     await s.ready();
 
     expect(s.perm("koichi").topCard?.cardId).toBe("BT18-094");
