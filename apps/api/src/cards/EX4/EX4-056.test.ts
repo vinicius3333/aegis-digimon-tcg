@@ -19,7 +19,7 @@ describe("EX4-056 Crowmon", () => {
     }, { autoSelectCards: true });
     await s.engine.recomputeContinuousEffects();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("host"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnDeletion, s.perm("host"), { removalCause: "byEffect" });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);

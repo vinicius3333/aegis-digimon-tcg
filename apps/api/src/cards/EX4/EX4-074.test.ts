@@ -16,7 +16,7 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
 
   it("resolves the End of Attack deletion, security, and hatch sequence", async () => {
     const s = setupEngine({
-      0: { deck: ["BT1-001"], security: ["BT1-001"], battleArea: [{ card: "EX4-074", as: "source" }, { card: "BT1-085", as: "tamer" }] },
+      0: { deck: ["BT1-001"], eggDeck: ["BT1-001"], security: ["BT1-001"], battleArea: [{ card: "EX4-074", as: "source" }, { card: "BT1-085", as: "tamer" }] },
       1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     }, { autoSelectCards: true });
     await s.engine.recomputeContinuousEffects();
@@ -27,6 +27,6 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceInstanceId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.breedingArea).toBeDefined();
+    expect(s.state.players[0]!.breeding).toBeDefined();
   });
 });

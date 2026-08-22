@@ -17,6 +17,7 @@ describe("EX4-035 BlackGargomon", () => {
     });
     const before = s.perm("host").currentDP;
     await s.engine.recomputeContinuousEffects();
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("host"));
 
     await advance(s.engine).fireSubTrigger("whenEffectSuspends", {
       subjectPermanentId: s.perm("other").permanentId,

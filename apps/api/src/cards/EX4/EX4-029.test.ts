@@ -15,8 +15,8 @@ describe("EX4-029 Antylamon", () => {
   it("restores security and reduces an opponent after an attack", async () => {
     const s = setupEngine({
       0: {
-        deck: ["BT1-001"],
-        security: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-010"],
+        security: ["BT1-010", "BT1-010", "BT1-010"],
         battleArea: [{ card: "BT1-009", as: "source", under: ["EX4-029"] }, { card: "BT1-009", as: "other", suspended: true }],
       },
       1: { battleArea: [{ card: "BT1-011", as: "target", dp: 8000 }] },

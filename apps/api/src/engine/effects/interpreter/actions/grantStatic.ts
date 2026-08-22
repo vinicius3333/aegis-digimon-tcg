@@ -348,6 +348,11 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // loudly here — instead of the old silent `grantCustom` store — surfaces them the moment
       // a game actually resolves one, matching the fail-loud shape used across this case.
       if (typeof action.grant === "object" && action.grant !== null) {
+        if (action.grant.keyword !== undefined) {
+          const duration = toDuration(action.duration ?? "permanent");
+          for (const id of ids) ctx.fx.grantKeyword(id, action.grant.keyword, duration, action.grant.amount, { sourceCardId: ctx.source.cardId });
+          return false;
+        }
         if ("dp" in action.grant || "color" in action.grant || "originalName" in action.grant) {
           const grant = action.grant as { dp?: number; color?: string; originalName?: string };
           const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");

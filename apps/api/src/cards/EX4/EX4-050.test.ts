@@ -10,13 +10,13 @@ describe("EX4-050 ShadowSeraphimon", () => {
   });
   it("adds one security and reduces opposing DP by 4000 per own security on deletion", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions;
-    expect(actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "addTop", source: "deck", amount: 1 });
+    expect(actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "placeFromDeck", amount: 1 });
     expect(actions?.[1]).toMatchObject({ kind: "ModifyDP", amount: -4000, scaling: { per: 1, unit: "security" } });
   });
 
   it("adds security first, then scales the opposing DP reduction from the new stack", async () => {
     const s = setupEngine({
-      0: { deck: ["BT1-001"], security: ["BT1-001", "BT1-001"], battleArea: [{ card: "EX4-050", as: "source" }] },
+      0: { deck: ["BT1-010"], security: ["BT1-010", "BT1-010"], battleArea: [{ card: "EX4-050", as: "source" }] },
       1: { battleArea: [{ card: "BT1-011", as: "target", dp: 20000 }] },
     }, { autoSelectCards: true });
     await s.engine.recomputeContinuousEffects();

@@ -33,9 +33,8 @@ export const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "SecurityManipulation",
-          "op": "addTop",
+          "op": "placeFromDeck",
           "controller": "mine",
-          "source": "deck",
           "amount": 1
         },
         {

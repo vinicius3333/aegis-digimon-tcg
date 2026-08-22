@@ -15,6 +15,7 @@ describe("EX4-042 DarkMaildramon", () => {
   it("grants Unblockable to itself and an own Knightmon during the turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX4-042", as: "source" }, { card: "BT5-042", as: "knight" }] } });
     s.state.turnSeat = 0;
+    await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("source"));
 
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Unblockable")).toBe(true);

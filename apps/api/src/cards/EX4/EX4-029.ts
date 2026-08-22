@@ -65,16 +65,7 @@ export const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "toTop": true,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "security",
-              "controllerDefault": "mine"
-            },
-            "count": 3,
-            "comparison": "lte",
-            "raw": "you have 3 or fewer security cards"
-          }
+          "condition": { "kind": "zoneCount", "seat": "mine", "zone": "security", "op": "lte", "value": 3, "raw": "you have 3 or fewer security cards" }
         }
       ]
     },
