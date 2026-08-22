@@ -227,6 +227,10 @@ export async function runSubTrigger(
     // whenTrashedFromDeck fires for a loose deck card (no permanent); the isSelfRef gate
     // is handled entirely by whenTrashedFromDeckGate below.
     event === "whenTrashedFromDeck" ||
+    // onDeletionOf resolves after the rule-processing seam may have deferred the event;
+    // the permanent is then gone, so use the deletion snapshot gate below instead of
+    // attempting to re-resolve the subject from the battle area.
+    event === "onDeletionOf" ||
     event === "onDigivolutionCardDiscarded" ||
     event === "onDigivolutionCardsDiscardedBatch" ||
     event === "onDigiBurstCardDiscarded"
@@ -249,6 +253,23 @@ export async function runSubTrigger(
           const def = getCardDefinition(cardId);
           if (def === undefined) return false;
           return refs.some((ref) => matchNameOrTrait(def as DefinitionFacts, ref));
+        }
+      : undefined;
+  const deletionSourceFilterGate =
+    event === "onDeletionOf" && sourceFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const deletedSeat = subCtx.trigger.deletedControllerSeat;
+          const scope = sourceFilter.controller ?? sourceFilter.controllerDefault;
+          const seatMatches =
+            deletedSeat === undefined ||
+            scope === undefined ||
+            scope === "any" ||
+            deletedSeat === subCtx.source.ownerSeat === (scope === "mine");
+          if (!seatMatches) return false;
+          const deletedCardId = subCtx.trigger.deletedTopCardId;
+          if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
+          const definition = getCardDefinition(deletedCardId);
+          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(kind));
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
@@ -604,6 +625,7 @@ export async function runSubTrigger(
       : undefined;
   const gates = [
     filterMatch,
+    deletionSourceFilterGate,
     ownerMainPhaseGate,
     fireConditionGate,
     securityRemovalGate,
