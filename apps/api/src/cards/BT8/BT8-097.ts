@@ -2,8 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-audited IR for BT8-097. The generated permanent-target Restrict action could
-// not represent the errata's player-level, effect-only play prohibition.
 const compiled: CompiledCard = {
   "effects": [
     {
