@@ -76,8 +76,11 @@ const compiled: CompiledCard = {
       ]
     },
     {
-      "trigger": "Static",
-      "actions": [],
+      "trigger": "OnDeletion",
+      "actions": [{
+        "kind": "Delete",
+        "target": { "filter": { "sourceRef": "battleOpponent" }, "count": 1 }
+      }],
       "isInherited": true
     }
   ],
