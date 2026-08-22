@@ -18,6 +18,17 @@ describe("BT12-102 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  });
+});
+
+it("keeps the compiled security effect activating the Main effect", async () => {
+  const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+  const card = runtimeCompiledCard("BT12-102")!;
+  expect(card.coverage).toBe("full");
+  expect(card.residual).toEqual([]);
+  expect(card.effects.find((effect) => effect.trigger === "SecuritySkill")).toMatchObject({
+    actions: [{ kind: "SubTrigger" }],
   });
 });
 
