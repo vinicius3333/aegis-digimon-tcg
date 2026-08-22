@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-070.js";
-import "../index.js";
 describe("BT21-070 Gossipmon", () => {
   it("preserves the Appmon link requirement and linked recovery", () => {
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);

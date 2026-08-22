@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-088.js";
-import "../index.js";
 
 describe("BT21-088 Tagiru Akashi", () => {
   it("draws after the Save/Hero hand placement and pays the digivolution reduction with both costs", () => {

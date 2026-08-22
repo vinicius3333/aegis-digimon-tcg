@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-069.js";
-import "../index.js";
 
 describe("BT21-069 GulusGammamon", () => {
   it("preserves the Gammamon evolution route and residual-free coverage", () => {
@@ -61,7 +60,8 @@ describe("BT21-069 GulusGammamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gulus").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== targetId));
 
-    expect(s.perm("gulus").stack.some((card) => card.cardId === "BT21-010")).toBe(true);
+    const gulus = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-069");
+    expect(gulus?.stack.some((card) => card.cardId === "BT21-010")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
   });
 });

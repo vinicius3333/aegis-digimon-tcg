@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-060.js";
-import "../index.js";
 
 describe("BT21-060 Destromon", () => {
   it("uses the engine's stacked-card trash lock for the Digivolving protection", () => {

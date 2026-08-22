@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-059.js";
-import "../index.js";
 
 describe("BT21-059 Timemon", () => {
   it("preserves Blocker, App Fusion, and Appmon Link requirements", () => {

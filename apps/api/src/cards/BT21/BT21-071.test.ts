@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-071.js";
-import "../index.js";
 describe("BT21-071 Scopemon", () => {
   it("gains memory after placing an Appmon or Three Musketeers card", () => {
     for (const e of compiled.effects.filter((effect) => ["OnPlay", "WhenDigivolving"].includes(effect.trigger)))

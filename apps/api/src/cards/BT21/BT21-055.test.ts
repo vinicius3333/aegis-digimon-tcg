@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-055.js";
-import "../index.js";
 
 describe("BT21-055 Sunarizamon", () => {
   it("reduces eligible digivolution costs and deletes after its stack card is trashed", () => {

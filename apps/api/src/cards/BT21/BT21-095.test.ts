@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-095.js";
-import "../index.js";
 
 describe("BT21-095 Wind Guardians", () => {
   it("keeps the face-up-security color waiver and security/Main branches faithful", () => {
@@ -40,7 +39,13 @@ describe("BT21-095 Wind Guardians", () => {
 
   it("returns the top security card and places itself face-up as security", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT21-095", as: "option" }], security: [{ card: "BT1-001", as: "topSecurity" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "color" }],
+          hand: [{ card: "BT21-095", as: "option" }],
+          security: [{ card: "BT1-001", as: "topSecurity" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;

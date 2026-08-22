@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-084.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
 
 describe("BT21-084 Haru Shinkai", () => {
   it("sets memory at the start of turn, draws on linking, and fuses from hand", () => {

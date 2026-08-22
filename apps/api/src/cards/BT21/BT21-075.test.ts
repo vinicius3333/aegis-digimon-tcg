@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-075.js";
-import "../index.js";
 describe("BT21-075 SkullGreymon", () => {
   it("grants Raid and Retaliation and recurs ADVENTURE", () => {
     for (const t of ["OnPlay", "WhenDigivolving"]) {

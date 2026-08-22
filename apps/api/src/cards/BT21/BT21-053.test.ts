@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-053.js";
-import "../index.js";
 
 describe("BT21-053 Watchmon", () => {
   it("preserves the Appmon evolution and link requirements", () => {

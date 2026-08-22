@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-073.js";
-import "../index.js";
 describe("BT21-073 Charismon", () => {
   it("links from trash or stack and grants the once-per-turn attack token", () => {
     expect(compiled.effects).toContainEqual(

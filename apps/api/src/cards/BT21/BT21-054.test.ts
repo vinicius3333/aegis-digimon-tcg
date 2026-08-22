@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-054.js";
-import "../index.js";
 
 describe("BT21-054 Shotmon", () => {
   it("preserves both alternate Digivolution requirements and the Appmon link requirement", () => {

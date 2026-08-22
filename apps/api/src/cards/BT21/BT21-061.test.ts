@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-061.js";
-import "../index.js";
 
 describe("BT21-061 MetalGreymon", () => {
   it("preserves both alternate Digivolution requirements and inherited Alliance", () => {

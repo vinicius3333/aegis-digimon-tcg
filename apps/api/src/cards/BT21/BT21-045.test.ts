@@ -4,7 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-045.js";
-import "../index.js";
 
 describe("BT21-045 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {

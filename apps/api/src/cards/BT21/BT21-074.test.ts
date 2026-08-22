@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-074.js";
-import "../index.js";
 describe("BT21-074 Satellamon", () => {
   it("protects a Digimon and shares once-per-turn De-Digivolve", () => {
     expect(

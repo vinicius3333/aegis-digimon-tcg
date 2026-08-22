@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import "../index.js";
 
 // A3 for BT21-062 (Galacticmon) — [Start of Your Main Phase]:
 //   "Delete 1 of your opponent's Digimon."

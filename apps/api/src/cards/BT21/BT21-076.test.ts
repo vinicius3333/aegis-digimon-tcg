@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-076.js";
-import "../index.js";
 describe("BT21-076 WarGrowlmon", () => {
   it("mills two, grants keywords, and offers once-per-turn evolution", () => {
     expect(compiled.effects).toContainEqual(
@@ -52,7 +51,9 @@ describe("BT21-076 WarGrowlmon", () => {
     await settle(() => s.state.players[0]!.trash.length === 2);
 
     expect(s.state.players[0]!.trash).toHaveLength(2);
-    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Raid")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("wargrowlmon"), "Retaliation")).toBe(true);
+    const wargrowlmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-076");
+    expect(wargrowlmon).toBeDefined();
+    expect(observe(s.engine).hasKeyword(wargrowlmon!, "Raid")).toBe(true);
+    expect(observe(s.engine).hasKeyword(wargrowlmon!, "Retaliation")).toBe(true);
   });
 });

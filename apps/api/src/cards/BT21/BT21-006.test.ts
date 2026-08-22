@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
 import { compiled } from "./BT21-006.js";
 
 describe("BT21-006 compiled implementation", () => {

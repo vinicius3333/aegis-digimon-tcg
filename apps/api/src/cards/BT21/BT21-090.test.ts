@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-090.js";
-import "../index.js";
 
 describe("BT21-090 The Strongest of Brothers", () => {
   it("keeps the Delay payload separate from the placement watcher", () => {
@@ -40,6 +39,7 @@ describe("BT21-090 The Strongest of Brothers", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT1-009", as: "color" }],
           hand: [{ card: "BT21-090", as: "option" }],
           deck: ["BT21-010", "BT1-001", "BT1-002"],
         },
