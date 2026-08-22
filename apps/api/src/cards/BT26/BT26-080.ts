@@ -21,7 +21,7 @@ export const compiled: CompiledCard = {
     ] },
   ],
   coverage: "partial",
-  residual: ["When Attacking requires a same-orientation-as-self target predicate; the engine has suspended/unsuspended filters but no reusable relative-orientation filter."],
+  residual: ["Behavioral proof is pending for the live same-orientation target predicate used by When Attacking."],
   digivolutionRequirement: [{ names: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
 };
 
