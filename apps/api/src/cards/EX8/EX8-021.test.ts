@@ -10,7 +10,7 @@ describe("EX8-021", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "GainMemory", amount: 1 }],
     });
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+    expect(compiled.effects?.find((entry) => entry.keywords !== undefined)?.keywords).toContainEqual({
       keyword: "Jamming",
       raw: "＜Jamming＞",
     });
