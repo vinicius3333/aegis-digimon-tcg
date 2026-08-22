@@ -3,7 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX9-068.js";
+import compiled from "./EX9-068.js";
 
 describe("EX9-068", () => {
   const source = { instanceId: "source", cardId: "EX9-068", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
@@ -12,6 +12,23 @@ describe("EX9-068", () => {
     expect(getEffectModule("EX9-068")!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
   it("registers the cost-seven-or-more Cyborg/Machine/DM play response", () => expect(getEffectModule("EX9-068")!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1));
+  it("encodes the qualifying play response and its suspend cost as compiled IR", () => {
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenPlayed",
+        sourceFilter: { controller: "mine", kind: ["Digimon"], playCostGte: 7 },
+        cost: { kind: "suspend", target: { filter: { isSelfRef: true } } },
+        actions: [
+          { kind: "Draw", amount: 1 },
+          { kind: "GainMemory", amount: 1 },
+          { kind: "PlaceUnder", underFilter: { isTriggerSource: true }, faceDown: true },
+        ],
+      }],
+    });
+  });
   it("sets memory to three at the start of your turn when memory is two or less", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-068", as: "source" }] } });
     s.state.memory = 2;
@@ -38,6 +55,22 @@ describe("EX9-068", () => {
     expect(s.state.memory).toBe(1);
     expect(s.perm("subject").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
+  });
+  it("does not respond to a Digimon with play cost below seven", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX9-068", as: "source" }, { card: "BT1-009", as: "subject" }],
+        deck: ["BT1-010"],
+      },
+    }, { autoAcceptOptional: true, autoOrderTriggers: true });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
+
+    expect(s.perm("source").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
   it("plays itself from security without paying", async () => {
     const s = setupEngine({ 0: { security: [{ card: "EX9-068", as: "source" }] } });
