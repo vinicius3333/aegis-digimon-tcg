@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-100.js";
+import { compiled } from "./BT26-100.js";
 import "../index.js";
 
 describe("BT26-100 compiled fidelity", () => {
   it("encodes the no-face-up waiver, face-up security grants, security recycle, and two free-play modes", () => {
-    const card = getCompiledCard("BT26-100");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.[0]).toMatchObject({ trigger: "Static", actions: [{ kind: "WaiveColorRequirement", condition: { kind: "securityAtMost", value: 0 } }] });
