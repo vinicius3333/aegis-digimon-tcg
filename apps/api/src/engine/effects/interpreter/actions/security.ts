@@ -20,6 +20,7 @@ export async function runRecoverByTrashingMostSecurity(
 ): Promise<void> {
   const mine = ctx.source.ownerSeat;
   const { trashed } = await ctx.fx.trashTopSecurityOfPlayerWithMostSecurity(mine);
+  ctx.lastEffectActed = trashed.length > 0;
   if (trashed.length === 0) return;
   if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
