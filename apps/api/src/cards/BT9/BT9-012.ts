@@ -90,7 +90,7 @@ const compiled: CompiledCard = {
               await subCtx.fx.trash(chosen);
               return true;
             },
-          });
+          },
         },
       ],
       isInherited: true,
