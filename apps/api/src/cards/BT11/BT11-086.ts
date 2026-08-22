@@ -25,6 +25,17 @@ const gainTarget = {
 const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [{
+        kind: "Replacement",
+        event: "wouldBePlayed",
+        mode: "reduceCost",
+        amount: 0,
+        additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" }],
+        raw: "cards from your trash can also be placed as DigiXros materials",
+      }],
+    },
+    {
       trigger: "OnPlay",
       actions: [{ kind: "PlayWithoutCost", target: trashTarget, from: ["trash"], payCost: false, optional: true, allOrNone: true, mustPlayExactCountIfPossible: true }],
     },
@@ -42,6 +53,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [{ materials: [{ traits: ["Xros Heart"] }], count: 3 }],
 };
 
 registerIrCard("BT11-086", compiled);
