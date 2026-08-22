@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT24-093.js";
 import "../index.js";
 
 // A3 for BT24-093 (Aegiochusmon: Cerulean) — proves the [Main] on-play body ("Add your top
@@ -18,6 +20,23 @@ import "../index.js";
 // instead of the battle area (test RED).
 
 describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () => {
+  it("targets an exact named host's top stacked card for the Delay effect", () => {
+    const delay = compiled.effects.find((effect) => effect.trigger === "AllTurns");
+    expect(delay).toMatchObject({ keywords: [{ keyword: "Delay" }] });
+    expect(delay?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "addTop",
+          fromDigivolutionTop: true,
+          source: { filter: { namesExact: ["Aegiochusmon", "Jupitermon"] } },
+        },
+      ],
+    });
+  });
+
   it("moves the top security card to hand, recovers 1 from deck to security, and lands in the battle area", async () => {
     const s = setup(
       {
@@ -50,5 +69,46 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     expect(p0.deck.some((c) => c.instanceId === deckCard.instanceId)).toBe(false);
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT24-093")).toBe(true); // placed
     expect(p0.trash.some((c) => c.cardId === "BT24-093")).toBe(false); // NOT trashed
+  });
+
+  it("recovers and enters the battle area even with no security card to add to hand (Q5692)", async () => {
+    const s = setup({
+      0: {
+        battleArea: ["BT1-045"],
+        hand: [{ card: "BT24-093", as: "option" }],
+        deck: [{ card: "BT1-001", as: "recovered" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-093")).toBe(true);
+  });
+
+  it("uses Delay to place the named Digimon's top stacked card as top security (Q5694/Q5695)", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-093", as: "option" },
+            { card: "BT24-014", as: "host", under: [{ card: "BT24-034", as: "stacked" }] },
+          ],
+          security: [{ card: "BT1-001", as: "removed" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+
+    await advance(s.engine).verb.trash([s.inst("removed").instanceId]);
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === s.inst("stacked").instanceId);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT24-014");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
   });
 });
