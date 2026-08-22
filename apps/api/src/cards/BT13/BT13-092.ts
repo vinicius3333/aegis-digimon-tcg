@@ -3,104 +3,116 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "name": "Ravemon"
+          into: {
+            name: "Ravemon",
           },
-          "payCost": false,
-          "reduceCost": 0
+          payCost: false,
+          reduceCost: 0,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Keenan Crier"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Keenan Crier"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 1,
-          "position": "top"
-        },
-        { "kind": "SecurityManipulation", "op": "addTop", "controller": "opponent", "condition": { "kind": "zoneCount", "seat": "opponent", "zone": "hand", "op": "lte", "value": 7, "raw": "they have 7 or fewer cards in their hand" } }
-      ]
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By returning 1 Digimon card from your opponent's trash to the bottom of the deck"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Ravemon",
-        "Keenan Crier"
+          kind: "TrashDigivolution",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 1,
+          position: "top",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Trash",
+          target: { filter: { controller: "opponent", zone: "hand" }, count: 1 },
+          chooser: "opponent",
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "opponent",
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "hand",
+            op: "lte",
+            value: 7,
+            raw: "they have 7 or fewer cards in their hand",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "opponent",
+                kind: ["Digimon"],
+              },
+              count: 1,
+            },
+            raw: "By returning 1 Digimon card from your opponent's trash to the bottom of the deck",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Ravemon", "Keenan Crier"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT13-092", compiled);
