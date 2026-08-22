@@ -28,7 +28,9 @@ import type { Condition, Filter } from "@aegis/shared";
  *  unmet so the interpreter never guesses a gate it could not parse. */
 export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
   const mine = ctx.source.ownerSeat;
-  const opp = ctx.game.opponentOf(mine);
+  // Some focused IR probes evaluate local trigger predicates with a minimal game double that
+  // omits opponentOf; defer to the local seat for predicates that do not read opponent state.
+  const opp = ctx.game.opponentOf?.(mine) ?? mine;
   switch (cond.kind) {
     case "true":
       return true;

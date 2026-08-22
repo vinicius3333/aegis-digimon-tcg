@@ -123,7 +123,8 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // ledger entry — the UseTracker keys on (instanceId, effectKey), so a stable key shared by
         // each clause collapses them to a single [Once Per Turn] limit (BT25-084's OP/WD/WA share).
         const effectKey =
-          effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`;
+          effect.effectKey ??
+          (effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`);
         const isDelay = (effect.keywords ?? []).some((kw) => kw.keyword === "Delay");
         // The trash-to-activate Delay semantics apply to [Main] effects (routed to
         // OnDeclaration, below) AND to continuous-window triggers like AllTurns

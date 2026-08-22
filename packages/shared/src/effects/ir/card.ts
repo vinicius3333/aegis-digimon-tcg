@@ -14,6 +14,8 @@ import type { EffectFrequency, EffectTrigger } from "./triggers.js";
  * `CardEffect[]`.
  */
 export interface CardEffect {
+  /** Stable optional key used by card-level evidence and diagnostics. */
+  effectKey?: string;
   trigger: EffectTrigger;
   /** Exact printed clause, for decision and log provenance. Falls back to a structural summary. */
   description?: string;
