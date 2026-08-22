@@ -46,6 +46,7 @@ export async function runReplacement(
       ...replacementBudget,
       event,
       sourcePermanentId: self.permanentId,
+      sourceInstanceId: ctx.source.instanceId,
       mode: "redirect",
       description: action.raw,
       appliesTo: (subCtx, originalHostId) => {
@@ -162,7 +163,7 @@ export async function runReplacement(
       ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
-      sourceInstanceId: self === undefined ? ctx.source.instanceId : undefined,
+      sourceInstanceId: ctx.source.instanceId,
       mode: "prevent",
       affectsAll: action.affectsAll,
       description: action.raw,
@@ -277,6 +278,7 @@ export async function runReplacement(
       ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
+      sourceInstanceId: ctx.source.instanceId,
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
       ...(scalesIntoColors ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length } : {}),
@@ -338,9 +340,10 @@ export async function runReplacement(
   // (not instead of, despite the name — see ReplacementInstallInstead's doc comment) the
   // event; it never itself blocks the removal.
   ctx.fx.subscribeReplacement({
-    ...replacementBudget,
-    event,
-    sourcePermanentId: self?.permanentId,
+      ...replacementBudget,
+      event,
+      sourcePermanentId: self?.permanentId,
+      sourceInstanceId: ctx.source.instanceId,
     mode: "instead",
     description: action.raw,
     digisorptionRedirect: action.digisorptionRedirect,

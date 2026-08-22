@@ -348,6 +348,7 @@ export class SubTriggerRegistry {
         replacement.event === sub.event &&
         replacement.mode === sub.mode &&
         replacement.sourcePermanentId === sub.sourcePermanentId &&
+        replacement.sourceInstanceId === sub.sourceInstanceId &&
         replacement.description === sub.description,
     );
     if (existing !== undefined) return existing.id;
