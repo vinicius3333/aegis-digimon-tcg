@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -23,6 +23,45 @@ import "../index.js";
 //   BT10-074 — Lv.4 Purple Digimon, placed as a digi-card under BT1-009 (legal play target)
 
 describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your Digimon", () => {
+  it("loads the complete shared IR artifact without residual clauses", () => {
+    const definition = getCardDefinition("ST2-15");
+    const compiled = getCompiledCard("ST2-15");
+    expect(definition?.effectText).toContain("play it as another Digimon without paying its memory cost");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+    expect(compiled?.effects).toEqual([
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "SelectBind",
+            target: {
+              filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasAny" },
+              count: 1,
+              bindAs: "chosenHost",
+            },
+          },
+          {
+            kind: "PlayWithoutCost",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                controller: "mine",
+                kind: ["Digimon"],
+                hostFilter: { boundRef: "chosenHost" },
+              },
+              count: 1,
+            },
+            from: ["digivolutionCards"],
+            payCost: false,
+            optional: true,
+          },
+        ],
+      },
+      { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+    ]);
+  });
+
   it("plays a Digimon digi-card from under one of your Digimon without cost", async () => {
     const s = setupEngine(
       {
@@ -92,7 +131,14 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       0: {
         battleArea: [
           { card: "BT1-009", as: "firstHost", under: [{ card: "BT10-074", as: "firstSource" }] },
-          { card: "BT1-009", as: "secondHost", under: [{ card: "BT10-074", as: "secondSource" }] },
+          {
+            card: "BT1-009",
+            as: "secondHost",
+            under: [
+              { card: "BT10-074", as: "secondSource" },
+              { card: "BT10-074", as: "secondOtherSource" },
+            ],
+          },
           { card: "BT1-027", as: "blueSource" },
         ],
         hand: [{ card: "ST2-15", as: "kaiserNail" }],
@@ -131,13 +177,29 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
         latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
     });
 
-    const sourceDecision = s.decisions.at(-1)!.req;
-    expect(sourceDecision.options?.candidateInstanceIds).toEqual([
+    const optionalDecision = s.state.pendingDecision;
+    expect(optionalDecision?.kind).toBe("optional");
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: optionalDecision!.decisionId,
+      response: { kind: "optional", accept: true },
+    })).toEqual({ ok: true });
+    await settle(() => {
+      const latest = s.decisions.at(-1)?.req;
+      return latest !== undefined &&
+        latest.decisionId === s.state.pendingDecision?.decisionId &&
+        latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
+    });
+    const sourceDecision = s.state.pendingDecision;
+    expect(sourceDecision?.kind).toBe("selectCards");
+    const sourceOptions = JSON.parse(sourceDecision?.payloadJson ?? "{}");
+    expect(sourceOptions.candidateInstanceIds).toEqual([
       s.inst("secondSource").instanceId,
+      s.inst("secondOtherSource").instanceId,
     ]);
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
-      decisionId: sourceDecision.decisionId,
+      decisionId: sourceDecision!.decisionId,
       response: {
         kind: "selectCards",
         instanceIds: [s.inst("secondSource").instanceId],
@@ -150,7 +212,9 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     expect(s.perm("firstHost").stack.map((card) => card.instanceId)).toEqual([
       s.inst("firstSource").instanceId,
     ]);
-    expect(s.perm("secondHost").stack).toHaveLength(0);
+    expect(s.perm("secondHost").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("secondOtherSource").instanceId,
+    ]);
   });
 
   it("does NOT play when there are no Digimon digi-cards in any of your Digimon's stacks", async () => {
@@ -192,7 +256,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
           security: [{ card: "ST2-15", as: "securityOption", faceUp: true }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const playedId = s.inst("digiCard").instanceId;
 
