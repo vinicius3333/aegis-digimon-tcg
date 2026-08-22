@@ -5,6 +5,7 @@ import "./ST6-03.js";
 import "./ST6-04.js";
 import "./ST6-05.js";
 import "./ST6-06.js";
+import "./ST6-07.js";
 import "./ST6-08.js";
 import "./ST6-10.js";
 import "./ST6-11.js";
