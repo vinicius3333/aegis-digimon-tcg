@@ -18,6 +18,7 @@ import "./BT7-016.js";
 import "./BT7-017.js";
 import "./BT7-018.js";
 import "./BT7-019.js";
+import "./BT7-020.js";
 import "./BT7-021.js";
 import "./BT7-022.js";
 import "./BT7-023.js";
