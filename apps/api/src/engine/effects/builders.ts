@@ -337,16 +337,18 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
 };
 
 export const digivolveCostStatic = (opts: BuilderOptions): Effect => {
-  const resolve = (ctx: EffectContext) => opts.resolve({
-    ...ctx,
-    fx: {
-      ...ctx.fx,
-      changeEvoCost: (filter, delta, changeOpts) => ctx.fx.changeEvoCost(filter, delta, {
-        ...changeOpts,
-        continuous: true,
-      }),
-    },
-  });
+  const resolve = (ctx: EffectContext) =>
+    opts.resolve({
+      ...ctx,
+      fx: {
+        ...ctx.fx,
+        changeEvoCost: (filter, delta, changeOpts) =>
+          ctx.fx.changeEvoCost(filter, delta, {
+            ...changeOpts,
+            continuous: true,
+          }),
+      },
+    });
   return build({ ...opts, resolve }, { baseGuard: () => true });
 };
 
@@ -384,7 +386,24 @@ export const colorWaiverStatic = (opts: BuilderOptions): Effect => build(opts, {
 
 /** Persistent effects whose source is a face-up card in the security stack. */
 export const securityStatic = (opts: BuilderOptions): Effect =>
-  build(opts, { isSecurity: true, baseGuard: inFaceUpSecurity });
+  build(
+    {
+      ...opts,
+      resolve: (ctx) =>
+        opts.resolve({
+          ...ctx,
+          fx: {
+            ...ctx.fx,
+            modifyDP: (permanentId, delta, duration, modifyOpts) =>
+              ctx.fx.modifyDP(permanentId, delta, duration, {
+                ...modifyOpts,
+                continuous: true,
+              }),
+          },
+        }),
+    },
+    { isSecurity: true, baseGuard: inFaceUpSecurity },
+  );
 
 /**
  * `[Breeding]`-region resident effects (source effects gated on
