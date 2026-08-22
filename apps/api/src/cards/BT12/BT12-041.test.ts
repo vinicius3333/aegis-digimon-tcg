@@ -41,7 +41,7 @@ it("does not draw when an opposing Digimon is deleted without dropping to 0 DP",
   });
   await s.ready();
   const handBefore = s.state.players[0]!.hand.length;
-  await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+  await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byRule");
   await settle(() => s.state.players[1]!.battleArea.length === 0);
   expect(s.state.players[0]!.hand.length).toBe(handBefore);
 });
