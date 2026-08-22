@@ -4,7 +4,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { security, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
-import { canDigivolveOnto } from "../../engine/cards/cardData.js";
+import { canDigivolveOntoWithAlternates } from "../../engine/cards/cardData.js";
 
 /**
  * ST17-13 — Magnamon (ST17, Yellow/White Lv.6 Digimon).
@@ -154,7 +154,7 @@ const module: EffectModule = {
                 const candidates = subCtx.game.player(source.ownerSeat).battleArea.filter((permanent) => {
                   if (permanent.inBreeding || permanent.topCard === undefined) return false;
                   const baseDef = subCtx.game.definitionOf(permanent.topCard);
-                  return isDigimon(baseDef) && canDigivolveOnto(selfDef, baseDef);
+                  return isDigimon(baseDef) && canDigivolveOntoWithAlternates(selfDef, baseDef);
                 });
                 if (candidates.length === 0) return;
                 if (
