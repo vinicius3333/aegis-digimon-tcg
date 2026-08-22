@@ -534,6 +534,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) >= (cond.value ?? 0);
     }
+    case "selfDigivolutionCountExactly": {
+      const self = ctx.source.permanent();
+      return (self?.stack.length ?? 0) === (cond.value ?? 0);
+    }
     case "selfDigivolutionStackCountAtLeast": {
       // "If N or more cards matching [filter] are in THIS Digimon's digivolution cards" (BT11-065
       // "4+ [Vemmon]"). Counts SOURCE-permanent stack cards whose definition matches a
