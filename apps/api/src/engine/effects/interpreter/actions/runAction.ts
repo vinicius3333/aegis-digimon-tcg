@@ -251,7 +251,17 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // BT17-051) raises a BASE budget the action carries on its own. Zero units means no bonus,
   // never "the action does nothing" — the base budget still deletes.
   const isBudgetScaling = action.kind !== "RawUnparsed" && action.scaling?.budgetAdd !== undefined;
-  if (scale !== undefined && scale === 0 && !isSetCostModifier && !isDeleteLevelCeilingScaling && !isBudgetScaling) {
+  // targetColors is resolved after the action's permanent target is selected; it intentionally
+  // has no board-wide scaleFactor. Do not let the generic zero guard abort it before dispatch.
+  const isPerTargetScaling = action.scaling?.unit === "targetColors";
+  if (
+    scale !== undefined &&
+    scale === 0 &&
+    !isPerTargetScaling &&
+    !isSetCostModifier &&
+    !isDeleteLevelCeilingScaling &&
+    !isBudgetScaling
+  ) {
     return false;
   }
 
