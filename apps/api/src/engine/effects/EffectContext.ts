@@ -587,6 +587,8 @@ export interface Primitives {
       effectSourceCardId?: string;
       /** Server-selected DigiXros materials to place before firing this effect-played card's On Play. */
       digiXrosMaterialInstanceIds?: string[];
+      /** Resolved host permanent for stack-origin instances, when the source is a stack zone. */
+      hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]>;
   /**

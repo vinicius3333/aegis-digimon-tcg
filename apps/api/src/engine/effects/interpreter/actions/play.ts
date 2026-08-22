@@ -332,6 +332,16 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
+        const hostPermanentIds = Object.fromEntries(
+          permanentIds
+            .map((instanceId) => {
+              const hostPermanentId = candidates.find(
+                (candidate) => candidate.instanceId === instanceId,
+              )?.hostPermanentId;
+              return hostPermanentId === undefined ? undefined : [instanceId, hostPermanentId];
+            })
+            .filter((entry): entry is [string, string] => entry !== undefined),
+        );
         const played =
           permanentIds.length > 0
             ? await ctx.fx.playInstances(permanentIds, {
@@ -341,6 +351,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
+                hostPermanentIds,
               })
             : [];
         const playedPermanentIds = (played ?? []).map((p) => p.permanentId);
