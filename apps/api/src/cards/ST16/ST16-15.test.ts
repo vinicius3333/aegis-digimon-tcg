@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST16-15.js";
 
@@ -35,5 +36,39 @@ describe("ST16-15 Lament of Friendship", () => {
         token: "OnDeletionPlaySelfMandatory",
       }),
     );
+  });
+
+  it("plays the deleted Digimon after the granted Garurumon digivolves (Q824)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST16-14", { card: "ST16-08", as: "garurumon" }],
+          hand: [{ card: "ST16-15", as: "option" }, { card: "BT10-079", as: "nextForm" }],
+          trash: [{ card: "ST16-02", as: "recover" }],
+          deck: [{ card: "BT1-001" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recover").instanceId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("garurumon").permanentId,
+        instanceId: s.inst("nextForm").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("garurumon").topCard.cardId === "BT10-079");
+
+    await advance(s.engine).verb.deletePermanent([s.perm("garurumon").permanentId], "effect");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-079"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-079")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-079")).toBe(false);
   });
 });
