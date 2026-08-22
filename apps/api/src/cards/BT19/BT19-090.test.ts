@@ -1,8 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT19-090.js";
 
 // A3 for BT19-090 (Meteor Rock Soul — Red Option):
