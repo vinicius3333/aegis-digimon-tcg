@@ -269,7 +269,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * mask a genuine conflict between two distinct IR cards. `registerCard` still throws
  * for a hand-written double-port that does not go through this bulk path.
  */
-export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
+export function registerIrCard(
+  cardId: string,
+  compiled: CompiledCard,
+  implementation?: EffectModule,
+): EffectModule {
   registeredCompiledCards.set(cardId, compiled);
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
@@ -279,7 +283,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard): EffectMo
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = irCardModule(cardId, compiled);
+  const module = implementation ?? irCardModule(cardId, compiled);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;

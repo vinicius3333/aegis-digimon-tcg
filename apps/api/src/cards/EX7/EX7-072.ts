@@ -5,7 +5,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, security, inTrash } from "../../engine/effects/builders.js";
 import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX7-072 — Seventh Fascination (EX7, Purple Option).
@@ -201,5 +201,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, runtimeCompiledCard(cardId)!, module);
 export default module;
