@@ -10,7 +10,7 @@ const ceresmon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens
 const digivolveBody = [
   { kind: "ModifyDP", target: { filter: opponentSuspendedDigimon, count: "all" }, amount: -5000, duration: "untilOpponentTurnEnd" },
   { kind: "Suspend", target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 }, optional: true },
-  { kind: "Modal", choose: 1, condition: { kind: "ifThisEffectActed" }, options: [
+  { kind: "Modal", choose: 1, condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "isYourTurn", raw: "if it's your turn" }] }, options: [
     [{ kind: "UseOptionWithoutCost", filter: { ...playable, kind: ["Option"] }, from: ["hand"], payCost: true, reduceCostBy: 5, optional: true }],
     [{ kind: "PlayWithoutCost", target: { filter: { ...playable, kind: ["Digimon", "Tamer"] }, count: 1 }, from: ["hand"], payCost: true, reduceCostBy: 5, optional: true }],
   ] },
@@ -30,8 +30,8 @@ export const compiled: CompiledCard = {
       { kind: "Restrict", target: { filter: opponentDigimonOrTamer, count: 3 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd", condition: { kind: "ifThisEffectActed" } },
     ] },
   ],
-  coverage: "partial",
-  residual: ["The When Digivolving 'if it's your turn' gate is not represented by a dedicated IR condition; the suspend/play branch remains explicit but must be reopened if cross-turn digivolution behavior fails."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ level: 5, names: ["Ceresmon"], cost: 2, isAlternate: true }],
 };
 
