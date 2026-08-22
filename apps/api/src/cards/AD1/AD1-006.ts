@@ -187,14 +187,14 @@ const compiled: CompiledCard = {
                 "count": 1
               },
               "from": [
-                "digivolutionCards",
-                "underTamers"
+                "digivolutionCards"
               ],
               "payCost": false,
               "digiXrosMaterialsFrom": [
-                "underTamers",
-                "battleArea"
-              ]
+                "battleArea",
+                "underTamers"
+              ],
+              "digiXrosSourceMaterialName": "Shoutmon"
             }
           ]
         }

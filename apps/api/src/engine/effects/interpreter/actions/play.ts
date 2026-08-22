@@ -457,7 +457,12 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               min: 0,
               max: requirement.materials.length,
             });
-            const selectedDefinitions = selected.map((id) => ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!));
+            const selectedDefinitions = selected.map((id) => {
+              const definition = ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!);
+              return id === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
+                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
+                : definition;
+            });
             if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials)) digiXrosMaterialInstanceIds = selected;
           }
         }

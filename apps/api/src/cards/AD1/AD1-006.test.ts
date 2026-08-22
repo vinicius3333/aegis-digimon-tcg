@@ -153,6 +153,7 @@ describe("AD1-006 Shoutmon X7", () => {
                 { card: "BT10-049", as: "ballistamon" },
                 { card: "BT10-034", as: "dorulumon" },
                 { card: "BT10-029", as: "starmons" },
+                { card: "BT10-049", as: "extraBallistamon" },
               ],
             },
             { card: "BT10-087", as: "tamer" },
@@ -162,10 +163,16 @@ describe("AD1-006 Shoutmon X7", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("x4").instanceId);
+    preferred.push(
+      s.inst("ballistamon").instanceId,
+      s.inst("dorulumon").instanceId,
+      s.inst("starmons").instanceId,
+      s.inst("extraBallistamon").instanceId,
+    );
     s.state.turnSeat = 1;
     const x7Id = s.perm("x7").permanentId;
     const x7InstanceId = s.perm("x7").topCard!.instanceId;
+    preferred.unshift(x7InstanceId);
 
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: x7Id } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-009" && permanent.stack.length === 4), 5000);
@@ -178,7 +185,8 @@ describe("AD1-006 Shoutmon X7", () => {
       s.inst("starmons").instanceId,
     ]));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === x7Id)).toBe(false);
-    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.perm("tamer").stack).toHaveLength(1);
+    expect(s.perm("tamer").stack[0]?.cardId).toBe("BT10-049");
   });
 
   it("may decline the leave effect and lets the whole stack go to trash", async () => {
