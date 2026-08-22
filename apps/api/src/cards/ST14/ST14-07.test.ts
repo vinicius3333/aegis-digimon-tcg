@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST14-07.js";
 
 describe("ST14-07 Baalmon", () => {
@@ -22,11 +23,27 @@ describe("ST14-07 Baalmon", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalmon"));
+    const granted = observe(s.engine).subscriptions("onDeletionOf", s.perm("baalmon").permanentId);
+    expect(granted).toHaveLength(1);
+    expect(granted[0]).toMatchObject({ once: true, expiresOnTurnEndOf: 1 });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId]);
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST14-08")).toBe(true);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "ST14-10")).toBe(true);
+  });
+
+  it("does not play Beelzemon on deletion with fewer than 10 cards in trash", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST14-07", as: "baalmon" }],
+        trash: [{ card: "ST14-08", as: "beelzemon" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalmon"));
+    await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "ST14-08")).toBe(true);
   });
 
   it("gives its Wizard or Demon Lord host +2000 DP during its owner's turn", async () => {

@@ -113,6 +113,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return cost.target.upTo === true ? candidates.length >= (cost.stopIfZero === true ? 1 : 0) : candidates.length >= required;
   }
+  if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "hand") {
+    const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
+  }
   if (
     cost.kind === "trash" &&
     (cost.target?.filter.zone === "digivolutionCards" ||
@@ -831,6 +836,16 @@ export async function payCost(
         if (cost.to === "deckTop") return true;
         return /\bto the top\b/i.test(cost.raw ?? "");
       };
+      if (cost.target.filter.zone === "hand") {
+        const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+        if (n <= 0 || candidates.length < n) return false;
+        const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        if (chosen.length < n) return false;
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+        if (out) out.paidCount = chosen.length;
+        return true;
+      }
       // Combined trash-OR-digivolution-cards return cost ("by returning 4 [Negamon] from your
       // trash or your Digimon's digivolution cards to the bottom of the Digi-Egg deck" —
       // EX9-057). All-or-nothing across the pooled candidates from both zones; always returns

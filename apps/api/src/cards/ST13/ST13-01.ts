@@ -16,6 +16,7 @@ const compiled: CompiledCard = {
           "sourceFilter": {
             "controllerDefault": "mine",
             "excludeSelf": true,
+            "byEffect": true,
             "kind": [
               "Digimon"
             ],

@@ -908,7 +908,7 @@ export async function runGainTriggeredEffect(
     ctx.fx.subscribeSubTrigger({
       event,
       sourcePermanentId: targetPermanentId,
-      once: false,
+      once: action.once === true,
       ...(ctx.continuousPass === true ? { continuous: true } : {}),
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),

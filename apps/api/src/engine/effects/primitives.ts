@@ -1025,8 +1025,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
-    permanent.stack.push(permanent.topCard);
+    const priorTop = permanent.topCard;
+    permanent.stack.push(priorTop);
     permanent.topCard = instance;
+    continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.kinds.includes(CardKind.Digimon) ? definition.dp : 0;
     permanent.baseDP = dp;
     permanent.currentDP = dp;
@@ -1220,8 +1222,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
-    permanent.stack.push(permanent.topCard);
+    const priorTop = permanent.topCard;
+    permanent.stack.push(priorTop);
     permanent.topCard = instance;
+    continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
     permanent.baseDP = dp;
     permanent.currentDP = dp;
@@ -1399,6 +1403,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       addedDigivolutionCardInstanceIds: [oldTop.instanceId],
       addedDigivolutionCardsPosition: "bottom",
       placedOwnTopAtStackBottom: true,
+      ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
     });
     return true;
   };
@@ -1439,6 +1444,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         subjectPermanentId: targetPermanentId,
         addedDigivolutionCardInstanceIds: placed.map((card) => card.instanceId),
         addedDigivolutionCardsPosition: opts?.belowTop ? "bottom" : "top",
+        ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
       });
     }
     return placed;
@@ -1456,6 +1462,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [card.instanceId],
       addedDigivolutionCardsPosition: "top",
+      ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
     });
     return card;
   };
@@ -1606,6 +1613,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
         addedDigivolutionCardInstanceIds: movedCardIds,
+        ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
       });
     }
     return moved;

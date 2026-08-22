@@ -29,4 +29,39 @@ describe("ST13-15 Direct Smasher", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+
+  it("does not waive its red color requirement without a Legend-Arms Digimon", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: ["ST13-08"],
+      hand: [{ card: "ST13-15", as: "smasher" }],
+    } });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("smasher").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+  });
+
+  it("activates its Main effect from Security and deletes the attacker's highest-DP ally", async () => {
+    const s = setupEngine({
+      0: { battleArea: [
+        { card: "BT1-009", as: "attacker", dp: 3000 },
+        { card: "BT1-010", as: "highest", dp: 9000 },
+      ] },
+      1: { security: ["ST13-15"] },
+    }, { autoSelectCards: true });
+    await s.ready();
+    const highestId = s.perm("highest").permanentId;
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === highestId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId)).toBe(true);
+  });
 });

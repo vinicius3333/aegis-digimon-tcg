@@ -40,6 +40,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
           scaling: {
             per: 1,
+            usePaidCount: true,
             filter: {
               controllerDefault: "mine",
             },
@@ -92,3 +93,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("ST16-12", compiled);
+export { compiled };

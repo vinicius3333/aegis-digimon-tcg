@@ -9,5 +9,9 @@ describe("ST14-04 Phascomon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("phas"), "Blocker")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("phas"), "attackPlayers")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).isRestricted(s.perm("phas"), "attackPlayers")).toBe(false);
   });
 });
