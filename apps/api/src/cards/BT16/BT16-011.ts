@@ -6,176 +6,152 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Red"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Red"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": false
+          to: "hand",
+          optional: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Garudamon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "[Garudamon] or [X Antibody] is in this Digimon's digivolution cards"
-          },
-          "optional": false
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Red"
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "optional": true
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Garudamon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "[Garudamon] or [X Antibody] is in this Digimon's digivolution cards"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenCardReturnsFromTrashToHand",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "colors": [
-              "Red"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+                  tokens: ["Garudamon", "X Antibody"],
+                  match: "name",
                 },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Rush",
-                "raw": "＜Rush＞"
-              },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              ],
+            },
+            raw: "[Garudamon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1
-        }
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Red"],
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
+              },
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["Garudamon", "X Antibody"],
+                  match: "name",
+                },
+              ],
+            },
+            raw: "[Garudamon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "names": [
-        "Garudamon"
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenCardReturnsFromTrashToHand",
+          sourceFilter: {
+            controllerDefault: "mine",
+            colors: ["Red"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Rush",
+                raw: "＜Rush＞",
+              },
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+        },
+      ],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Garudamon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-011", compiled);
