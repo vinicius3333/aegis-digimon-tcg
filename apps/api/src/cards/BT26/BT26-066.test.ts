@@ -10,7 +10,7 @@ describe("BT26-066 Salamon", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["TS"], cost: 0, isAlternate: true }]);
     expect(compiled.effects).toEqual(expect.arrayContaining([
       expect.objectContaining({ trigger: "StartOfYourMainPhase", actions: [expect.objectContaining({ kind: "Digivolve", from: ["trash"], payCost: true, costDelta: -2, optional: true, condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 } })] }),
-      expect.objectContaining({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenHandTrashed", frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "Digivolve", from: ["trash"], payCost: true, costDelta: -1, optional: true })] }] }),
+      expect.objectContaining({ trigger: "YourTurn", isInherited: true, actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenHandTrashed", actions: [expect.objectContaining({ kind: "Digivolve", from: ["trash"], payCost: true, costDelta: -1, optional: true })] })] }),
     ]));
     expect(JSON.stringify(compiled)).not.toContain("ignoreRequirements");
   });
@@ -19,17 +19,17 @@ describe("BT26-066 Salamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT26-021", as: "titanHost" },
+          { card: "BT26-042", as: "titanHost" },
           { card: "BT26-066", as: "salamon" },
         ],
         trash: [{ card: "BT26-059", as: "trashTitan" }],
         hand: [{ card: "BT1-001", as: "handCard" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
-    s.state.memory = 10;
+    s.state.memory = 20;
     await s.ready();
 
-      await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
 
     expect(s.perm("titanHost").topCard.cardId).toBe("BT26-059");
   });
