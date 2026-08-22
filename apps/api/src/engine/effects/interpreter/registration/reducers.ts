@@ -90,6 +90,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT11-103", // condition: you have a green Tamer -> Option use cost -1
   "BT11-104", // condition: you have a green Tamer -> Option use cost -1
   "BT11-105", // condition: you have a Snatchmon -> Option use cost -1
+  "BT11-106", // condition: you have a black Tamer -> Option use cost -1
 ]);
 
 /**
