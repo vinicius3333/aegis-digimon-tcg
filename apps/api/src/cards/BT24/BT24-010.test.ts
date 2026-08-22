@@ -57,6 +57,7 @@ describe("BT24-010 Greymon", () => {
         type: "digivolve",
         permanentId: s.perm("tsBase").permanentId,
         instanceId: s.inst("greymon").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("tsBase").topCard.instanceId === s.inst("greymon").instanceId);
