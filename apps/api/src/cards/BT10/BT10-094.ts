@@ -1,5 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
+import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
@@ -34,7 +35,7 @@ function gammamonCandidatesFromTrash(ctx: EffectContext, ownerSeat: 0 | 1): Card
   return Array.from(ctx.game.player(ownerSeat).trash).filter((c) => isGammamon(ctx.game.definitionOf(c)));
 }
 
-const module: EffectModule = {
+const legacyModule: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     const ownerSeat = source.ownerSeat as 0 | 1;
@@ -141,5 +142,7 @@ const module: EffectModule = {
   },
 };
 
+const compiled: CompiledCard = getCompiledCard("BT10-094")!;
+void legacyModule;
 export { compiled };
 registerIrCard("BT10-094", compiled);
