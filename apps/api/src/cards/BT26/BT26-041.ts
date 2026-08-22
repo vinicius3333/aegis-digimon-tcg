@@ -10,6 +10,12 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: action },
     { trigger: "WhenDigivolving", actions: action },
+    {
+      trigger: "YourTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenBattleWon", actions: [{ kind: "GainMemory", amount: 1 }] }],
+    },
   ],
   coverage: "full",
   residual: [],
