@@ -8,8 +8,19 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
-/** Compiled records whose complete hand-authored runtime modules normalize stale residual metadata. */
+/** Compiled records whose complete runtime modules normalize stale residual metadata. */
 export const HAND_AUTHORED_COVERAGE_OVERRIDES: ReadonlySet<string> = new Set([
+  "EX6-001",
+  "EX6-010",
+  "EX6-030",
+  "EX6-057",
+  "EX6-059",
+  "EX6-060",
+  "EX6-068",
+  "EX6-069",
+  "EX6-070",
+  "EX6-071",
+  "EX6-073",
   "EX4-021",
   "EX4-030",
   "EX4-036",

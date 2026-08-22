@@ -1,7 +1,30 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./EX11-054.js";
-import "../index.js";
-describe("EX11-054 Owen Dreadnought", () => { it("sets memory to 3 at start of turn when memory is 2 or less", async () => { const s = setupEngine({ 0: { battleArea: [{ card: "EX11-054", as: "owen" }] } }); s.state.memory = 2; await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("owen")); expect(s.state.memory).toBe(3); }); });
+
+describe("EX11-054 Owen Dreadnought", () => {
+  it("suspends to draw and boosts only a Progress Digimon when a Reptile is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-025", as: "progress" },
+            { card: "EX11-054", as: "owen" },
+          ],
+          hand: [{ card: "BT1-010", as: "reptile" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reptile").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("owen").isSuspended === true, 600);
+
+    expect(s.perm("owen").isSuspended).toBe(true);
+    expect(s.perm("progress").currentDP).toBe(7000);
+  });
+});

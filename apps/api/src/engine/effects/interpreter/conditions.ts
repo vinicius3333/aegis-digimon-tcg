@@ -309,10 +309,6 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       }
       return totalLevels >= (cond.value ?? cond.count ?? 0);
     }
-    case "youHaveFewOrEqual": {
-      const filter = { ...(cond.filter ?? {}), controller: "mine" } as Filter;
-      return countMatching(ctx, filter) <= (cond.count ?? cond.value ?? 0);
-    }
     case "permanentCount": {
       // "If you/your opponent have N or more/fewer permanents matching [filter]" (BT21-010).
       // Counts the seat's battle-area permanents matching the filter; with `distinctNames`,

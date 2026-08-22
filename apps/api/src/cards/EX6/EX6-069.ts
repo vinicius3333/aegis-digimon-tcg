@@ -5,15 +5,64 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
-      actions: [{ kind: "PlaceUnder", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }] }, count: 1 }, underFilter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }], zone: "breeding" }, from: ["hand", "trash"], optional: true }, { kind: "PlaceInBattleAreaSelf" }]
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],
+            },
+            count: 1,
+          },
+          underFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }],
+            zone: "breeding",
+          },
+          from: ["hand", "trash"],
+          optional: true,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
     },
     {
       trigger: "AllTurns",
-      actions: [{ kind: "SubTrigger", event: "onDeletionOf", delayArmedIntrinsic: true, sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }] }, actions: [{ kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }], zone: "digivolutionCards" }, count: 1 }, from: ["digivolutionCards"], payCost: false, optional: true, source: "breeding" }] }]
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          delayArmedIntrinsic: true,
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],
+                  zone: "digivolutionCards",
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              source: "breeding",
+            },
+          ],
+        },
+      ],
     },
-    { trigger: "Security", actions: [{ kind: "PlaceInBattleAreaSelf" }], isSecurity: true }
+    { trigger: "Security", actions: [{ kind: "PlaceInBattleAreaSelf" }], isSecurity: true },
   ],
   coverage: "full",
-  residual: []
+  residual: [],
 };
 registerIrCard("EX6-069", compiled);

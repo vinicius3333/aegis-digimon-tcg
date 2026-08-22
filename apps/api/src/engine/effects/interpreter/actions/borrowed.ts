@@ -260,8 +260,8 @@ export async function runUseOptionWithoutCost(
     .flatMap((z) => looseCardsInZone(ctx, seat, z as ZoneRef))
     .find((c) => c.instanceId === chosenId);
 
-  // Pay the borrowed-use cost here. The lifecycle primitive also supports direct callers that
-  // request payment, so pass payCost:false below after this layer has applied the reduction.
+  // Pay cost before running the effect (mirrors normal Option use flow). The ORIGINAL printed
+  // cost is used for the whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
   if (action.payCost === true && chosenCard !== undefined) {
     const chosenDef = ctx.game.definitionOf({ cardId: chosenCard.cardId } as never);
     const dynamicReduction =
@@ -282,7 +282,7 @@ export async function runUseOptionWithoutCost(
   // (BT19-040; KB Q5471-Q5473 read the cost itself, not the paid/reduced value).
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
   await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
-    payCost: false,
+    payCost: action.payCost,
     ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
   });
   ctx.lastOptionUsed = true;

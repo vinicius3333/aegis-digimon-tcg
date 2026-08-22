@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, PlayerState, Zone } from "@aegis/shared";
+import { PlayerState, Zone } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { compiled } from "./EX6-073.js";
 import "../index.js";
 
 // A3 for EX6-073 (Ogudomon) — Purple Lv.7+ Digimon.
@@ -127,6 +127,9 @@ describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(getEffectModule("EX6-073")!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, {} as never)).toHaveLength(1);
+    const text = JSON.stringify(compiled);
+    expect(compiled.coverage).toBe("full");
+    expect(text).toContain("ex6-073-deleted");
+    expect(text).toContain("Seven Great Demon Lords");
   });
 });

@@ -54,7 +54,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Training") ||
-        e.actions.some(
+        (e.actions ?? []).some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Training" &&
@@ -85,7 +85,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   const isPlainMain = (e: CardEffect): boolean =>
     e.trigger === "Main" && !e.isSecurity && !(e.keywords ?? []).some((kw) => kw.keyword === "Delay");
   // Pre-bucket effects by their target EffectTiming so effectsForTiming is O(1).
-  const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]>();
+  const byTiming = new Map<
+    EffectTiming,
+    { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]
+  >();
   let index = 0;
   for (const effect of effects) {
     // The intrinsic keyword is consumed by GameEngine.payDigisorption through the side registry;
@@ -286,7 +289,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard, legacyMod
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = legacyModule ?? irCardModule(cardId, compiled);
+  const module = irCardModule(cardId, compiled);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;
