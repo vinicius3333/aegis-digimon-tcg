@@ -1,6 +1,6 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { lateBt12Module } from "./_lateHandwritten.js";
+import { getCompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = lateBt12Module("BT12-082");
-registerCard(module);
+const module = registerIrCard("BT12-082", getCompiledCard("BT12-082")!);
+
 export default module;
