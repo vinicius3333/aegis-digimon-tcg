@@ -25,7 +25,13 @@ export async function runRecoverByTrashingMostSecurity(
 }
 
 export async function runRecover(ctx: EffectContext, action: Extract<Action, { kind: "Recover" }>): Promise<void> {
-  await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.amount ?? 1);
+  const baseAmount = action.amount ?? 1;
+  const amount = action.scaling === undefined
+    ? baseAmount
+    : action.scaling.bonus !== undefined
+      ? baseAmount + action.scaling.bonus * scaleFactor(ctx, action.scaling)
+      : baseAmount * scaleFactor(ctx, action.scaling);
+  await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, Math.max(0, amount));
 }
 
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */
