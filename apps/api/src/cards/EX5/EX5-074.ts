@@ -5,6 +5,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX5-074")!;
 export const compiled: CompiledCard = structuredClone(generated);
+for (const effect of compiled.effects) {
+  for (const action of effect.actions) {
+    if (action.kind === "ModifyDP" && action.cost?.kind === "return") {
+      action.scaling = { per: 1, usePaidCount: true, unit: "cards" };
+    }
+  }
+}
 const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
 if (allTurns) {
   allTurns.actions = [{
