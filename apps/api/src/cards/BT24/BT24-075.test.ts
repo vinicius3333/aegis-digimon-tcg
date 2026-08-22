@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_075 } from "./BT24-075.js";
 import "../index.js";
 
@@ -9,12 +13,78 @@ describe("BT24-075 SkullBaluchimon", () => {
       expect(actions[0]).toMatchObject({
         kind: "Delete",
         cost: { kind: "trash", target: { filter: { zone: "hand" } } },
+        optional: true,
+        abortOnDecline: true,
       });
-      expect(actions[0]).not.toHaveProperty("optional");
       expect(actions[0]).toMatchObject({ target: { filter: { level: 3 }, count: 1 } });
       expect(actions[1]).toMatchObject({ kind: "Delete", target: { filter: { level: 4 }, count: 1 } });
     }
     const inherited = BT24_075.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(inherited?.actions?.[0]).toMatchObject({ while: { kind: "anyOf" }, effect: { kind: "keyword" } });
+  });
+
+  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
+    "pays one hand card to delete one level 3 and one level 4 on %s",
+    async (timing) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-075", as: "skullbaluchimon" }],
+            hand: [{ card: "BT1-001", as: "cost" }],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-009", as: "level3" },
+              { card: "BT1-014", as: "level4" },
+              { card: "BT24-072", as: "level5" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const level3Id = s.perm("level3").permanentId;
+      const level4Id = s.perm("level4").permanentId;
+      await s.ready();
+
+      await advance(s.engine).fire(timing, s.perm("skullbaluchimon"));
+
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(level3Id);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(level4Id);
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+        s.perm("level5").permanentId,
+      );
+    },
+  );
+
+  it("deletes neither target when the hand-trash cost cannot be paid", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-075", as: "skullbaluchimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "level3" },
+            { card: "BT1-014", as: "level4" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("skullbaluchimon"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it.each([
+    ["exact Titamon name", "BT1-080"],
+    ["Titan trait", "BT24-013"],
+  ])("inherited effect grants Security Attack +1 for the %s alternative", async (_label, topCard) => {
+    const s = setupEngine({ 0: { battleArea: [{ card: topCard, as: "host", under: ["BT24-075"] }] } });
+    await s.ready();
+
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
 });
