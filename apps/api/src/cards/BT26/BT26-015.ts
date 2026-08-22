@@ -48,6 +48,19 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectAddsToDeck",
+          effectSourceFilter: { controller: "mine" },
+          actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
