@@ -10,7 +10,7 @@ const placeHandCost = {
   underFilter: self.filter,
   faceDown: true,
 };
-const placeDeckTop = { kind: "PlaceUnder", fromDeckTop: true, target: self, faceDown: true };
+const placeDeckTop = { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true };
 const removalGate = { kind: "triggerRemovedSecuritySeat", seat: "mine" };
 const nonEffectRemovalGate = {
   kind: "allOf",
