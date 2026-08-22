@@ -4,6 +4,7 @@ import { compiled } from "./BT13-083.js";
 describe("BT13-083 Gizmon: AT", () => {
   it("reduces play cost by deleting a level 3 Digimon", () => {
     const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0] as { actions?: unknown[] };
+    expect(replacement).toMatchObject({ sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["Gizmon: AT"] }] } });
     expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement", mode: "reduceCost", amount: 4,
       cost: { kind: "deleteOwn", target: { filter: { controller: "mine", kind: ["Digimon"], levels: [3] }, count: 1 } },

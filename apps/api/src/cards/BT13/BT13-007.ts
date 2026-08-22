@@ -62,7 +62,7 @@ export const compiled: CompiledCard = {
           "kind": "Replacement",
           "event": "wouldBePlayed",
           "sourceFilter": {
-            "controllerDefault": "mine",
+            "controller": "mine",
             "kind": [
               "Digimon"
             ],
@@ -92,12 +92,7 @@ export const compiled: CompiledCard = {
               "raw": "Further reduce it by 1",
               "scaling": {
                 "per": 1,
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
+                "filter": {},
                 "unit": "digivolutionCards"
               }
             }

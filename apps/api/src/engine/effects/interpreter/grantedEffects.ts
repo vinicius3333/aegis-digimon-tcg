@@ -115,6 +115,22 @@ import type { Action, CardEffect } from "@aegis/shared";
  * at all.
  */
 export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
+  "[All Turns] When this Digimon becomes suspended, lose 1 memory.": {
+    trigger: "AllTurns",
+    actions: [
+      {
+        kind: "SubTrigger",
+        event: "whenSuspended",
+        sourceFilter: { isSelfRef: true },
+        actions: [
+          {
+            kind: "GainMemory",
+            amount: -1,
+          } as Action,
+        ],
+      } as Action,
+    ],
+  },
   "[All Turns] When this Digimon becomes suspended, lose 2 memory.": {
     trigger: "AllTurns",
     actions: [

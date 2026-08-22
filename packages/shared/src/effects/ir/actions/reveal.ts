@@ -94,6 +94,8 @@ export interface RevealAddAction extends ActionBase {
   trashFilter?: Filter;
   /** Where the rest go. */
   rest: "deckBottom" | "deckBottomAnyOrder" | "deckTop" | "deckTopOrBottom" | "trash";
+  /** Preserve an explicitly chosen bottom order for effects whose UI order is top-to-bottom. */
+  reverseBottomOrder?: boolean;
   /**
    * Store how many revealed cards actually reached hand, for a later scaling or `countSource`
    * ("reveal 5, add all [X] to hand. Gain 1 memory for each card added").

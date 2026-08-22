@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -94,8 +94,34 @@ const module: EffectModule = {
       ];
     }
 
-    // [All Turns][Once Per Turn] whenSecurityRemoved → Recovery +1:
-    // residual — whenSecurityRemoved has no fire seam in primitives.ts.
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/security-removed-recovery`,
+          description:
+            "[All Turns][Once Per Turn] When a card is removed from your security stack, " +
+            "if you have 3 or fewer security cards, ＜Recovery +1＞.",
+          maxPerTurn: 1,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenSecurityRemoved",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/security-removed-recovery`,
+              matches: (subCtx) =>
+                subCtx.trigger.removedFromSecuritySeat === source.ownerSeat &&
+                subCtx.game.player(source.ownerSeat).security.length <= 3,
+              run: async (subCtx) => {
+                await subCtx.fx.recoverToSecurity(source.ownerSeat, 1);
+              },
+            });
+          },
+        }),
+      ];
+    }
 
     return [];
   },

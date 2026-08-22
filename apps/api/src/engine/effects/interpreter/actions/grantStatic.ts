@@ -122,7 +122,13 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           return false;
         }
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
-        for (const id of ids) ctx.fx.setBaseDP(id, value, grantDuration);
+        for (const id of ids) {
+          ctx.fx.setBaseDP(id, value, grantDuration);
+          const keyword = (action.staticEffect as { keyword?: string }).keyword;
+          if (keyword !== undefined) ctx.fx.grantKeyword(id, keyword, grantDuration);
+          const restriction = (action.staticEffect as { restriction?: string }).restriction;
+          if (restriction !== undefined) ctx.fx.restrict(id, restriction as never, grantDuration);
+        }
         if (action.grant === "kind") {
           const wantedKinds = (action.tokens ?? []).map((t) => t as CardKind);
           if (wantedKinds.length > 0) {
@@ -297,6 +303,20 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // loudly here — instead of the old silent `grantCustom` store — surfaces them the moment
       // a game actually resolves one, matching the fail-loud shape used across this case.
       if (typeof action.grant === "object" && action.grant !== null) {
+        if ("dp" in action.grant || "color" in action.grant || "originalName" in action.grant) {
+          const grant = action.grant as { dp?: number; color?: string; originalName?: string };
+          const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
+          for (const permanentId of ids) {
+            if (grant.dp !== undefined) ctx.fx.setBaseDP(permanentId, grant.dp, grantDuration);
+            if (grant.color !== undefined || grant.originalName !== undefined) {
+              ctx.fx.setOriginalCardInfo(permanentId, {
+                ...(grant.color === undefined ? {} : { colors: [COLOR_MAP[Object.keys(COLOR_MAP).find((key) => key.toLowerCase() === grant.color!.toLowerCase()) as keyof typeof COLOR_MAP]] }),
+                ...(grant.originalName === undefined ? {} : { name: grant.originalName }),
+              }, grantDuration);
+            }
+          }
+          return false;
+        }
         if ((action.grant as { kind?: string }).kind === "TreatAsLevel") {
           const grant = action.grant as { level?: number; context?: string; intoNames?: string[] };
           if (grant.context !== "DNADigivolution" || grant.level === undefined) {

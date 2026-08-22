@@ -1,24 +1,25 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT11-014";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.None) return [];
-    return [
-      staticModifier({ source, effectKey: `${cardId}/raid`, description: "＜Raid＞", resolve: async (ctx) => { const self = source.permanent(); if (self) ctx.fx.grantKeyword(self.permanentId, "Raid", EffectDuration.Permanent); } }),
-      staticModifier({ source, effectKey: `${cardId}/inherited-target-switch-security`, isInherited: true, when: () => source.isOwnersTurn(),
-        description: "[Your Turn][Once Per Turn] When this Digimon's attack target is switched, trash the top opposing security.",
-        resolve: async (ctx) => { const host = source.permanent(); if (!host) return; ctx.fx.subscribeSubTrigger({ event: "whenAttackTargetSwitched", sourcePermanentId: host.permanentId, once: false,
-          oncePerTurnKey: `${source.instanceId}/${cardId}/target-switch-security`, description: `${cardId}: target switched`,
-          matches: (subCtx) => subCtx.trigger.attackerPermanentId === host.permanentId,
-          run: async (subCtx) => { await subCtx.fx.trashFromSecurity(subCtx.game.opponentOf(source.ownerSeat), 1, { fromTop: true }); } }); },
-      }),
-    ];
-  },
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "Static", actions: [], keywords: [{ keyword: "Raid", raw: "＜Raid＞" }] },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttackTargetSwitched",
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1, condition: { kind: "triggerAttackerIsSelf" } }],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("BT11-014", compiled);

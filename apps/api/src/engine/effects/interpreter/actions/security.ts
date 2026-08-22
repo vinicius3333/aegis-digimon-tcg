@@ -10,6 +10,7 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
 import type { Action, Filter, Seat, Target, ZoneRef } from "@aegis/shared";
 
@@ -25,7 +26,22 @@ export async function runRecoverByTrashingMostSecurity(
 }
 
 export async function runRecover(ctx: EffectContext, action: Extract<Action, { kind: "Recover" }>): Promise<void> {
-  await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.amount ?? 1);
+  const baseAmount = action.amount ?? 1;
+  const amount =
+    action.scaling === undefined
+      ? baseAmount
+      : action.scaling.bonus !== undefined
+        ? baseAmount + action.scaling.bonus * scaleFactor(ctx, action.scaling)
+        : baseAmount * scaleFactor(ctx, action.scaling);
+  const seat = ctx.source.ownerSeat;
+  if (action.untilSecurityCount === undefined) {
+    await ctx.fx.recoverToSecurity(seat, Math.max(0, amount));
+    return;
+  }
+  while (ctx.game.player(seat).security.length < action.untilSecurityCount) {
+    const moved = await ctx.fx.recoverToSecurity(seat, Math.max(0, amount));
+    if (moved.length === 0) break;
+  }
 }
 
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */
@@ -44,10 +60,9 @@ export async function runSecurityManipulation(
         const amount =
           action.leaveCount !== undefined
             ? Math.max(0, ctx.game.player(s).security.length - action.leaveCount)
-            : action.amount ?? 1;
+            : (action.amount ?? 1);
         if (amount > 0) await ctx.fx.trashFromSecurity(s, amount, { fromTop: true });
-      }
-      else ctx.fx.shuffleSecurity(s);
+      } else ctx.fx.shuffleSecurity(s);
     }
     return;
   }
@@ -116,8 +131,12 @@ export async function runSecurityManipulation(
               })
             : [];
       }
+      const fromTop =
+        action.chooseTopOrBottom === true
+          ? (await ctx.ask.chooseOption(ctx, ["Security Top", "Security Bottom"])) === 0
+          : true;
       const trashed = await ctx.fx.trashFromSecurity(seat, amount, {
-        fromTop: true,
+        fromTop,
         ...(selectedSecurityIds !== undefined ? { instanceIds: selectedSecurityIds } : {}),
       });
       ctx.lastEffectActed = trashed.length > 0;
@@ -218,7 +237,22 @@ export async function runSecurityManipulation(
         const sourceScale = action.scaling === undefined ? 1 : scaleFactor(ctx, action.scaling);
         const baseCount = action.source.count === "all" ? "all" : action.source.count;
         const scaledSource = baseCount === "all" ? action.source : { ...action.source, count: baseCount * sourceScale };
-        const candidates = candidateLooseInstances(ctx, scaledSource, zones);
+        let candidates = candidateLooseInstances(ctx, scaledSource, zones);
+        // Deletion observers are matched while the subject is still live so their printed
+        // controller/kind/color filters remain available. A follow-up that places that same
+        // card "from trash" (BT13-015 Q2274) therefore resolves one step before the generic
+        // deletion mover has put it there. Admit only the currently-deleting permanent's top
+        // card as a virtual trash candidate; addSecurity relocates that exact instance, and
+        // the deletion pass then removes only what remains of the permanent.
+        if (candidates.length === 0 && zones.includes("trash") && ctx.trigger.deletedPermanentId !== undefined) {
+          const deleting = ctx.game.permanentById(ctx.trigger.deletedPermanentId);
+          if (
+            deleting?.topCard !== undefined &&
+            permanentMatchesFilter(ctx, deleting, scaledSource.filter, ctx.source)
+          ) {
+            candidates = [deleting.topCard];
+          }
+        }
         const chosen = await pickLoose(ctx, scaledSource, candidates);
         if (chosen.length > 0)
           await ctx.fx.addSecurity(seat, chosen, { toTop: action.toTop ?? true, faceUp: action.faceUp });
@@ -405,7 +439,17 @@ async function runSecurityAdd(
       return;
     }
     const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, source));
-    if (ids.length > 0) await ctx.fx.addSecurity(seat, ids, opts);
+    if (ids.length > 0) {
+      await ctx.fx.addSecurity(seat, ids, opts);
+      // `ifThisEffectActed` is used by follow-up actions such as ST10-14's
+      // "If you do, trash the top security card." A placement can be refused
+      // by a replacement effect (for example Kongou), so derive acted state
+      // from the moved instance's actual presence rather than assuming the
+      // primitive accepted the move.
+      ctx.lastEffectActed = ids.some((id) => ctx.game.player(seat).security.some((card) => card.instanceId === id));
+    } else {
+      ctx.lastEffectActed = false;
+    }
     return;
   }
   unsupported(ctx, action, `SecurityManipulation ${action.op} source ${String(source)} unsupported`);

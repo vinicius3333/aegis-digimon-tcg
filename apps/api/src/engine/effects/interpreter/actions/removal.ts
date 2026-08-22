@@ -17,6 +17,7 @@ import {
   topInstanceIds,
 } from "../targeting/permanents.js";
 import type { Action, Target } from "@aegis/shared";
+import { definitionMatches } from "../matching/definition.js";
 
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -73,6 +74,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ? await resolveTotalDpCapTargets(ctx, target)
           : await resolvePermanentTargets(ctx, target);
       const ids = survivorIds.length > 0 ? resolved.filter((id) => !survivorIds.includes(id)) : resolved;
+      ctx.lastDeleteTargetSelected = ids.length > 0;
       if (action.at === "endOfTurn") {
         for (const id of ids) ctx.fx.delayedDeletePlayed?.(id);
         ctx.lastDeleteCount = 0;
@@ -339,6 +341,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           chosen = await pickLoose(ctx, action.target, candidates, undefined, asker);
         }
         const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        ctx.lastTrashedCards = moved.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          dp: ctx.game.definitionOf(card).dp ?? 0,
+        }));
         // Bind the branch-acted result so an "if you did" tail (BT16-094 OR-modal) can gate.
         ctx.lastEffectActed = moved.length > 0;
         // Store actual trash count under the named key for downstream scaling. (CAP-E12/E13)
@@ -375,9 +382,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
         const deck = ctx.game.player(seat).deck;
-        const n = action.target.count === "all"
-          ? deck.length
-          : action.target.count * (scale ?? 1);
+        const n = action.target.count === "all" ? deck.length : action.target.count * (scale ?? 1);
         const topCards = deck.slice(0, n);
         const topIds = topCards.map((card) => card.instanceId);
         if (topIds.length > 0) {
@@ -446,6 +451,34 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Security effects such as BT10-109 encode "add this card to its owner's hand"
       // as Return(isSelfRef). The source is a loose security card, so it has no
       // permanent for resolvePermanentTargets to find.
+      if (action.from?.includes("digivolutionCards")) {
+        const self = ctx.source.permanent();
+        const candidates =
+          self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
+        if (candidates.length === 0) return false;
+        const picked =
+          candidates.length === 1
+            ? [candidates[0]!.instanceId]
+            : await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((card) => card.instanceId),
+                min: 1,
+                max: 1,
+                visibleCards: candidates.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+              });
+        if (picked.length === 0) return false;
+        const pickedCard = candidates.find((card) => card.instanceId === picked[0]);
+        const moved = await ctx.fx.returnToHand(picked);
+        const level = pickedCard === undefined ? undefined : ctx.game.definitionOf(pickedCard).level;
+        if (action.storeAs !== undefined && level !== undefined) {
+          ctx.namedCounts ??= new Map();
+          ctx.namedCounts.set(action.storeAs, level);
+        }
+        if (action.bindResultAs !== undefined) {
+          ctx.boundPlayed ??= new Map();
+          ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
+        }
+        return false;
+      }
       if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
         if (action.to === "hand") await ctx.fx.returnToHand([ctx.source.instanceId]);
         else await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });

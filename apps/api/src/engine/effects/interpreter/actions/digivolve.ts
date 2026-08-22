@@ -78,7 +78,7 @@ function digivolveIntoTarget(action: Extract<Action, { kind: "Digivolve" }>): Ta
   if (action.into === undefined) return undefined;
   const encoded = action.into as Filter | Target;
   return "filter" in encoded
-    ? ({ ...encoded, count: encoded.count ?? 1 } as Target)
+    ? ({ ...encoded, count: encoded.count ?? 1, ...(encoded.upTo === true ? { upTo: true } : {}) } as Target)
     : { filter: encoded as Filter, count: 1 };
 }
 
@@ -140,6 +140,9 @@ function visibleDigivolveSourceIds(
   zones: ZoneRef[],
 ): string[] {
   let visible = candidateLooseInstances(ctx, { filter: { controllerDefault: "mine" }, count: "all" }, zones);
+  if (action.source === "triggerSource") {
+    visible = visible.filter((candidate) => candidate.instanceId === ctx.source.instanceId);
+  }
   if (action.amongPreviousSearch) {
     const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
     visible = visible.filter((candidate) => searched.has(candidate.instanceId));
@@ -271,7 +274,10 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   const intoPool = (): LooseCandidate[] => {
     if (intoTarget === undefined) return [];
     let candidates = candidateLooseInstances(ctx, intoTarget, zones);
-    if (action.amongPreviousSearch) {
+    if (action.source === "triggerSource") {
+      candidates = candidates.filter((candidate) => candidate.instanceId === ctx.source.instanceId);
+    }
+  if (action.amongPreviousSearch) {
       const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
       candidates = candidates.filter((candidate) => searched.has(candidate.instanceId));
     }

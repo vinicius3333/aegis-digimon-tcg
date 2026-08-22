@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
           "condition": {
             "kind": "selfDigivolutionStackHasTrait",
             "filter": {
+              "excludeNames": ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
               "nameOrTrait": [
                 {
                   "tokens": [

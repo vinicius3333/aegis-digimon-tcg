@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-104.js";
 
 describe("BT5-104 Catastrophe Cannon", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-104")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("De-Digivolves 2 and may play a Diaboromon Token when you control Diaboromon", async () => {
     const s = setupEngine({ 0: { battleArea: ["BT5-084", "BT5-059"], hand: [{ card: "BT5-104", as: "option" }] }, 1: { battleArea: [{ card: "BT5-084", as: "target", under: [{ card: "BT5-060", as: "bottom" }, { card: "BT5-064", as: "middle" }, { card: "BT5-068", as: "upper" }] }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     const originalTopId = s.perm("target").topCard.instanceId;

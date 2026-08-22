@@ -54,6 +54,7 @@ const compiled: CompiledCard = {
           },
           "amount": 1000,
           "duration": "permanent",
+          "continuous": true,
           "scaling": {
             "per": 1,
             "filter": {

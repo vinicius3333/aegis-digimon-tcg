@@ -1,153 +1,98 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, colorWaiverStatic, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX12-071";
-
-function hasSW(def: CardDefinition): boolean {
-  return (def.types ?? []).includes("SW");
-}
-
-function hasSaneiketsu(def: CardDefinition): boolean {
-  return isDigimon(def) && (def.types ?? []).includes("Saneiketsu");
-}
-
-/**
- * §16-42-1 gate for ＜Use Req. ([SW] trait)＞: true only while the controller has a
- * [SW] trait card in the battle area (the corpus' `youHave` default zone — see
- * interpreter.ts `countMatching`, mirroring §4-21-2's "on your field" wording).
- */
-function hasSWInPlay(ctx: EffectContext, source: CardSource): boolean {
-  const owner = ctx.game.player(source.ownerSeat);
-  for (const permanent of owner.battleArea) {
-    if (permanent.topCard == null) continue;
-    if (hasSW(ctx.game.definitionOf(permanent.topCard))) return true;
-  }
-  return false;
-}
-
-async function executeMain(ctx: EffectContext, source: CardSource): Promise<void> {
-  const owner = ctx.game.player(source.ownerSeat);
-  const swCards = Array.from(owner.hand).filter((c) => hasSW(ctx.game.definitionOf(c)));
-  if (swCards.length === 0) return;
-  const chosen = await ctx.ask.selectCards(ctx, { candidates: swCards.map((c) => c.instanceId), min: 0, max: 1 });
-  if (chosen.length === 0) return;
-  await ctx.fx.trash(chosen);
-  ctx.fx.draw(source.ownerSeat, 2);
-  if (ctx.fx.placeOptionAsPermanent) await ctx.fx.placeOptionAsPermanent(source.instanceId);
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnUseOption) {
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/main`,
-          description:
-            "[Main] By trashing 1 [SW] trait card from your hand, <Draw 2>. Then, place this " +
-            "card in your battle area.",
-          resolve: async (ctx) => executeMain(ctx, source),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description: "[Security] Activate this card's [Main] effect.",
-          resolve: async (ctx) => executeMain(ctx, source),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        // <Use Req. ([SW] trait)> — while you have a [SW] trait card in play, you may
-        // use/play this card ignoring its color requirements (§16-42-1).
-        // `colorWaiverStatic` (not `staticModifier`): this card is HAND-resident when the
-        // waiver needs to apply, so it must not carry the on-field base guard.
-        colorWaiverStatic({
-          source,
-          effectKey: `${cardId}/use-req-sw`,
-          description: "<Use Req. ([SW] trait)> Ignore this card's color requirements.",
-          when: (ctx) => hasSWInPlay(ctx, source),
-          resolve: async (ctx) => {
-            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+// Q6886: the part after "after" is conditional on paying the "by trashing"
+// cost. The Delay digivolution pays no cost, but it does not ignore printed
+// digivolution requirements because the card never says to ignore them.
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
+            },
+            raw: "you have a card w/[SW] trait",
           },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/delay-trigger`,
-          description:
-            "[All Turns] ＜Delay＞ When one of your [SW] trait Digimon is played, you may " +
-            "digivolve 1 of your Digimon into a [Saneiketsu] trait Digimon from your hand " +
-            "without paying the cost.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenPlayed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description: `${cardId}: Delay — digivolve into Saneiketsu when SW is played.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOnBattleArea()) return false;
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const def = subCtx.game.definitionOf(subject.topCard);
-                return isDigimon(def) && hasSW(def);
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
               },
-              run: async (subCtx) => {
-                const owner = subCtx.game.player(source.ownerSeat);
-                const saneiketsuCards = Array.from(owner.hand).filter((c) =>
-                  hasSaneiketsu(subCtx.game.definitionOf(c)),
-                );
-                if (saneiketsuCards.length === 0) return;
-                const hostDigimon = Array.from(owner.battleArea)
-                  .filter((p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)));
-                if (hostDigimon.length === 0) return;
-                const yes = await subCtx.ask.optional(
-                  subCtx,
-                  "Digivolve 1 of your Digimon into a [Saneiketsu] Digimon from hand without paying cost?",
-                );
-                if (!yes) return;
-                const host = await subCtx.ask.chooseTargets(subCtx, {
-                  candidates: hostDigimon.map((p) => p.permanentId),
-                  min: 1,
-                  max: 1,
-                });
-                if (host.length === 0) return;
-                const chosen = await subCtx.ask.selectCards(subCtx, {
-                  candidates: saneiketsuCards.map((c) => c.instanceId),
-                  min: 0,
-                  max: 1,
-                });
-                if (chosen.length > 0) {
-                  await subCtx.fx.digivolveFromInstance(host[0]!, chosen[0]!, { payCost: false, ignoreRequirements: true });
-                }
-              },
-            });
+              count: 1,
+            },
+            raw: "By trashing 1 [SW] trait card from your hand",
           },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          optional: true,
+          abortOnDecline: true,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
+                },
+                count: 1,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Saneiketsu"], match: "trait" }],
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "ActivateMain" }],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX12-071", compiled);

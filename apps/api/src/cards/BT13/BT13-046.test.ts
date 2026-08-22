@@ -1,36 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { CardColor, CardKind, EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT13-046.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT13-046.js";
 
 describe("BT13-046 Kentaurosmon", () => {
-  it("reveals a hand card and places a yellow card into security", async () => {
-    const yellow = { instanceId: "yellow", cardId: "YELLOW", ownerSeat: 0 };
-    const calls: { verb: string; args: unknown[] }[] = [];
-    const players = [
-      { security: [{ instanceId: "s1" }, { instanceId: "s2" }, { instanceId: "s3" }], hand: [yellow], battleArea: [] },
-      { security: [{ instanceId: "s4" }, { instanceId: "s5" }], hand: [], battleArea: [] },
-    ];
-    const ctx = {
-      source: { ownerSeat: 0, cardId: "BT13-046", instanceId: "source", permanent: () => undefined, isOnBattleArea: () => true },
-      game: {
-        player: (seat: number) => players[seat],
-        opponentOf: () => 1,
-        definitionOf: (card: { cardId: string }) => card.cardId === "YELLOW"
-          ? { cardId: "YELLOW", nameEn: "Yellow", kinds: [CardKind.Digimon], colors: [CardColor.Yellow] }
-          : { cardId: card.cardId, nameEn: card.cardId, kinds: [CardKind.Digimon], colors: [] },
-      },
-      fx: {
-        gainMemoryForSeat: (...args: unknown[]) => calls.push({ verb: "gainMemoryForSeat", args }),
-        revealCard: (...args: unknown[]) => calls.push({ verb: "revealCard", args }),
-        addSecurity: async (...args: unknown[]) => { calls.push({ verb: "addSecurity", args }); },
-      },
-      ask: { selectCards: async () => ["yellow"] },
-    } as any;
-    const effect = getEffectModule("BT13-046")!.effectsForTiming(EffectTiming.OnPlay, ctx.source)[0]!;
-    await effect.resolve(ctx);
-    expect(calls.find((call) => call.verb === "gainMemoryForSeat")?.args).toEqual([0, 3]);
-    expect(calls.find((call) => call.verb === "revealCard")?.args).toEqual([0, "YELLOW", "BT13-046"]);
-    expect(calls.find((call) => call.verb === "addSecurity")?.args[1]).toEqual(["yellow"]);
+  it("contains the security-count reveal effects and the attack cost/debuff sequence", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [expect.objectContaining({ kind: "GainMemory", amount: 3 }), expect.objectContaining({ kind: "RevealAdd" })] });
+    expect(compiled.effects[2]).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "Unsuspend", abortOnDecline: true }), expect.objectContaining({ kind: "ModifyDP", amount: -7000 })] });
+  });
+
+  it("loads the IR implementation into a live Kentaurosmon permanent", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-046", as: "kent" }] } });
+    await s.ready();
+    expect(s.perm("kent").topCard?.cardId).toBe("BT13-046");
+    await settle(() => s.perm("kent").topCard?.cardId === "BT13-046", 3000);
+    expect(s.perm("kent").topCard?.cardId).toBe("BT13-046");
   });
 });

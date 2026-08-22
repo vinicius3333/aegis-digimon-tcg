@@ -7,7 +7,7 @@ import "./BT5-102.js";
 
 describe("BT5-102 Wisselen", () => {
   it("restricts up to two opposing Digimon from attacking and blocking", async () => {
-    const s = setupEngine({ 0: { battleArea: ["BT5-046"], hand: [{ card: "BT5-102", as: "option" }] }, 1: { battleArea: [{ card: "BT5-047", as: "first" }, { card: "BT5-048", as: "second" }] } }, { autoSelectCards: true });
+    const s = setupEngine({ 0: { battleArea: ["BT5-046"], hand: [{ card: "BT5-102", as: "option" }] }, 1: { battleArea: [{ card: "BT5-047", as: "first" }, { card: "BT5-048", as: "second" }, { card: "BT5-049", as: "third" }] } }, { autoSelectCards: true });
     s.state.memory = 8;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("first"), "attack") && observe(s.engine).isRestricted(s.perm("second"), "block"));
@@ -15,6 +15,7 @@ describe("BT5-102 Wisselen", () => {
       expect(observe(s.engine).isRestricted(s.perm(alias), "attack")).toBe(true);
       expect(observe(s.engine).isRestricted(s.perm(alias), "block")).toBe(true);
     }
+    expect(observe(s.engine).isRestricted(s.perm("third"), "attack")).toBe(false);
   });
 
   it("gains 2 memory when you control a Digi-Burst Digimon", async () => {

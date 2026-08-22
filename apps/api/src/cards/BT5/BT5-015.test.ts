@@ -16,4 +16,12 @@ describe("BT5-015 MetalGreymon: Alterous Mode", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
   });
+
+  it("does not delete when no MetalGreymon source is present", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-010", as: "base" }], hand: [{ card: "BT5-015", as: "evolving" }] }, 1: { battleArea: ["BT2-024"] } }, { autoSelectCards: true });
+    s.state.memory = 1;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT5-015");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

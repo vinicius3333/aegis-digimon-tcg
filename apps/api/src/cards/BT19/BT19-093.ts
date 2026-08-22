@@ -13,86 +13,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 3. Main effect: kept -3000 DP + Restrict cannotActivateWhenDigivolving + PlaceInBattleAreaSelf.
 //    Using Restrict action (restriction:"cannotActivateWhenDigivolving") which exists in engine.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": ["Queen Device"],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Queen Device"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you don't have [Queen Device]"
-          }
-        }
-      ]
+            raw: "you don't have [Queen Device]",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenTrashedByEffect",
-          "sourceFilter": {
-            "isSelfRef": true,
-            "zone": "battleArea"
-          },
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenTrashedByEffect",
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
-                },
-                "count": 1
-              },
-              "amount": -3000,
-              "duration": "untilOpponentTurnEnd"
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -3000,
+              duration: "untilOpponentTurnEnd",
             },
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
-                },
-                "count": 1
-              },
-              "restriction": "cannotActivateWhenDigivolving",
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
-      ]
+              kind: "Restrict",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
+              restriction: "cannotActivateWhenDigivolving",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd"
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
           "kind": "Restrict",
@@ -101,7 +80,8 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": ["Digimon"]
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "restriction": "cannotActivateWhenDigivolving",
           "duration": "untilOpponentTurnEnd"
@@ -137,8 +117,8 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-093", compiled);

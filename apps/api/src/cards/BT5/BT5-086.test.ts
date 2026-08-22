@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-086.js";
 
 describe("BT5-086 Omnimon", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-086")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("unsuspends itself and gains Blitz when digivolving", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-004", as: "base", suspended: true }], hand: [{ card: "BT5-086", as: "evolving" }] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     s.state.memory = 10;

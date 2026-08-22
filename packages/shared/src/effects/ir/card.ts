@@ -41,6 +41,8 @@ export interface CardEffect {
   isFromTrash?: boolean;
   /** A `[Hand]` tag alongside a timing trigger: it activates only from the hand. */
   isFromHand?: boolean;
+  /** Attack-event subject scope for observer effects such as Tamers watching an ally attack. */
+  attackScope?: "self" | "ally" | "opponent";
   frequency?: EffectFrequency;
   /**
    * Turn-owner gate for triggers that do not encode the turn direction. BT19-095's

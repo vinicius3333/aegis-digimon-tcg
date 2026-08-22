@@ -13,13 +13,16 @@ export interface Cost {
     | "trash"
     | "suspend"
     | "unsuspend" // BT14-054
+    | "unsuspendNamed" // BT19-090: one suspended permanent for each named requirement
     | "return"
     | "place"
     | "placeOwnTopAtStackBottom"
     | "deleteOwn"
+    | "trashBreeding" // trash the owner's entire breeding-area Digimon stack
     | "payMemory"
     | "flipSecurity" // flip your top face-up security card face down (BT23-043, EX11-031)
     | "trashSecurityTop" // ST23-05
+    | "trashBothSecurityTop" // BT19-043: trash both players' top security cards atomically
     | "trashBottomFaceDownUnderTamer"
     | "securityToHand"
     | "placeAsSecurity" // move a permanent to the security stack (BT19-048)
@@ -30,6 +33,8 @@ export interface Cost {
     | "playFromDigivolutionCards" // play a card from a selected Digimon's stack (BT19-102)
     | "raw";
   target?: Target;
+  /** Distinct targets for a compound named unsuspend cost. */
+  targets?: Target[];
   /** The nested costs a `compound` cost pays. */
   costs?: Cost[];
   /** Host permanent selected before resolving a stack-card play cost (BT19-102). */
@@ -58,6 +63,8 @@ export interface Cost {
    * ("by placing up to N cards ... reduce by X for each card placed").
    */
   trackCount?: string;
+  /** Store the distinct colors among cards selected by a return cost for later scaling. */
+  trackColors?: string;
   /** Destination for place costs: "under one of your Tamers" → {controller:"mine",kind:["Tamer"]}. */
   underFilter?: Filter;
   /**

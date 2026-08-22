@@ -135,6 +135,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           duration,
           action.continuous === undefined ? undefined : { continuous: action.continuous },
         );
+        for (const keyword of action.alsoGainKeywords ?? []) {
+          ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
+        }
       }
       if (ids.length > 0 && action.target.bindAs !== undefined) {
         ctx.selections ??= new Map();
@@ -158,6 +161,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         for (const keyword of action.alsoGainKeywords ?? []) {
           ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
         }
+      }
+      return false;
+    }
+    case "AddDPFromTrashedCard": {
+      const amount = (ctx.lastTrashedCards ?? []).reduce((total, card) => total + card.dp, 0);
+      if (amount === 0) return false;
+      const targetIds = await resolvePermanentTargets(ctx, action.target);
+      for (const id of targetIds) {
+        ctx.fx.modifyDP(id, amount, toDuration(action.duration), { sourceInstanceId: ctx.source.instanceId });
       }
       return false;
     }

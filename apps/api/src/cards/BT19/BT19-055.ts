@@ -9,78 +9,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The second add (placeUnder Tamer) is thus conditional: only applies when 2 or
 // more applicable cards are available. Encoded as requiresMinRevealed:2 on the second add.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Knightmon"
-                    ],
-                    "match": "text"
+                    tokens: ["Knightmon"],
+                    match: "text",
                   },
                   {
-                    "tokens": [
-                      "Twilight"
-                    ],
-                    "match": "trait",
-                    "orPrevious": true
-                  }
-                ]
+                    tokens: ["Twilight"],
+                    match: "trait",
+                    orPrevious: true,
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Knightmon"
-                    ],
-                    "match": "text"
+                    tokens: ["Knightmon"],
+                    match: "text",
                   },
                   {
-                    "tokens": [
-                      "Twilight"
-                    ],
-                    "match": "trait",
-                    "orPrevious": true
-                  }
-                ]
+                    tokens: ["Twilight"],
+                    match: "trait",
+                    orPrevious: true,
+                  },
+                ],
               },
-              "count": 1,
-              "to": "underTamer",
-              "requiresMinRevealed": 2
-            }
+              count: 1,
+              to: "underTamer",
+              requiresMinRevealed: 2,
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
-    }
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-055", compiled);

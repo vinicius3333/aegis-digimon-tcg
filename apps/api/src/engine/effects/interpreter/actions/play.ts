@@ -277,6 +277,19 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           (c) => !excludedNames.has(ctx.game.definitionOf({ cardId: c.cardId } as never).nameEn),
         );
       }
+      const excludedTriggerSubjectName = (action as typeof action & { excludeNameOfTriggerSubject?: boolean })
+        .excludeNameOfTriggerSubject
+        ? ctx.trigger.subjectPermanentId !== undefined
+          ? ctx.game.permanentById(ctx.trigger.subjectPermanentId)?.topCard !== undefined
+            ? ctx.game.definitionOf(ctx.game.permanentById(ctx.trigger.subjectPermanentId)!.topCard!).nameEn
+            : undefined
+          : undefined
+        : undefined;
+      if (excludedTriggerSubjectName !== undefined) {
+        candidates = candidates.filter(
+          (c) => ctx.game.definitionOf({ cardId: c.cardId } as never).nameEn !== excludedTriggerSubjectName,
+        );
+      }
       const visibleZoneIds = zones.every((zone) => zone === "trash" || zone === "hand")
         ? seatsForController(ctx, playCostAdjustedTarget.filter).flatMap((seat) =>
             zones.flatMap((zone) => looseCardsInZone(ctx, seat, zone).map((candidate) => candidate.instanceId)),
@@ -306,7 +319,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const candidate = candidates.find((c) => c.instanceId === optionId);
           const usedCost =
             candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
-          await ctx.fx.useOptionFromHand(ctx, optionId, usedCost);
+          await ctx.fx.useOptionFromHand(ctx, optionId, usedCost, {
+            payCost: action.payCost,
+            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+          });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
         const played =

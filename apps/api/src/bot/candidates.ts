@@ -221,6 +221,7 @@ export function digivolveCost(evolvingId: string, baseId: string): number | unde
   const hasUnverifiableCost =
     alternate.placementCost !== undefined ||
     alternate.burstDigivolve !== undefined ||
-    alternate.minTraitStackCount !== undefined;
+    alternate.minTraitStackCount !== undefined ||
+    alternate.minNameStackCount !== undefined;
   return hasUnverifiableCost ? undefined : alternate.cost;
 }

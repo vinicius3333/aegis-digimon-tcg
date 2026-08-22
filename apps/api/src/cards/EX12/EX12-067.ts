@@ -1,124 +1,112 @@
-import { CardKind, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX12-067";
-
-function hasJellymonOrDS(def: CardDefinition): boolean {
-  return def.nameEn.includes("Jellymon") || (def.types ?? []).includes("DS");
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartTurn) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-turn-set-memory`,
-          description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (_ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => ctx.game.state.memory <= 2,
-          resolve: async (ctx) => {
-            ctx.fx.setMemory(3);
+// EX12-067 Kiyoshiro Higashimitarai.
+// Q6870: "with [Jellymon] in its text" includes names, traits, effects, inherited effects,
+// rules, and evolution/assembly requirements; the IR uses match:"text" rather than a name-only
+// predicate. The [DS] branch remains a trait predicate.
+// Q6871: the modal is one activation that uses one selected card; separate copies cannot consume
+// multiple cards simultaneously through this effect.
+// Q6872: cost reduction does not waive digivolution requirements, so no ignoreRequirements field
+// is present. A prohibition on reducing play costs may remove only the reduction.
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourTurn",
+      actions: [
+        {
+          kind: "SetMemory",
+          value: 3,
+          condition: { kind: "memoryAtMost", value: 2 },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              { tokens: ["Jellymon"], match: "text" },
+              { tokens: ["DS"], match: "trait" },
+            ],
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/your-turn-attack-sub`,
-          description:
-            "[Your Turn] When one of your [Jellymon]/[DS] Digimon attacks, by suspending " +
-            "this Tamer, digivolve that Digimon into a Lv.6 or lower [Jellymon]/[DS] card " +
-            "from your hand with cost -1. Or, use 1 [Jellymon]/[DS] Option from your hand " +
-            "with cost -2.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenAttacking",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description: `${cardId}: When Jellymon/DS attacks, suspend + modal choice.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const def = subCtx.game.definitionOf(subject.topCard);
-                return isDigimon(def) && hasJellymonOrDS(def);
-              },
-              run: async (subCtx) => {
-                const selfPerm = subCtx.source.permanent();
-                if (selfPerm === undefined || selfPerm.isSuspended) return;
-                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-                if (!paid) return;
-                const owner = subCtx.game.player(source.ownerSeat);
-                const digivolveCards = Array.from(owner.hand).filter((c) => {
-                  const def = subCtx.game.definitionOf(c);
-                  return isDigimon(def) && hasJellymonOrDS(def) && (def.level ?? 99) <= 6;
-                });
-                const optionCards = Array.from(owner.hand).filter((c) => {
-                  const def = subCtx.game.definitionOf(c);
-                  return (def.kinds ?? []).includes(CardKind.Option) && hasJellymonOrDS(def);
-                });
-                const choices: string[] = [];
-                if (digivolveCards.length > 0) choices.push("Digivolve (cost -1)");
-                if (optionCards.length > 0) choices.push("Use Option (cost -2)");
-                if (choices.length === 0) return;
-                const choice = await subCtx.ask.chooseOption(subCtx, choices);
-                if (choice === 0 && digivolveCards.length > 0) {
-                  const chosen = await subCtx.ask.selectCards(subCtx, {
-                    candidates: digivolveCards.map((c) => c.instanceId),
-                    min: 1,
-                    max: 1,
-                  });
-                  if (chosen.length > 0) {
-                    await subCtx.fx.digivolveFromInstance(subCtx.trigger!.subjectPermanentId!, chosen[0]!, { payCost: true, costDelta: -1, ignoreRequirements: true });
-                  }
-                } else if (optionCards.length > 0) {
-                  const chosen = await subCtx.ask.selectCards(subCtx, {
-                    candidates: optionCards.map((c) => c.instanceId),
-                    min: 1,
-                    max: 1,
-                  });
-                  if (chosen.length > 0 && subCtx.fx.useOptionFromHand) {
-                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!, 2);
-                  }
-                }
-              },
-            });
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          actions: [
+            {
+              kind: "Modal",
+              choose: 1,
+              labels: [
+                "Digivolve the attacking Digimon into a level 6 or lower Jellymon/DS card",
+                "Use a Jellymon/DS Option from hand",
+              ],
+              options: [
+                [
+                  {
+                    kind: "Digivolve",
+                    target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
+                    into: {
+                      controllerDefault: "mine",
+                      kind: ["Digimon"],
+                      levelComparison: { op: "lte", value: 6 },
+                      nameOrTrait: [
+                        { tokens: ["Jellymon"], match: "text" },
+                        { tokens: ["DS"], match: "trait" },
+                      ],
+                    },
+                    from: ["hand"],
+                    payCost: true,
+                    reduceCost: 1,
+                    optional: true,
+                    abortOnDecline: true,
+                  },
+                ],
+                [
+                  {
+                    kind: "UseOptionWithoutCost",
+                    filter: {
+                      controller: "mine",
+                      kind: ["Option"],
+                      nameOrTrait: [
+                        { tokens: ["Jellymon"], match: "text" },
+                        { tokens: ["DS"], match: "trait" },
+                      ],
+                    },
+                    from: ["hand"],
+                    payCost: true,
+                    reduceCostBy: 2,
+                    optional: true,
+                  },
+                ],
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX12-067", compiled);

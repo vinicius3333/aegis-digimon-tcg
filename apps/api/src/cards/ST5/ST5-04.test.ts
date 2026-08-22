@@ -3,10 +3,15 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { recordDigimonAttack, rollTurnActivity } from "../../engine/turnActivity.js";
 import "./ST5-04.js";
 
 describe("ST5-04 ToyAgumon", () => {
+  it("is fully represented with the current-turn no-attack condition", () => {
+    expect(runtimeCompiledCard("ST5-04")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "EndOfOpponentsTurn", isInherited: true, actions: [{ kind: "Draw", amount: 1, condition: { kind: "opponentDidNotAttackWithDigimonThisTurn" } }] }] });
+  });
+
   it("draws at the end of the opponent's turn if they did not attack", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST5-08", under: ["ST5-04"], as: "host" }], deck: [{ card: "ST5-03", as: "drawn" }] } });
     s.state.turnSeat = 1;

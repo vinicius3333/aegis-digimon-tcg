@@ -39,7 +39,8 @@ describe("BT7 Red Hybrid historical deck gauntlet", () => {
     await settle(
       () =>
         s.perm("takuya").topCard?.instanceId === s.inst("emperorGreymon").instanceId &&
-        s.perm("takuya").currentDP === 14000,
+        s.perm("takuya").currentDP === 14000 &&
+        observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack") === 1,
     );
 
     const emperor = s.perm("takuya");

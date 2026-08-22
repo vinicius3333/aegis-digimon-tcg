@@ -26,14 +26,14 @@ describe("BT7-029 MagnaGarurumon", () => {
       {
         0: {
           battleArea: [{ card: "BT7-029", suspended: true, as: "magna-ready" }],
-          trash: [{ card: "BT1-001", as: "returned" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).verb.returnToHand([s.inst("returned").instanceId]);
+    await (s.engine as any).primitives.draw(0, 1);
     await settle(() => !s.perm("magna-ready").isSuspended);
 
     expect(s.perm("magna-ready").isSuspended).toBe(false);

@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,37 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./ST2-14.js";
 
 describe("ST2-14 Sorrow Blue", () => {
+  it("matches the Main and Security restriction durations", () => {
+    const definition = getCardDefinition("ST2-14")!;
+    const compiled = getCompiledCard("ST2-14")!;
+
+    expect(definition.effectText).toContain("can't attack or block");
+    expect(definition.securityEffectText).toContain("can't attack or block");
+    expect(compiled.effects).toEqual([
+      {
+        trigger: "Main",
+        actions: [{
+          kind: "Restrict",
+          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true }, count: 1 },
+          restriction: "attackOrBlock",
+          duration: "untilEndOfOpponentNextTurn",
+        }],
+      },
+      {
+        trigger: "Security",
+        actions: [{
+          kind: "Restrict",
+          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true }, count: 1 },
+          restriction: "attackOrBlock",
+          duration: "untilEndOfYourNextTurn",
+        }],
+        isSecurity: true,
+      },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("prevents one source-less opposing Digimon from attacking or blocking", async () => {
     const s = setupEngine(
       {
@@ -15,7 +46,7 @@ describe("ST2-14 Sorrow Blue", () => {
           deck: ["BT1-001"],
         },
         1: {
-          battleArea: [{ card: "ST2-03", as: "target" }],
+          battleArea: [{ card: "ST2-03", as: "target", suspended: true }],
           trash: [{ card: "ST2-01", as: "newSource" }],
           deck: ["BT1-001"],
         },

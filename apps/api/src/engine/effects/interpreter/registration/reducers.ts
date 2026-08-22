@@ -83,6 +83,17 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
   "BT25-077", // condition: 12+ total Digimon levels -> -5 (Q7002 effect-driven stacking)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
+  "BT11-096", // condition: you have a red Tamer -> Option use cost -1
+  "BT11-099", // condition: you have a blue Tamer -> Option use cost -1
+  "BT11-100", // condition: you have a yellow Tamer -> Option use cost -1
+  "BT11-101", // condition: you have a yellow Tamer -> Option use cost -1
+  "BT11-103", // condition: you have a green Tamer -> Option use cost -1
+  "BT11-104", // condition: you have a green Tamer -> Option use cost -1
+  "BT11-105", // condition: you have a Snatchmon -> Option use cost -1
+  "BT11-106", // condition: you have a black Tamer -> Option use cost -1
+  "BT11-107", // condition: you have X Antibody in play -> Option use cost -2
+  "BT11-108", // condition: you have a black Tamer -> Option use cost -1
+  "BT11-110", // condition: you have a purple Tamer -> Option use cost -1
 ]);
 
 /**

@@ -34,6 +34,15 @@ describe("BT5-090 Arata Sanada", () => {
     expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toBe(true);
   });
 
+  it("does not trigger when a different Digimon digivolves", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-090", as: "arata" }, { card: "BT5-063", as: "base" }], hand: [{ card: "BT5-067", as: "evolving" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT5-067");
+    expect(s.perm("arata").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toHaveLength(0);
+  });
+
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT5-090", as: "securityTamer", faceUp: true }] } });
     const instanceId = s.inst("securityTamer").instanceId;

@@ -1,21 +1,56 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import "./BT16-061.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT16-061.js";
+import "../index.js";
 
-const source = { instanceId: "source", cardId: "BT16-061", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as unknown as CardSource;
-
-describe("BT16-061", () => {
-  it("registers Collision and the attack-target-switched watcher", () => {
-    const module = getEffectModule("BT16-061");
-    expect(module).toBeDefined();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2);
+describe("BT16-061 DoruGreymon", () => {
+  it("has Collision and both exact alternate evolution routes", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT16-061", as: "doru" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("doru"), "Collision")).toBe(true);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, names: ["Dorugamon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["SoC"], cost: 3, isAlternate: true },
+    ]);
   });
 
-  it("registers the inherited once-per-turn play-from-trash effect", () => {
-    const effects = getEffectModule("BT16-061")!.effectsForTiming(EffectTiming.OnBattleDeleteOpponent, source);
-    expect(effects).toHaveLength(1);
-    expect(effects[0]).toMatchObject({ isInherited: true, maxPerTurn: 1, optional: true });
+  it("digivolves for free after its attack target switches when an SoC Tamer is underneath", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-061", as: "doru", under: [{ card: "BT14-087" }] }],
+          hand: [{ card: "BT16-064", as: "dorugora" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const memoryBefore = s.state.memory;
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("doru").permanentId,
+    });
+    await settle(() => s.perm("doru").topCard?.cardId === "BT16-064");
+
+    expect(s.perm("doru").topCard?.cardId).toBe("BT16-064");
+    expect(s.state.memory).toBe(memoryBefore);
+  });
+
+  it("inherits an optional once-per-turn play of a cost-5-or-lower X Antibody card from trash", () => {
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "WhenBattleDeleteOpponent",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          target: { filter: { playCostLte: 5 } },
+        },
+      ],
+    });
   });
 });

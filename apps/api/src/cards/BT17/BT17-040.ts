@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
+import { whenDigivolving, turnTiming, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 
@@ -165,10 +165,7 @@ const module: EffectModule = {
           maxPerTurn: 1,
           canTrigger: (ctx) => {
             if (!ctx.source.isOnBattleArea()) return false;
-            // loses a card. Security is removed during the OPPONENT's attack, so this fires on
-            // the opponent's turn. (TriggerInfo has no securityLostSeat field — use !isOwnersTurn
-            // as the proxy, which correctly matches when the opponent attacks this player.)
-            return !ctx.source.isOwnersTurn();
+            return ctx.trigger.removedFromSecuritySeat === source.ownerSeat;
           },
           canActivate: (ctx) => {
             if (!ctx.source.isOnBattleArea()) return false;
@@ -198,6 +195,44 @@ const module: EffectModule = {
             }
           },
         },
+      ];
+    }
+
+    // Effect-driven security removals do not open OnLoseSecurity, but they do emit this
+    // dedicated removal event. Keep it separate from the security-check timing above so a
+    // checked card cannot cause the inherited effect twice.
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-security-loss-effect-removal`,
+          description: "[Inherited][Once Per Turn] When an effect removes a card from your security stack, if this Digimon is Fenriloogamon, give an opponent Digimon -8000 DP.",
+          isInherited: true,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenEffectRemovesFromSecurity",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/inherited-security-loss-fenriloogamon-minus-8000`,
+              matches: (subCtx) => subCtx.trigger.removedFromSecuritySeat === source.ownerSeat,
+              run: async (subCtx) => {
+                const current = source.permanent();
+                if (current?.topCard === undefined) return;
+                if (!subCtx.game.definitionOf(current.topCard).nameEn.includes("Fenriloogamon")) return;
+                const candidates = opponentBattleAreaDigimon(subCtx, source);
+                if (candidates.length === 0) return;
+                const chosen = await subCtx.ask.chooseTargets(subCtx, {
+                  candidates: candidates.map((p) => p.permanentId), min: 1, max: 1,
+                });
+                if (chosen[0] !== undefined) {
+                  subCtx.fx.modifyDP(chosen[0], -8000, EffectDuration.UntilEachTurnEnd);
+                }
+              },
+            });
+          },
+        }),
       ];
     }
 

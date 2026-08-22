@@ -10,6 +10,53 @@ export const compiledEffects: CompiledEffects = effectsJson as unknown as Compil
 
 /** BT26 is hand-authored while generated effect records are absent. */
 export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
+  // EX12-031: one Lv.4-or-lower card with [Aqua]/[Sea Animal] in any trait OR [TB].
+  "EX12-031": [
+    {
+      reduceCost: 2,
+      materials: [
+        {
+          count: 1,
+          nameOrTrait: [
+            { tokens: ["Aqua", "Sea Animal"], match: "trait" },
+            { tokens: ["TB"], match: "trait" },
+          ],
+          levelMax: 4,
+        },
+      ],
+    },
+  ],
+  "EX12-035": [
+    {
+      reduceCost: 6,
+      materials: [
+        {
+          count: 1,
+          level: 5,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+        {
+          count: 1,
+          level: 4,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+        {
+          count: 1,
+          level: 3,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+      ],
+    },
+  ],
   "BT26-014": [{ reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] }],
   "BT26-017": [{ reduceCost: 4, materials: [{ traits: ["Shambala"], levelMax: 5, count: 2, differentLevels: true }] }],
   "BT26-028": [{ reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] }],
@@ -73,6 +120,168 @@ export function getCompiledCard(cardId: string): CompiledCard | undefined {
  * one source of truth.
  */
 export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolveRequirement[]> = {
+  // EX12-017 prints Red/Yellow Lv.5 + Black/Purple Lv.5: expand the color alternatives
+  // into the four concrete material pairings consumed by the server legality seam.
+  "EX12-017": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+  ],
+  // EX12-032 prints Blue/Yellow Lv.5 + Purple/Red Lv.5: expand the color alternatives
+  // into the four concrete material pairings consumed by the server legality seam.
+  "EX12-032": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+  ],
+  "EX12-035": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+  ],
+  "EX12-037": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 6 },
+        { color: "Red", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Red", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+  ],
+  "EX12-044": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Green", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Green", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+  ],
+  // EX12-055 prints Black/Purple Lv.4 + Red/Yellow Lv.4: expand the color alternatives
+  // into the four concrete material pairings consumed by the server legality seam.
+  "EX12-055": [
+    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Red", level: 4 }] },
+    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Yellow", level: 4 }] },
+    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Red", level: 4 }] },
+    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Yellow", level: 4 }] },
+  ],
   "BT17-078": [
     {
       cost: 0,
@@ -103,6 +312,28 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT19-102: the Nene path requires a Shademon card already under that Tamer.
+  "BT19-102": [
+    { names: ["Luminamon"], cost: 2, isAlternate: true },
+    {
+      names: ["Nene Amano"],
+      minNameStackCount: 1,
+      minNameStackNames: ["Shademon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
+  // EX12-032 prints two Lv.4 alternate paths: Garurumon in name, or NSo/VB trait.
+  "EX12-032": [
+    { level: 4, names: ["Garurumon"], cost: 3, isAlternate: true },
+    { level: 4, traits: ["NSo", "VB"], cost: 3, isAlternate: true },
+  ],
+  // EX12-035 prints Lv.5 [Garurumon] in name OR [ME]/[VB] trait: cost 3.
+  "EX12-035": [
+    { level: 5, names: ["Garurumon"], cost: 3, isAlternate: true },
+    { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
+  ],
+  "EX12-037": [{ level: 6, traits: ["ME", "VB"], cost: 5, isAlternate: true }],
   // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
   // card from hand for 3, ignoring the ordinary level/color requirement.
   "RB1-009": [
@@ -702,6 +933,30 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // BT19-102: [Nene Amano] is a Tamer material and the second slot accepts either named Digimon.
+  "BT19-102": [
+    {
+      materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
+      count: 1,
+    },
+  ],
+  // EX12-029: the printed slot is one Lv.5-or-lower Digimon with [Gokuumon] in its text
+  // OR the [SW] trait. The generated aggregate incorrectly made these predicates ANDed and
+  // required two materials, so keep server legality and client highlighting on the printed rule.
+  "EX12-029": [
+    {
+      materials: [
+        {
+          levelMax: 5,
+          nameOrTrait: [
+            { tokens: ["Gokuumon"], match: "text" },
+            { tokens: ["SW"], match: "trait" },
+          ],
+        },
+      ],
+      count: 2,
+    },
+  ],
   // EX3-014: up to 5 differently named Digimon whose trait CONTAINS Dragon/saur/Ceratopsian.
   // This includes Dragonkin, Rock Dragon and Dinosaur (Q3377), not only exact trait tokens.
   "EX3-014": [

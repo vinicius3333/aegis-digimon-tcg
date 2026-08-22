@@ -1,76 +1,69 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT11-065";
-const isNamed = (name: string, expected: string): boolean => name.toLowerCase().includes(expected.toLowerCase());
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.WhenDigivolving)
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/place-vemmon`,
-          description: "[When Digivolving] Place up to 2 Vemmon from trash; with 4 Vemmon, return Fusionize.",
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            const trash = ctx.game.player(source.ownerSeat).trash;
-            const candidates = trash
-              .filter((card) => isNamed(ctx.game.definitionOf(card).nameEn, "Vemmon"))
-              .map(({ instanceId }) => instanceId);
-            const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: Math.min(2, candidates.length) });
-            if (chosen.length > 0) await ctx.fx.placeUnder(self.permanentId, chosen, { belowTop: false });
-            const current = ctx.game.permanentById(self.permanentId);
-            if (
-              current === undefined ||
-              current.stack.filter((card) => isNamed(ctx.game.definitionOf(card).nameEn, "Vemmon")).length < 4
-            )
-              return;
-            const fusionize = ctx.game
-              .player(source.ownerSeat)
-              .trash.filter((card) => isNamed(ctx.game.definitionOf(card).nameEn, "Fusionize"))
-              .map(({ instanceId }) => instanceId);
-            if (fusionize.length === 0) return;
-            const picked = await ctx.ask.selectCards(ctx, { candidates: fusionize, min: 1, max: 1 });
-            if (picked.length > 0) await ctx.fx.returnToHand(picked);
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+            },
+            count: 2,
+            upTo: true,
+            from: ["trash"],
           },
-        }),
-      ];
-    if (timing === EffectTiming.None)
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/inherited-bottom-deck-vemmon`,
-          isInherited: true,
-          description:
-            "Inherited [All Turns][Once Per Turn] When Vemmon leaves this stack for deck bottom, unsuspend and gain Blocker.",
-          resolve: async (ctx) => {
-            const host = source.permanent();
-            if (host === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "onDigivolutionCardReturnToDeckBottom",
-              sourcePermanentId: host.permanentId,
-              once: false,
-              oncePerTurnKey: `${source.instanceId}/${cardId}/blocker`,
-              description: "BT11-065 inherited",
-              matches: (subCtx) =>
-                subCtx.trigger.subjectPermanentId === host.permanentId &&
-                subCtx.trigger.returnedToDeckCardId === "BT11-061",
-              run: async (subCtx) => {
-                await subCtx.fx.unsuspend([host.permanentId]);
-                subCtx.fx.grantKeyword(host.permanentId, "Blocker", EffectDuration.UntilOpponentTurnEnd);
-              },
-            });
+          underFilter: { controllerDefault: "mine", kind: ["Digimon"] },
+          optional: true,
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Fusionize"], match: "name" }],
+            },
+            count: 1,
           },
-        }),
-      ];
-    return [];
-  },
+          to: "hand",
+          condition: {
+            kind: "selfDigivolutionStackCountAtLeast",
+            filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+            count: 4,
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [{
+        kind: "SubTrigger",
+        event: "onDigivolutionCardReturnToDeckBottom",
+        sourceFilter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+        actions: [
+          { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+          {
+            kind: "GainKeyword",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+            duration: "untilOpponentTurnEnd",
+          },
+        ],
+      }],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
+
+registerIrCard("BT11-065", compiled);

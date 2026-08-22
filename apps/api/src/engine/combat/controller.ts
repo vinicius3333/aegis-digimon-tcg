@@ -86,6 +86,7 @@ export interface CombatTrigger {
   subjectPermanentId?: string;
   suspendedPermanentId?: string;
   attackerPermanentId?: string;
+  attackSequence?: number;
   defenderPermanentId?: string;
   blockerPermanentId?: string;
   target?: AttackTarget;
@@ -266,6 +267,7 @@ export interface CombatHooks {
 }
 
 export class CombatController {
+  private attackSequence = 0;
   private openWindow: OpenBlockWindow | undefined;
   private resolving = false;
   /**
@@ -487,6 +489,7 @@ export class CombatController {
     } = {},
   ): Promise<void> {
     this.resolving = true;
+    const attackSequence = ++this.attackSequence;
     this.currentAttack = {
       attackerPermanentId: attacker.permanentId,
       attackerCardId: attacker.topCard.cardId,
@@ -532,12 +535,14 @@ export class CombatController {
       // event subject for both events; a watcher's captured sourceFilter gates on it.
       await this.hooks.fireSubTrigger?.("whenAttacking", {
         attackerPermanentId: attacker.permanentId,
+        attackSequence,
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),
       });
       await this.hooks.fireSubTrigger?.("whenOpponentAttacks", {
         attackerPermanentId: attacker.permanentId,
+        attackSequence,
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),

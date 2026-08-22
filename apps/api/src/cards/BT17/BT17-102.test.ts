@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { module } from "./BT17-102.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 // A3 for BT17-102 (Greymon, White Lv.4):
@@ -64,5 +65,21 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
 
     // The opponent's Digimon with 4000 DP (≤ Greymon's 5000 DP) was deleted.
     expect(p1?.battleArea.some((p) => p.permanentId === oppPermId)).toBe(false);
+  });
+});
+
+describe("BT17-102 Greymon — dynamic stack names", () => {
+  it("has the names of level 3 and lower cards in its stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: GREYMON, as: "greymon", under: [{ card: AGUMON_LV3, as: "agumon" }] }],
+      },
+      1: {},
+    });
+    await s.ready();
+
+    expect(observe(s.engine).effectiveNames(s.perm("greymon"))).toEqual(
+      expect.arrayContaining(["greymon", "agumon"]),
+    );
   });
 });

@@ -11,8 +11,10 @@ import {
   inTrash,
   onAddHand,
   onDeletion,
+  onDiscardSecurity,
   onPlay,
   security,
+  securityStatic,
   staticModifier,
   turnTiming,
   whenAttacking,
@@ -39,6 +41,16 @@ import type { Action, CardEffect } from "@aegis/shared";
  * contributes nothing at any timing for that effect — visible as "none" stub).
  */
 function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
+  // A compound `[Security][Your Turn]`/`[Security][All Turns]` effect is a persistent
+  // watcher while the face-up card remains in security, not the one-shot `[Security]`
+  // skill window. Keep pure security skills on SecuritySkill below, but let the
+  // continuous trigger reach recomputeContinuousEffects so its SubTrigger can arm.
+  if (
+    effect.isSecurity &&
+    (effect.trigger === "YourTurn" || effect.trigger === "OpponentsTurn" || effect.trigger === "AllTurns")
+  ) {
+    return EffectTiming.None;
+  }
   if (effect.isSecurity) return EffectTiming.SecuritySkill;
   // A printed [Your Turn] clause whose payload is an effect-driven digivolution is a
   // player-declared ability, not a continuous modifier. Keep the turn ownership guard from
@@ -60,9 +72,13 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     case "WhenDigivolving":
       return EffectTiming.WhenDigivolving;
     case "WhenAttacking":
-      return EffectTiming.OnUseAttack;
+      return effect.attackScope === "ally" ? EffectTiming.OnAllyAttack : EffectTiming.OnUseAttack;
     case "WhenBlocked":
       return EffectTiming.OnBlockAnyone;
+    case "OnSecurityCheck":
+      return EffectTiming.OnSecurityCheck;
+    case "OnDiscardSecurity":
+      return EffectTiming.OnDiscardSecurity;
     case "OnDeletion":
       return EffectTiming.OnDestroyedAnyone;
     case "EndOfAttack":
@@ -187,7 +203,13 @@ function isHandResidentDigivolveCostStatic(effect: CardEffect): boolean {
   // `HandCards.Contains(card)` + `cardSource == card`), not merely on "all actions are
   // digivolve CostModifiers". An on-field digivolve-cost static (which lacks the marker)
   // must NOT lose its on-field base guard via this hand-permissive route (WR-01).
-  return actions.every((a) => a.kind === "CostModifier" && a.handResident === true);
+  return actions.every(
+    (a) =>
+      (a.kind === "CostModifier" && a.handResident === true) ||
+      (a.kind === "Replacement" &&
+        a.event === "wouldDigivolve" &&
+        a.actions?.some((nested) => nested.kind === "Replacement" && nested.mode === "reduceCost")),
+  );
 }
 
 /**
@@ -247,6 +269,12 @@ function isHandTrashWatcherHost(effect: CardEffect): boolean {
 
 /** Pick the timing builder that matches an IR trigger. */
 export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) => Effect {
+  if (
+    effect.isSecurity &&
+    (effect.trigger === "YourTurn" || effect.trigger === "OpponentsTurn" || effect.trigger === "AllTurns")
+  ) {
+    return securityStatic;
+  }
   if (effect.isSecurity || effect.trigger === "Security") return security;
   if (
     effect.trigger === "YourTurn" &&
@@ -280,6 +308,8 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenAttacking;
     case "OnDeletion":
       return onDeletion;
+    case "OnDiscardSecurity":
+      return onDiscardSecurity;
     case "whenTrashedFromBattleArea":
       return whenTrashedFromBattleArea;
     case "Main":
@@ -398,6 +428,7 @@ const RESULT_BINDING_KEYS = [
   "lastOpponentDeclined",
   "lastPlayedPermanentIds",
   "lastSuspendedPermanentIds",
+  "lastTrashedCards",
   "lastRevealedCards",
   "lastDeletedByThisEffectIds",
   "namedCounts",

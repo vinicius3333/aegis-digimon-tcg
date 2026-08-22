@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 // A3 for BT17-100 (Doomsday Clock, Black Option):
@@ -78,5 +80,47 @@ describe("BT17-100 Doomsday Clock — [Main] plays Diaboromon Token", () => {
     // A Diaboromon Token should have been played.
     const hasToken = p0?.battleArea.some((p) => p.topCard?.cardId.startsWith("TOKEN-"));
     expect(hasToken).toBe(true);
+  });
+});
+
+describe("BT17-100 Doomsday Clock — inherited leave prevention", () => {
+  it("deletes another Diaboromon to prevent an opponent-effect deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-059", as: "protected", under: [DOOMSDAY_CLOCK] },
+            { card: "BT17-059", as: "cost" },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const protectedId = s.perm("protected").permanentId;
+    const costId = s.perm("cost").permanentId;
+
+    await advance(s.engine).verb.deletePermanent([protectedId], "byEffect");
+    await settle(() => false, 100);
+
+    expect(s.state.players[0]?.battleArea.some((p) => p.permanentId === protectedId)).toBe(true);
+    expect(s.state.players[0]?.battleArea.some((p) => p.permanentId === costId)).toBe(false);
+  });
+
+  it("places a stacked Doomsday Clock in the battle area at end of the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-059", as: "host", under: [{ card: DOOMSDAY_CLOCK, as: "stackedClock" }] }] },
+      1: {},
+    }, { autoSelectCards: true });
+    s.state.turnSeat = 1;
+    const clockId = s.inst("stackedClock").instanceId;
+
+    await (s.engine as unknown as {
+      fireTiming(timing: EffectTiming): Promise<void>;
+    }).fireTiming(EffectTiming.OnEndTurn);
+    await settle(() => s.state.players[0]?.battleArea.some((p) => p.topCard?.instanceId === clockId) ?? false, 400);
+
+    expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.instanceId === clockId)).toBe(true);
   });
 });

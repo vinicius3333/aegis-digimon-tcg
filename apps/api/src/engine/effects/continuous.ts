@@ -86,6 +86,7 @@ interface NameTraitGrant {
   continuous?: boolean;
   /** When true, this name alias is ONLY valid for DigiXros material matching. */
   digiXrosOnly?: boolean;
+  dynamicTokens?: () => string[];
 }
 
 interface OriginalCardInfoOverride {
@@ -838,7 +839,7 @@ export class ContinuousEffectLedger {
     kind: "name" | "trait",
     tokens: string[],
     duration: EffectDuration,
-    opts?: { continuous?: boolean; digiXrosOnly?: boolean },
+    opts?: { continuous?: boolean; digiXrosOnly?: boolean; dynamicTokens?: () => string[] },
   ): void {
     this.nameTraitGrants.push({
       permanentId,
@@ -847,6 +848,7 @@ export class ContinuousEffectLedger {
       duration,
       continuous: opts?.continuous,
       digiXrosOnly: opts?.digiXrosOnly,
+      dynamicTokens: opts?.dynamicTokens,
     });
   }
 
@@ -854,7 +856,9 @@ export class ContinuousEffectLedger {
   grantedNames(permanentId: string): string[] {
     return this.nameTraitGrants
       .filter((g) => g.permanentId === permanentId && g.kind === "name" && !g.digiXrosOnly)
-      .flatMap((g) => g.tokens.map((t) => t.toLowerCase()));
+      .flatMap((g) => g.dynamicTokens
+        ? g.dynamicTokens().map((t) => t.toLowerCase())
+        : g.tokens.map((t) => t.toLowerCase()));
   }
 
   /**

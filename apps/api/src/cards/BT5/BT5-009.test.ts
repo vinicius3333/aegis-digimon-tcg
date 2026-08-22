@@ -24,4 +24,15 @@ describe("BT5-009 Shoutmon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
   });
+
+  it("can add two ShoutmonDX copies because each also has Blitz", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT5-009", as: "source" }], deck: [
+      { card: "BT5-019", as: "first" }, { card: "BT5-019", as: "second" }, "BT5-008", "BT5-011", "BT5-012",
+    ] } }, { autoSelectCards: true });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => player.hand.filter((card) => card.cardId === "BT5-019").length === 2);
+    expect(player.hand.filter((card) => card.cardId === "BT5-019")).toHaveLength(2);
+  });
 });

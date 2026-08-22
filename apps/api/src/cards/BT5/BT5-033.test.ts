@@ -8,5 +8,7 @@ describe("BT5-033 Cutemon", () => {
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
     expect((s.engine as any).continuous.blocksCostReduction(1, "digivolve")).toBe(true);
+    expect((s.engine as any).continuous.blocksCostReduction(0, "digivolve")).toBe(false);
+    expect((s.engine as any).continuous.blocksCostReduction(1, "play")).toBe(false);
   });
 });

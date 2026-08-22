@@ -3,7 +3,7 @@ import type { CardInstance, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { activated, security, turnTiming } from "../../engine/effects/builders.js";
+import { activated, security, staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -138,6 +138,46 @@ const module: EffectModule = {
             if (count >= 4) {
               ctx.fx.declareWinner(source.ownerSeat);
             }
+          },
+        }),
+      ];
+    }
+
+    // [Inherited][All Turns] Prevent this Digimon from leaving by an opponent's
+    // effect by deleting another of your [Diaboromon].
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-leave-prevention`,
+          description:
+            "[All Turns][Inherited] When this Digimon would leave the battle area by an opponent's effect, " +
+            "by deleting 1 of your other [Diaboromon], prevent it from leaving.",
+          optional: false,
+          isInherited: true,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "prevent",
+              description: "Delete another Diaboromon to prevent this Digimon from leaving.",
+              causeAllows: (cause, resolvingSeat) =>
+                cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== source.ownerSeat,
+              protects: (_subCtx, leavingId) => leavingId === self.permanentId,
+              preventCheck: async (subCtx, leavingId) => {
+                if (leavingId !== self.permanentId) return false;
+                const owner = subCtx.game.player(source.ownerSeat);
+                const candidates = owner.battleArea.filter((p) => {
+                  if (p.permanentId === self.permanentId || p.topCard === undefined) return false;
+                  return _isDiaboromon(p.topCard);
+                });
+                if (candidates.length === 0) return false;
+                await subCtx.fx.deletePermanent([candidates[0]!.permanentId]);
+                return true;
+              },
+            });
           },
         }),
       ];

@@ -29,4 +29,15 @@ describe("BT5-017 ZeigGreymon", () => {
       target: { kind: "permanent", permanentId: s.perm("unsuspended").permanentId },
     })).toEqual({ ok: true });
   });
+
+  it("uses the actual digivolution-granted Blitz while the opponent has memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT5-015", as: "base" }], hand: [{ card: "BT5-017", as: "evolving" }] },
+      1: { battleArea: [{ card: "BT5-071", as: "target" }] },
+    });
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Blitz"));
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+  });
 });

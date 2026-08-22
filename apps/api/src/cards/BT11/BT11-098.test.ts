@@ -12,7 +12,7 @@ describe("BT11-098 Maelstrom", () => {
         },
         1: { battleArea: [{ card: "BT1-015", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     await s.ready();

@@ -125,8 +125,6 @@ const module: EffectModule = {
 
     return [];
   },
-  // RESIDUAL: "While revealed from deck this card is also treated as level 6" —
-  // rule implementation has no engine level-override primitive.
   // RESIDUAL: [On Deletion] "if deleted by an effect" gate is inert — RemovalCause not
   // carried in TriggerInfo; effect fires on all deletions (over-fires on battle/rule deletions).
 };

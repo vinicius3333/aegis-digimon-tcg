@@ -16,17 +16,19 @@ describe("ST15 collection audit ledger guards", () => {
   });
 
   it("has a direct module for every card and committed compiled evidence for every card", () => {
-    const missingModules = st15Cards.filter((card) => getEffectModule(card.cardId) === undefined).map((card) => card.cardId);
+    const missingModules = st15Cards
+      .filter((card) => getEffectModule(card.cardId) === undefined)
+      .map((card) => card.cardId);
     const missingIr = st15Cards.filter((card) => getCompiledCard(card.cardId) === undefined).map((card) => card.cardId);
     expect(missingModules).toEqual([]);
     expect(missingIr).toEqual([]);
   });
 
-  it("keeps the direct-module exception explicit", () => {
-    expect(runtimeCompiledCard("ST15-13")).toBeDefined();
-    expect(getCompiledCard("ST15-13")?.residual?.length).toBeGreaterThan(0);
-    for (const card of st15Cards.filter((card) => card.cardId !== "ST15-13")) {
+  it("executes every card exclusively through complete compiled IR", () => {
+    for (const card of st15Cards) {
       expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
+      expect(runtimeCompiledCard(card.cardId)?.coverage, card.cardId).toBe("full");
+      expect(runtimeCompiledCard(card.cardId)?.residual, card.cardId).toEqual([]);
     }
   });
 });

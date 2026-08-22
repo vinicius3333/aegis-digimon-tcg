@@ -21,6 +21,10 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
+              "kind": [
+                "Digimon",
+                "Tamer"
+              ],
               "nameOrTrait": [
                 {
                   "tokens": [

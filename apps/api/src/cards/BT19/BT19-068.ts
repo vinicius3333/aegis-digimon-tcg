@@ -6,114 +6,101 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Twilight",
-                      "Composite"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Twilight", "Composite"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
+          rest: "trash",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Nene Amano"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Nene Amano"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "excludeToken": true
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            excludeToken: true,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "trait",
-          "tokens": [
-            "Composite"
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
-    {
-      "materials": [
-        {
-          "names": [
-            "Nene Amano"
-          ]
-        }
+          grant: "trait",
+          tokens: ["Composite"],
+        },
       ],
-      "count": 2
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          names: ["Nene Amano"],
+        },
+      ],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT19-068", compiled);

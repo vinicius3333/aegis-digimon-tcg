@@ -35,6 +35,8 @@ export interface DigivolveAction extends ActionBase {
   into?: Filter;
   /** Source zone for the card digivolved INTO; the interpreter resolves the pool. */
   from?: ZoneRef[];
+  /** Restrict the source card to the enclosing trigger's loose source instance. */
+  source?: "triggerSource";
   /**
    * A legacy prose-compiler encoding stores the fixed cost as a NUMBER, which the interpreter
    * normalizes to {@link DigivolveAction.costOverride}. New IR should use `true` + `costOverride`.
@@ -169,6 +171,8 @@ export interface TrashDigivolutionAction extends ActionBase {
    * of a deterministic `fromTop`/bottom slice.
    */
   choose?: boolean;
+  /** Store the number of cards actually trashed for a later named-count scaling. */
+  trackCount?: string;
 }
 
 /**

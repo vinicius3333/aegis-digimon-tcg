@@ -10,4 +10,12 @@ describe("BT5-047 Palmon", () => {
     await settle(() => s.perm("green").stack.some((card) => card.instanceId === palmonId));
     expect(s.perm("green").stack[0]?.instanceId).toBe(palmonId);
   });
+
+  it("does not place itself when no own green Digimon is available", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-047", as: "palmon" }, { card: "BT1-009", as: "red" }] } }, { autoSelectCards: true });
+    const palmonId = s.perm("palmon").topCard!.instanceId;
+    await (s.engine as any).primitives.deletePermanent([s.perm("palmon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === palmonId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === palmonId)).toBe(true);
+  });
 });

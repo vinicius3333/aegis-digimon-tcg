@@ -21,7 +21,7 @@ describe("BT11-076 Ignitemon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     const sacrificeId = s.perm("sacrifice").permanentId;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ignitemon"));

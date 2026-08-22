@@ -8,4 +8,14 @@ describe("BT5-002 Tsunomon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("also recognizes Omnimon but not an unrelated Greymon name", async () => {
+    const omnimon = setupEngine({ 0: { battleArea: [{ card: "BT5-086", as: "host", under: ["BT5-002"] }] } });
+    await omnimon.engine.recomputeContinuousEffects();
+    expect(omnimon.perm("host").currentDP).toBe(omnimon.perm("host").baseDP + 1000);
+
+    const unrelated = setupEngine({ 0: { battleArea: [{ card: "BT4-113", as: "host", under: ["BT5-002"] }] } });
+    await unrelated.engine.recomputeContinuousEffects();
+    expect(unrelated.perm("host").currentDP).toBe(unrelated.perm("host").baseDP);
+  });
 });

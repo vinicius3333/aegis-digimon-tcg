@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-16.js";
 
 describe("ST5-16 Dark Side Attack", () => {
+  it("is fully represented with the play-cost-seven boundary", () => {
+    expect(runtimeCompiledCard("ST5-16")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "Main", actions: [{ kind: "Delete", target: { count: 1, filter: { playCost: { op: "lte", value: 7 } } } }] }, { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }] });
+  });
+
   it("deletes an opposing Digimon with play cost 7 or less", async () => {
     const s = setupEngine({ 0: { battleArea: ["ST5-03"], hand: [{ card: "ST5-16", as: "option" }] }, 1: { battleArea: [{ card: "ST5-09", as: "target" }, { card: "ST5-12", as: "tooExpensive" }] } }, { autoSelectCards: true });
     s.state.memory = 6;

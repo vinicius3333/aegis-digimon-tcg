@@ -149,6 +149,7 @@ export interface ReplacementSubscriptionBase {
 export interface ReplacementSubscriptionReduceCost extends ReplacementSubscriptionBase {
   mode: "reduceCost";
   amount?: number;
+  amountForInto?: (def: CardDefinition) => number;
   /**
    * For mode "reduceCost" + event "wouldDigivolve": predicate gating the reduction to only
    * when the card being digivolved INTO satisfies this check. Absent ⇒ applies to all targets.
@@ -324,6 +325,15 @@ export class SubTriggerRegistry {
           `permanent/instance or retain the activating resolution context.`,
       );
     }
+    const existing = this.subs.find(
+      (candidate) =>
+        candidate.event === sub.event &&
+        candidate.sourcePermanentId === sub.sourcePermanentId &&
+        candidate.sourceInstanceId === sub.sourceInstanceId &&
+        candidate.oncePerTurnKey === sub.oncePerTurnKey &&
+        candidate.description === sub.description,
+    );
+    if (existing !== undefined) return existing.id;
     const id = this.seq++;
     this.subs.push({ ...sub, id });
     return id;
@@ -486,8 +496,9 @@ export class SubTriggerRegistry {
       } else if (sourcePermanentId !== undefined && r.sourcePermanentId !== sourcePermanentId) continue;
       if (r.intoMatches !== undefined && into !== undefined && !r.intoMatches(into)) continue;
       if (r.oncePerTurnKey !== undefined && turnBudget?.hasFired(r.oncePerTurnKey)) continue;
-      sum += r.amount ?? 0;
-      if (r.oncePerTurnKey !== undefined && (r.amount ?? 0) > 0) consumedKeys.add(r.oncePerTurnKey);
+      const reduction = into !== undefined && r.amountForInto !== undefined ? r.amountForInto(into) : (r.amount ?? 0);
+      sum += reduction;
+      if (r.oncePerTurnKey !== undefined && reduction > 0) consumedKeys.add(r.oncePerTurnKey);
     }
     if (turnBudget?.consume === true) {
       for (const key of consumedKeys) turnBudget.markFired(key);

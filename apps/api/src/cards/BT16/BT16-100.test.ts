@@ -1,22 +1,72 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import "./BT16-100.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT16-100.js";
+import "../index.js";
 
-const source = { instanceId: "source", cardId: "BT16-100", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as unknown as CardSource;
-
-describe("BT16-100", () => {
-  it("registers color waiver, security cost reduction, Main, and Security effects", () => {
-    const module = getEffectModule("BT16-100");
-    expect(module).toBeDefined();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.BeforePayCost, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnUseOption, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+describe("BT16-100 Thunderflame Crusher", () => {
+  it("waives color with Pulsemon text and scales its optional security payment", () => {
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "BeforePayCost",
+      actions: [
+        {
+          kind: "ReducePlayCost",
+          payment: { kind: "trashSecurityTopUpToLeave", leaveCount: 3 },
+          amount: { kind: "perPaid", value: 2 },
+        },
+      ],
+    });
   });
 
-  it("does not expose unrelated timing effects", () => {
-    expect(getEffectModule("BT16-100")!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
+  it("uses publicly, trashes security to 3, deletes level 5, and pays the reduced cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-039", as: "pulsemon" }],
+          hand: [{ card: "BT16-100", as: "option" }],
+          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT16-020", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 6;
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-020"),
+      3000,
+    );
+    expect(s.state.players[0]?.security).toHaveLength(3);
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[1]?.battleArea.map((permanent) => permanent.topCard?.cardId)).not.toContain("BT16-020");
+  });
+
+  it("places itself at security bottom after Main when the stack has 2 or fewer cards", () => {
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "Main",
+      actions: [
+        { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 5 } } } },
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          toTop: false,
+          condition: { kind: "securityAtMost", value: 2 },
+        },
+      ],
+    });
+  });
+
+  it("gives an opposing Digimon -15000 DP from security", () => {
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "ModifyDP", amount: -15000, duration: "forTheTurn" }],
+    });
   });
 });

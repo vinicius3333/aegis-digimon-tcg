@@ -184,6 +184,12 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
+  "dnaDigivolveRequirement": [
+    { "cost": 0, "materials": [{ "color": "Red", "level": 5 }, { "color": "Black", "level": 5 }] },
+    { "cost": 0, "materials": [{ "color": "Red", "level": 5 }, { "color": "Purple", "level": 5 }] },
+    { "cost": 0, "materials": [{ "color": "Yellow", "level": 5 }, { "color": "Black", "level": 5 }] },
+    { "cost": 0, "materials": [{ "color": "Yellow", "level": 5 }, { "color": "Purple", "level": 5 }] }
+  ],
   "digivolutionRequirement": [
     {
       "level": 5,

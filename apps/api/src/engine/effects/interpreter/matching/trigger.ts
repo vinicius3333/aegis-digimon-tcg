@@ -1,7 +1,7 @@
 // Matching a filter against the payload of the firing trigger event.
 
 import type { EffectContext } from "../../EffectContext.js";
-import { matchNameOrTrait } from "./definition.js";
+import { definitionMatches, matchNameOrTrait } from "./definition.js";
 import { permanentMatchesFilter, seatsForController } from "./permanent.js";
 import type { Filter } from "@aegis/shared";
 
@@ -16,6 +16,20 @@ import type { Filter } from "@aegis/shared";
  */
 export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filter): string[] {
   const t = subCtx.trigger;
+  // `whenOptionUsed` carries the used Option's instance id, not a battle-area
+  // permanent id. Resolve that event directly from the owner's loose zones so
+  // trait/name source filters remain meaningful for Option-use watchers.
+  if (t.usedOptionCost !== undefined && t.subjectPermanentId !== undefined) {
+    const allowedSeats = seatsForController(subCtx, filter);
+    for (const seat of allowedSeats) {
+      const player = subCtx.game.player(seat);
+      const card = [...player.hand, ...player.trash, ...player.security].find(
+        (candidate) => candidate.instanceId === t.subjectPermanentId,
+      );
+      if (card !== undefined && definitionMatches(filter, subCtx.game.definitionOf(card)))
+        return [t.subjectPermanentId];
+    }
+  }
   const subjectIds =
     t.subjectPermanentIds ??
     [

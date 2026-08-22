@@ -6,185 +6,240 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine"
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 3,
-            "upTo": true
+            count: 1,
           },
-          "optional": true
+          amount: -4000,
+          duration: "untilYourTurnEnd",
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 3,
+              upTo: true,
+            },
+            raw: "By trashing up to 3 cards from your hand",
+          },
+          scaling: {
+            per: 1,
+            usePaidCount: true,
+            filter: {
+              controllerDefault: "mine",
+            },
+            unit: "cards",
+          },
         },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -4000,
-          "duration": "untilYourTurnEnd",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine"
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 3,
-            "upTo": true
+            count: 1,
           },
-          "optional": true
+          amount: -4000,
+          duration: "untilYourTurnEnd",
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 3,
+              upTo: true,
+            },
+            raw: "By trashing up to 3 cards from your hand",
+          },
+          scaling: {
+            per: 1,
+            usePaidCount: true,
+            filter: {
+              controllerDefault: "mine",
+            },
+            unit: "cards",
+          },
         },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -4000,
-          "duration": "untilYourTurnEnd",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "Counter",
-      "actions": [
+      trigger: "Counter",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine"
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 3,
-            "upTo": true
+            count: 1,
           },
-          "optional": true
+          amount: -4000,
+          duration: "untilYourTurnEnd",
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 3,
+              upTo: true,
+            },
+            raw: "By trashing up to 3 cards from your hand",
+          },
+          scaling: {
+            per: 1,
+            usePaidCount: true,
+            filter: {
+              controllerDefault: "mine",
+            },
+            unit: "cards",
+          },
         },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -4000,
-          "duration": "untilYourTurnEnd",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Jellymon"
-                ],
-                "match": "text"
+                tokens: ["Jellymon"],
+                match: "text",
               },
               {
-                "tokens": [
-                  "DS"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["DS"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Prevent",
-              "mode": "leavePlay",
-              "cost": {
-                "kind": "return",
-                "target": {
-                  "filter": {
-                    "controller": "mine"
+              kind: "Prevent",
+              mode: "leavePlay",
+              cost: {
+                kind: "return",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
                   },
-                  "count": 3
+                  count: 3,
                 },
-                "raw": "by returning 3 cards from your trash to the bottom of the deck"
-              }
-            }
-          ]
-        }
+                raw: "by returning 3 cards from your trash to the bottom of the deck",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "texts": [
-        "Jellymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      frequency: "OncePerTurn",
     },
     {
-      "traits": [
-        "DS"
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["DS"],
+                  match: "trait",
+                },
+              ],
+            },
+            raw: "you have a card w/[DS] trait",
+          },
+        },
       ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 5
-    }
-  ]
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "hasAny",
+            },
+            count: "any",
+          },
+          scope: "acrossDigimon",
+          amount: 4,
+          fromTop: false,
+          distributed: true,
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "none",
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      texts: ["Jellymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      traits: ["DS"],
+      cost: 3,
+      isAlternate: true,
+      level: 5,
+    },
+  ],
 };
 
 registerIrCard("EX12-033", compiled);

@@ -83,6 +83,7 @@ export type SubTriggerEventName =
   | "whenOpponentMovedFromBreeding"
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenCardTrashedFromSecurity"
   | "whenEffectRemovesFromSecurity"
   | "whenAddSecurity"
   | "whenFaceUpCardsAddedToOpponentSecurity"
@@ -105,6 +106,7 @@ export type SubTriggerEventName =
   | "whenEffectAddsToHand"
   | "whenEffectAddsToOpponentHand"
   | "whenCardReturnsFromTrashToHand"
+  | "whenDigimonReturnsToHand"
   | "whenCardReturnsFromTrashToDeck"
   | "whenEffectSuspends"
   | "whenOpponentDraws"
@@ -156,6 +158,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Stable identity for this attack across all reactive attack sub-trigger fires. */
+  attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
   attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */
@@ -279,6 +283,8 @@ export interface TriggerInfo {
    * its own controller's stack rather than the opponent's.
    */
   removedFromSecuritySeat?: Seat;
+  /** Card instances just trashed from a security stack. */
+  trashedFromSecurityInstanceIds?: string[];
   /**
    * The seat whose EFFECT drove the digivolution-card trash (whenDigivolutionTrashed). A
    * watcher gated on "when YOU trash a digivolution card" (KB P-004) reads this to require
@@ -425,6 +431,9 @@ export interface TriggerInfo {
    * the returned cards' colors/traits (BT15-082: "a Red Digimon returns from your trash").
    */
   returnedFromTrashCardIds?: string[];
+  /** Digimon card instances that just returned to their owner's hand from any zone. */
+  returnedDigimonToHandSeat?: Seat;
+  returnedDigimonToHandInstanceIds?: string[];
   // TODO(effect-framework): add fields as more timings are implemented.
 }
 
@@ -463,6 +472,8 @@ export interface GameAccess {
   effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
+  /** Current DP including active continuous modifiers during effect recomputation. */
+  effectiveDP?(permanentId: string): number;
   /** Whether a loose card currently ignores its printed color requirement. */
   colorRequirementWaived?(instanceId: string): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
@@ -730,6 +741,8 @@ export interface Primitives {
    * sequences before control returns (WR-01). Non-link trashes resolve synchronously-fast.
    */
   trash(instanceIds: string[], opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  /** Trash a breeding permanent as a whole without treating the move as deletion. */
+  trashBreedingPermanent?(seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /**
    * Trash digivolution-stack cards (`instanceIds`) of `hostPermanentId` BY AN EFFECT, firing the
    * whenDigivolutionTrashed SubTrigger once per card actually trashed (carrying the host as the
@@ -892,7 +905,7 @@ export interface Primitives {
   changeEvoCost(
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void;
   /**
    * Record a continuous play/use-cost modification ("reduce the play cost of your
@@ -1007,6 +1020,8 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { digiXrosOnly?: boolean },
   ): void;
+  /** Grant names whose current values are recomputed from live game state. */
+  grantDynamicNames?(permanentId: string, names: () => string[], duration: EffectDuration): void;
   /** Replace printed/original info while effect-granted aliases and colors stay additive. */
   setOriginalCardInfo(
     permanentId: string,
@@ -1377,6 +1392,7 @@ export interface ReplacementInstallBase {
 export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
   mode: "reduceCost";
   amount?: number;
+  amountForInto?: (def: CardDefinition) => number;
   /**
    * For mode "reduceCost" + event "wouldDigivolve": restrict the reduction to when the
    * digivolution target (the "into" card) matches this definition predicate. Absent => applies
@@ -1617,6 +1633,8 @@ export interface EffectContext {
    *   delete it" on a Digimon just played by this effect.
    */
   lastDeleteCount?: number;
+  /** Whether the most recent Delete selected a target, even if deletion was prevented. */
+  lastDeleteTargetSelected?: boolean;
   /**
    * The MAX printed level among permanents deleted by the most recent Delete (or `deleteOwn`
    * subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` binds its threshold
@@ -1639,6 +1657,7 @@ export interface EffectContext {
    * Used by clauses like "with as much or less DP as the Digimon this effect suspended".
    */
   lastSuspendedPermanentIds?: string[];
+  lastTrashedCards?: { instanceId: string; cardId: string; dp: number }[];
   /**
    * Cards revealed by the most recent Reveal/RevealAdd action in this effect resolution.
    * Kept as a snapshot because the cards may be immediately returned to deck bottom/hand/trash,

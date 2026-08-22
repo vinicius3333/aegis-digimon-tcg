@@ -45,9 +45,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
   // Bind a SelectBind target before paying a cost that refers to that selected host.
   if (action.kind === "SelectBind" && action.target.bindAs !== undefined && action.cost?.kind === "trash") {
-    const boundTo = action.cost.target?.filter !== undefined && "boundTo" in action.cost.target.filter
-      ? action.cost.target.filter.boundTo
-      : undefined;
+    const boundTo =
+      action.cost.target?.filter !== undefined && "boundTo" in action.cost.target.filter
+        ? action.cost.target.filter.boundTo
+        : undefined;
     if (boundTo === action.target.bindAs && ctx.selections?.get(boundTo) === undefined) {
       const ids = await resolvePermanentTargets(ctx, action.target);
       if (ids.length === 0) return action.abortOnDecline === true;
@@ -153,6 +154,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "Replacement" &&
     action.kind !== "CostModifier" &&
     action.kind !== "SubTrigger" &&
+    action.kind !== "CostGatedBlock" &&
     action.kind !== "PlayPerLevel" &&
     (action.costOptions?.length ?? 0) > 0
   ) {
@@ -163,6 +165,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "Replacement" &&
     action.kind !== "CostModifier" &&
     action.kind !== "SubTrigger" &&
+    action.kind !== "CostGatedBlock" &&
     action.kind !== "PlayPerLevel" &&
     action.cost
   ) {
@@ -248,7 +251,17 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // BT17-051) raises a BASE budget the action carries on its own. Zero units means no bonus,
   // never "the action does nothing" — the base budget still deletes.
   const isBudgetScaling = action.kind !== "RawUnparsed" && action.scaling?.budgetAdd !== undefined;
-  if (scale !== undefined && scale === 0 && !isSetCostModifier && !isDeleteLevelCeilingScaling && !isBudgetScaling) {
+  // targetColors is resolved after the action's permanent target is selected; it intentionally
+  // has no board-wide scaleFactor. Do not let the generic zero guard abort it before dispatch.
+  const isPerTargetScaling = action.scaling?.unit === "targetColors";
+  if (
+    scale !== undefined &&
+    scale === 0 &&
+    !isPerTargetScaling &&
+    !isSetCostModifier &&
+    !isDeleteLevelCeilingScaling &&
+    !isBudgetScaling
+  ) {
     return false;
   }
 
@@ -285,6 +298,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "Hatch":
     case "ModifyDP":
     case "AddDPFromSuspendedCost":
+    case "AddDPFromTrashedCard":
     case "SetBaseDP":
     case "GainKeyword":
     case "AddToHandSelf":

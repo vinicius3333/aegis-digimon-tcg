@@ -562,10 +562,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const changeEvoCost = (
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void => {
     ledger.addEvoCostAdjustment(filter, delta, opts?.setFixed ?? false, {
-      ...(continuousOpt() ?? {}),
+      ...(opts?.continuous === true ? { continuous: true } : continuousOpt() ?? {}),
       once: opts?.once,
       onConsume: opts?.onConsume,
     });
@@ -1902,6 +1902,34 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return moved;
   };
 
+  /** Trash the complete breeding stack without firing deletion windows. */
+  const trashBreedingPermanent = async (seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]> => {
+    const owner = player(seat);
+    const permanent = owner.breeding;
+    if (permanent?.topCard === undefined || isRestricted(permanent.permanentId, "beTrashed")) return [];
+    owner.breeding = undefined;
+    dropPermanentLedgers(permanent.permanentId);
+    const moved = [permanent.topCard, ...permanent.stack, ...permanent.linked];
+    for (const card of moved) {
+      card.faceUp = true;
+      insertCard(player(card.ownerSeat), Zone.Trash, card);
+    }
+    applyOverflow(engine.memory, moved, state.turnSeat);
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: moved.map((card) => card.instanceId),
+      from: Zone.Breeding,
+      to: Zone.Trash,
+    });
+    if (opts?.byEffectSeat !== undefined) {
+      await engine.fireSubTrigger?.("whenTrashedByEffect", {
+        trashedByEffectPermanentId: permanent.permanentId,
+        byEffectSeat: opts.byEffectSeat,
+      });
+    }
+    return moved;
+  };
+
   /**
    * Trash digivolution-stack cards of `hostPermanentId` BY AN EFFECT (the producing site for
    * the whenDigivolutionTrashed SubTrigger; KB P-004 Q4113). Moves the cards via `trash`, then
@@ -1938,10 +1966,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // face state because it also serves loose face-up zones, so normalize this specific
     // stack-to-trash route before publishing its watcher events.
     for (const card of moved) card.faceUp = true;
-    ledger.dropSourceInstances(
-      state,
-      moved.map((card) => card.instanceId),
-    );
     if (moved.length > 0 && engine.fireSubTrigger) {
       // Digi-Burst trashes all chosen sources simultaneously. Notify its self-card watchers in
       // one batch before any per-card fire can trigger a continuous recompute and tear down the
@@ -1992,6 +2016,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         });
       }
     }
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
     return moved;
   };
 
@@ -2050,11 +2078,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       from: "various",
       to: Zone.Trash,
     });
-    ledger.dropSourceInstances(
-      state,
-      moved.map((card) => card.instanceId),
-    );
-
     if (engine.fireSubTrigger) {
       const byHost = new Map<string, typeof validated>();
       for (const entry of validated) {
@@ -2099,6 +2122,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
     return moved;
   };
 
@@ -2368,6 +2395,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // whether it was checked or removed by an effect. Security checks already fire this
       // event at their own movement seam; effect-driven trash must reach the same bus too.
       await engine.fireSubTrigger?.("whenSecurityRemoved", { removedFromSecuritySeat: seat });
+      await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+        removedFromSecuritySeat: seat,
+        trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
+      });
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
       await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }
@@ -3202,6 +3233,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             });
           }
         }
+        const returnedDigimon = movedToHand.filter((card) =>
+          requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon),
+        );
+        for (const seat of new Set(returnedDigimon.map((card) => card.ownerSeat))) {
+          await engine.fireSubTrigger?.("whenDigimonReturnsToHand", {
+            returnedDigimonToHandSeat: seat,
+            returnedDigimonToHandInstanceIds: returnedDigimon
+              .filter((card) => card.ownerSeat === seat)
+              .map((card) => card.instanceId),
+          });
+        }
       }
     }
     return moved;
@@ -3756,6 +3798,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addNameTraitGrant(permanentId, kind, tokens, durationForTarget(permanentId, duration), {
       ...continuousOpt(),
       ...opts,
+    });
+  };
+
+  const grantDynamicNames = (permanentId: string, names: () => string[], duration: EffectDuration): void => {
+    continuous.addNameTraitGrant(permanentId, "name", [], durationForTarget(permanentId, duration), {
+      ...continuousOpt(),
+      dynamicTokens: names,
     });
   };
 
@@ -4384,6 +4433,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     placeAsTopFromEggDeck,
     link,
     trash,
+    trashBreedingPermanent,
     trashDigivolutionCards,
     trashDigivolutionCardsAtomic,
     canTrashDigivolutionCard,
@@ -4420,6 +4470,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     restrictPlayer,
     restrictAttackTarget,
     grantNameTrait,
+    grantDynamicNames,
     setOriginalCardInfo,
     grantKeyword,
     grantDnaLevel,

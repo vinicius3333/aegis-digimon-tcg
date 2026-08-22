@@ -24,6 +24,7 @@ const IMPLEMENTED_ACTION_KINDS = {
   ActivateOptionMain: true,
   AddToDPDeleteBudget: true,
   AddDPFromSuspendedCost: true,
+  AddDPFromTrashedCard: true,
   AddToHandSelf: true,
   AllowDigiXrosMaterialsFromTrash: true,
   AppFuse: true,

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-070.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-070 RookChessmon", () => {
   it("keeps Blocker, evolution cost 3, and opponent-turn level-5 play", () => {
@@ -8,5 +10,14 @@ describe("BT13-070 RookChessmon", () => {
     expect(compiled.digivolutionRequirement).toContainEqual(expect.objectContaining({ level: 4, names: ["Chessmon"], cost: 3 }));
     expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [expect.objectContaining({ keyword: "Blocker" })] });
     expect(compiled.effects[1]).toMatchObject({ trigger: "OnDeletion", actions: [expect.objectContaining({ kind: "PlayWithoutCost", condition: expect.objectContaining({ kind: "isOpponentsTurn" }), optional: true })] });
+  });
+
+  it("plays a level-5 Chessmon after deletion during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-070", as: "rook" }], hand: ["BT13-042"] }, 1: { security: ["BT1-001"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("rook").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-042"), 3000);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-042")).toBe(true);
   });
 });

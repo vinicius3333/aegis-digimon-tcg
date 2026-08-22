@@ -8,156 +8,215 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // AllTurns SubTrigger uses `whenAnyDigivolves`; its source filter is intentionally `any` so
 // the watcher fires for either player's Digimon, matching the printed "when any Digimon" text.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Evade",
-          "raw": "＜Evade＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Decode",
-          "raw": "＜Decode (Lv.5 or lower w/[Gabumon]/[Garurumon] in name or w/[ME]/[VB] trait)＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
-            },
-            "count": "all"
-          },
-          "amount": 4,
-          "scope": "acrossDigimon"
+          keyword: "Evade",
+          raw: "＜Evade＞",
         },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsCompareToSource": "lte"
-            },
-            "count": 1
-          },
-          "to": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
-            },
-            "count": "all"
-          },
-          "amount": 4,
-          "scope": "acrossDigimon"
-        },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsCompareToSource": "lte"
-            },
-            "count": 1
-          },
-          "to": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "any",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "restriction": "suspend",
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenAnyDigivolves",
-          "sourceFilter": {
-            "controllerDefault": "any",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "restriction": "suspend",
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Decode",
+          raw: "＜Decode (Lv.5 or lower w/[Gabumon]/[Garurumon] in name or w/[ME]/[VB] trait)＞",
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
+            },
+            count: "all",
+          },
+          amount: 4,
+          scope: "acrossDigimon",
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsCompareToSource: "lte",
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
+            },
+            count: "all",
+          },
+          amount: 4,
+          scope: "acrossDigimon",
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsCompareToSource: "lte",
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "any",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              restriction: "suspend",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenAnyDigivolves",
+          sourceFilter: {
+            controllerDefault: "any",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              restriction: "suspend",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      names: ["Garurumon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      level: 5,
+      traits: ["ME", "VB"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+  ],
+  assemblyRequirement: [
+    {
+      reduceCost: 6,
+      materials: [
+        {
+          count: 1,
+          level: 5,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+        {
+          count: 1,
+          level: 4,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+        {
+          count: 1,
+          level: 3,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("EX12-035", compiled);

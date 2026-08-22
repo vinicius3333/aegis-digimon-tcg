@@ -1,8 +1,27 @@
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST2-09.js";
 
 describe("ST2-09 Zudomon", () => {
+  it("matches the When Digivolving bottom-source cleanup contract", () => {
+    const definition = getCardDefinition("ST2-09")!;
+    const compiled = getCompiledCard("ST2-09")!;
+
+    expect(definition.effectText).toContain("Trash 2 digivolution cards at the bottom");
+    expect(compiled.effects).toEqual([{
+      trigger: "WhenDigivolving",
+      actions: [{
+        kind: "TrashDigivolution",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        amount: 2,
+        fromTop: false,
+      }],
+    }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("trashes two bottom sources of an opposing Digimon when digivolving", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST2-06", as: "base" }], hand: [{ card: "ST2-09", as: "zudomon" }] },

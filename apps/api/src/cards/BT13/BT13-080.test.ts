@@ -4,7 +4,7 @@ import { compiled } from "./BT13-080.js";
 describe("BT13-080 ProtoGizmon", () => {
   it("reduces its play cost by deleting a level 2 Digimon in the breeding area", () => {
     const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0] as { actions?: unknown[] };
-    expect(replacement).toMatchObject({ kind: "Replacement", event: "wouldBePlayed" });
+    expect(replacement).toMatchObject({ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["ProtoGizmon"] }] } });
     expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 2,
       cost: { kind: "deleteOwn", target: { filter: { controller: "mine", kind: ["Digimon"], levels: [2] }, count: 1 } },
