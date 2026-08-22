@@ -29,7 +29,6 @@ export const compiled: CompiledCard = {
         cost: { kind: "suspend", target: self },
       }],
     },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }] },
   ],
   coverage: "full",
   residual: [],

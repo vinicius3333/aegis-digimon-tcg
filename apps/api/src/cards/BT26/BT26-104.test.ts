@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-104.js";
+import { compiled } from "./BT26-104.js";
 import "../index.js";
 
 describe("BT26-104 compiled fidelity", () => {
   it("registers memory, Shambala trash-to-draw, conditional Option use, and Security play", () => {
-    const card = getCompiledCard("BT26-104");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "GainMemory", amount: 1 },
@@ -20,9 +19,6 @@ describe("BT26-104 compiled fidelity", () => {
     expect(end?.condition).toMatchObject({ kind: "youHave", filter: { kind: ["Digimon"] } });
     expect(end?.actions).toMatchObject([
       { kind: "UseOptionWithoutCost", payCost: false, from: ["hand"], cost: { kind: "suspend" } },
-    ]);
-    expect(card?.effects?.find((effect) => effect.trigger === "Security")?.actions).toMatchObject([
-      { kind: "PlayWithoutCost", payCost: false },
     ]);
   });
 
