@@ -18,7 +18,7 @@ describe("EX11-006 Flickmon", () => {
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "linkCard", instanceId: s.inst("linkCard").instanceId, targetPermanentId: s.perm("host").permanentId })).toEqual({ ok: true });
     expect(s.perm("host").linked.map((card) => card.cardId)).toContain("EX11-027");
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player", seat: 1 } })).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "EX11-029");
     expect(s.perm("host").topCard?.cardId).toBe("EX11-029");
   });

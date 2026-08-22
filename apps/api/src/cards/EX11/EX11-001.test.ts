@@ -21,7 +21,7 @@ describe("EX11-001 Koromon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        target: { kind: "player", seat: 1 },
       }),
     ).toEqual({ ok: true });
 

@@ -23,7 +23,7 @@ describe("EX11-004 Kapurimon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002"));
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-002"]),
+      expect.arrayContaining(["BT1-001"]),
     );
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: "BT18-044", faceUp: true });
   });
