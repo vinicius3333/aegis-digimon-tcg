@@ -1090,7 +1090,7 @@ export function midBt12Module(cardId: string): EffectModule {
                     source,
                     (d) => isTamer(d) && (d.colors.includes(CardColor.Yellow) || d.colors.includes(CardColor.Red)),
                   ).length;
-                  const [target] = count ? await permanent(ctx, foes(ctx, source), 1, true) : [];
+                  const [target] = count ? await permanent(ctx, foes(ctx, source)) : [];
                   if (target) ctx.fx.modifyDP(target, -3000 * count, EffectDuration.UntilEachTurnEnd);
                   if (count)
                     ctx.fx.modifySecurityDp(ctx.game.opponentOf(source.ownerSeat), -3000 * count, {
