@@ -549,6 +549,10 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const trash = ctx.game.player(source.ownerSeat).trash;
                   const growlmon = trash.find((card) => ctx.game.definitionOf(card).nameEn === "Growlmon");
                   const warGrowlmon = trash.find((card) => ctx.game.definitionOf(card).nameEn === "WarGrowlmon");
+                  const self = source.permanent();
+                  if (!growlmon || !warGrowlmon || !self) return;
+                  if (!ctx.fx.relocatePermanent(guilmon, self.permanentId)) return;
+                  await ctx.fx.placeUnder(guilmon, [growlmon.instanceId, warGrowlmon.instanceId]);
                   const gallantmon = await chooseCard(
                     ctx,
                     ctx.game
@@ -560,10 +564,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                       ),
                     true,
                   );
-                  const self = source.permanent();
-                  if (!growlmon || !warGrowlmon || !gallantmon || !self) return;
-                  if (!ctx.fx.relocatePermanent(guilmon, self.permanentId)) return;
-                  await ctx.fx.placeUnder(guilmon, [growlmon.instanceId, warGrowlmon.instanceId]);
+                  if (!gallantmon) return;
                   const evolved = await ctx.fx.digivolveFromInstance(guilmon, gallantmon, {
                     payCost: true,
                     ignoreLevel: true,
