@@ -19,7 +19,8 @@ const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "SubTrigger",
-          "event": "whenDeckTrashed",
+          "event": "onDiscardLibrary",
+          "sourceFilter": { "controller": "mine" },
           "actions": [
             {
               "kind": "GainMemory",
@@ -43,7 +44,8 @@ const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "SubTrigger",
-          "event": "whenDeckTrashed",
+          "event": "onDiscardLibrary",
+          "sourceFilter": { "controller": "mine" },
           "actions": [
             {
               "kind": "GainKeyword",
