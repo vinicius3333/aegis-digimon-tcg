@@ -34,4 +34,17 @@ describe("BT12-073 Impmon (X Antibody)", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011"]);
   });
+
+  it("trashes the inherited two cards at most once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-073"] }],
+        deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
 });
