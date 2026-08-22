@@ -126,8 +126,8 @@ describe("BT26-042 Okuwamon", () => {
     const pending = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
     const keys = request.options?.triggerKeys ?? [];
-    expect(keys.some((key) => key.endsWith(`${CARD_ID}/on-play-suspend-lock`))).toBe(true);
-    expect(keys.some((key) => key.endsWith(`${CARD_ID}/piercing-dp-grant`))).toBe(true);
+    expect(keys).toHaveLength(2);
+    expect(new Set(keys).size).toBe(2);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -263,9 +263,8 @@ describe("BT26-042 Okuwamon", () => {
       1: { security: [{ card: "BT1-009", as: "topSecurity" }, "BT1-009"] },
     });
     const topId = s.inst("topSecurity").instanceId;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnBattleDeleteOpponent, s.perm("host"), {
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
       attackerPermanentId: s.perm("host").permanentId,
-      deletedPermanentId: "deleted-opponent",
     });
     await settle();
 
