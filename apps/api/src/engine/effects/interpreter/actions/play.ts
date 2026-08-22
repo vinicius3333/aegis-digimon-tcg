@@ -94,7 +94,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ctx.lastPlayedPermanentIds = [];
           return false;
         }
-        const fromSecurity = action.from?.includes("security") === true;
+        const fromSecurity = action.from?.includes("security") === true || self.isInSecurity?.() === true;
         if (fromSecurity) {
           const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
           ctx.lastPlayedPermanentIds = played !== undefined ? [played.permanentId] : [];
