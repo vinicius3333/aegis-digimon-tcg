@@ -39,6 +39,7 @@ const compiled = {
     },
     {
       trigger: "WhenAttacking" as const,
+      isInherited: true,
       optional: true,
       actions: [
         {
