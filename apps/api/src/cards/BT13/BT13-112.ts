@@ -30,7 +30,7 @@ const modalEffect = () => ({
       },
       {
         kind: "Delete",
-        target: { filter: { controller: "mine", zone: "breeding", kind: ["Digimon"] }, count: 1 },
+        target: { filter: { controller: "mine", zone: "breeding" }, count: 1 },
         condition: { kind: "bindingExists", ref: "playedRoyalKnights" },
       },
       {

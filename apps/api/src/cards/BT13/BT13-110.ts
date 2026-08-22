@@ -66,17 +66,6 @@ export const compiled: CompiledCard = {
           suppressOnPlayEffects: true,
           bindResultAs: "playedDigimon",
         },
-      ],
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
-    },
-    {
-      trigger: "OnPlay",
-      actions: [
         {
           kind: "GainKeyword",
           target: {
@@ -87,6 +76,12 @@ export const compiled: CompiledCard = {
             raw: "＜Rush＞",
           },
           duration: "forTheTurn",
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
         },
       ],
     },

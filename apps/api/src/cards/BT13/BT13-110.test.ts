@@ -60,7 +60,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
         count: 1,
       },
     });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
+    expect(delay?.actions?.[1]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "Rush" },
       duration: "forTheTurn",
