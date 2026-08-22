@@ -31,3 +31,14 @@ it("gains 1 memory when the inherited Digimon deletes an opponent in battle", as
   await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
   expect(s.state.memory).toBe(1);
 });
+
+it("limits the inherited memory gain to once per turn", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-022", as: "host", under: ["BT12-053"] }] },
+  });
+  await s.ready();
+  s.state.memory = 0;
+  await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
+  await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
+  expect(s.state.memory).toBe(1);
+});
