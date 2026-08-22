@@ -53,7 +53,7 @@ describe("BT9-021 Jellymon", () => {
     });
     const targetId = s.perm("target").topCard!.instanceId;
     await advance(s.engine).verb.returnToHand([s.inst("added").instanceId]);
-    expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === targetId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === targetId)).toBe(false);
   });
 });

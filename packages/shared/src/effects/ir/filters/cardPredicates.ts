@@ -8,6 +8,8 @@ import type { DpComparison } from "./dp.js";
 export type FilterKeyword = Keyword;
 
 export interface CardPredicates {
+  /** Loose-card candidate gate: its owner's trash has at least `count` cards whose names contain a token. */
+  ownerTrashNameCountGte?: { count: number; tokens: string[] };
   kind?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   /** Alias for `nameOrTrait: [{ match: "trait" }]`. */
   traits?: string[];
