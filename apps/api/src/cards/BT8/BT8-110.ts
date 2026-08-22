@@ -2,23 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-corrected IR for BT8-110 (Armor Texture!).
-// Errata (2022-05-27): Security effect changed to "you may play..."
-// KB Q1789: "If you do, only the Digimon you chose to digivolve will unsuspend."
-// KB Q1790: If you choose NOT to digivolve, no Digimon unsuspends.
-// KB Q1791: Digivolution requirements cannot be ignored.
-//
-// Corrections:
-// - Digivolve target is stored via bindAs "digivolveTarget" so Unsuspend can reference it.
-// - Unsuspend targets the stored selection (fromSelectionRef), not any Digimon.
-// - The [Main] Trash carries `topCardOnly`: the printed text is "trash the TOP CARD of 1 of
-//   your Digimon with [Armor Form]", which purges that layer and leaves the Digimon in play.
-//   The prose compiler emits the same IR for this as for "trash 1 of your Digimon", so the
-//   distinction is made here on the card rather than by teaching the compiler a rule that
-//   would have to be re-derived for the whole corpus.
-// - Unsuspend is NOT optional (mandatory if you digivolved — KB Q1789/Q1790; optionality
-//   is on the Digivolve action, not the Unsuspend).
-// - Condition on Unsuspend: "if you do" (this effect digivolved).
 const compiled: CompiledCard = {
   "effects": [
     {
