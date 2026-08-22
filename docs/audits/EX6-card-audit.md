@@ -46,7 +46,7 @@ invented.
 | EX6-062 | UltimateChaosmon | full | none found | 5514d293c458 | c426d38dd7af | NR |
 | EX6-061 | Leviamon | full | none found | 45b3715c6f1a | 6190bab4edb7 | NR |
 | EX6-060 | Belphemon: Rage Mode | full | none found | f2fd8c7d5cc7 | 60347f09f283 | NR |
-| EX6-059 | Barbamon | direct | none found | b3eede08f23c | 7ccc758911b9 | NR |
+| EX6-059 | Barbamon | full | none found | ba6aaafc747d | 5a3b5601058d | NR |
 | EX6-058 | Creepymon | full | none found | 6803c73097c7 | 68dd9b29f77b | NR |
 | EX6-057 | Lilithmon | direct | none found | 1e2cf3bacd8e | 27d45da94e76 | NR |
 | EX6-056 | Beelzemon | full | none found | f8c7f6af9797 | a12f5534c674 | NR |
@@ -121,7 +121,7 @@ EX6-001 was migrated from its legacy hand-written module to typed IR. Its
 exact added-card `[Legend-Arms]` filter, with complete coverage and a public
 IR evidence test.
 
-EX6-010, EX6-030, EX6-061, and EX6-063 were likewise migrated to `registerIrCard` because their
+EX6-010, EX6-030, EX6-059, EX6-061, and EX6-063 were likewise migrated to `registerIrCard` because their
 committed IR already has complete coverage and matches the direct-module
 clause inventory. The remaining legacy direct modules are retained while
 their IR entries still expose unsupported primitives; replacing those modules
