@@ -1,29 +1,17 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT1-021";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing !== EffectTiming.OnUseAttack) return [];
-    return [
-      whenAttacking({
-        source,
-        effectKey: `${cardId}/memory-loan`,
-        description: "[When Attacking] Gain 3 memory. At the end of your turn, lose 3 memory.",
-        resolve: async (ctx) => {
-          ctx.fx.gainMemory(3);
-          ctx.fx.delayedGainMemory?.(source.ownerSeat, -3);
-        },
-      }),
-    ];
-  },
+const compiled: CompiledCard = {
+  effects: [{
+    trigger: "WhenAttacking",
+    actions: [
+      { kind: "GainMemory", amount: 3 },
+      { kind: "GainMemory", amount: -3, at: "endOfTurn" },
+    ],
+  }],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT1-021", compiled);
