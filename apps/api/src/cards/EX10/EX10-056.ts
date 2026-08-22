@@ -7,6 +7,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // applied to both event forms so they consume one physical once-per-turn use.
 const watcherActions = [
   {
+    kind: "trashSecurityTop",
+    controller: "opponent",
+    count: 1,
+    cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 }, raw: "By trashing any 2 of this Digimon's digivolution cards" },
+  },
+};
+
+const watcherActions = [
+  {
     kind: "RawUnparsed",
     text: "missing-primitive(unaudited): trash opponent's top security card",
     cost: {
