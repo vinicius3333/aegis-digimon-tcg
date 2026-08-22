@@ -10,7 +10,7 @@ describe("BT6-042 Babamon", () => {
         battleArea: [{ card: "BT6-042", as: "babamon" }],
         hand: [{ card: "BT1-082", as: "rosemon" }],
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
 
     await advance(s.engine).verb.deletePermanent([s.perm("babamon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT1-082"));
@@ -25,7 +25,7 @@ describe("BT6-042 Babamon", () => {
         battleArea: [{ card: "BT6-042", as: "babamon" }],
         hand: [{ card: "BT1-045", as: "first" }, { card: "BT1-046", as: "second" }],
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 });
 
     await advance(s.engine).verb.deletePermanent([s.perm("babamon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId.startsWith("BT1-04")).length === 2);

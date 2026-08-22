@@ -40,7 +40,17 @@ const compiled: CompiledCard = {
       ]
     },
     {
+      "effectKey": "BT6-088/main-digivolve-bond-of-friendship",
       "trigger": "YourTurn",
+      "condition": {
+        "kind": "youHave",
+        "filter": {
+          "controller": "mine",
+          "kind": ["Digimon"],
+          "colors": ["Blue"],
+          "nameOrTrait": [{"tokens": ["Gabumon"], "match": "name"}]
+        }
+      },
       "actions": [
         {
           "kind": "Digivolve",
@@ -60,7 +70,8 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "bondHost"
           },
           "into": {
             "controllerDefault": "mine",
@@ -105,11 +116,9 @@ const compiled: CompiledCard = {
             {
               "kind": "Delete",
               "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
+                "filter": {},
                 "count": 1,
-                "isSelf": true
+                "fromSelectionRef": "bondHost"
               }
             }
           ]

@@ -13,6 +13,7 @@ const compiled: CompiledCard = {
           "costType": "play",
           "amount": 1,
           "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
+          "handResident": true,
           "duration": "permanent",
           "scaling": {
             "per": 1,

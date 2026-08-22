@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
               {
                 "tokens": [
                   "Eosmon"
-                ],
+                  ],
                 "match": "name"
               }
             ]
@@ -40,27 +40,28 @@ const compiled: CompiledCard = {
               "revealCount": 3,
               "add": [
                 {
-                  "filter": {
+                "filter": {
+                  "controllerDefault": "mine",
+                  "kind": [
+                    "Tamer"
+                  ]
+                },
+                "orFilters": [
+                  {
                     "controllerDefault": "mine",
                     "kind": [
-                      "Tamer"
+                      "Digimon"
                     ],
-                    "orFilters": [
+                    "nameOrTrait": [
                       {
-                        "kind": [
-                          "Digimon"
+                        "tokens": [
+                          "Eosmon"
                         ],
-                        "nameOrTrait": [
-                          {
-                            "tokens": [
-                              "Eosmon"
-                            ],
-                            "match": "name"
-                          }
-                        ]
+                        "match": "name"
                       }
                     ]
-                  },
+                  }
+                ],
                   "count": 1,
                   "to": "hand"
                 }

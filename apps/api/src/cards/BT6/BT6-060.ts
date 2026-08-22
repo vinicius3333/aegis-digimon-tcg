@@ -35,6 +35,7 @@ const compiled: CompiledCard = {
       ]
     },
     {
+      "effectKey": "BT6-060/digivolve-three-musketeers",
       "trigger": "YourTurn",
       "actions": [
         {
@@ -45,9 +46,8 @@ const compiled: CompiledCard = {
             "kind": ["Digimon"],
             "nameOrTrait": [{"tokens": ["Three Musketeers", "ThreeMusketeers"], "match": "trait"}]
           },
-          "payCost": true,
+          "payCost": 6,
           "from": ["hand"],
-          "costOverride": 6,
           "ignoreRequirements": true,
           "optional": true
         }

@@ -203,7 +203,13 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
       const seats = seatsForController(ctx, { ...filter, controller: filter.controller ?? "mine" });
       for (const seat of seats) {
         const trash = ctx.game.player(seat).trash;
-        raw += Array.from(trash).filter((c) => definitionMatches(filter, ctx.game.definitionOf(c))).length;
+        const alternatives = (filter as Filter & { orFilters?: Filter[] }).orFilters ?? [];
+        raw += Array.from(trash).filter((c) => {
+          const definition = ctx.game.definitionOf(c);
+          return definitionMatches(filter, definition) || alternatives.some((alternative) =>
+            definitionMatches(alternative, definition),
+          );
+        }).length;
       }
       break;
     }
