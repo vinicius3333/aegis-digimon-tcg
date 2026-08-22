@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { appFusionCostFor, assemblyRequirementFor } from "@aegis/shared";
+import { appFusionCostFor, assemblyRequirementFor, EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-037.js";
 
 describe("BT26-037 Weatherdramon", () => {
@@ -13,5 +15,17 @@ describe("BT26-037 Weatherdramon", () => {
       expect.objectContaining({ trigger: "WhenDigivolving" }),
       expect.objectContaining({ trigger: "Static", isLinked: true, actions: [{ kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Battle", optional: true }] }] }),
     ]));
+  });
+
+  it("links a legal source and initiates the linked-face battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-037", as: "weatherdramon", under: ["BT26-084"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("weatherdramon"));
+
+    expect(s.perm("weatherdramon").linked.map((card) => card.cardId)).toEqual(["BT26-084"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
