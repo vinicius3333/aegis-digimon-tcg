@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_062 } from "./BT25-062.js";
 import "./BT25-066.js";
+import "../index.js";
 
 describe("BT25-062 Kokuwamon", () => {
   it("matches the catalog identity, alternate evolution, start-phase effect, and inherited text", () => {

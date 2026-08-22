@@ -95,7 +95,11 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ctx.lastPlayedPermanentIds = [];
           return false;
         }
-        const fromSecurity = action.from?.includes("security") === true;
+        const fromSecurity =
+          action.from?.includes("security") === true ||
+          (ctx.activeTiming === "Security" &&
+            !ctx.game.player(self.ownerSeat).trash.some((card) => card.instanceId === self.instanceId)) ||
+          ctx.game.player(self.ownerSeat).security.some((card) => card.instanceId === self.instanceId);
         if (fromSecurity) {
           const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
           ctx.lastPlayedPermanentIds = played !== undefined ? [played.permanentId] : [];

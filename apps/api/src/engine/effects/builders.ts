@@ -49,6 +49,8 @@ export interface BuilderOptions {
    * while its card is still in hand.
    */
   isFromHand?: boolean;
+  /** True for an Option's first plain [Main] body while it resolves from use. */
+  isOptionPlayBody?: boolean;
   resolve: (ctx: EffectContext) => Promise<void>; // the effect body
 }
 
@@ -255,6 +257,7 @@ export const whenTrashedFromBattleArea = (opts: BuilderOptions): Effect =>
 export const activated = (opts: BuilderOptions): Effect =>
   build(opts, {
     baseGuard: (ctx) => {
+      if (opts.isOptionPlayBody) return true;
       if (opts.isFromTrash) return inTrashZone(ctx);
       if (opts.isFromHand) return inHandZone(ctx);
       return !inTrashZone(ctx) && !inHandZone(ctx);

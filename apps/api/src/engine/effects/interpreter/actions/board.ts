@@ -131,6 +131,11 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const amount = scale === undefined ? action.amount : action.amount * scale;
+      const continuous =
+        action.continuous === true ||
+        (action.continuous === undefined &&
+          ["Static", "AllTurns", "YourTurn", "OpponentsTurn"].includes(ctx.activeTiming ?? "") &&
+          Object.keys(ctx.trigger ?? {}).length === 0);
       for (const id of ids) {
         ctx.fx.modifyDP(
           id,
@@ -288,7 +293,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       for (const extra of action.keywords ?? []) {
         if (extra.keyword === kw) continue;
-        for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+        for (const id of ids) {
+          if (extra.keyword === "Piercing") ctx.fx.grantPierce(id, duration);
+          else ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+        }
       }
       // Some generated cards attach a second continuous grant to a keyword action. The legacy
       // shape used by BT24-028 is `additionalEffect: { kind: "GrantStatic", modifier:
