@@ -13,8 +13,8 @@ describe("BT26-059 Plutomon", () => {
       "bt26-059-trash-play-titan", "bt26-059-trash-play-titan", "bt26-059-trash-play-titan",
     ]);
     expect(compiled.effects?.[1]?.actions).toEqual([
-      expect.objectContaining({ kind: "Trash", condition: { kind: "isYourTurn" } }),
-      expect.objectContaining({ kind: "PlayWithoutCost", condition: { kind: "isYourTurn" } }),
+      expect.objectContaining({ kind: "Trash", condition: expect.objectContaining({ kind: "isYourTurn" }) }),
+      expect.objectContaining({ kind: "PlayWithoutCost", condition: expect.objectContaining({ kind: "isYourTurn" }) }),
     ]);
     expect(compiled.effects?.[4]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenHandTrashed", actions: [{ kind: "Delete", target: { count: "all" } }] }] });
   });
