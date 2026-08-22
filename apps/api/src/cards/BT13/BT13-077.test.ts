@@ -1,4 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT13-077.js";
 
 describe("BT13-077 Craniamon", () => {
@@ -29,5 +34,12 @@ describe("BT13-077 Craniamon", () => {
         { kind: "RedirectAttack", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
       ],
     });
+  });
+
+  it("installs opponent Digimon-effect immunity when played", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-077", as: "craniamon" }] } });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("craniamon"));
+    await settle(() => observe(s.engine).timingEffectDisabled(s.perm("craniamon"), "whenDigivolving"));
+    expect(observe(s.engine).timingEffectDisabled(s.perm("craniamon"), "whenDigivolving")).toBe(true);
   });
 });
