@@ -146,7 +146,7 @@ export function declaresExecuteKeyword(compiled: CompiledCard): boolean {
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Execute") ||
-        e.actions.some(
+        (e.actions ?? []).some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Execute" &&
