@@ -9,7 +9,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          target: { filter: { controller: "mine" }, count: 1 },
           fromDeckTop: true,
           optional: true,
           faceDown: true,
@@ -32,7 +32,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          target: { filter: { controller: "mine" }, count: 1 },
           fromDeckTop: true,
           optional: true,
           faceDown: true,
