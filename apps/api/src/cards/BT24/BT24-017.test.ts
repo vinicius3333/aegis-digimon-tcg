@@ -11,30 +11,20 @@ describe("BT24-017 Medusamon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 5, colors: ["Red"], cost: 3 }]);
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")!;
-    expect(effect.actions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ kind: "Delete", target: { filter: { superlative: "lowestDP" } } }),
-        expect.objectContaining({
-          kind: "CostGatedBlock",
-          optional: true,
-          abortOnDecline: true,
-          cost: { kind: "return", target: { count: 2 } },
-          actions: [
-            expect.objectContaining({
-              kind: "PlayToken",
-              tokens: ["Petrification Token"],
-              count: 2,
-              placedAs: "opponentDigimon",
-            }),
-            expect.objectContaining({
-              kind: "ModifyDP",
-              amount: 2000,
-              scaling: { per: 1, unit: "cards" },
-            }),
-          ],
-        }),
-      ]),
-    );
+    expect(effect.actions?.[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { superlative: "lowestDP" } },
+    });
+    expect(effect.actions?.[1]).toMatchObject({
+      kind: "CostGatedBlock",
+      optional: true,
+      abortOnDecline: true,
+      cost: { kind: "return", target: { count: 2 } },
+      actions: [
+        { kind: "PlayToken", tokens: ["Petrification Token"], count: 2, placedAs: "opponentDigimon" },
+        { kind: "ModifyDP", amount: 2000, scaling: { per: 1, unit: "cards" } },
+      ],
+    });
   });
 
   it("deletes the lowest opposing Digimon and returns two opposing trash cards for tokens", async () => {
@@ -52,14 +42,13 @@ describe("BT24-017 Medusamon", () => {
       { autoSelectCards: true, autoAcceptOptional: true },
     );
 
+    const lowestId = s.perm("lowest").permanentId;
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(
-      () => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("lowest").permanentId),
+      () => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId),
     );
 
-    expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("lowest").permanentId),
-    ).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId)).toBe(false);
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("higher").permanentId),
     ).toBe(true);
@@ -139,6 +128,6 @@ describe("BT24-017 Medusamon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("medusamon"), "Raid")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("medusamon"), "Progress")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("medusamon"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("medusamon"))).toBe(true);
   });
 });
