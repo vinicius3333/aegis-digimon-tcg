@@ -39,7 +39,10 @@ describe("BT21-071 Scopemon", () => {
       {
         0: {
           battleArea: [{ card: "BT1-009", as: "host" }],
-          hand: [{ card: "BT21-071", as: "scopemon" }, { card: "BT21-041", as: "appmon" }],
+          hand: [
+            { card: "BT21-071", as: "scopemon" },
+            { card: "BT21-041", as: "appmon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -47,7 +50,9 @@ describe("BT21-071 Scopemon", () => {
     s.state.memory = 10;
     const memoryBefore = s.state.memory;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scopemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("scopemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("appmon").instanceId));
 
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
