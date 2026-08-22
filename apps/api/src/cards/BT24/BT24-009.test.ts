@@ -22,7 +22,14 @@ describe("BT24-009 Shamanmon", () => {
     const action = inherited.actions[0].actions[0];
     expect(action.target).toMatchObject({ filter: { isSelfRef: true }, isSelf: true });
     expect(action.condition).toMatchObject({ kind: "selfHasTrait" });
-    expect(action).toMatchObject({ kind: "Digivolve", from: ["trash"], reduceCost: 1, optional: true });
+    expect(action).toMatchObject({
+      kind: "Digivolve",
+      from: ["trash"],
+      payCost: true,
+      useAlternateCost: true,
+      reduceCost: 1,
+      optional: true,
+    });
   });
 
   it("may trash a Demon card to draw two on play", async () => {
@@ -30,7 +37,7 @@ describe("BT24-009 Shamanmon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-009", as: "shamanmon" }],
-          hand: [{ card: "BT24-011", as: "cost" }],
+          hand: [{ card: "BT24-009", as: "cost" }],
           deck: [
             { card: "BT1-001", as: "drawOne" },
             { card: "BT1-002", as: "drawTwo" },
@@ -53,7 +60,7 @@ describe("BT24-009 Shamanmon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-009", as: "shamanmon" }],
-          hand: [{ card: "BT24-011", as: "cost" }],
+          hand: [{ card: "BT24-009", as: "cost" }],
           deck: ["BT1-001", "BT1-002"],
         },
       },

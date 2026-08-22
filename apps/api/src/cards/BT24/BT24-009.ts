@@ -67,6 +67,8 @@ export const compiled: CompiledCard = {
                 ],
               },
               from: ["trash"],
+              payCost: true,
+              useAlternateCost: true,
               reduceCost: 1,
               optional: true,
               condition: {
