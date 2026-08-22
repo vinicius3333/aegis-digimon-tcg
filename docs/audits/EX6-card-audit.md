@@ -36,19 +36,19 @@ invented.
 | EX6-072 | Mega Digimon Assembly! | full | none found | 6605805a1d31 | fe49ab4d14f2 | NR |
 | EX6-071 | Pandemonium Lost | full | none found | 49fd6a52a04c | 6df0686bc2c5 | NR |
 | EX6-070 | Phantom Pain | full | none found | 5af178e85fb6 | 4c8ae50ebf8d | NR |
-| EX6-069 | Rise of the Seven Great Demon Lords | direct | none found | a8d8e2f41eb | 91c82aa8915c | NR |
-| EX6-068 | Descent of the Three Great Angels | direct | none found | 8e7d47addfc2 | 8a014aac50c0 | NR |
+| EX6-069 | Rise of the Seven Great Demon Lords | full | none found | 69677fce8d9a | 9ff61e18f7ec | NR |
+| EX6-068 | Descent of the Three Great Angels | full | none found | 91dfaf7151c5 | a41b5a2f0431 | NR |
 | EX6-067 | Final Excalibur | full | none found | 0ee4729f1245 | a31d35372b47 | NR |
 | EX6-066 | Sea of Destruction | full | none found | 0faa1205b112 | c03215f52ce5 | NR |
 | EX6-065 | Mythical Arms of Salvation! | full | none found | bedf266d804c | 685a860a2b7b | NR |
 | EX6-064 | Shu-Chong Wong | full | none found | a71f2df8b6b8 | 07b1833e7f83 | NR |
-| EX6-063 | T.K. Takaishi & Kari Kamiya | full | none found | 7940a7da5340 | 0b5d426bf973 | NR |
+| EX6-063 | T.K. Takaishi & Kari Kamiya | full | none found | 7940a7da5340 | 601b2e75b7b6 | NR |
 | EX6-062 | UltimateChaosmon | full | none found | 5514d293c458 | c426d38dd7af | NR |
 | EX6-061 | Leviamon | full | none found | 45b3715c6f1a | 6190bab4edb7 | NR |
 | EX6-060 | Belphemon: Rage Mode | full | none found | f2fd8c7d5cc7 | 60347f09f283 | NR |
 | EX6-059 | Barbamon | full | none found | ba6aaafc747d | 5a3b5601058d | NR |
 | EX6-058 | Creepymon | full | none found | 6803c73097c7 | 68dd9b29f77b | NR |
-| EX6-057 | Lilithmon | direct | none found | 1e2cf3bacd8e | 27d45da94e76 | NR |
+| EX6-057 | Lilithmon | full | none found | 8e52a40afd5a | 8197e436bf1d | NR |
 | EX6-056 | Beelzemon | full | none found | f8c7f6af9797 | a12f5534c674 | NR |
 | EX6-055 | DanDevimon | full | none found | 4ba833cef5a7 | 2a51ab5472fb | NR |
 | EX6-054 | Lucemon: Chaos Mode | full | none found | fae00b798c9f | 7ccc60d9761f | NR |
@@ -121,7 +121,7 @@ EX6-001 was migrated from its legacy hand-written module to typed IR. Its
 exact added-card `[Legend-Arms]` filter, with complete coverage and a public
 IR evidence test.
 
-EX6-010, EX6-030, EX6-059, EX6-061, EX6-063, EX6-070, EX6-071, and EX6-073 were likewise migrated to `registerIrCard` because their
+EX6-010, EX6-030, EX6-059, EX6-061, EX6-063, EX6-068, EX6-069, EX6-070, EX6-071, and EX6-073 were likewise migrated to `registerIrCard` because their
 committed IR already has complete coverage and matches the direct-module
 clause inventory. The remaining legacy direct modules are retained while
 their IR entries still expose unsupported primitives; replacing those modules
