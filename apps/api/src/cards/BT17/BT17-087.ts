@@ -12,9 +12,6 @@ export const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -37,9 +34,6 @@ export const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -59,9 +53,6 @@ export const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -81,9 +72,6 @@ export const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
               "nameOrTrait": [
                 {
                   "tokens": [

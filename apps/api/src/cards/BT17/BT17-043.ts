@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
           "event": "whenPlayed",
           "sourceFilter": {
             "controller": "mine",
+            "byEffect": true,
             "orFilters": [
               {"kind": ["Digimon"], "nameOrTrait": [{"tokens": ["Terriermon", "Lopmon"], "match": "name"}]},
               {"kind": ["Tamer"], "colors": ["Green"]}

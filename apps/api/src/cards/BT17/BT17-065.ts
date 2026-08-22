@@ -61,7 +61,6 @@ export const compiled: CompiledCard = {
                 "trash"
               ],
               "payCost": false,
-              "ignoreRequirements": true,
               "bindResultAs": "digivolvedToPreventDeletion"
             },
             {

@@ -8,26 +8,35 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 }, optional: true },
+        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
         {
-          kind: "ConditionalBranch",
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
           condition: {
+            kind: "not",
+            condition: {
             kind: "anyOf",
             conditions: [
               {
-                kind: "selfDigivolutionStackMatchesFilter",
-                filter: { nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] },
+                kind: "selfHasInDigivolutionCards",
+                nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }],
               },
               { kind: "digivolvedFromZone", zone: "trash" },
             ],
-          },
-          ifTrue: [
-            {
-              kind: "Delete",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 1 },
             },
-          ],
-          ifFalse: [{ kind: "Draw", controller: "mine", amount: 1 }],
+          },
+        },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 1 },
+          condition: {
+            kind: "anyOf",
+            conditions: [
+              { kind: "selfHasInDigivolutionCards", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] },
+              { kind: "digivolvedFromZone", zone: "trash" },
+            ],
+          },
         },
       ],
     },
@@ -58,6 +67,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { names: ["DoruGreymon"], cost: 1, isAlternate: true },
+  ],
 };
 
 registerIrCard("BT17-067", compiled);

@@ -6,7 +6,8 @@ import { compiled } from "./BT17-014.js";
 
 describe("BT17-014", () => {
   it("digivolves a Takuya Kanbara into itself for 3 by placing Agunimon and BurningGreymon", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", isFromHand: true, actions: [{ kind: "Digivolve", costOverride: 3, asLevel: 4, asColors: ["Red"], ignoreRequirements: true, additionalCosts: [{ kind: "place" }] }] });
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", isFromHand: true, actions: [{ kind: "Digivolve", costOverride: 3, asLevel: 4, asColors: ["Red"], additionalCosts: [{ kind: "place" }] }] });
+    expect(compiled.effects?.[0]?.actions?.[0]).not.toHaveProperty("ignoreRequirements");
   });
 
   it("deletes an opposing Digimon at 6000 DP or less", () => {

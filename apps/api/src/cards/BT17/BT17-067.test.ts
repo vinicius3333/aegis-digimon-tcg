@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-067.js";
+import "./index.js";
 
 describe("BT17-067 DexDoruGreymon", () => {
   it("installs the Trash replacement that digivolves a DoruGreymon before deletion", () => {
@@ -25,17 +27,36 @@ describe("BT17-067 DexDoruGreymon", () => {
   });
 
   it("replaces only the draw with play-cost deletion when the condition is met", () => {
-    expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({
-      kind: "ConditionalBranch",
-      condition: {
-        kind: "anyOf",
-        conditions: [
-          { kind: "selfDigivolutionStackMatchesFilter" },
-          { kind: "digivolvedFromZone", zone: "trash" },
+    expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({ kind: "Trash" });
+    expect(compiled.effects?.[1]?.actions?.[0]).not.toHaveProperty("optional");
+    expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({ kind: "Draw", amount: 1, condition: { kind: "not", condition: { kind: "anyOf" } } });
+    expect(compiled.effects?.[1]?.actions?.[2]).toMatchObject({ kind: "Delete", target: { filter: { playCostLte: 6 } }, condition: { kind: "anyOf" } });
+  });
+
+  it("uses the DoruGreymon route, mandates the hand trash, and deletes instead of drawing", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT16-061", as: "doruGreymon" }],
+        hand: [
+          { card: "BT17-067", as: "dexDoruGreymon" },
+          { card: "BT1-001", as: "discarded" },
         ],
+        deck: [{ card: "BT1-011", as: "notDrawn" }],
       },
-      ifTrue: [{ kind: "Delete", target: { filter: { playCostLte: 6 } } }],
-      ifFalse: [{ kind: "Draw", amount: 1 }],
-    });
+      1: { battleArea: [{ card: "BT1-019", as: "target" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 1;
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("doruGreymon").permanentId,
+      instanceId: s.inst("dexDoruGreymon").instanceId,
+      alternateRequirementIndex: 0,
+    })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.perm("doruGreymon").topCard.cardId).toBe("BT17-067");
   });
 });

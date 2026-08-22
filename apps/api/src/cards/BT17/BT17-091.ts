@@ -154,7 +154,8 @@ export const compiled: CompiledCard = {
               "nameOrTrait": [
                 {
                   "tokens": [
-                    "Eiji Nagasumi"
+                    "Eiji Nagasumi",
+                    "Cracker Fang"
                   ],
                   "match": "name"
                 }
