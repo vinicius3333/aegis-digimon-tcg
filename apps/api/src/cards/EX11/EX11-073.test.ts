@@ -47,7 +47,7 @@ function makeSource(perm: Permanent | undefined, onField = true, ownersTurn = fa
     instanceId: "self",
     cardId,
     ownerSeat: 0,
-    definition: undefined as never,
+    definition: { kinds: ["Digimon"] } as never,
     permanent: () => perm,
     isOnBattleArea: () => onField,
     isOwnersTurn: () => ownersTurn, // end of OPPONENT's turn → ownersTurn = false
@@ -102,7 +102,7 @@ describe("EX11-073 static keyword grants", () => {
       trigger: {},
       game: { player: () => ({ battleArea: [] } as never), opponentOf: (s: number) => (s === 0 ? 1 : 0), permanentById: () => undefined, definitionOf: () => undefined as never } as never,
       fx: { grantKeyword: (_pId: string, keyword: string, _dur: unknown, amount?: number) => { granted.push({ keyword, amount }); } } as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
     const effects = requireMod().effectsForTiming(EffectTiming.None, source);
     await effects[0]!.resolve(ctx);
@@ -118,7 +118,7 @@ describe("EX11-073 static keyword grants", () => {
       trigger: {},
       game: { player: () => ({ battleArea: [] } as never), opponentOf: (s: number) => (s === 0 ? 1 : 0), permanentById: () => undefined, definitionOf: () => undefined as never } as never,
       fx: { grantKeyword: (_pId: string, keyword: string) => { granted.push(keyword); } } as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
     const effects = requireMod().effectsForTiming(EffectTiming.None, source);
     await effects[1]!.resolve(ctx);
@@ -134,7 +134,7 @@ describe("EX11-073 static keyword grants", () => {
       trigger: {},
       game: { player: () => ({ battleArea: [] } as never), opponentOf: (s: number) => (s === 0 ? 1 : 0), permanentById: () => undefined, definitionOf: () => undefined as never } as never,
       fx: { grantLinkMax: (_pId: string, delta: number) => { linkMaxGrants.push({ delta }); } } as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
     const effects = requireMod().effectsForTiming(EffectTiming.None, source);
     await effects[2]!.resolve(ctx);
@@ -154,7 +154,7 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
       trigger: { isDnaDigivolve: false },
       game: {} as never,
       fx: {} as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
     expect(effects[0]!.canActivate(ctx)).toBe(false);
   });
@@ -168,7 +168,7 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
       trigger: { isDnaDigivolve: true },
       game: {} as never,
       fx: {} as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
     expect(effects[0]!.canActivate(ctx)).toBe(true);
   });
@@ -185,11 +185,11 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
       trigger: { isDnaDigivolve: true },
       game: {
         player: (seat: number) => {
-          if (seat === 0) return { hand: [maquinaCard], trash: [], battleArea: [] } as never;
+        if (seat === 0) return { hand: [maquinaCard], trash: [], battleArea: [self] } as never;
           return { hand: [], trash: [], battleArea: [] } as never;
         },
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
-        permanentById: () => undefined,
+        permanentById: (id: string) => id === self.permanentId ? self : undefined,
         definitionOf: (c: CardInstance) => {
           if (c.cardId === "EX11-001") return { nameEn: "Maquinamon", kinds: ["Digimon"], types: [] } as never;
           return { nameEn: "Unknown", kinds: ["Digimon"], types: [] } as never;
@@ -202,6 +202,7 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
         },
       } as never,
       ask: {
+        optional: async () => true,
         selectCards: async (_ctx: unknown, opts: { candidates: string[] }) => opts.candidates.slice(0, 1),
       } as never,
     };
@@ -228,7 +229,7 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
         definitionOf: () => ({ nameEn: "X", kinds: ["Digimon"], types: [] } as never),
       } as never,
       fx: { link: (t: string, ids: string[]) => { linked.push(...ids); return Promise.resolve([]); } } as never,
-      ask: { selectCards: async () => [] } as never,
+      ask: { optional: async () => true, selectCards: async () => [] } as never,
     };
 
     const effects = requireMod().effectsForTiming(EffectTiming.WhenDigivolving, source);
@@ -253,16 +254,16 @@ describe("EX11-073 End of Opponent's Turn: trash security + return Digimon per l
     const fakeCtxOpp: EffectContext = {
       source: sourceOppTurn,
       trigger: {},
-      game: {} as never,
+      game: { state: { turnSeat: 1 }, opponentOf: (seat: number) => seat === 0 ? 1 : 0 } as never,
       fx: {} as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
     const fakeCtxOwner: EffectContext = {
       source: sourceOwnerTurn,
       trigger: {},
-      game: {} as never,
+      game: { state: { turnSeat: 1 }, opponentOf: (seat: number) => seat === 0 ? 1 : 0 } as never,
       fx: {} as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
     expect(effectsOppTurn[0]!.canTrigger(fakeCtxOpp)).toBe(true);
     expect(effectsOwnerTurn[0]!.canTrigger(fakeCtxOwner)).toBe(false);
@@ -299,6 +300,7 @@ describe("EX11-073 End of Opponent's Turn: trash security + return Digimon per l
         returnToDeck: (ids: string[], opts?: { toTop?: boolean }) => { returnedToDeck.push({ ids, toTop: opts?.toTop }); return Promise.resolve([]); },
       } as never,
       ask: {
+        optional: async () => true,
         chooseTargets: async (_ctx: unknown, opts: { candidates: string[] }) =>
           opts.candidates.slice(0, opts.candidates.length),
       } as never,
@@ -332,7 +334,7 @@ describe("EX11-073 End of Opponent's Turn: trash security + return Digimon per l
       fx: {
         trashFromSecurity: (_seat: number, n: number) => { trashedSecurity.push(n); return Promise.resolve([]); },
       } as never,
-      ask: {} as never,
+      ask: { optional: async () => true } as never,
     };
 
     const effects = requireMod().effectsForTiming(EffectTiming.OnEndTurn, source);
