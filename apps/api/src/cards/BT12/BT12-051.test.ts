@@ -32,6 +32,16 @@ it("plays one named Tamer from hand without paying its cost", async () => {
   expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-091")).toBe(true);
 });
 
+it("plays the errata-corrected Ryoma Mogami during When Digivolving", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-097", as: "ryoma" }] },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("yasha"));
+  await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-097"));
+  expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-097")).toBe(true);
+});
+
 it("does not play an unrelated Tamer from hand", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-094", as: "unrelated" }] },
