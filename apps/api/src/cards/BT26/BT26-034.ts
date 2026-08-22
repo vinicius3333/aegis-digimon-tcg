@@ -23,6 +23,12 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
+    },
   ],
   coverage: "full",
   residual: [],
