@@ -81,6 +81,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         return false;
       }
       const ids = await resolvePermanentTargets(ctx, action.target);
+      if (action.includePlayer) ids.push("player");
       await ctx.fx.redirectAttack(ids, { optional: action.optional ?? false });
       return false;
     }
@@ -91,9 +92,10 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const name = action.target.bindAs;
       if (name === undefined) return false;
       const target = action.chooser === undefined ? action.target : { ...action.target, chooser: action.chooser };
-      const ids = ctx.selections?.get(name) !== undefined
-        ? [ctx.selections.get(name)!]
-        : await resolvePermanentTargets(ctx, target);
+      const ids =
+        ctx.selections?.get(name) !== undefined
+          ? [ctx.selections.get(name)!]
+          : await resolvePermanentTargets(ctx, target);
       if (ids.length > 0) {
         ctx.selections ??= new Map();
         ctx.selections.set(name, ids[0]!);
