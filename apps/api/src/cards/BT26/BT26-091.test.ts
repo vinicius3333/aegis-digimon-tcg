@@ -5,6 +5,12 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT26-091 Yoshino Fujieda", () => {
+  it("requires the printed DATA SQUAD placement cost", async () => {
+    const { getEffectModule } = await import("../../engine/effects/registry.js");
+    const effect = getEffectModule("BT26-091")!.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)[0]!;
+    expect(effect.optional).toBe(false);
+  });
+
   it("places the DATA SQUAD cost face down at the bottom before drawing and gaining memory", async () => {
     const s = setupEngine(
       {
