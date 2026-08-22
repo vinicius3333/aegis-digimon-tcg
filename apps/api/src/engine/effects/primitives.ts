@@ -742,7 +742,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // the breeding stack must be detached from that exact permanent before the new
       // permanent is placed; falling back to the global loose lookup can otherwise retain
       // stale breeding material when the same instance id is observed through another view.
-      const instance = removeLooseInstance(state, instanceId, true, opts?.hostPermanentIds?.[instanceId]);
+      const resolvedHostPermanentId =
+        hostOfStackInstance(state, instanceId)?.hostPermanentId ?? opts?.hostPermanentIds?.[instanceId];
+      const instance = removeLooseInstance(state, instanceId, true, resolvedHostPermanentId);
       if (instance === undefined) continue;
       instance.faceUp = true;
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
