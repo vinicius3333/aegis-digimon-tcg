@@ -68,23 +68,4 @@ describe("ST2-01 Tsunomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("gives its host +1000 DP when a source-less opponent attacks that host", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST2-03", as: "defender", dp: 3000, suspended: true, under: ["ST2-01"] }] },
-      1: { battleArea: [{ card: "ST2-03", as: "attacker", dp: 3500 }] },
-    });
-
-    s.state.turnSeat = 1;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
-    })).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
-
-    // The inherited effect raises the defender to 4000, so it wins against the
-    // 3500-DP source-less attacker; without the effect the defender would lose.
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-  });
 });

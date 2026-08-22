@@ -179,7 +179,9 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
 
     // The harness records the live request at the tail; pendingDecision is the
     // wire-state mirror and does not carry the richer request options.
-    const sourceDecision = s.decisions.at(-1)!.req;
+    const sourceDecision = s.decisions
+      .filter(({ req }) => req.kind === "selectCards" && req.sourceCardId === "ST2-15")
+      .at(-1)!.req;
     expect(sourceDecision.options?.candidateInstanceIds).toEqual([
       s.inst("secondSource").instanceId,
       s.inst("secondOtherSource").instanceId,
