@@ -29,4 +29,15 @@ describe("BT12-089 handwritten module", () => {
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("takato"));
     expect(s.state.memory).toBe(3);
   });
+
+  it("does not reset memory above 2 and exposes the printed security play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-089", as: "takato" }] } });
+    await s.ready();
+    s.state.memory = 3;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("takato"));
+    expect(s.state.memory).toBe(3);
+
+    const module = getEffectModule("BT12-089");
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, s.perm("takato"))).toHaveLength(1);
+  });
 });
