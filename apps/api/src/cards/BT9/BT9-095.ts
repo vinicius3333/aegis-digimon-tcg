@@ -1,7 +1,74 @@
-import { getCompiledCard } from "@aegis/shared";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-export const compiled = getCompiledCard("BT9-095")!;
-const module = registerIrCard("BT9-095", compiled);
+// BT9-095 — Red Option (BT9, [X Antibody] red support).
+//
+// While you have a Digimon with [X Antibody] in its digivolution cards in play,
+//   you may use this card for a play cost of 2.
+// [Main] Delete 1 of your opponent's Digimon with 13000 DP or less. Then, 1 of your
+//   Digimon with [Greymon] in its name may attack your opponent.
+// [Security] Delete 1 of your opponent's Digimon.
+//
+// KB:
+//   The play-cost reduction is a static cost change gated on having a battle-area Digimon
+//   with "X Antibody" in its digivolution card names. The Greymon-name attack is optional
+//   returns false — i.e. can't attack opponent's Digimon, only the player).
 
-export default module;
+const cardId = "BT9-095";
+
+function _ownerBattleAreaDigimons(source: CardSource): Permanent[] {
+  const _owner = source.ownerSeat;
+  return []; // resolved inside resolve using ctx.game
+}
+
+function hasXAntibodyInStack(ctx: EffectContext, source: CardSource): boolean {
+  const owner = ctx.game.player(source.ownerSeat);
+  for (const permanent of owner.battleArea) {
+    if (permanent.topCard == null) continue;
+    const def = ctx.game.definitionOf(permanent.topCard);
+    if (!isDigimon(def)) continue;
+    for (const stackCard of permanent.stack) {
+      if (ctx.game.definitionOf(stackCard).nameEn === "X Antibody") return true;
+    }
+  }
+  return false;
+}
+
+const module: EffectModule = {
+  cardId,
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        handResidentStatic({
+          source,
+          effectKey: `${cardId}/play-cost-reduction`,
+          description:
+            "While you have a Digimon with [X Antibody] in its digivolution cards in play, you may use this card for a play cost of 2.",
+          when: (ctx) => hasXAntibodyInStack(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.changePlayCost(
+              (facts) =>
+                facts.def.nameEn === ctx.source.definition.nameEn && facts.controllerSeat === ctx.source.ownerSeat,
+              -2,
+              { setFixed: false },
+            );
+          },
+          attackPlayer: true,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("BT9-095", compiled);
