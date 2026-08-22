@@ -23,24 +23,51 @@ describe("BT26-083 compiled fidelity", () => {
     expect(card?.digivolutionRequirement).toEqual([{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }]);
     expect(card.assemblyRequirement).toEqual([{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }]);
     expect(card?.residual).toEqual([]);
-    expect(card?.effects?.[0]?.actions).toMatchObject([{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead", leaveCause: "otherThanBattle", actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false, optional: true }] }]);
+    expect(card?.effects?.[0]?.actions).toMatchObject([
+      {
+        kind: "Replacement",
+        event: "wouldLeavePlay",
+        mode: "instead",
+        leaveCause: "otherThanBattle",
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            fromOwnDigivolutionStack: true,
+            payCost: false,
+            optional: true,
+            target: {
+              filter: {
+                levelComparison: { op: "lte", value: 5 },
+                nameOrTrait: [
+                  { tokens: ["Junomon"], match: "name" },
+                  { tokens: ["Iliad"], match: "trait" },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    ]);
   });
 
   it("trashes all own security, deletes one opposing Digimon per card, and recovers three", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-083", as: "junomon" }],
-        security: ["BT1-001", "BT1-002"],
-        deck: ["BT1-003", "BT1-004", "BT1-005"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-083", as: "junomon" }],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-003", "BT1-004", "BT1-005"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+            { card: "BT1-012", as: "third" },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-010", as: "first" },
-          { card: "BT1-011", as: "second" },
-          { card: "BT1-012", as: "third" },
-        ],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("junomon"));
 
