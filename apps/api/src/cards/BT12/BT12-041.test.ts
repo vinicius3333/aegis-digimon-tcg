@@ -45,3 +45,21 @@ it("does not draw when an opposing Digimon is deleted for another reason", async
   await settle(() => s.state.players[1]!.battleArea.length === 0);
   expect(s.state.players[0]!.hand.length).toBe(handBefore);
 });
+
+it("applies minus 3000 DP once for each pair of digivolution cards", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT12-037", as: "base", under: ["BT12-011", "BT12-012", "BT12-013", "BT12-014"] }],
+        hand: [{ card: "BT12-041", as: "cho" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
+    },
+    { autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 3;
+  await advance(s.engine).verb.digivolveFromInstance(s.perm("base").permanentId, s.inst("cho").instanceId);
+  await settle(() => s.perm("base").topCard?.cardId === "BT12-041");
+  expect(s.perm("victim").currentDP).toBe(4000);
+});
