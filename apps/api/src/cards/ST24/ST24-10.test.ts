@@ -19,7 +19,7 @@ describe("ST24-10 Lilamon", () => {
           ],
           hand: [
             { card: "ST24-10", as: "lilamon" },
-            { card: "BT25-021", as: "next" },
+            { card: "BT26-049", as: "next" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
@@ -52,7 +52,7 @@ describe("ST24-10 Lilamon", () => {
           battleArea: [{ card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "under", faceUp: false }] }],
           hand: [
             { card: "ST24-10", as: "lilamon" },
-            { card: "BT25-021", as: "next" },
+            { card: "BT26-049", as: "next" },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },

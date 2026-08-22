@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const mainActions = [
   {
     kind: "PlaceUnder",
-    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+    target: { filter: { controller: "mine" }, count: 1 },
     fromDeckTop: true,
     faceDown: true,
     position: "bottom",

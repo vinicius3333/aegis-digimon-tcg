@@ -50,7 +50,7 @@ describe("ST22/ST24 remaining complex clauses", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT25-021", as: "dataSquad" }],
+          hand: [{ card: "BT26-049", as: "dataSquad" }],
           battleArea: [
             { card: "ST24-10", as: "lilamon" },
             {
@@ -69,13 +69,13 @@ describe("ST22/ST24 remaining complex clauses", () => {
     );
     s.state.memory = 10;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lilamon"));
-    await settle(() => s.perm("lilamon").topCard?.cardId === "BT25-021");
+    await settle(() => s.perm("lilamon").topCard?.cardId === "BT26-049");
 
     const opponent = s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT1-009");
     expect(opponent).toBeDefined();
     expect(opponent!.isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(opponent!, "unsuspend")).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.perm("lilamon").topCard?.cardId).toBe("BT25-021");
+    expect(s.perm("lilamon").topCard?.cardId).toBe("BT26-049");
   });
 });
