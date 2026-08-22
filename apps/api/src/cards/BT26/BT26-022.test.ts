@@ -117,12 +117,13 @@ describe("BT26-022 Sorcermon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const sorcermonId = s.perm("sorcermon").topCard.instanceId;
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("sorcermon"));
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
-      s.inst("sorcermon").instanceId,
+      sorcermonId,
     );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("iliad").instanceId]);
   });

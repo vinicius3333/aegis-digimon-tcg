@@ -11,8 +11,15 @@ const eligibleIliad = {
   controllerDefault: "mine",
   zone: "hand",
   kind: ["Digimon"],
-  colors: ["Blue", "Red"],
+  colors: ["Blue"],
   nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+  orFilters: [{
+    controllerDefault: "mine",
+    zone: "hand",
+    kind: ["Digimon"],
+    colors: ["Red"],
+    nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+  }],
 };
 
 export const compiled: CompiledCard = {
@@ -32,14 +39,19 @@ export const compiled: CompiledCard = {
           optional: true,
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Red", "Purple"] },
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              colors: ["Red"],
+              orFilters: [{ controllerDefault: "mine", kind: ["Digimon"], colors: ["Purple"] }],
+            },
           },
           cost: {
             kind: "place",
             destination: "security",
             position: "bottom",
-            host: "self",
-            target: { filter: { isSelfRef: true }, count: 1 },
+            targetIsPermanent: true,
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           },
         },
       ],
