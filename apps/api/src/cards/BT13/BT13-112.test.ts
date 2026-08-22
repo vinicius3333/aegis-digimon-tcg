@@ -61,4 +61,21 @@ describe("BT13-112 Omnimon", () => {
       expect(observe(s.engine).hasKeyword(permanent, "Rush")).toBe(true);
     }
   });
+
+  it("fires the same modal when legally digivolving from a level-6 red Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-111", as: "base" }], hand: [{ card: "BT13-112", as: "omnimon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    const targetId = s.perm("target").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT13-112");
+
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT13-111")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
+  });
 });
