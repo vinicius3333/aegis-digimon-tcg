@@ -46,4 +46,27 @@ describe("BT12-071 AncientWisemon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-094"));
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-094")).toBe(true);
   });
+
+  it("resolves the opponent-attack reveal at most once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-071", as: "ancient" }],
+          deck: ["BT12-066", "BT1-009", "BT1-010", "BT12-066", "BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT12-066").length === 1);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT12-066")).toHaveLength(1);
+  });
 });
