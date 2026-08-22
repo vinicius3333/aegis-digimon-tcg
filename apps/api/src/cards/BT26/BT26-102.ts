@@ -8,14 +8,17 @@ const appmon = { controller: "mine", playCostLte: 5, nameOrTrait: [{ tokens: ["A
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [{ kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, condition: { kind: "youHave", filter: sevenCode } }] },
-    { trigger: "Main", actions: [{ kind: "RawUnparsed", text: "Place exactly 6 Seven Code trait Digimon cards from your battle area, link cards, or trash under one of your Seven Code Digimon, then optionally digivolve it into Dantemon from hand for free ignoring requirements." }] },
+    { trigger: "Main", actions: [
+      { kind: "PlaceUnder", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] }, count: 6 }, destination: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] }, count: 1 }, bindHostAs: "sevenCodeHost", mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true }, order: "any", trackCount: "sevenCodeMaterials" },
+      { kind: "Digivolve", target: { filter: { boundRef: "sevenCodeHost" }, count: 1 }, into: { filter: { controller: "mine", zone: "hand", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Dantemon"], match: "name" }] }, count: 1 }, from: ["hand"], payCost: false, ignoreRequirements: true, optional: true, condition: { kind: "namedCountAtLeast", countSource: "sevenCodeMaterials", count: 6 } },
+    ] },
     { trigger: "Security", isSecurity: true, actions: [
       { kind: "PlayWithoutCost", target: { filter: appmon, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true },
       { kind: "AddToHandSelf" },
     ] },
   ],
-  coverage: "partial",
-  residual: ["The six-card mixed battle-area/link/trash placement cost and its recipient-bound free Dantemon evolution require a combined selection and permanent-relocation seam not present in the current IR."],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT26-102", compiled);

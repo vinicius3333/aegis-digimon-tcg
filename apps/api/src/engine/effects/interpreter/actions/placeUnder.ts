@@ -19,6 +19,52 @@ export async function runPlaceUnder(
   action: Extract<Action, { kind: "PlaceUnder" }>,
 ): Promise<void> {
   const self = ctx.source.permanent();
+  if (action.mixedSources !== undefined) {
+    const destination = action.destination;
+    if (destination === undefined) return;
+    const destinationIds = await resolvePermanentTargets(ctx, { filter: destination.filter, count: destination.count });
+    const destinationId = destinationIds.length === 1
+      ? destinationIds[0]
+      : (await ctx.ask.chooseTargets(ctx, { candidates: destinationIds, min: 1, max: 1 }))[0];
+    if (destinationId === undefined) return;
+    if (action.bindHostAs !== undefined) ctx.selections?.set(action.bindHostAs, destinationId);
+    const filter = action.target.filter;
+    const candidates: { instanceId: string; permanentId?: string }[] = [];
+    const matches = (card: { cardId: string }) => {
+      const definition = ctx.game.definitionOf(card as never);
+      if (filter.kind !== undefined && !definition.kinds.some((kind) => filter.kind!.includes(kind))) return false;
+      if (filter.nameOrTrait !== undefined && !filter.nameOrTrait.some((ref) => matchNameOrTrait(definition, ref))) return false;
+      return true;
+    };
+    const owner = ctx.game.player(ctx.source.ownerSeat);
+    if (action.mixedSources.battleAreaPermanents || action.mixedSources.linkedCards) {
+      for (const permanent of owner.battleArea) {
+        if (permanent.inBreeding || permanent.permanentId === destinationId || permanent.topCard === undefined) continue;
+        if (action.mixedSources.battleAreaPermanents && matches(permanent.topCard)) candidates.push({ instanceId: permanent.topCard.instanceId, permanentId: permanent.permanentId });
+        if (action.mixedSources.linkedCards) {
+          for (const linked of permanent.linked) if (matches(linked)) candidates.push({ instanceId: linked.instanceId });
+        }
+      }
+    }
+    if (action.mixedSources.trash) for (const card of owner.trash) if (matches(card)) candidates.push({ instanceId: card.instanceId });
+    const count = action.target.count === "all" ? candidates.length : Number(action.target.count ?? 1);
+    if (candidates.length < count) return;
+    const selected = candidates.length === count
+      ? candidates
+      : (await ctx.ask.selectCards(ctx, { candidates: candidates.map((candidate) => candidate.instanceId), min: count, max: count }))
+          .map((id) => candidates.find((candidate) => candidate.instanceId === id))
+          .filter(Boolean) as typeof candidates;
+    if (selected.length !== count) return;
+    const orderedIds = ctx.ask.orderCards ? await ctx.ask.orderCards(ctx, { candidates: selected.map((candidate) => candidate.instanceId), destination: "stackBottom" }) : selected.map((candidate) => candidate.instanceId);
+    const ordered = orderedIds.map((id) => selected.find((candidate) => candidate.instanceId === id)).filter(Boolean) as typeof selected;
+    for (const candidate of [...ordered].reverse()) {
+      if (candidate.permanentId !== undefined) {
+        if (await ctx.fx.relocatePermanentByEffect?.(destinationId, candidate.permanentId, { belowTop: false, faceUp: true }) !== true) return;
+      } else if ((await ctx.fx.placeUnder(destinationId, [candidate.instanceId])).length !== 1) return;
+    }
+    if (action.trackCount !== undefined) ctx.namedCounts?.set(action.trackCount, count);
+    return;
+  }
   // "Place the top card of your Digi-Egg deck as this Digimon's bottom digivolution card"
   // (BT13-007 / EX6-006). The card source is the Digi-Egg deck (not loose cards), routed
   // through the dedicated primitive; the host is the SOURCE permanent. The primitive no-ops
