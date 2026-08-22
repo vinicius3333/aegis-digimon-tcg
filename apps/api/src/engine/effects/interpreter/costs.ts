@@ -325,6 +325,21 @@ export async function payCost(
       await ctx.fx.unsuspend(suspendedIds);
       return true;
     }
+    case "unsuspendNamed": {
+      const targets = cost.targets ?? [];
+      if (targets.length === 0) return false;
+      const ids: string[] = [];
+      for (const target of targets) {
+        const candidates = (await resolvePermanentTargets(ctx, target)).filter(
+          (id) => ctx.game.permanentById(id)?.isSuspended === true,
+        );
+        if (candidates.length !== 1) return false;
+        ids.push(candidates[0]!);
+      }
+      if (new Set(ids).size !== ids.length) return false;
+      await ctx.fx.unsuspend(ids);
+      return true;
+    }
     case "trash": {
       if (!cost.target) return false;
       // "By trashing (the top/bottom card of) your/their security stack" — a SECURITY-trash
@@ -846,6 +861,13 @@ export async function payCost(
       await ctx.fx.trashFromSecurity(seat, 1, { fromTop: true });
       return true;
     }
+    case "trashBothSecurityTop": {
+      const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
+      if (ctx.game.player(ctx.source.ownerSeat).security.length === 0 || ctx.game.player(opponent).security.length === 0) return false;
+      await ctx.fx.trashFromSecurity(ctx.source.ownerSeat, 1, { fromTop: true });
+      await ctx.fx.trashFromSecurity(opponent, 1, { fromTop: true });
+      return true;
+    }
     case "securityToHand": {
       // "By adding your top security card to the hand" — all-or-nothing cost.
       const seat = ctx.source.ownerSeat;
@@ -899,7 +921,12 @@ export async function payCost(
       // than inferred from the card filter because the subsequent Delete target is a
       // separate choice and may include a different permanent.
       if (!cost.target || !cost.hostTarget) return false;
-      const hostCandidates = await resolvePermanentTargets(ctx, cost.hostTarget);
+      const hostCandidates = candidatePermanents(ctx, cost.hostTarget).map((host) => host.permanentId).filter((hostId) => {
+        const host = ctx.game.permanentById(hostId);
+        return host?.stack.some((card) =>
+          definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: card.cardId } as never)),
+        );
+      });
       if (hostCandidates.length === 0) return false;
       const hostId =
         hostCandidates.length === 1
@@ -923,6 +950,7 @@ export async function payCost(
       if (chosen.length !== 1) return false;
       const played = await ctx.fx.playInstances(chosen, { payCost: false });
       if (played.length === 0) return false;
+      ctx.lastResolvedPermanentIds = [hostId];
       if (out) out.paidCount = played.length;
       return true;
     }

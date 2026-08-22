@@ -312,6 +312,17 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT19-102: the Nene path requires a Shademon card already under that Tamer.
+  "BT19-102": [
+    { names: ["Luminamon"], cost: 2, isAlternate: true },
+    {
+      names: ["Nene Amano"],
+      minNameStackCount: 1,
+      minNameStackNames: ["Shademon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
   // EX12-032 prints two Lv.4 alternate paths: Garurumon in name, or NSo/VB trait.
   "EX12-032": [
     { level: 4, names: ["Garurumon"], cost: 3, isAlternate: true },
@@ -922,6 +933,13 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // BT19-102: [Nene Amano] is a Tamer material and the second slot accepts either named Digimon.
+  "BT19-102": [
+    {
+      materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
+      count: 1,
+    },
+  ],
   // EX12-029: the printed slot is one Lv.5-or-lower Digimon with [Gokuumon] in its text
   // OR the [SW] trait. The generated aggregate incorrectly made these predicates ANDed and
   // required two materials, so keep server legality and client highlighting on the printed rule.
