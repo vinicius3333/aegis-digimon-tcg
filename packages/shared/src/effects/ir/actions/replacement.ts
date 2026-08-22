@@ -36,6 +36,8 @@ export interface ReplacementAction extends ActionBase {
   /** Pay a prevention cost by digivolving the leaving permanent into this source from Trash. */
   digivolveFromTrash?: boolean;
   amount?: number;
+  /** Remove a successful digivolution-cost reduction after the payment is calculated. */
+  consumeOnActivate?: boolean;
   /**
    * Mutually exclusive reduceCost amounts the controller chooses between, never summed — for
    * text offering a base reduction plus a conditional larger one "instead" (EX6-006; KB Q3700

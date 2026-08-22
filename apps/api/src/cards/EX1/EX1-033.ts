@@ -5,16 +5,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [{
     trigger: "WhenAttacking",
-    timingOverride: "OnAllyAttack",
     actions: [{
-      kind: "CostModifier",
-      mode: "reduce",
-      costType: "digivolve",
+      kind: "Replacement",
+      event: "wouldDigivolve",
+      sourceFilter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" },
+      mode: "reduceCost",
       amount: 1,
-      target: { filter: { controller: "mine", kind: ["Digimon"] } },
-      into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Insectoid", "Ancient Insect"], match: "trait" }] },
-      once: true,
-      duration: "untilEachTurnEnd",
+      consumeOnActivate: true,
+      into: { nameOrTrait: [{ tokens: ["Insectoid", "Ancient Insect"], match: "trait" }] },
+      raw: "reduce the memory cost of the next matching digivolution by 1",
     }],
     isInherited: true,
   }],

@@ -281,6 +281,7 @@ export async function runReplacement(
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
       ...(scalesIntoColors ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length } : {}),
       description: action.raw,
+      ...(action.consumeOnActivate === true ? { consumeOnActivate: true } : {}),
       digisorptionRedirect: action.digisorptionRedirect,
       // "when this Digimon would digivolve INTO a card with [X] trait/name": restrict the
       // cost reduction to only when the digivolution target satisfies the into-filter.
