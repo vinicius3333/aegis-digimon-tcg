@@ -147,7 +147,11 @@ describe("EX3-036 Magnadramon", () => {
         effectKey: delay!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).keywordAmount(s.perm("firstOpponent"), "SecurityAttack") === -2);
+    await settle(
+      () =>
+        observe(s.engine).keywordAmount(s.perm("firstOpponent"), "SecurityAttack") === -2 &&
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-069"),
+    );
 
     expect(observe(s.engine).keywordAmount(s.perm("firstOpponent"), "SecurityAttack")).toBe(-2);
     expect(observe(s.engine).keywordAmount(s.perm("secondOpponent"), "SecurityAttack")).toBe(-2);
@@ -275,8 +279,7 @@ describe("EX3-036 Magnadramon", () => {
     );
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-036" && req.kind === "optional")).toHaveLength(1);
-    const selection = s.decisions.find(({ req }) => req.sourceCardId === "EX3-036" && req.kind === "selectCards")!.req;
-    expect(selection.options).toMatchObject({ min: 1, max: 1 });
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-036" && req.kind === "selectCards")).toHaveLength(0);
     const trial = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-069")!;
     expect(observe(s.engine).activatableEffects(trial)).toEqual([]);
   });
@@ -300,7 +303,7 @@ describe("EX3-036 Magnadramon", () => {
       kind: "optional",
       sourceCardId: "EX3-036",
       options: {
-        timing: "OnDestroyedAnyone",
+        timing: "OnDeletion",
         effectText: expect.stringContaining("may place 1 [Trial of the Four Great Dragons]"),
       },
     });
@@ -320,7 +323,7 @@ describe("EX3-036 Magnadramon", () => {
           s.inst("secondTrial").instanceId,
           s.inst("filler").instanceId,
         ]),
-        timing: "OnDestroyedAnyone",
+        timing: "OnDeletion",
         effectText: expect.stringContaining("may place 1 [Trial of the Four Great Dragons]"),
         min: 1,
         max: 1,
