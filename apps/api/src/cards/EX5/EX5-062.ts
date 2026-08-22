@@ -6,8 +6,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 /** EX5-062 Anubismon — generated IR is the executable source of truth. */
 export const compiled: CompiledCard = getCompiledCard("EX5-062")!;
 const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
+const watcherTrigger = watcher?.actions.find((action) => action.kind === "SubTrigger");
 const draw = watcher?.actions.find((action) => action.kind === "Draw");
-if (draw?.kind === "Draw") draw.condition = { kind: "ifThisEffectDidNotDelete" };
+if (watcherTrigger?.kind === "SubTrigger" && draw?.kind === "Draw") {
+  draw.condition = { kind: "ifThisEffectDidNotDelete" };
+  watcherTrigger.actions.push(draw);
+  watcher.actions = [watcherTrigger];
+}
 compiled.coverage = "full";
 compiled.residual = [];
 
