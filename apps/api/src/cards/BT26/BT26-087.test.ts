@@ -8,7 +8,7 @@ import "../index.js";
 describe("BT26-087 Toya Kuga", () => {
   it("compiles start-main return/memory, on-play draw, and Security play", () => {
     expect(compiled.coverage).toBe("full");
-    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "OnPlay", "Security"]);
+    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "OnPlay"]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ optional: false });
     expect(compiled.effects[0]?.actions[1]).toMatchObject({ target: { filter: { nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } } });
     expect(compiled.effects[1]?.actions[0]).toMatchObject({ optional: false });

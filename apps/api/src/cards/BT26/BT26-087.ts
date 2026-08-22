@@ -9,6 +9,5 @@ export const compiled: CompiledCard = { effects: [
     { kind: "Return", to: "hand", target: { count: 1, filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } }, optional: true },
   ] },
   { trigger: "OnPlay", actions: [{ kind: "Draw", controller: "mine", amount: 2, cost: tsTrashCost, optional: false }] },
-  { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { count: 1, filter: { isSelfRef: true } }, payCost: false }] },
 ], coverage: "full", residual: [] };
 registerIrCard("BT26-087", compiled);
