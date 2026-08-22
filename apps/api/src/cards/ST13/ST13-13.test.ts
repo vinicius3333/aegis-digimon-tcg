@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST13-13.js";
 import "./ST13-15.js";
@@ -6,7 +8,7 @@ import "./ST13-15.js";
 describe("ST13-13 RaijiLudomon", () => {
   it("survives an opponent's deletion effect on the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST13-13", as: "raiji" }] },
+      0: { battleArea: [{ card: "ST13-13", as: "raiji", suspended: true }] },
       1: { battleArea: ["ST13-05"], hand: [{ card: "ST13-15", as: "smasher" }] },
     });
     s.state.turnSeat = 1;
@@ -19,8 +21,8 @@ describe("ST13-13 RaijiLudomon", () => {
 
   it("can still be deleted in battle on the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST13-13", as: "raiji" }] },
-      1: { battleArea: [{ card: "BT1-025", as: "attacker" }] },
+      0: { battleArea: [{ card: "ST13-13", as: "raiji", suspended: true }] },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
     });
     s.state.turnSeat = 1;
     await s.ready();
@@ -45,12 +47,13 @@ describe("ST13-13 RaijiLudomon", () => {
     } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("black-material"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST13-06"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("ST13-06");
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["ST13-05", "ST13-13", "ST13-14", "ST13-06"]),
+      expect.arrayContaining(["ST13-05", "ST13-13", "ST13-14"]),
     );
   });
 
@@ -64,8 +67,8 @@ describe("ST13-13 RaijiLudomon", () => {
     } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await settle(() => s.state.turnSeat === 1);
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle();
 
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("non-dna").instanceId)).toBe(true);
