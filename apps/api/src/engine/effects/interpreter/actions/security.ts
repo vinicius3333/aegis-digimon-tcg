@@ -496,7 +496,11 @@ export async function runSecurityAction(ctx: EffectContext, action: Action, scop
     case "ModifySecurityDP": {
       const delta = scale === undefined ? action.amount : action.amount * scale;
       const seat = action.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-      ctx.fx.modifySecurityDp(seat, delta);
+      // Security effects can create either a turn-scoped delta (for example,
+      // ST1-14's [Security] effect) or a window lasting through the opponent's
+      // next turn (its [Main] effect). Preserve the IR duration in the ledger;
+      // omitting it incorrectly defaulted every triggered delta to one turn.
+      ctx.fx.modifySecurityDp(seat, delta, { duration: toDuration(action.duration) });
       return false;
     }
     case "SecurityAttackInvert": {

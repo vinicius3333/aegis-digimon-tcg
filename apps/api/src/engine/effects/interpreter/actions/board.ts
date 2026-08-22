@@ -231,6 +231,19 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         unsupported(ctx, action, `grant action-keyword ＜${kw}＞ needs its verb wired`);
         return false;
       }
+      // A Security effect that says "all of your Digimon gain ..." also applies
+      // to Digimon played after the security effect resolves. Model that as a
+      // player-scoped grant, rather than snapshotting only the permanents that
+      // existed when the security card was revealed (ST1-13 / KB Q607).
+      if (
+        ctx.trigger.securityInstanceId !== undefined &&
+        kw === "SecurityAttack" &&
+        action.target?.count === "all" &&
+        action.target.filter.kind?.includes("Digimon")
+      ) {
+        ctx.fx.grantPlayerKeyword(ctx.source.ownerSeat, kw, duration, keyword.amount);
+        return false;
+      }
       // `count` grants the keyword N times to each target (default 1). Each call to
       // grantKeyword adds a separate entry in the continuous ledger so that Alliance ×2
       // produces two grants — the consuming side sums each Alliance entry as one extra
