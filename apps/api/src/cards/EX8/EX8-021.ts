@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
         },
       ],
       frequency: "OncePerTurn",
+      isInherited: true,
     },
     {
       trigger: "Static",
