@@ -3,6 +3,7 @@
 import type { EffectContext, SeatScopedDecisionApi } from "../../EffectContext.js";
 import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { countMatching } from "../scaling.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
 import type { Seat, Target, ZoneRef } from "@aegis/shared";
@@ -173,7 +174,14 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           if (!hostIsSelf) continue;
         }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
-        if (!allFilters.some((f) => definitionMatches(f, def))) continue;
+        if (!allFilters.some((f) => {
+          if (f.playCostLteScaling === undefined) return definitionMatches(f, def);
+          const scaling = f.playCostLteScaling;
+          const units = Math.floor(countMatching(ctx, scaling.filter ?? {}) / Math.max(1, scaling.per));
+          const cap = (f.playCostLte ?? 0) - (scaling.subtract ?? 0) * units;
+          const { playCostLteScaling: _scaling, ...withoutScaling } = f;
+          return definitionMatches({ ...withoutScaling, playCostLte: cap }, def);
+        })) continue;
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind
         // (e.g. "from under your Tamers" — BT10-093), OR require the host to BE the source's
         // own permanent ("this Digimon's digivolution cards" — BT9-111, hostFilter.isSelfRef).
