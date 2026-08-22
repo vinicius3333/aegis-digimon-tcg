@@ -87,7 +87,6 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 2,
             "filter": {
-              "controllerDefault": "mine",
               "kind": [
                 "Tamer"
               ]
@@ -159,7 +158,6 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 2,
             "filter": {
-              "controllerDefault": "mine",
               "kind": [
                 "Tamer"
               ]
