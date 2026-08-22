@@ -42,7 +42,7 @@ describe("BT26-102 compiled fidelity", () => {
   it("publicly plays an Appmon from hand and adds itself to hand from security", async () => {
     const s = setupEngine({
       0: {
-        security: [{ card: "BT26-102", as: "option" }],
+        security: [{ card: "BT26-102", as: "option", faceUp: true }],
         hand: [{ card: "BT21-009", as: "appmon" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });

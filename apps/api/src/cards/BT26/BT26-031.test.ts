@@ -13,12 +13,12 @@ describe("BT26-031 compiled fidelity", () => {
     expect(card?.effects?.[0]?.actions).toMatchObject([
       { kind: "RecoverByTrashingMostSecurity", recover: false },
       { kind: "SelectBind", condition: { kind: "ifThisEffectActed" } },
-      { kind: "Restrict", restriction: "suspend", condition: { kind: "ifThisEffectActed" } },
-      { kind: "trashBottomFaceDownUnderTamer" },
+      { kind: "Restrict", restriction: "beSuspended", condition: { kind: "ifThisEffectActed" } },
+      { kind: "TrashDigivolution", fromTop: false },
       { kind: "Recover", amount: 1, condition: { kind: "ifThisEffectActed" } },
     ]);
     expect(card?.effects?.[1]?.actions).toMatchObject([
-      { kind: "trashBottomFaceDownUnderTamer" },
+      { kind: "TrashDigivolution", fromTop: false },
       { kind: "Recover", amount: 1 },
     ]);
   });
@@ -41,6 +41,6 @@ describe("BT26-031 compiled fidelity", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-004");
-    expect((s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }).continuous.hasRestriction(s.perm("target").permanentId, "suspend")).toBe(true);
+    expect((s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }).continuous.hasRestriction(s.perm("target").permanentId, "beSuspended")).toBe(true);
   });
 });

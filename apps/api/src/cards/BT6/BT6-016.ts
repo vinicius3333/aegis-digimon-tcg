@@ -44,6 +44,7 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenPlayed",
+          "once": true,
           "sourceFilter": {
             "controllerDefault": "mine",
             "excludeSelf": true,
@@ -55,23 +56,24 @@ const compiled: CompiledCard = {
             {
               "kind": "ModifyDP",
               "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
+              "filter": {},
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{"tokens": ["Jesmon"], "match": "name"}],
+              "count": "all"
+            },
               "amount": 3000,
-              "duration": "forTheTurn"
+              "duration": "forTheTurn",
+              "continuous": false
             },
             {
               "kind": "GainKeyword",
               "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
+              "filter": {},
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{"tokens": ["Jesmon"], "match": "name"}],
+              "count": "all"
               },
               "keyword": {
                 "keyword": "Piercing",
@@ -79,7 +81,8 @@ const compiled: CompiledCard = {
               },
               "duration": "forTheTurn"
             }
-          ]
+          ],
+          "oncePerTurnKey": "global:BT6-016/jesmon-sistermon"
         }
       ],
       "frequency": "OncePerTurn"

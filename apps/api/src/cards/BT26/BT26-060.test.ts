@@ -29,13 +29,13 @@ describe("BT26-060 compiled fidelity", () => {
           { card: "BT1-015", as: "third", under: ["BT1-016", "BT1-017"] },
         ],
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true });
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("destroyMode"));
     await settle(() => s.state.players[1]!.deck.length === 6 && s.state.pendingDecision === undefined);
 
     expect(s.state.players[1]!.deck).toHaveLength(6);
-    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(3);
   });
 });

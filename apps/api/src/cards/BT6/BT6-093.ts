@@ -3,22 +3,86 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  effects: [
+  "effects": [
     {
-      trigger: "Main",
-      actions: [{ kind: "GrantStatic", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Huckmon"], match: "name" }, { tokens: ["Royal Knight"], match: "trait" }] }, count: 1 }, grant: "canBeAttackedWhileUnsuspended", duration: "forTheTurn" }],
+      "trigger": "Main",
+      "actions": [
+        {
+          "kind": "GrantCanAttackUnsuspended",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Huckmon"
+                  ],
+                  "match": "name"
+                }
+              ],
+              "orFilters": [
+                {
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Royal Knight"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
+                }
+              ]
+            },
+            "count": 1
+          },
+          "duration": "forTheTurn"
+        }
+      ]
     },
     {
-      trigger: "Security",
-      actions: [
-        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Sistermon"], match: "name" }] }, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true },
-        { kind: "AddToHandSelf" },
+      "trigger": "Security",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Sistermon"
+                  ],
+                  "match": "name"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "from": [
+            "hand",
+            "trash"
+          ],
+          "payCost": false,
+          "optional": true
+        },
+        {
+          "kind": "AddToHandSelf"
+        }
       ],
-      isSecurity: true,
-    },
+      "isSecurity": true
+    }
   ],
-  coverage: "full",
-  residual: [],
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("BT6-093", compiled);

@@ -9,7 +9,7 @@ describe("BT6-093 Judgment of the Blade", () => {
     const s = setupEngine({ 0: {
       security: [{ card: "BT6-093", as: "security", faceUp: true }],
       hand: [{ card: "BT6-082", as: "sistermon" }],
-    } }, { autoSelectCards: true });
+    } }, { autoSelectCards: true, autoAcceptOptional: true });
     const securityId = s.inst("security").instanceId;
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));

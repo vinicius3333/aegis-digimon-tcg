@@ -30,7 +30,7 @@ describe("BT26-033 compiled fidelity", () => {
           cost: { kind: "placeAsSecurity", position: "bottom", target: { filter: { isSelfRef: true }, isSelf: true } },
         },
       ],
-    });
+    }, { autoAcceptOptional: true });
   });
 
   it("publicly adds the top security card to hand and plays an Iliad card with the reduction", async () => {
@@ -38,16 +38,16 @@ describe("BT26-033 compiled fidelity", () => {
       0: {
         battleArea: [{ card: "BT26-033", as: "jupitermon" }],
         security: [{ card: "BT1-001", as: "securityCard" }],
-        hand: [{ card: "BT26-030", as: "iliad" }],
+        hand: [{ card: "BT26-009", as: "iliad" }],
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
     s.state.memory = 10;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("jupitermon"));
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-030");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-009");
   });
 
   it("uses its top stack card as bottom security to prevent a TS card from leaving", async () => {
@@ -58,7 +58,7 @@ describe("BT26-033 compiled fidelity", () => {
           { card: "BT26-013", as: "protectedTs" },
         ],
       },
-    });
+    }, { autoAcceptOptional: true });
     await s.ready();
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("protectedTs").permanentId], "byEffect")).toBe(0);

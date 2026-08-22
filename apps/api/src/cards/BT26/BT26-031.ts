@@ -6,7 +6,13 @@ const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
 const ownDigimon = { controller: "mine", kind: ["Digimon"] };
 const glowingDawn = { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] };
 const recovery = [
-  { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
+  {
+    kind: "TrashDigivolution",
+    target: { filter: { controller: "mine", kind: ["Tamer"], digivolutionCards: "hasAny" }, count: 1 },
+    amount: 1,
+    fromTop: false,
+    optional: true,
+  },
   { kind: "Recover", controller: "mine", amount: 1, condition: { kind: "ifThisEffectActed" } },
 ];
 
@@ -23,8 +29,8 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Restrict",
-          target: { filter: { boundRef: "suspendLocked" }, count: 1 },
-          restriction: "suspend",
+          target: { fromSelectionRef: "suspendLocked", filter: {}, count: 1 },
+          restriction: "beSuspended",
           duration: "untilOpponentTurnEnd",
           condition: { kind: "ifThisEffectActed" },
         },

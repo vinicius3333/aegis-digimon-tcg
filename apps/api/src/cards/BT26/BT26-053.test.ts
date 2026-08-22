@@ -17,15 +17,16 @@ describe("BT26-053 Wolvermon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-009", as: "host", under: [{ card: "BT26-053" }] },
+          { card: "BT26-053", as: "source" },
           { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
         ],
-        hand: [{ card: "BT26-031", as: "option" }],
+        hand: [{ card: "BT26-052", as: "option" }],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { subjectPermanentId: s.perm("host").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: s.perm("source").permanentId });
 
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT26-031");

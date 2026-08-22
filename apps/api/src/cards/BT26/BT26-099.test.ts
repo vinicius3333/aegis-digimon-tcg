@@ -35,7 +35,7 @@ describe("BT26-099 compiled fidelity", () => {
   it("publicly resolves its Security Main, adds a DM card, and places itself in the battle area", async () => {
     const s = setupEngine({
       0: {
-        security: [{ card: "BT26-099", as: "manual" }],
+        security: [{ card: "BT26-099", as: "manual", faceUp: true }],
         deck: [{ card: "BT26-048", as: "dm" }, { card: "BT1-009", as: "rest" }, { card: "BT1-010", as: "rest2" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true });

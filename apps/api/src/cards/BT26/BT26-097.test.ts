@@ -50,8 +50,8 @@ describe("BT26-097 compiled fidelity", () => {
   it("publicly plays a low-cost TS card from hand and adds itself to hand from security", async () => {
     const s = setupEngine({
       0: {
-        security: [{ card: "BT26-097", as: "option" }],
-        hand: [{ card: "BT26-011", as: "tsCard" }],
+        security: [{ card: "BT26-097", as: "option", faceUp: true }],
+        hand: [{ card: "BT26-009", as: "tsCard" }],
         battleArea: [{ card: "BT26-030", as: "tsSource" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
@@ -59,7 +59,7 @@ describe("BT26-097 compiled fidelity", () => {
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
 
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-011");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-009");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-097");
   });
 });

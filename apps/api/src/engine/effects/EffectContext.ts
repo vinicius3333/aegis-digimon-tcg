@@ -893,7 +893,7 @@ export interface Primitives {
    * bounce too, not just deletion); a prevented permanent is left in play.
    */
   returnToHand(instanceIds: string[], opts?: { silent?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
-  returnToDeck(instanceIds: string[], opts?: { toTop?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  returnToDeck(instanceIds: string[], opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string }): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
   reveal(seat: Seat, n: number): Promise<CardInstance[]>;
@@ -1150,7 +1150,7 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string },
+    opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
 
   // --- security-stack manipulation -------------------------------------------
