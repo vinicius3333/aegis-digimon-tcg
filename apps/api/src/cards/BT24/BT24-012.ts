@@ -23,18 +23,23 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          sourceFilter: {
-            controller: "mine",
-            excludeSelf: true,
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["Reptile", "Dragonkin"],
-                match: "trait",
-              },
-            ],
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Reptile", "Dragonkin"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 10000,
+            upTo: true,
           },
           leaveCause: "byOpponentEffect",
+          affectsAll: true,
           actions: [
             {
               kind: "Prevent",
@@ -63,6 +68,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          fireCondition: {
+            kind: "triggerRemovedSecuritySeat",
+            seat: "opponent",
+          },
           actions: [
             {
               kind: "GainMemory",
