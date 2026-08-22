@@ -19,14 +19,14 @@ describe("BT24-043 Tapirmon", () => {
     });
   });
 
-  it("adds a valid Beast and a TS card while bottoming a non-TS Sea Animal", async () => {
+  it("adds a trait containing Beast and a TS card while bottoming a Sea Animal", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT24-043", as: "tapirmon" }],
           deck: [
-            { card: "BT1-031", as: "beast" },
+            { card: "BT1-046", as: "beast" },
             { card: "BT24-083", as: "ts" },
             { card: "BT1-033", as: "seaAnimalMiss" },
           ],
@@ -58,7 +58,7 @@ describe("BT24-043 Tapirmon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId);
+    preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
@@ -71,7 +71,7 @@ describe("BT24-043 Tapirmon", () => {
   it("digivolves from a non-green level-2 TS egg for cost 0", async () => {
     const s = setupEngine({
       0: {
-        breeding: { card: "BT24-001", as: "egg" },
+        breeding: { card: "BT24-002", as: "egg" },
         hand: [{ card: "BT24-043", as: "tapirmon" }],
       },
     });
@@ -83,6 +83,8 @@ describe("BT24-043 Tapirmon", () => {
         type: "digivolve",
         permanentId: s.perm("egg").permanentId,
         instanceId: s.inst("tapirmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("tapirmon").instanceId);
