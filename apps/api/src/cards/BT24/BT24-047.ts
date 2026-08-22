@@ -27,15 +27,9 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Avian", "Bird"],
-                  match: "trait",
-                },
-                {
-                  tokens: ["Vortex Warriors"],
-                  match: "trait",
-                },
+              or: [
+                { nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" }] },
+                { nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" }] },
               ],
             },
             count: 1,
@@ -84,15 +78,9 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Avian", "Bird"],
-                  match: "trait",
-                },
-                {
-                  tokens: ["Vortex Warriors"],
-                  match: "trait",
-                },
+              or: [
+                { nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" }] },
+                { nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" }] },
               ],
             },
             count: 1,

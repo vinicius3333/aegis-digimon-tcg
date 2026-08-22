@@ -32,13 +32,32 @@ describe("BT24-047 Kokatorimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("opponent").topCard.instanceId);
+    preferred.push(s.perm("opponent").permanentId);
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("avian").isSuspended).toBe(true);
+  });
+
+  it("suspends, unsuspends, and attacks with its own Giant Bird as one sequence", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-047", as: "source" }] },
+        1: { security: [{ card: "BT1-009", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("source").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
   });
 
   it("inherited effect gains memory only when its own host wins and survives", async () => {
