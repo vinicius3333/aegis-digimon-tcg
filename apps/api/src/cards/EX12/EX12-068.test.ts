@@ -103,7 +103,7 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("does not waive digivolution requirements when the selected NSp card is illegal", async () => {
+  it("does not waive digivolution requirements when no legal NSp card is available", async () => {
     const s = setupEngine(
       {
         0: {
@@ -128,7 +128,7 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 100);
 
-    expect(s.perm("ruli").isSuspended).toBe(true);
+    expect(s.perm("ruli").isSuspended).toBe(false);
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-050");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("illegalTarget").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);
