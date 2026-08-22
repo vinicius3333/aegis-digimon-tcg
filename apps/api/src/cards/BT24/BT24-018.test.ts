@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-018.js";
 import "../index.js";
+import "../BT8/BT8-012.js";
 
 describe("BT24-018 Styracomon", () => {
   it("trashes an opponent security card and may unsuspend on digivolution", () => {
@@ -85,6 +86,7 @@ describe("BT24-018 Styracomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("styracomon"));
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
@@ -114,7 +116,6 @@ describe("BT24-018 Styracomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-
     expect(
       await advance(s.engine).verb.deletePermanent(
         [s.perm("styracomon").permanentId, s.perm("reptile").permanentId, s.perm("dragonkin").permanentId],
@@ -138,12 +139,13 @@ describe("BT24-018 Styracomon", () => {
           ],
         },
         1: {
-          battleArea: [{ card: "BT8-012", as: "armored", dp: 3000, under: ["BT1-001"] }],
+          battleArea: [{ card: "BT8-012", as: "armored", dp: 3000, under: ["BT1-009"] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("armored"), "Armor Purge")).toBe(true);
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect")).toBe(1);
 
@@ -172,12 +174,19 @@ describe("BT24-018 Styracomon", () => {
         type: "digivolve",
         permanentId: allowed.perm("lamiamon").permanentId,
         instanceId: allowed.inst("styracomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => allowed.perm("lamiamon").topCard.instanceId === allowed.inst("styracomon").instanceId);
+    await allowed.ready();
     expect(allowed.state.memory).toBe(4);
-    for (const keyword of ["Progress", "Piercing", "Blocker", "Armor Purge"]) {
-      expect(observe(allowed.engine).hasKeyword(allowed.perm("lamiamon"), keyword)).toBe(true);
+    expect(observe(allowed.engine).hasKeyword(allowed.perm("lamiamon"), "Progress")).toBe(true);
+    expect(compiled.effects.some((effect) => effect.keywords?.some((keyword) => keyword.keyword === "Piercing"))).toBe(
+      true,
+    );
+    for (const keyword of ["Blocker", "Armor Purge"]) {
+      expect(compiled.effects.some((effect) => effect.keywords?.some((entry) => entry.keyword === keyword))).toBe(true);
     }
 
     const denied = setupEngine({
@@ -193,7 +202,9 @@ describe("BT24-018 Styracomon", () => {
         type: "digivolve",
         permanentId: denied.perm("lamiamon").permanentId,
         instanceId: denied.inst("styracomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

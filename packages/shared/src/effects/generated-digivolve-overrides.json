@@ -9,6 +9,24 @@
       "isAlternate": true
     }
   ],
+  "BT24-018": [
+    {
+      "namesExact": [
+        "Lamiamon"
+      ],
+      "cost": 6,
+      "isAlternate": true,
+      "controllerControls": {
+        "kind": [
+          "Tamer"
+        ],
+        "namesExact": [
+          "Owen Dreadnought"
+        ],
+        "min": 1
+      }
+    }
+  ],
   "BT25-045": [
     {
       "level": 2,

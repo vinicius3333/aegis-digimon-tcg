@@ -1106,13 +1106,13 @@ export async function payCost(
     }
     case "deleteOwn": {
       if (!cost.target) return false;
-      const ids = await resolvePermanentTargets(ctx, cost.target);
-      if (ids.length === 0) return false;
+      const permanentIds = await resolvePermanentTargets(ctx, cost.target);
+      if (permanentIds.length === 0) return false;
       // Capture the deleted Digimon's level BEFORE removal so a
       // subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` can bound on it
       // (BT8-107: "delete 1 of your Digimon to delete 1 of your opponent's with level <= it").
       let maxLevel: number | undefined;
-      for (const id of ids) {
+      for (const id of permanentIds) {
         const perm = ctx.game.permanentById(id);
         const level = perm?.topCard ? ctx.game.definitionOf(perm.topCard).level : undefined;
         if (level !== undefined && level > 0) maxLevel = Math.max(maxLevel ?? 0, level);
@@ -1120,14 +1120,16 @@ export async function payCost(
       if (maxLevel !== undefined) ctx.lastDeletedLevel = maxLevel;
       if (cost.bindResultAs !== undefined) {
         ctx.boundPlayed ??= new Map();
-        ctx.boundPlayed.set(cost.bindResultAs, new Set(ids));
+        ctx.boundPlayed.set(cost.bindResultAs, new Set(permanentIds));
       }
-      const deleted = await ctx.fx.deletePermanent(ids);
+      const deleted = await ctx.fx.deletePermanent(permanentIds);
       // A cost is paid only when every declared permanent actually leaves play. A
       // leave-play replacement (or another deletion prevention) may reject one of
       // the selected permanents; treating that attempt as paid would let the parent
       // effect proceed while the printed cost card remains on the field.
-      return deleted === ids.length;
+      return (
+        deleted === permanentIds.length && permanentIds.every((id) => ctx.game.permanentById(id) === undefined)
+      );
     }
     case "payMemory": {
       // "By paying N cost" — pay N memory (memory can go negative; the gauge handles

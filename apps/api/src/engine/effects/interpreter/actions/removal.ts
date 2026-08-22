@@ -464,6 +464,16 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             : ctx.source.ownerSeat;
         const n = action.target.count === "all" ? ctx.game.player(seat).security.length : action.target.count;
         if (n <= 0 || ctx.game.player(seat).security.length < n) return false;
+        if (action.target.filter.position === undefined) {
+          const candidates = candidateLooseInstances(ctx, action.target, ["security"]);
+          const chosen = await pickLoose(
+            ctx,
+            action.optional === true ? { ...action.target, upTo: true } : action.target,
+            candidates,
+          );
+          if (chosen.length > 0) await ctx.fx.trashFromSecurity(seat, chosen.length, { instanceIds: chosen });
+          return false;
+        }
         const isBottom = action.target.filter.position === "bottom";
         await ctx.fx.trashFromSecurity(seat, n, { fromTop: !isBottom });
         return false;
