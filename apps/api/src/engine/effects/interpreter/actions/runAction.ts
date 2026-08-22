@@ -284,6 +284,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "AddToDPDeleteBudget":
     case "Trash":
     case "Return":
+    case "ReturnTopDigivolutionCards":
     case "DeletionMaxDpModifier":
     case "DelayedDelete":
     case "DelayedDeletePlayed":

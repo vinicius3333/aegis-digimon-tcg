@@ -21,6 +21,21 @@ import type { Action, Target } from "@aegis/shared";
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
+    case "ReturnTopDigivolutionCards": {
+      const targetIds = await resolvePermanentTargets(ctx, action.target);
+      const cards = targetIds.flatMap((id) => {
+        const permanent = ctx.game.permanentById(id);
+        return permanent === undefined ? [] : permanent.stack.slice(-action.cardsPerTarget);
+      });
+      if (cards.length === 0) return false;
+      let ordered = cards.map((card) => card.instanceId);
+      if (action.order === "any" && ordered.length > 1 && ctx.ask.orderCards !== undefined) {
+        ordered = await ctx.ask.orderCards(ctx, { candidates: ordered, destination: "deckTop" });
+      }
+      await ctx.fx.returnToDeck([...ordered].reverse(), { toTop: true });
+      ctx.lastEffectActed = true;
+      return false;
+    }
     case "Delete": {
       const survivorIds = await resolveExceptSurvivors(ctx, action.target);
       let target = action.target;

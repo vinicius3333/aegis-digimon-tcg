@@ -69,6 +69,7 @@ import type {
   DeleteUntilCountAction,
   DeletionMaxDpModifierAction,
   ReturnAction,
+  ReturnTopDigivolutionCardsAction,
   RevealChooseDeleteBudgetAction,
   TrashAction,
 } from "./removal.js";
@@ -139,6 +140,7 @@ export type Action =
   | OpponentMayTrashSecurityAction
   | HandManipulationAction
   | ReturnAction
+  | ReturnTopDigivolutionCardsAction
   | SuspendAction
   | RepeatPerCountAction
   | UnsuspendAction

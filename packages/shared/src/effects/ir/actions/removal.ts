@@ -26,6 +26,13 @@ export interface DeleteAction extends ActionBase {
   };
 }
 
+export interface ReturnTopDigivolutionCardsAction extends ActionBase {
+  kind: "ReturnTopDigivolutionCards";
+  target: Target;
+  cardsPerTarget: number;
+  order?: "any";
+}
+
 /** Delete one opponent Digimon for each distinct color in the source stack (EX9-074). */
 export interface DeletePerColorAction extends ActionBase {
   kind: "DeletePerColor";
