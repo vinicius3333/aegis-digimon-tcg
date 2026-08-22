@@ -5,13 +5,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [{
     trigger: "WhenAttacking",
+    attackScope: "self",
     actions: [{
       kind: "CostModifier",
       mode: "reduce",
       costType: "digivolve",
       amount: 1,
-      target: { filter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] } },
-      into: { zone: "hand", controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Insectoid", "Ancient Insect"], match: "trait" }] },
+      target: { filter: { controller: "mine", kind: ["Digimon"] } },
+      into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Insectoid", "Ancient Insect"], match: "trait" }] },
       once: true,
       duration: "untilEachTurnEnd",
     }],
