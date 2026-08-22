@@ -287,6 +287,7 @@ export async function pickLoose(
   const requireDifferentColors = target.filter?.differentColors === true;
   const requireDistinctNames = target.filter?.distinctNames === true || target.distinctNames === true;
   const requireDistinctCardNumbers = target.distinctCardNumbers === true;
+  const requireDistinctLevels = target.distinctLevels === true;
   const requiredNamesExact = target.requiredNamesExact ?? [];
   const requiredNamesExactUpTo = target.requiredNamesExactUpTo ?? [];
   if (requiredNamesExact.length > 0) {
@@ -424,6 +425,40 @@ export async function pickLoose(
       const candidate = candidates.find((item) => item.instanceId === instanceId);
       if (candidate === undefined || seenCardIds.has(candidate.cardId)) continue;
       seenCardIds.add(candidate.cardId);
+      chosen.push(instanceId);
+    }
+    return chosen;
+  }
+  if (requireDistinctLevels) {
+    const chosen: string[] = [];
+    const usedLevels = new Set<number>();
+    const distinctLevelCount = new Set(
+      candidates
+        .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).level)
+        .filter((level): level is number => level !== undefined),
+    ).size;
+    const distinctWant = target.count === "all" ? distinctLevelCount : Math.min(want, distinctLevelCount);
+    if (!target.upTo && distinctLevelCount < want) return [];
+    while (chosen.length < distinctWant) {
+      const eligible = candidates.filter((candidate) => {
+        const level = ctx.game.definitionOf({ cardId: candidate.cardId } as never).level;
+        return level !== undefined && !usedLevels.has(level) && !chosen.includes(candidate.instanceId);
+      });
+      if (eligible.length === 0) break;
+      const picked = await asker.selectCards(ctx, {
+        candidates: eligible.map((candidate) => candidate.instanceId),
+        min: target.upTo ? 0 : 1,
+        max: 1,
+        visible,
+        visibleCards,
+      });
+      const instanceId = picked[0];
+      if (instanceId === undefined) break;
+      const candidate = eligible.find((item) => item.instanceId === instanceId);
+      if (candidate === undefined) break;
+      const level = ctx.game.definitionOf({ cardId: candidate.cardId } as never).level;
+      if (level === undefined) break;
+      usedLevels.add(level);
       chosen.push(instanceId);
     }
     return chosen;
