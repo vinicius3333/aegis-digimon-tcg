@@ -22,26 +22,21 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenEffectAddsToOpponentHand",
-        optional: true,
-        actions: [{
-          kind: "Trash",
-          target: { filter: opponentHand, count: 1 },
-          chooser: "opponent",
-          optional: true,
-          cost: { kind: "trash", target: { filter: ownHand, count: 1 } },
-        }],
-      }],
-    },
-    {
-      trigger: "OnAllyAttack",
-      isInherited: true,
-      frequency: "OncePerTurn",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1 },
-        { kind: "Trash", target: { filter: ownHand, count: 1 } },
+        {
+          kind: "SubTrigger",
+          event: "whenEffectAddsToOpponentHand",
+          optional: true,
+          actions: [
+            {
+              kind: "Trash",
+              target: { filter: opponentHand, count: 1 },
+              chooser: "opponent",
+              optional: true,
+              cost: { kind: "trash", target: { filter: ownHand, count: 1 } },
+            },
+          ],
+        },
       ],
     },
   ],
