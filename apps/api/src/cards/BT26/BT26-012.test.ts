@@ -1,4 +1,4 @@
-import { EffectTiming, Zone, digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectDuration, EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -9,7 +9,7 @@ const CARD_ID = "BT26-012";
 
 describe("BT26-012 Manekimon", () => {
   it("uses the exact off-color Lv.3 [Shambala] cost-2 evolution path and rejects a near-match", () => {
-    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+    expect(compiled.digivolutionRequirement).toContainEqual({
       level: 3,
       traits: ["Shambala"],
       cost: 2,
