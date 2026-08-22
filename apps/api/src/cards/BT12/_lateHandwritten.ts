@@ -9,6 +9,7 @@ import {
   type CardInstance,
   type Permanent,
 } from "@aegis/shared";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
@@ -1135,7 +1136,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   myPermanents(
                     ctx,
                     source,
-                    (definition) => isDigimon(definition) && definition.level === 6 && hasText(definition, "machine"),
+                    (definition) => isDigimon(definition) && definition.level === 6 && cardHasTrait(definition, "Machine"),
                   ).length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
@@ -1149,7 +1150,11 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve: async (ctx) => {
                   const own = await choosePermanent(
                     ctx,
-                    myPermanents(ctx, source, (d) => isDigimon(d) && (hasText(d, "machine") || hasText(d, "cyborg"))),
+                    myPermanents(
+                      ctx,
+                      source,
+                      (d) => isDigimon(d) && (cardHasTrait(d, "Machine") || cardHasTrait(d, "Cyborg")),
+                    ),
                   );
                   const ownPermanent = own ? ctx.game.permanentById(own) : undefined;
                   if (!ownPermanent) return;
@@ -1173,7 +1178,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ctx,
                     ctx.game.player(source.ownerSeat).hand.filter((item) => {
                       const definition = ctx.game.definitionOf(item);
-                      return hasText(definition, "machine") || hasText(definition, "cyborg");
+                      return cardHasTrait(definition, "Machine") || cardHasTrait(definition, "Cyborg");
                     }),
                     true,
                   );
