@@ -25,22 +25,37 @@ describe("BT24-041 Minervamon", () => {
     expect(effect?.actions?.map((action: any) => action.keyword?.keyword)).toEqual(["Reboot", "Blocker"]);
   });
 
-  it("reduces its play cost by 5 while an Iliad Digimon or Tamer is controlled", async () => {
+  it.each([
+    ["Digimon", "BT24-034"],
+    ["Tamer", "BT24-102"],
+  ])("reduces its play cost by 5 while an Iliad %s is controlled", async (_kind, enabler) => {
     const reduced = setupEngine({
       0: {
-        battleArea: [{ card: "BT24-083", as: "iliadTamer" }],
+        battleArea: [{ card: enabler, as: "iliad" }],
         hand: [{ card: "BT24-041", as: "minervamon" }],
       },
     });
     reduced.state.memory = 12;
     await reduced.ready();
-    await advance(reduced.engine).verb.playInstances([reduced.inst("minervamon").instanceId]);
+    expect(
+      reduced.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: reduced.inst("minervamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => reduced.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-041"));
     expect(reduced.state.memory).toBe(5);
 
     const full = setupEngine({ 0: { hand: [{ card: "BT24-041", as: "minervamon" }] } });
     full.state.memory = 12;
     await full.ready();
-    await advance(full.engine).verb.playInstances([full.inst("minervamon").instanceId]);
+    expect(
+      full.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: full.inst("minervamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => full.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-041"));
     expect(full.state.memory).toBe(0);
   });
 
@@ -51,7 +66,7 @@ describe("BT24-041 Minervamon", () => {
           battleArea: [{ card: "BT24-041", as: "minervamon" }],
           hand: [{ card: "BT24-083", as: "playable" }],
         },
-        1: { battleArea: [{ card: "BT24-030", as: "target", under: ["BT24-029", "BT24-027"] }] },
+        1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-074", "BT1-077"] }] },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
@@ -71,7 +86,7 @@ describe("BT24-041 Minervamon", () => {
           { card: "BT24-034", as: "other" },
         ],
       },
-      1: { battleArea: [{ card: "BT24-030", as: "target", under: ["BT24-029", "BT24-027", "BT24-020"] }] },
+      1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-074", "BT1-077", "BT24-029"] }] },
     });
     await s.ready();
 
@@ -85,9 +100,9 @@ describe("BT24-041 Minervamon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-041", as: "minervamon" }],
-          hand: [{ card: "BT24-034", as: "played" }],
+          hand: [{ card: "BT24-011", as: "played" }],
         },
-        1: { battleArea: [{ card: "BT24-030", as: "target", under: ["BT24-029", "BT24-027"] }] },
+        1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-074", "BT1-077"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -122,7 +137,10 @@ describe("BT24-041 Minervamon", () => {
     }
   });
 
-  it("digivolves from a level-5 TS Digimon for cost 3", async () => {
+  it.each([
+    ["normal yellow requirement", false, 4],
+    ["alternate TS requirement", true, 3],
+  ])("may use the %s", async (_label, useAlternateCost, expectedCost) => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-039", as: "base" }],
@@ -137,9 +155,10 @@ describe("BT24-041 Minervamon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("minervamon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("minervamon").instanceId);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(5 - expectedCost);
   });
 });
