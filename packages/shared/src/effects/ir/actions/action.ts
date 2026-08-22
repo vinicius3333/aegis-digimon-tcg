@@ -1,6 +1,7 @@
 // The closed `Action` union.
 
 import type {
+  AddDPFromTrashedCardAction,
   AddDPFromSuspendedCostAction,
   AddToHandSelfAction,
   GainKeywordAction,

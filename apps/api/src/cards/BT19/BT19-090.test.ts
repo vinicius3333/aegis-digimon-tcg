@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT19-090.js";
+import "../index.js";
 
 // A3 for BT19-090 (Meteor Rock Soul — Red Option):
 //   [Main] modal: (A) play 1 [Xros Heart] Digimon (DP<=4000) from under your Tamer w/o cost; OR
@@ -244,5 +247,36 @@ describe("BT19-090 Meteor Rock Soul", () => {
     expect(effect!.isSecurity).toBe(true);
     await effect!.resolve(ctx);
     expect(recorder.calls.filter((c) => c.verb === "playInstances")).toHaveLength(1);
+  });
+
+  it("publicly plays a qualifying Xros Heart Digimon from under a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-090", as: "option" }],
+          battleArea: [{ card: "BT10-087", as: "tamer", under: [{ card: "BT10-008", as: "shoutmon" }] }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-008") &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId),
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("shoutmon").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

@@ -100,21 +100,6 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
 function countColors(ctx: EffectContext, filter: Filter): number {
   const seats = seatsForController(ctx, filter);
   const colors = new Set<CardColor>();
-  const looseZones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
-  if (looseZones.some((zone) => zone === "trash" || zone === "hand" || zone === "security")) {
-    for (const seat of seats) {
-      const cards = [
-        ...(looseZones.includes("trash") ? ctx.game.player(seat).trash : []),
-        ...(looseZones.includes("hand") ? ctx.game.player(seat).hand : []),
-        ...(looseZones.includes("security") ? ctx.game.player(seat).security : []),
-      ];
-      for (const card of cards) {
-        if (!definitionMatches(filter, ctx.game.definitionOf(card))) continue;
-        for (const color of ctx.game.definitionOf(card).colors) colors.add(color);
-      }
-    }
-    return colors.size;
-  }
   for (const seat of seats) {
     for (const permanent of ctx.game.player(seat).battleArea) {
       if (!permanentMatchesFilter(ctx, permanent, filter, ctx.source)) continue;
@@ -146,6 +131,11 @@ function countLinkCards(ctx: EffectContext, filter: Filter): number {
 export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
   let raw = 0;
   const filter = scaling.filter ?? {};
+  if ((filter as { deletedByTrigger?: boolean }).deletedByTrigger === true) {
+    raw = ctx.trigger.deletedPermanentIds?.length ?? 0;
+    const per = scaling.per > 0 ? scaling.per : 1;
+    return Math.floor(raw / per);
+  }
   if ((filter as { suspendedByThisEffect?: boolean }).suspendedByThisEffect === true) {
     const { suspendedByThisEffect: _receipt, ...matchingFilter } = filter as typeof filter & { suspendedByThisEffect?: boolean };
     raw = (ctx.lastSuspendedPermanentIds ?? []).filter((id) => {

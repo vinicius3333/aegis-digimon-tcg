@@ -4,19 +4,15 @@ import { compiled } from "./BT20-085.js";
 describe("BT20-085 Shoto Kazama", () => {
   it("models the Start of Main Phase bottom-deck cost and gated follow-up", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
-    expect(effect).toMatchObject({
-      actions: [
-        {
+    expect(effect?.actions[0]).toMatchObject({
           kind: "PlayWithoutCost",
           cost: { kind: "return", position: "bottom", target: { isSelf: true } },
-        },
-        {
+    });
+    expect(effect?.actions[1]).toMatchObject({
           kind: "PlayWithoutCost",
           condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "youHaveNone" }] },
-          target: { filter: { levels: [3] } },
+          target: { filter: { levels: [3], nameOrTrait: [{ match: "trait", tokens: ["Avian", "Bird"] }] } },
           from: ["trash"],
-        },
-      ],
     });
   });
 
@@ -25,7 +21,7 @@ describe("BT20-085 Shoto Kazama", () => {
     expect(effect).toMatchObject({
       actions: [
         { kind: "Suspend", cost: { kind: "suspend", target: { isSelf: true } }, abortOnDecline: true },
-        { kind: "ModifyDP", condition: { kind: "ifThisEffectActed" }, amount: 2000, duration: "untilOpponentTurnEnd" },
+        { kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd" },
       ],
     });
   });

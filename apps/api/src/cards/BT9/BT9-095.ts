@@ -27,10 +27,7 @@ function _ownerBattleAreaDigimons(source: CardSource): Permanent[] {
   return []; // resolved inside resolve using ctx.game
 }
 
-function hasXAntibodyInStack(
-  ctx: EffectContext,
-  source: CardSource,
-): boolean {
+function hasXAntibodyInStack(ctx: EffectContext, source: CardSource): boolean {
   const owner = ctx.game.player(source.ownerSeat);
   for (const permanent of owner.battleArea) {
     if (permanent.topCard == null) continue;
@@ -51,11 +48,13 @@ const module: EffectModule = {
         handResidentStatic({
           source,
           effectKey: `${cardId}/play-cost-reduction`,
-          description: "While you have a Digimon with [X Antibody] in its digivolution cards in play, you may use this card for a play cost of 2.",
+          description:
+            "While you have a Digimon with [X Antibody] in its digivolution cards in play, you may use this card for a play cost of 2.",
           when: (ctx) => hasXAntibodyInStack(ctx, source),
           resolve: async (ctx) => {
             ctx.fx.changePlayCost(
-              (facts) => facts.def.nameEn === ctx.source.definition.nameEn && facts.controllerSeat === ctx.source.ownerSeat,
+              (facts) =>
+                facts.def.nameEn === ctx.source.definition.nameEn && facts.controllerSeat === ctx.source.ownerSeat,
               -2,
               { setFixed: false },
             );

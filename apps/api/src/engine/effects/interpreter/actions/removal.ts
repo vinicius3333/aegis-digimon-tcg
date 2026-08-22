@@ -38,10 +38,6 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "Delete": {
-      // Bind a deterministic zero outcome even when target resolution finds no eligible
-      // permanent or the delete effect is prevented by immunity.
-      ctx.lastDeleteCount = 0;
-      ctx.lastDeletedByThisEffectIds = [];
       const survivorIds = await resolveExceptSurvivors(ctx, action.target);
       let target = action.target;
       if (action.dpCeilingScaling && target.filter.dp?.value !== undefined) {
@@ -417,7 +413,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             asker,
           );
         }
-        const moved = chosen.length > 0 ? ((await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat })) ?? []) : [];
+        const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
         ctx.lastTrashedCards = moved.map((card) => ({
           instanceId: card.instanceId,
           cardId: card.cardId,
@@ -652,6 +648,16 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
         ctx.namedCounts.set(action.trackCount, moved.length);
       }
+      return false;
+    }
+    case "ReturnToEggDeck": {
+      const zones = action.from ?? (action.target.filter.zone !== undefined ? [action.target.filter.zone] : ["trash"]);
+      const candidates = candidateLooseInstances(ctx, action.target, zones);
+      const count = action.target.count === "all" ? candidates.length : (action.target.count ?? 1);
+      if (count <= 0 || candidates.length < count || ctx.fx.returnToEggDeck === undefined) return false;
+      const chosen = await pickLoose(ctx, { ...action.target, count }, candidates);
+      if (chosen.length !== count) return false;
+      await ctx.fx.returnToEggDeck(chosen);
       return false;
     }
     case "DeletionMaxDpModifier": {

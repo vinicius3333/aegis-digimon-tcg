@@ -30,7 +30,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
-  if (cost.kind === "trash" && cost.target?.filter.zone === "digivolutionCards" && cost.target.filter.isSelfRef === true) {
+  if (
+    cost.kind === "trash" &&
+    cost.target?.filter.zone === "digivolutionCards" &&
+    cost.target.filter.isSelfRef === true
+  ) {
     const self = ctx.source.permanent();
     if (self === undefined) return false;
     const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
@@ -137,7 +141,12 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       for (const host of ctx.game.player(ctx.source.ownerSeat).battleArea) {
         for (const card of host.linked) {
           if (!definitionMatches(linkedCardFilter, getCardDefinition(card.cardId) as never)) continue;
-          linked.push({ instanceId: card.instanceId, cardId: card.cardId, ownerSeat: card.ownerSeat, hostPermanentId: host.permanentId });
+          linked.push({
+            instanceId: card.instanceId,
+            cardId: card.cardId,
+            ownerSeat: card.ownerSeat,
+            hostPermanentId: host.permanentId,
+          });
         }
       }
       candidates = [...candidates, ...linked];
@@ -490,7 +499,10 @@ export async function payCost(
         } else if (linkTarget.filter.zone === "digivolutionCardsOrLinkCards") {
           for (const seat of seatsForController(ctx, linkTarget.filter)) {
             for (const permanent of ctx.game.player(seat).battleArea) {
-              if (permanent.topCard !== undefined && getCardDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Digimon)) {
+              if (
+                permanent.topCard !== undefined &&
+                getCardDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Digimon)
+              ) {
                 hosts.push(permanent);
               }
             }
@@ -624,7 +636,12 @@ export async function payCost(
           if (host === undefined) return false;
           const n = cost.target.count === "all" ? host.stack.length : cost.target.count;
           if (n <= 0) return false;
-          const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
+          const {
+            zone: _zone,
+            isSelfRef: _isSelfRef,
+            controller: _controller,
+            ...stackCardFilter
+          } = cost.target.filter;
           let eligible: LooseCandidate[] = Array.from(host.stack)
             .filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp)
             .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)))
@@ -994,7 +1011,11 @@ export async function payCost(
     }
     case "trashBothSecurityTop": {
       const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
-      if (ctx.game.player(ctx.source.ownerSeat).security.length === 0 || ctx.game.player(opponent).security.length === 0) return false;
+      if (
+        ctx.game.player(ctx.source.ownerSeat).security.length === 0 ||
+        ctx.game.player(opponent).security.length === 0
+      )
+        return false;
       await ctx.fx.trashFromSecurity(ctx.source.ownerSeat, 1, { fromTop: true });
       await ctx.fx.trashFromSecurity(opponent, 1, { fromTop: true });
       return true;
@@ -1052,12 +1073,14 @@ export async function payCost(
       // than inferred from the card filter because the subsequent Delete target is a
       // separate choice and may include a different permanent.
       if (!cost.target || !cost.hostTarget) return false;
-      const hostCandidates = candidatePermanents(ctx, cost.hostTarget).map((host) => host.permanentId).filter((hostId) => {
-        const host = ctx.game.permanentById(hostId);
-        return host?.stack.some((card) =>
-          definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: card.cardId } as never)),
-        );
-      });
+      const hostCandidates = candidatePermanents(ctx, cost.hostTarget)
+        .map((host) => host.permanentId)
+        .filter((hostId) => {
+          const host = ctx.game.permanentById(hostId);
+          return host?.stack.some((card) =>
+            definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: card.cardId } as never)),
+          );
+        });
       if (hostCandidates.length === 0) return false;
       const hostId =
         hostCandidates.length === 1
@@ -1118,7 +1141,11 @@ export async function payCost(
           }
           let hostPermId: string | undefined;
           if (cost.host !== null && typeof cost.host === "object") {
-            const destIds = await resolvePermanentTargets(ctx, { filter: cost.host.filter, count: cost.host.count });
+            const destIds = await resolvePermanentTargets(ctx, {
+              filter: cost.host.filter,
+              count: cost.host.count,
+              orFilters: cost.host.orFilters,
+            });
             if (destIds.length === 0) return false;
             hostPermId =
               destIds.length === 1
@@ -1230,7 +1257,11 @@ export async function payCost(
         let hostPermId: string | undefined;
         if (cost.host !== null && typeof cost.host === "object") {
           // Object form: { filter, count } — player picks a destination Digimon (BT21-071).
-          const destIds = await resolvePermanentTargets(ctx, { filter: cost.host.filter, count: cost.host.count });
+          const destIds = await resolvePermanentTargets(ctx, {
+            filter: cost.host.filter,
+            count: cost.host.count,
+            orFilters: cost.host.orFilters,
+          });
           if (destIds.length === 0) return false;
           hostPermId =
             destIds.length === 1
@@ -1387,7 +1418,11 @@ export async function payCost(
   }
 }
 
-export async function payOneCostOption(ctx: EffectContext, costs: readonly Cost[], out?: { paidCount: number }): Promise<boolean> {
+export async function payOneCostOption(
+  ctx: EffectContext,
+  costs: readonly Cost[],
+  out?: { paidCount: number },
+): Promise<boolean> {
   if (costs.length === 0) return true;
   const index =
     costs.length === 1

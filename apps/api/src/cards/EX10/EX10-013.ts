@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Q5038-Q5041/Q5734: text matching includes the printed text surfaces;
 // returning fewer than five fails the by-condition; Chaos Mode digivolution

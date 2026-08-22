@@ -2,8 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-089.js";
-import "../index.js";
-import module from "./BT20-089.js";
+import "./index.js";
 
 // A3 for BT20-089 (Code Cracker Fang & Hacker Judge — Purple/Black Tamer).
 //
@@ -60,13 +59,8 @@ async function driveTurn(h: Harness, seat: Seat): Promise<void> {
 
 describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
   it("keeps the Rule name treatment permanent", () => {
-    const rule = module.effectsForTiming(EffectTiming.None, {
-      cardId: CC_FANG,
-      instanceId: "TEST#1",
-      ownerSeat: 0,
-    } as never).find((effect) => effect.effectKey.endsWith("rule-name-eiji"));
-    expect(rule).toBeDefined();
-    expect(rule?.description).toContain("Also treated as [Eiji Nagasumi]");
+    const rule = compiled.effects.find((effect) => effect.trigger === "Rule");
+    expect(rule?.actions[0]).toMatchObject({ kind: "GrantStatic", grant: "name", tokens: ["Eiji Nagasumi", "Leon Alexander"], duration: "permanent" });
   });
 
   it("[Start of Your Main Phase] gains 1 memory when opponent has a Digimon", async () => {

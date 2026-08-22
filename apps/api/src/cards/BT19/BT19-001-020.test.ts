@@ -10,17 +10,29 @@ function fireTiming(s: ReturnType<typeof setupEngine>, timing: EffectTiming, per
 }
 
 describe("BT19-001 through BT19-020 card-by-card audit", () => {
+  it("has a full residual-free runtime record for every card in the range", () => {
+    for (let number = 1; number <= 20; number += 1) {
+      const id = `BT19-${String(number).padStart(3, "0")}`;
+      const ir = runtimeCompiledCard(id);
+      expect(ir?.coverage).toBe("full");
+      expect(ir?.residual).toEqual([]);
+    }
+  });
+
   it("BT19-001 places only a trait Digimon from hand, not a trait Tamer", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT19-007", as: "host", under: ["BT19-001"] },
-          { card: "BT19-081", as: "tamer" },
-        ],
-        hand: ["BT19-081", "BT19-016"],
-        deck: ["BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-007", as: "host", under: ["BT19-001"] },
+            { card: "BT19-081", as: "tamer" },
+          ],
+          hand: ["BT19-081", "BT19-016"],
+          deck: ["BT1-001"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const handBefore = (s.state.players[0] as PlayerState).hand.length;
     await fireTiming(s, EffectTiming.OnUseAttack, "host");
     await settle(() => (s.state.players[0] as PlayerState).hand.length < handBefore);
@@ -29,16 +41,26 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
   });
 
   it("BT19-006 returns a level 3 purple Digimon for effect deletion but not battle deletion", async () => {
-    const s = setupEngine({
+    const s = setupEngine(
+      {
         0: { battleArea: [{ card: "BT19-006", as: "egg" }], trash: ["BT10-071"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
-    await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("egg"), { removalCause: "byEffect" });
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("egg"), {
+      removalCause: "byEffect",
+    });
     expect((s.state.players[0] as PlayerState).hand[0]?.cardId).toBe("BT10-071");
 
-    const b = setupEngine({
-      0: { battleArea: [{ card: "BT19-006", as: "egg" }], trash: ["BT10-071"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
-    await advance(b.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, b.perm("egg"), { removalCause: "byBattle" });
+    const b = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-006", as: "egg" }], trash: ["BT10-071"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(b.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, b.perm("egg"), {
+      removalCause: "byBattle",
+    });
     await settle(() => false, 20);
     expect((b.state.players[0] as PlayerState).hand).toHaveLength(0);
   });
@@ -51,9 +73,18 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
   });
 
   it("BT19-008 digivolves into OmniShoutmon without paying the digivolution cost", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-008", as: "shout" }, { card: "BT19-081", as: "tamer" }], hand: ["BT19-012"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-008", as: "shout" },
+            { card: "BT19-081", as: "tamer" },
+          ],
+          hand: ["BT19-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     const compiled = runtimeCompiledCard("BT19-008");
     const digivolve = compiled?.effects.find((effect) => effect.trigger === "OnPlay")?.actions[0];
@@ -70,18 +101,29 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
   });
 
   it("BT19-014 counts distinct colors in its own digivolution stack", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-014", as: "ex6", dp: 12000, under: ["BT19-012", "BT19-020"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 12000 }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-014", as: "ex6", dp: 12000, under: ["BT19-012", "BT19-020"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true },
+    );
     await fireTiming(s, EffectTiming.OnPlay, "ex6");
     expect(s.perm("target").currentDP).toBe(8000);
   });
 
   it("BT19-020 saves itself even when its conditional Tamer play is unavailable", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-020", as: "greymon" }, { card: "BT19-081", as: "tamer" }] },
-    }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-020", as: "greymon" },
+            { card: "BT19-081", as: "tamer" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
     await advance(s.engine).verb.deletePermanent([s.perm("greymon").permanentId]);
     await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-020"));
     expect(s.perm("tamer").stack.some((card) => card.cardId === "BT19-020")).toBe(true);

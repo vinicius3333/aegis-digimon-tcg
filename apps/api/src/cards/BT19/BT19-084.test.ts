@@ -2,8 +2,11 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT19-084.js";
+import "../index.js";
 
 /**
  * A3 for BT19-084's [Main] face-up-security digivolve SOURCE + the digivolve-RESULT binding
@@ -187,5 +190,32 @@ describe("BT19-084 — face-up-security digivolve source + result-bound place cl
     expect(h.digivolveCalls).toBe(1); // a source was found and attempted
     // FAILS-WHEN-REVERTED (binding): if runDigivolve bound TRUE unconditionally, the place clause runs.
     expect(h.addSecurityCalls.length).toBe(0);
+  });
+
+  it("publicly digivolves into a face-up security card and places Royal Base from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-084", as: "winr" },
+            { card: "BT1-009", as: "source" },
+          ],
+          security: [{ card: "AD1-001", as: "securityDigimon", faceUp: true }],
+          hand: [{ card: "BT19-045", as: "royalBase" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("winr"));
+    await settle(
+      () => s.perm("source").topCard.instanceId === s.inst("securityDigimon").instanceId && s.perm("winr").isSuspended,
+    );
+
+    expect(s.perm("source").topCard.instanceId).toBe(s.inst("securityDigimon").instanceId);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalBase").instanceId)).toBe(false);
+    expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(s.inst("royalBase").instanceId);
+    expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
   });
 });

@@ -24,7 +24,6 @@ import {
   baseGrantedDigivolveFor,
   digiXrosRequirementFor,
   assemblyRequirementFor,
-  Permanent,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCounts } from "./state/visibility.js";
@@ -1016,6 +1015,10 @@ export class GameEngine {
     switch (boundary) {
       case "ownerTurnEnd":
         sweep("ownerTurnEnd");
+        // GRANTED timed watchers (BT23-056's [Start of Your Main Phase] install) expire at
+        // their owner's turn end. `seat` is the seat whose turn
+        // just ended, so a watcher anchored on that seat's permanent is now dropped.
+        this.subTriggers.sweepExpired(seat);
         break;
       case "opponentTurnEnd":
         sweep("opponentTurnEnd");
@@ -1684,10 +1687,6 @@ export class GameEngine {
         // seat, mirroring whenOpponentDrawsGate's "read ambient state, not a payload field"
         // pattern for a seat-scoped event with no natural subject permanent.
         await this.fireSubTrigger("endOfOpponentTurn");
-        // Expire granted end-of-turn watchers only after the matching window has fired.
-        // The boundary cleanup runs before this timing window, so sweeping here preserves
-        // effects such as EX10-058's granted [End of Your Turn] clause for its owner's turn.
-        this.subTriggers.sweepExpired(this.state.turnSeat);
         await this.processPendingBurstDigivolveTrash();
       }
       await this.recomputeContinuousEffects();
@@ -1880,6 +1879,12 @@ export class GameEngine {
             if (sub.sourcePermanentId !== undefined) {
               const srcPerm = this.access.permanentById(sub.sourcePermanentId);
               if (srcPerm?.topCard === undefined) return undefined;
+              if (sub.sourceInstanceId !== undefined) {
+                const sourceCard =
+                  this.instanceOnPermanent(srcPerm, sub.sourceInstanceId) ?? this.findLooseInstance(sub.sourceInstanceId);
+                if (sourceCard === undefined) return undefined;
+                return this.buildEffectContext(this.cardSourceOf(sourceCard), payload);
+              }
               return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
             }
             if (sub.sourceInstanceId !== undefined) return undefined;
@@ -1924,6 +1929,12 @@ export class GameEngine {
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;
+      if (sub.sourceInstanceId !== undefined) {
+        const sourceCard =
+          this.instanceOnPermanent(srcPerm, sub.sourceInstanceId) ?? this.findLooseInstance(sub.sourceInstanceId);
+        if (sourceCard === undefined) return undefined;
+        return this.buildEffectContext(this.cardSourceOf(sourceCard), payload);
+      }
       return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
     }
     if (sub.sourceInstanceId !== undefined) return undefined;

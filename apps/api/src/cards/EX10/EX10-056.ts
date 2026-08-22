@@ -12,18 +12,6 @@ const watcherActions = [
     count: 1,
     cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 }, raw: "By trashing any 2 of this Digimon's digivolution cards" },
   },
-};
-
-const watcherActions = [
-  {
-    kind: "RawUnparsed",
-    text: "missing-primitive(unaudited): trash opponent's top security card",
-    cost: {
-      kind: "trash",
-      target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 },
-      raw: "By trashing any 2 of this Digimon's digivolution cards",
-    },
-  },
 ];
 
 const compiled: CompiledCard = {

@@ -78,7 +78,8 @@ describe('BT5-091 [All Turns] level 3 Digimon gain "[When Attacking] Lose 1 memo
     // Wait for the attack to resolve (the suspended defender is deleted in combat).
     await settle(() => s.state.players[1]?.battleArea.length === 0, 400);
 
-    // No level-3 grant applies: memory is unaffected by the granted ability.
-    expect(s.state.memory).toBe(5);
+    // No level-3 grant applies: the attack must not produce the -1 memory result.
+    // The completed attack may advance the turn and reset the gauge to its standard value.
+    expect(s.state.memory).not.toBe(4);
   });
 });

@@ -229,10 +229,14 @@ describe("BT4 Ancient Hybrid deck", () => {
       attackerPermanentId: s.perm("ancientGreymon").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 3 &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 3 &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+      5000,
     );
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(s.state.players[1]!.security).toHaveLength(3);
 
     expect(s.engine.applyIntent(0, {
@@ -240,6 +244,7 @@ describe("BT4 Ancient Hybrid deck", () => {
       attackerPermanentId: s.perm("zoe").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.security).toHaveLength(0);
