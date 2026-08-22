@@ -4,8 +4,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], suspended: true };
 const playable = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }] };
-const ceresmon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ceresmon"], match: "name" }] };
-
 const digivolveBody = [
   {
     kind: "ModifyDP",
@@ -56,13 +54,6 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static",
       actions: [
-        {
-          kind: "GrantStatic",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          grant: "effects",
-          filter: ceresmon,
-          duration: "permanent",
-        },
         {
           kind: "GrantStatic",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
