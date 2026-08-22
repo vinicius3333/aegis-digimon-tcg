@@ -14,14 +14,14 @@ describe("RB1-019 ShinMonzaemon", () => {
       },
       { autoSelectCards: true },
     );
-    const ownLevel3 = s.inst("ownLevel3").instanceId;
-    const opposingLevel3 = s.inst("opposingLevel3").instanceId;
+    const ownLevel3 = s.perm("ownLevel3").topCard.instanceId;
+    const opposingLevel3 = s.perm("opposingLevel3").topCard.instanceId;
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shin"));
 
     expect(s.state.players[0]!.security.at(0)).toMatchObject({ instanceId: ownLevel3, faceUp: false });
     expect(s.state.players[1]!.security.at(0)).toMatchObject({ instanceId: opposingLevel3, faceUp: false });
-    expect(s.engine.dpOf(s.perm("opposingLevel5"))).toBe(9000);
+    expect(s.perm("opposingLevel5").currentDP).toBe(5000);
     expect(observe(s.engine).keywordAmount(s.perm("opposingLevel5"), "SecurityAttack")).toBe(-1);
   });
 
