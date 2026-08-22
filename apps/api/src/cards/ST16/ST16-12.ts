@@ -40,6 +40,7 @@ const compiled: CompiledCard = {
           abortOnDecline: true,
           scaling: {
             per: 1,
+            usePaidCount: true,
             filter: {
               controllerDefault: "mine",
             },

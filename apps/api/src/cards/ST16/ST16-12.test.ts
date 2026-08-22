@@ -3,6 +3,38 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST16-12.js";
 
 describe("ST16-12 MetalGarurumon", () => {
+  it("gains 1 memory for each card actually trashed by its digivolution cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST16-11", as: "weregarurumon" }],
+          hand: [
+            { card: "ST16-12", as: "metalgarurumon" },
+            { card: "BT1-001", as: "costOne" },
+            { card: "BT1-002", as: "costTwo" },
+          ],
+          deck: [{ card: "BT1-003" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("weregarurumon").permanentId,
+        instanceId: s.inst("metalgarurumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 2);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("costOne").instanceId, s.inst("costTwo").instanceId]),
+    );
+    expect(s.state.memory).toBe(9);
+  });
+
   it("trashes one hand card and deletes the opponent's lowest-level Digimon when attacking", async () => {
     const s = setupEngine(
       {
