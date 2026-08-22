@@ -39,6 +39,31 @@ describe("BT9-081 DexDorugoramon", () => {
     ).toBe(true);
   });
 
+  it("plays only one level 3 instead of also playing DeathXmon at the threshold", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-081", as: "dexDorugoramon" }],
+          trash: [
+            { card: "BT9-070", as: "level3" },
+            { card: "BT9-112", as: "deathXmon" },
+            "BT9-075",
+            "BT9-078",
+            "BT9-106",
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("dexDorugoramon").permanentId]);
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("level3").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("deathXmon").instanceId)).toBe(true);
+  });
+
   it("deletes all opposing Digimon tied for the lowest level", async () => {
     const s = setupEngine(
       {
