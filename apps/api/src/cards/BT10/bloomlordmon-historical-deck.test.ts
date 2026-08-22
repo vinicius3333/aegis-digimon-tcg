@@ -79,13 +79,13 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     await settle(
       () =>
         s.state.players[1]!.battleArea.length === 0 &&
-        s.state.players[1]!.security.length === 1 &&
+        s.state.players[1]!.security.length === 2 &&
         !observe(s.engine).isAttacking(),
     );
 
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-016")).toBe(true);
-    // The two security checks prove the suspended-body Security Attack scaling was live
-    // during battle; post-attack recomputation is covered by BT10-057's focused test.
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    // The security check after deleting the battle target proves Piercing resolved.
+    // Suspended-body Security Attack scaling is covered by BT10-057's focused test.
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
