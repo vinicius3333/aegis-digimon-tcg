@@ -5,7 +5,7 @@ import "./ST6-13.js";
 
 describe("ST6-13 CresGarurumon", () => {
   it("has Security Attack +1 and Digi-Bursts 2 to play a purple level 3 from trash", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST6-13", as: "cres", under: [{ card: "ST6-03", as: "rookie" }, "ST6-06"] }] } }, { autoSelectCards: true });
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST6-13", as: "cres", under: [{ card: "ST6-03", as: "rookie" }, "ST6-06"] }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("cres"), "SecurityAttack")).toBe(1);
     const entry = JSON.parse(s.perm("cres").activatableEffectsJson) as { instanceId: string; effectKey: string }[];
