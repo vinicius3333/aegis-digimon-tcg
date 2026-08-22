@@ -22,7 +22,7 @@ describe("BT10-034 Dorulumon", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT10-008", "BT10-034"]);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT10-008"]);
   });
 
   it("gives an opposing Digimon -3000 DP when another Xros Heart permanent is in play", async () => {
@@ -64,7 +64,7 @@ describe("BT10-034 Dorulumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
-    const dorulumonId = s.inst("dorulumon").instanceId;
+    const dorulumonId = s.perm("dorulumon").topCard.instanceId;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("dorulumon").permanentId])).toBe(1);
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === dorulumonId));
