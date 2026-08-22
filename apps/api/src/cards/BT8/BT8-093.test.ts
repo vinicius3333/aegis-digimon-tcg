@@ -50,4 +50,10 @@ describe("BT8-093 Yukio Oikawa", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === yukioInstanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("maloMyotismon").instanceId)).toBe(true);
   });
+
+  it("plays itself from a face-up Security check without memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT8-093", as: "securityYukio", faceUp: true }] } });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityYukio"));
+    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard.instanceId === s.inst("securityYukio").instanceId)).toBe(true);
+  });
 });
