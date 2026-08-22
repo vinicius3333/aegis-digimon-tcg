@@ -20,6 +20,10 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "onDeletionOf",
+          "sourceFilter": {
+            "isSelfRef": true
+          },
+          "once": true,
           "actions": [
             {
               "kind": "PlayWithoutCost",
