@@ -1,22 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-156.js";
 
 describe("P-156 Future Potential!", () => {
-  it("offers the same-color play from hand or trash after choosing a Tamer", () => {
-    const module = getEffectModule("P-156")!;
-    const source = { ownerSeat: 0 } as never;
-    const effects = module.effectsForTiming(EffectTiming.OnUseOption, source);
-    expect(effects).toHaveLength(1);
-    expect(effects[0]!.description).toContain("same color");
+  it("binds a Tamer and plays only a low-cost Digimon sharing one of its colors", () => {
+    const main = runtimeCompiledCard("P-156")!.effects.find((effect) => effect.trigger === "Main")!;
+
+    expect(main.actions).toMatchObject([
+      { kind: "SelectBind", bindAs: "chosenTamer", target: { filter: { kind: ["Tamer"] } } },
+      {
+        kind: "PlayWithoutCost",
+        from: ["hand", "trash"],
+        payCost: false,
+        optional: true,
+        target: {
+          filter: {
+            kind: ["Digimon"],
+            playCostLte: 3,
+            sameColorAsSelectionRef: "chosenTamer",
+          },
+        },
+      },
+    ]);
   });
 
-  it("registers color waiver and Security optional Tamer play", () => {
-    const module = getEffectModule("P-156")!;
-    expect(module.effectsForTiming(EffectTiming.None, { ownerSeat: 0 } as never)).toHaveLength(1);
-    const security = module.effectsForTiming(EffectTiming.SecuritySkill, { ownerSeat: 0 } as never);
-    expect(security).toHaveLength(1);
-    expect(security[0]!.description).toContain("play 1 Tamer");
+  it("waives color with a Tamer and preserves the complete Security sequence", () => {
+    const compiled = runtimeCompiledCard("P-156")!;
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
+      kind: "WaiveColorRequirement",
+      condition: { kind: "youHave", filter: { kind: ["Tamer"] } },
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")?.actions).toMatchObject([
+      { kind: "PlayWithoutCost", from: ["hand"], optional: true },
+      { kind: "AddToHandSelf" },
+    ]);
   });
 });
