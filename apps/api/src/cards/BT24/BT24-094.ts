@@ -25,7 +25,11 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       isSecurity: true,
       actions: [
-        { kind: "ModifyDP", target: { filter: tsColor, count: "all" }, amount: 2000, duration: "permanent" },
+        {
+          kind: "Aura",
+          target: { filter: tsColor, count: "all" },
+          effect: { kind: "modifyDP", amount: 2000 },
+        },
         {
           kind: "Aura",
           target: { filter: tsColor, count: "all" },
@@ -34,7 +38,7 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              nameOrTrait: [{ tokens: ["Merukimon", "Minervamon"], match: "name" }],
+              namesExact: ["Merukimon", "Minervamon"],
             },
           },
         },
