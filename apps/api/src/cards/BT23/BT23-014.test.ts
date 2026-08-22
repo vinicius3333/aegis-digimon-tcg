@@ -6,7 +6,7 @@ describe("BT23-014 Gallantmon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger)!;
       expect(effect.actions[0]).toMatchObject({ kind: "RestrictPlay", seat: "opponent", filter: { kind: ["Digimon", "Tamer"], zone: "trash" }, byEffectOnly: true });
-      expect(effect.actions[1]).toMatchObject({ kind: "Delete", target: { filter: { dp: { op: "lte", value: 8000 } }, dpCeilingScaling: { amount: 2000, filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } } });
+      expect(effect.actions[1]).toMatchObject({ kind: "Delete", target: { filter: { dp: { op: "lte", value: 8000 } } }, dpCeilingScaling: { amount: 2000, filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } } });
     }
   });
 
