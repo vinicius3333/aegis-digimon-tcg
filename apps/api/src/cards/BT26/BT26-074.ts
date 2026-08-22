@@ -25,7 +25,7 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", frequency: "OncePerTurn", sharedUseKey: "bt26-074-use-titan-option", actions: [useTitanOption] },
     { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "bt26-074-use-titan-option", actions: [useTitanOption] },
-    { trigger: "WhenAttacking", frequency: "OncePerTurn", sharedUseKey: "bt26-074-use-titan-option", actions: [useTitanOption] },
+    { trigger: "OnAllyAttack", frequency: "OncePerTurn", sharedUseKey: "bt26-074-use-titan-option", actions: [useTitanOption] },
     {
       trigger: "OnDeletion",
       isInherited: true,
