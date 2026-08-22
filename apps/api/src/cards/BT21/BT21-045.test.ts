@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-045.js";
 import "../index.js";
@@ -85,5 +88,26 @@ describe("BT21-045 compiled implementation", () => {
     expect(
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("shinegreymon").instanceId),
     ).toBe(true);
+  });
+
+  it("gains Security Attack and 3000 DP by suspending a red Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-045", as: "shinegreymon" },
+          { card: "BT1-085", as: "tamer" },
+        ],
+      },
+    });
+    const baseDP = s.perm("shinegreymon").currentDP;
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("shinegreymon"));
+    await settle(
+      () => s.perm("tamer").isSuspended && observe(s.engine).hasKeyword(s.perm("shinegreymon"), "SecurityAttack"),
+    );
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("shinegreymon").currentDP).toBe(baseDP + 3000);
+    expect(observe(s.engine).hasKeyword(s.perm("shinegreymon"), "SecurityAttack")).toBe(true);
   });
 });
