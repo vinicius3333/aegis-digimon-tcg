@@ -36,4 +36,19 @@ describe("BT8-001 Gurimon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("wouldDraw").instanceId)).toBe(true);
   });
+
+  it("does not draw when its host has 5999 DP", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-001"] }], deck: [{ card: "BT8-033", as: "wouldDraw" }] },
+      1: { security: ["BT8-034"] },
+    });
+    s.perm("host").currentDP = 5999;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("wouldDraw").instanceId)).toBe(true);
+  });
 });
