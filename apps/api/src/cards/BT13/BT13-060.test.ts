@@ -17,7 +17,15 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
             count: 1,
           },
         }),
-        expect.objectContaining({ kind: "TrashDigivolution", amount: 1, position: "top" }),
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "EndOfYourTurn",
+      actions: [expect.objectContaining({ kind: "TrashDigivolution", amount: 1, position: "top" })],
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
         expect.objectContaining({
           kind: "Suspend",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
@@ -35,7 +43,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
       ],
     });
     expect(compiled.effects[0]?.actions.some((action) => action.kind === "Unsuspend")).toBe(false);
-    expect(compiled.effects[1]).toMatchObject({
+    expect(compiled.effects[3]).toMatchObject({
       trigger: "WhenAttacking",
       actions: [
         {
