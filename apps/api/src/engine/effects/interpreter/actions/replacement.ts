@@ -247,6 +247,7 @@ export async function runReplacement(
           const abort = await runAction(runCtx, inner);
           if (abort) break;
         }
+        if (action.requireActionsActed === true && runCtx.lastEffectActed !== true) return false;
         if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
           return false;
         }

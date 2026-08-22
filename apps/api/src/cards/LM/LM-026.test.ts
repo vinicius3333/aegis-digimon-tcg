@@ -1,9 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./LM-026.js";
 
 describe("LM-026 Megidramon", () => {
+  it("registers complete leave replacement, rule name, and inherited deletion ceiling IR", () => {
+    const compiled = runtimeCompiledCard("LM-026")!;
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects.find((effect) => effect.actions.some((action) => action.kind === "Replacement"))).toMatchObject({
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          requireActionsActed: true,
+          actions: [
+            { kind: "PlayWithoutCost", from: ["digivolutionCards", "trash"], payCost: false },
+            { kind: "PlaceUnder", position: "bottom" },
+          ],
+        },
+      ],
+    });
+    expect(compiled.effects.find((effect) => effect.isInherited)?.actions).toEqual([
+      expect.objectContaining({ kind: "DeletionMaxDpModifier", amount: 5000 }),
+    ]);
+  });
+
   it("deletes only opposing Digimon at 11000 DP or less", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "LM-026", as: "megidramon" }] },

@@ -83,6 +83,8 @@ export interface ReplacementAction extends ActionBase {
    * consumes the grant and trashes the source before the payload runs.
    */
   requiresDelayArmed?: true;
+  /** Prevent only when the replacement payload completed an observable action. */
+  requireActionsActed?: boolean;
   raw: string;
 }
 

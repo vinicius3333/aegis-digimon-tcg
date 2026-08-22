@@ -182,13 +182,14 @@ export async function runPlaceUnder(
       // primitive only handles loose cards and cannot remove a permanent's top card.
       const sourcePerm = ctx.source.permanent();
       if (sourcePerm !== undefined) {
-        await relocateByEffect(ctx, chosen[0]!, sourcePerm.permanentId, {
+        ctx.lastEffectActed = await relocateByEffect(ctx, chosen[0]!, sourcePerm.permanentId, {
           belowTop: action.position !== "bottom",
         });
       } else {
-        await ctx.fx.placeUnder(chosen[0]!, [ctx.source.instanceId], {
+        const placed = await ctx.fx.placeUnder(chosen[0]!, [ctx.source.instanceId], {
           belowTop: action.position !== "bottom",
         });
+        ctx.lastEffectActed = placed.length > 0;
       }
       if (action.bindHostAs) {
         ctx.boundPlayed ??= new Map();
