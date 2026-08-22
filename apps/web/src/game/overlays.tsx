@@ -2488,15 +2488,23 @@ export function TrashViewerOverlay({
   cardIds,
   title,
   sheet,
+  countLabel,
+  emptyLabel,
   onClose,
 }: {
   cardIds: string[];
   title: string;
   /** Render as a bottom sheet with one scrollable row (touch layouts). */
   sheet?: boolean;
+  /** Header count text; defaults to the trash card count. */
+  countLabel?: string;
+  /** Text shown when `cardIds` is empty; defaults to the trash empty message. */
+  emptyLabel?: string;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const countText = countLabel ?? t("overlay.trashCount", { count: cardIds.length });
+  const emptyText = emptyLabel ?? t("overlay.trashEmpty");
   const ordered = [...cardIds].reverse();
   const [activeCardId, setActiveCardId] = useState(ordered[0]);
   const [zoomed, setZoomed] = useState<string | null>(null);
@@ -2509,10 +2517,10 @@ export function TrashViewerOverlay({
           <div className="card-action-sheet__grip" aria-hidden />
           <div className="trash-sheet__header">
             <strong>{title}</strong>
-            <span>{t("overlay.trashCount", { count: cardIds.length })}</span>
+            <span>{countText}</span>
           </div>
           {ordered.length === 0 ? (
-            <p className="trash-sheet__empty">{t("overlay.trashEmpty")}</p>
+            <p className="trash-sheet__empty">{emptyText}</p>
           ) : (
             <div className="trash-sheet__row">
               {ordered.map((cardId, i) => (
@@ -2563,7 +2571,7 @@ export function TrashViewerOverlay({
               {title}
             </div>
             <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11, color: "var(--ds-fg-muted)" }}>
-              {t("overlay.trashCount", { count: cardIds.length })}
+              {countText}
             </div>
           </div>
           {ordered.length === 0 ? (
@@ -2577,7 +2585,7 @@ export function TrashViewerOverlay({
                 fontSize: 12,
               }}
             >
-              {t("overlay.trashEmpty")}
+              {emptyText}
             </div>
           ) : (
             <div
