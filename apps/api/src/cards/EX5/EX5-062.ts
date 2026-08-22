@@ -13,6 +13,7 @@ if (watcherTrigger?.kind === "SubTrigger" && draw?.kind === "Draw") {
   watcherTrigger.actions.push(draw);
   watcher.actions = [watcherTrigger];
 }
+if (watcher) watcher.frequency = "OncePerTurn";
 compiled.coverage = "full";
 compiled.residual = [];
 
