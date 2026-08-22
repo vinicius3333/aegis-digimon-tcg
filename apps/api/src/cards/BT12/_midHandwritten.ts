@@ -931,12 +931,20 @@ export function midBt12Module(cardId: string): EffectModule {
             ];
           if (timing === EffectTiming.OnDestroyedAnyone)
             return [
-              saveOnDeletion(cardId, source),
               onDeletion({
                 source,
                 effectKey: `${cardId}/place-save-from-trash`,
-                description: "Place a Save Digimon from trash under one of your Tamers.",
+                description: "Save this card, then place another Save Digimon from trash under one of your Tamers.",
                 resolve: async (ctx) => {
+                  if (await ctx.ask.optional(ctx, "Place this card under one of your Tamers?")) {
+                    const [saveTamer] = await permanent(
+                      ctx,
+                      mine(ctx, source, (definition) => isTamer(definition)),
+                      1,
+                      true,
+                    );
+                    if (saveTamer) await ctx.fx.placeUnder(saveTamer, [source.instanceId]);
+                  }
                   const [saved] = await card(
                     ctx,
                     ctx.game
