@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-021.js";
+import "../index.js";
 
 describe("BT21-021 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -61,5 +64,25 @@ describe("BT21-021 compiled implementation", () => {
       ],
     });
     expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ names: ["Shoutmon"] }], count: 2 }]);
+  });
+
+  it("saves a qualifying Xros Heart card and itself under a Tamer on deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-021", as: "omnishoutmon" },
+            { card: "BT21-083", as: "tamer" },
+          ],
+          trash: [{ card: "BT21-011", as: "savedCard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("omnishoutmon").permanentId], "byEffect");
+    await settle(() => s.perm("tamer").stack.length >= 2);
+
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT21-021", "BT21-011"]));
   });
 });
