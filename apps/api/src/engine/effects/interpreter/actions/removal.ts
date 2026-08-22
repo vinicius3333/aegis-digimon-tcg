@@ -258,6 +258,27 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
       return false;
     }
+    case "DeleteByStackColorBudget": {
+      const source = ctx.source.permanent();
+      if (source === undefined) return false;
+      const hasColor = (color: "Red" | "Black") =>
+        source.stack.some((card) => ctx.game.definitionOf(card).colors.includes(color));
+      const filters = [
+        ...(hasColor("Red") ? [action.redFilter] : []),
+        ...(hasColor("Black") ? [action.blackFilter] : []),
+      ];
+      if (filters.length === 0) return false;
+      const candidates = candidatePermanents(ctx, { filter: { or: filters }, count: "all" } as Target);
+      const selected = await ctx.ask.selectPermanents(ctx, {
+        candidates: candidates.map((candidate) => candidate.permanentId),
+        min: 0,
+        max: candidates.length,
+        maxTotalPlayCost: action.budget,
+      });
+      ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
+      ctx.lastEffectActed = ctx.lastDeleteCount > 0;
+      return false;
+    }
     case "DeleteLevelBudget": {
       // BT17-051 Argomon: delete any number of opponent Digimon whose LEVELS sum to <= budget.
       // The budget is `baseBudget` plus a scaling-driven add ("for every 2 [Argomon] in its

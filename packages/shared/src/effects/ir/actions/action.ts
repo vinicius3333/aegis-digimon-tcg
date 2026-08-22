@@ -66,6 +66,7 @@ import type {
   DelayedDeletePlayedAction,
   DeleteAction,
   DeleteBudgetAction,
+  DeleteByStackColorBudgetAction,
   DeleteByDPBudgetAction,
   DeleteLevelBudgetAction,
   DeletePerColorAction,
