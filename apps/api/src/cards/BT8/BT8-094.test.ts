@@ -27,7 +27,7 @@ describe("BT8-094 [Opponent's Turn] gain 2 memory on opponent's Lv3 breeding->ba
         deck: [{ card: "BT8-033", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "deleted" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoSelectPermanents: true, autoOrderTriggers: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     s.state.memory = 10;
     const deletedInstance = s.perm("deleted").topCard!;
 
