@@ -15,8 +15,9 @@ import type { Filter, Scaling, Target } from "@aegis/shared";
  * Count cards/permanents matching a filter across the right seats.
  * When `filter.zone` is "trash", counts loose card instances in the trash that match
  * `definitionMatches` (no permanent wrapper). Otherwise counts battle-area permanents
- * (the default for conditions like `youHave` and `opponentHas`). An explicit
- * `battleArea` zone excludes breeding; an explicit `breeding` zone selects it.
+ * (the default for conditions like `youHave` and `opponentHas`). Default possession
+ * includes breeding-area permanents; an explicit `battleArea` zone excludes breeding,
+ * while an explicit `breeding` zone selects it alone.
  */
 export function countMatching(ctx: EffectContext, filter: Filter): number {
   const seats = seatsForController(ctx, filter);
@@ -90,6 +91,8 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
     for (const permanent of ctx.game.player(seat).battleArea) {
       if (permanentMatchesFilter(ctx, permanent, filter, ctx.source)) n++;
     }
+    const breeding = ctx.game.player(seat).breeding;
+    if (breeding !== undefined && permanentMatchesFilter(ctx, breeding, filter, ctx.source)) n++;
   }
   return n;
 }
