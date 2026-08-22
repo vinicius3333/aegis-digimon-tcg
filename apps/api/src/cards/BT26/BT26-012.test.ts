@@ -60,7 +60,7 @@ describe("BT26-012 Manekimon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 5;
     preferred.push(s.inst("tb").instanceId);
@@ -88,15 +88,18 @@ describe("BT26-012 Manekimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: CARD_ID, as: "manekimon" }],
+          battleArea: [
+            { card: CARD_ID, as: "manekimon" },
+            { card: "BT1-066", as: "greenSource" },
+          ],
           hand: [
             { card: "EX12-070", as: "option" },
-            { card: "BT26-008", as: "payment" },
+            { card: "BT26-104", as: "payment" },
           ],
           deck: [{ card: "BT1-001" }, { card: "BT1-002" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred, preferOptionIndex: 1 },
     );
     s.state.memory = 3;
     preferred.push(s.inst("option").instanceId, s.inst("payment").instanceId);
@@ -104,8 +107,8 @@ describe("BT26-012 Manekimon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
 
-    expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(0);
   });
 
   it("Q6968 leaves a selected Digimon in hand when effect-driven plays are prohibited", async () => {
@@ -117,7 +120,7 @@ describe("BT26-012 Manekimon", () => {
           hand: [{ card: "BT26-014", as: "tb" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 5;
     preferred.push(s.inst("tb").instanceId);
@@ -143,7 +146,7 @@ describe("BT26-012 Manekimon", () => {
         battleArea: [{ card: CARD_ID, as: "manekimon" }],
         hand: [{ card: "BT26-014", as: "tb" }],
       },
-    }, { autoAcceptOptional: false, autoSelectCards: true });
+    }, { autoChooseOption: true, autoDeclineOptional: true, autoSelectCards: true });
     s.state.memory = 5;
 
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
