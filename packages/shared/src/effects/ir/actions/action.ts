@@ -159,7 +159,6 @@ export type Action =
   | ModifyDPAction
   | AddDPFromTrashedCardAction
   | AddDPFromSuspendedCostAction
-  | AddDPFromTrashedCardAction
   | SetBaseDPAction
   | GainKeywordAction
   | PlayWithoutCostAction
