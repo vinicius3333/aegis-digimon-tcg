@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-043.js";
 import "../index.js";
 
 describe("BT26-043 Piximon", () => {
   it("encodes mandatory suspend, deck-top face-down payment, scaled locks, and inherited watcher", () => {
+    expect(digivolutionRequirementsFor("BT26-043")).toContainEqual({ level: 4, traits: ["DM"], cost: 3, isAlternate: true });
     expect(compiled.keywords).toEqual([{ keyword: "Blocker", raw: "＜Blocker＞" }]);
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [
       { kind: "Suspend" }, { kind: "PlaceUnder", from: ["deck"], faceDown: true, position: "bottom" },

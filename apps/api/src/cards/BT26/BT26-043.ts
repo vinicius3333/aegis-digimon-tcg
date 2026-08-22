@@ -15,6 +15,6 @@ export const compiled: CompiledCard = { keywords: [{ keyword: "Blocker", raw: "ï
     kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controller: "mine", kind: ["Digimon"] },
     actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, optional: true }],
   }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 4, traits: ["DM"], cost: 3, isAlternate: true }] };
 registerIrCard("BT26-043", compiled);
 export default compiled;
