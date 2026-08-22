@@ -93,6 +93,32 @@ const compiled: CompiledCard = {
             },
             "unit": "colors"
           }
+        },
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "keyword": {
+            "keyword": "SecurityAttack",
+            "amount": 1,
+            "raw": "＜Security Attack +1＞"
+          },
+          "duration": "permanent",
+          "scaling": {
+            "per": 3,
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Tamer"
+              ]
+            },
+            "unit": "colors"
+          }
         }
       ]
     },
