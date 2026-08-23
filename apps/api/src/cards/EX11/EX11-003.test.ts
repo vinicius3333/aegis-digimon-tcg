@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import module from "./EX11-003.js";
 
 describe("EX11-003 Puroromon", () => {
   it("subscribes to own face-up Royal Base security placement, not a generic turn draw", async () => {
     const subscriptions: Array<{ matches: (ctx: any) => boolean }> = [];
     const source = {
+      cardId: "EX11-003",
+      definition: getCardDefinition("EX11-003"),
       ownerSeat: 0,
       permanent: () => ({ permanentId: "host" }),
       isOnBattleArea: () => true,
@@ -18,6 +20,7 @@ describe("EX11-003 Puroromon", () => {
     } as any);
 
     const makeTrigger = (faceUp: boolean, types: string[], seat = 0) => ({
+      source,
       trigger: { addedToSecuritySeat: seat, addedToSecurityInstanceIds: ["card"] },
       game: {
         player: () => ({ security: [{ instanceId: "card", faceUp }] }),

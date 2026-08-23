@@ -352,6 +352,21 @@ export function withIntrinsicDelayGate(effect: CardEffect): CardEffect {
   return { ...effect, actions };
 }
 
+/**
+ * Carry a continuous effect's printed turn window onto the watcher it installs. The watcher
+ * outlives the resolution that armed it, so without this a `[Your Turn]` clause's watcher would
+ * keep firing on the opponent's turn (EX11-004's inherited draw).
+ */
+export function withSubTriggerTurnScope(effect: CardEffect): CardEffect {
+  const turnScope =
+    effect.trigger === "YourTurn" ? "yourTurn" : effect.trigger === "OpponentsTurn" ? "opponentsTurn" : undefined;
+  if (turnScope === undefined) return effect;
+  const actions = (effect.actions ?? []).map((action): typeof action =>
+    action.kind === "SubTrigger" && action.turnScope === undefined ? { ...action, turnScope } : action,
+  );
+  return { ...effect, actions };
+}
+
 /** Carry a continuous effect's printed frequency onto the watcher that actually fires. */
 export function withSubTriggerFrequency(effect: CardEffect, effectKey: string): CardEffect {
   if (effect.frequency !== "OncePerTurn") return effect;

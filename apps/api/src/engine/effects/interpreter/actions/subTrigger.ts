@@ -499,6 +499,13 @@ export async function runSubTrigger(
   // A fire-time payload gate ("your security" + the added-card trait check for whenAddSecurity)
   // evaluated against the freshly bound context's TriggerInfo. When it does not hold the watcher
   // body is skipped entirely, so a mandatory tail never runs on an off-gate event (BT23-083).
+  // The printed turn window of the installing clause (`[Your Turn]` / `[Opponent's Turn]`).
+  // The watcher persists past the resolution that armed it, so the window has to travel with it.
+  const turnScopeGate =
+    action.turnScope === undefined
+      ? undefined
+      : (subCtx: EffectContext): boolean =>
+          action.turnScope === "yourTurn" ? subCtx.source.isOwnersTurn() : !subCtx.source.isOwnersTurn();
   const fireConditionGate =
     action.fireCondition === undefined
       ? undefined
@@ -721,6 +728,7 @@ export async function runSubTrigger(
     deleteCauseGate,
     notSimultaneousGate,
     trashedDigivolutionTopGate,
+    turnScopeGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
   // Inherited effects that trigger when their own source card is discarded from a

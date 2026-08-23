@@ -16,6 +16,7 @@ import {
   turnOwnerGuard,
   withIntrinsicDelayGate,
   withSubTriggerFrequency,
+  withSubTriggerTurnScope,
 } from "../effect.js";
 import { evaluateCondition } from "../conditions.js";
 import {
@@ -246,7 +247,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // mapping to EffectTiming.None) still installs its listener as a staticModifier, but
         // the listener body must apply Delay's own trash-cost + turn-guard when it fires —
         // see `withIntrinsicDelayGate`'s doc comment above.
-        const frequencyBoundEffect = withSubTriggerFrequency(effect, effectKey);
+        const frequencyBoundEffect = withSubTriggerTurnScope(withSubTriggerFrequency(effect, effectKey));
         const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
         return build({
           source,
