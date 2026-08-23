@@ -20,7 +20,7 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  namesExact: ["Rei Katsura"],
+                  nameOrTrait: [{ tokens: ["Rei Katsura"], match: "nameExact" }],
                 },
                 count: 1,
               },
