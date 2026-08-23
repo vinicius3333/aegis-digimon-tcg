@@ -25,14 +25,69 @@ describe("BT24-072 SkullGreymon", () => {
     }
   });
 
+  it("public play pays 7, trashes the cost, and grants both keywords", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT24-072", as: "skullgreymon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullgreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Retaliation"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Blocker")).toBe(true);
+  });
+
+  it.each([
+    ["normal purple level-4 requirement", "BT24-070"],
+    ["alternate Demon requirement without matching color", "BT1-069"],
+  ])("uses the %s for cost 3", async (_label, baseCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [
+            { card: "BT24-072", as: "skullgreymon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skullgreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Retaliation"));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("skullgreymon").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+  });
+
   it("pays the hand-trash cost to grant Blocker and Retaliation to the same eligible Digimon", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT24-072", as: "skullgreymon" },
-            { card: "BT24-013", as: "eligible" },
-          ],
+          battleArea: [{ card: "BT24-072", as: "skullgreymon" }],
           hand: [{ card: "BT1-001", as: "cost" }],
         },
       },
@@ -43,8 +98,8 @@ describe("BT24-072 SkullGreymon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("skullgreymon"));
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Retaliation")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("skullgreymon"), "Retaliation")).toBe(true);
   });
 
   it("grants neither keyword when the hand-trash cost cannot be paid", async () => {
@@ -53,7 +108,7 @@ describe("BT24-072 SkullGreymon", () => {
         0: {
           battleArea: [
             { card: "BT24-072", as: "skullgreymon" },
-            { card: "BT24-013", as: "eligible" },
+            { card: "BT1-069", as: "eligible" },
           ],
         },
       },
@@ -67,7 +122,7 @@ describe("BT24-072 SkullGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Retaliation")).toBe(false);
   });
 
-  it("plays a level 4 Demon from trash on deletion", async () => {
+  it("public deletion plays a level 4 Demon from trash", async () => {
     const s = setupEngine(
       {
         0: {
@@ -79,7 +134,7 @@ describe("BT24-072 SkullGreymon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("skullgreymon"));
+    await advance(s.engine).verb.deletePermanent([s.perm("skullgreymon").permanentId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("demon").instanceId),
     );

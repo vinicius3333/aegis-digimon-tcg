@@ -182,12 +182,7 @@ export const compiled: CompiledCard = {
             conditions: [
               {
                 kind: "selfHasName",
-                nameOrTrait: [
-                  {
-                    tokens: ["Titamon"],
-                    match: "name",
-                  },
-                ],
+                names: ["Titamon"],
               },
               {
                 kind: "selfHasTrait",
