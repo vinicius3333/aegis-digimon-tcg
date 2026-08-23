@@ -46,6 +46,124 @@ describe("BT24-080 Megidramon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(5);
   });
 
+  it("Q5661: public end of turn activates the trash effect, draws, gains Blocker, and deletes the lowest level", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-076", as: "darkDragon" }],
+          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          deck: ["BT1-005"],
+          trash: [{ card: "BT24-080", as: "megidramon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA" },
+            { card: "BT1-010", as: "lowB" },
+            { card: "BT1-014", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lowAId = s.perm("lowA").permanentId;
+    const lowBId = s.perm("lowB").permanentId;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+
+    expect(s.perm("darkDragon").topCard.instanceId).toBe(s.inst("megidramon").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(5);
+    expect(observe(s.engine).hasKeyword(s.perm("darkDragon"), "Blocker")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowAId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowBId);
+  });
+
+  it("public play pays 13 and deletes all opposing lowest-level Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-080", as: "megidramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA" },
+            { card: "BT1-010", as: "lowB" },
+            { card: "BT1-014", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const lowAId = s.perm("lowA").permanentId;
+    const lowBId = s.perm("lowB").permanentId;
+    s.state.memory = 14;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("megidramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowBId));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowAId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("public evolution pays 5 and resolves the lowest-level deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-076", as: "base" }],
+          hand: [{ card: "BT24-080", as: "megidramon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const lowestId = s.perm("lowest").permanentId;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("megidramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("megidramon").instanceId);
+  });
+
+  it("public deletion resolves the On Deletion lowest-level wipe", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-080", as: "megidramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA" },
+            { card: "BT1-010", as: "lowB" },
+            { card: "BT1-014", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const lowAId = s.perm("lowA").permanentId;
+    const lowBId = s.perm("lowB").permanentId;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId], "byEffect");
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowBId));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(lowAId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("does not ignore evolution requirements for an ineligible level 4 Dark Dragon", async () => {
     const s = setupEngine(
       {
