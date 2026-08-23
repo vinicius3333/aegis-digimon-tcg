@@ -49,110 +49,106 @@ scenario("digivolve-alternate", () => {
     vi.unstubAllEnvs();
   });
 
-  it(
-    "choosing the alternate digivolution cost for GeoGreymon pays 2 memory instead of the printed 3",
-    async () => {
-      vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
-      const { GameScreen } = await import("../src/game/GameScreen");
+  it("choosing the alternate digivolution cost for GeoGreymon pays 2 memory instead of the printed 3", async () => {
+    vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
+    const { GameScreen } = await import("../src/game/GameScreen");
 
-      // Seed 2: seat 0 (protagonist, the swapped deck) goes first and its dealt
-      // opening hand includes BT4-008 "Agumon" and BT12-038 "GeoGreymon" — found by
-      // exhaustively searching seeds, mirroring mulligan.scenario.test.tsx's seed-4
-      // search.
-      const joinOptions: AegisJoinOptions & { seed?: number } = {
-        displayName: "Protagonist",
-        deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
-        seed: 2,
-      };
+    // Seed 2: seat 0 (protagonist, the swapped deck) goes first and its dealt
+    // opening hand includes BT4-008 "Agumon" and BT12-038 "GeoGreymon" — found by
+    // exhaustively searching seeds, mirroring mulligan.scenario.test.tsx's seed-4
+    // search.
+    const joinOptions: AegisJoinOptions & { seed?: number } = {
+      displayName: "Protagonist",
+      deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
+      seed: 2,
+    };
 
-      render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
+    render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
 
-      await screen.findByText(/finding an opponent/i);
+    await screen.findByText(/finding an opponent/i);
 
-      const opponent = await joinHeadlessOpponent(server.endpoint, {
-        displayName: "Headless Opponent",
-        deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
-      });
-      opponent.onDecision((req) => {
-        if (req.kind === "mulligan") opponent.mulligan(true);
-      });
-      // The opponent has no role beyond existing — skip its own Breeding/Main windows
-      // every turn so the match keeps moving; see digivolveNormal.scenario.test.tsx
-      // for why this can't race ahead of the protagonist's own turn here.
-      opponent.room.onStateChange((state) => {
-        if (state.turnSeat !== 1 || state.pendingDecision) return;
-        if (state.phase === "Breeding" || state.phase === "Main") opponent.endPhase();
-      });
-      opponent.ready();
+    const opponent = await joinHeadlessOpponent(server.endpoint, {
+      displayName: "Headless Opponent",
+      deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
+    });
+    opponent.onDecision((req) => {
+      if (req.kind === "mulligan") opponent.mulligan(true);
+    });
+    // The opponent has no role beyond existing — skip its own Breeding/Main windows
+    // every turn so the match keeps moving; see digivolveNormal.scenario.test.tsx
+    // for why this can't race ahead of the protagonist's own turn here.
+    opponent.room.onStateChange((state) => {
+      if (state.turnSeat !== 1 || state.pendingDecision) return;
+      if (state.phase === "Breeding" || state.phase === "Main") opponent.endPhase();
+    });
+    opponent.ready();
 
-      fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-      const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
+    const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
 
-      // Turn 1: skip breeding, then play Agumon (cost 3, memory 0 -> -3) — this
-      // immediately crosses the gauge and ends the Main phase, which is fine: Agumon
-      // is already placed, and the crossing simply hands the turn to the opponent
-      // (whose own pass banks the protagonist's next-turn +3 bonus).
-      const firstBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(firstBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
-      // Clicking "end phase" only sends the intent; wait for the server round-trip to
-      // actually land before interacting further (see digivolveNormal.scenario.test.tsx).
-      await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
+    // Turn 1: skip breeding, then play Agumon (cost 3, memory 0 -> -3) — this
+    // immediately crosses the gauge and ends the Main phase, which is fine: Agumon
+    // is already placed, and the crossing simply hands the turn to the opponent
+    // (whose own pass banks the protagonist's next-turn +3 bonus).
+    const firstBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    fireEvent.click(within(firstBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    // Clicking "end phase" only sends the intent; wait for the server round-trip to
+    // actually land before interacting further (see digivolveNormal.scenario.test.tsx).
+    await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
-      const [agumonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
-      tap(agumonImg!);
-      fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
+    const [agumonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
+    tap(agumonImg!);
+    fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
-      await vi.waitFor(
-        () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^agumon$/i })).toHaveLength(1),
-        { timeout: 10_000 },
-      );
+    await vi.waitFor(
+      () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^agumon$/i })).toHaveLength(1),
+      { timeout: 10_000 },
+    );
 
-      // Turn 3 (protagonist's second turn; memory +3 from the pass-turn bonus): skip
-      // breeding, then drag GeoGreymon onto Agumon. Agumon is a legal attacker (any
-      // unsuspended Digimon), which makes it "draggable" in the client and strips its
-      // plain onClick digivolve-target handler — the production gesture for
-      // digivolving onto a battle-area Digimon is therefore a drag-and-drop (see
-      // digivolveNormal.scenario.test.tsx / dragDrop.ts).
-      const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
-      await vi.waitFor(
-        () => {
-          expect(opponent.room.state.turnSeat).toBe(0);
-          expect(opponent.room.state.phase).toBe("Main");
-        },
-        { timeout: 10_000 },
-      );
+    // Turn 3 (protagonist's second turn; memory +3 from the pass-turn bonus): skip
+    // breeding, then drag GeoGreymon onto Agumon. Agumon is a legal attacker (any
+    // unsuspended Digimon), which makes it "draggable" in the client and strips its
+    // plain onClick digivolve-target handler — the production gesture for
+    // digivolving onto a battle-area Digimon is therefore a drag-and-drop (see
+    // digivolveNormal.scenario.test.tsx / dragDrop.ts).
+    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await vi.waitFor(
+      () => {
+        expect(opponent.room.state.turnSeat).toBe(0);
+        expect(opponent.room.state.phase).toBe("Main");
+      },
+      { timeout: 10_000 },
+    );
 
-      const agumonPermEl = within(yourBattleArea())
-        .getByRole("img", { name: /^agumon$/i })
-        .closest('[data-drop="perm-you"]') as HTMLElement;
-      const [geoGreymonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^geogreymon$/i });
-      dragOnto(geoGreymonImg!, agumonPermEl);
+    const agumonPermEl = within(yourBattleArea())
+      .getByRole("img", { name: /^agumon$/i })
+      .closest('[data-drop="perm-you"]') as HTMLElement;
+    const [geoGreymonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^geogreymon$/i });
+    dragOnto(geoGreymonImg!, agumonPermEl);
 
-      // GeoGreymon matches BOTH the printed EvoCost (Red Lv.3, 3 memory) and the
-      // alternate requirement ([Dinosaur] trait Lv.3, 2 memory) on Agumon — the
-      // client can't auto-resolve a real choice, so it opens the EvoCostChoiceOverlay
-      // instead of sending the digivolve intent immediately (contrast
-      // digivolveNormal.scenario.test.tsx, where only one path matched).
-      const alternateOption = await screen.findByRole(
-        "button",
-        { name: /dinosaur.*lv\.3.*2 memory/i },
-        { timeout: 10_000 },
-      );
-      expect(screen.getByRole("button", { name: /red lv\.3.*3 memory/i })).toBeTruthy();
-      fireEvent.click(alternateOption);
+    // GeoGreymon matches BOTH the printed EvoCost (Red Lv.3, 3 memory) and the
+    // alternate requirement ([Dinosaur] trait Lv.3, 2 memory) on Agumon — the
+    // client can't auto-resolve a real choice, so it opens the EvoCostChoiceOverlay
+    // instead of sending the digivolve intent immediately (contrast
+    // digivolveNormal.scenario.test.tsx, where only one path matched).
+    const alternateOption = await screen.findByRole(
+      "button",
+      { name: /dinosaur.*lv\.3.*2 memory/i },
+      { timeout: 10_000 },
+    );
+    expect(screen.getByRole("button", { name: /red lv\.3.*3 memory/i })).toBeTruthy();
+    fireEvent.click(alternateOption);
 
-      // Choosing the alternate pays its cost (2), not the printed one (3): the memory
-      // gauge reflects 3 (pass-turn bank) - 2 (alternate) = +1. Had the printed cost
-      // (3) been paid instead, the gauge would read 0, not +1 — this is the proof
-      // that the ALTERNATE path was the one actually used.
-      await screen.findByText(/memory \+1/i, {}, { timeout: 10_000 });
-      expect(within(yourBattleArea()).getAllByRole("img", { name: /^geogreymon$/i })).toHaveLength(1);
-      expect(within(yourBattleArea()).queryAllByRole("img", { name: /^agumon$/i })).toHaveLength(0);
+    // Choosing the alternate pays its cost (2), not the printed one (3): the memory
+    // gauge reflects 3 (pass-turn bank) - 2 (alternate) = +1. Had the printed cost
+    // (3) been paid instead, the gauge would read 0, not +1 — this is the proof
+    // that the ALTERNATE path was the one actually used.
+    await screen.findByText(/memory \+1/i, {}, { timeout: 10_000 });
+    expect(within(yourBattleArea()).getAllByRole("img", { name: /^geogreymon$/i })).toHaveLength(1);
+    expect(within(yourBattleArea()).queryAllByRole("img", { name: /^agumon$/i })).toHaveLength(0);
 
-      await opponent.leave();
-    },
-    20_000,
-  );
+    await opponent.leave();
+  }, 20_000);
 });

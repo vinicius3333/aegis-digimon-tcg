@@ -34,74 +34,73 @@ scenario("modal-choice", () => {
     vi.unstubAllEnvs();
   });
 
-  it(
-    "choosing the Draw 2 mode from Hero of the Skies! draws 2 cards",
-    async () => {
-      vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
-      const { GameScreen } = await import("../src/game/GameScreen");
+  it("choosing the Draw 2 mode from Hero of the Skies! draws 2 cards", async () => {
+    vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
+    const { GameScreen } = await import("../src/game/GameScreen");
 
-      // Seed 0: seat 0 (protagonist) goes first and its dealt opening hand includes
-      // BT10-095 — found by exhaustively searching seeds for the swapped RED_DECK,
-      // mirroring mulligan.scenario.test.tsx's seed-4 search.
-      const joinOptions: AegisJoinOptions & { seed?: number } = {
-        displayName: "Protagonist",
-        deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
-        seed: 0,
-      };
+    // Seed 0: seat 0 (protagonist) goes first and its dealt opening hand includes
+    // BT10-095 — found by exhaustively searching seeds for the swapped RED_DECK,
+    // mirroring mulligan.scenario.test.tsx's seed-4 search.
+    const joinOptions: AegisJoinOptions & { seed?: number } = {
+      displayName: "Protagonist",
+      deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
+      seed: 0,
+    };
 
-      render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
+    render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
 
-      await screen.findByText(/finding an opponent/i);
+    await screen.findByText(/finding an opponent/i);
 
-      const opponent = await joinHeadlessOpponent(server.endpoint, {
-        displayName: "Headless Opponent",
-        deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
-      });
-      opponent.onDecision((req) => {
-        if (req.kind === "mulligan") opponent.mulligan(true);
-      });
-      opponent.ready();
+    const opponent = await joinHeadlessOpponent(server.endpoint, {
+      displayName: "Headless Opponent",
+      deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
+    });
+    opponent.onDecision((req) => {
+      if (req.kind === "mulligan") opponent.mulligan(true);
+    });
+    opponent.ready();
 
-      fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-      // §4-21-2: playing an Option needs a Digimon or Tamer of its own color already
-      // on the field. A Digi-Egg card alone is not a Digimon, so hatch and then
-      // digivolve a Red Lv.3 in the breeding area before using Hero of the Skies!.
-      const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /hatch digi-egg/i }));
-      await screen.findByRole("img", { name: /yokomon|bebydomon/i }, { timeout: 10_000 });
+    // §4-21-2: playing an Option needs a Digimon or Tamer of its own color already
+    // on the field. A Digi-Egg card alone is not a Digimon, so hatch and then
+    // digivolve a Red Lv.3 in the breeding area before using Hero of the Skies!.
+    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /hatch digi-egg/i }));
+    await screen.findByRole("img", { name: /yokomon|bebydomon/i }, { timeout: 10_000 });
 
-      const yourBreedingSlot = () => document.querySelector('[data-drop="breeding-you"]') as HTMLElement;
-      const [rookieImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /monodramon|biyomon/i });
-      tap(rookieImg!);
-      fireEvent.click(yourBreedingSlot());
-      await vi.waitFor(
-        () => expect(within(yourBreedingSlot()).getByRole("img", { name: /monodramon|biyomon/i })).toBeTruthy(),
-        { timeout: 10_000 },
-      );
+    const yourBreedingSlot = () => document.querySelector('[data-drop="breeding-you"]') as HTMLElement;
+    const [rookieImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /monodramon|biyomon/i });
+    tap(rookieImg!);
+    fireEvent.click(yourBreedingSlot());
+    await vi.waitFor(
+      () => expect(within(yourBreedingSlot()).getByRole("img", { name: /monodramon|biyomon/i })).toBeTruthy(),
+      { timeout: 10_000 },
+    );
 
-      // The dealt hand's other 4 cards are the "before" snapshot — after drawing 2
-      // via the modal, the hand should show these 4 plus 2 new cards.
-      const handBefore = within(screen.getByTestId("hand"))
-        .getAllByRole("img")
-        .map((img) => img.getAttribute("alt"));
-      expect(handBefore).toContain("Hero of the Skies!");
+    // The dealt hand's other 4 cards are the "before" snapshot — after drawing 2
+    // via the modal, the hand should show these 4 plus 2 new cards.
+    const handBefore = within(screen.getByTestId("hand"))
+      .getAllByRole("img")
+      .map((img) => img.getAttribute("alt"));
+    expect(handBefore).toContain("Hero of the Skies!");
 
-      const [heroImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /hero of the skies/i });
-      tap(heroImg!);
-      fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
+    const [heroImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /hero of the skies/i });
+    tap(heroImg!);
+    fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
-      // Playing it opens a real "chooseOption" decision — the DecisionOverlay's
-      // isChoose branch renders one button per option, no accept/decline pair.
-      const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
-      const drawOption = within(dialog).getByRole("button", { name: /draw/i });
-      fireEvent.click(drawOption);
+    // Playing it opens a real "chooseOption" decision — the DecisionOverlay's
+    // isChoose branch renders one button per option, no accept/decline pair.
+    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    const drawOption = within(dialog).getByRole("button", { name: /draw/i });
+    fireEvent.click(drawOption);
 
-      // Choosing "Draw 2" resolves immediately (no further decision) and the hand
-      // grows by 2 cards, replacing Hero of the Skies! (now played and gone) with
-      // the 4 original cards plus 2 freshly drawn ones (6 total).
-      await vi.waitFor(() => expect(screen.queryByRole("dialog")).toBeNull(), { timeout: 10_000 });
-      await vi.waitFor(() => {
+    // Choosing "Draw 2" resolves immediately (no further decision) and the hand
+    // grows by 2 cards, replacing Hero of the Skies! (now played and gone) with
+    // the 4 original cards plus 2 freshly drawn ones (6 total).
+    await vi.waitFor(() => expect(screen.queryByRole("dialog")).toBeNull(), { timeout: 10_000 });
+    await vi.waitFor(
+      () => {
         const handAfter = within(screen.getByTestId("hand"))
           .getAllByRole("img")
           .map((img) => img.getAttribute("alt"));
@@ -110,10 +109,10 @@ scenario("modal-choice", () => {
         for (const card of handBefore.filter((c) => c !== "Hero of the Skies!")) {
           expect(handAfter).toContain(card);
         }
-      }, { timeout: 10_000 });
+      },
+      { timeout: 10_000 },
+    );
 
-      await opponent.leave();
-    },
-    20_000,
-  );
+    await opponent.leave();
+  }, 20_000);
 });

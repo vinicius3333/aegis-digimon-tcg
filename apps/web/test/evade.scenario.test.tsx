@@ -54,105 +54,100 @@ scenario("evade", () => {
     vi.unstubAllEnvs();
   });
 
-  it(
-    "accepting the Evade prompt suspends the Digimon instead of deleting it",
-    async () => {
-      vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
-      const { GameScreen } = await import("../src/game/GameScreen");
+  it("accepting the Evade prompt suspends the Digimon instead of deleting it", async () => {
+    vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
+    const { GameScreen } = await import("../src/game/GameScreen");
 
-      // Seed 64: seat 0 (protagonist, swapped BLUE_DECK) goes first and its dealt
-      // opening hand includes BT14-025 "Shellmon". The headless opponent's (swapped
-      // RED_DECK) opening hand includes BT14-014 "MetalGreymon" — found by
-      // exhaustively searching seeds, mirroring barrier.scenario.test.tsx's seed-206
-      // search.
-      const joinOptions: AegisJoinOptions & { seed?: number } = {
-        displayName: "Protagonist",
-        deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
-        seed: 64,
-      };
+    // Seed 64: seat 0 (protagonist, swapped BLUE_DECK) goes first and its dealt
+    // opening hand includes BT14-025 "Shellmon". The headless opponent's (swapped
+    // RED_DECK) opening hand includes BT14-014 "MetalGreymon" — found by
+    // exhaustively searching seeds, mirroring barrier.scenario.test.tsx's seed-206
+    // search.
+    const joinOptions: AegisJoinOptions & { seed?: number } = {
+      displayName: "Protagonist",
+      deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
+      seed: 64,
+    };
 
-      render(<GameScreen joinOptions={joinOptions} identityColor="Blue" startMode="casual" onExit={() => {}} />);
+    render(<GameScreen joinOptions={joinOptions} identityColor="Blue" startMode="casual" onExit={() => {}} />);
 
-      await screen.findByText(/finding an opponent/i);
+    await screen.findByText(/finding an opponent/i);
 
-      const opponent = await joinHeadlessOpponent(server.endpoint, {
-        displayName: "Headless Opponent",
-        deck: { mainDeck: OPPONENT_DECK.mainDeck, eggDeck: OPPONENT_DECK.eggDeck },
-      });
-      opponent.onDecision((req) => {
-        if (req.kind === "mulligan") opponent.mulligan(true);
-        else respondToHeadlessDecision(opponent, req);
-      });
-      opponent.ready();
+    const opponent = await joinHeadlessOpponent(server.endpoint, {
+      displayName: "Headless Opponent",
+      deck: { mainDeck: OPPONENT_DECK.mainDeck, eggDeck: OPPONENT_DECK.eggDeck },
+    });
+    opponent.onDecision((req) => {
+      if (req.kind === "mulligan") opponent.mulligan(true);
+      else respondToHeadlessDecision(opponent, req);
+    });
+    opponent.ready();
 
-      fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-      const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
+    const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
 
-      // Turn 1 (protagonist): skip breeding, play Shellmon (cost 5). Paying a
-      // nonzero cost from a memory gauge starting at 0 immediately crosses it to the
-      // opponent's side, ending the Main phase right there (same mechanic
-      // barrier.scenario.test.tsx and target-decision.scenario.test.tsx rely on) —
-      // handing the opponent 5 memory for turn 2, comfortably above MetalGreymon's
-      // cost of 4.
-      const t1Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(t1Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
-      await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
+    // Turn 1 (protagonist): skip breeding, play Shellmon (cost 5). Paying a
+    // nonzero cost from a memory gauge starting at 0 immediately crosses it to the
+    // opponent's side, ending the Main phase right there (same mechanic
+    // barrier.scenario.test.tsx and target-decision.scenario.test.tsx rely on) —
+    // handing the opponent 5 memory for turn 2, comfortably above MetalGreymon's
+    // cost of 4.
+    const t1Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    fireEvent.click(within(t1Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
-      const [shellmonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^shellmon$/i });
-      tap(shellmonImg!);
-      fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
-      await vi.waitFor(
-        () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^shellmon$/i })).toHaveLength(1),
-        { timeout: 10_000 },
-      );
+    const [shellmonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^shellmon$/i });
+    tap(shellmonImg!);
+    fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
+    await vi.waitFor(
+      () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^shellmon$/i })).toHaveLength(1),
+      { timeout: 10_000 },
+    );
 
-      // Turn 2 (opponent): skip breeding, play MetalGreymon (cost 4, under the 5
-      // memory the opponent was handed — paying it leaves memory at 1 in the
-      // opponent's favor, which does NOT cross back to the protagonist, so the
-      // opponent's Main phase stays open and the suspended-Evade state below is
-      // observable before any unsuspend step could run). Its [On Play] deletes the
-      // lone opponent Digimon with DP<=6000 — Shellmon (6000 DP) is the only
-      // candidate, so the engine auto-resolves the target (no decision window)
-      // straight into deletePermanent, where the real (not battle) Evade prompt
-      // opens on the protagonist's screen.
-      await vi.waitFor(() => expect(opponent.room.state.turnSeat).toBe(1), { timeout: 10_000 });
-      if (opponent.room.state.phase === "Breeding") opponent.endPhase();
-      await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
-      const metalGreymonEntry = opponent.room.state.players[1]!.hand.find((c) => c.cardId === "BT14-014")!;
-      opponent.playCard(metalGreymonEntry.instanceId);
+    // Turn 2 (opponent): skip breeding, play MetalGreymon (cost 4, under the 5
+    // memory the opponent was handed — paying it leaves memory at 1 in the
+    // opponent's favor, which does NOT cross back to the protagonist, so the
+    // opponent's Main phase stays open and the suspended-Evade state below is
+    // observable before any unsuspend step could run). Its [On Play] deletes the
+    // lone opponent Digimon with DP<=6000 — Shellmon (6000 DP) is the only
+    // candidate, so the engine auto-resolves the target (no decision window)
+    // straight into deletePermanent, where the real (not battle) Evade prompt
+    // opens on the protagonist's screen.
+    await vi.waitFor(() => expect(opponent.room.state.turnSeat).toBe(1), { timeout: 10_000 });
+    if (opponent.room.state.phase === "Breeding") opponent.endPhase();
+    await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
+    const metalGreymonEntry = opponent.room.state.players[1]!.hand.find((c) => c.cardId === "BT14-014")!;
+    opponent.playCard(metalGreymonEntry.instanceId);
 
-      // MetalGreymon's [On Play] would delete Shellmon — the real Evade prompt
-      // opens on the protagonist's screen (EvadeOverlay, evadePrompt event).
-      const acceptButton = await screen.findByRole("button", { name: /yes — suspend to evade/i }, { timeout: 10_000 });
-      fireEvent.click(acceptButton);
+    // MetalGreymon's [On Play] would delete Shellmon — the real Evade prompt
+    // opens on the protagonist's screen (EvadeOverlay, evadePrompt event).
+    const acceptButton = await screen.findByRole("button", { name: /yes — suspend to evade/i }, { timeout: 10_000 });
+    fireEvent.click(acceptButton);
 
-      // Answered-outcome proof: Shellmon SURVIVES — still rendered in the
-      // protagonist's battle area (not deleted, not in trash) — and, per
-      // apps/web/src/design/cards.tsx's CardMini, rendered with its explicit
-      // suspended state (the cost of accepting Evade), instead of being
-      // trashed. Turn 2 does not cross back (memory lands at +1 for the opponent),
-      // so this state is observable before any unsuspend step could run.
-      await vi.waitFor(
-        () =>
-          expect(
-            opponent.room.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT14-025")?.isSuspended,
-          ).toBe(true),
-        { timeout: 10_000 },
-      );
-      await vi.waitFor(
-        () => expect(screen.queryByRole("button", { name: /yes — suspend to evade/i })).toBeNull(),
-        { timeout: 10_000 },
-      );
-      const shellmonPermElAfter = within(yourBattleArea())
-        .getByRole("img", { name: /^shellmon$/i })
-        .closest('[data-drop="perm-you"]') as HTMLElement;
-      expect(shellmonPermElAfter.querySelector('[data-state="suspended"]')).toBeTruthy();
-      expect(opponent.room.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT14-025")).toBe(true);
-      expect(opponent.room.state.players[0]!.trash.some((c) => c.cardId === "BT14-025")).toBe(false);
+    // Answered-outcome proof: Shellmon SURVIVES — still rendered in the
+    // protagonist's battle area (not deleted, not in trash) — and, per
+    // apps/web/src/design/cards.tsx's CardMini, rendered with its explicit
+    // suspended state (the cost of accepting Evade), instead of being
+    // trashed. Turn 2 does not cross back (memory lands at +1 for the opponent),
+    // so this state is observable before any unsuspend step could run.
+    await vi.waitFor(
+      () =>
+        expect(
+          opponent.room.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT14-025")?.isSuspended,
+        ).toBe(true),
+      { timeout: 10_000 },
+    );
+    await vi.waitFor(() => expect(screen.queryByRole("button", { name: /yes — suspend to evade/i })).toBeNull(), {
+      timeout: 10_000,
+    });
+    const shellmonPermElAfter = within(yourBattleArea())
+      .getByRole("img", { name: /^shellmon$/i })
+      .closest('[data-drop="perm-you"]') as HTMLElement;
+    expect(shellmonPermElAfter.querySelector('[data-state="suspended"]')).toBeTruthy();
+    expect(opponent.room.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT14-025")).toBe(true);
+    expect(opponent.room.state.players[0]!.trash.some((c) => c.cardId === "BT14-025")).toBe(false);
 
-      await opponent.leave();
-    },
-    20_000,
-  );
+    await opponent.leave();
+  }, 20_000);
 });

@@ -48,125 +48,129 @@ scenario("reconnect-decision", () => {
     vi.unstubAllEnvs();
   });
 
-  it(
-    "reconnecting mid-decision re-renders the decision overlay and it still resolves",
-    async () => {
-      vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
+  it("reconnecting mid-decision re-renders the decision overlay and it still resolves", async () => {
+    vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
 
-      // Capture the protagonist's own Room instance by call order: net/client.ts's
-      // singleton Client and headlessOpponent.ts's Client both go through
-      // `Client.prototype.joinOrCreate`, and GameScreen's join (triggered
-      // synchronously by its mount effect, below) always starts before the headless
-      // opponent's — so the first call is the protagonist's, regardless of which
-      // resolves first. The connection this yields is the exact real websocket
-      // colyseus.js opened; nothing here is a fake or a second, parallel connection.
-      let joinCallCount = 0;
-      let protagonistRoom: Room<GameState> | undefined;
-      const originalJoinOrCreate = Client.prototype.joinOrCreate;
-      vi.spyOn(Client.prototype, "joinOrCreate").mockImplementation(async function (
-        this: Client,
-        ...args: Parameters<Client["joinOrCreate"]>
-      ) {
-        const callIndex = joinCallCount++;
-        const room = await originalJoinOrCreate.apply(this, args);
-        if (callIndex === 0) protagonistRoom = room as Room<GameState>;
-        return room;
-      });
+    // Capture the protagonist's own Room instance by call order: net/client.ts's
+    // singleton Client and headlessOpponent.ts's Client both go through
+    // `Client.prototype.joinOrCreate`, and GameScreen's join (triggered
+    // synchronously by its mount effect, below) always starts before the headless
+    // opponent's — so the first call is the protagonist's, regardless of which
+    // resolves first. The connection this yields is the exact real websocket
+    // colyseus.js opened; nothing here is a fake or a second, parallel connection.
+    let joinCallCount = 0;
+    let protagonistRoom: Room<GameState> | undefined;
+    const originalJoinOrCreate = Client.prototype.joinOrCreate;
+    vi.spyOn(Client.prototype, "joinOrCreate").mockImplementation(async function (
+      this: Client,
+      ...args: Parameters<Client["joinOrCreate"]>
+    ) {
+      const callIndex = joinCallCount++;
+      const room = await originalJoinOrCreate.apply(this, args);
+      if (callIndex === 0) protagonistRoom = room as Room<GameState>;
+      return room;
+    });
 
-      const { GameScreen } = await import("../src/game/GameScreen");
+    const { GameScreen } = await import("../src/game/GameScreen");
 
-      const joinOptions: AegisJoinOptions & { seed?: number } = {
-        displayName: "Protagonist",
-        deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
-        seed: SEED,
-      };
+    const joinOptions: AegisJoinOptions & { seed?: number } = {
+      displayName: "Protagonist",
+      deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
+      seed: SEED,
+    };
 
-      render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
+    render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
 
-      await screen.findByText(/finding an opponent/i);
+    await screen.findByText(/finding an opponent/i);
 
-      const opponent = await joinHeadlessOpponent(server.endpoint, {
-        displayName: "Headless Opponent",
-        deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
-      });
-      opponent.onDecision((req) => {
-        if (req.kind === "mulligan") opponent.mulligan(true);
-      });
-      opponent.ready();
+    const opponent = await joinHeadlessOpponent(server.endpoint, {
+      displayName: "Headless Opponent",
+      deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
+    });
+    opponent.onDecision((req) => {
+      if (req.kind === "mulligan") opponent.mulligan(true);
+    });
+    opponent.ready();
 
-      fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-      const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
 
-      const yuukiImg = await screen.findByRole("img", { name: /yuuki/i }, { timeout: 10_000 });
-      tap(yuukiImg);
-      fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
+    const yuukiImg = await screen.findByRole("img", { name: /yuuki/i }, { timeout: 10_000 });
+    tap(yuukiImg);
+    fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
-      // A real pendingDecision is now open on the protagonist's seat — proven both by
-      // the server's synchronized state and the rendered dialog.
-      const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
-      expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
-      await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.seat).toBe(0), { timeout: 10_000 });
-      const decisionIdBeforeDrop = opponent.room.state.pendingDecision?.decisionId;
+    // A real pendingDecision is now open on the protagonist's seat — proven both by
+    // the server's synchronized state and the rendered dialog.
+    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
+    await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.seat).toBe(0), { timeout: 10_000 });
+    const decisionIdBeforeDrop = opponent.room.state.pendingDecision?.decisionId;
 
-      // Sever the protagonist's real websocket with a non-1000 ("unexpected drop")
-      // close code — exactly the class of event useRoom.ts's `room.onLeave` treats as
-      // recoverable, as opposed to a clean 1000 close (a deliberate leave/surrender).
-      // `Room.connection.close` (colyseus.js) closes the actual underlying `ws` socket;
-      // this is a real disconnect, not a state reset.
-      expect(protagonistRoom).toBeDefined();
-      protagonistRoom!.connection.close(4500, "scenario: simulated network drop");
+    // Sever the protagonist's real websocket with a non-1000 ("unexpected drop")
+    // close code — exactly the class of event useRoom.ts's `room.onLeave` treats as
+    // recoverable, as opposed to a clean 1000 close (a deliberate leave/surrender).
+    // `Room.connection.close` (colyseus.js) closes the actual underlying `ws` socket;
+    // this is a real disconnect, not a state reset.
+    expect(protagonistRoom).toBeDefined();
+    protagonistRoom!.connection.close(4500, "scenario: simulated network drop");
 
-      // The client's own reconnect loop kicks in: the board is torn down for a
-      // "Reconnecting…" gate while it resumes the session with the server's token.
-      await screen.findByText(/reconnecting/i, {}, { timeout: 10_000 });
+    // The client's own reconnect loop kicks in: the board is torn down for a
+    // "Reconnecting…" gate while it resumes the session with the server's token.
+    await screen.findByText(/reconnecting/i, {}, { timeout: 10_000 });
 
-      // The server's 30s reconnect grace window (AegisRoom.RECONNECT_GRACE_SECONDS)
-      // resumes the same seat and re-sends the still-pending decision
-      // (AegisRoom.onLeave's `allowReconnection` branch); the client re-renders it.
-      const dialogAfterReconnect = await vi.waitFor(() => {
+    // The server's 30s reconnect grace window (AegisRoom.RECONNECT_GRACE_SECONDS)
+    // resumes the same seat and re-sends the still-pending decision
+    // (AegisRoom.onLeave's `allowReconnection` branch); the client re-renders it.
+    await vi.waitFor(
+      () => {
         const current = screen.getByRole("dialog");
         expect(within(current).getAllByText(/yuuki/i).length).toBeGreaterThan(0);
-        return current;
-      }, { timeout: 15_000 });
-      expect(opponent.room.state.pendingDecision?.decisionId).toBe(decisionIdBeforeDrop);
+      },
+      { timeout: 15_000 },
+    );
+    expect(opponent.room.state.pendingDecision?.decisionId).toBe(decisionIdBeforeDrop);
 
-      // Answer it through the real UI, post-reconnect: accept -> pay the trash cost ->
-      // gain memory. The resolved outcome (not just "a dialog is visible") is the proof
-      // the resumed session is genuinely live, not a frozen stale render.
-      for (let round = 0; round < 10; round += 1) {
-        if (opponent.room.state.pendingDecision?.kind === "orderTriggers") {
-          await resolveNextTriggerThroughUi(opponent);
-          continue;
-        }
-        const current = screen.queryByRole("dialog");
-        if (current === null) break;
-        const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
-        const acceptBtn = within(current).queryByRole("button", { name: /yes, activate/i });
-        const declineBtn = within(current).queryByRole("button", { name: /no, decline/i });
-        if (acceptBtn && declineBtn) {
-          fireEvent.click(acceptBtn);
-        } else {
-          const candidates = within(current).getAllByRole("button", { pressed: false });
-          fireEvent.click(candidates[0]!);
-          fireEvent.click(within(current).getByRole("button", { name: /confirm target/i }));
-        }
-        await vi.waitFor(() => {
-          expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionIdBefore);
-        }, { timeout: 10_000 });
+    // Answer it through the real UI, post-reconnect: accept -> pay the trash cost ->
+    // gain memory. The resolved outcome (not just "a dialog is visible") is the proof
+    // the resumed session is genuinely live, not a frozen stale render.
+    for (let round = 0; round < 10; round += 1) {
+      if (opponent.room.state.pendingDecision?.kind === "orderTriggers") {
+        await resolveNextTriggerThroughUi(opponent);
+        continue;
       }
+      const current = screen.queryByRole("dialog");
+      if (current === null) break;
+      const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
+      const acceptBtn = within(current).queryByRole("button", { name: /yes, activate/i });
+      const declineBtn = within(current).queryByRole("button", { name: /no, decline/i });
+      if (acceptBtn && declineBtn) {
+        fireEvent.click(acceptBtn);
+      } else {
+        const candidates = within(current).getAllByRole("button", { pressed: false });
+        fireEvent.click(candidates[0]!);
+        fireEvent.click(within(current).getByRole("button", { name: /confirm target/i }));
+      }
+      await vi.waitFor(
+        () => {
+          expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionIdBefore);
+        },
+        { timeout: 10_000 },
+      );
+    }
 
-      expect(screen.queryByRole("dialog")).toBeNull();
-      await vi.waitFor(() => {
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await vi.waitFor(
+      () => {
         const line = screen.getByText(/^turn \d+ · memory/i).textContent ?? "";
         const value = Number(/memory (-?\d+)/i.exec(line)?.[1]);
         expect(value).toBeGreaterThan(-4);
-      }, { timeout: 10_000 });
-      expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
+      },
+      { timeout: 10_000 },
+    );
+    expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
-      await opponent.leave();
-    },
-    30_000,
-  );
+    await opponent.leave();
+  }, 30_000);
 });

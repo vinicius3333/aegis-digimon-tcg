@@ -6,88 +6,83 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Rock Dragon",
-                      "Earth Dragon"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Rock Dragon", "Earth Dragon"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with the [Rock Dragon]/[Earth Dragon] trait from your hand"
+            raw: "By trashing 1 card with the [Rock Dragon]/[Earth Dragon] trait from your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "optional": false,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if you trashed a [Rock Dragon]/[Earth Dragon] card for this effect"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "GainMemory",
+          amount: 1,
+          optional: false,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if you trashed a [Rock Dragon]/[Earth Dragon] card for this effect",
           },
-          "grant": "trait",
-          "tokens": [
-            "Machine Dragon"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Machine Dragon"],
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX7-039", compiled);

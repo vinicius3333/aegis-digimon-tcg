@@ -100,61 +100,59 @@ scenario("optional-decision", () => {
         fireEvent.click(candidates[0]!);
         fireEvent.click(within(dialog).getByRole("button", { name: /confirm target/i }));
       }
-      await vi.waitFor(() => {
-        expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionIdBefore);
-      }, { timeout: 10_000 });
+      await vi.waitFor(
+        () => {
+          expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionIdBefore);
+        },
+        { timeout: 10_000 },
+      );
     }
   }
 
-  it(
-    "declining the optional effect leaves the memory gauge at just the play cost",
-    async () => {
-      const opponent = await playYuuki();
+  it("declining the optional effect leaves the memory gauge at just the play cost", async () => {
+    const opponent = await playYuuki();
 
-      // Yuuki's OnPlay opens the real "optional" decision overlay.
-      const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
-      expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
+    // Yuuki's OnPlay opens the real "optional" decision overlay.
+    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
 
-      await resolveAllDecisions(opponent, "decline");
+    await resolveAllDecisions(opponent, "decline");
 
-      // Declining every prompt is a clean abort: no dialog remains, Yuuki still
-      // renders in the battle area (it was already placed before OnPlay fired), and
-      // only its printed play cost (4) — not any optional memory gain — shows on the
-      // memory gauge.
-      expect(screen.queryByRole("dialog")).toBeNull();
-      await screen.findByText(/memory -4/i, {}, { timeout: 10_000 });
-      expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
+    // Declining every prompt is a clean abort: no dialog remains, Yuuki still
+    // renders in the battle area (it was already placed before OnPlay fired), and
+    // only its printed play cost (4) — not any optional memory gain — shows on the
+    // memory gauge.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    await screen.findByText(/memory -4/i, {}, { timeout: 10_000 });
+    expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
-      await opponent.leave();
-    },
-    20_000,
-  );
+    await opponent.leave();
+  }, 20_000);
 
-  it(
-    "accepting the optional effect trashes cards and gains memory",
-    async () => {
-      const opponent = await playYuuki();
+  it("accepting the optional effect trashes cards and gains memory", async () => {
+    const opponent = await playYuuki();
 
-      await screen.findByRole("dialog", {}, { timeout: 10_000 });
-      await resolveAllDecisions(opponent, "accept");
+    await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    await resolveAllDecisions(opponent, "accept");
 
-      // Every accepted prompt paid its trash cost and applied its memory gain: the
-      // gauge is strictly better than the decline case's -4, and Yuuki is still on
-      // the field — both proven on the protagonist's own rendered DOM through real
-      // intent round trips (accept -> pay cost -> gain memory), not injected state.
-      expect(screen.queryByRole("dialog")).toBeNull();
-      // The sidebar's "Turn N · memory <value>" line is the gauge; the game log
-      // below it also mentions "memory" in its transition entries (e.g. "Memory 0
-      // -> -4 (playCard)"), so scope to the turn/memory line specifically.
-      await vi.waitFor(() => {
+    // Every accepted prompt paid its trash cost and applied its memory gain: the
+    // gauge is strictly better than the decline case's -4, and Yuuki is still on
+    // the field — both proven on the protagonist's own rendered DOM through real
+    // intent round trips (accept -> pay cost -> gain memory), not injected state.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    // The sidebar's "Turn N · memory <value>" line is the gauge; the game log
+    // below it also mentions "memory" in its transition entries (e.g. "Memory 0
+    // -> -4 (playCard)"), so scope to the turn/memory line specifically.
+    await vi.waitFor(
+      () => {
         const line = screen.getByText(/^turn \d+ · memory/i).textContent ?? "";
         const value = Number(/memory (-?\d+)/i.exec(line)?.[1]);
         expect(value).toBeGreaterThan(-4);
-      }, { timeout: 10_000 });
-      expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
+      },
+      { timeout: 10_000 },
+    );
+    expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
-      await opponent.leave();
-    },
-    20_000,
-  );
+    await opponent.leave();
+  }, 20_000);
 });
