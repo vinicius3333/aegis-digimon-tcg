@@ -107,7 +107,7 @@ export const compiled: CompiledCard = {
           while: {
             kind: "anyOf",
             conditions: [
-              { kind: "selfHasNameContaining", names: ["Titamon"] },
+              { kind: "selfHasName", names: ["Titamon"] },
               {
                 kind: "selfHasTrait",
                 filter: { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] },
