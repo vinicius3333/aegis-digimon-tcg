@@ -36,7 +36,9 @@ export const compiled: CompiledCard = {
               "isSelf": true
             },
             "raw": "By suspending this Digimon"
-          }
+          },
+          "optional": true,
+          "abortOnDecline": true
         }
       ]
     }

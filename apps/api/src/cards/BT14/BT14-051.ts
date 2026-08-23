@@ -41,7 +41,9 @@ export const compiled: CompiledCard = {
               "count": 1
             },
             "raw": "By suspending 1 of your Digimon"
-          }
+          },
+          "optional": true,
+          "abortOnDecline": true
         }
       ],
       "frequency": "OncePerTurn"

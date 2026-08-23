@@ -85,6 +85,29 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-013")).toBe(false);
   });
 
+  it("leaves Ami unsuspended and digivolves nothing when the suspend cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: AMI_AIBA, as: "ami" },
+            { card: "BT22-011", under: ["BT22-011"], as: "subject" },
+          ],
+          hand: ["BT22-013"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: s.perm("subject").permanentId });
+    await settle(() => false, 80);
+
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+    expect(s.perm("ami").isSuspended).toBe(false);
+    expect(s.perm("subject").topCard?.cardId).toBe("BT22-011");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-013")).toBe(true);
+  });
+
   it("does not activate for a CS Digimon without a same-level stack card", async () => {
     const s = setupEngine(
       {

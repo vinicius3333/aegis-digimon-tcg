@@ -34,15 +34,18 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
     // EX10-062 Yujin Ozora (a Tamer) on the controller's field — the watcher anchor + suspend cost.
     // A friendly Digimon (host) carries a LINK card (the genuine link-trash subject).
     // Deck cards so the <Draw 1> has something to draw.
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX10-062", as: "tamer" },
-          { card: "BT1-009", as: "host", linked: [{ card: "BT1-009", as: "linkCard" }] },
-        ],
-        deck: ["BT1-009", "BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX10-062", as: "tamer" },
+            { card: "BT1-009", as: "host", linked: [{ card: "BT1-009", as: "linkCard" }] },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     const p0 = s.state.players[0]!;
     const tamer = s.perm("tamer");
     const host = s.perm("host");
@@ -64,13 +67,16 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
   });
 
   it("trashing a NON-link card (a hand card) does not draw (replace/non-trash control, Q5172)", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX10-062", as: "tamer" }],
-        deck: ["BT1-009"],
-        hand: [{ card: "BT1-009", as: "handCard" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-062", as: "tamer" }],
+          deck: ["BT1-009"],
+          hand: [{ card: "BT1-009", as: "handCard" }],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     const p0 = s.state.players[0]!;
     const tamer = s.perm("tamer");
     const handCard = s.inst("handCard");
@@ -85,5 +91,31 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
     // fire => no draw and the Tamer stays unsuspended.
     expect(p0.hand.length).toBe(handBefore - 1);
     expect(tamer.isSuspended).toBe(false);
+  });
+
+  it("leaves the Tamer unsuspended and draws nothing when the suspend cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX10-062", as: "tamer" },
+            { card: "BT1-009", as: "host", linked: [{ card: "BT1-009", as: "linkCard" }] },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    const p0 = s.state.players[0]!;
+    const tamer = s.perm("tamer");
+    const handBefore = p0.hand.length;
+
+    await s.engine.recomputeContinuousEffects();
+    await primitivesOf(s).trash([s.inst("linkCard").instanceId]);
+    await settle(() => false, 30);
+
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+    expect(tamer.isSuspended).toBe(false);
+    expect(p0.hand.length).toBe(handBefore);
   });
 });

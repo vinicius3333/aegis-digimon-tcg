@@ -45,7 +45,9 @@ export const compiled: CompiledCard = {
               "amount": 1,
               "raw": "＜Security Attack +1＞"
             }
-          ]
+          ],
+          "optional": true,
+          "abortOnDecline": true
         }
       ],
       "isInherited": true

@@ -83,7 +83,7 @@ const compiled: CompiledCard = {
                 },
                 "raw": "by suspending this Tamer and returning 2 [Vemmon] from that Digimon's digivolution cards to the bottom of the deck"
               },
-              "optional": false,
+              "optional": true,
               "additionalCosts": [
                 {
                   "kind": "return",
@@ -105,7 +105,8 @@ const compiled: CompiledCard = {
                   "to": "deckBottom",
                   "raw": "returning 2 [Vemmon] from that Digimon’s digivolution cards to the bottom of the deck"
                 }
-              ]
+              ],
+              "abortOnDecline": true
             }
           ]
         }
@@ -130,7 +131,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [],
+  "residual": []
 };
 
 registerIrCard("BT18-092", compiled);

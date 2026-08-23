@@ -68,7 +68,9 @@ const module: EffectModule = {
             "[Your Turn] When your Digimon are played or digivolve, if any of them have " +
             "the [Flame] or [CS] trait, by suspending this Tamer, activate 1 of those " +
             "Digimon's [Main] effects. If this activated any effect, gain 1 memory.",
-          optional: false,
+          // "by suspending this Tamer" is a cost: the controller chooses whether to pay it,
+          // so the trigger must offer the decline before it suspends anything.
+          optional: true,
           when: (ctx) => {
             if (!source.isOnBattleArea() || !source.isOwnersTurn()) return false;
             const subjectId = ctx.trigger.subjectPermanentId;

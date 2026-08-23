@@ -92,6 +92,10 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
+                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
+                // choice: ask before suspending, and leave the Tamer untouched on a decline.
+                const willSuspend = await subCtx.ask.optional(subCtx, "Suspend Yao Qinglan to draw 1 card?");
+                if (!willSuspend) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
                 subCtx.fx.draw(source.ownerSeat, 1);
@@ -126,6 +130,10 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
+                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
+                // choice: ask before suspending, and leave the Tamer untouched on a decline.
+                const willSuspend = await subCtx.ask.optional(subCtx, "Suspend Yao Qinglan to draw 1 card?");
+                if (!willSuspend) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
                 subCtx.fx.draw(source.ownerSeat, 1);

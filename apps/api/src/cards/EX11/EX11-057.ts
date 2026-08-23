@@ -102,6 +102,10 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
+                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
+                // choice: ask before suspending, and leave the Tamer untouched on a decline.
+                const willSuspend = await subCtx.ask.optional(subCtx, "Suspend Suzune Kazuki to gain 1 memory?");
+                if (!willSuspend) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
                 // [All Turns]: the trashing effect can resolve on either player's turn.

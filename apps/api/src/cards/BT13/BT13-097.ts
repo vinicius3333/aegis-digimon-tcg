@@ -58,13 +58,18 @@ export const compiled: CompiledCard = {
                   "isSelf": true
                 },
                 "raw": "by suspending this Tamer"
-              }
+              },
+              "optional": true,
+              "abortOnDecline": true
             },
             {
               "kind": "Draw",
               "controller": "opponent",
               "amount": 1,
-              "condition": { "kind": "ifThisEffectActed", "raw": "you did" }
+              "condition": {
+                "kind": "ifThisEffectActed",
+                "raw": "you did"
+              }
             }
           ]
         }
