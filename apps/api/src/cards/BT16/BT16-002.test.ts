@@ -4,7 +4,14 @@ import { compiled } from "./BT16-002.js";
 import "../index.js";
 
 describe("BT16-002", () => {
-  it("gains +1000 DP on all turns while it has two colors", () => expect(compiled.effects?.[0]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: { kind: "selfColorCount", value: 2 } }] }));
+  it("gains +1000 DP on all turns while it has two colors", () =>
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        { kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: { kind: "selfColorCount", value: 2 } },
+      ],
+    }));
 
   it("applies +1000 DP to a multicolor host", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-002"] }] } });

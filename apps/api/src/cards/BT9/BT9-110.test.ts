@@ -19,9 +19,9 @@ describe("BT9-110 X Program", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -51,14 +51,10 @@ describe("BT9-110 X Program", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.length === 1 &&
-        s.state.players[1]!.battleArea.length === 1,
-    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT9-075");
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT9-070");

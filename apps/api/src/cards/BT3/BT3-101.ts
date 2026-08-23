@@ -6,95 +6,91 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "bifrostTarget"
-          }
+            count: 1,
+            bindAs: "bifrostTarget",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "bifrostTarget"
+          kind: "ModifyDP",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "bifrostTarget",
           },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "bifrostTarget"
+          kind: "GainKeyword",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "bifrostTarget",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "bifrostTarget"
-          }
+            count: 1,
+            bindAs: "bifrostTarget",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "bifrostTarget"
+          kind: "ModifyDP",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "bifrostTarget",
           },
-          "amount": -3000,
-          "duration": "forTheTurn"
+          amount: -3000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "bifrostTarget"
+          kind: "GainKeyword",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "bifrostTarget",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "forTheTurn"
-        }
+          duration: "forTheTurn",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-101", compiled);

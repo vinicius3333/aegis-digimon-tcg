@@ -17,11 +17,13 @@ describe("ST18-01 Fluffymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("eligible").isSuspended);
 
     expect(s.perm("eligible").isSuspended).toBe(true);

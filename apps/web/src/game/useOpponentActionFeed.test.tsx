@@ -15,13 +15,14 @@ describe("useOpponentActionFeed", () => {
   it("does not replay history and shows the newest fresh event in a batch", () => {
     const history = [played("BT1-010")];
     const { result, rerender } = renderHook(
-      ({ events }) => useOpponentActionFeed({
-        events,
-        viewerSeat: 0,
-        paused: false,
-        trailCapacity: 1,
-        matchKey: "match-1",
-      }),
+      ({ events }) =>
+        useOpponentActionFeed({
+          events,
+          viewerSeat: 0,
+          paused: false,
+          trailCapacity: 1,
+          matchKey: "match-1",
+        }),
       { initialProps: { events: history } },
     );
 
@@ -36,13 +37,14 @@ describe("useOpponentActionFeed", () => {
   it("recognizes cloned reconnect history and enqueues only its fresh suffix", () => {
     const history = [played("BT1-010")];
     const { result, rerender } = renderHook(
-      ({ events }) => useOpponentActionFeed({
-        events,
-        viewerSeat: 0,
-        paused: false,
-        trailCapacity: 1,
-        matchKey: "match-1",
-      }),
+      ({ events }) =>
+        useOpponentActionFeed({
+          events,
+          viewerSeat: 0,
+          paused: false,
+          trailCapacity: 1,
+          matchKey: "match-1",
+        }),
       { initialProps: { events: history } },
     );
 
@@ -54,13 +56,14 @@ describe("useOpponentActionFeed", () => {
   it("restarts the full display duration for the newest action", () => {
     vi.useFakeTimers();
     const { result, rerender } = renderHook(
-      ({ events }) => useOpponentActionFeed({
-        events,
-        viewerSeat: 0,
-        paused: false,
-        trailCapacity: 1,
-        matchKey: "match-1",
-      }),
+      ({ events }) =>
+        useOpponentActionFeed({
+          events,
+          viewerSeat: 0,
+          paused: false,
+          trailCapacity: 1,
+          matchKey: "match-1",
+        }),
       { initialProps: { events: [] as ServerEvent[] } },
     );
 
@@ -76,13 +79,14 @@ describe("useOpponentActionFeed", () => {
   it("pauses the remaining time while a blocking surface is open", () => {
     vi.useFakeTimers();
     const { result, rerender } = renderHook(
-      ({ events, paused }) => useOpponentActionFeed({
-        events,
-        viewerSeat: 0,
-        paused,
-        trailCapacity: 1,
-        matchKey: "match-1",
-      }),
+      ({ events, paused }) =>
+        useOpponentActionFeed({
+          events,
+          viewerSeat: 0,
+          paused,
+          trailCapacity: 1,
+          matchKey: "match-1",
+        }),
       { initialProps: { events: [] as ServerEvent[], paused: false } },
     );
 

@@ -6,124 +6,108 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Lucemon"
-                    ],
-                    "match": "name"
+                    tokens: ["Lucemon"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "Royal Knight"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Royal Knight"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 2,
-              "to": "hand"
-            }
+              count: 2,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
+          rest: "trash",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Lucemon"
-                    ],
-                    "match": "name"
+                    tokens: ["Lucemon"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "Royal Knight"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Royal Knight"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 2,
-              "to": "hand"
-            }
+              count: 2,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
+          rest: "trash",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Lucemon"],
+                match: "name",
+              },
+              {
+                tokens: ["Royal Knight"],
+                match: "trait",
+              },
             ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Lucemon"
-                ],
-                "match": "name"
-              },
-              {
-                "tokens": [
-                  "Royal Knight"
-                ],
-                "match": "trait"
-              }
-            ]
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
                 },
-                "count": "all"
-              }
-            }
-          ]
-        }
-      ]
-    }
+                count: "all",
+              },
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-087", compiled);

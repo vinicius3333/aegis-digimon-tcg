@@ -7,13 +7,46 @@ import "../index.js";
 
 describe("EX9-073", () => {
   it("once per turn activates the placed level-five Cyborg or Ver.5 card's On Play effect", () => {
-    for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "ActivateEffect", effectType: "OnPlay", cost: { kind: "place", position: "top", target: { count: 1 } } }] });
+    for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"])
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "ActivateEffect",
+            effectType: "OnPlay",
+            cost: { kind: "place", position: "top", target: { count: 1 } },
+          },
+        ],
+      });
   });
-  it("can prevent itself from leaving by trashing two bottom qualifying digivolution cards", () => expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ actions: [{ kind: "Replacement", event: "wouldLeavePlay", actions: [{ kind: "Prevent", cost: { kind: "trash", target: { count: 2 } } }] }] }));
+  it("can prevent itself from leaving by trashing two bottom qualifying digivolution cards", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          actions: [{ kind: "Prevent", cost: { kind: "trash", target: { count: 2 } } }],
+        },
+      ],
+    }));
   it("prevents deletion by trashing exactly two bottom face-down qualifying cards", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-073", as: "source", under: [{ card: "EX9-011", faceUp: false }, { card: "EX9-011", faceUp: false }] }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX9-073",
+              as: "source",
+              under: [
+                { card: "EX9-011", faceUp: false },
+                { card: "EX9-011", faceUp: false },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     expect(s.perm("source").stack).toHaveLength(2);
     expect(s.perm("source").stack.every((card) => card.faceUp === false)).toBe(true);
     await s.ready();
@@ -25,14 +58,17 @@ describe("EX9-073", () => {
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX9-011")).toHaveLength(2);
   });
   it("places a level-five card from hand and activates its On Play effect", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX9-073", as: "source" }],
-        hand: [{ card: "EX9-011", as: "placed" }],
-        trash: ["BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-073", as: "source" }],
+          hand: [{ card: "EX9-011", as: "placed" }],
+          trash: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "EX9-007", as: "opponent" }] },
       },
-      1: { battleArea: [{ card: "EX9-007", as: "opponent" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));

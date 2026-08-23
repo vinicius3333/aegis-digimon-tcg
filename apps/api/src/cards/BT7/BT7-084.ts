@@ -6,66 +6,60 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "nameOrTrait": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Eosmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Eosmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1000,
-          "duration": "permanent"
-        }
-      ]
+          amount: 1000,
+          duration: "permanent",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              levelComparison: {
+                op: "lte",
+                value: 5,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Eosmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Eosmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-084", compiled);

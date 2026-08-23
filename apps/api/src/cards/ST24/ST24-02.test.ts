@@ -8,16 +8,22 @@ describe("ST24-02 Gaomon", () => {
     const compiled = registeredCompiledCards.get("ST24-02") ?? getCompiledCard("ST24-02")!;
     const effect = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     expect(effect).toMatchObject({
-      actions: [{
-        kind: "Draw",
-        amount: 2,
-        optional: true,
-        cost: {
-          kind: "place",
-          target: { count: 1, from: ["hand"] },
-          underFilter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] },
+      actions: [
+        {
+          kind: "Draw",
+          amount: 2,
+          optional: true,
+          cost: {
+            kind: "place",
+            target: { count: 1, from: ["hand"] },
+            underFilter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
+            },
+          },
         },
-      }],
+      ],
     });
   });
 });

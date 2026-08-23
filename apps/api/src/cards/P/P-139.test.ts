@@ -5,13 +5,18 @@ import "./P-139.js";
 
 describe("P-139 Leomon (X Antibody)", () => {
   it("reduces an opponent's Digimon by 3000 DP on play", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "P-139", as: "source" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-139", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 1000);
 
     expect(s.perm("target").currentDP).toBe(1000);
@@ -23,12 +28,14 @@ describe("P-139 Leomon (X Antibody)", () => {
     expect(getCompiledCard("P-139")?.digivolutionRequirement).toEqual([
       { names: ["Leomon"], cost: 0, isAlternate: true },
     ]);
-    expect(getCompiledCard("P-139")?.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        trigger: "OnDeletion",
-        isInherited: true,
-        keywords: [{ keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" }],
-      }),
-    ]));
+    expect(getCompiledCard("P-139")?.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "OnDeletion",
+          isInherited: true,
+          keywords: [{ keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" }],
+        }),
+      ]),
+    );
   });
 });

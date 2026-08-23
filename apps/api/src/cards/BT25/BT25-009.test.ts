@@ -20,6 +20,9 @@ describe("BT25-009 Bearmon", () => {
   });
 
   it("preserves inherited +1000 DP", () => {
-    expect(BT25_009.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "AllTurns", actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }] });
+    expect(BT25_009.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
+    });
   });
 });

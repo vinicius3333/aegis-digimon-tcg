@@ -66,7 +66,9 @@ describe("BT12-071 AncientWisemon", () => {
     await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
-    await settle(() => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT12-066").length === 1);
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT12-066").length === 1,
+    );
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT12-066")).toHaveLength(1);
   });
 });

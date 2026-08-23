@@ -24,9 +24,9 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
     const targetTop = target.topCard!;
     s.state.memory = 10; // exact play cost
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("destromon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("destromon").instanceId })).toEqual({
+      ok: true,
+    });
 
     await settle(() => p1.trash.some((c) => c.instanceId === targetTop.instanceId));
 

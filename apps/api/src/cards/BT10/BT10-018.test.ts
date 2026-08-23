@@ -37,15 +37,17 @@ describe("BT10-018 Gaossmon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("gaossmon").permanentId]);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("greymon").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("greymon").instanceId,
-    )).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("greymon").instanceId),
+    ).toBe(false);
 
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("greymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
   });
 
   it("may decline the play and never offers cards outside the exact level and trait filter", async () => {

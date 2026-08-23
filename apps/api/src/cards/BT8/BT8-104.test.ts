@@ -15,44 +15,46 @@ describe("BT8-104 Eiseiryūoujin", () => {
         ],
       },
       1: {
-        battleArea: [{
-          card: "BT8-017",
-          as: "target",
-          under: [{ card: "BT1-009", as: "promoted" }],
-        }],
+        battleArea: [
+          {
+            card: "BT8-017",
+            as: "target",
+            under: [{ card: "BT1-009", as: "promoted" }],
+          },
+        ],
       },
     });
     s.state.memory = 10;
     const targetTopId = s.perm("target").topCard.instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
 
     const optional = s.state.pendingDecision!;
     const request = s.decisions.find(({ req }) => req.decisionId === optional.decisionId)!.req;
     expect(request.sourceCardId).toBe("BT8-104");
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.perm("host").stack.some(({ instanceId }) =>
-        instanceId === s.inst("material").instanceId
-      ),
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("material").instanceId),
     );
 
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([
-        targetTopId,
-        s.inst("promoted").instanceId,
-      ]),
+      expect.arrayContaining([targetTopId, s.inst("promoted").instanceId]),
     );
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -67,32 +69,36 @@ describe("BT8-104 Eiseiryūoujin", () => {
         ],
       },
       1: {
-        battleArea: [{
-          card: "BT8-017",
-          as: "target",
-          under: [{ card: "BT1-009", as: "promoted" }],
-        }],
+        battleArea: [
+          {
+            card: "BT8-017",
+            as: "target",
+            under: [{ card: "BT1-009", as: "promoted" }],
+          },
+        ],
       },
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const optional = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("host").stack).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("material").instanceId,
-    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
     expect(s.perm("target").topCard.instanceId).toBe(s.inst("promoted").instanceId);
   });
 
@@ -103,24 +109,27 @@ describe("BT8-104 Eiseiryūoujin", () => {
         hand: [{ card: "BT8-104", as: "option" }],
       },
       1: {
-        battleArea: [{
-          card: "BT8-017",
-          as: "target",
-          under: [{ card: "BT1-009", as: "promoted" }],
-        }],
+        battleArea: [
+          {
+            card: "BT8-017",
+            as: "target",
+            under: [{ card: "BT1-009", as: "promoted" }],
+          },
+        ],
       },
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision !== undefined ||
-      s.state.players[0]!.trash.some(({ instanceId }) =>
-        instanceId === s.inst("option").instanceId
-      ),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision !== undefined ||
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId),
     );
 
     expect(s.state.pendingDecision).toBeUndefined();
@@ -129,18 +138,23 @@ describe("BT8-104 Eiseiryūoujin", () => {
   });
 
   it("resolves the mandatory De-Digivolve and delete clauses from Security", async () => {
-    const s = setupEngine({
-      0: {
-        security: [{ card: "BT8-104", as: "option", faceUp: true }],
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT8-104", as: "option", faceUp: true }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT8-017",
+              as: "target",
+              under: [{ card: "BT1-009", as: "promoted" }],
+            },
+          ],
+        },
       },
-      1: {
-        battleArea: [{
-          card: "BT8-017",
-          as: "target",
-          under: [{ card: "BT1-009", as: "promoted" }],
-        }],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
 

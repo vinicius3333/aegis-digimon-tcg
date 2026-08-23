@@ -120,15 +120,16 @@ function fakeCardInstance(cardId: string, instanceId: string): CardInstance {
  */
 function makeSource(cardId: string, opts: { digivolutionStack?: CardInstance[]; onField?: boolean } = {}): CardSource {
   const stack = opts.digivolutionStack ?? [];
-  const permanent = stack.length || opts.onField
-    ? () => ({
-        permanentId: `PERM#${cardId}`,
-        isSuspended: false,
-        currentDP: 0,
-        stack,
-        topCard: fakeCardInstance(cardId, `PERM#${cardId}-top`),
-      })
-    : () => undefined;
+  const permanent =
+    stack.length || opts.onField
+      ? () => ({
+          permanentId: `PERM#${cardId}`,
+          isSuspended: false,
+          currentDP: 0,
+          stack,
+          topCard: fakeCardInstance(cardId, `PERM#${cardId}-top`),
+        })
+      : () => undefined;
   return {
     instanceId: `INST#${cardId}`,
     cardId,
@@ -242,12 +243,7 @@ function makeContext(opts: {
   return { source, trigger: {}, game, fx, ask };
 }
 
-async function resolveCard(
-  cardId: string,
-  timing: EffectTiming,
-  ctx: EffectContext,
-  index = 0,
-): Promise<void> {
+async function resolveCard(cardId: string, timing: EffectTiming, ctx: EffectContext, index = 0): Promise<void> {
   const module = getEffectModule(cardId);
   expect(module, `${cardId} must self-register on import`).toBeDefined();
   const source = ctx.source as CardSource;
@@ -282,21 +278,33 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
       cardId: "ST4-03",
       timing: EffectTiming.OnPlay,
       revealCount: 1,
-      match: { instanceId: "st4-match", cardId: "GREEN-DIGI", def: { kinds: ["Digimon"] as never, colors: ["Green"] as never } },
+      match: {
+        instanceId: "st4-match",
+        cardId: "GREEN-DIGI",
+        def: { kinds: ["Digimon"] as never, colors: ["Green"] as never },
+      },
       fillerIds: [],
     },
     {
       cardId: "BT12-045",
       timing: EffectTiming.OnPlay,
       revealCount: 1,
-      match: { instanceId: "bt12-match", cardId: "GREEN-DIGI", def: { kinds: ["Digimon"] as never, colors: ["Green"] as never } },
+      match: {
+        instanceId: "bt12-match",
+        cardId: "GREEN-DIGI",
+        def: { kinds: ["Digimon"] as never, colors: ["Green"] as never },
+      },
       fillerIds: [],
     },
     {
       cardId: "BT5-046",
       timing: EffectTiming.OnUseOption, // [Main] -> OnUseOption
       revealCount: 1,
-      match: { instanceId: "bt5046-match", cardId: "GREEN-DIGI", def: { kinds: ["Digimon"] as never, colors: ["Green"] as never } },
+      match: {
+        instanceId: "bt5046-match",
+        cardId: "GREEN-DIGI",
+        def: { kinds: ["Digimon"] as never, colors: ["Green"] as never },
+      },
       fillerIds: [],
       // <Digi-Burst 1>: the RevealAdd carries a trash cost paid from this Digimon's
       // digivolution stack — supply one so the cost is payable and the reveal fires.
@@ -306,7 +314,11 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
       cardId: "BT6-005",
       timing: EffectTiming.OnDestroyedAnyone, // [On Deletion]
       revealCount: 1,
-      match: { instanceId: "bt6-match", cardId: "BLACK-DIGI", def: { kinds: ["Digimon"] as never, colors: ["Black"] as never } },
+      match: {
+        instanceId: "bt6-match",
+        cardId: "BLACK-DIGI",
+        def: { kinds: ["Digimon"] as never, colors: ["Black"] as never },
+      },
       fillerIds: [],
     },
     {
@@ -363,7 +375,7 @@ describe("RevealAdd cluster A3 — single-add ProcessForAll cards (rest -> deck 
 // Multi-add (count:"all") cards: reveal includes >= 2 matching; ALL must be added.
 // ---------------------------------------------------------------------------
 
-describe("RevealAdd cluster A3 — multi-add count:\"all\" cards", () => {
+describe('RevealAdd cluster A3 — multi-add count:"all" cards', () => {
   interface MultiCase {
     cardId: string;
     revealCount: number;
@@ -401,10 +413,7 @@ describe("RevealAdd cluster A3 — multi-add count:\"all\" cards", () => {
       const recorder: Recorder = { calls: [] };
       const m1 = fakeCardInstance(tc.matchCardId, `${tc.cardId}-m1`);
       const m2 = fakeCardInstance(tc.matchCardId, `${tc.cardId}-m2`);
-      const fillers = [
-        fakeCardInstance("FILLER", `${tc.cardId}-f1`),
-        fakeCardInstance("FILLER", `${tc.cardId}-f2`),
-      ];
+      const fillers = [fakeCardInstance("FILLER", `${tc.cardId}-f1`), fakeCardInstance("FILLER", `${tc.cardId}-f2`)];
       const slice = [m1, m2, ...fillers].slice(0, tc.revealCount);
 
       const ctx = makeContext({
@@ -501,10 +510,7 @@ describe("RevealAdd cluster A3 — LM-033 (reveal 3, add 1 Red/Black Digimon to 
   it("reveals 3, adds a Red/Black Digimon to hand, rest -> deck bottom", async () => {
     const recorder: Recorder = { calls: [] };
     const matchCard = fakeCardInstance("RED-DIGI", "lm033-match");
-    const fillers = [
-      fakeCardInstance("GREEN-OPT", "lm033-f1"),
-      fakeCardInstance("GREEN-OPT", "lm033-f2"),
-    ];
+    const fillers = [fakeCardInstance("GREEN-OPT", "lm033-f1"), fakeCardInstance("GREEN-OPT", "lm033-f2")];
 
     const ctx = makeContext({
       cardId: "LM-033",
@@ -572,10 +578,7 @@ describe("RevealAdd cluster A3 — ST21-14 (reveal 3, add 1 ADVENTURE Digimon to
   it("reveals 3, adds an ADVENTURE trait card to hand, rest -> deck bottom", async () => {
     const recorder: Recorder = { calls: [] };
     const matchCard = fakeCardInstance("ADV-CARD", "st21-adv");
-    const fillers = [
-      fakeCardInstance("PLAIN-CARD", "st21-f1"),
-      fakeCardInstance("PLAIN-CARD", "st21-f2"),
-    ];
+    const fillers = [fakeCardInstance("PLAIN-CARD", "st21-f1"), fakeCardInstance("PLAIN-CARD", "st21-f2")];
 
     const ctx = makeContext({
       cardId: "ST21-14",
@@ -777,10 +780,7 @@ describe("RevealAdd cluster A3 — BT16-082 (reveal 3, add 1 Digimon/Tamer, then
   it("reveals 3, adds a Digimon or Tamer to hand, rest -> deck bottom, and runs the optional Hatch", async () => {
     const recorder: Recorder = { calls: [] };
     const match = fakeCardInstance("PICK", "bt16-pick");
-    const fillers = [
-      fakeCardInstance("FILLER", "bt16-f1"),
-      fakeCardInstance("FILLER", "bt16-f2"),
-    ];
+    const fillers = [fakeCardInstance("FILLER", "bt16-f1"), fakeCardInstance("FILLER", "bt16-f2")];
     const installed: SubTriggerInstall[] = [];
     const ctx = makeContext({
       cardId: "BT16-082",

@@ -14,7 +14,6 @@ import { GameEngine, type GameEngineHooks } from "./GameEngine.js";
 // vanilla battler) resolve through the production interpreter + combat path (boot side-effect).
 import "../cards/index.js";
 
-
 let seq = 0;
 
 function instance(cardId: string, seat: Seat, faceUp: boolean): CardInstance {
@@ -107,9 +106,7 @@ async function settle(predicate: () => boolean, maxTicks = 200): Promise<void> {
  * means a mechanic hit an unwired interpreter branch.
  */
 function assertNoLoudGap(s: Setup): void {
-  const gap = s.events.find(
-    (e) => e.kind === "actionRejected" && "reason" in e && /Unsupported effect/.test(e.reason),
-  );
+  const gap = s.events.find((e) => e.kind === "actionRejected" && "reason" in e && /Unsupported effect/.test(e.reason));
   expect(gap && "reason" in gap ? gap.reason : undefined).toBeUndefined();
 }
 
@@ -123,9 +120,7 @@ function ledger(s: Setup): LedgerReader {
 }
 
 function findPermanent(s: Setup, seat: Seat, cardId: string): Permanent {
-  const permanent = (s.state.players[seat] as PlayerState).battleArea.find(
-    (p) => p.topCard?.cardId === cardId,
-  );
+  const permanent = (s.state.players[seat] as PlayerState).battleArea.find((p) => p.topCard?.cardId === cardId);
   expect(permanent, `permanent ${cardId} on seat ${seat}`).toBeDefined();
   return permanent as Permanent;
 }
@@ -149,11 +144,7 @@ describe("A3 GainKeyword granted-to-other — a mid-game-granted keyword changes
 
     // Three face-down security cards so the post-attack strike count (=2) is observable
     // without ending the game (Tamers/Options have no battle interference for the count).
-    p1.security.push(
-      instance("BT1-009", 1, false),
-      instance("BT1-009", 1, false),
-      instance("BT1-009", 1, false),
-    );
+    p1.security.push(instance("BT1-009", 1, false), instance("BT1-009", 1, false), instance("BT1-009", 1, false));
     const securityBefore = p1.security.length;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId })).toEqual({
@@ -199,11 +190,7 @@ describe("A3 GainKeyword granted-to-other — a mid-game-granted keyword changes
     p0.hand.push(source);
     s.state.memory = 10;
 
-    p1.security.push(
-      instance("BT1-009", 1, false),
-      instance("BT1-009", 1, false),
-      instance("BT1-009", 1, false),
-    );
+    p1.security.push(instance("BT1-009", 1, false), instance("BT1-009", 1, false), instance("BT1-009", 1, false));
     const securityBefore = p1.security.length;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId })).toEqual({

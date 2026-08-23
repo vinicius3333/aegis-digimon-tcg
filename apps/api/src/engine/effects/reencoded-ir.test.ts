@@ -116,20 +116,17 @@ const PLAY_COST_CASES: { cardId: string; bound: number; base: Partial<Facts> }[]
 ];
 
 describe("playCostLte — 'play cost N or less' actually bounds the candidate pool", () => {
-  it.each(PLAY_COST_CASES)(
-    "$cardId caps the pool at play cost $bound",
-    ({ cardId, bound, base }) => {
-      assertKeysGone(cardId, ["maxPlayCost", "playCostMax"]);
-      const filter = filterWith(cardId, "playCostLte");
-      expect(filter.playCostLte).toBe(bound);
+  it.each(PLAY_COST_CASES)("$cardId caps the pool at play cost $bound", ({ cardId, bound, base }) => {
+    assertKeysGone(cardId, ["maxPlayCost", "playCostMax"]);
+    const filter = filterWith(cardId, "playCostLte");
+    expect(filter.playCostLte).toBe(bound);
 
-      // Guards against a vacuous test: the at-bound card must genuinely qualify.
-      expect(definitionMatches(filter, facts({ ...base, playCost: bound }))).toBe(true);
-      // REVERT-CONFIRM-RED: with the dead spelling restored this is `true` — the bound is
-      // unread, so an over-cost Digimon is a legal target.
-      expect(definitionMatches(filter, facts({ ...base, playCost: bound + 1 }))).toBe(false);
-    },
-  );
+    // Guards against a vacuous test: the at-bound card must genuinely qualify.
+    expect(definitionMatches(filter, facts({ ...base, playCost: bound }))).toBe(true);
+    // REVERT-CONFIRM-RED: with the dead spelling restored this is `true` — the bound is
+    // unread, so an over-cost Digimon is a legal target.
+    expect(definitionMatches(filter, facts({ ...base, playCost: bound + 1 }))).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -184,18 +181,15 @@ describe("nameOrTrait — name/trait gates actually reject non-matching cards", 
     expect(definitionMatches(filter, facts({ nameEn: "Omnimon", types: ["Dragon"] }))).toBe(false);
   });
 
-  it.each(["BT10-039", "BT17-038"])(
-    "%s uses only an Option with [Plug-In] in its name (nameIncludes)",
-    (cardId) => {
-      assertKeysGone(cardId, ["nameIncludes"]);
-      const filter = filterWith(cardId, "nameOrTrait");
-      const option = { kinds: [CardKind.Option], colors: [CardColor.Yellow] };
-      // The bracket delimiters of the printed "[Plug-In]" must not leak into the token, or
-      // NOTHING would match (a card is never literally named "[Plug-In]").
-      expect(definitionMatches(filter, facts({ ...option, nameEn: "Digi-Plug-In S" }))).toBe(true);
-      expect(definitionMatches(filter, facts({ ...option, nameEn: "Hammer Spark" }))).toBe(false);
-    },
-  );
+  it.each(["BT10-039", "BT17-038"])("%s uses only an Option with [Plug-In] in its name (nameIncludes)", (cardId) => {
+    assertKeysGone(cardId, ["nameIncludes"]);
+    const filter = filterWith(cardId, "nameOrTrait");
+    const option = { kinds: [CardKind.Option], colors: [CardColor.Yellow] };
+    // The bracket delimiters of the printed "[Plug-In]" must not leak into the token, or
+    // NOTHING would match (a card is never literally named "[Plug-In]").
+    expect(definitionMatches(filter, facts({ ...option, nameEn: "Digi-Plug-In S" }))).toBe(true);
+    expect(definitionMatches(filter, facts({ ...option, nameEn: "Hammer Spark" }))).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -288,9 +282,7 @@ function board(cards: BoardCard[], opts?: { selfPermanentId?: string; mySecurity
 
 /** Ids the engine would offer for `filter`, on the given board. */
 function poolFor(filter: Filter, b: ReturnType<typeof board>): string[] {
-  return candidatePermanents(b.ctx as never, { filter, count: 1 } as never, undefined).map(
-    (p) => p.permanentId,
-  );
+  return candidatePermanents(b.ctx as never, { filter, count: 1 } as never, undefined).map((p) => p.permanentId);
 }
 
 describe("isOpponents/isLowestDP -> controller + superlative (BT20-018)", () => {
@@ -512,12 +504,13 @@ describe("hasText:'<Link>' -> hasLinkRequirement (BT22-035)", () => {
  * `filterWith`, which requires every node carrying the key to be identical — `kind` recurs
  * across many unrelated filters in the same card, so it can't be located generically).
  */
-describe("digimon -> kind:[\"Digimon\"] (BT20-019 immuneToOpponentEffects grant)", () => {
+describe('digimon -> kind:["Digimon"] (BT20-019 immuneToOpponentEffects grant)', () => {
   it("grants immunity only to a Digimon, never a Tamer", () => {
     assertKeysGone("BT20-019", ["digimon"]);
     const ir = irOf("BT20-019");
-    const grant = ir.effects.find((e) => e.trigger === "WhenDigivolving")
-      ?.actions[0] as unknown as { target: { filter: Filter } };
+    const grant = ir.effects.find((e) => e.trigger === "WhenDigivolving")?.actions[0] as unknown as {
+      target: { filter: Filter };
+    };
     const filter = grant.target.filter;
     expect(filter.kind).toEqual(["Digimon"]);
 
@@ -528,12 +521,13 @@ describe("digimon -> kind:[\"Digimon\"] (BT20-019 immuneToOpponentEffects grant)
   });
 });
 
-describe("tamer -> kind:[\"Tamer\"] (BT7-036/BT7-047 digivolve-onto-Tamer base gate)", () => {
+describe('tamer -> kind:["Tamer"] (BT7-036/BT7-047 digivolve-onto-Tamer base gate)', () => {
   it.each(["BT7-036", "BT7-047"])("%s only digivolves onto a Tamer, never a Digimon", (cardId) => {
     assertKeysGone(cardId, ["tamer"]);
     const ir = irOf(cardId);
-    const digivolve = ir.effects.find((e) => e.trigger === "Static")
-      ?.actions[0] as unknown as { target: { filter: Filter } };
+    const digivolve = ir.effects.find((e) => e.trigger === "Static")?.actions[0] as unknown as {
+      target: { filter: Filter };
+    };
     const filter = digivolve.target.filter;
     expect(filter.kind).toEqual(["Tamer"]);
 
@@ -544,12 +538,13 @@ describe("tamer -> kind:[\"Tamer\"] (BT7-036/BT7-047 digivolve-onto-Tamer base g
   });
 });
 
-describe("isDigiEgg:false -> kind:[\"Digimon\",\"Tamer\",\"Option\"] (BT23-017 non-Digi-Egg Return)", () => {
+describe('isDigiEgg:false -> kind:["Digimon","Tamer","Option"] (BT23-017 non-Digi-Egg Return)', () => {
   it("returns a non-Digi-Egg [CS] card, never a Digi-Egg [CS] card", () => {
     assertKeysGone("BT23-017", ["isDigiEgg"]);
     const ir = irOf("BT23-017");
-    const returnAction = ir.effects.find((e) => e.trigger === "OnPlay")
-      ?.actions[0] as unknown as { target: { filter: Filter } };
+    const returnAction = ir.effects.find((e) => e.trigger === "OnPlay")?.actions[0] as unknown as {
+      target: { filter: Filter };
+    };
     const filter = returnAction.target.filter;
     expect(filter.kind).toEqual(["Digimon", "Tamer", "Option"]);
 

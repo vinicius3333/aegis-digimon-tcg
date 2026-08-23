@@ -10,7 +10,12 @@ describe("BT20-006 DemiMeramon", () => {
       to: "hand",
       target: {
         count: 1,
-        filter: { zone: "trash", controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }] },
+        filter: {
+          zone: "trash",
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }],
+        },
       },
     });
   });

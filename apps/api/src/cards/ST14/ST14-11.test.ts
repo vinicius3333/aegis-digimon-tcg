@@ -30,10 +30,17 @@ describe("ST14-11 Ai & Mako", () => {
   });
 
   it("cannot activate with an empty hand", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "ST14-11", as: "tamer" },
-      { card: "BT12-085", as: "purple" },
-    ] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST14-11", as: "tamer" },
+            { card: "BT12-085", as: "purple" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
       subjectPermanentId: s.perm("purple").permanentId,
@@ -44,10 +51,15 @@ describe("ST14-11 Ai & Mako", () => {
   });
 
   it("reveals four on play and adds one Evil Digimon", async () => {
-    const s = setupEngine({ 0: {
-      hand: [{ card: "ST14-11", as: "tamer" }],
-      deck: ["ST14-02", "BT1-009", "BT1-010", "BT1-011"],
-    } }, { autoSelectCards: true, autoOrderCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST14-11", as: "tamer" }],
+          deck: ["ST14-02", "BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));

@@ -18,7 +18,15 @@ import "./tournaments.css";
 
 const CATALOG_POLL_MS = 15_000;
 
-export function TournamentsScreen({ decks, view, onViewChange }: { decks: readonly DeckListing[]; view?: TournamentRoute; onViewChange?: (view: TournamentRoute) => void }) {
+export function TournamentsScreen({
+  decks,
+  view,
+  onViewChange,
+}: {
+  decks: readonly DeckListing[];
+  view?: TournamentRoute;
+  onViewChange?: (view: TournamentRoute) => void;
+}) {
   const { t } = useTranslation();
   const [localView, setLocalView] = useState<TournamentRoute>({ kind: "catalog" });
   const [account, setAccount] = useState<{ id: string; displayName: string; isAdmin: boolean } | null>();
@@ -27,10 +35,17 @@ export function TournamentsScreen({ decks, view, onViewChange }: { decks: readon
 
   useEffect(() => {
     let cancelled = false;
-    void accountApi.me()
-      .then((value) => { if (!cancelled) setAccount(value && { id: value.id, displayName: value.displayName, isAdmin: value.isAdmin }); })
-      .catch(() => { if (!cancelled) setAccount(null); });
-    return () => { cancelled = true; };
+    void accountApi
+      .me()
+      .then((value) => {
+        if (!cancelled) setAccount(value && { id: value.id, displayName: value.displayName, isAdmin: value.isAdmin });
+      })
+      .catch(() => {
+        if (!cancelled) setAccount(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -41,49 +56,89 @@ export function TournamentsScreen({ decks, view, onViewChange }: { decks: readon
       </header>
 
       {activeView.kind === "catalog" ? (
-        <Catalog canCreate={account?.isAdmin === true} onOpen={(id) => setView({ kind: "detail", id })} onCreate={() => setView({ kind: "create" })} />
+        <Catalog
+          canCreate={account?.isAdmin === true}
+          onOpen={(id) => setView({ kind: "detail", id })}
+          onCreate={() => setView({ kind: "create" })}
+        />
       ) : null}
 
       {activeView.kind === "create" && account?.isAdmin ? (
-        <CreateTournamentForm onCreated={(tournament) => setView({ kind: "detail", id: tournament.id })} onCancel={() => setView({ kind: "catalog" })} />
+        <CreateTournamentForm
+          onCreated={(tournament) => setView({ kind: "detail", id: tournament.id })}
+          onCancel={() => setView({ kind: "catalog" })}
+        />
       ) : null}
 
       {activeView.kind === "create" && account !== undefined && !account?.isAdmin ? (
-        <Alert tone="warning" title={t("tournaments.create.adminOnly")}>{t("tournaments.create.adminOnlyDescription")}</Alert>
+        <Alert tone="warning" title={t("tournaments.create.adminOnly")}>
+          {t("tournaments.create.adminOnlyDescription")}
+        </Alert>
       ) : null}
 
       {activeView.kind === "detail" ? (
-        <TournamentDetail id={activeView.id} accountId={account?.id} accountDisplayName={account?.displayName} accountIsAdmin={account?.isAdmin === true} decks={decks} onBack={() => setView({ kind: "catalog" })} />
+        <TournamentDetail
+          id={activeView.id}
+          accountId={account?.id}
+          accountDisplayName={account?.displayName}
+          accountIsAdmin={account?.isAdmin === true}
+          decks={decks}
+          onBack={() => setView({ kind: "catalog" })}
+        />
       ) : null}
     </div>
   );
 }
 
-function Catalog({ canCreate, onOpen, onCreate }: { canCreate: boolean; onOpen: (id: string) => void; onCreate: () => void }) {
+function Catalog({
+  canCreate,
+  onOpen,
+  onCreate,
+}: {
+  canCreate: boolean;
+  onOpen: (id: string) => void;
+  onCreate: () => void;
+}) {
   const { t } = useTranslation();
   const [tournaments, setTournaments] = useState<TournamentListing[]>();
   const [error, setError] = useState<ApiError>();
 
   const load = useCallback((signal: AbortSignal) => tournamentApi.list(signal), []);
   const apply = useCallback((result: Awaited<ReturnType<typeof tournamentApi.list>>) => {
-    if (result.ok) { setTournaments(result.value); setError(undefined); }
-    else setError(result.error);
+    if (result.ok) {
+      setTournaments(result.value);
+      setError(undefined);
+    } else setError(result.error);
   }, []);
   usePolledRequest(load, apply, CATALOG_POLL_MS);
 
   return (
     <section aria-label={t("tournaments.catalog.title")}>
       <div className="tournaments-page__actions">
-        {canCreate && tournaments?.length !== 0 ? <Button onClick={onCreate}>{t("tournaments.catalog.create")}</Button> : null}
+        {canCreate && tournaments?.length !== 0 ? (
+          <Button onClick={onCreate}>{t("tournaments.catalog.create")}</Button>
+        ) : null}
       </div>
-      {error ? <Alert tone="danger" title={t("tournaments.error.load")}>{reasonKey(error.code) ? t(reasonKey(error.code)!) : t("tournaments.reason.unknown", { code: error.code })}</Alert> : null}
+      {error ? (
+        <Alert tone="danger" title={t("tournaments.error.load")}>
+          {reasonKey(error.code) ? t(reasonKey(error.code)!) : t("tournaments.reason.unknown", { code: error.code })}
+        </Alert>
+      ) : null}
       {tournaments === undefined && !error ? <p role="status">{t("common.loading")}</p> : null}
       {tournaments?.length === 0 ? (
         <div className="tournaments-empty">
-          <span className="tournaments-empty__icon"><Icons.Calendar size={26} /></span>
+          <span className="tournaments-empty__icon">
+            <Icons.Calendar size={26} />
+          </span>
           <strong className="tournaments-empty__title">{t("tournaments.catalog.emptyTitle")}</strong>
-          <p className="tournaments-empty__copy">{t(canCreate ? "tournaments.catalog.empty" : "tournaments.catalog.emptyReadOnly")}</p>
-          {canCreate ? <Button icon={Icons.Plus} onClick={onCreate}>{t("tournaments.catalog.create")}</Button> : null}
+          <p className="tournaments-empty__copy">
+            {t(canCreate ? "tournaments.catalog.empty" : "tournaments.catalog.emptyReadOnly")}
+          </p>
+          {canCreate ? (
+            <Button icon={Icons.Plus} onClick={onCreate}>
+              {t("tournaments.catalog.create")}
+            </Button>
+          ) : null}
         </div>
       ) : null}
       <ul className="tournaments-catalog">
@@ -96,7 +151,9 @@ function Catalog({ canCreate, onOpen, onCreate }: { canCreate: boolean; onOpen: 
               </div>
               <p className="tournaments-card__meta">
                 <span>{new Date(tournament.startsAt).toLocaleString()}</span>
-                <span>{t("tournaments.slots", { registered: tournament.registeredCount, max: tournament.maxPlayers })}</span>
+                <span>
+                  {t("tournaments.slots", { registered: tournament.registeredCount, max: tournament.maxPlayers })}
+                </span>
               </p>
               <div className="tournaments-badges">
                 <Badge>{t(structureKey(tournament.structure))}</Badge>
@@ -109,7 +166,9 @@ function Catalog({ canCreate, onOpen, onCreate }: { canCreate: boolean; onOpen: 
                     : t(banlistModeKey(tournament.banlistPolicy))}
                 </Badge>
               </div>
-              <Button size="sm" variant="secondary" onClick={() => onOpen(tournament.id)}>{t("tournaments.catalog.open")}</Button>
+              <Button size="sm" variant="secondary" onClick={() => onOpen(tournament.id)}>
+                {t("tournaments.catalog.open")}
+              </Button>
             </Panel>
           </li>
         ))}

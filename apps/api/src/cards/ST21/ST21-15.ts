@@ -6,109 +6,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gennai's House"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have no face-up [Gennai's House] security cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Gennai's House"],
+                  match: "name",
+                },
               ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 3
-              }
             },
-            "count": "all"
+            raw: "you have no face-up [Gennai's House] security cards",
           },
-          "amount": 3000,
-          "duration": "permanent"
-        }
+        },
       ],
-      "isSecurity": true
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": false
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 3,
+              },
+            },
+            count: "all",
+          },
+          amount: 3000,
+          duration: "permanent",
+        },
+      ],
+      isSecurity: true,
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: false,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "faceUp": true,
-          "toTop": false
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          faceUp: true,
+          toTop: false,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST21-15", compiled);

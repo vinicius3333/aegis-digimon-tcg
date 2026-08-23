@@ -12,8 +12,18 @@ describe("P-159 Rook Device", () => {
       sourceFilter: { isSelfRef: true },
       actions: [
         { kind: "GainKeyword", keyword: { keyword: "Reboot" }, duration: "untilOpponentTurnEnd" },
-        { kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd", target: expect.objectContaining({ sameTarget: true }) },
-        { kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd", target: expect.objectContaining({ sameTarget: true }) },
+        {
+          kind: "GainKeyword",
+          keyword: { keyword: "Blocker" },
+          duration: "untilOpponentTurnEnd",
+          target: expect.objectContaining({ sameTarget: true }),
+        },
+        {
+          kind: "ModifyDP",
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
+          target: expect.objectContaining({ sameTarget: true }),
+        },
       ],
     });
     const main = compiled.effects.find((effect) => effect.trigger === "Main")!;
@@ -23,9 +33,18 @@ describe("P-159 Rook Device", () => {
 
   it("encodes color waiver and Security De-Digivolve 2 with hand return", () => {
     const compiled = runtimeCompiledCard("P-159")!;
-    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHaveNone" } }] });
-    expect(compiled.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [expect.objectContaining({ kind: "DeDigivolve", amount: 2 }), { kind: "AddToHandSelf" }] }),
-    ]));
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHaveNone" } }],
+    });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: [expect.objectContaining({ kind: "DeDigivolve", amount: 2 }), { kind: "AddToHandSelf" }],
+        }),
+      ]),
+    );
   });
 });

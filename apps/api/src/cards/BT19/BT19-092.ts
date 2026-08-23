@@ -12,19 +12,17 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
+              },
             },
-            "count": 1
+            count: 1,
           },
           to: "deckBottom",
           bindResultAs: "upgraded",

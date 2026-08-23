@@ -26,7 +26,9 @@ describe("BT25-020 Marsmon", () => {
       fx: { subscribeSubTrigger },
     } as never;
     return effects[1]!.resolve(ctx).then(() => {
-      expect(subscribeSubTrigger).toHaveBeenCalledWith(expect.objectContaining({ event: "whenBattleWon", once: false }));
+      expect(subscribeSubTrigger).toHaveBeenCalledWith(
+        expect.objectContaining({ event: "whenBattleWon", once: false }),
+      );
     });
   });
 });

@@ -6,60 +6,56 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By returning 1 Digimon card from your opponent's trash to the top of the deck"
+            raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By returning 1 Digimon card from your opponent's trash to the top of the deck"
+            raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    }
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-061", compiled);

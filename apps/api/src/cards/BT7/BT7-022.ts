@@ -6,82 +6,76 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "kind": [
-                "Tamer"
-              ],
-              "color": "blue"
+          kind: "Digivolve",
+          target: {
+            filter: {
+              kind: ["Tamer"],
+              color: "blue",
             },
-            "count": 1,
-            "upTo": false,
-            "isSelf": false
+            count: 1,
+            upTo: false,
+            isSelf: false,
           },
-          "from": "hand",
-          "costSuffix": "2",
-          "asIf": {
-            "level": 3,
-            "color": "blue"
-          }
-        }
-      ]
+          from: "hand",
+          costSuffix: "2",
+          asIf: {
+            level: 3,
+            color: "blue",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Jamming",
-            "raw": "＜Jamming＞"
+          keyword: {
+            keyword: "Jamming",
+            raw: "＜Jamming＞",
           },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          duration: "forTheTurn",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid"
-                  ],
-                  "match": "trait"
+                  tokens: ["Hybrid"],
+                  match: "trait",
                 },
                 {
-                  "tokens": [
-                    "Koji Minamoto"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Koji Minamoto"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a card with [Hybrid] in its traits or [Koji Minamoto] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    }
+            raw: "a card with [Hybrid] in its traits or [Koji Minamoto] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 2,
-      "isAlternate": true,
-      "baseIsTamer": true
-    }
-  ]
+      cost: 2,
+      isAlternate: true,
+      baseIsTamer: true,
+    },
+  ],
 };
 
 registerIrCard("BT7-022", compiled);

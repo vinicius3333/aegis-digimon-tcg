@@ -23,9 +23,12 @@ describe("BT12-051 handwritten module", () => {
 });
 
 it("plays one named Tamer from hand without paying its cost", async () => {
-  const s = setupEngine({
-    0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-091", as: "airu" }] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-091", as: "airu" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("yasha"));
   await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-091"));
@@ -33,9 +36,12 @@ it("plays one named Tamer from hand without paying its cost", async () => {
 });
 
 it("plays the errata-corrected Ryoma Mogami during When Digivolving", async () => {
-  const s = setupEngine({
-    0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-097", as: "ryoma" }] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-097", as: "ryoma" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("yasha"));
   await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-097"));
@@ -43,23 +49,34 @@ it("plays the errata-corrected Ryoma Mogami during When Digivolving", async () =
 });
 
 it("does not play an unrelated Tamer from hand", async () => {
-  const s = setupEngine({
-    0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-094", as: "unrelated" }] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-094", as: "unrelated" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("yasha"));
   await settle(() => s.state.pendingDecision === undefined);
   expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("unrelated").instanceId)).toBe(true);
-  expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("unrelated").instanceId)).toBe(false);
+  expect(
+    s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("unrelated").instanceId),
+  ).toBe(false);
 });
 
 it("saves a deleted Save Digimon under one of its Tamers", async () => {
-  const s = setupEngine({
-    0: {
-      battleArea: [{ card: "BT12-051", as: "yasha" }, { card: "BT12-091", as: "airu" }],
-      trash: [{ card: "BT12-008", as: "saved" }],
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-051", as: "yasha" },
+          { card: "BT12-091", as: "airu" },
+        ],
+        trash: [{ card: "BT12-008", as: "saved" }],
+      },
     },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).verb.deletePermanent([s.perm("yasha").permanentId], "byEffect");
   await settle(() => s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-008"));

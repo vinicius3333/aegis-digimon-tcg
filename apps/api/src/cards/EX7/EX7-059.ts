@@ -3,155 +3,129 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Option"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Option"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "kind": [
-              "Option"
-            ],
-            "nameOrTrait": [
+          kind: "UseOptionWithoutCost",
+          filter: {
+            kind: ["Option"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Three Musketeers"
-                ],
-                "match": "trait"
-              }
-            ],
-            "controller": "mine"
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Option"
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand"
-        },
-        {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "kind": [
-              "Option"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Three Musketeers"
-                ],
-                "match": "trait"
-              }
-            ],
-            "controller": "mine"
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "kind": [
-              "Option"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Three Musketeers"
-                ],
-                "match": "trait"
-              }
-            ],
-            "controller": "mine"
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "digivolutionCards",
-                "kind": [
-                  "Option"
-                ]
+                tokens: ["Three Musketeers"],
+                match: "trait",
               },
-              "count": 1
-            },
-            "raw": "By trashing 1 Option card from this Digimon's digivolution cards"
+            ],
+            controller: "mine",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 5,
-      "texts": [
-        "Three Musketeers"
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Option"],
+            },
+            count: 1,
+          },
+          to: "hand",
+        },
+        {
+          kind: "UseOptionWithoutCost",
+          filter: {
+            kind: ["Option"],
+            nameOrTrait: [
+              {
+                tokens: ["Three Musketeers"],
+                match: "trait",
+              },
+            ],
+            controller: "mine",
+          },
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "UseOptionWithoutCost",
+          filter: {
+            kind: ["Option"],
+            nameOrTrait: [
+              {
+                tokens: ["Three Musketeers"],
+                match: "trait",
+              },
+            ],
+            controller: "mine",
+          },
+          payCost: false,
+          from: ["hand"],
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                kind: ["Option"],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 Option card from this Digimon's digivolution cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      texts: ["Three Musketeers"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX7-059", compiled);

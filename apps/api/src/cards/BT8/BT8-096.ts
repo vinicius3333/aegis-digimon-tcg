@@ -3,49 +3,49 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const highCap: CompiledCard["effects"][number]["condition"] = {
-  "kind": "anyOf",
-  "conditions": [
-    { "kind": "youHave", "filter": { "zone": "battleArea", "controllerDefault": "mine", "kind": ["Digimon"], "multicolor": true } },
-    { "kind": "youHave", "filter": { "zone": "digivolutionCards", "controllerDefault": "mine", "multicolor": true } }
-  ]
+  kind: "anyOf",
+  conditions: [
+    { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], multicolor: true } },
+    { kind: "youHave", filter: { zone: "digivolutionCards", controllerDefault: "mine", multicolor: true } },
+  ],
 };
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 7000 } }, "count": 1 },
-          "condition": highCap
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 7000 } }, count: 1 },
+          condition: highCap,
         },
         {
-          "kind": "Delete",
-          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 4000 } }, "count": 1 },
-          "condition": { "kind": "not", "condition": highCap }
-        }
-      ]
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 },
+          condition: { kind: "not", condition: highCap },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Delete",
-          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 7000 } }, "count": 1 },
-          "condition": highCap
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 7000 } }, count: 1 },
+          condition: highCap,
         },
         {
-          "kind": "Delete",
-          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 4000 } }, "count": 1 },
-          "condition": { "kind": "not", "condition": highCap }
-        }
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 },
+          condition: { kind: "not", condition: highCap },
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-096", compiled);

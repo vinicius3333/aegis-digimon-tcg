@@ -15,117 +15,104 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The [Once Per Turn] frequency is correctly on the AllTurns CardEffect (not the
 //   SubTrigger action) — the CardEffect.frequency gate limits the watcher to firing once.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
         },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "frequency": "OncePerTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "raw": "When this Digimon becomes suspended",
-          "sourceFilter": {
-            "isSelfRef": true
+            count: 1,
           },
-          "actions": [
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          raw: "When this Digimon becomes suspended",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 4000
-                  }
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon", "Tamer"],
+                  dp: {
+                    op: "lte",
+                    value: 4000,
+                  },
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    }
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-109", compiled);

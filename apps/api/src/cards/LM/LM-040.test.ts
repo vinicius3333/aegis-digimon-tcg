@@ -6,15 +6,18 @@ import "./LM-040.js";
 
 describe("LM-040 Vikemon", () => {
   it("trashes any four opposing digivolution cards across the opponent's Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "LM-040", as: "vikemon" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-041", as: "first", under: ["BT1-009", "BT1-009"] },
-          { card: "BT1-041", as: "second", under: ["BT1-009", "BT1-009"] },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "LM-040", as: "vikemon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-041", as: "first", under: ["BT1-009", "BT1-009"] },
+            { card: "BT1-041", as: "second", under: ["BT1-009", "BT1-009"] },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("vikemon"));
     await settle(() => s.state.players[1]!.trash.length === 4);

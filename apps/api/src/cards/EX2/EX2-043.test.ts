@@ -25,7 +25,14 @@ function source(): CardSource {
     cardId: "EX2-043",
     ownerSeat: 0 as Seat,
     definition: digimonDefinition,
-    permanent: () => ({ permanentId: "gulfmon", topCard: { instanceId: "gulfmon-card", cardId: "EX2-043", ownerSeat: 0 }, stack: [], linked: [], isSuspended: false } as never),
+    permanent: () =>
+      ({
+        permanentId: "gulfmon",
+        topCard: { instanceId: "gulfmon-card", cardId: "EX2-043", ownerSeat: 0 },
+        stack: [],
+        linked: [],
+        isSuspended: false,
+      }) as never,
     isOnBattleArea: () => true,
     isOwnersTurn: () => true,
     hasColor: () => false,
@@ -35,10 +42,22 @@ function source(): CardSource {
 function context(subscription: { value?: SubTriggerInstall }, unsuspended: string[]): EffectContext {
   const cardSource = source();
   const players = [
-    { hand: [], trash: [], deck: [], security: [], battleArea: [
-      cardSource.permanent()!,
-      { permanentId: "target", topCard: { instanceId: "target-card", cardId: "EX2-043", ownerSeat: 0 }, stack: [], linked: [], isSuspended: true },
-    ] },
+    {
+      hand: [],
+      trash: [],
+      deck: [],
+      security: [],
+      battleArea: [
+        cardSource.permanent()!,
+        {
+          permanentId: "target",
+          topCard: { instanceId: "target-card", cardId: "EX2-043", ownerSeat: 0 },
+          stack: [],
+          linked: [],
+          isSuspended: true,
+        },
+      ],
+    },
     { hand: [], trash: [], deck: [], security: [], battleArea: [] },
   ];
   return {
@@ -59,8 +78,13 @@ function context(subscription: { value?: SubTriggerInstall }, unsuspended: strin
       chooseOption: async () => 0,
     },
     fx: {
-      subscribeSubTrigger: (value: SubTriggerInstall) => { subscription.value = value; return 1; },
-      unsuspend: (ids: string[]) => { unsuspended.push(...ids); },
+      subscribeSubTrigger: (value: SubTriggerInstall) => {
+        subscription.value = value;
+        return 1;
+      },
+      unsuspend: (ids: string[]) => {
+        unsuspended.push(...ids);
+      },
     } as unknown as Primitives,
   };
 }
@@ -75,10 +99,27 @@ describe("EX2-043 Gulfmon", () => {
     const module = getEffectModule("EX2-043")!;
     const subscription: { value?: SubTriggerInstall } = {};
     const ctx = context(subscription, []);
-    ctx.game.player(0).hand.push(...Array.from({ length: 7 }, (_, i) => ({ instanceId: `p0-${i}`, cardId: "EX2-043", ownerSeat: 0 as Seat }) as never));
-    ctx.game.player(1).hand.push(...Array.from({ length: 6 }, (_, i) => ({ instanceId: `p1-${i}`, cardId: "EX2-043", ownerSeat: 1 as Seat }) as never));
+    ctx.game
+      .player(0)
+      .hand.push(
+        ...Array.from(
+          { length: 7 },
+          (_, i) => ({ instanceId: `p0-${i}`, cardId: "EX2-043", ownerSeat: 0 as Seat }) as never,
+        ),
+      );
+    ctx.game
+      .player(1)
+      .hand.push(
+        ...Array.from(
+          { length: 6 },
+          (_, i) => ({ instanceId: `p1-${i}`, cardId: "EX2-043", ownerSeat: 1 as Seat }) as never,
+        ),
+      );
     const trashed: string[] = [];
-    ctx.fx.trash = async (ids) => { trashed.push(...ids); return []; };
+    ctx.fx.trash = async (ids) => {
+      trashed.push(...ids);
+      return [];
+    };
 
     await module.effectsForTiming(EffectTiming.WhenDigivolving, ctx.source)[0]!.resolve(ctx);
 

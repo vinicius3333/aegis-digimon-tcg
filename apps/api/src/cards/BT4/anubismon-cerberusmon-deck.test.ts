@@ -61,12 +61,13 @@ describe("BT4 Anubismon and Cerberusmon historical deck gauntlet", () => {
         instanceId: s.inst("werewolfMode").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === firstCerberusmonId) &&
-      s.state.memory === 7 &&
-      s.state.players[0]!.deck.length === 1 &&
-      s.state.players[0]!.hand.length === 2 &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === firstCerberusmonId) &&
+        s.state.memory === 7 &&
+        s.state.players[0]!.deck.length === 1 &&
+        s.state.players[0]!.hand.length === 2 &&
+        s.state.pendingDecision === undefined,
     );
     const werewolfMode = s.state.players[0]!.battleArea.find(
       ({ topCard }) => topCard?.instanceId === s.inst("werewolfMode").instanceId,

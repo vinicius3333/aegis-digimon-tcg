@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  ALL_FAMOUS_DECKS,
-  CardKind,
-  getCardDefinition,
-  getCompiledCard,
-} from "@aegis/shared";
+import { ALL_FAMOUS_DECKS, CardKind, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { getEffectModule } from "./effects/registry.js";
 import "../cards/index.js";
 
@@ -20,8 +15,7 @@ import "../cards/index.js";
 
 type FamousDeck = (typeof ALL_FAMOUS_DECKS)[number];
 
-const deckCards = (deck: FamousDeck): string[] =>
-  [...new Set([...deck.decklist.mainDeck, ...deck.decklist.eggDeck])];
+const deckCards = (deck: FamousDeck): string[] => [...new Set([...deck.decklist.mainDeck, ...deck.decklist.eggDeck])];
 
 const allDeckCardIds = new Set(ALL_FAMOUS_DECKS.flatMap(deckCards));
 const cardDecks = new Map<string, string[]>();
@@ -35,18 +29,22 @@ for (const deck of ALL_FAMOUS_DECKS) {
 
 function isPlayableEffectCard(cardId: string): boolean {
   const definition = getCardDefinition(cardId);
-  return definition !== undefined &&
+  return (
+    definition !== undefined &&
     definition.kinds.some((kind) => kind === CardKind.Digimon || kind === CardKind.Tamer || kind === CardKind.Option) &&
-    (definition.effectText !== undefined || definition.inheritedEffectText !== undefined);
+    (definition.effectText !== undefined || definition.inheritedEffectText !== undefined)
+  );
 }
 
 function declaredTriggerCount(cardId: string): number {
   const compiled = getCompiledCard(cardId);
   if (compiled === undefined) return 0;
-  return new Set(compiled.effects.flatMap((effect) => {
-    const trigger = (effect as typeof effect & { trigger?: unknown }).trigger;
-    return Array.isArray(trigger) ? trigger.map(String) : [String(trigger)];
-  })).size;
+  return new Set(
+    compiled.effects.flatMap((effect) => {
+      const trigger = (effect as typeof effect & { trigger?: unknown }).trigger;
+      return Array.isArray(trigger) ? trigger.map(String) : [String(trigger)];
+    }),
+  ).size;
 }
 
 describe("deck truth source — every catalogued deck is traceable", () => {
@@ -79,7 +77,9 @@ describe("deck truth source — every catalogued deck is traceable", () => {
       expect(ids.length).toBeGreaterThan(0);
 
       const unknown = ids.filter((cardId) => getCardDefinition(cardId) === undefined);
-      const unregistered = ids.filter((cardId) => isPlayableEffectCard(cardId) && getEffectModule(cardId) === undefined);
+      const unregistered = ids.filter(
+        (cardId) => isPlayableEffectCard(cardId) && getEffectModule(cardId) === undefined,
+      );
       expect(unknown, `${deck.deckId} unknown cards: ${unknown.join(", ")}`).toEqual([]);
       expect(unregistered, `${deck.deckId} unregistered cards: ${unregistered.join(", ")}`).toEqual([]);
 

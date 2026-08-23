@@ -64,7 +64,11 @@ function loadAllowlist() {
 
 test(
   "importer --validate: BT26/EX12/promo reconstructions match cards.json except documented deviations",
-  { skip: !snapshotAvailable && `vendored source snapshot missing at ${SNAPSHOT} — cannot verify the importer without network access; see the fixture-refresh note in this file` },
+  {
+    skip:
+      !snapshotAvailable &&
+      `vendored source snapshot missing at ${SNAPSHOT} — cannot verify the importer without network access; see the fixture-refresh note in this file`,
+  },
   () => {
     const allowlist = loadAllowlist();
     const used = new Set();
@@ -72,8 +76,14 @@ test(
 
     for (const batch of BATCHES) {
       const result = runValidate(batch);
-      assert.ok(result.sourceCount > 0, `${batch.label}: source-side selection was empty — check the snapshot still contains this batch`);
-      assert.ok(result.oursCount > 0, `${batch.label}: no matching committed cards found — check cards.json still has this batch`);
+      assert.ok(
+        result.sourceCount > 0,
+        `${batch.label}: source-side selection was empty — check the snapshot still contains this batch`,
+      );
+      assert.ok(
+        result.oursCount > 0,
+        `${batch.label}: no matching committed cards found — check cards.json still has this batch`,
+      );
 
       for (const diff of result.diffs) {
         for (const { field, ours, conv } of diff.fields) {

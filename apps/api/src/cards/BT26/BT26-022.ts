@@ -13,13 +13,15 @@ const eligibleIliad = {
   kind: ["Digimon"],
   colors: ["Blue"],
   nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
-  orFilters: [{
-    controllerDefault: "mine",
-    zone: "hand",
-    kind: ["Digimon"],
-    colors: ["Red"],
-    nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
-  }],
+  orFilters: [
+    {
+      controllerDefault: "mine",
+      zone: "hand",
+      kind: ["Digimon"],
+      colors: ["Red"],
+      nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+    },
+  ],
 };
 
 export const compiled: CompiledCard = {

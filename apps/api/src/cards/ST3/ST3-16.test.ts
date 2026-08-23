@@ -6,13 +6,27 @@ import "./ST3-16.js";
 
 describe("ST3-16 Seven Heavens", () => {
   it("gives an opposing Digimon -10000 DP from Main and Security", async () => {
-    const main = setupEngine({ 0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-16", as: "option" }] }, 1: { battleArea: [{ card: "ST3-10", as: "target" }] } }, { autoSelectCards: true });
+    const main = setupEngine(
+      {
+        0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-16", as: "option" }] },
+        1: { battleArea: [{ card: "ST3-10", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     main.state.memory = 8;
-    expect(main.engine.applyIntent(0, { type: "playCard", instanceId: main.inst("option").instanceId })).toEqual({ ok: true });
+    expect(main.engine.applyIntent(0, { type: "playCard", instanceId: main.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => main.perm("target").currentDP === 2000);
     expect(main.perm("target").currentDP).toBe(2000);
 
-    const security = setupEngine({ 0: { security: [{ card: "ST3-16", as: "option", faceUp: true }] }, 1: { battleArea: [{ card: "ST3-10", as: "target" }] } }, { autoSelectCards: true });
+    const security = setupEngine(
+      {
+        0: { security: [{ card: "ST3-16", as: "option", faceUp: true }] },
+        1: { battleArea: [{ card: "ST3-10", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     await advance(security.engine).fireForInstance(EffectTiming.SecuritySkill, security.inst("option"));
     expect(security.perm("target").currentDP).toBe(2000);
   });

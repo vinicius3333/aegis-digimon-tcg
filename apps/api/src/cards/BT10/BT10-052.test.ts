@@ -7,7 +7,10 @@ describe("BT10-052 Cherrymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-048", as: "base" }, { card: "BT10-046", as: "cost" }],
+          battleArea: [
+            { card: "BT10-048", as: "base" },
+            { card: "BT10-046", as: "cost" },
+          ],
           hand: [{ card: "BT10-052", as: "evolving" }],
         },
       },
@@ -15,7 +18,13 @@ describe("BT10-052 Cherrymon", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 2);
     expect(s.perm("base").topCard.cardId).toBe("BT10-052");
     expect([s.perm("base"), s.perm("cost")].some((permanent) => permanent.isSuspended)).toBe(true);
@@ -26,7 +35,10 @@ describe("BT10-052 Cherrymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-048", as: "base" }, { card: "BT10-046", as: "cost" }],
+          battleArea: [
+            { card: "BT10-048", as: "base" },
+            { card: "BT10-046", as: "cost" },
+          ],
           hand: [{ card: "BT10-052", as: "evolving" }],
         },
       },
@@ -35,11 +47,13 @@ describe("BT10-052 Cherrymon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 0);
 
     expect(s.state.memory).toBe(0);
@@ -60,11 +74,13 @@ describe("BT10-052 Cherrymon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 0);
 
     expect(s.state.memory).toBe(0);
@@ -72,29 +88,34 @@ describe("BT10-052 Cherrymon", () => {
 
   it("may redirect an opponent's player attack to itself while suspended", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT10-052", as: "cherrymon", suspended: true }],
-        security: ["BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-052", as: "cherrymon", suspended: true }],
+          security: ["BT1-001"],
+        },
+        // Keep the attacker neutral: this case isolates Cherrymon's redirect window
+        // from unrelated [When Attacking] effects registered by the full-set gate.
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
       },
-      // Keep the attacker neutral: this case isolates Cherrymon's redirect window
-      // from unrelated [When Attacking] effects registered by the full-set gate.
-      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
-    }, {
-      autoAcceptOptional: true,
-      autoSelectCards: true,
-      autoOrderTriggers: true,
-      preferInstanceIds: preferred,
-    });
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+        preferInstanceIds: preferred,
+      },
+    );
     preferred.push(s.perm("cherrymon").permanentId);
     s.state.turnSeat = 1;
     const cherrymonId = s.perm("cherrymon").permanentId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === cherrymonId));
 
     expect(s.state.players[0]!.security).toHaveLength(1);

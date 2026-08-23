@@ -4,18 +4,46 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const bounce = {
   kind: "Return",
-  target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", relativeToSelectionRef: "returned" } }, count: 1 },
+  target: {
+    filter: {
+      controller: "opponent",
+      kind: ["Digimon"],
+      levelComparison: { op: "lte", relativeToSelectionRef: "returned" },
+    },
+    count: 1,
+  },
   to: "hand",
-  cost: { kind: "return", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1, orFilters: [{ controllerDefault: "mine", kind: ["Digimon"] }] }, raw: "By returning 1 of your opponent's level 3 Digimon or 1 of your Digimon to the hand" },
-  optional: true, abortOnDecline: true,
+  cost: {
+    kind: "return",
+    target: {
+      filter: { controller: "opponent", kind: ["Digimon"], levels: [3] },
+      count: 1,
+      orFilters: [{ controllerDefault: "mine", kind: ["Digimon"] }],
+    },
+    raw: "By returning 1 of your opponent's level 3 Digimon or 1 of your Digimon to the hand",
+  },
+  optional: true,
+  abortOnDecline: true,
 };
 
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [bounce] },
     { trigger: "WhenDigivolving", actions: [bounce] },
-    { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDigimonReturnsToHand", sourceFilter: { controller: "mine", kind: ["Digimon"] }, actions: [{ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 }] }] },
+    {
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDigimonReturnsToHand",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [{ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 }],
+        },
+      ],
+    },
   ],
-  coverage: "full", residual: [],
+  coverage: "full",
+  residual: [],
 };
 registerIrCard("BT14-030", compiled);

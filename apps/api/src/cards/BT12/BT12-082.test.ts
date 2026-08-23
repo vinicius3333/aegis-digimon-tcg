@@ -23,14 +23,17 @@ describe("BT12-082 handwritten module", () => {
 });
 
 it("returns X Antibody and deletes a low-level target with a matching stack", async () => {
-  const s = setupEngine({
-    0: {
-      battleArea: [{ card: "BT12-082", as: "baalx", under: ["BT10-081"] }],
-      trash: ["BT9-109"],
-      deck: ["BT1-009", "BT1-010", "BT1-011"],
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT12-082", as: "baalx", under: ["BT10-081"] }],
+        trash: ["BT9-109"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     },
-    1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-  }, { autoSelectCards: true });
+    { autoSelectCards: true },
+  );
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalx"));
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT9-109");
   expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([]);

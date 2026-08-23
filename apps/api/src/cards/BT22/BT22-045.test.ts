@@ -61,7 +61,10 @@ describe("BT22-045 WezenGammamon", () => {
   });
 
   it("gets neither Blocker nor DP when the Gammamon cost is unavailable", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT22-045", as: "wezen" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT22-045", as: "wezen" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 4;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wezen").instanceId })).toEqual({ ok: true });

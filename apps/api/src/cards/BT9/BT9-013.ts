@@ -6,51 +6,46 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [],
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blitz",
-          "raw": "＜Blitz＞"
-        }
-      ]
+          keyword: "Blitz",
+          raw: "＜Blitz＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GrantCanAttackUnsuspended",
-          "target": {
-            "filter": {
-              "isSelfRef": true,
-              "digivolutionCards": {
-                "nameExact": [
-                  "OmniShoutmon",
-                  "X Antibody"
-                ]
-              }
+          kind: "GrantCanAttackUnsuspended",
+          target: {
+            filter: {
+              isSelfRef: true,
+              digivolutionCards: {
+                nameExact: ["OmniShoutmon", "X Antibody"],
+              },
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "YourTurn"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "OmniShoutmon"
+          duration: "YourTurn",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["OmniShoutmon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-013", compiled);

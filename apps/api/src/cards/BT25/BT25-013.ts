@@ -6,215 +6,187 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Red",
-                "Blue"
-              ],
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Red", "Blue"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Iliad"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 card in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Red",
-                "Blue"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Iliad"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 card in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "fireCondition": {
-            "kind": "triggerSubjectHasColor",
-            "filter": { "colors": ["Blue"] }
-          },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+                  tokens: ["Iliad"],
+                  match: "trait",
                 },
-                "count": 1,
-                "isSelf": true
-              },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Flaremon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "from": [
-                "hand"
               ],
-              "reduceCost": 1,
-              "optional": true
-            }
-          ]
+            },
+            count: 1,
+          },
+          to: "hand",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card in your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Red", "Blue"],
+              nameOrTrait: [
+                {
+                  tokens: ["Iliad"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card in your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
+          fireCondition: {
+            kind: "triggerSubjectHasColor",
+            filter: { colors: ["Blue"] },
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Flaremon"],
+                    match: "name",
+                  },
+                ],
+              },
+              from: ["hand"],
+              reduceCost: 1,
+              optional: true,
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "fireCondition": {
-            "kind": "triggerSubjectHasColor",
-            "filter": { "colors": ["Blue"] }
+          fireCondition: {
+            kind: "triggerSubjectHasColor",
+            filter: { colors: ["Blue"] },
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Flaremon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Flaremon"],
+                    match: "name",
+                  },
+                ],
               },
-              "from": [
-                "hand"
-              ],
-              "reduceCost": 1,
-              "optional": true
-            }
-          ]
-        }
-      ]
+              from: ["hand"],
+              reduceCost: 1,
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "TS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["TS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-013", compiled);

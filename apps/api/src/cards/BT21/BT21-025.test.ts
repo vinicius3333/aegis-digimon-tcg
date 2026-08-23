@@ -66,5 +66,4 @@ describe("BT21-025 compiled implementation", () => {
       }),
     );
   });
-
 });

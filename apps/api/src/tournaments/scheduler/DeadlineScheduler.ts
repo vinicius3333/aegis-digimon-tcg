@@ -269,7 +269,10 @@ export class DeadlineScheduler {
         tournamentId: deadline.tournamentId,
         actorKind: "scheduler",
         actorId: "scheduler",
-        command: code === "series_resolved" || code === "series_needs_organizer_decision" ? "deadline_resolved" : "administrative_loss",
+        command:
+          code === "series_resolved" || code === "series_needs_organizer_decision"
+            ? "deadline_resolved"
+            : "administrative_loss",
         commandId: deadline.id,
         reason: `${deadline.kind} elapsed at ${deadline.dueAt}`,
         reasonCode: code,

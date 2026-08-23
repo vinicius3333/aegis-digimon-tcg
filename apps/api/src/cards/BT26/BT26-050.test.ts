@@ -20,7 +20,12 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     );
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
-      actions: [expect.objectContaining({ kind: "Suspend" }), expect.objectContaining({ kind: "Restrict", restriction: "unsuspend" }), expect.any(Object), expect.any(Object)],
+      actions: [
+        expect.objectContaining({ kind: "Suspend" }),
+        expect.objectContaining({ kind: "Restrict", restriction: "unsuspend" }),
+        expect.any(Object),
+        expect.any(Object),
+      ],
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "WhenAttacking",
@@ -32,18 +37,21 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
   });
 
   it("publicly returns a suspended Digimon before trashing the opponent's top security", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT26-050", as: "burstMode" },
-          { card: "BT26-036", as: "returned", suspended: true },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-050", as: "burstMode" },
+            { card: "BT26-036", as: "returned", suspended: true },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
       },
-      1: {
-        battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }],
-        security: [{ card: "BT1-010", as: "security" }],
-      },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("burstMode"));

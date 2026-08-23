@@ -17,13 +17,28 @@ describe("BT18-092 Zenith", () => {
     });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "YourTurn",
-      actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "DeDigivolve", amount: 1, cost: { kind: "suspend" } }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [{ kind: "DeDigivolve", amount: 1, cost: { kind: "suspend" } }],
+        },
+      ],
     });
     expect(compiled.effects[2]).toMatchObject({ trigger: "Security", isSecurity: true });
   });
 
   it("trashes a Vemmon to draw and gain memory at the start of the main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-092", as: "zenith" }], hand: [{ card: "BT11-061", as: "vemmon" }], deck: ["BT1-001"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-092", as: "zenith" }],
+          hand: [{ card: "BT11-061", as: "vemmon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("zenith"));
 
@@ -57,7 +72,9 @@ describe("BT18-092 Zenith", () => {
     const s = setupEngine({ 0: { security: [{ card: "BT18-092", as: "zenith", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("zenith"));
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId),
+    ).toBe(true);
   });
 
   it("stays unsuspended and De-Digivolves nothing when the suspend cost is declined", async () => {

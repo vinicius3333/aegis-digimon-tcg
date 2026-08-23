@@ -58,9 +58,11 @@ describe("BT4-096 Izzy Izumi", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("izzy").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard?.instanceId === s.inst("izzy").instanceId,
-    ));
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("izzy").instanceId),
+    );
 
     expect(s.state.memory).toBe(6);
   });
@@ -80,21 +82,22 @@ describe("BT4-096 Izzy Izumi", () => {
       { autoOrderCards: false },
     );
     s.state.memory = 10;
-    const orderedIds = [
-      s.inst("third").instanceId,
-      s.inst("first").instanceId,
-      s.inst("second").instanceId,
-    ];
+    const orderedIds = [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId];
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("izzy").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("izzy").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "orderCards" && latest.sourceCardId === "BT4-096";
+        latest.kind === "orderCards" &&
+        latest.sourceCardId === "BT4-096"
+      );
     });
 
     const decision = s.decisions.at(-1)!.req;
@@ -103,14 +106,15 @@ describe("BT4-096 Izzy Izumi", () => {
       { instanceId: s.inst("second").instanceId, cardId: "BT2-053" },
       { instanceId: s.inst("third").instanceId, cardId: "BT2-054" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "orderCards", order: orderedIds },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[0]!.deck[0]?.instanceId === orderedIds[0],
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderCards", order: orderedIds },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === orderedIds[0],
     );
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(orderedIds);

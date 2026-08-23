@@ -6,51 +6,45 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
+  digivolutionRequirement: [
     {
-      "namesExact": [
-        "Hawkmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
+      namesExact: ["Hawkmon"],
+      cost: 2,
+      isAlternate: true,
+    },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "Blocker"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              keywords: ["Blocker"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "attackOrBlock",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    }
+          restriction: "attackOrBlock",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-048", compiled);

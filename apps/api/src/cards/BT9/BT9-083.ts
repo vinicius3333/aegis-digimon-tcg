@@ -28,8 +28,15 @@ const compiled: CompiledCard = {
     {
       trigger: "StartOfYourTurn",
       actions: [
-        { kind: "Trash", target: { filter: { zone: "digivolutionCards", isSelfRef: true, position: "top" }, count: 1, isSelf: true } },
-        { kind: "Trash", target: { filter: { zone: "security", controller: "opponent", position: "top" }, count: 1 }, condition: { kind: "ifThisEffectActed", raw: "you do" } },
+        {
+          kind: "Trash",
+          target: { filter: { zone: "digivolutionCards", isSelfRef: true, position: "top" }, count: 1, isSelf: true },
+        },
+        {
+          kind: "Trash",
+          target: { filter: { zone: "security", controller: "opponent", position: "top" }, count: 1 },
+          condition: { kind: "ifThisEffectActed", raw: "you do" },
+        },
       ],
     },
   ],

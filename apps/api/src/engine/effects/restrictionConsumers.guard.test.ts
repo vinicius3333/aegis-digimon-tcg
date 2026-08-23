@@ -56,12 +56,13 @@ describe("restriction consumers", () => {
 
   it.each(enforcedKinds())("%s is read by at least one engine site", (kind) => {
     const readers = sources
-      .filter(({ text }) =>
-        new RegExp(`hasRestriction\\([^)]*"${kind}"`, "s").test(text) ||
-        new RegExp(`isRestricted\\([^)]*"${kind}"`, "s").test(text) ||
-        // A counted restriction (BT7-055's "trash 1 card from your hand to unsuspend") is read
-        // through the tally rather than the boolean.
-        new RegExp(`restrictionCount\\([^)]*"${kind}"`, "s").test(text),
+      .filter(
+        ({ text }) =>
+          new RegExp(`hasRestriction\\([^)]*"${kind}"`, "s").test(text) ||
+          new RegExp(`isRestricted\\([^)]*"${kind}"`, "s").test(text) ||
+          // A counted restriction (BT7-055's "trash 1 card from your hand to unsuspend") is read
+          // through the tally rather than the boolean.
+          new RegExp(`restrictionCount\\([^)]*"${kind}"`, "s").test(text),
       )
       .map(({ path }) => path);
 

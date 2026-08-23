@@ -24,7 +24,14 @@ const actions = [
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "Static", actions: [], keywords: [{ keyword: "Training", raw: "＜Training＞" }, { keyword: "Piercing", raw: "＜Piercing＞" }] },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        { keyword: "Training", raw: "＜Training＞" },
+        { keyword: "Piercing", raw: "＜Piercing＞" },
+      ],
+    },
     { trigger: "WhenMoving", actions },
     { trigger: "OnPlay", actions },
     { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] },

@@ -6,76 +6,86 @@ import "./BT10-026.js";
 
 describe("BT10-026 DeckerGreymon", () => {
   it("DigiXroses with MetalGreymon and Deckerdramon for 5 memory", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-024", as: "metalGreymon" },
-          { card: "BT10-020", as: "deckerdramon" },
-        ],
-        hand: [{ card: "BT10-026", as: "source" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-024", as: "metalGreymon" },
+            { card: "BT10-020", as: "deckerdramon" },
+          ],
+          hand: [{ card: "BT10-026", as: "source" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT1-010", as: "target" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 9;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-      digiXros: {
-        materialInstanceIds: [
-          s.perm("metalGreymon").topCard.instanceId,
-          s.perm("deckerdramon").topCard.instanceId,
-        ],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.perm("metalGreymon").topCard.instanceId, s.perm("deckerdramon").topCard.instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
+    );
 
     const source = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,
     )!;
     expect(s.state.memory).toBe(4);
-    expect(source.stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT10-024", "BT10-020"]),
-    );
+    expect(source.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT10-024", "BT10-020"]));
   });
 
   it("places a hand material and chooses one opponent Digimon once for both restrictions", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [
-          { card: "BT10-026", as: "source" },
-          { card: "BT10-020", as: "material" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT10-026", as: "source" },
+            { card: "BT10-020", as: "material" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "chosen" },
+            { card: "BT1-011", as: "other" },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-010", as: "chosen" },
-          { card: "BT1-011", as: "other" },
-        ],
-      },
-    }, { autoAcceptOptional: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
     s.state.memory = 9;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
-    expect(s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,
-    )?.stack.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.find(
+        (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,
+      )?.stack.map((card) => card.instanceId),
+    ).toContain(s.inst("material").instanceId);
     const restrictionDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: restrictionDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      observe(s.engine).isRestricted(s.perm("chosen"), "attack") &&
-      observe(s.engine).isRestricted(s.perm("chosen"), "block"),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: restrictionDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        observe(s.engine).isRestricted(s.perm("chosen"), "attack") &&
+        observe(s.engine).isRestricted(s.perm("chosen"), "block"),
     );
 
     expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
@@ -86,56 +96,64 @@ describe("BT10-026 DeckerGreymon", () => {
   });
 
   it("when digivolving, may take the Blue Flare material from under a Tamer", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-021", as: "base" },
-          { card: "BT10-088", as: "kiriha", under: ["BT10-020"] },
-        ],
-        hand: [{ card: "BT10-026", as: "source" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-021", as: "base" },
+            { card: "BT10-088", as: "kiriha", under: ["BT10-020"] },
+          ],
+          hand: [{ card: "BT10-026", as: "source" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT1-010", as: "target" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("base").stack.some((card) => card.cardId === "BT10-020") &&
-      observe(s.engine).isRestricted(s.perm("target"), "attack") &&
-      observe(s.engine).isRestricted(s.perm("target"), "block"),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").stack.some((card) => card.cardId === "BT10-020") &&
+        observe(s.engine).isRestricted(s.perm("target"), "attack") &&
+        observe(s.engine).isRestricted(s.perm("target"), "block"),
     );
 
     expect(s.perm("kiriha").stack).toHaveLength(0);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([
-      "BT10-020",
-      "BT10-021",
-    ]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT10-020", "BT10-021"]);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
   });
 
   it("does not take Blue Flare materials from trash or deck", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT10-026", as: "source" }],
-        trash: [{ card: "BT10-020", as: "trashMaterial" }],
-        deck: [{ card: "BT10-020", as: "deckMaterial" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-026", as: "source" }],
+          trash: [{ card: "BT10-020", as: "trashMaterial" }],
+          deck: [{ card: "BT10-020", as: "deckMaterial" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT1-010", as: "target" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 9;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
+    );
 
     const source = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,

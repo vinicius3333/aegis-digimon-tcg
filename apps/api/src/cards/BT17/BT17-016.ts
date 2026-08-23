@@ -6,146 +6,142 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 8000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 8000,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 8000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 8000,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": {
-            "immunity": true
+          grant: {
+            immunity: true,
           },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 0,
-            "controller": "mine"
-          }
-        }
-      ]
-    }
+          duration: "forTheTurn",
+          condition: {
+            kind: "memoryAtMost",
+            value: 0,
+            controller: "mine",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-016", compiled);

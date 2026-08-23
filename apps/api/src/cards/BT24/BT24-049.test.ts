@@ -59,9 +59,7 @@ describe("BT24-049 Parrotmon", () => {
     await s.ready();
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("parrotmon").permanentId], "byEffect")).toBe(1);
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
 
     const replayed = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === instanceId);
     expect(replayed).toBeDefined();

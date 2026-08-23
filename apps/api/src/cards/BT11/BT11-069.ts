@@ -26,22 +26,26 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OpponentsTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenUnsuspended",
-        sourceFilter: { controller: "any", kind: ["Digimon"] },
-        actions: [{
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "opponent",
-          amount: 1,
-          condition: {
-            kind: "selfHasNameContaining",
-            names: ["Greymon", "Omnimon"],
-            raw: "this Digimon has [Greymon] or [Omnimon] in its name",
-          },
-        }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenUnsuspended",
+          sourceFilter: { controller: "any", kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+              condition: {
+                kind: "selfHasNameContaining",
+                names: ["Greymon", "Omnimon"],
+                raw: "this Digimon has [Greymon] or [Omnimon] in its name",
+              },
+            },
+          ],
+        },
+      ],
       isInherited: true,
       frequency: "OncePerTurn",
     },

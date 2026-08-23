@@ -6,127 +6,117 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": ["Tamer"],
-              "colors": ["Yellow"]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              colors: ["Yellow"],
             },
-            "orFilters": [
-              { "controllerDefault": "mine", "kind": ["Option"], "singleColor": true, "playCostLte": 5 }
-            ],
-            "count": 1
+            orFilters: [{ controllerDefault: "mine", kind: ["Option"], singleColor: true, playCostLte: 5 }],
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": true,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          toTop: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": ["Tamer"],
-              "colors": ["Yellow"]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              colors: ["Yellow"],
             },
-            "orFilters": [
-              { "controllerDefault": "mine", "kind": ["Option"], "singleColor": true, "playCostLte": 5 }
-            ],
-            "count": 1
+            orFilters: [{ controllerDefault: "mine", kind: ["Option"], singleColor: true, playCostLte: 5 }],
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": true,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          toTop: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionUsed",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -6000,
-              "duration": "forTheTurn"
-            }
-          ]
+              amount: -6000,
+              duration: "forTheTurn",
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenAddSecurity",
-          "fireCondition": {
-            "kind": "triggerSecurityIsYours"
+          kind: "SubTrigger",
+          event: "whenAddSecurity",
+          fireCondition: {
+            kind: "triggerSecurityIsYours",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -6000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              amount: -6000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Sakuyamon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Sakuyamon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("LM-023", compiled);

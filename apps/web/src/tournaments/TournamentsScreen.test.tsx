@@ -60,7 +60,9 @@ function mockApi(routes: Record<string, Route>): ReturnType<typeof vi.fn> {
 function renderScreen() {
   return render(
     <I18nProvider>
-      <TournamentsScreen decks={[{ id: "deck-1", name: "Red aggro", mainDeck: [], eggDeck: [], color: "Red", blurb: "" }]} />
+      <TournamentsScreen
+        decks={[{ id: "deck-1", name: "Red aggro", mainDeck: [], eggDeck: [], color: "Red", blurb: "" }]}
+      />
     </I18nProvider>,
   );
 }
@@ -73,7 +75,10 @@ afterEach(() => {
 
 describe("tournament catalog", () => {
   beforeEach(() => {
-    mockApi({ "GET /tournaments": { body: [LIGHTNING, REGIONAL] }, "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } } });
+    mockApi({
+      "GET /tournaments": { body: [LIGHTNING, REGIONAL] },
+      "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } },
+    });
   });
 
   it("renders each event's status, slots, structure, format and badges", async () => {
@@ -121,7 +126,10 @@ describe("tournament catalog", () => {
 
 describe("tournament creation form", () => {
   beforeEach(() => {
-    mockApi({ "GET /tournaments": { body: [] }, "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } } });
+    mockApi({
+      "GET /tournaments": { body: [] },
+      "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } },
+    });
   });
 
   async function openForm() {
@@ -183,7 +191,9 @@ describe("tournament creation form", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
 
     const postedBody = async () => {
-      const call = fetchMock.mock.calls.find((args: unknown[]) => (args[1] as RequestInit | undefined)?.method === "POST");
+      const call = fetchMock.mock.calls.find(
+        (args: unknown[]) => (args[1] as RequestInit | undefined)?.method === "POST",
+      );
       return call === undefined ? undefined : JSON.parse(String((call[1] as RequestInit).body));
     };
     await waitFor(async () => expect(await postedBody()).toBeDefined());
@@ -211,7 +221,13 @@ describe("tournament creation form", () => {
       "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } },
       "POST /tournaments": {
         status: 400,
-        body: { error: "invalid tournament", reasons: [{ code: "name_too_short", field: "name" }, { code: "starts_at_in_past", field: "startsAt" }] },
+        body: {
+          error: "invalid tournament",
+          reasons: [
+            { code: "name_too_short", field: "name" },
+            { code: "starts_at_in_past", field: "startsAt" },
+          ],
+        },
       },
     });
     await openForm();
@@ -225,7 +241,10 @@ describe("tournament creation form", () => {
     mockApi({
       "GET /tournaments": { body: [] },
       "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } },
-      "POST /tournaments": { status: 400, body: { error: "invalid tournament", reasons: [{ code: "future_code_we_do_not_know", field: "name" }] } },
+      "POST /tournaments": {
+        status: 400,
+        body: { error: "invalid tournament", reasons: [{ code: "future_code_we_do_not_know", field: "name" }] },
+      },
     });
     await openForm();
     fireEvent.click(screen.getByRole("button", { name: "Create tournament" }));
@@ -235,7 +254,11 @@ describe("tournament creation form", () => {
 
 describe("app navigation", () => {
   it("reaches the tournaments area from the client shell", async () => {
-    mockApi({ "GET /tournaments": { body: [] }, "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } }, "GET /account/decks": { body: [] } });
+    mockApi({
+      "GET /tournaments": { body: [] },
+      "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } },
+      "GET /account/decks": { body: [] },
+    });
     const { AegisClient } = await import("../App");
     render(
       <I18nProvider>

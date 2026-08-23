@@ -30,9 +30,7 @@ async function fireOnPlayForInstance(s: EngineSetup, instanceId: string): Promis
 }
 
 async function fireEndTurn(s: EngineSetup): Promise<void> {
-  await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
-    EffectTiming.OnEndTurn,
-  );
+  await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnEndTurn);
 }
 
 function onField(s: EngineSetup, instanceId: string): boolean {

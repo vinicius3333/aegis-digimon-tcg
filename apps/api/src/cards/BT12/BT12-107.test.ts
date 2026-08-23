@@ -24,10 +24,13 @@ describe("BT12-107 handwritten module", () => {
 });
 
 it("installs the forced start-of-main-phase attack on the chosen opposing Digimon", async () => {
-  const s = setupEngine({
-    0: { hand: [{ card: "BT12-107", as: "option" }], battleArea: [{ card: "BT12-061", as: "black" }] },
-    1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009"] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-107", as: "option" }], battleArea: [{ card: "BT12-061", as: "black" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   s.state.memory = 1;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });

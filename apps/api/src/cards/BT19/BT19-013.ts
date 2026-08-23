@@ -5,85 +5,73 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlaceUnder",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "PlaceUnder",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Xros Heart"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Xros Heart"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 3,
-                "upTo": true
+                count: 3,
+                upTo: true,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "optional": true
-            }
-          ]
-        }
-      ]
+              from: ["digivolutionCards"],
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "zone": "underTamers",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              zone: "underTamers",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Xros Heart"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Xros Heart"],
+                  match: "trait",
+                },
               ],
-              "playCost": {
-                "op": "lte",
-                "value": 4
-              }
+              playCost: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["underTamers"],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["underTamers"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-013", compiled);

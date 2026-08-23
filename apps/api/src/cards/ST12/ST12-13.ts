@@ -7,79 +7,69 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Huckmon"
-                    ],
-                    "match": "name"
+                    tokens: ["Huckmon"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "Royal Knight"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Royal Knight"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
+          rest: "trash",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Huckmon"
-                  ],
-                  "match": "name"
+                  tokens: ["Huckmon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Royal Knight"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Knight"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Reboot",
-            "raw": "＜Reboot＞"
+          keyword: {
+            keyword: "Reboot",
+            raw: "＜Reboot＞",
           },
-          "duration": "permanent"
-        }
-      ]
-    }
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST12-13", compiled);

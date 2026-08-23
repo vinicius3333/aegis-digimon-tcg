@@ -6,10 +6,12 @@ import "./BT11-081.js";
 
 describe("BT11-081 MadLeomon: Armed Mode", () => {
   it("publishes and executes its two-material DigiXros -2 recipe", async () => {
-    expect(digiXrosRequirementFor("BT11-081")).toEqual([{
-      materials: [{ names: ["MadLeomon"] }, { traits: ["Bagra Army"] }],
-      count: 2,
-    }]);
+    expect(digiXrosRequirementFor("BT11-081")).toEqual([
+      {
+        materials: [{ names: ["MadLeomon"] }, { traits: ["Bagra Army"] }],
+        count: 2,
+      },
+    ]);
     const s = setupEngine({
       0: {
         hand: [
@@ -21,20 +23,20 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("armed-mode").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("madleomon").instanceId, s.inst("bagra-army").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("armed-mode").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("madleomon").instanceId, s.inst("bagra-army").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some(({ topCard, stack }) => topCard?.cardId === "BT11-081" && stack.length === 2),
     );
 
     expect(s.state.memory).toBe(8);
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT11-081")!;
-    expect(played.stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT10-077", "BT11-082"]),
-    );
+    expect(played.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT10-077", "BT11-082"]));
   });
 
   it("on opponent turn trashes 1 source and draws 2 when an effect adds to opponent hand", async () => {
@@ -83,11 +85,7 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("source").instanceId],
-      1,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("source").instanceId], 1);
     await settle(() => s.state.memory === -1);
 
     expect(s.state.memory).toBe(-1);

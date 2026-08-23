@@ -7,184 +7,156 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Encoded as a CostGatedBlock: all actions inside share the same cost — paying it once
 // enables both the ModifyDP and the SecurityManipulation.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "CostGatedBlock",
-          "cost": {
-            "kind": "securityToHand",
-            "controller": "mine",
-            "position": "topOrBottom",
-            "raw": "By adding the top or bottom card of your security stack to the hand"
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "securityToHand",
+            controller: "mine",
+            position: "topOrBottom",
+            raw: "By adding the top or bottom card of your security stack to the hand",
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "actions": [
+          optional: true,
+          abortOnDecline: true,
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -4000,
-              "duration": "forTheTurn"
+              amount: -4000,
+              duration: "forTheTurn",
             },
             {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Angel",
-                        "Archangel",
-                        "Three Great Angels"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                },
-                "count": 1
-              },
-              "from": [
-                "hand"
-              ],
-              "toTop": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "CostGatedBlock",
-          "cost": {
-            "kind": "securityToHand",
-            "controller": "mine",
-            "position": "topOrBottom",
-            "raw": "By adding the top or bottom card of your security stack to the hand"
-          },
-          "optional": true,
-          "abortOnDecline": true,
-          "actions": [
-            {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "amount": -4000,
-              "duration": "forTheTurn"
-            },
-            {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
+                      tokens: ["Angel", "Archangel", "Three Great Angels"],
+                      match: "trait",
+                    },
                   ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Angel",
-                        "Archangel",
-                        "Three Great Angels"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "hand"
-              ],
-              "toTop": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              from: ["hand"],
+              toTop: false,
+              optional: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Angel"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": "all"
-          },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
-          "duration": "permanent"
-        }
+          ],
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "securityToHand",
+            controller: "mine",
+            position: "topOrBottom",
+            raw: "By adding the top or bottom card of your security stack to the hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              amount: -4000,
+              duration: "forTheTurn",
+            },
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Angel", "Archangel", "Three Great Angels"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              toTop: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Angel"],
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Angel", "Archangel", "Three Great Angels"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-021", compiled);

@@ -11,9 +11,29 @@ describe("EX11-031 Vespamon", () => {
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
-      expect(effect.actions[0]).toMatchObject({ kind: "Suspend", scaling: { per: 1, unit: "security", filter: { controller: "mine", faceUp: true } } });
-      expect(effect.actions[1]).toMatchObject({ kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" });
+      expect(effect.actions[0]).toMatchObject({
+        kind: "Suspend",
+        scaling: { per: 1, unit: "security", filter: { controller: "mine", faceUp: true } },
+      });
+      expect(effect.actions[1]).toMatchObject({
+        kind: "Restrict",
+        restriction: "unsuspend",
+        duration: "untilOpponentTurnEnd",
+      });
     }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "Replacement", event: "wouldLeavePlay", cost: expect.objectContaining({ kind: "flipSecurity" }) })] }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            cost: expect.objectContaining({ kind: "flipSecurity" }),
+          }),
+        ],
+      }),
+    );
   });
 });

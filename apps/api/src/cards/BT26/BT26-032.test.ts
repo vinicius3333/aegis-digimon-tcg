@@ -31,15 +31,18 @@ describe("BT26-032 compiled fidelity", () => {
   });
 
   it("publicly reduces every suspended opposing Digimon by 5000 on digivolution", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-032", as: "ceresmon" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "suspended", suspended: true, dp: 11000 },
-          { card: "BT1-010", as: "unsuspended", suspended: false, dp: 11000 },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-032", as: "ceresmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "suspended", suspended: true, dp: 11000 },
+            { card: "BT1-010", as: "unsuspended", suspended: false, dp: 11000 },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));

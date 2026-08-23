@@ -6,42 +6,40 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Jamming",
-            "raw": "＜Jamming＞"
+          keyword: {
+            keyword: "Jamming",
+            raw: "＜Jamming＞",
           },
-          "duration": "permanent",
-          "condition": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "digivolutionCardsCompareToSource": "gte",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          duration: "permanent",
+          condition: {
+            kind: "opponentHasNone",
+            filter: {
+              digivolutionCardsCompareToSource: "gte",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has no Digimon with as many or more digivolution cards as this Digimon"
-          }
-        }
+            raw: "your opponent has no Digimon with as many or more digivolution cards as this Digimon",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-002", compiled);

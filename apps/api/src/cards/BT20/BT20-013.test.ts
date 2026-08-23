@@ -7,12 +7,24 @@ describe("BT20-013 BaoHuckmon", () => {
     expect(main).toMatchObject({ trigger: "Main", frequency: "OncePerTurn" });
     expect(main?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
-      target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Sistermon", "Gankoomon"], match: "name" }] }, count: 1 },
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Sistermon", "Gankoomon"], match: "name" }],
+        },
+        count: 1,
+      },
       from: ["hand"],
       payCost: true,
       optional: true,
     });
-    expect(main?.actions[1]).toMatchObject({ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 2 });
+    expect(main?.actions[1]).toMatchObject({
+      kind: "Replacement",
+      event: "wouldBePlayed",
+      mode: "reduceCost",
+      amount: 2,
+    });
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
       actions: [{ kind: "ModifyDP", target: { count: "all" }, amount: 1000, duration: "permanent" }],

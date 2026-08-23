@@ -35,10 +35,7 @@ describe("effectsOf (single card)", () => {
 
     // ...its static modifiers at None, including the inherited Piercing provider...
     const stat = effectsOf(EffectTiming.None, source);
-    expect(stat.map((e) => e.effectKey)).toEqual([
-      "BT7-089/ir-35-0",
-      "BT7-089/ir-35-1",
-    ]);
+    expect(stat.map((e) => e.effectKey)).toEqual(["BT7-089/ir-35-0", "BT7-089/ir-35-1"]);
     expect(stat.find((effect) => effect.effectKey === "BT7-089/ir-35-1")?.isInherited).toBe(true);
 
     // Piercing is continuous, not a security-check timing effect.
@@ -76,10 +73,7 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
       });
 
     const onTurn = collectTriggeredEffects(EffectTiming.None, [source], makeContext, new UseTracker());
-    expect(onTurn.map((c) => c.effect.effectKey)).toEqual([
-      "BT7-089/ir-35-0",
-      "BT7-089/ir-35-1",
-    ]);
+    expect(onTurn.map((c) => c.effect.effectKey)).toEqual(["BT7-089/ir-35-0", "BT7-089/ir-35-1"]);
 
     // On the opponent's turn the `when` guard (isOwnersTurn) fails -> not collected.
     s.state.turnSeat = 1;
@@ -162,10 +156,7 @@ describe("gatherTriggeredEffects (full instance -> source -> collection chain)",
       EffectTiming.None,
       [card],
     );
-    expect(collected.map((c) => c.effect.effectKey)).toEqual([
-      "BT7-089/ir-35-0",
-      "BT7-089/ir-35-1",
-    ]);
+    expect(collected.map((c) => c.effect.effectKey)).toEqual(["BT7-089/ir-35-0", "BT7-089/ir-35-1"]);
     expect(collected[0]?.source.cardId).toBe("BT7-089");
   });
 });

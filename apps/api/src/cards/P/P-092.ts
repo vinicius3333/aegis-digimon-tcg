@@ -3,95 +3,95 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": ["Groundramon"],
-                "match": "name"
-              }
-            ]
+                tokens: ["Groundramon"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "Digivolve",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              into: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": ["Wingdramon"],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Wingdramon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "payCost": 3,
-              "ignoreRequirements": true,
-              "optional": true
-            }
-          ]
-        }
-      ]
+              payCost: 3,
+              ignoreRequirements: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": ["Groundramon"],
-                "match": "name"
-              }
-            ]
+                tokens: ["Groundramon"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "Digivolve",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              into: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": ["Wingdramon"],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Wingdramon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 registerIrCard("P-092", compiled);

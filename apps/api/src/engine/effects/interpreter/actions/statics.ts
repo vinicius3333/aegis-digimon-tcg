@@ -21,7 +21,8 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
       // condition gives (it lapses the moment the gate fails). The battle-area guard
       // is implicit (no source permanent => no candidates).
       if (action.while !== undefined && !evaluateCondition(ctx, action.while)) return false;
-      const hasDynamicSelfConstraint = action.target.filter.colors !== undefined || action.target.filter.dp !== undefined;
+      const hasDynamicSelfConstraint =
+        action.target.filter.colors !== undefined || action.target.filter.dp !== undefined;
       const ids = (await resolvePermanentTargets(ctx, action.target)).filter((id) => {
         if (!hasDynamicSelfConstraint) return true;
         const permanent = ctx.game.permanentById(id);

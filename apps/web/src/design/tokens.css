@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&family=Tektur:wght@700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&family=Tektur:wght@700;800;900&display=swap");
 
 :root {
   color-scheme: light;
@@ -73,10 +73,10 @@
   --ds-game-border-strong: rgba(110, 165, 255, 0.42);
 
   /* Typography. */
-  --ds-font-display: 'Tektur', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --ds-font-body: 'Inter', 'IBM Plex Sans', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
-  --ds-font-mono: 'Fira Code', ui-monospace, 'SFMono-Regular', Menlo, monospace;
-  --ds-font-brand: 'Tektur', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --ds-font-display: "Tektur", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --ds-font-body: "Inter", "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --ds-font-mono: "Fira Code", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ds-font-brand: "Tektur", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --ds-text-xs: 0.75rem;
   --ds-text-sm: 0.875rem;
   --ds-text-base: 1rem;

@@ -18,11 +18,13 @@ describe("BT10-005 Monimon", () => {
           hand: [{ card: "ST5-15", as: "laserEye" }],
         },
         1: {
-          battleArea: [{
-            card: "BT10-066",
-            as: "host",
-            under: ["BT10-005", "BT10-020"],
-          }],
+          battleArea: [
+            {
+              card: "BT10-066",
+              as: "host",
+              under: ["BT10-005", "BT10-020"],
+            },
+          ],
         },
       },
       { autoSelectCards: true },
@@ -31,13 +33,14 @@ describe("BT10-005 Monimon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("laserEye").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("host").topCard.cardId === "BT10-020" &&
-      s.perm("host").currentDP === s.perm("host").baseDP
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("laserEye").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("host").topCard.cardId === "BT10-020" && s.perm("host").currentDP === s.perm("host").baseDP,
     );
 
     expect(s.perm("host").topCard.cardId).toBe("BT10-020");

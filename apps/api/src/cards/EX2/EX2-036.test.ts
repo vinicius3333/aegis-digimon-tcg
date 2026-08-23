@@ -12,11 +12,13 @@ describe("EX2-036 GroundLocomon", () => {
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("groundLocomon"), "cantAttackDigimon")).toBe(true);
     expect(s.perm("groundLocomon").currentDP).toBe(13000);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("groundLocomon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("groundLocomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
   });
 
   it("can't choose an opponent's suspended Digimon as its attack target", async () => {
@@ -25,10 +27,12 @@ describe("EX2-036 GroundLocomon", () => {
       1: { battleArea: [{ card: "EX2-031", as: "target", suspended: true }] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("groundLocomon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("groundLocomon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
   });
 });

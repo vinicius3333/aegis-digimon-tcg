@@ -86,7 +86,14 @@ function makeContext(opts: {
 }): EffectContext {
   const opponentBattleArea = opts.opponentBattleArea ?? [makeOpponentDigimon("OPP#1")];
   const players = [
-    { seat: 0 as Seat, battleArea: [] as import("@aegis/shared").Permanent[], security: [], hand: [], deck: [], trash: [] },
+    {
+      seat: 0 as Seat,
+      battleArea: [] as import("@aegis/shared").Permanent[],
+      security: [],
+      hand: [],
+      deck: [],
+      trash: [],
+    },
     { seat: 1 as Seat, battleArea: opponentBattleArea, security: [], hand: [], deck: [], trash: [] },
   ];
   const state = { memory: 3, players, turnSeat: 0 as Seat } as unknown as GameState;
@@ -113,9 +120,15 @@ function makeContext(opts: {
     subscribeSubTrigger: record("subscribeSubTrigger"),
     forceAttack: record("forceAttack"),
     deletePermanent: record("deletePermanent"),
-    draw: () => { throw new Error("draw must not fire"); },
-    setMemory: () => { throw new Error("setMemory must not fire"); },
-    gainMemory: () => { throw new Error("gainMemory must not fire"); },
+    draw: () => {
+      throw new Error("draw must not fire");
+    },
+    setMemory: () => {
+      throw new Error("setMemory must not fire");
+    },
+    gainMemory: () => {
+      throw new Error("gainMemory must not fire");
+    },
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
@@ -203,7 +216,8 @@ describe("EX12-016 (MetalGreymon) gap #10 — forced-attack SubTrigger grant", (
 
     const ask: DecisionApi = {
       optional: async () => true,
-      selectPermanents: async () => [], chooseTargets: async (_c, o) => {
+      selectPermanents: async () => [],
+      chooseTargets: async (_c, o) => {
         chosenTargets.push(...o.candidates);
         return o.candidates.slice(0, 1);
       },

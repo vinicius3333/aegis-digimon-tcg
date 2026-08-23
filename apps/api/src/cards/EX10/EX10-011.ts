@@ -6,162 +6,145 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 11,
-          "raw": "play this card with the play cost reduced by 11",
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levelComparison": {
-                  "op": "gte",
-                  "value": 5
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 11,
+          raw: "play this card with the play cost reduced by 11",
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                levelComparison: {
+                  op: "gte",
+                  value: 5,
                 },
-                "nameOrTrait": [
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Myotismon"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Myotismon"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": 2
+              count: 2,
             },
-            "raw": "By deleting 2 of your level 5 or higher Digimon with [Myotismon] in their texts"
+            raw: "By deleting 2 of your level 5 or higher Digimon with [Myotismon] in their texts",
           },
-          "optional": false,
-          "abortOnDecline": false
-        }
+          optional: false,
+          abortOnDecline: false,
+        },
       ],
-      "isFromTrash": true
+      isFromTrash: true,
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "excludeSelf": true,
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              excludeSelf: true,
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-            "count": 2
-          }
-        }
-      ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "excludeSelf": true,
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 2
-          }
-        }
-      ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "excludeSelf": true,
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 2
-          }
-        }
-      ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon",
-              "Tamer"
-            ]
+            count: 2,
           },
-          "actions": [
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              excludeSelf: true,
+              unsuspended: true,
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              excludeSelf: true,
+              unsuspended: true,
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon", "Tamer"],
+          },
+          actions: [
             {
-              "kind": "trashSecurityTop",
-              "controller": "opponent",
-              "count": 1
+              kind: "trashSecurityTop",
+              controller: "opponent",
+              count: 1,
             },
             {
-              "kind": "Return",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "superlative": "lowestDP"
+              kind: "Return",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  superlative: "lowestDP",
                 },
-                "count": 1
+                count: 1,
               },
-              "to": "deckBottom"
-            }
-          ]
-        }
+              to: "deckBottom",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "names": [
-        "Myotismon"
-      ],
-      "cost": 5,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      names: ["Myotismon"],
+      cost: 5,
+      isAlternate: true,
+    },
+  ],
 };
 
 export { compiled };

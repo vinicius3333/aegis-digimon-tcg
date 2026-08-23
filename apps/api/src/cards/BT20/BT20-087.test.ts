@@ -11,18 +11,25 @@ describe("BT20-087 Kota Domoto & Yuji Musya", () => {
   it("only offers the reduced Chronicle digivolution for a field Digimon", () => {
     const watcher = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     expect(watcher).toMatchObject({
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenAttacking",
-        actions: [{
-          kind: "Digivolve",
-          target: { filter: { controller: "mine", kind: ["Digimon"] } },
-          into: { levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }] },
-          reduceCost: 1,
-          cost: { kind: "suspend", target: { isSelf: true } },
-          abortOnDecline: true,
-        }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [
+            {
+              kind: "Digivolve",
+              target: { filter: { controller: "mine", kind: ["Digimon"] } },
+              into: {
+                levelComparison: { op: "lte", value: 6 },
+                nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+              },
+              reduceCost: 1,
+              cost: { kind: "suspend", target: { isSelf: true } },
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
     });
   });
 });

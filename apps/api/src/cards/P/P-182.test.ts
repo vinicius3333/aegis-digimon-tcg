@@ -17,13 +17,28 @@ describe("P-182 WarGreymon", () => {
       { keyword: "Blocker", raw: "＜Blocker＞" },
     ]);
     expect(card.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
-      actions: [{ kind: "Delete", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } } } }],
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            count: 1,
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
+          },
+        },
+      ],
     });
   });
 
   it("adds 1000 DP per color among your Digimon and Tamers", () => {
     expect(runtimeCompiledCard("P-182")!.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
-      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent", scaling: { per: 1, unit: "colors", filter: { controllerDefault: "mine", kind: ["Digimon", "Tamer"] } } }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 1000,
+          duration: "permanent",
+          scaling: { per: 1, unit: "colors", filter: { controllerDefault: "mine", kind: ["Digimon", "Tamer"] } },
+        },
+      ],
     });
   });
 });

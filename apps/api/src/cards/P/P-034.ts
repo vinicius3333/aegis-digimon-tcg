@@ -6,58 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DanDevimon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["DanDevimon"],
+                  match: "name",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Devimon"
-                  ],
-                  "match": "name"
-                }
-              ]
             },
-            "count": 7,
-            "raw": "you have 7 or more Digimon cards with [Devimon] in their names in your trash"
+            count: 1,
           },
-          "optional": true
-        }
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Devimon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 7,
+            raw: "you have 7 or more Digimon cards with [Devimon] in their names in your trash",
+          },
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-034", compiled);

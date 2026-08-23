@@ -34,7 +34,13 @@ describe("BT18-024 Calmaramon", () => {
     await s.ready();
     const targetId = s.perm("target").topCard!.instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("calmaramon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("calmaramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === targetId));
 
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);

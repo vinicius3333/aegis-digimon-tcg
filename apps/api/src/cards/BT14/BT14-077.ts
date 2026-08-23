@@ -16,48 +16,48 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      event + the TrashTopDeck fire seam at interpreter.ts): consumed via a SubTrigger
 //      watcher gated on the milled deck being the opponent's (interpreter discardLibraryGate
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 2
-        }
-      ]
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 2,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 2
-        }
-      ]
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 2,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "frequency": "OncePerTurn",
-      "actions": [
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDiscardLibrary",
-          "sourceFilter": { "controller": "opponent" },
-          "actions": [
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          sourceFilter: { controller: "opponent" },
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
+              kind: "GainMemory",
+              amount: 1,
+            },
           ],
-          "raw": "[Your Turn][Once Per Turn] When a card in your opponent's deck is trashed, gain 1 memory."
-        }
-      ]
-    }
+          raw: "[Your Turn][Once Per Turn] When a card in your opponent's deck is trashed, gain 1 memory.",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-077", compiled);

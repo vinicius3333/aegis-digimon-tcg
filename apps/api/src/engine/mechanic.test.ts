@@ -80,11 +80,7 @@ interface LedgerWriter {
     amount?: number,
     opts?: { continuous?: boolean },
   ): void;
-  addColorWaiver(
-    instanceId: string,
-    duration: EffectDuration,
-    opts?: { continuous?: boolean },
-  ): void;
+  addColorWaiver(instanceId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void;
 }
 
 /**
@@ -97,11 +93,7 @@ function ledgerWrite(s: Setup): LedgerWriter {
 }
 
 interface ModifierWriter {
-  addPierceGrant(
-    permanentId: string,
-    duration: EffectDuration,
-    opts?: { continuous?: boolean },
-  ): unknown;
+  addPierceGrant(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): unknown;
 }
 
 /**
@@ -159,9 +151,7 @@ interface ActivatableEntry {
  */
 function activatableEffects(s: Setup, perm: Permanent): ActivatableEntry[] {
   (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
-  return perm.activatableEffectsJson
-    ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[])
-    : [];
+  return perm.activatableEffectsJson ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 
 /**
@@ -382,11 +372,7 @@ describe("A3 core verbs — Delete / ModifyDP / Suspend / Return through the rea
           addRestriction(id: string, r: string, d: EffectDuration): void;
         };
       }
-    ).continuous.addRestriction(
-      protectedDigimon.permanentId,
-      "beSuspended",
-      EffectDuration.Permanent,
-    );
+    ).continuous.addRestriction(protectedDigimon.permanentId, "beSuspended", EffectDuration.Permanent);
 
     const source = instance("BT1-070", 0, false); // [On Play] suspends the lone opponent Digimon
     (s.state.players[0] as PlayerState).hand.push(source);
@@ -594,9 +580,7 @@ describe("A3 continuous grants — GainKeyword / Restrict (ledger-read)", () => 
     perm.stack.push(instance("BT1-029", 0, true), instance("BT1-035", 0, true), instance("BT1-041", 0, true));
     p0.battleArea.push(perm);
 
-    void (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnPlay,
-    );
+    void (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnPlay);
     await settle(() => ledger(s).hasKeyword(perm.permanentId, "Blitz"));
 
     expect(ledger(s).hasKeyword(perm.permanentId, "Blitz")).toBe(true);
@@ -612,9 +596,7 @@ describe("A3 continuous grants — GainKeyword / Restrict (ledger-read)", () => 
     perm.stack.push(instance("BT1-029", 0, true), instance("BT1-035", 0, true));
     p0.battleArea.push(perm);
 
-    void (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnPlay,
-    );
+    void (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnPlay);
     await settle(() => false, 60);
 
     expect(ledger(s).hasKeyword(perm.permanentId, "Blitz")).toBe(false);
@@ -774,7 +756,7 @@ describe("A3 trait filter — Form-only and Attribute-only union arms (SYS-07)",
     await settle(() => matching.currentDP !== 3000);
 
     expect(matching.currentDP).toBe(5000); // 3000 + 2000 from the [Vaccine]-gated buff
-    expect(control.currentDP).toBe(3000);  // untouched — no "Vaccine" trait
+    expect(control.currentDP).toBe(3000); // untouched — no "Vaccine" trait
     assertNoLoudGap(s);
 
     // FAILS-WHEN-REVERTED: comment out `...(def.attributes ?? [])` at interpreter.ts:268.
@@ -866,9 +848,7 @@ describe("A3 PlaceUnder — places a card under a permanent (non-deletion path)"
 
     // The hand Digimon left the hand and is now a digivolution card under some friendly permanent.
     expect(p0.hand.some((c) => c.instanceId === placed.instanceId)).toBe(false);
-    expect(p0.battleArea.some((p) => p.stack.some((c) => c.instanceId === placed.instanceId))).toBe(
-      true,
-    );
+    expect(p0.battleArea.some((p) => p.stack.some((c) => c.instanceId === placed.instanceId))).toBe(true);
     assertNoLoudGap(s);
   });
 });
@@ -985,12 +965,9 @@ describe("A3 activated [Main] — the activateEffect verb (OnDeclaration window)
     p1.battleArea.push(first, second);
     s.state.memory = 10;
 
-    const effectKey = activatableEffects(s, source).find((e) => e.instanceId === sourceInstanceId)!
-      .effectKey;
+    const effectKey = activatableEffects(s, source).find((e) => e.instanceId === sourceInstanceId)!.effectKey;
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey })).toEqual({ ok: true });
     // Settle on effectActivated, not just the delete: the per-turn use is registered AFTER
     // resolve() returns, so the affordance is only withdrawn once the whole activation chain
     // (which emits effectActivated) completes.
@@ -1001,9 +978,10 @@ describe("A3 activated [Main] — the activateEffect verb (OnDeclaration window)
     // The use is now registered: the affordance is withdrawn and a re-activation is rejected
     // synchronously by the kernel's maxPerTurn guard (canTrigger/canActivate -> illegal-target).
     expect(activatableEffects(s, source)).toHaveLength(0);
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey })).toEqual({
+      ok: false,
+      reason: "illegal-target",
+    });
 
     // The second target is untouched — the rejected verb mutated nothing.
     expect(p1.battleArea.some((p) => p.permanentId === second.permanentId)).toBe(true);
@@ -1104,11 +1082,7 @@ describe("A3 activated [Main] — the activateEffect verb (OnDeclaration window)
     const p1 = s.state.players[1] as PlayerState;
 
     const source = digimon(0, 7000, "BT4-049");
-    const burst = [
-      instance("AD1-001", 0, false),
-      instance("AD1-001", 0, false),
-      instance("AD1-001", 0, false),
-    ];
+    const burst = [instance("AD1-001", 0, false), instance("AD1-001", 0, false), instance("AD1-001", 0, false)];
     source.stack.push(...burst); // the 3 digivolution cards the <Digi-Burst 3> pays
     p0.battleArea.push(source);
     const sourceInstanceId = source.topCard!.instanceId;
@@ -1183,7 +1157,9 @@ describe("A3 DisableSecurityEffect — a disabled [Security]-of-Option effect do
 
   /** The resolution label the engine emitted for the security card with this id. */
   function securityResolution(s: Setup, cardId: string): string | undefined {
-    const e = s.events.find((ev) => ev.kind === "securityChecked" && "revealedCardId" in ev && ev.revealedCardId === cardId);
+    const e = s.events.find(
+      (ev) => ev.kind === "securityChecked" && "revealedCardId" in ev && ev.revealedCardId === cardId,
+    );
     return e && "resolution" in e ? (e.resolution as string) : undefined;
   }
 
@@ -1371,7 +1347,6 @@ describe("A3 DisableTimingEffect — a disabled [When Digivolving] effect does N
   });
 });
 
-
 describe("A3 WhenAttacking — GainMemory fires on attack declaration", () => {
   // BT4-057 (GrapLeomon): [When Attacking] Gain 1 memory.
   // The WhenAttacking window fires via EffectTiming.OnUseAttack inside
@@ -1429,9 +1404,7 @@ describe("A3 PlayWithoutCost — BT1-056 Petermon [On Play] plays Tinkermon for 
     p0.hand.push(petermon, tinkermon);
     s.state.memory = 5; // affords Petermon's cost-5 play
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: petermon.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: petermon.instanceId })).toEqual({ ok: true });
 
     // Wait until Tinkermon lands in the battle area (the free play resolves).
     await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT1-047"), 200);
@@ -1462,9 +1435,7 @@ describe("A3 PlayWithoutCost — BT1-056 Petermon [On Play] plays Tinkermon for 
     p0.trash.push(tinkermon);
     s.state.memory = 5;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: petermon.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: petermon.instanceId })).toEqual({ ok: true });
 
     await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT1-047"), 200);
     await settle(() => false, 40);
@@ -1487,9 +1458,7 @@ describe("A3 PlayWithoutCost — BT1-056 Petermon [On Play] plays Tinkermon for 
     p0.hand.push(petermon);
     s.state.memory = 5;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: petermon.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: petermon.instanceId })).toEqual({ ok: true });
 
     await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT1-056"), 200);
     await settle(() => false, 40);
@@ -1521,9 +1490,7 @@ describe("A3 Return — BT1-011 Agumon Expert [On Play] returns from recycle bin
     p0.trash.push(trashedAgumon);
     s.state.memory = 3; // affords BT1-011's cost-3 play
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: agumonExpert.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: agumonExpert.instanceId })).toEqual({ ok: true });
 
     await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT1-011"), 200);
     await settle(() => false, 40);
@@ -1923,11 +1890,7 @@ describe("A3 strike — Security Attack +1 makes the defender check 2 security c
     p0.battleArea.push(attacker);
 
     // Three face-down security cards (no [Security] battle interference for the count).
-    p1.security.push(
-      instance("BT1-085", 1, false),
-      instance("BT1-085", 1, false),
-      instance("BT1-085", 1, false),
-    );
+    p1.security.push(instance("BT1-085", 1, false), instance("BT1-085", 1, false), instance("BT1-085", 1, false));
     const securityBefore = p1.security.length;
 
     // Faithful fixture: a Security Attack +1 grant written straight to the continuous store
@@ -1955,11 +1918,7 @@ describe("A3 strike — Security Attack +1 makes the defender check 2 security c
 
     const attacker = digimon(0, 9000);
     p0.battleArea.push(attacker);
-    p1.security.push(
-      instance("BT1-085", 1, false),
-      instance("BT1-085", 1, false),
-      instance("BT1-085", 1, false),
-    );
+    p1.security.push(instance("BT1-085", 1, false), instance("BT1-085", 1, false), instance("BT1-085", 1, false));
     const securityBefore = p1.security.length;
 
     expect(
@@ -2305,9 +2264,7 @@ describe("A3 OnDestroyedAnyone — [On Deletion] fires at every real deletion si
 
     s.state.memory = 5;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: deleter.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: deleter.instanceId })).toEqual({ ok: true });
 
     await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId));
     await settle(() => false, 40); // drain any stray follow-up window
@@ -2678,18 +2635,17 @@ describe("A3 WaiveColorRequirement — minimal color-gate bypass (IR-01)", () =>
     // No Yellow source on the board => the minimal color gate rejects the play.
     // The color gate surfaces its own fine-grained reason (RejectReason consolidation,
     // fc20b1b6b: "Consolidate RejectReason as the single source of truth (10->28 codes)").
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId }),
-    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
     expect(p0.battleArea.length).toBe(0);
 
     // Faithful waiver on this instance (what the WaiveColorRequirement effect records).
     ledgerWrite(s).addColorWaiver(card.instanceId, EFFECT_DURATION_TURN);
 
     // The gate now short-circuits to legal: the card enters the battle area.
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
     await settle(() => p0.battleArea.length === 1);
     expect(p0.battleArea.length).toBe(1);
     expect(p0.battleArea[0]?.topCard?.cardId).toBe(COLOR_GATED);
@@ -2772,11 +2728,7 @@ describe("INRT-01 — no dead stores: each wired store fails-if-empty (anti-dead
       const p1 = s.state.players[1] as PlayerState;
       const attacker = digimon(0, 9000);
       p0.battleArea.push(attacker);
-      p1.security.push(
-        instance("BT1-085", 1, false),
-        instance("BT1-085", 1, false),
-        instance("BT1-085", 1, false),
-      );
+      p1.security.push(instance("BT1-085", 1, false), instance("BT1-085", 1, false), instance("BT1-085", 1, false));
       const securityBefore = p1.security.length;
       if (grant) {
         ledgerWrite(s).addKeywordGrant(attacker.permanentId, "SecurityAttack", EFFECT_DURATION_TURN, 1);
@@ -3103,9 +3055,7 @@ describe("A3 Digi-Burst BT7-040 — <Digi-Burst up to 4> scales -3000 DP per car
 
   it("BT7-040 trashing 2 applies -6000 DP and shrinks the stack by 2 (does not abort)", async () => {
     const ctx = drive(2);
-    const entry = activatableEffects(ctx.s, ctx.source).find(
-      (e) => e.instanceId === ctx.sourceInstanceId,
-    );
+    const entry = activatableEffects(ctx.s, ctx.source).find((e) => e.instanceId === ctx.sourceInstanceId);
     expect(entry, "BT7-040 surfaces its <Digi-Burst up to 4> [Main] ability").toBeDefined();
 
     expect(
@@ -3121,18 +3071,14 @@ describe("A3 Digi-Burst BT7-040 — <Digi-Burst up to 4> scales -3000 DP per car
     expect(ctx.target.currentDP).toBe(ctx.baseDp - 6000);
     // Cost paid from the SOURCE stack: it shrank by exactly the paid count.
     expect(ctx.source.stack).toHaveLength(0);
-    for (const c of ctx.burst)
-      expect(ctx.p0.trash.some((t) => t.instanceId === c.instanceId)).toBe(true);
+    for (const c of ctx.burst) expect(ctx.p0.trash.some((t) => t.instanceId === c.instanceId)).toBe(true);
     assertNoLoudGap(ctx.s);
   });
 
   it("BT7-040 trashing 1 applies -3000 DP — the reduction scales to the PAID count", async () => {
     const ctx = drive(1);
-    const entry = activatableEffects(ctx.s, ctx.source).find(
-      (e) => e.instanceId === ctx.sourceInstanceId,
-    );
-    expect(entry, "BT7-040 surfaces its ability with a single-card stack (Q1569: 1+ to activate)")
-      .toBeDefined();
+    const entry = activatableEffects(ctx.s, ctx.source).find((e) => e.instanceId === ctx.sourceInstanceId);
+    expect(entry, "BT7-040 surfaces its ability with a single-card stack (Q1569: 1+ to activate)").toBeDefined();
 
     expect(
       ctx.s.engine.applyIntent(0, {
@@ -3155,9 +3101,7 @@ describe("A3 Digi-Burst BT7-040 — <Digi-Burst up to 4> scales -3000 DP per car
     const other = digimon(1, ctx.baseDp, "AD1-001"); // a second opponent Digimon
     ctx.p1.battleArea.push(other);
 
-    const entry = activatableEffects(ctx.s, ctx.source).find(
-      (e) => e.instanceId === ctx.sourceInstanceId,
-    );
+    const entry = activatableEffects(ctx.s, ctx.source).find((e) => e.instanceId === ctx.sourceInstanceId);
     expect(
       ctx.s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -3181,10 +3125,34 @@ describe("IDigiBurst cost shape — all 28 cards keep a targeted digivolutionCar
   // Before the fix BT4-054 (no cost) and BT7-040 (targetless raw cost) FAIL this assertion;
   // after the fix all 28 pass and the 26 already-correct cards must not regress.
   const IDIGIBURST_CARDS = [
-    "BT4-012", "BT4-017", "BT4-019", "BT4-026", "BT4-032", "BT4-033", "BT4-046",
-    "BT4-049", "BT4-054", "BT4-059", "BT4-062", "BT4-068", "BT4-072", "BT4-081",
-    "BT5-046", "BT5-056", "BT5-057", "BT5-070", "BT5-079", "BT6-028", "BT7-034",
-    "BT7-040", "P-025", "P-026", "P-027", "ST4-13", "ST5-13", "ST6-13",
+    "BT4-012",
+    "BT4-017",
+    "BT4-019",
+    "BT4-026",
+    "BT4-032",
+    "BT4-033",
+    "BT4-046",
+    "BT4-049",
+    "BT4-054",
+    "BT4-059",
+    "BT4-062",
+    "BT4-068",
+    "BT4-072",
+    "BT4-081",
+    "BT5-046",
+    "BT5-056",
+    "BT5-057",
+    "BT5-070",
+    "BT5-079",
+    "BT6-028",
+    "BT7-034",
+    "BT7-040",
+    "P-025",
+    "P-026",
+    "P-027",
+    "ST4-13",
+    "ST5-13",
+    "ST6-13",
   ];
 
   function hasTargetedDigiBurstCost(cardId: string): boolean {
@@ -3201,8 +3169,7 @@ describe("IDigiBurst cost shape — all 28 cards keep a targeted digivolutionCar
 
   it("every IDigiBurst card carries a targeted digivolutionCards trash cost", () => {
     const missing = IDIGIBURST_CARDS.filter((id) => !hasTargetedDigiBurstCost(id));
-    expect(missing, `cards lacking a targeted digivolutionCards cost: ${missing.join(", ")}`)
-      .toEqual([]);
+    expect(missing, `cards lacking a targeted digivolutionCards cost: ${missing.join(", ")}`).toEqual([]);
   });
 });
 
@@ -3370,7 +3337,6 @@ describe("A3 Tamer-onto digivolve — 'digivolve from hand onto a <color> Tamer 
   });
 });
 
-
 // ---------------------------------------------------------------------------
 // A3 — BT9-012 Greymon (X Antibody): inherited leave-prevention.
 //
@@ -3411,11 +3377,7 @@ describe("A3 LeavePrevention — BT9-012 inherited same-level trash to prevent l
     const host = digimon(0, 6000, GREYMON_HOST);
     // Stack: BT9-012 (Lv.4) + two Lv.3 cards. Only the two Lv.3s share a level, so the
     // cost is payable and the offered candidates are exactly those two.
-    host.stack.push(
-      instance("BT9-012", 0, true),
-      instance(LV3_A, 0, true),
-      instance(LV3_B, 0, true),
-    );
+    host.stack.push(instance("BT9-012", 0, true), instance(LV3_A, 0, true), instance(LV3_B, 0, true));
     p0.battleArea.push(host);
     const stackBefore = host.stack.length;
 
@@ -3433,11 +3395,7 @@ describe("A3 LeavePrevention — BT9-012 inherited same-level trash to prevent l
     const p0 = s.state.players[0] as PlayerState;
 
     const host = digimon(0, 6000, GREYMON_HOST);
-    host.stack.push(
-      instance("BT9-012", 0, true),
-      instance(LV3_A, 0, true),
-      instance(LV3_B, 0, true),
-    );
+    host.stack.push(instance("BT9-012", 0, true), instance(LV3_A, 0, true), instance(LV3_B, 0, true));
     p0.battleArea.push(host);
     const stackBefore = host.stack.length;
 
@@ -3463,11 +3421,7 @@ describe("A3 LeavePrevention — BT9-012 inherited same-level trash to prevent l
 
     const host = digimon(0, 6000, GREYMON_HOST);
     // All distinct levels: BT9-012 (Lv.4), Lv.3, Lv.5 — no pair shares a level.
-    host.stack.push(
-      instance("BT9-012", 0, true),
-      instance(LV3_A, 0, true),
-      instance(LV5, 0, true),
-    );
+    host.stack.push(instance("BT9-012", 0, true), instance(LV3_A, 0, true), instance(LV5, 0, true));
     p0.battleArea.push(host);
 
     await effectDelete(s, host.permanentId);
@@ -3485,11 +3439,7 @@ describe("A3 LeavePrevention — BT9-012 inherited same-level trash to prevent l
     const p0 = s.state.players[0] as PlayerState;
 
     const host = digimon(0, 6000, NON_GREYMON_HOST); // Guilmon — name does not qualify
-    host.stack.push(
-      instance("BT9-012", 0, true),
-      instance(LV3_A, 0, true),
-      instance(LV3_B, 0, true),
-    );
+    host.stack.push(instance("BT9-012", 0, true), instance(LV3_A, 0, true), instance(LV3_B, 0, true));
     p0.battleArea.push(host);
 
     await effectDelete(s, host.permanentId);
@@ -3534,9 +3484,9 @@ describe("BT13-008 TreatAs — card-level A3 (real engine, drives resolve())", (
     const entry = activatableEffects(s, marsmon).find((e) => e.instanceId === sourceInstanceId);
     expect(entry, "BT13-008 surfaces its [Main] become-Digimon ability").toBeDefined();
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((e) => e.kind === "effectActivated"));
 
     // --- after activation: the chosen Marcus Damon is now a 3000-DP Digimon that can't digivolve ---
@@ -3734,7 +3684,11 @@ describe("Wave-1 SubTrigger-source targeting — card-level A3s", () => {
     p1.security.push(instance("BT1-028", 1, false)); // absorb the attack
 
     expect(
-      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
     ).toEqual({ ok: true });
     await settle(() => ledger(s).hasKeyword(attacker.permanentId, "Jamming"));
 
@@ -3808,9 +3762,7 @@ describe("A3 SubTrigger — whenMovedFromBreeding / whenOpponentMovedFromBreedin
       description: "test: count whenMovedFromBreeding fires",
     });
 
-    expect(
-      s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: bred.permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: bred.permanentId })).toEqual({ ok: true });
 
     await settle(() => movedFromBreedingCount > 0);
 
@@ -3846,9 +3798,7 @@ describe("A3 SubTrigger — whenMovedFromBreeding / whenOpponentMovedFromBreedin
       description: "test: count whenOpponentMovedFromBreeding fires",
     });
 
-    expect(
-      s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: bred.permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: bred.permanentId })).toEqual({ ok: true });
 
     await settle(() => opponentMovedCount > 0);
 
@@ -4157,9 +4107,9 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
     // silently auto-saved) while the decision window is open.
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(true);
 
-    expect(
-      s.engine.applyIntent(1, { type: "respondEvade", permanentId: target.permanentId, accept: true }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "respondEvade", permanentId: target.permanentId, accept: true })).toEqual({
+      ok: true,
+    });
     await settle(() => target.isSuspended);
 
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(true);
@@ -4179,9 +4129,9 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
     playDeleteEffect(s);
     await settle(() => evadePromptFor(s, target.permanentId));
 
-    expect(
-      s.engine.applyIntent(1, { type: "respondEvade", permanentId: target.permanentId, accept: false }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "respondEvade", permanentId: target.permanentId, accept: false })).toEqual({
+      ok: true,
+    });
     await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId));
 
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false);
@@ -4204,9 +4154,9 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
 
     expect(barrierPromptFor(s, target.permanentId)).toBe(true);
 
-    expect(
-      s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: true }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: true })).toEqual({
+      ok: true,
+    });
     await settle(() => p1.security.length === 0);
 
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(true);
@@ -4229,9 +4179,9 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
     playDeleteEffect(s);
     await settle(() => barrierPromptFor(s, target.permanentId));
 
-    expect(
-      s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: false }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: false })).toEqual(
+      { ok: true },
+    );
     await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId));
 
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false);

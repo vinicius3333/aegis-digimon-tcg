@@ -97,9 +97,7 @@ describe("EX10-035 — restricted-digivolve-target (can only digivolve into [Apo
 
 /** The OnDeclaration effectKey for EX10-035's [Hand][Main] reduced-cost play (the activate key). */
 function reducedCostPlayEffectKey(s: EngineSetup, instance: CardInstance): string {
-  const source = (
-    s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }
-  ).cardSourceOf(instance);
+  const source = (s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }).cardSourceOf(instance);
   const effects = effectsOf(EffectTiming.OnDeclaration, source);
   const found = effects.find((e) => e.effectKey.startsWith("EX10-035/"));
   if (found === undefined) throw new Error("EX10-035 surfaces no [Hand][Main] activated effect");
@@ -116,9 +114,7 @@ async function fireEndTurn(s: EngineSetup): Promise<void> {
   // Keep the privileged timing fire in the source owner's frame. Paying 6 may already
   // advance the harness turn before this direct seam is invoked.
   s.state.turnSeat = 0;
-  await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
-    EffectTiming.OnEndTurn,
-  );
+  await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnEndTurn);
 }
 
 function onField(s: EngineSetup, instanceId: string): boolean {
@@ -149,9 +145,11 @@ describe("EX10-035 — delayed-delete-played gates to the reduced-cost [Hand][Ma
 
     // Activate the [Hand][Main] reduced-cost play through the real activateEffect verb.
     const effectKey = reducedCostPlayEffectKey(s, inHand);
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: inHand.instanceId, effectKey })).toEqual({
-      ok: true,
-    });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: inHand.instanceId, effectKey })).toEqual(
+      {
+        ok: true,
+      },
+    );
     await settle(() => onField(s, inHand.instanceId));
     await settle();
 

@@ -11,114 +11,114 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   trait — KB Q1850) is in this Digimon's digivolution cards, suspend 1 opponent Digimon
 //   and unsuspend this Digimon.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "RedirectAttack",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": ["Digimon"]
+          kind: "RedirectAttack",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "duringAttack"
+          condition: {
+            kind: "duringAttack",
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 4000,
-          "duration": "permanent"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": ["GranKuwagamon", "X Antibody"],
-                  "match": "nameExact"
-                }
-              ]
-            },
-            "raw": "[GranKuwagamon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
+          optional: true,
         },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": ["GranKuwagamon", "X Antibody"],
-                  "match": "nameExact"
-                }
-              ]
-            },
-            "raw": "[GranKuwagamon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "names": ["GranKuwagamon"],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 4000,
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["GranKuwagamon", "X Antibody"],
+                  match: "nameExact",
+                },
+              ],
+            },
+            raw: "[GranKuwagamon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["GranKuwagamon", "X Antibody"],
+                  match: "nameExact",
+                },
+              ],
+            },
+            raw: "[GranKuwagamon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["GranKuwagamon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-055", compiled);

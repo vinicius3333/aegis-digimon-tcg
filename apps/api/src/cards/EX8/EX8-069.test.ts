@@ -25,18 +25,39 @@ describe("EX8-069", () => {
     ]));
   it("contains only the printed effects", () => expect(compiled.effects).toHaveLength(4));
   it("plays an optional level 5 or lower NSp Digimon from hand without cost in security", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "EX8-069", as: "securityCard" }], hand: [{ card: "EX7-015", as: "nsp" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+        1: { security: [{ card: "EX8-069", as: "securityCard" }], hand: [{ card: "EX7-015", as: "nsp" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const instanceId = s.inst("nsp").instanceId;
     const memoryBeforeSecurityEffect = s.state.memory;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => (s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
-    expect((s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      (s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId),
+    );
+    expect(
+      (s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId),
+    ).toBe(true);
     expect((s.state.players[1] as PlayerState).hand.some((card) => card.instanceId === instanceId)).toBe(false);
     expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
   });
   it("grants Alliance to a live NSp Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-069", as: "source" }, { card: "EX7-015", as: "nsp" }] },
+      0: {
+        battleArea: [
+          { card: "EX8-069", as: "source" },
+          { card: "EX7-015", as: "nsp" },
+        ],
+      },
     });
     await s.ready();
 

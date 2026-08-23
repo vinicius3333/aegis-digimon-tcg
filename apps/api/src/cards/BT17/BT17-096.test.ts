@@ -5,12 +5,22 @@ import "./index.js";
 
 describe("BT17-096 Crimson Savior", () => {
   it("keeps the Main play clause and exposes Gallantmon digivolution as Delay", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", actions: [{ kind: "PlayWithoutCost" }, { kind: "PlaceInBattleAreaSelf" }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "Main",
+      actions: [{ kind: "PlayWithoutCost" }, { kind: "PlaceInBattleAreaSelf" }],
+    });
     expect(compiled.effects?.[0]?.actions?.[1]).not.toHaveProperty("optional");
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "Main",
       keywords: [{ keyword: "Delay" }],
-      actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, into: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "name" }] } }],
+      actions: [
+        {
+          kind: "Digivolve",
+          from: ["hand"],
+          payCost: false,
+          into: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "name" }] },
+        },
+      ],
     });
   });
 
@@ -24,11 +34,18 @@ describe("BT17-096 Crimson Savior", () => {
   });
 
   it("activates the Main effect from Security", () => {
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] });
+    expect(compiled.effects?.[3]).toMatchObject({
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "ActivateMain" }],
+    });
   });
 
   it("places itself in the battle area after declining the optional play", async () => {
-    const s = setupEngine({ 0: { battleArea: ["BT17-007"], hand: [{ card: "BT17-096", as: "option" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: ["BT17-007"], hand: [{ card: "BT17-096", as: "option" }] } },
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 3;
     const optionId = s.inst("option").instanceId;
 

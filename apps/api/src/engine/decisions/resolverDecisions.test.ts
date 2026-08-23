@@ -60,9 +60,11 @@ function fakeCollected(
  * request. Lets us drive the manager synchronously: when the manager raises a
  * decision, we immediately feed a respondDecision back.
  */
-function autoTransport(
-  answer: (req: DecisionRequest) => DecisionResponse,
-): { transport: DecisionTransport; requests: DecisionRequest[]; bind: (m: DecisionManager) => void } {
+function autoTransport(answer: (req: DecisionRequest) => DecisionResponse): {
+  transport: DecisionTransport;
+  requests: DecisionRequest[];
+  bind: (m: DecisionManager) => void;
+} {
   const requests: DecisionRequest[] = [];
   let manager: DecisionManager | undefined;
   const transport: DecisionTransport = {
@@ -145,11 +147,7 @@ describe("createResolverDecisions.chooseOrder", () => {
     bind(manager);
 
     const decisions = createResolverDecisions(manager);
-    const index = await decisions.chooseOrder(0, [
-      fakeCollected("a"),
-      fakeCollected("b"),
-      fakeCollected("c"),
-    ]);
+    const index = await decisions.chooseOrder(0, [fakeCollected("a"), fakeCollected("b"), fakeCollected("c")]);
     expect(index).toBe(2); // "c"
   });
 

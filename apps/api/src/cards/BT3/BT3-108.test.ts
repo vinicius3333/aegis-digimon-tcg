@@ -7,9 +7,14 @@ import "./BT3-108.js";
 
 describe("BT3-108 Dark Despair", () => {
   it("grants Retaliation until the end of the opponent's next turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT3-076", as: "target" }], hand: [{ card: "BT3-108", as: "option" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT3-076", as: "target" }], hand: [{ card: "BT3-108", as: "option" }] } },
+      { autoSelectCards: true },
+    );
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Retaliation"));
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Retaliation")).toBe(true);
   });

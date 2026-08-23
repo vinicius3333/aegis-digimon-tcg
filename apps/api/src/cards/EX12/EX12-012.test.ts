@@ -8,7 +8,10 @@ describe("EX12-012 Apemon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "EX12-012", as: "source" }, { card: "EX12-006", as: "cost" }],
+          hand: [
+            { card: "EX12-012", as: "source" },
+            { card: "EX12-006", as: "cost" },
+          ],
           deck: ["BT1-009", "BT1-010"],
         },
       },
@@ -16,7 +19,9 @@ describe("EX12-012 Apemon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
@@ -28,7 +33,10 @@ describe("EX12-012 Apemon", () => {
       {
         0: {
           battleArea: [{ card: "EX12-006", as: "base" }],
-          hand: [{ card: "EX12-012", as: "source" }, { card: "EX12-006", as: "cost" }],
+          hand: [
+            { card: "EX12-012", as: "source" },
+            { card: "EX12-006", as: "cost" },
+          ],
           deck: ["BT1-009", "BT1-010"],
         },
       },
@@ -62,7 +70,9 @@ describe("EX12-012 Apemon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
@@ -73,7 +83,8 @@ describe("EX12-012 Apemon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX12-012", as: "host", under: ["EX12-012"] }] } });
     await s.ready();
 
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("host").permanentId, "Raid")).toBe(true);
     expect(s.perm("host").currentDP).toBe(6000);
     s.state.turnSeat = 1;
@@ -83,12 +94,19 @@ describe("EX12-012 Apemon", () => {
 
   it("encodes the mandatory SW hand cost in both windows and the alternate evolution", () => {
     const compiled = registeredCompiledCards.get("EX12-012")!;
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 3, traits: ["Shambala"], cost: 2, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Shambala"], cost: 2, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [{ kind: "Draw", amount: 2, cost: { kind: "trash", target: { filter: { zone: "hand", nameOrTrait: [{ match: "trait", tokens: ["SW"] }] }, count: 1 } } }],
+        actions: [
+          {
+            kind: "Draw",
+            amount: 2,
+            cost: {
+              kind: "trash",
+              target: { filter: { zone: "hand", nameOrTrait: [{ match: "trait", tokens: ["SW"] }] }, count: 1 },
+            },
+          },
+        ],
       });
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).not.toHaveProperty("optional");
     }

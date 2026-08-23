@@ -8,9 +8,22 @@ describe("BT18-018 EmperorGreymon", () => {
   it("gains Security Attack +1 and unsuspends once when it wins a battle", async () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "TrashDigivolution", scaling: { unit: "digivolutionCardColors" } }, { kind: "Suspend", scaling: { unit: "digivolutionCardColors" } }, { kind: "Attack" }] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle" }] });
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT1-030"], suspended: true }] } });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "TrashDigivolution", scaling: { unit: "digivolutionCardColors" } },
+        { kind: "Suspend", scaling: { unit: "digivolutionCardColors" } },
+        { kind: "Attack" },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle" }],
+    });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-018", as: "emperor", under: ["BT1-030"], suspended: true }] },
+    });
     await s.ready();
     const emperorId = s.perm("emperor").permanentId;
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: emperorId });

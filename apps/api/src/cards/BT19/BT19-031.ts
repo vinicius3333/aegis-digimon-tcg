@@ -7,151 +7,133 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // played ShootingStarmon (Q&A: place whichever is available).
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Decoy",
-          "raw": "＜Decoy ([Xros Heart] trait)＞"
-        }
-      ]
+          keyword: "Decoy",
+          raw: "＜Decoy ([Xros Heart] trait)＞",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "digivolutionCards",
-              "hostFilter": {
-                "kind": [
-                  "Tamer"
-                ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "digivolutionCards",
+              hostFilter: {
+                kind: ["Tamer"],
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "ShootingStarmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["ShootingStarmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "payCost": false,
-          "optional": true,
-          "abortOnDecline": true
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Starmons"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Starmons"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "ShootingStarmon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["ShootingStarmon"],
+                match: "name",
+              },
+            ],
           },
-          "position": "bottom"
+          position: "bottom",
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Pickmons"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Pickmons"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "ShootingStarmon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["ShootingStarmon"],
+                match: "name",
+              },
+            ],
           },
-          "position": "bottom"
-        }
-      ]
+          position: "bottom",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -2000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                { "tokens": ["Xros Heart"], "match": "trait" }
-              ]
+          amount: -2000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }],
             },
-            "raw": "this Digimon has the [Xros Heart] trait"
-          }
-        }
+            raw: "this Digimon has the [Xros Heart] trait",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "Xros Heart"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["Xros Heart"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT19-031", compiled);

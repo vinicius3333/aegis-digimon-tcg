@@ -21,12 +21,14 @@ describe("EX8-031", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenOptionUsed",
-        fireCondition: { kind: "triggerOptionCostAtLeast", value: 2 },
-        actions: [{ kind: "ModifyDP", amount: -2000, duration: "forTheTurn" }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          fireCondition: { kind: "triggerOptionCostAtLeast", value: 2 },
+          actions: [{ kind: "ModifyDP", amount: -2000, duration: "forTheTurn" }],
+        },
+      ],
     });
   });
   it("returns a Plug-In Option from trash on play", async () => {

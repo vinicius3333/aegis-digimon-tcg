@@ -7,7 +7,10 @@ describe("P-011 Veedramon Zero", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "P-011", as: "attacker" }, { card: "BT1-086", as: "tamer" }],
+          battleArea: [
+            { card: "P-011", as: "attacker" },
+            { card: "BT1-086", as: "tamer" },
+          ],
           deck: [
             { card: "BT1-001", as: "first" },
             { card: "BT1-002", as: "second" },
@@ -22,11 +25,13 @@ describe("P-011 Veedramon Zero", () => {
     const baseDP = s.perm("attacker").baseDP;
     const trashed = [s.inst("first").instanceId, s.inst("second").instanceId, s.inst("third").instanceId];
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 3 && s.perm("attacker").currentDP === baseDP + 2000);
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(trashed));
@@ -46,11 +51,13 @@ describe("P-011 Veedramon Zero", () => {
     );
     const baseDP = s.perm("attacker").baseDP;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -77,11 +84,13 @@ describe("P-011 Veedramon Zero", () => {
     const drawnId = s.inst("drawn").instanceId;
     const eggId = s.inst("egg").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([eggId]);

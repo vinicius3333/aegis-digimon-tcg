@@ -82,13 +82,7 @@ export function createDeploymentRuntime(options: DeploymentRuntimeOptions): Depl
   };
 }
 
-export function installDeploymentRoutes({
-  app,
-  runtime,
-}: {
-  app: Express;
-  runtime: DeploymentRuntime;
-}): void {
+export function installDeploymentRoutes({ app, runtime }: { app: Express; runtime: DeploymentRuntime }): void {
   app.get("/health", (_request, response) => {
     response.json(runtime.health());
   });

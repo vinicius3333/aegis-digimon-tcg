@@ -6,125 +6,108 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Holy Beast",
-                  "Archangel",
-                  "Fallen Angel"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ],
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+                tokens: ["Holy Beast", "Archangel", "Fallen Angel"],
+                match: "trait",
               },
-              "count": 1,
-              "isSelf": true
+            ],
+          },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
             },
-            "raw": "by suspending this Tamer"
-          }
+          ],
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer",
+          },
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Angewomon",
-                  "LadyDevimon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "from": [
-            "trash"
-          ],
-          "reduceCost": 1,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 2
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
+                tokens: ["Angewomon", "LadyDevimon"],
+                match: "name",
+              },
             ],
-            "hasDnaDigivolutionRequirement": true
           },
-          "payCost": true,
-          "optional": true
-        }
+          from: ["trash"],
+          reduceCost: 1,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "isSelf": true
+            count: 2,
           },
-          "payCost": false
-        }
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            hasDnaDigivolutionRequirement: true,
+          },
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-074", compiled);

@@ -6,78 +6,69 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The outer Replacement gates on self being played (wouldBePlayed).
 // The inner Replacement carries a youHave condition for the Alice McCoy in-play check.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 2,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "zone": "battleArea",
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ],
-                  "nameOrTrait": [
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Alice McCoy"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Alice McCoy"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "raw": "if you have [Alice McCoy] in play"
+                raw: "if you have [Alice McCoy] in play",
               },
-              "raw": "reduce its play cost by 2 if you have [Alice McCoy] in play"
-            }
-          ]
-        }
-      ]
+              raw: "reduce its play cost by 2 if you have [Alice McCoy] in play",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 3
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 3,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "colors": [
-                "Purple"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon", "Tamer"],
+              colors: ["Purple"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
-    }
+          to: "hand",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-041", compiled);

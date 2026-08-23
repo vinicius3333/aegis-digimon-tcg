@@ -6,60 +6,54 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levels": [
-                  5
-                ],
-                "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                kind: ["Digimon"],
+                levels: [5],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Cyborg"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Cyborg"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 level 5 Digimon card with [Cyborg] in its traits in your hand"
+            raw: "by trashing 1 level 5 Digimon card with [Cyborg] in its traits in your hand",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "optional": true
-        }
-      ]
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-069", compiled);

@@ -6,122 +6,106 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine"
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce its memory cost by 1"
-            }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce its memory cost by 1",
+            },
           ],
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "battleArea",
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "battleArea",
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Justimon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
+            unit: "cards",
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true,
-          "bindResultAs": "playedDigimon"
         },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "playCost": {
-                "lteBindResult": "playedDigimon"
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "bindingExists",
-            "ref": "playedDigimon",
-            "raw": "you do"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Black"
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        },
-        {
-          "kind": "AddToHandSelf"
-        }
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Justimon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          bindResultAs: "playedDigimon",
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCost: {
+                lteBindResult: "playedDigimon",
+              },
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "bindingExists",
+            ref: "playedDigimon",
+            raw: "you do",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Black"],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-106", compiled);

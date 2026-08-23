@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type GameState,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../effects/registry.js";
 import type { CardSource } from "../effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../effects/EffectContext.js";
@@ -112,8 +106,7 @@ function makeContext(opts: {
     state,
     player: (seat: Seat) => players[seat] as never,
     opponentOf: (s: Seat) => (s === 0 ? 1 : 0),
-    permanentById: (id: string) =>
-      [...ownerBattleArea, ...opponentBattleArea].find((p) => p.permanentId === id),
+    permanentById: (id: string) => [...ownerBattleArea, ...opponentBattleArea].find((p) => p.permanentId === id),
     definitionOf: (card: { cardId: string }) => {
       const over = definitionOverrides?.get(card.cardId) ?? {};
       return fakeDefinition({ cardId: card.cardId, nameEn: card.cardId, kinds: ["Digimon"] as never, ...over });
@@ -130,10 +123,8 @@ function makeContext(opts: {
 
   const ask: DecisionApi = {
     optional: async () => true,
-    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
-    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
+    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
+    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
     chooseOption: async () => 0,
   } as unknown as DecisionApi;
 

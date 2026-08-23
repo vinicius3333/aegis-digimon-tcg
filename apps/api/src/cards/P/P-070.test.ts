@@ -18,22 +18,21 @@ describe("P-070 Dorumon", () => {
     const revealedId = s.inst("revealedDorumon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === promoId) &&
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard.instanceId === revealedId
-      ),
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === promoId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === revealedId),
     );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === promoId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === revealedId
-    )).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === revealedId)).toBe(true);
   });
 
   it("adds the revealed card and itself to hand when the optional play is declined", async () => {
@@ -51,21 +50,26 @@ describe("P-070 Dorumon", () => {
     const revealedId = s.inst("revealedDorumon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const decision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "selectCards", instanceIds: [] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === promoId) &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === revealedId),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === promoId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === revealedId),
     );
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
@@ -85,11 +89,13 @@ describe("P-070 Dorumon", () => {
     const revealedId = s.inst("redDigimon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
@@ -106,14 +112,14 @@ describe("P-070 Dorumon", () => {
     const promoId = s.inst("promoDorumon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(
-      (card) => card.instanceId === promoId,
-    ));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === promoId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([promoId]);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);

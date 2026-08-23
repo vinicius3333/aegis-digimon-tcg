@@ -9,118 +9,118 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 1 of this Digimon's [When Digivolving] effects. Then, 1 of your Digimon may attack.
 // The ActivateEffect targets the opponent's Digimon or Tamer (inherited from WhenDigivolving).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onAddDigivolutionCards",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": ["Tamer"]
-          },
-          "actions": [
-            {
-              "kind": "ActivateEffect",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
-              },
-              "effectType": "WhenDigivolving"
-            },
-            {
-              "kind": "Attack",
-              "target": {
-                "filter": { "controller": "mine", "kind": ["Digimon"] },
-                "count": 1
-              },
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
-            {
-              "kind": "SecurityManipulation",
-              "op": "addTop",
-              "controller": "mine",
-              "source": "deck",
-              "amount": 1,
-              "condition": {
-                "kind": "selfHasNameContaining",
-            "names": ["Fenriloogamon"],
-            "raw": "this Digimon has [Fenriloogamon] in its name"
-              }
-            }
-          ]
-        }
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "texts": ["Pulsemon"],
-      "cost": 3,
-      "isAlternate": true
     },
     {
-      "level": 5,
-      "traits": ["SEEKERS"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Tamer"],
+          },
+          actions: [
+            {
+              kind: "ActivateEffect",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
+              },
+              effectType: "WhenDigivolving",
+            },
+            {
+              kind: "Attack",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "addTop",
+              controller: "mine",
+              source: "deck",
+              amount: 1,
+              condition: {
+                kind: "selfHasNameContaining",
+                names: ["Fenriloogamon"],
+                raw: "this Digimon has [Fenriloogamon] in its name",
+              },
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      texts: ["Pulsemon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      level: 5,
+      traits: ["SEEKERS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT20-035", compiled);

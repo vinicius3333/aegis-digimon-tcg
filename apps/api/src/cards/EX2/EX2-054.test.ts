@@ -6,9 +6,21 @@ import "./EX2-054.js";
 
 describe("EX2-054 ADR-09 Gatekeeper", () => {
   it("recovers 1 on play while Mother D-Reaper is in play", async () => {
-    const s = setupEngine({ 0: { battleArea: ["EX2-007"], hand: [{ card: "EX2-054", as: "gatekeeper" }], deck: ["BT1-001"], security: ["BT1-002", "BT1-003"] } }, { autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["EX2-007"],
+          hand: [{ card: "EX2-054", as: "gatekeeper" }],
+          deck: ["BT1-001"],
+          security: ["BT1-002", "BT1-003"],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
     s.state.memory = 20;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatekeeper").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatekeeper").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.length === 3);
     expect(s.state.players[0]!.security).toHaveLength(3);
   });
@@ -23,16 +35,16 @@ describe("EX2-054 ADR-09 Gatekeeper", () => {
     });
     s.state.memory = 20;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("gatekeeper").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("gatekeeper").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
 
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(
-      s.inst("deckTop").instanceId,
-    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("deckTop").instanceId);
   });
 
   it("gives every opposing Digimon Security Attack -1 with 6+ Mother sources", async () => {
@@ -43,7 +55,12 @@ describe("EX2-054 ADR-09 Gatekeeper", () => {
           { card: "EX2-054", as: "gatekeeper" },
         ],
       },
-      1: { battleArea: [{ card: "EX2-019", as: "first" }, { card: "EX2-025", as: "second" }] },
+      1: {
+        battleArea: [
+          { card: "EX2-019", as: "first" },
+          { card: "EX2-025", as: "second" },
+        ],
+      },
     });
     await s.ready();
     // Board specs deliberately bypass the match loop; move to the opponent's turn and

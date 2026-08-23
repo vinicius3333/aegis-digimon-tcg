@@ -24,12 +24,15 @@ describe("BT12-097 handwritten module", () => {
   });
 
   it("places a Save Digimon from trash under Ryoma when the stack has two or fewer cards", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT12-097", as: "ryoma" }],
-        trash: [{ card: "BT12-008", as: "save" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-097", as: "ryoma" }],
+          trash: [{ card: "BT12-008", as: "save" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ryoma"));
     await settle(() => s.perm("ryoma").stack.some(({ cardId }) => cardId === "BT12-008"));
@@ -38,12 +41,15 @@ describe("BT12-097 handwritten module", () => {
   });
 
   it("does not load a third card when two cards are already under Ryoma", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT12-097", as: "ryoma", under: ["BT12-008", "BT12-008"] }],
-        trash: [{ card: "BT12-008", as: "save" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-097", as: "ryoma", under: ["BT12-008", "BT12-008"] }],
+          trash: [{ card: "BT12-008", as: "save" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ryoma"));
     expect(s.perm("ryoma").stack).toHaveLength(3);

@@ -51,12 +51,9 @@ describe("BT25-079 Hyemon", () => {
     );
     await s.ready();
     const internals = internalsOf(s.engine);
-    internals.continuous.addKindGrant(
-      s.perm("joe").permanentId,
-      [CardKind.Digimon],
-      EffectDuration.Permanent,
-      { continuous: true },
-    );
+    internals.continuous.addKindGrant(s.perm("joe").permanentId, [CardKind.Digimon], EffectDuration.Permanent, {
+      continuous: true,
+    });
     expect(internals.continuous.grantedKinds(s.perm("joe").permanentId)).toContain(CardKind.Digimon);
 
     s.state.memory = 0;

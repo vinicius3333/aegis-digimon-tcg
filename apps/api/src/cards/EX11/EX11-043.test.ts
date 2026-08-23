@@ -11,10 +11,25 @@ describe("EX11-043 Invisimon", () => {
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
-      expect(effect.actions[0]).toMatchObject({ kind: "SecurityManipulation", op: "flipUp", controller: "opponent", amount: 1 });
-      expect(effect.actions[1]).toMatchObject({ kind: "Return", to: "deckBottom", target: { filter: { controller: "opponent", superlative: "lowestPlayCost" } } });
-      expect(effect.actions[2]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "untilYourTurnEnd" });
+      expect(effect.actions[0]).toMatchObject({
+        kind: "SecurityManipulation",
+        op: "flipUp",
+        controller: "opponent",
+        amount: 1,
+      });
+      expect(effect.actions[1]).toMatchObject({
+        kind: "Return",
+        to: "deckBottom",
+        target: { filter: { controller: "opponent", superlative: "lowestPlayCost" } },
+      });
+      expect(effect.actions[2]).toMatchObject({
+        kind: "GainKeyword",
+        keyword: { keyword: "SecurityAttack", amount: 1 },
+        duration: "untilYourTurnEnd",
+      });
     }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "EndOfOpponentsTurn", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "EndOfOpponentsTurn", isSecurity: true }),
+    );
   });
 });

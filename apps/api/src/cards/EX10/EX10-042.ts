@@ -6,124 +6,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gammamon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
+            count: 1,
+            from: ["trash"],
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gammamon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
+            count: 1,
+            from: ["trash"],
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onAddDigivolutionCards",
-          "sourceFilter": { "isSelfRef": true },
-          "actions": [
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: { isSelfRef: true },
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Regulusmon"], "match": "name" }]
+              kind: "Digivolve",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Regulusmon"], match: "name" }],
               },
-              "from": ["hand", "trash"],
-              "reduceCost": 1,
-              "optional": true
-            }
-          ]
-        }
+              from: ["hand", "trash"],
+              reduceCost: 1,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Gammamon"
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Gammamon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX10-042", compiled);

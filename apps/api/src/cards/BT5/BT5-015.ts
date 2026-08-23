@@ -6,78 +6,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 4000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "MetalGreymon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["MetalGreymon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a Digimon card with [MetalGreymon] in its name is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "a Digimon card with [MetalGreymon] in its name is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 2000
+          effect: {
+            kind: "modifyDP",
+            amount: 2000,
           },
-          "while": {
-            "kind": "selfHasNameContaining",
-            "names": [
-              "Omnimon",
-              "Greymon"
-            ],
-            "excludeNames": [
-              "DoruGreymon",
-              "BurningGreymon",
-              "DexDoruGreymon"
-            ],
-            "raw": "this Digimon has [Omnimon] or [Greymon] other than [DoruGreymon], [BurningGreymon], or [DexDoruGreymon] in its name"
-          }
-        }
+          while: {
+            kind: "selfHasNameContaining",
+            names: ["Omnimon", "Greymon"],
+            excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+            raw: "this Digimon has [Omnimon] or [Greymon] other than [DoruGreymon], [BurningGreymon], or [DexDoruGreymon] in its name",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-015", compiled);

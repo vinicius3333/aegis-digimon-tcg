@@ -37,9 +37,7 @@ describe("RB1-024 Lamortmon", () => {
   it("trashes the opponent security top when this inherited Digimon deletes in battle", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "RB1-025", as: "host", under: [{ card: "RB1-020" }, { card: "RB1-024", as: "lamort" }] },
-        ],
+        battleArea: [{ card: "RB1-025", as: "host", under: [{ card: "RB1-020" }, { card: "RB1-024", as: "lamort" }] }],
       },
       1: { battleArea: [{ card: "EX2-045", as: "target", suspended: true }], security: ["BT1-009"] },
     });
@@ -53,10 +51,7 @@ describe("RB1-024 Lamortmon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0,
-      5000,
-    );
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0, 5000);
 
     expect(s.state.players[1]!.battleArea.length).toBe(0);
     expect(s.state.players[1]!.security.length).toBe(0);

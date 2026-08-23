@@ -22,101 +22,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // orFilters field on the UseOptionWithoutCost.
 // The "with cost reduced by 2" is payCost:true + reduceCostBy:2.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "controller": "mine",
-            "kind": [
-              "Option"
-            ]
-          },
-          "orFilters": [
-            {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Plug-In"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            {
-              "colors": [
-                "Yellow"
-              ]
-            }
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "from": [
-            "hand"
-          ],
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "controller": "mine",
-            "kind": [
-              "Option"
-            ]
-          },
-          "orFilters": [
-            {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Plug-In"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            {
-              "colors": [
-                "Yellow"
-              ]
-            }
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "condition": {
-            "kind": "selfHasNameContaining",
-            "names": ["Sakuyamon"],
-            "raw": "this Digimon has [Sakuyamon] in its name"
-          }
-        }
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+          },
+          orFilters: [
+            {
+              nameOrTrait: [
+                {
+                  tokens: ["Plug-In"],
+                  match: "name",
+                },
+              ],
+            },
+            {
+              colors: ["Yellow"],
+            },
+          ],
+          payCost: true,
+          reduceCostBy: 2,
+          from: ["hand"],
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+          },
+          orFilters: [
+            {
+              nameOrTrait: [
+                {
+                  tokens: ["Plug-In"],
+                  match: "name",
+                },
+              ],
+            },
+            {
+              colors: ["Yellow"],
+            },
+          ],
+          payCost: true,
+          reduceCostBy: 2,
+          from: ["hand"],
+          optional: true,
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Sakuyamon"],
+            raw: "this Digimon has [Sakuyamon] in its name",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-035", compiled);

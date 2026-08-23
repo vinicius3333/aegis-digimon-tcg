@@ -114,7 +114,11 @@ describe("A4 ruleProcess — excess link cards (CR §17-1-3-2-5)", () => {
             dp: 3000,
             as: "perm",
             // base limit is 1 — 2 cards are excess.
-            linked: [{ card: "AD1-001", as: "kept" }, { card: "AD1-001", as: "excess1" }, { card: "AD1-001", as: "excess2" }],
+            linked: [
+              { card: "AD1-001", as: "kept" },
+              { card: "AD1-001", as: "excess1" },
+              { card: "AD1-001", as: "excess2" },
+            ],
           },
         ],
       },

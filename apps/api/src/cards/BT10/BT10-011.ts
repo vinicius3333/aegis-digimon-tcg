@@ -8,25 +8,35 @@ export const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenSuspended",
-        sourceFilter: { controller: "mine", kind: ["Tamer"] },
-        actions: [
-          { kind: "ModifyDP", target: self, amount: 2000, duration: "forTheTurn" },
-          { kind: "GainKeyword", target: self, keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "forTheTurn", condition: { kind: "selfDpAtLeast", value: 12000 } },
-        ],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: { controller: "mine", kind: ["Tamer"] },
+          actions: [
+            { kind: "ModifyDP", target: self, amount: 2000, duration: "forTheTurn" },
+            {
+              kind: "GainKeyword",
+              target: self,
+              keyword: { keyword: "SecurityAttack", amount: 1 },
+              duration: "forTheTurn",
+              condition: { kind: "selfDpAtLeast", value: 12000 },
+            },
+          ],
+        },
+      ],
     },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "GrantStatic",
-        target: self,
-        grant: "effects",
-        filter: { zone: "digivolutionStack", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
-        duration: "permanent",
-      }],
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: self,
+          grant: "effects",
+          filter: { zone: "digivolutionStack", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
+          duration: "permanent",
+        },
+      ],
     },
   ],
   coverage: "full",

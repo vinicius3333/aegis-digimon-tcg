@@ -37,10 +37,7 @@ export interface BreedingEngine {
   readonly state: GameState;
   emit(event: ServerEvent): void;
   nextPermanentId(): string;
-  fireTiming?: (
-    timing: EffectTiming,
-    trigger?: import("./EffectContext.js").TriggerInfo,
-  ) => Promise<void>;
+  fireTiming?: (timing: EffectTiming, trigger?: import("./EffectContext.js").TriggerInfo) => Promise<void>;
   fireSubTrigger?: (
     event: import("./EffectContext.js").SubTriggerEventName,
     payload?: import("./EffectContext.js").TriggerInfo,
@@ -54,18 +51,13 @@ export interface BreedingVerbs {
     seat: Seat,
     opts?: { belowTop?: boolean },
   ) => Promise<CardInstance | undefined>;
-  placeAsTopFromEggDeck: (
-    targetPermanentId: string,
-    seat: Seat,
-  ) => Promise<CardInstance | undefined>;
+  placeAsTopFromEggDeck: (targetPermanentId: string, seat: Seat) => Promise<CardInstance | undefined>;
 }
 
 export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
   const state = engine.state;
-  const playerOf = (seat: Seat): PlayerState | undefined =>
-    state.players.find((p) => p.seat === seat);
-  const permanentById = (permanentId: string): Permanent | undefined =>
-    findPermanentInState(state, permanentId);
+  const playerOf = (seat: Seat): PlayerState | undefined => state.players.find((p) => p.seat === seat);
+  const permanentById = (permanentId: string): Permanent | undefined => findPermanentInState(state, permanentId);
 
   /**
    * Hatch: flip the top card of `seat`'s Digi-Egg deck and place it into the EMPTY breeding
@@ -148,10 +140,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
    * (face-up — KB Q4856 "you must reveal the card to be placed"). No-op (returns undefined) when
    * the Digi-Egg deck is empty or the host permanent is missing.
    */
-  const placeAsTopFromEggDeck = async (
-    targetPermanentId: string,
-    seat: Seat,
-  ): Promise<CardInstance | undefined> => {
+  const placeAsTopFromEggDeck = async (targetPermanentId: string, seat: Seat): Promise<CardInstance | undefined> => {
     const owner = playerOf(seat);
     if (owner === undefined || owner.eggDeck.length === 0) return undefined;
     const host = permanentById(targetPermanentId);

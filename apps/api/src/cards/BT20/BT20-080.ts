@@ -5,158 +5,137 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4404 (binding): after [When Digivolving] effect activates, attacking with a Digimon
 // via the [All Turns] effect is optional.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Scapegoat",
-          "raw": "＜Scapegoat＞"
-        }
-      ]
+          keyword: "Scapegoat",
+          raw: "＜Scapegoat＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "SoC",
-                    "SEEKERS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["SoC", "SEEKERS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Tamer"],
+          },
+          triggerFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "ReactivateEffect",
+              fromTrigger: "WhenDigivolving",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              count: 1,
+            },
+            {
+              kind: "Attack",
+              target: {
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              optional: true,
+              attackPlayer: true,
+            },
           ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onAddDigivolutionCards",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Tamer"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "triggerFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
+          actions: [
             {
-              "kind": "ReactivateEffect",
-              "fromTrigger": "WhenDigivolving",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Trash",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  zone: "security",
+                  position: "top",
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
               },
-              "count": 1
+              condition: {
+                kind: "selfHasNameContaining",
+                names: ["Fenriloogamon"],
+                raw: "this Digimon has [Fenriloogamon] in its name",
+              },
             },
-            {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "optional": true,
-              "attackPlayer": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Trash",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "zone": "security",
-                  "position": "top"
-                },
-                "count": 1
-              },
-              "condition": {
-                "kind": "selfHasNameContaining",
-                "names": [
-                  "Fenriloogamon"
-                ],
-                "raw": "this Digimon has [Fenriloogamon] in its name"
-              }
-            }
-          ]
-        }
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Soloogarmon"
-      ],
-      "traits": [
-        "SEEKERS"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      names: ["Soloogarmon"],
+      traits: ["SEEKERS"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 5,
-      "traits": [
-        "SEEKERS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["SEEKERS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT20-080", compiled);

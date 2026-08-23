@@ -17,190 +17,166 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // `triggerSubjectHasColor:{red}` + `isYourTurn`); the watcher body is skipped entirely when the
 // gate does not hold, so the (mandatory once activated) digivolve never runs on a non-red event.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3,
-          "fromTop": false
+          amount: 3,
+          fromTop: false,
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "none"
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "none",
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 3,
-          "fromTop": false
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
         },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "none"
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "fireCondition": {
-            "kind": "allOf",
-            "conditions": [
-              { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Red"] } },
-              { "kind": "isYourTurn" }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "into": {
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Dianamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "from": [
-                "trash"
-              ],
-              "payCost": true,
-              "costDelta": -2,
-              "optional": true
-            }
-          ],
-          "raw": "[Your Turn] When your Digimon are played, if any of them are red, this Digimon may digivolve into [Dianamon] in the trash with the cost reduced by 2"
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "fireCondition": {
-            "kind": "allOf",
-            "conditions": [
-              { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Red"] } },
-              { "kind": "isYourTurn" }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "into": {
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Dianamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "from": [
-                "trash"
-              ],
-              "payCost": true,
-              "costDelta": -2,
-              "optional": true
-            }
-          ],
-          "raw": "[Your Turn] When your Digimon digivolve, if any of them are red, this Digimon may digivolve into [Dianamon] in the trash with the cost reduced by 2"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "restriction": "attackTargetChange",
-          "duration": "permanent"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 3,
+          fromTop: false,
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "none",
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          fireCondition: {
+            kind: "allOf",
+            conditions: [{ kind: "triggerSubjectHasColor", filter: { colors: ["Red"] } }, { kind: "isYourTurn" }],
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              into: {
+                nameOrTrait: [
+                  {
+                    tokens: ["Dianamon"],
+                    match: "name",
+                  },
+                ],
+              },
+              from: ["trash"],
+              payCost: true,
+              costDelta: -2,
+              optional: true,
+            },
+          ],
+          raw: "[Your Turn] When your Digimon are played, if any of them are red, this Digimon may digivolve into [Dianamon] in the trash with the cost reduced by 2",
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          fireCondition: {
+            kind: "allOf",
+            conditions: [{ kind: "triggerSubjectHasColor", filter: { colors: ["Red"] } }, { kind: "isYourTurn" }],
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              into: {
+                nameOrTrait: [
+                  {
+                    tokens: ["Dianamon"],
+                    match: "name",
+                  },
+                ],
+              },
+              from: ["trash"],
+              payCost: true,
+              costDelta: -2,
+              optional: true,
+            },
+          ],
+          raw: "[Your Turn] When your Digimon digivolve, if any of them are red, this Digimon may digivolve into [Dianamon] in the trash with the cost reduced by 2",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          restriction: "attackTargetChange",
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "TS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
+      level: 4,
+      traits: ["TS"],
+      cost: 3,
+      isAlternate: true,
+    },
   ],
 };
 

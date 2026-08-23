@@ -10,9 +10,9 @@ const raidAndBoost = [
     amount: 3000,
     duration: "forTheTurn",
   },
-    {
-      kind: "GainKeyword",
-      target: { fromSelectionRef: "soloogarmonTarget" },
+  {
+    kind: "GainKeyword",
+    target: { fromSelectionRef: "soloogarmonTarget" },
     keyword: { keyword: "Raid", raw: "＜Raid＞" },
     duration: "forTheTurn",
   },
@@ -34,7 +34,10 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "Delete",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 },
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } },
+                count: 1,
+              },
             },
           ],
         },
@@ -49,7 +52,10 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           sourceKind: "option",
           duration: "permanent",
-          condition: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["SoC", "SEEKERS"], match: "trait" }] } },
+          condition: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["SoC", "SEEKERS"], match: "trait" }] },
+          },
         },
       ],
     },

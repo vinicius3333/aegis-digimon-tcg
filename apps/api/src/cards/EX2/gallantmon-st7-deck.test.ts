@@ -31,11 +31,7 @@ describe("ST7 Gallantmon into EX2 Crimson Mode deck", () => {
             { card: "BT2-047", as: "highest", dp: 10000 },
             { card: "BT1-010", as: "small", dp: 3000 },
           ],
-          trash: [
-            "BT1-001", "BT1-002", "BT1-003",
-            "BT1-004", "BT1-005", "BT1-006",
-            "BT1-007", "BT1-008", "BT1-011",
-          ],
+          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008", "BT1-011"],
           security: ["BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
         },
       },
@@ -45,17 +41,17 @@ describe("ST7 Gallantmon into EX2 Crimson Mode deck", () => {
     const smallId = s.perm("small").permanentId;
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("gallantmon").permanentId,
-      instanceId: s.inst("crimsonMode").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gallantmon").permanentId,
+        instanceId: s.inst("crimsonMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId) &&
-        s.state.players[0]!.hand.some((card) =>
-          card.instanceId === s.inst("digivolveDraw").instanceId,
-        ) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digivolveDraw").instanceId) &&
         observe(s.engine).keywordAmount(s.perm("gallantmon"), "SecurityAttack") === 1,
       5000,
     );
@@ -63,26 +59,24 @@ describe("ST7 Gallantmon into EX2 Crimson Mode deck", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.trash).toHaveLength(10);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gallantmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gallantmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[1]!.security.length === 1 &&
-        s.state.players[0]!.hand.some((card) =>
-          card.instanceId === s.inst("attackDraw").instanceId,
-        ) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("attackDraw").instanceId) &&
         !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === smallId) &&
         !observe(s.engine).isAttacking(),
       5000,
     );
 
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("attackDraw").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("attackDraw").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

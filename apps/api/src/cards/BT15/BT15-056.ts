@@ -6,81 +6,74 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "immuneToOpponentDigimonEffects",
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          grant: "immuneToOpponentDigimonEffects",
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Shuu Yulin"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Shuu Yulin"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "hand"
-              ]
+              count: 1,
+              from: ["hand"],
             },
-            "raw": "By placing 1 [Shuu Yulin] from your hand as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
+            raw: "By placing 1 [Shuu Yulin] from your hand as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                "kind": [
-                  "Digimon",
-                  "Tamer"
-                ],
-                "playCostLteTriggerSource": true
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon", "Tamer"],
+                  playCostLteTriggerSource: true,
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-056", compiled);

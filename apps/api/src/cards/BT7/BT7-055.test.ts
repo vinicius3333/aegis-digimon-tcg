@@ -6,7 +6,18 @@ import "./BT7-055.js";
 
 describe("BT7-055 Ebonwumon", () => {
   it("suspends an opposing Digimon and gains memory for all opposing suspended Digimon when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT7-055", as: "ebon" }] }, 1: { battleArea: [{ card: "BT1-010", as: "target" }, { card: "BT1-011", suspended: true, as: "already" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-055", as: "ebon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target" },
+            { card: "BT1-011", suspended: true, as: "already" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 0;
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ebon"));
@@ -16,10 +27,16 @@ describe("BT7-055 Ebonwumon", () => {
   });
 
   it("requires the opponent to trash a hand card before an effect can unsuspend their Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT7-055", as: "ebon" }] },
-      1: { battleArea: [{ card: "BT1-010", suspended: true, as: "target" }], hand: [{ card: "BT1-011", as: "payment" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-055", as: "ebon" }] },
+        1: {
+          battleArea: [{ card: "BT1-010", suspended: true, as: "target" }],
+          hand: [{ card: "BT1-011", as: "payment" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
 

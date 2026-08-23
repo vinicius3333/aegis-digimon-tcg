@@ -4,12 +4,32 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-057.js";
 describe("BT10-057 Bloomlordmon", () => {
   it("gains memory for suspended Vegetation/Plant/Fairy Digimon, then unsuspends and gains Piercing", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-043", as: "toSuspend" }, { card: "BT10-046", as: "alreadySuspended", suspended: true }, { card: "AD1-011", as: "base", suspended: true }], hand: [{ card: "BT10-057", as: "evolving" }] } }, { autoAcceptOptional: true, autoSelectCards: true }); s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() =>
-      !s.perm("base").isSuspended &&
-      observe(s.engine).hasPierce(s.perm("base")) &&
-      [...s.perm("base").keywords].includes("Piercing"),
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-043", as: "toSuspend" },
+            { card: "BT10-046", as: "alreadySuspended", suspended: true },
+            { card: "AD1-011", as: "base", suspended: true },
+          ],
+          hand: [{ card: "BT10-057", as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.perm("base").isSuspended &&
+        observe(s.engine).hasPierce(s.perm("base")) &&
+        [...s.perm("base").keywords].includes("Piercing"),
     );
     expect(s.state.memory).toBe(3);
     expect(s.perm("toSuspend").isSuspended).toBe(true);
@@ -34,11 +54,13 @@ describe("BT10-057 Bloomlordmon", () => {
     });
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
 
     expect(s.perm("base").isSuspended).toBe(true);

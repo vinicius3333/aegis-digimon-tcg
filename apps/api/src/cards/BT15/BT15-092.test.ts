@@ -18,7 +18,6 @@ import { irCardModule } from "../../engine/effects/interpreter.js";
 import { compiled as BT15_092 } from "./BT15-092.js";
 import "../index.js";
 
-
 const YELLOW_LV3 = "BT1-045"; // a yellow Lv.3 Digimon (matches "yellow level 4 or lower")
 
 let seq = 0;

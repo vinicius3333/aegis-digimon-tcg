@@ -22,22 +22,20 @@ describe("P-102 SkullGreymon", () => {
     const victimIds = [s.perm("firstVictim").permanentId, s.perm("secondVictim").permanentId];
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("skullgreymon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("rookie").instanceId,
-      ) &&
-      victimIds.every((id) => !s.state.players[1]!.battleArea.some(
-        (permanent) => permanent.permanentId === id,
-      ))
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("skullgreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("rookie").instanceId,
+        ) && victimIds.every((id) => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === id)),
     );
 
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === s.inst("skullgreymon").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("skullgreymon").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -63,29 +61,23 @@ describe("P-102 SkullGreymon", () => {
     const baseCardInstanceId = s.perm("base").topCard.instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("skullgreymon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("rookie").instanceId,
-      ) &&
-      victimIds.every((id) => !s.state.players[1]!.battleArea.some(
-        (permanent) => permanent.permanentId === id,
-      ))
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skullgreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("rookie").instanceId,
+        ) && victimIds.every((id) => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === id)),
     );
 
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === s.inst("skullgreymon").instanceId,
-    )).toBe(true);
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === baseCardInstanceId,
-    )).toBe(true);
-    expect(s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("evolutionDraw").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("skullgreymon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === baseCardInstanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolutionDraw").instanceId)).toBe(true);
     expect(s.state.memory).toBe(6);
     assertNoLoudGap(s);
   });
@@ -105,18 +97,20 @@ describe("P-102 SkullGreymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("winner").permanentId },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("winner").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId,
+      ),
+    );
 
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === s.inst("wrongColor").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wrongColor").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

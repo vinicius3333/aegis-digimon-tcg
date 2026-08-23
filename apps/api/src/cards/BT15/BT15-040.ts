@@ -6,112 +6,94 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "or": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              or: [
                 {
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Numemon"
-                      ],
-                      "match": "any"
-                    }
-                  ]
+                      tokens: ["Numemon"],
+                      match: "any",
+                    },
+                  ],
                 },
                 {
-                  "levels": [
-                    3
-                  ]
-                }
+                  levels: [3],
+                },
               ],
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Monzaemon"
-                  ],
-                  "match": "name"
+                  tokens: ["Monzaemon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a card with [Monzaemon] in its name or [X Antibody] is in this Digimon's digivolution cards"
+            raw: "a card with [Monzaemon] in its name or [X Antibody] is in this Digimon's digivolution cards",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -2000,
-              "duration": "untilOpponentTurnEnd"
-            }
-          ],
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              amount: -2000,
+              duration: "untilOpponentTurnEnd",
             },
-            "unit": "cards"
-          }
-        }
+          ],
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            unit: "cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-040", compiled);

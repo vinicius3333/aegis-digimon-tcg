@@ -12,24 +12,24 @@ describe("BT7-087 Koji Minamoto", () => {
       {
         0: {
           battleArea: [{ card: "BT7-087", as: "koji" }],
-          hand: [
-            "BT7-021", "BT7-021", "BT7-021", "BT7-021", "BT7-021",
-            { card: "BT7-029", as: "magna" },
-          ],
+          hand: ["BT7-021", "BT7-021", "BT7-021", "BT7-021", "BT7-021", { card: "BT7-029", as: "magna" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("koji").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
-      .find((effect) => effect.effectKey === "BT7-087/main-digivolve")!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find(
+      (effect) => effect.effectKey === "BT7-087/main-digivolve",
+    )!.effectKey;
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("koji").topCard!.instanceId,
-      effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("koji").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard?.instanceId === s.inst("magna").instanceId);
 
     // MagnaGarurumon's When Digivolving effect returns one Hybrid, which also
@@ -44,28 +44,30 @@ describe("BT7-087 Koji Minamoto", () => {
       {
         0: {
           battleArea: [{ card: "BT7-087", as: "koji" }],
-          hand: [
-            "BT7-021", "BT7-021", "BT7-021", "BT7-021", "BT7-021",
-            { card: "BT18-042", as: "wrongColorMagna" },
-          ],
+          hand: ["BT7-021", "BT7-021", "BT7-021", "BT7-021", "BT7-021", { card: "BT18-042", as: "wrongColorMagna" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("koji").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
-      .find((effect) => effect.effectKey === "BT7-087/main-digivolve")!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find(
+      (effect) => effect.effectKey === "BT7-087/main-digivolve",
+    )!.effectKey;
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("koji").topCard!.instanceId,
-      effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("koji").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.perm("koji").stack.length === 5);
 
     expect(s.perm("koji").topCard.cardId).toBe("BT7-087");
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongColorMagna").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongColorMagna").instanceId)).toBe(
+      true,
+    );
     expect(s.state.memory).toBe(5);
   });
 
@@ -87,31 +89,39 @@ describe("BT7-087 Koji Minamoto", () => {
       { autoOrderCards: false },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("koji").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
-      .find((effect) => effect.effectKey === "BT7-087/main-digivolve")!.effectKey;
-    const hybrids = ["hybridOne", "hybridTwo", "hybridThree", "hybridFour", "hybridFive"]
-      .map((alias) => s.inst(alias).instanceId);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find(
+      (effect) => effect.effectKey === "BT7-087/main-digivolve",
+    )!.effectKey;
+    const hybrids = ["hybridOne", "hybridTwo", "hybridThree", "hybridFour", "hybridFive"].map(
+      (alias) => s.inst(alias).instanceId,
+    );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("koji").topCard.instanceId,
-      effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("koji").topCard.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const placeHybrids = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: placeHybrids.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placeHybrids.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const materials = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: materials.decisionId,
-      response: { kind: "selectCards", instanceIds: hybrids },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: materials.decisionId,
+        response: { kind: "selectCards", instanceIds: hybrids },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const ordering = s.decisions.at(-1)!.req;
     expect(ordering.options?.orderDestination).toBe("stackBottom");
@@ -121,9 +131,9 @@ describe("BT7-087 Koji Minamoto", () => {
       response: { kind: "orderCards", order: hybrids },
     });
     expect([true, "decision-pending"]).toContain(orderingResult.ok ? true : orderingResult.reason);
-    await settle(() =>
-      s.state.pendingDecision?.kind === "optional" &&
-      s.state.pendingDecision.decisionId !== placeHybrids.decisionId,
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== placeHybrids.decisionId,
     );
     const evolve = s.decisions.at(-1)!.req;
     const declineResult = s.engine.applyIntent(0, {
@@ -140,14 +150,17 @@ describe("BT7-087 Koji Minamoto", () => {
   });
 
   it("gains 1 memory and prevents blocking when an effect adds a card to hand", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT7-029", under: ["BT7-087"], as: "host" },
-          { card: "BT7-021", as: "returned" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT7-029", under: ["BT7-087"], as: "host" },
+            { card: "BT7-021", as: "returned" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).verb.returnToHand([s.perm("returned").topCard!.instanceId]);
@@ -158,15 +171,18 @@ describe("BT7-087 Koji Minamoto", () => {
   });
 
   it("uses the inherited add-to-hand effect only once per turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT7-029", under: ["BT7-087"], as: "host" },
-          { card: "BT7-021", as: "firstReturned" },
-          { card: "BT7-021", as: "secondReturned" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT7-029", under: ["BT7-087"], as: "host" },
+            { card: "BT7-021", as: "firstReturned" },
+            { card: "BT7-021", as: "secondReturned" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).verb.returnToHand([s.perm("firstReturned").topCard.instanceId]);

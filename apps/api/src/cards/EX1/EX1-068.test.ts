@@ -59,9 +59,7 @@ describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
 
     const grants = engine.continuous.listCustomEffectGrants();
     expect(
-      grants.some(
-        (g) => g.instanceId === attacker.topCard!.instanceId && g.token === "[When Attacking] Lose 2 memory",
-      ),
+      grants.some((g) => g.instanceId === attacker.topCard!.instanceId && g.token === "[When Attacking] Lose 2 memory"),
     ).toBe(true);
 
     s.state.memory = 5;

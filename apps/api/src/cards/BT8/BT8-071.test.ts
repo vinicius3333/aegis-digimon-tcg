@@ -12,8 +12,14 @@ describe("BT8-071 Psychemon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 4;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("aquilamon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("aquilamon").instanceId));
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("aquilamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("aquilamon").instanceId,
+      ),
+    );
     expect(s.state.memory).toBe(0);
   });
 
@@ -27,8 +33,14 @@ describe("BT8-071 Psychemon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aquilamon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(permanent => permanent.topCard.instanceId === s.inst("aquilamon").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aquilamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("aquilamon").instanceId,
+      ),
+    );
 
     expect(s.state.memory).toBe(0);
   });

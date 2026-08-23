@@ -65,11 +65,13 @@ describe("EX8-041", () => {
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const secondDecision = s.state.pendingDecision!;
     const secondSeat = s.decisions.at(-1)!.seat;
-    expect(s.engine.applyIntent(secondSeat, {
-      type: "respondDecision",
-      decisionId: secondDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("restricted").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(secondSeat, {
+        type: "respondDecision",
+        decisionId: secondDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("restricted").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await resolution;
     await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "unsuspend"));
 

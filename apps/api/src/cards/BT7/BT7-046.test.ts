@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type CardInstance, type GameState, type PlayerState, type Seat } from "@aegis/shared";
+import {
+  EffectTiming,
+  type CardDefinition,
+  type CardInstance,
+  type GameState,
+  type PlayerState,
+  type Seat,
+} from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -110,12 +117,24 @@ function makeContext(opts: {
     returnToHand: record("returnToHand"),
     returnToDeck: record("returnToDeck"),
     // Every other verb throws — accidental dispatch from a spurious action surfaces loudly.
-    draw: (...a: unknown[]) => { throw new Error(`Unexpected draw(${JSON.stringify(a)})`); },
-    gainMemory: (...a: unknown[]) => { throw new Error(`Unexpected gainMemory(${JSON.stringify(a)})`); },
-    setMemory: (...a: unknown[]) => { throw new Error(`Unexpected setMemory(${JSON.stringify(a)})`); },
-    trash: (...a: unknown[]) => { throw new Error(`Unexpected trash(${JSON.stringify(a)})`); },
-    deletePermanent: (...a: unknown[]) => { throw new Error(`Unexpected deletePermanent(${JSON.stringify(a)})`); },
-    suspend: (...a: unknown[]) => { throw new Error(`Unexpected suspend(${JSON.stringify(a)})`); },
+    draw: (...a: unknown[]) => {
+      throw new Error(`Unexpected draw(${JSON.stringify(a)})`);
+    },
+    gainMemory: (...a: unknown[]) => {
+      throw new Error(`Unexpected gainMemory(${JSON.stringify(a)})`);
+    },
+    setMemory: (...a: unknown[]) => {
+      throw new Error(`Unexpected setMemory(${JSON.stringify(a)})`);
+    },
+    trash: (...a: unknown[]) => {
+      throw new Error(`Unexpected trash(${JSON.stringify(a)})`);
+    },
+    deletePermanent: (...a: unknown[]) => {
+      throw new Error(`Unexpected deletePermanent(${JSON.stringify(a)})`);
+    },
+    suspend: (...a: unknown[]) => {
+      throw new Error(`Unexpected suspend(${JSON.stringify(a)})`);
+    },
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
@@ -155,11 +174,13 @@ describe("BT7-046 Beetlemon [When Digivolving]", () => {
     const jpId = s.inst("searchedJp").instanceId;
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("jp").permanentId,
-      instanceId: s.inst("beetlemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jp").permanentId,
+        instanceId: s.inst("beetlemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => [hybridId, jpId].every((id) => player.hand.some((card) => card.instanceId === id)));
 
     expect(s.state.memory).toBe(0);
@@ -183,175 +204,152 @@ describe("BT7-046 Beetlemon [When Digivolving]", () => {
     expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source)).toHaveLength(0);
   });
 
-  it(
-    // Q1579 (2024-03-28): the effect fires unconditionally whenever Beetlemon
-    // digivolves — there is no "only if you have a Digimon or Tamer" gate.
-    //
-    // The IR runtime record added a spurious `youHave { kind:[Digimon,Tamer], count:1 }`
-    // condition, which causes the RevealAdd body to be skipped when the owner's
-    // battleArea is empty. This test asserts the KB-correct behavior (reveal fires
-    // even with an empty field); the override removed that condition.
-    //
-    // KB-correct behavior — now PASSES after the override removed the spurious youHave
-    // gate and the two spurious Return actions.
-    "reveals exactly 5 cards regardless of field state (Q1579: no youHave gate)",
-    async () => {
-      // Empty battleArea — the youHave condition evaluates to false and blocks the
-      // RevealAdd action body under the current buggy IR.
-      const deckCards = [
-        fakeCardInstance("C1", "i1"),
-        fakeCardInstance("C2", "i2"),
-        fakeCardInstance("C3", "i3"),
-        fakeCardInstance("C4", "i4"),
-        fakeCardInstance("C5", "i5"),
-      ];
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder, deckTop5: deckCards });
-      const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const reveals = recorder.calls.filter((c) => c.verb === "reveal");
-      // Must reveal exactly 5 — currently fails because youHave gate blocks execution.
-      expect(reveals).toHaveLength(1);
-      expect(reveals[0]!.args[1]).toBe(5);
-    },
-  );
+  it(// Q1579 (2024-03-28): the effect fires unconditionally whenever Beetlemon
+  // digivolves — there is no "only if you have a Digimon or Tamer" gate.
+  //
+  // The IR runtime record added a spurious `youHave { kind:[Digimon,Tamer], count:1 }`
+  // condition, which causes the RevealAdd body to be skipped when the owner's
+  // battleArea is empty. This test asserts the KB-correct behavior (reveal fires
+  // even with an empty field); the override removed that condition.
+  //
+  // KB-correct behavior — now PASSES after the override removed the spurious youHave
+  // gate and the two spurious Return actions.
+  "reveals exactly 5 cards regardless of field state (Q1579: no youHave gate)", async () => {
+    // Empty battleArea — the youHave condition evaluates to false and blocks the
+    // RevealAdd action body under the current buggy IR.
+    const deckCards = [
+      fakeCardInstance("C1", "i1"),
+      fakeCardInstance("C2", "i2"),
+      fakeCardInstance("C3", "i3"),
+      fakeCardInstance("C4", "i4"),
+      fakeCardInstance("C5", "i5"),
+    ];
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ recorder, deckTop5: deckCards });
+    const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const reveals = recorder.calls.filter((c) => c.verb === "reveal");
+    // Must reveal exactly 5 — currently fails because youHave gate blocks execution.
+    expect(reveals).toHaveLength(1);
+    expect(reveals[0]!.args[1]).toBe(5);
+  });
 
-  it(
-    // Q1579 (2024-03-28): "Even if you revealed only a card with [Hybrid] in its
-    // traits or [J.P. Shibayama], you still add that card to your hand."
-    // The two add specs are independent — a Hybrid card is added regardless of
-    // whether J.P. Shibayama also appears among the revealed cards.
-    //
-    // Previously the same spurious youHave condition gate prevented the RevealAdd body
-    // from running when battleArea was empty; the override removed it.
-    //
-    // KB-correct behavior — now PASSES after the override removed the spurious youHave
-    // gate and the two spurious Return actions.
-    "adds a Hybrid-trait card to hand when one is revealed (Q1579: independent add specs)",
-    async () => {
-      const hybridCard = fakeCardInstance("BT1-XXX", "i-hybrid");
-      const plainCards = [
-        fakeCardInstance("C1", "i1"),
-        fakeCardInstance("C2", "i2"),
-        fakeCardInstance("C3", "i3"),
-        fakeCardInstance("C4", "i4"),
-      ];
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({
-        recorder,
-        deckTop5: [hybridCard, ...plainCards],
-        cardDefinitions: {
-          "BT1-XXX": { nameEn: "Agunimon", types: ["Hybrid"], kinds: ["Digimon"] as never },
-        },
-      });
-      const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const handedIds = recorder.calls
-        .filter((c) => c.verb === "returnToHand")
-        .flatMap((c) => c.args[0] as string[]);
-      expect(handedIds).toContain("i-hybrid");
-    },
-  );
+  it(// Q1579 (2024-03-28): "Even if you revealed only a card with [Hybrid] in its
+  // traits or [J.P. Shibayama], you still add that card to your hand."
+  // The two add specs are independent — a Hybrid card is added regardless of
+  // whether J.P. Shibayama also appears among the revealed cards.
+  //
+  // Previously the same spurious youHave condition gate prevented the RevealAdd body
+  // from running when battleArea was empty; the override removed it.
+  //
+  // KB-correct behavior — now PASSES after the override removed the spurious youHave
+  // gate and the two spurious Return actions.
+  "adds a Hybrid-trait card to hand when one is revealed (Q1579: independent add specs)", async () => {
+    const hybridCard = fakeCardInstance("BT1-XXX", "i-hybrid");
+    const plainCards = [
+      fakeCardInstance("C1", "i1"),
+      fakeCardInstance("C2", "i2"),
+      fakeCardInstance("C3", "i3"),
+      fakeCardInstance("C4", "i4"),
+    ];
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      recorder,
+      deckTop5: [hybridCard, ...plainCards],
+      cardDefinitions: {
+        "BT1-XXX": { nameEn: "Agunimon", types: ["Hybrid"], kinds: ["Digimon"] as never },
+      },
+    });
+    const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const handedIds = recorder.calls.filter((c) => c.verb === "returnToHand").flatMap((c) => c.args[0] as string[]);
+    expect(handedIds).toContain("i-hybrid");
+  });
 
-  it(
-    // Q1579 (2024-03-28): the two add specs are independent. J.P. Shibayama is added
-    // to hand even without a Hybrid card in the reveal.
-    //
-    // Previously blocked by the spurious youHave condition gate (removed in the override).
-    //
-    // KB-correct behavior — now PASSES after the override removed the spurious youHave
-    // gate and the two spurious Return actions.
-    "adds J.P. Shibayama to hand when one is revealed (Q1579: independent add specs)",
-    async () => {
-      const jpCard = fakeCardInstance("BT7-087", "i-jp");
-      const plainCards = [
-        fakeCardInstance("C1", "i1"),
-        fakeCardInstance("C2", "i2"),
-        fakeCardInstance("C3", "i3"),
-        fakeCardInstance("C4", "i4"),
-      ];
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({
-        recorder,
-        deckTop5: [jpCard, ...plainCards],
-        cardDefinitions: {
-          "BT7-087": { nameEn: "J.P. Shibayama", kinds: ["Tamer"] as never },
-        },
-      });
-      const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const handedIds = recorder.calls
-        .filter((c) => c.verb === "returnToHand")
-        .flatMap((c) => c.args[0] as string[]);
-      expect(handedIds).toContain("i-jp");
-    },
-  );
+  it(// Q1579 (2024-03-28): the two add specs are independent. J.P. Shibayama is added
+  // to hand even without a Hybrid card in the reveal.
+  //
+  // Previously blocked by the spurious youHave condition gate (removed in the override).
+  //
+  // KB-correct behavior — now PASSES after the override removed the spurious youHave
+  // gate and the two spurious Return actions.
+  "adds J.P. Shibayama to hand when one is revealed (Q1579: independent add specs)", async () => {
+    const jpCard = fakeCardInstance("BT7-087", "i-jp");
+    const plainCards = [
+      fakeCardInstance("C1", "i1"),
+      fakeCardInstance("C2", "i2"),
+      fakeCardInstance("C3", "i3"),
+      fakeCardInstance("C4", "i4"),
+    ];
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      recorder,
+      deckTop5: [jpCard, ...plainCards],
+      cardDefinitions: {
+        "BT7-087": { nameEn: "J.P. Shibayama", kinds: ["Tamer"] as never },
+      },
+    });
+    const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const handedIds = recorder.calls.filter((c) => c.verb === "returnToHand").flatMap((c) => c.args[0] as string[]);
+    expect(handedIds).toContain("i-jp");
+  });
 
-  it(
-    // Card text: "Place the remaining cards at the bottom of your deck in any order."
-    // Q1579 confirms structure: reveal 5, take matching ones, put the rest at the bottom.
-    //
-    // Previously blocked by the spurious youHave condition gate (removed in the override).
-    //
-    // KB-correct behavior — now PASSES after the override removed the spurious youHave
-    // gate and the two spurious Return actions.
-    "sends unreturned revealed cards to deck bottom (Q1579: remaining cards placement)",
-    async () => {
-      const hybridCard = fakeCardInstance("BT1-XXX", "i-hybrid");
-      const jpCard = fakeCardInstance("BT7-087", "i-jp");
-      const plainCards = [
-        fakeCardInstance("C1", "i1"),
-        fakeCardInstance("C2", "i2"),
-        fakeCardInstance("C3", "i3"),
-      ];
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({
-        recorder,
-        deckTop5: [hybridCard, jpCard, ...plainCards],
-        cardDefinitions: {
-          "BT1-XXX": { nameEn: "Agunimon", types: ["Hybrid"], kinds: ["Digimon"] as never },
-          "BT7-087": { nameEn: "J.P. Shibayama", kinds: ["Tamer"] as never },
-        },
-      });
-      const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const deckReturns = recorder.calls.filter((c) => c.verb === "returnToDeck");
-      expect(deckReturns.length).toBeGreaterThanOrEqual(1);
-      const deckIds = deckReturns.flatMap((c) => c.args[0] as string[]);
-      // The 3 plain cards go to deck bottom; Hybrid and J.P. Shibayama go to hand.
-      for (const plain of plainCards) {
-        expect(deckIds).toContain(plain.instanceId);
-      }
-      // Placement must be to the BOTTOM (toTop must be falsy).
-      for (const call of deckReturns) {
-        const opts = call.args[1] as { toTop?: boolean } | undefined;
-        expect(opts?.toTop).toBeFalsy();
-      }
-    },
-  );
+  it(// Card text: "Place the remaining cards at the bottom of your deck in any order."
+  // Q1579 confirms structure: reveal 5, take matching ones, put the rest at the bottom.
+  //
+  // Previously blocked by the spurious youHave condition gate (removed in the override).
+  //
+  // KB-correct behavior — now PASSES after the override removed the spurious youHave
+  // gate and the two spurious Return actions.
+  "sends unreturned revealed cards to deck bottom (Q1579: remaining cards placement)", async () => {
+    const hybridCard = fakeCardInstance("BT1-XXX", "i-hybrid");
+    const jpCard = fakeCardInstance("BT7-087", "i-jp");
+    const plainCards = [fakeCardInstance("C1", "i1"), fakeCardInstance("C2", "i2"), fakeCardInstance("C3", "i3")];
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      recorder,
+      deckTop5: [hybridCard, jpCard, ...plainCards],
+      cardDefinitions: {
+        "BT1-XXX": { nameEn: "Agunimon", types: ["Hybrid"], kinds: ["Digimon"] as never },
+        "BT7-087": { nameEn: "J.P. Shibayama", kinds: ["Tamer"] as never },
+      },
+    });
+    const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const deckReturns = recorder.calls.filter((c) => c.verb === "returnToDeck");
+    expect(deckReturns.length).toBeGreaterThanOrEqual(1);
+    const deckIds = deckReturns.flatMap((c) => c.args[0] as string[]);
+    // The 3 plain cards go to deck bottom; Hybrid and J.P. Shibayama go to hand.
+    for (const plain of plainCards) {
+      expect(deckIds).toContain(plain.instanceId);
+    }
+    // Placement must be to the BOTTOM (toTop must be falsy).
+    for (const call of deckReturns) {
+      const opts = call.args[1] as { toTop?: boolean } | undefined;
+      expect(opts?.toTop).toBeFalsy();
+    }
+  });
 
-  it(
-    // The IR's WhenDigivolving CardEffect contains 3 actions: RevealAdd + 2 spurious
-    // Return actions. The card text (and documented behavior source) has only the RevealAdd clause.
-    // The Return actions target zone:"trash" which is absent from the card text.
-    //
-    // This test asserts KB-correct IR shape (description must not mention "Return").
-    // The description produced by describeEffect() for the buggy IR is:
-    //   "[WhenDigivolving] RevealAdd, Return, Return"
-    // The correct description is:
-    //   "[WhenDigivolving] RevealAdd"
-    //
-    // KB-correct behavior — now PASSES after the override removed the spurious youHave
-    // gate and the two spurious Return actions.
-    "IR description contains only RevealAdd — no spurious Return actions (runtime record bug)",
-    () => {
-      const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-      expect(effects).toHaveLength(1);
-      // The `description` field is set by describeEffect() in the interpreter:
-      // "[WhenDigivolving] <action-kinds>". A spurious Return leaves a "Return" token.
-      const desc = (effects[0] as unknown as { description?: string }).description ?? "";
-      expect(desc).not.toMatch(/Return/);
-    },
-  );
+  it(// The IR's WhenDigivolving CardEffect contains 3 actions: RevealAdd + 2 spurious
+  // Return actions. The card text (and documented behavior source) has only the RevealAdd clause.
+  // The Return actions target zone:"trash" which is absent from the card text.
+  //
+  // This test asserts KB-correct IR shape (description must not mention "Return").
+  // The description produced by describeEffect() for the buggy IR is:
+  //   "[WhenDigivolving] RevealAdd, Return, Return"
+  // The correct description is:
+  //   "[WhenDigivolving] RevealAdd"
+  //
+  // KB-correct behavior — now PASSES after the override removed the spurious youHave
+  // gate and the two spurious Return actions.
+  "IR description contains only RevealAdd — no spurious Return actions (runtime record bug)", () => {
+    const source = makeSource();
+    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
+    expect(effects).toHaveLength(1);
+    // The `description` field is set by describeEffect() in the interpreter:
+    // "[WhenDigivolving] <action-kinds>". A spurious Return leaves a "Return" token.
+    const desc = (effects[0] as unknown as { description?: string }).description ?? "";
+    expect(desc).not.toMatch(/Return/);
+  });
 });

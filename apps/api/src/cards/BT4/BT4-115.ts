@@ -7,72 +7,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "CostModifier",
-          "mode": "reduce",
-          "costType": "play",
-          "amount": 8,
-          "handResident": true,
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "play",
+          amount: 8,
+          handResident: true,
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "you have 10 or more cards in your trash"
-          }
-        }
-      ]
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "you have 10 or more cards in your trash",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [],
-      "keywords": [
+      trigger: "OnPlay",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Recovery",
-          "amount": 1,
-          "raw": "＜Recovery +1 (Deck)＞"
-        }
-      ]
+          keyword: "Recovery",
+          amount: 1,
+          raw: "＜Recovery +1 (Deck)＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "RestrictDigivolveInto",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "RestrictDigivolveInto",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "nameOrTrait": [
+          into: {
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Lucemon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Lucemon"],
+                match: "name",
+              },
+            ],
           },
-          "duration": "permanent"
-        }
-      ]
-    }
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-115", compiled);

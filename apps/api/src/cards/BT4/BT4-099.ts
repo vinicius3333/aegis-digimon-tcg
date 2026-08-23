@@ -6,69 +6,58 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 4000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "excludeNames": [
-                "DoruGreymon",
-                "BurningGreymon",
-                "DexDoruGreymon"
-              ],
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Greymon",
-                    "Dramon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Greymon", "Dramon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "one of your Digimon has [Greymon] or [Dramon] in its name other than [DoruGreymon], [BurningGreymon], or[DexDoruGreymon]"
-          }
-        }
-      ]
+            raw: "one of your Digimon has [Greymon] or [Dramon] in its name other than [DoruGreymon], [BurningGreymon], or[DexDoruGreymon]",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-099", compiled);

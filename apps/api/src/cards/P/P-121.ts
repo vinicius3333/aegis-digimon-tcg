@@ -6,84 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "multicolor": true,
-                "colors": [
-                  "Yellow",
-                  "Black"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                multicolor: true,
+                colors: ["Yellow", "Black"],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Cody Hida"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Cody Hida"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": [
+          kind: "DnaDigivolve",
+          materials: [
             {
-              "filter": { "isSelfRef": true },
-              "count": 1,
-              "isSelf": true
+              filter: { isSelfRef: true },
+              count: 1,
+              isSelf: true,
             },
             {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "excludeSelf": true
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                excludeSelf: true,
               },
-              "count": 1
-            }
+              count: 1,
+            },
           ],
-          "into": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          into: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-121", compiled);

@@ -507,7 +507,8 @@ export class SubTriggerRegistry {
       // supplied. A ledger-free registry read is also used as an observability/query seam for
       // resident replacements (including [Breeding] effects), where the installed reduction is
       // expected to be visible without consuming its once-per-turn activation.
-      if (r.event !== event || r.mode !== "reduceCost" || (r.activate !== undefined && turnBudget !== undefined)) continue;
+      if (r.event !== event || r.mode !== "reduceCost" || (r.activate !== undefined && turnBudget !== undefined))
+        continue;
       if (r.appliesTo !== undefined) {
         if (typeof source === "string") {
           if (r.sourcePermanentId !== source) continue;
@@ -609,9 +610,10 @@ export class SubTriggerRegistry {
         continue;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) continue;
       const sourcePermanentId = replacement.sourcePermanentId;
-      const ctx = sourcePermanentId === undefined
-        ? replacement.activationContext
-        : buildContext(sourcePermanentId, replacement.sourceInstanceId);
+      const ctx =
+        sourcePermanentId === undefined
+          ? replacement.activationContext
+          : buildContext(sourcePermanentId, replacement.sourceInstanceId);
       if (ctx === undefined) continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;

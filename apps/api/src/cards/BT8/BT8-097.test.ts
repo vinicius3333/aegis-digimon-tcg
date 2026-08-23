@@ -21,13 +21,15 @@ describe("BT8-097 Crimson Blaze", () => {
     });
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097") &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097") && s.state.pendingDecision === undefined,
     );
 
     expect(s.state.memory).toBe(0);
@@ -54,18 +56,18 @@ describe("BT8-097 Crimson Blaze", () => {
     const exactId = s.perm("exact").permanentId;
     const aboveId = s.perm("above").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === belowId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === exactId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === aboveId)).toBe(true);
-    expect(s.decisions.filter(({ req }) =>
-      req.kind === "selectCards" || req.kind === "chooseTargets"
-    )).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets")).toHaveLength(0);
     assertNoLoudGap(s);
   });
 
@@ -82,50 +84,56 @@ describe("BT8-097 Crimson Blaze", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097") &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097") && s.state.pendingDecision === undefined,
     );
 
-    await advance(s.engine).fireForInstance(
-      EffectTiming.SecuritySkill,
-      s.inst("securityDigimon"),
-    );
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityDigimon"));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "ST7-06")).toBe(false);
     assertNoLoudGap(s);
   });
 
   it("does not prevent the opponent from normally playing a Digimon from hand", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: ["BT8-007"],
-        hand: [{ card: "BT8-097", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT8-007"],
+          hand: [{ card: "BT8-097", as: "option" }],
+        },
+        1: {
+          battleArea: [{ card: "BT8-023", dp: 7_000 }],
+          hand: [{ card: "ST7-06", as: "handDigimon" }],
+        },
       },
-      1: {
-        battleArea: [{ card: "BT8-023", dp: 7_000 }],
-        hand: [{ card: "ST7-06", as: "handDigimon" }],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097"));
 
     s.state.turnSeat = 1;
     s.state.phase = Phase.Main;
     s.state.memory = 7;
-    expect(s.engine.applyIntent(1, {
-      type: "playCard",
-      instanceId: s.inst("handDigimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("handDigimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "ST7-06"));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "ST7-06")).toBe(true);

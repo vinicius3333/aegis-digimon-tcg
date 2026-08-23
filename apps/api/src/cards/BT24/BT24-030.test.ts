@@ -57,7 +57,9 @@ describe("BT24-030 Neptunemon", () => {
         instanceId: reduced.inst("neptunemon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => reduced.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-030"));
+    await settle(() =>
+      reduced.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-030"),
+    );
     expect(reduced.state.memory).toBe(5);
 
     const full = setupEngine({

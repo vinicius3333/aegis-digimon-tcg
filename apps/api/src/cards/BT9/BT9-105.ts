@@ -14,85 +14,71 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealChooseDeleteBudget",
-          "revealCount": 3,
-          "revealController": "mine",
-          "chooseFilter": {
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "RevealChooseDeleteBudget",
+          revealCount: 3,
+          revealController: "mine",
+          chooseFilter: {
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "X Antibody"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["X Antibody"],
+                match: "trait",
+              },
+            ],
           },
-          "deleteFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          deleteFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "deleteCount": 1,
-          "returnRevealed": "trash"
+          deleteCount: 1,
+          returnRevealed: "trash",
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
+            count: 1,
+            from: ["trash"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "X Antibody"
-                ],
-                "match": "trait"
-              }
-            ]
-          }
-        }
-      ]
+                tokens: ["X Antibody"],
+                match: "trait",
+              },
+            ],
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-105", compiled);

@@ -1,10 +1,4 @@
-import {
-  type DecisionRequest,
-  type DecisionResponse,
-  type GameState,
-  type Seat,
-  PendingDecision,
-} from "@aegis/shared";
+import { type DecisionRequest, type DecisionResponse, type GameState, type Seat, PendingDecision } from "@aegis/shared";
 
 /**
  * Pending player-decision queue: the coroutine replacement (ARCHITECTURE.md
@@ -139,9 +133,7 @@ export class DecisionManager {
     return new Promise<DecisionResponse>((resolve) => {
       const timeoutMs = this.options.timeoutMs ?? 0;
       const timer =
-        timeoutMs > 0
-          ? setTimeout(() => this.resolveOpen(decisionId, safeDefault(spec.kind)), timeoutMs)
-          : undefined;
+        timeoutMs > 0 ? setTimeout(() => this.resolveOpen(decisionId, safeDefault(spec.kind)), timeoutMs) : undefined;
 
       this.open = {
         decisionId,
@@ -150,9 +142,7 @@ export class DecisionManager {
         min: spec.options?.min,
         candidateInstanceIds: spec.options?.candidateInstanceIds,
         distinctCardIds: spec.options?.distinctCardIds === true,
-        cardIdByInstance: new Map(
-          (spec.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]),
-        ),
+        cardIdByInstance: new Map((spec.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId])),
         triggerKeys: spec.options?.triggerKeys,
         resolve,
         timer,
@@ -220,9 +210,11 @@ function satisfiesDistinctCardIds(open: OpenDecision, response: DecisionResponse
 function ordersEveryCard(open: OpenDecision, response: DecisionResponse): boolean {
   if (response.kind !== "orderCards") return true;
   const candidates = open.candidateInstanceIds ?? [];
-  return response.order.length === candidates.length &&
+  return (
+    response.order.length === candidates.length &&
     new Set(response.order).size === candidates.length &&
-    response.order.every((id) => candidates.includes(id));
+    response.order.every((id) => candidates.includes(id))
+  );
 }
 
 /**
@@ -244,10 +236,7 @@ function choosesExactlyOneTrigger(open: OpenDecision, response: DecisionResponse
  * selection kinds (`chooseTargets`/`selectCards`/`orderTriggers`/`chooseOption`)
  * by their like-named responses.
  */
-function responseMatchesKind(
-  kind: DecisionRequest["kind"],
-  response: DecisionResponse,
-): boolean {
+function responseMatchesKind(kind: DecisionRequest["kind"], response: DecisionResponse): boolean {
   switch (kind) {
     case "optional":
       return response.kind === "optional";
@@ -294,10 +283,7 @@ function responseMatchesKind(
  */
 function satisfiesMin(open: OpenDecision, response: DecisionResponse): boolean {
   if (open.min === undefined) return true;
-  const ids =
-    response.kind === "chooseTargets" || response.kind === "selectCards"
-      ? response.instanceIds
-      : undefined;
+  const ids = response.kind === "chooseTargets" || response.kind === "selectCards" ? response.instanceIds : undefined;
   if (ids === undefined) return true;
 
   const candidates = open.candidateInstanceIds ?? [];

@@ -44,20 +44,24 @@ describe("BT3 Ceresmon/Blossomon Digisorption deck gauntlet", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("redirector"), "Piercing")).toBe(false);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("blossomon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("redirectTarget").isSuspended &&
-      s.perm("greenLevelFour").topCard?.instanceId === s.inst("blossomon").instanceId &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("blossomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("redirectTarget").isSuspended &&
+        s.perm("greenLevelFour").topCard?.instanceId === s.inst("blossomon").instanceId &&
+        s.state.pendingDecision === undefined,
     );
 
-    const redirectedChoice = s.decisions.find(({ req }) =>
-      (req.kind === "chooseTargets" || req.kind === "selectCards") &&
-      req.options?.candidateInstanceIds?.includes(redirectTargetInstanceId)
+    const redirectedChoice = s.decisions.find(
+      ({ req }) =>
+        (req.kind === "chooseTargets" || req.kind === "selectCards") &&
+        req.options?.candidateInstanceIds?.includes(redirectTargetInstanceId),
     )?.req;
     expect(redirectedChoice?.options?.candidateInstanceIds).toContain(otherOpponentInstanceId);
     expect(s.state.memory).toBe(5);
@@ -66,22 +70,28 @@ describe("BT3 Ceresmon/Blossomon Digisorption deck gauntlet", () => {
 
     preferredIds.splice(0, preferredIds.length, s.perm("tyrannomon").topCard!.instanceId);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("secondCeresmon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("tyrannomon").isSuspended &&
-      s.perm("greenLevelFour").topCard?.instanceId === s.inst("secondCeresmon").instanceId &&
-      s.state.memory === 3 &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("secondCeresmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("tyrannomon").isSuspended &&
+        s.perm("greenLevelFour").topCard?.instanceId === s.inst("secondCeresmon").instanceId &&
+        s.state.memory === 3 &&
+        s.state.pendingDecision === undefined,
     );
 
-    const secondSuspendChoice = [...s.decisions].reverse().find(({ req }) =>
-      (req.kind === "chooseTargets" || req.kind === "selectCards") &&
-      req.options?.candidateInstanceIds?.includes(s.perm("tyrannomon").topCard!.instanceId)
-    )?.req;
+    const secondSuspendChoice = [...s.decisions]
+      .reverse()
+      .find(
+        ({ req }) =>
+          (req.kind === "chooseTargets" || req.kind === "selectCards") &&
+          req.options?.candidateInstanceIds?.includes(s.perm("tyrannomon").topCard!.instanceId),
+      )?.req;
     expect(secondSuspendChoice?.options?.candidateInstanceIds).not.toContain(otherOpponentInstanceId);
     expect(s.perm("mustRemainUnsuspended").isSuspended).toBe(false);
     expect(s.state.memory).toBe(3);

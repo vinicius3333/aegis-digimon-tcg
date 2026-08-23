@@ -10,7 +10,10 @@ describe("EX8-054", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "ActivateForeignEffect", zone: "digivolutionCards", fromTriggers: ["WhenDigivolving"] }],
     });
-    expect(compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({ frequency: "OncePerTurn", optional: true });
+    expect(compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
+      frequency: "OncePerTurn",
+      optional: true,
+    });
   });
   it("exposes the three printed static keywords on live state", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX8-054", as: "justimon" }] } });

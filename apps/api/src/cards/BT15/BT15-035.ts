@@ -3,123 +3,123 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "<Security Attack -1>"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "<Security Attack -1>",
           },
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "hand",
-                "nameOrTrait": [
-                  { "tokens": ["Numemon"], "match": "name" },
-                  { "tokens": ["Sukamon"], "match": "name" }
-                ]
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                nameOrTrait: [
+                  { tokens: ["Numemon"], match: "name" },
+                  { tokens: ["Sukamon"], match: "name" },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with [Numemon]/[Sukamon] in its name in your hand"
+            raw: "By trashing 1 card with [Numemon]/[Sukamon] in its name in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "<Security Attack -1>"
-          },
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "hand",
-                "nameOrTrait": [
-                  { "tokens": ["Numemon"], "match": "name" },
-                  { "tokens": ["Sukamon"], "match": "name" }
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 card with [Numemon]/[Sukamon] in its name in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "name",
-          "tokens": ["Numemon"]
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "<Security Attack -1>"
-          },
-          "duration": "untilOpponentTurnEnd"
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "<Security Attack -1>",
+          },
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                nameOrTrait: [
+                  { tokens: ["Numemon"], match: "name" },
+                  { tokens: ["Sukamon"], match: "name" },
+                ],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card with [Numemon]/[Sukamon] in its name in your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "name",
+          tokens: ["Numemon"],
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "<Security Attack -1>",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-035", compiled);

@@ -36,14 +36,10 @@ async function settle(maxTicks = 50): Promise<void> {
 function setupGomamonEss(): EngineSetup {
   return setupEngine({
     0: {
-      battleArea: [
-        { card: "BT1-009", dp: 4000, as: "hostSeat0", under: [{ card: "P-004", as: "gomamon" }] },
-      ],
+      battleArea: [{ card: "BT1-009", dp: 4000, as: "hostSeat0", under: [{ card: "P-004", as: "gomamon" }] }],
     },
     1: {
-      battleArea: [
-        { card: "BT1-009", dp: 4000, as: "oppPerm", under: [{ card: "BT1-009", as: "oppStackCard" }] },
-      ],
+      battleArea: [{ card: "BT1-009", dp: 4000, as: "oppPerm", under: [{ card: "BT1-009", as: "oppStackCard" }] }],
     },
   });
 }

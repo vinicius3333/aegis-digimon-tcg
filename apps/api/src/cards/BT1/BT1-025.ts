@@ -6,21 +6,25 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      actions: [{
-        kind: "GainKeyword",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
-        duration: "forTheTurn",
-      }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
       trigger: "YourTurn",
-      actions: [{
-        kind: "GrantStatic",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        grant: { kind: "PreventSecurityActivation", cardType: "Option" },
-        duration: "forTheTurn",
-      }],
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: { kind: "PreventSecurityActivation", cardType: "Option" },
+          duration: "forTheTurn",
+        },
+      ],
     },
   ],
   coverage: "full",

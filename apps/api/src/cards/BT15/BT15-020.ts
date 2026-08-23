@@ -8,67 +8,61 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Start of Your Main Phase] 1 of your Digimon gains ＜Blocker＞ until the end of your
 // opponent's turn. Then, if you have a Tamer with [Matt Ishida] in its name, Draw 1.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Matt Ishida"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Matt Ishida"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a Tamer with [Matt Ishida] in its name"
-          }
-        }
-      ]
+            raw: "you have a Tamer with [Matt Ishida] in its name",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-020", compiled);

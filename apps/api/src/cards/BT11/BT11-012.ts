@@ -7,11 +7,39 @@ export const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "MaterialSave", amount: 2, raw: "＜Material Save 2＞" }] },
     {
       trigger: "StartOfYourTurn",
-      actions: [{ kind: "GainMemory", amount: 1, cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "By deleting this Digimon" }, optional: true, abortOnDecline: true }],
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "deleteOwn",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "By deleting this Digimon",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
       trigger: "OnPlay",
-      actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" }] }, count: 2, to: "hand" }], rest: "deckBottom" }],
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" }],
+              },
+              count: 2,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
+      ],
     },
   ],
   coverage: "full",

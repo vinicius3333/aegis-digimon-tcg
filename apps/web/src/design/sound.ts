@@ -51,7 +51,8 @@ let lastPlayedAt = 0;
 
 function ensureContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
-  const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Ctor =
+    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctor) return null;
   if (!context) context = new Ctor();
   if (context.state === "suspended") void context.resume();

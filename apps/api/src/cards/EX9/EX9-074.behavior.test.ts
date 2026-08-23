@@ -42,7 +42,13 @@ describe("EX9-074 six-color digivolution stack", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-074", as: "omegamon", under: ["BT1-009", "BT1-027", "BT1-045", "BT1-064", "BT10-058", "BT10-071"] }],
+          battleArea: [
+            {
+              card: "EX9-074",
+              as: "omegamon",
+              under: ["BT1-009", "BT1-027", "BT1-045", "BT1-064", "BT10-058", "BT10-071"],
+            },
+          ],
         },
         1: {
           battleArea: [

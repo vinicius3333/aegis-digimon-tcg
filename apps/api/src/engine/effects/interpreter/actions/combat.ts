@@ -94,11 +94,12 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const target = action.chooser === undefined ? action.target : { ...action.target, chooser: action.chooser };
       const existingIds = ctx.boundPlayed?.get(name);
       const existingId = ctx.selections?.get(name);
-      const ids = existingIds !== undefined
-        ? [...existingIds]
-        : existingId !== undefined
-          ? [existingId]
-          : await resolvePermanentTargets(ctx, target);
+      const ids =
+        existingIds !== undefined
+          ? [...existingIds]
+          : existingId !== undefined
+            ? [existingId]
+            : await resolvePermanentTargets(ctx, target);
       if (ids.length > 0) {
         ctx.selections ??= new Map();
         ctx.selections.set(name, ids[0]!);
@@ -134,7 +135,11 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const noDigivolutionCards = action.noDigivolutionCards === true;
-      for (const id of ids) ctx.fx.grantCanAttackUnsuspended(id, duration, { noDigivolutionCards, defenderLevelMax: action.defenderLevelMax });
+      for (const id of ids)
+        ctx.fx.grantCanAttackUnsuspended(id, duration, {
+          noDigivolutionCards,
+          defenderLevelMax: action.defenderLevelMax,
+        });
       return false;
     }
     case "GrantVortexCanAttackPlayers": {

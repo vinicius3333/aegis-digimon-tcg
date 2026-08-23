@@ -6,66 +6,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Free"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Free"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "a Digimon card with [Free] in its traits is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "a Digimon card with [Free] in its traits is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "restriction",
-            "restriction": "cantBeBlocked"
+          effect: {
+            kind: "restriction",
+            restriction: "cantBeBlocked",
           },
-          "while": {
-            "kind": "selfHasNameContaining",
-            "names": [
-              "Imperialdramon"
-            ],
-            "raw": "this Digimon has [Imperialdramon] in its name"
-          }
-        }
+          while: {
+            kind: "selfHasNameContaining",
+            names: ["Imperialdramon"],
+            raw: "this Digimon has [Imperialdramon] in its name",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-019", compiled);

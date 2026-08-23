@@ -39,25 +39,27 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
-      actions: [{
-        kind: "Digivolve",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        into: {
-          excludeNames: ["Justimon: Accel Arm"],
-          controllerDefault: "mine",
-          kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["Justimon"], match: "name" }],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          into: {
+            excludeNames: ["Justimon: Accel Arm"],
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Justimon"], match: "name" }],
+          },
+          payCost: true,
+          from: ["hand"],
+          costOverride: 2,
+          ignoreRequirements: true,
+          condition: {
+            kind: "youHave",
+            filter: { kind: ["Tamer"] },
+          },
+          optional: false,
         },
-        payCost: true,
-        from: ["hand"],
-        costOverride: 2,
-        ignoreRequirements: true,
-        condition: {
-          kind: "youHave",
-          filter: { kind: ["Tamer"] },
-        },
-        optional: false,
-      }],
+      ],
     },
   ],
   coverage: "full",

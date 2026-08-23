@@ -6,7 +6,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
-
 /**
  * Drive the REAL digivolve into BT11-059 over `tamerCardIds` green/black Tamers and return
  * the memory paid (the shared gauge delta). BT11-059's printed EvoCost is Green/Lv.5/cost 5.

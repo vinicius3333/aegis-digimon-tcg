@@ -12,14 +12,17 @@ describe("P-019 Myotismon", () => {
     const defenderId = s.perm("defender").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attackerId,
-      target: { kind: "permanent", permanentId: defenderId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId) &&
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId),
     );
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

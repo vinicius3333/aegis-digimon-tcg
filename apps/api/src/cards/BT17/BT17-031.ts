@@ -6,95 +6,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Kyubimon",
-                      "Taomon",
-                      "Sakuyamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Kyubimon", "Taomon", "Sakuyamon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": ["Tamer"],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Rika Nonaka"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Rika Nonaka"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand",
-              "orFilters": [{ "kind": ["Option"], "playCostGte": 2 }]
-            }
+              count: 1,
+              to: "hand",
+              orFilters: [{ kind: ["Option"], playCostGte: 2 }],
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionUsed",
-          "fireCondition": {
-            "kind": "triggerOptionCostAtLeast",
-            "value": 2,
-            "raw": "when you use an Option card with a cost of 2 or more"
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          fireCondition: {
+            kind: "triggerOptionCostAtLeast",
+            value: 2,
+            raw: "when you use an Option card with a cost of 2 or more",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": -1,
-                "raw": "＜Security Attack -1＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: -1,
+                raw: "＜Security Attack -1＞",
               },
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-031", compiled);

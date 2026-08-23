@@ -6,5 +6,11 @@ describe("BT15-021", () => {
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
     expect(compiled.effects?.[1]?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3 });
   });
-  it("restricts one opposing Digimon with no more digivolution cards from attacking", () => expect(compiled.effects?.[2]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Restrict", restriction: "attack", duration: "untilOpponentTurnEnd" }] }));
+  it("restricts one opposing Digimon with no more digivolution cards from attacking", () =>
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Restrict", restriction: "attack", duration: "untilOpponentTurnEnd" }],
+    }));
 });

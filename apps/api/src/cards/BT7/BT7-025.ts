@@ -6,29 +6,33 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldDigivolve",
-        sourceFilter: {
-          controller: "mine",
-          kind: ["Digimon"],
-          digivolutionStackKind: ["Tamer"],
-        },
-        into: {
-          controller: "mine",
-          zone: "hand",
-          kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["Beowolfmon"], match: "name" }],
-        },
-        actions: [{
+      actions: [
+        {
           kind: "Replacement",
           event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 2,
-          raw: "reduce the digivolution cost by 2",
-        }],
-        raw: "When one of your Digimon with a Tamer in its digivolution cards would digivolve into this card, reduce the cost by 2.",
-      }],
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            digivolutionStackKind: ["Tamer"],
+          },
+          into: {
+            controller: "mine",
+            zone: "hand",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Beowolfmon"], match: "name" }],
+          },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the digivolution cost by 2",
+            },
+          ],
+          raw: "When one of your Digimon with a Tamer in its digivolution cards would digivolve into this card, reduce the cost by 2.",
+        },
+      ],
     },
     {
       trigger: "WhenAttacking",

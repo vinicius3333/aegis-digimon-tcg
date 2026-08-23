@@ -10,7 +10,9 @@ describe("BT4-070 Meteormon", () => {
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(meteor, "Reboot")).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: meteor.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: meteor.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
     expect(meteor.isSuspended).toBe(true);
   });
 });

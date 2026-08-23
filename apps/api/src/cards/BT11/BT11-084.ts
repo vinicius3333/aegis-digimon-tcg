@@ -14,12 +14,14 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenPlayed",
-        sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], byEffect: true },
-        actions: [{ kind: "GainMemory", amount: 1 }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], byEffect: true },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
       isInherited: true,
       frequency: "OncePerTurn",
     },

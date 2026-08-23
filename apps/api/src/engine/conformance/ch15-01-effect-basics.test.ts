@@ -44,8 +44,7 @@ describe("§15-1 Effects (comprehensive-0157)", () => {
   it("15-1-5: a mandatory (non-optional) effect resolves without asking — no 'use this effect?' prompt", async () => {
     cite(
       "comprehensive-0157",
-      "15-1-5 if an effect is mandatory and not optional, its processing must be " +
-        "performed whenever possible",
+      "15-1-5 if an effect is mandatory and not optional, its processing must be " + "performed whenever possible",
     );
 
     // `autoSelectCards` answers the target choice: the rule under test is that no OPTIONAL
@@ -258,36 +257,36 @@ describe('§15-15-2 "Gains" (comprehensive-0200)', () => {
 
 // §15-15-6 Effects That Can Replace DigiXros Requirements (comprehensive-0205)
 markNotTestable(
-    "comprehensive-0205",
-    "No compiled card in the corpus implements a DigiXros-requirement-REPLACEMENT effect " +
-      "(searched apps/api/src/cards for a DigiXros 'replace'/'may use ... instead of' clause " +
-      "and the interpreter for a matching action kind — none exists). DigiXros itself is " +
-      "implemented (GameEngine.validateDigiXros/applyDigiXros), but the specific sub-mechanic " +
-      "this chunk describes — substituting a different card for the one named in a DigiXros " +
-      "bracket requirement — has no producing action kind or consuming card to drive.",
-  );
+  "comprehensive-0205",
+  "No compiled card in the corpus implements a DigiXros-requirement-REPLACEMENT effect " +
+    "(searched apps/api/src/cards for a DigiXros 'replace'/'may use ... instead of' clause " +
+    "and the interpreter for a matching action kind — none exists). DigiXros itself is " +
+    "implemented (GameEngine.validateDigiXros/applyDigiXros), but the specific sub-mechanic " +
+    "this chunk describes — substituting a different card for the one named in a DigiXros " +
+    "bracket requirement — has no producing action kind or consuming card to drive.",
+);
 // §15-15-7 Effects That Activate Other Effects (comprehensive-0206)
 markNotTestable(
-    "comprehensive-0206",
-    "No compiled card in the corpus implements 'activate 1 of that card's [When " +
-      "Digivolving] effects as an effect of this Digimon' (searched cards.json effectText for " +
-      "the rule's own phrasing and the interpreter for an 'ActivateOtherEffect'/'ActivateAsSelf' " +
-      "action kind — neither exists). This is distinct from the stack-effect CONFERRAL exercised " +
-      "at comprehensive-0191 above (a standing grant that a stacked card's OWN effects fire as " +
-      "the host's): this chunk is a one-shot 'run 1 of THAT card's timing-window bodies right " +
-      "now, then continue this effect' primitive, which has no producing action kind to drive.",
-  );
+  "comprehensive-0206",
+  "No compiled card in the corpus implements 'activate 1 of that card's [When " +
+    "Digivolving] effects as an effect of this Digimon' (searched cards.json effectText for " +
+    "the rule's own phrasing and the interpreter for an 'ActivateOtherEffect'/'ActivateAsSelf' " +
+    "action kind — neither exists). This is distinct from the stack-effect CONFERRAL exercised " +
+    "at comprehensive-0191 above (a standing grant that a stacked card's OWN effects fire as " +
+    "the host's): this chunk is a one-shot 'run 1 of THAT card's timing-window bodies right " +
+    "now, then continue this effect' primitive, which has no producing action kind to drive.",
+);
 // §15-1-9/15-1-10 Effects (comprehensive-0158)
 markNotTestable(
-    "comprehensive-0158",
-    "This chunk distinguishes trigger conditions ('placed in an area') from ADDED-to-area " +
-      "conditions being met-or-not by Digi-Egg/token placement rules — a nuance specific to the " +
-      "Digi-Egg-hatch and token-creation-into-a-non-field-area edge case. The compiled corpus has " +
-      "no card whose trigger text distinguishes 'placed in hand/trash/security' from 'added to " +
-      "hand/trash/security' in a way a Digi-Egg or token could exercise differently; driving it " +
-      "would require inventing a scenario no real card presents, which the honesty contract rules " +
-      "out.",
-  );
+  "comprehensive-0158",
+  "This chunk distinguishes trigger conditions ('placed in an area') from ADDED-to-area " +
+    "conditions being met-or-not by Digi-Egg/token placement rules — a nuance specific to the " +
+    "Digi-Egg-hatch and token-creation-into-a-non-field-area edge case. The compiled corpus has " +
+    "no card whose trigger text distinguishes 'placed in hand/trash/security' from 'added to " +
+    "hand/trash/security' in a way a Digi-Egg or token could exercise differently; driving it " +
+    "would require inventing a scenario no real card presents, which the honesty contract rules " +
+    "out.",
+);
 describe("§15-12-2 Effects That Change Information (comprehensive-0190)", () => {
   markNotTestable(
     "comprehensive-0190",

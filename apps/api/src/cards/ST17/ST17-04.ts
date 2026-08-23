@@ -17,151 +17,126 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix: target.filter has no controller restriction — any player's level 3 or lower
 // Digimon can be targeted, including own if opponent has none.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 3
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 3,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [3],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Terriermon",
-                    "Lopmon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect deleted one of your Digimon with [Terriermon] or [Lopmon] in its name"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "kind": [
-                "Digimon"
+                  tokens: ["Terriermon", "Lopmon"],
+                  match: "name",
+                },
               ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 3
-              }
             },
-            "count": 1
-          }
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect deleted one of your Digimon with [Terriermon] or [Lopmon] in its name",
+          },
+          optional: true,
         },
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Terriermon",
-                    "Lopmon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect deleted one of your Digimon with [Terriermon] or [Lopmon] in its name"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
-          },
-          "while": {
-            "kind": "selfIsSuspended",
-            "raw": "this Digimon is suspended"
-          }
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 3,
+              },
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [3],
+              nameOrTrait: [
+                {
+                  tokens: ["Terriermon", "Lopmon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect deleted one of your Digimon with [Terriermon] or [Lopmon] in its name",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
+          },
+          while: {
+            kind: "selfIsSuspended",
+            raw: "this Digimon is suspended",
+          },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Terriermon",
-        "Lopmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      names: ["Terriermon", "Lopmon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST17-04", compiled);

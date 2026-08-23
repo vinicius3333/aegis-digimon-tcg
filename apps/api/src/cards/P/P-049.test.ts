@@ -5,17 +5,43 @@ import "./P-049.js";
 
 describe("P-049 Phoenixmon", () => {
   it("gains Security Attack +1 for the turn when a Tamer is in play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-002", as: "base" }, { card: "BT1-089", as: "tamer" }], hand: [{ card: "P-049", as: "source" }], deck: ["BT1-009"] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-002", as: "base" },
+            { card: "BT1-089", as: "tamer" },
+          ],
+          hand: [{ card: "P-049", as: "source" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "SecurityAttack"));
     expect(observe(s.engine).hasKeyword(s.perm("base"), "SecurityAttack")).toBe(true);
   });
 
   it("does not gain Security Attack without a Tamer", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "P-049", as: "source" }], deck: ["BT1-009"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "P-049", as: "source" }], deck: ["BT1-009"] },
+    });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 30);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "SecurityAttack")).toBe(false);
   });
@@ -48,9 +74,7 @@ describe("P-049 Phoenixmon", () => {
         blockerPermanentId: s.perm("blocker").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.trash.some((card) => card.instanceId === topSecurityId),
-    );
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === topSecurityId));
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === topSecurityId)).toBe(true);
@@ -95,9 +119,11 @@ describe("P-049 Phoenixmon", () => {
     );
     await settle();
 
-    await (s.engine as unknown as {
-      primitives: { unsuspend(permanentIds: string[]): Promise<void> };
-    }).primitives.unsuspend([s.perm("attacker").permanentId]);
+    await (
+      s.engine as unknown as {
+        primitives: { unsuspend(permanentIds: string[]): Promise<void> };
+      }
+    ).primitives.unsuspend([s.perm("attacker").permanentId]);
 
     expect(
       s.engine.applyIntent(0, {

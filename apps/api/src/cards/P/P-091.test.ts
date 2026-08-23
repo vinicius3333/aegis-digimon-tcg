@@ -21,19 +21,20 @@ describe("P-091 Saberdramon", () => {
     const lowerId = s.perm("lower").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attackerId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId) &&
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId),
     );
 
-    expect(s.state.players[1]!.battleArea.some(
-      (permanent) => permanent.permanentId === lowerId,
-    )).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowerId)).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -53,35 +54,34 @@ describe("P-091 Saberdramon", () => {
     );
     const hostId = s.perm("host").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: hostId,
-      target: { kind: "permanent", permanentId: s.perm("winner").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("winner").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const decision = s.decisions.at(-1)!.req;
     expect(decision.sourceCardId).toBe("P-091");
-    expect(decision.options?.candidateInstanceIds).toEqual(expect.arrayContaining([
-      s.inst("source").instanceId,
-      s.inst("existingRed").instanceId,
-    ]));
+    expect(decision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("source").instanceId, s.inst("existingRed").instanceId]),
+    );
     expect(decision.options?.candidateInstanceIds).not.toContain(s.inst("ineligibleBlue").instanceId);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("source").instanceId] },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("source").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("source").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("source").instanceId));
 
-    expect(s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.permanentId === hostId,
-    )).toBe(false);
-    expect(s.state.players[1]!.battleArea.some(
-      (permanent) => permanent.permanentId === s.perm("winner").permanentId,
-    )).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("winner").permanentId),
+    ).toBe(true);
     assertNoLoudGap(s);
   });
 });

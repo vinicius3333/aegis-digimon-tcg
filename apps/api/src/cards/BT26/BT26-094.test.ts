@@ -64,14 +64,17 @@ describe("BT26-094 compiled fidelity", () => {
   });
 
   it("suspends itself and grants Execute when the opponent's hand is trashed from", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT26-094", as: "keenan" },
-          { card: "BT26-039", as: "dataSquad" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-094", as: "keenan" },
+            { card: "BT26-039", as: "dataSquad" },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });

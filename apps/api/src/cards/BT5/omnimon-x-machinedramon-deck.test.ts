@@ -24,23 +24,28 @@ describe("Machinedramon, Omnimon Zwart, and Omnimon X deck", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("omniZwart").permanentId,
-      instanceId: s.inst("omniX").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omniZwart").permanentId,
+        instanceId: s.inst("omniX").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("omniZwart").topCard.cardId === "BT5-111");
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.security.length === 1 &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 1 &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
     expect(s.perm("omniZwart").stack).toHaveLength(1);
@@ -53,11 +58,13 @@ describe("Machinedramon, Omnimon Zwart, and Omnimon X deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT5-087",
-            as: "omniZwart",
-            under: ["EX1-073", "BT1-114", "EX1-048"],
-          }],
+          battleArea: [
+            {
+              card: "BT5-087",
+              as: "omniZwart",
+              under: ["EX1-073", "BT1-114", "EX1-048"],
+            },
+          ],
           hand: [{ card: "BT5-111", as: "omniX" }],
           security: ["BT1-001", "BT1-002"],
         },
@@ -80,19 +87,23 @@ describe("Machinedramon, Omnimon Zwart, and Omnimon X deck", () => {
     const deleteTargetId = s.perm("deleteTarget").permanentId;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("omniZwart").permanentId,
-      instanceId: s.inst("omniX").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omniZwart").permanentId,
+        instanceId: s.inst("omniX").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("omniZwart").topCard.cardId === "BT5-111");
 
     expect(s.state.memory).toBe(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("omniZwart").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omniZwart").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === deleteTargetId) &&
@@ -108,14 +119,17 @@ describe("Machinedramon, Omnimon Zwart, and Omnimon X deck", () => {
     s.state.phase = Phase.Main;
     s.perm("replyAttacker").isSuspended = false;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("replyAttacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
-      s.perm("omniZwart").stack.length === 2,
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("replyAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
+        s.perm("omniZwart").stack.length === 2,
     );
 
     expect(s.state.players[0]!.security).toHaveLength(2);

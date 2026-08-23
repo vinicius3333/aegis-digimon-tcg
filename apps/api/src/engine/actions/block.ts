@@ -25,11 +25,7 @@ export interface BlockDeps {
 }
 
 /** Declare `blockerPermanentId` as the blocker for the current attack. */
-export function applyDeclareBlock(
-  deps: BlockDeps,
-  seat: Seat,
-  intent: { blockerPermanentId: string },
-): IntentResult {
+export function applyDeclareBlock(deps: BlockDeps, seat: Seat, intent: { blockerPermanentId: string }): IntentResult {
   const reason = validateDeclareBlock(deps, seat, intent.blockerPermanentId);
   if (reason !== null) {
     return { ok: false, reason };
@@ -57,11 +53,7 @@ export function applyDeclineBlock(deps: BlockDeps, seat: Seat): IntentResult {
  *   - no open window, or it is not this seat's window;
  *   - the named permanent is not a legal blocker for the current attacker.
  */
-export function validateDeclareBlock(
-  deps: BlockDeps,
-  seat: Seat,
-  blockerPermanentId: string,
-): RejectReason | null {
+export function validateDeclareBlock(deps: BlockDeps, seat: Seat, blockerPermanentId: string): RejectReason | null {
   const { access, combat } = deps;
 
   if (!combat.hasOpenBlockWindow) {

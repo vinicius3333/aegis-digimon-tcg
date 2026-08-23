@@ -7,7 +7,14 @@ describe("BT17-098 Hacker Pride", () => {
   it("reveals Pulsemon-text cards and places the Option in the battle area", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Main",
-      actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ to: "hand", count: 1, filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] } }] }, { kind: "PlaceInBattleAreaSelf" }],
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [{ to: "hand", count: 1, filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] } }],
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
     });
   });
 
@@ -15,33 +22,49 @@ describe("BT17-098 Hacker Pride", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "Main",
       keywords: [{ keyword: "Delay" }],
-      actions: [{
-        kind: "GainMemory",
-        amount: 2,
-        optional: true,
-        abortOnDecline: true,
-        cost: {
-          kind: "place",
-          destination: "security",
-          position: "top",
-          target: { count: 1, topCardOnly: true, filter: { levelComparison: { op: "gte", value: 4 }, nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] } },
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 2,
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "place",
+            destination: "security",
+            position: "top",
+            target: {
+              count: 1,
+              topCardOnly: true,
+              filter: {
+                levelComparison: { op: "gte", value: 4 },
+                nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }],
+              },
+            },
+          },
         },
-      }],
+      ],
     });
   });
 
   it("preserves the same reveal-and-place sequence in Security", () => {
-    expect(compiled.effects?.[2]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "RevealAdd" }, { kind: "PlaceInBattleAreaSelf" }] });
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "RevealAdd" }, { kind: "PlaceInBattleAreaSelf" }],
+    });
   });
 
   it("adds a Pulsemon-text card and places itself through the public Main flow", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: ["BT17-036"],
-        hand: [{ card: "BT17-098", as: "option" }],
-        deck: [{ card: "BT17-069", as: "match" }, "BT1-001", "BT1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT17-036"],
+          hand: [{ card: "BT17-098", as: "option" }],
+          deck: [{ card: "BT17-069", as: "match" }, "BT1-001", "BT1-011"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
     const optionId = s.inst("option").instanceId;
     const matchId = s.inst("match").instanceId;

@@ -20,12 +20,18 @@ describe("BT12-077 Arresterdramon", () => {
   });
 
   it("saves itself and draws from its inherited attack effect", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT12-077", as: "host" }, { card: "BT12-094", as: "tamer" }],
-        deck: ["BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-077", as: "host" },
+            { card: "BT12-094", as: "tamer" },
+          ],
+          deck: ["BT1-010"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const sourceId = s.perm("host").topCard.instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId));

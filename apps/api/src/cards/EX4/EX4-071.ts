@@ -3,95 +3,87 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "relativeTo": "lastDeleted"
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                relativeTo: "lastDeleted",
               },
-              "count": 1
             },
-            "bindResultAs": "deleted",
-            "raw": "By deleting 1 of your Digimon"
+            count: 1,
+          },
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+              },
+              count: 1,
+            },
+            bindResultAs: "deleted",
+            raw: "By deleting 1 of your Digimon",
           },
         },
         {
-          "kind": "SubTrigger",
-          "event": "endOfOpponentTurn",
-          "actions": [
+          kind: "SubTrigger",
+          event: "endOfOpponentTurn",
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Ravemon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Ravemon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1,
-                "location": "trash",
-                "controller": "mine"
+                count: 1,
+                location: "trash",
+                controller: "mine",
               },
-              "payCost": false
-            }
+              payCost: false,
+            },
           ],
-          "condition": {
-            "kind": "bindingContains",
-            "ref": "deleted",
-            "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "name" }] },
-            "raw": "one of your Digimon with [Ravemon] in its name was deleted by this effect"
-          }
-        }
-      ]
+          condition: {
+            kind: "bindingContains",
+            ref: "deleted",
+            filter: { nameOrTrait: [{ tokens: ["Ravemon"], match: "name" }] },
+            raw: "one of your Digimon with [Ravemon] in its name was deleted by this effect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-071", compiled);

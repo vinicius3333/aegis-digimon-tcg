@@ -6,45 +6,43 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Jamming",
-          "raw": "＜Jamming＞"
-        }
-      ]
+          keyword: "Jamming",
+          raw: "＜Jamming＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "selfHasNameContaining",
-            "names": [
-              "Imperialdramon"
-            ],
-            "excludeNames": [],
-            "raw": "this Digimon has [Imperialdramon] in its name"
-          }
-        }
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Imperialdramon"],
+            excludeNames: [],
+            raw: "this Digimon has [Imperialdramon] in its name",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-027", compiled);

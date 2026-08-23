@@ -10,73 +10,65 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 1,
-          "revealScaling": {
-            "per": 1,
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "RevealAdd",
+          revealCount: 1,
+          revealScaling: {
+            per: 1,
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "unit": "cards"
+            unit: "cards",
           },
-          "add": [
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Black"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 5
-                }
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Black"],
+                levelComparison: {
+                  op: "lte",
+                  value: 5,
+                },
               },
-              "orFilters": [
+              orFilters: [
                 {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Red"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 5
-                  }
-                }
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Red"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 5,
+                  },
+                },
               ],
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
+              count: 1,
+              to: "play",
+              optional: true,
+            },
           ],
-          "rest": "deckBottomAnyOrder"
-        }
-      ]
-    }
+          rest: "deckBottomAnyOrder",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-073", compiled);

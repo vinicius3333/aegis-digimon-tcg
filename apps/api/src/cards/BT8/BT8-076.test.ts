@@ -19,17 +19,20 @@ describe("BT8-076 Fangmon", () => {
     const defenderId = s.perm("defender").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: fangmonId,
-      target: { kind: "permanent", permanentId: defenderId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some(permanent => permanent.permanentId === fangmonId) &&
-      !s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === defenderId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: fangmonId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === fangmonId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId),
     );
 
-    expect(s.state.players[0]!.trash.some(card => card.cardId === "BT8-076")).toBe(true);
-    expect(s.state.players[1]!.trash.some(card => card.cardId === "BT2-047")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-076")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT2-047")).toBe(true);
   });
 });

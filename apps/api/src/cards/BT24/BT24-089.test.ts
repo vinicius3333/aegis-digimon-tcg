@@ -65,9 +65,10 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-089"));
-
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-008")).toBe(true);
   });
@@ -80,13 +81,18 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
             { card: "BT1-009", as: "redSource" },
             { card: "BT24-008", as: "base" },
           ],
-          hand: [{ card: "BT24-089", as: "option" }, { card: "BT24-012", as: "evolution" }],
+          hand: [
+            { card: "BT24-089", as: "option" },
+            { card: "BT24-012", as: "evolution" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-089"));
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
 
@@ -112,14 +118,19 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
             { card: "BT24-082", as: "owen" },
             { card: "BT24-008", as: "base" },
           ],
-          hand: [{ card: "BT24-089", as: "option" }, { card: "BT24-012", as: "evolution" }],
+          hand: [
+            { card: "BT24-089", as: "option" },
+            { card: "BT24-012", as: "evolution" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-089"));
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
 
@@ -149,13 +160,18 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
             { card: "BT24-082", as: "owen" },
             { card: "BT24-008", as: "base" },
           ],
-          hand: [{ card: "BT24-089", as: "option" }, { card: evolution, as: "evolution" }],
+          hand: [
+            { card: "BT24-089", as: "option" },
+            { card: evolution, as: "evolution" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-089"));
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
     await advance(s.engine).verb.suspend([s.perm("owen").permanentId]);

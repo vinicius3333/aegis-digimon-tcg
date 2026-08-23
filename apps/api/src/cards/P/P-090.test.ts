@@ -23,24 +23,28 @@ describe("P-090 Diarbbitmon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("diarbbitmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("diarbbitmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.at(-1)!.req;
     expect(decision.options?.min).toBe(2);
     expect(decision.options?.max).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("first").permanentId, s.perm("second").permanentId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("first").permanentId, s.perm("second").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
 
     expect(s.perm("first").isSuspended).toBe(true);
@@ -66,14 +70,17 @@ describe("P-090 Diarbbitmon", () => {
     const victimId = s.perm("victim").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: victimId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId) &&
-      !s.perm("diarbbitmon").isSuspended
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId) &&
+        !s.perm("diarbbitmon").isSuspended,
     );
 
     expect(s.perm("diarbbitmon").isSuspended).toBe(false);

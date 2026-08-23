@@ -64,17 +64,35 @@ export function DeckPreviewSections({
   const sections: DeckSection[] = [
     ...[...byLevel.entries()]
       .sort(([a], [b]) => a - b)
-      .map(([level, cardIds]) => ({ id: `level-${level}`, label: t("deck.levelSection", { level, count: countCardsFromIds(main, cardIds) }), cardIds: sortCardIds(cardIds) })),
-    { id: "tamers", label: t("deck.tamerSection", { count: countCardsFromIds(main, tamers) }), cardIds: sortCardIds(tamers) },
-    { id: "options", label: t("deck.optionSection", { count: countCardsFromIds(main, options) }), cardIds: sortCardIds(options) },
-    { id: "other", label: t("deck.otherSection", { count: countCardsFromIds(main, other) }), cardIds: sortCardIds(other) },
+      .map(([level, cardIds]) => ({
+        id: `level-${level}`,
+        label: t("deck.levelSection", { level, count: countCardsFromIds(main, cardIds) }),
+        cardIds: sortCardIds(cardIds),
+      })),
+    {
+      id: "tamers",
+      label: t("deck.tamerSection", { count: countCardsFromIds(main, tamers) }),
+      cardIds: sortCardIds(tamers),
+    },
+    {
+      id: "options",
+      label: t("deck.optionSection", { count: countCardsFromIds(main, options) }),
+      cardIds: sortCardIds(options),
+    },
+    {
+      id: "other",
+      label: t("deck.otherSection", { count: countCardsFromIds(main, other) }),
+      cardIds: sortCardIds(other),
+    },
   ].filter((section) => section.cardIds.length > 0);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <section>
         <DeckPreviewLabel>{t("deck.eggSection", { count: countCards(egg) })}</DeckPreviewLabel>
-        {eggCardIds.length === 0 ? <DeckPreviewEmpty>{t("deck.noEggs")}</DeckPreviewEmpty> : (
+        {eggCardIds.length === 0 ? (
+          <DeckPreviewEmpty>{t("deck.noEggs")}</DeckPreviewEmpty>
+        ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {eggCardIds.map((cardId) => (
               <DeckPreviewCard
@@ -121,17 +139,38 @@ function countCardsFromIds(cards: CountMap, cardIds: readonly string[]): number 
 
 function DeckPreviewLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ds-foreground-muted)", padding: "0 4px 6px" }}>
+    <div
+      style={{
+        fontSize: 10.5,
+        fontWeight: 700,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        color: "var(--ds-foreground-muted)",
+        padding: "0 4px 6px",
+      }}
+    >
       {children}
     </div>
   );
 }
 
 function DeckPreviewEmpty({ children }: { children: React.ReactNode }) {
-  return <div style={{ padding: "10px 6px", fontSize: 12.5, color: "var(--ds-foreground-disabled)", fontStyle: "italic" }}>{children}</div>;
+  return (
+    <div style={{ padding: "10px 6px", fontSize: 12.5, color: "var(--ds-foreground-disabled)", fontStyle: "italic" }}>
+      {children}
+    </div>
+  );
 }
 
-function DeckPreviewCard({ cardId, count, isCover, pairConflict, onSetCover, onAdd, onRemove }: {
+function DeckPreviewCard({
+  cardId,
+  count,
+  isCover,
+  pairConflict,
+  onSetCover,
+  onAdd,
+  onRemove,
+}: {
   cardId: string;
   count: number;
   isCover: boolean;
@@ -151,29 +190,112 @@ function DeckPreviewCard({ cardId, count, isCover, pairConflict, onSetCover, onA
   const StarIcon = isCover ? Icons.Star : Icons.StarOutline;
 
   return (
-    <div style={{ minHeight: 56, display: "flex", alignItems: "center", gap: 9, padding: 5, borderRadius: 10, background: "var(--ds-surface-muted)", border: "1px solid var(--ds-border)" }}>
+    <div
+      style={{
+        minHeight: 56,
+        display: "flex",
+        alignItems: "center",
+        gap: 9,
+        padding: 5,
+        borderRadius: 10,
+        background: "var(--ds-surface-muted)",
+        border: "1px solid var(--ds-border)",
+      }}
+    >
       <div style={{ width: 38, height: 53, flexShrink: 0, overflow: "hidden", borderRadius: 5 }}>
         <CardFull cardId={cardId} width={38} />
       </div>
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
           <ColorDot color={colorKey(definition.colors[0])} size={8} />
-          <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 650, color: "var(--ds-foreground)" }}>{definition.nameEn}</span>
+          <span
+            style={{
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              fontSize: 12.5,
+              fontWeight: 650,
+              color: "var(--ds-foreground)",
+            }}
+          >
+            {definition.nameEn}
+          </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4 }}>
-          <span style={{ padding: "1px 5px", borderRadius: 4, background: "var(--ds-surface)", border: "1px solid var(--ds-border)", color: "var(--ds-foreground-muted)", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.04em" }}>{typeLabel}</span>
-          {banLabel ? <span style={{ padding: "1px 5px", borderRadius: 4, background: disabled ? "#dc2626" : "#f59e0b", color: "#fff", fontSize: 9, fontWeight: 700, letterSpacing: "0.04em" }}>{banLabel}</span> : null}
+          <span
+            style={{
+              padding: "1px 5px",
+              borderRadius: 4,
+              background: "var(--ds-surface)",
+              border: "1px solid var(--ds-border)",
+              color: "var(--ds-foreground-muted)",
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+            }}
+          >
+            {typeLabel}
+          </span>
+          {banLabel ? (
+            <span
+              style={{
+                padding: "1px 5px",
+                borderRadius: 4,
+                background: disabled ? "#dc2626" : "#f59e0b",
+                color: "#fff",
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+              }}
+            >
+              {banLabel}
+            </span>
+          ) : null}
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
         {onSetCover ? (
-          <button onClick={onSetCover} aria-label={isCover ? t("deck.coverCard") : t("deck.setAsCover")} title={isCover ? t("deck.coverCard") : t("deck.setAsCover")} style={{ ...stepButton, color: isCover ? "var(--ds-primary)" : "var(--ds-foreground-muted)", borderColor: isCover ? "var(--ds-primary)" : "var(--ds-border)" }}>
+          <button
+            onClick={onSetCover}
+            aria-label={isCover ? t("deck.coverCard") : t("deck.setAsCover")}
+            title={isCover ? t("deck.coverCard") : t("deck.setAsCover")}
+            style={{
+              ...stepButton,
+              color: isCover ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
+              borderColor: isCover ? "var(--ds-primary)" : "var(--ds-border)",
+            }}
+          >
             <StarIcon size={11} />
           </button>
         ) : null}
-        <button onClick={onRemove} aria-label={t("common.remove")} style={stepButton}>–</button>
-        <span style={{ width: 16, textAlign: "center", fontFamily: "var(--ds-font-mono)", fontSize: 12, fontWeight: 700, color: "var(--ds-foreground)" }}>{count}</span>
-        <button onClick={onAdd} aria-label={t("common.add")} disabled={disabled || count >= cap} style={{ ...stepButton, opacity: disabled || count >= cap ? 0.4 : 1, cursor: disabled || count >= cap ? "not-allowed" : "pointer" }}>+</button>
+        <button onClick={onRemove} aria-label={t("common.remove")} style={stepButton}>
+          –
+        </button>
+        <span
+          style={{
+            width: 16,
+            textAlign: "center",
+            fontFamily: "var(--ds-font-mono)",
+            fontSize: 12,
+            fontWeight: 700,
+            color: "var(--ds-foreground)",
+          }}
+        >
+          {count}
+        </span>
+        <button
+          onClick={onAdd}
+          aria-label={t("common.add")}
+          disabled={disabled || count >= cap}
+          style={{
+            ...stepButton,
+            opacity: disabled || count >= cap ? 0.4 : 1,
+            cursor: disabled || count >= cap ? "not-allowed" : "pointer",
+          }}
+        >
+          +
+        </button>
       </div>
     </div>
   );
@@ -213,10 +335,26 @@ export function DeckLevelCurve({ main }: { main: CountMap }) {
         {levels.map((level) => {
           const count = counts.get(level) ?? 0;
           return (
-            <div key={level} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-              <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10, color: "var(--ds-foreground-muted)" }}>{count || ""}</span>
-              <div style={{ width: "100%", height: `${(count / peak) * 52}px`, minHeight: count ? 4 : 0, borderRadius: 4, background: "var(--ds-primary)", opacity: count ? 1 : 0 }} />
-              <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10, color: "var(--ds-foreground-muted)" }}>Lv.{level}</span>
+            <div
+              key={level}
+              style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
+            >
+              <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10, color: "var(--ds-foreground-muted)" }}>
+                {count || ""}
+              </span>
+              <div
+                style={{
+                  width: "100%",
+                  height: `${(count / peak) * 52}px`,
+                  minHeight: count ? 4 : 0,
+                  borderRadius: 4,
+                  background: "var(--ds-primary)",
+                  opacity: count ? 1 : 0,
+                }}
+              />
+              <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10, color: "var(--ds-foreground-muted)" }}>
+                Lv.{level}
+              </span>
             </div>
           );
         })}
@@ -225,4 +363,11 @@ export function DeckLevelCurve({ main }: { main: CountMap }) {
   );
 }
 
-const statLabel: React.CSSProperties = { fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ds-foreground-muted)", marginBottom: 12 };
+const statLabel: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  color: "var(--ds-foreground-muted)",
+  marginBottom: 12,
+};

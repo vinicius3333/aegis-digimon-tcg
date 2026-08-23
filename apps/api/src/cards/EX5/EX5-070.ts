@@ -19,7 +19,13 @@ if (replacement?.kind === "Replacement") {
       kind: "SecurityManipulation",
       op: "addTop",
       controller: "mine",
-      source: { filter: { zone: "digivolutionCards", controller: "mine", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+      source: {
+        filter: {
+          zone: "digivolutionCards",
+          controller: "mine",
+          nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
+        },
+      },
       amount: 1,
       faceDown: true,
     },

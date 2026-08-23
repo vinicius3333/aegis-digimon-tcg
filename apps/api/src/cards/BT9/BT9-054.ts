@@ -6,139 +6,121 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "underFilter": {
-            "zone": "battleArea",
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
-              { "tokens": ["Justimon", "Raidenmon"], "match": "name" }
-            ]
+          underFilter: {
+            zone: "battleArea",
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Justimon", "Raidenmon"], match: "name" }],
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Justimon",
-                    "Raidenmon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have a Digimon with [Justimon] or [Raidenmon] in its name in play"
-          },
-          "cost": {
-            "kind": "payMemory",
-            "memory": 1,
-            "raw": "you may pay 1 memory"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ],
-      "isFromHand": true
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Machine",
-                      "Cyborg"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1
-            },
-            "raw": "by trashing 1 Digimon card with [Machine] or [Cyborg] in its traits in your hand"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+                  tokens: ["Justimon", "Raidenmon"],
+                  match: "name",
+                },
               ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
             },
-            "count": 1
-          }
+            raw: "you have a Digimon with [Justimon] or [Raidenmon] in its name in play",
+          },
+          cost: {
+            kind: "payMemory",
+            memory: 1,
+            raw: "you may pay 1 memory",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      isFromHand: true,
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Machine", "Cyborg"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+            },
+            raw: "by trashing 1 Digimon card with [Machine] or [Cyborg] in its traits in your hand",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
+            },
+            count: 1,
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-054", compiled);

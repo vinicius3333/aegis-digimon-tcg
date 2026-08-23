@@ -9,75 +9,69 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // that both branches are mutually exclusive requires CAP-E-6 (conditional-instead
 // Return). The Trash of digivolution cards only applies to the deckBottom branch.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "not",
-            "condition": {
-              "kind": "opponentHas",
-              "filter": { "zone": "battleArea", "controllerDefault": "opponent", "kind": ["Digimon"] },
-              "count": 3
-            }
-          }
+          to: "hand",
+          condition: {
+            kind: "not",
+            condition: {
+              kind: "opponentHas",
+              filter: { zone: "battleArea", controllerDefault: "opponent", kind: ["Digimon"] },
+              count: 3,
+            },
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "replaces": "previous",
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          to: "deckBottom",
+          replaces: "previous",
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 3,
-            "raw": "if your opponent has 3 or more Digimon in play"
-          }
-        }
-      ]
+            count: 3,
+            raw: "if your opponent has 3 or more Digimon in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-098", compiled);

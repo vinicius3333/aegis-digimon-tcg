@@ -25,11 +25,11 @@
 
 ## Screens
 
-| Lobby | Deck builder |
-| :---: | :---: |
-| <img src="./docs/images/lobby.jpg" alt="Lobby: quick match, practice vs AI, private match, and preset decks" width="440"> | <img src="./docs/images/deck-builder.jpg" alt="Deck builder with card pool filters, deck list, level curve and color balance" width="440"> |
-| **Card library** | **Home** |
-| <img src="./docs/images/collection.jpg" alt="Card library with 4,388 cards and filters for color, type, level and set" width="440"> | <img src="./docs/images/home.jpg" alt="Home screen with active deck, quick match and shortcuts" width="440"> |
+|                                                                Lobby                                                                |                                                                Deck builder                                                                |
+| :---------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------: |
+|      <img src="./docs/images/lobby.jpg" alt="Lobby: quick match, practice vs AI, private match, and preset decks" width="440">      | <img src="./docs/images/deck-builder.jpg" alt="Deck builder with card pool filters, deck list, level curve and color balance" width="440"> |
+|                                                          **Card library**                                                           |                                                                  **Home**                                                                  |
+| <img src="./docs/images/collection.jpg" alt="Card library with 4,388 cards and filters for color, type, level and set" width="440"> |                <img src="./docs/images/home.jpg" alt="Home screen with active deck, quick match and shortcuts" width="440">                |
 
 ## Architecture
 
@@ -74,11 +74,11 @@ The client sends choices. It never sends state, and it never rules on legality.
 
 ### Packages
 
-| Package | Owns |
-| --- | --- |
-| `@aegis/api` | Colyseus rooms, rules engine, card behavior, bots, tournaments, persistence |
-| `@aegis/web` | React and PixiJS client, deck builder, lobby, board rendering |
-| `@aegis/shared` | Card catalog, synchronized schema, protocol types, ban list |
+| Package         | Owns                                                                        |
+| --------------- | --------------------------------------------------------------------------- |
+| `@aegis/api`    | Colyseus rooms, rules engine, card behavior, bots, tournaments, persistence |
+| `@aegis/web`    | React and PixiJS client, deck builder, lobby, board rendering               |
+| `@aegis/shared` | Card catalog, synchronized schema, protocol types, ban list                 |
 
 Dependencies point inward. Both apps depend on `@aegis/shared`; neither app
 depends on the other; game rules never cross into the client.
@@ -97,12 +97,12 @@ runs as a single process, which is what `pnpm dev` does.
 
 ### By the numbers
 
-| | |
-| --- | --- |
-| Cards in the catalog | 4,388 across 65 sets |
-| Card behavior modules | 4,217 under `apps/api/src/cards/` |
-| Test files | 3,694 |
-| Rules knowledge base | official rules, rulings, errata and ban list in `data/kb/` |
+|                       |                                                            |
+| --------------------- | ---------------------------------------------------------- |
+| Cards in the catalog  | 4,388 across 65 sets                                       |
+| Card behavior modules | 4,217 under `apps/api/src/cards/`                          |
+| Test files            | 3,694                                                      |
+| Rules knowledge base  | official rules, rulings, errata and ban list in `data/kb/` |
 
 ## Why not DCGO?
 
@@ -215,7 +215,7 @@ database (`src/assets/cardlists/DigimonCards.json`, MIT License, © Christian
 Bayer). `tools/import-taka-cards.mjs` maps those records into this project's
 `CardDefinition` shape. Thanks to its maintainers and contributors.
 
-Player portraits come from the PlayStation *Digimon World* card sheets ripped by
+Player portraits come from the PlayStation _Digimon World_ card sheets ripped by
 **metaldodomon** and published on The Spriters Resource. `tools/extract-dw-card-avatars.py`
 slices those sheets into the files under `apps/web/public/avatars/digimon-world-1/`.
 

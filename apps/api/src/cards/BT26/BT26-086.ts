@@ -25,12 +25,16 @@ const linkThenAttack = [
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "Static", actions: [], keywords: [
-      { keyword: "Rush", raw: "＜Rush＞" },
-      { keyword: "Reboot", raw: "＜Reboot＞" },
-      { keyword: "Blocker", raw: "＜Blocker＞" },
-      { keyword: "Link", amount: 6, raw: "＜Link +6＞" },
-    ] },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        { keyword: "Rush", raw: "＜Rush＞" },
+        { keyword: "Reboot", raw: "＜Reboot＞" },
+        { keyword: "Blocker", raw: "＜Blocker＞" },
+        { keyword: "Link", amount: 6, raw: "＜Link +6＞" },
+      ],
+    },
     { trigger: "OnPlay", actions: linkThenAttack },
     { trigger: "WhenDigivolving", actions: linkThenAttack },
     {

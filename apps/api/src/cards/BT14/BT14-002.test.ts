@@ -6,7 +6,18 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT14-002.js";
 
-describe("BT14-002", () => it("inherits conditional Jamming when no opposing Digimon has as many or more sources", () => expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "GainKeyword", keyword: { keyword: "Jamming" }, condition: { kind: "opponentHasNone", filter: { digivolutionCardsCompareToSource: "gte" } } }] })));
+describe("BT14-002", () =>
+  it("inherits conditional Jamming when no opposing Digimon has as many or more sources", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "GainKeyword",
+          keyword: { keyword: "Jamming" },
+          condition: { kind: "opponentHasNone", filter: { digivolutionCardsCompareToSource: "gte" } },
+        },
+      ],
+    })));
 
 it("grants Jamming when the opponent has no Digimon", async () => {
   const s = setupEngine({

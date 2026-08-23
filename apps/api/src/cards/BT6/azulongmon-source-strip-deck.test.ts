@@ -35,10 +35,7 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
             },
             { card: "BT1-014", as: "alreadyEmpty" },
           ],
-          security: [
-            "BT1-001", "BT1-002", "BT1-003", "BT1-004",
-            "BT1-005", "BT1-006", "BT1-007", "BT1-008",
-          ],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"],
         },
       },
       {
@@ -57,39 +54,42 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
     s.state.memory = 8;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("majiramon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("twoSources").stack.length === 1 &&
-      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === topSourceId) &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("majiramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("twoSources").stack.length === 1 &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === topSourceId) &&
+        s.state.pendingDecision === undefined,
     );
 
-    const topStripChoice = s.decisions.find(({ req }) =>
-      req.kind === "chooseTargets" &&
-      req.options?.candidateInstanceIds?.includes(twoSourcesId)
+    const topStripChoice = s.decisions.find(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.candidateInstanceIds?.includes(twoSourcesId),
     )?.req;
-    expect(new Set(topStripChoice?.options?.candidateInstanceIds ?? [])).toEqual(
-      new Set([twoSourcesId, oneSourceId]),
-    );
+    expect(new Set(topStripChoice?.options?.candidateInstanceIds ?? [])).toEqual(new Set([twoSourcesId, oneSourceId]));
     expect(s.perm("twoSources").stack.map(({ instanceId }) => instanceId)).toEqual([bottomSourceId]);
     expect(s.perm("oneSource").stack.map(({ instanceId }) => instanceId)).toEqual([onlySourceId]);
     expect(s.state.memory).toBe(5);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("azulongmon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 3 &&
-      s.perm("twoSources").stack.length === 0 &&
-      s.perm("oneSource").stack.length === 0 &&
-      observe(s.engine).keywordAmount(s.perm("blueLevelFour"), "SecurityAttack") === 3 &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("azulongmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === 3 &&
+        s.perm("twoSources").stack.length === 0 &&
+        s.perm("oneSource").stack.length === 0 &&
+        observe(s.engine).keywordAmount(s.perm("blueLevelFour"), "SecurityAttack") === 3 &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === bottomSourceId)).toBe(true);
@@ -97,11 +97,13 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
     expect(s.state.memory).toBe(3);
     expect(observe(s.engine).keywordAmount(s.perm("blueLevelFour"), "SecurityAttack")).toBe(3);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: hostId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     // The phase check is load-bearing: the attack resolves before the engine has returned to
     // Main, and declaring the next one in that window is refused as wrong-phase.
     await settle(
@@ -113,25 +115,27 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
       5000,
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: hostId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
-        !observe(s.engine).isAttacking() &&
-        s.state.players[1]!.security.length === 0 &&
-        s.state.phase === Phase.Main,
+        !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0 && s.state.phase === Phase.Main,
       5000,
     );
 
     expect(s.perm("blueLevelFour").isSuspended).toBe(true);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: hostId,
-      target: { kind: "player" },
-    }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
     assertNoLoudGap(s);
   });
 });

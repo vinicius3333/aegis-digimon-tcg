@@ -6,149 +6,139 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4",
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "controllerDefault": "any",
-                    "kind": [
-                      "Digimon"
-                    ]
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    controllerDefault: "any",
+                    kind: ["Digimon"],
                   },
-                  "count": 2
+                  count: 2,
                 },
-                "raw": "by suspending 2 Digimon"
+                raw: "by suspending 2 Digimon",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Vortex",
-          "raw": "＜Vortex＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+              optional: true,
+              abortOnDecline: true,
             },
-            "count": 1
-          },
-          "optional": true
+          ],
         },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 8000
-              }
-            },
-            "count": 1
-          },
-          "optional": true
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dpDeletion",
-          "amount": 3000,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "both",
-              "excludeSelf": true,
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "unit": "cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "both",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "ActivateEffect",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "effectType": "WhenDigivolving",
-              "optional": true
-            }
-          ]
-        }
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Vortex",
+          raw: "＜Vortex＞",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 8000,
+              },
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+        {
+          kind: "CostModifier",
+          mode: "raiseCeiling",
+          costType: "dpDeletion",
+          amount: 3000,
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "both",
+              excludeSelf: true,
+              suspended: true,
+              kind: ["Digimon"],
+            },
+            unit: "cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "both",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "ActivateEffect",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              effectType: "WhenDigivolving",
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX8-074", compiled);

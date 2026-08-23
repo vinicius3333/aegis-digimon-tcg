@@ -6,39 +6,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "triggerEnteredByEffect",
-            "raw": "played by an effect"
-          }
-        }
-      ]
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "triggerEnteredByEffect",
+            raw: "played by an effect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [{ "kind": "Restrict", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }, "restriction": "beDeletedInBattle", "duration": "permanent" }],
-      "keywords": [{ "keyword": "Jamming", "raw": "＜Jamming＞" }],
-      "isInherited": true
-    }
+      trigger: "Static",
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "beDeletedInBattle",
+          duration: "permanent",
+        },
+      ],
+      keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-022", compiled);

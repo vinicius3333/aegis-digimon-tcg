@@ -16,7 +16,13 @@ it("encodes the shared once-per-turn Titan Option use and inherited lowest-level
       frequency: "OncePerTurn",
       sharedUseKey: "trash-hand-use-titan-option-from-trash",
       actions: [
-        { kind: "UseOptionWithoutCost", from: ["trash"], payCost: true, reduceCostBy: 2, condition: { kind: "isYourTurn" } },
+        {
+          kind: "UseOptionWithoutCost",
+          from: ["trash"],
+          payCost: true,
+          reduceCostBy: 2,
+          condition: { kind: "isYourTurn" },
+        },
       ],
     });
   }
@@ -163,7 +169,9 @@ describe("BT26-074 Cerberusmon", () => {
     // The sole hand-cost candidate is deterministic; the only prompt selects the exact [Titan] Option.
     expect(selectCards).toHaveBeenCalledOnce();
     expect(selectCards).toHaveBeenCalledWith(expect.anything(), {
-      candidates: [titanOption.instanceId], min: 0, max: 1,
+      candidates: [titanOption.instanceId],
+      min: 0,
+      max: 1,
     });
     expect(trash).toHaveBeenCalledWith([handCost.instanceId], { byEffectSeat: 0 });
     expect(gainMemoryForSeat).toHaveBeenCalledWith(0, -3);
@@ -243,9 +251,14 @@ describe("BT26-074 Cerberusmon", () => {
     expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
 
-    expect(chooseTargets).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      candidates: ["low-a", "low-b"], min: 1, max: 1,
-    }));
+    expect(chooseTargets).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        candidates: ["low-a", "low-b"],
+        min: 1,
+        max: 1,
+      }),
+    );
     expect(deletePermanent).toHaveBeenCalledWith(["low-b"]);
   });
 });

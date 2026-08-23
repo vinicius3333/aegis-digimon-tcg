@@ -31,8 +31,7 @@ const module: EffectModule = {
     if (timing === EffectTiming.None) {
       out.push({
         effectKey: `${cardId}/play-cost-2`,
-        description:
-          "You may play this card at a cost of 2 less if you don't have another [ADR-02 Searcher] in play.",
+        description: "You may play this card at a cost of 2 less if you don't have another [ADR-02 Searcher] in play.",
         optional: false,
         isInherited: false,
         isSecurity: false,
@@ -51,10 +50,7 @@ const module: EffectModule = {
         },
         canActivate: () => true,
         resolve: async (ctx) => {
-          ctx.fx.changePlayCost(
-            (facts) => facts.def.cardId === source.cardId,
-            -2,
-          );
+          ctx.fx.changePlayCost((facts) => facts.def.cardId === source.cardId, -2);
         },
       });
     }
@@ -126,17 +122,58 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { controllerDefault: "mine" }, actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 2, raw: "reduce its play cost by 2 if you don't have another [ADR-02 Searcher] in play", condition: { kind: "youHaveNone", filter: { zone: "battleArea", controllerDefault: "mine", nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "name" }] }, raw: "you don't have another [ADR-02 Searcher] in play" } }] }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: { controllerDefault: "mine" },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce its play cost by 2 if you don't have another [ADR-02 Searcher] in play",
+              condition: {
+                kind: "youHaveNone",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "name" }],
+                },
+                raw: "you don't have another [ADR-02 Searcher] in play",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
       trigger: "YourTurn",
-      actions: [{ kind: "Restrict", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, restriction: "attackPlayers", duration: "permanent" }],
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "attackPlayers",
+          duration: "permanent",
+        },
+      ],
     },
     { trigger: "OnPlay", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] },
     {
       trigger: "YourTurn",
       isInherited: true,
-      actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }] }, count: "all" }, amount: 1000, duration: "permanent" }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["D-Reaper"], match: "trait" }] },
+            count: "all",
+          },
+          amount: 1000,
+          duration: "permanent",
+        },
+      ],
     },
   ],
   coverage: "full",

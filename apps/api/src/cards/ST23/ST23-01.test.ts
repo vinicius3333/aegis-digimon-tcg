@@ -22,14 +22,20 @@ describe("ST23-01 Kekkomon", () => {
     await s.ready();
     s.state.memory = 10;
     const bottomUnderTamer = s.perm("tamer").stack[0]!.instanceId;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("liollmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("liollmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST23-03"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST23-03")).toBe(true);
-    expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "ST23-13")?.stack.some((card) => card.instanceId === bottomUnderTamer)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "ST23-13")?.stack.some(
+        (card) => card.instanceId === bottomUnderTamer,
+      ),
+    ).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === bottomUnderTamer)).toBe(true);
   });
 

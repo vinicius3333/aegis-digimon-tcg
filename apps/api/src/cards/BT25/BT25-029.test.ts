@@ -11,7 +11,10 @@ describe("BT25-029 MirageGaogamon", () => {
         kind: "Return",
         optional: true,
         to: "hand",
-        target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } }, count: 1 },
+        target: {
+          filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+          count: 1,
+        },
       });
       expect(effect?.actions?.[1]).toMatchObject({
         kind: "Return",

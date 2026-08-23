@@ -6,50 +6,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "excludeNameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              excludeNameOrTrait: [
                 {
-                  "tokens": [
-                    "Sea Animal"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Sea Animal"],
+                  match: "trait",
+                },
               ],
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Avian",
-                    "Bird",
-                    "Beast",
-                    "Animal",
-                    "Sovereign"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
+          to: "hand",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-001", compiled);

@@ -6,10 +6,15 @@ import "./BT5-044.js";
 
 describe("BT5-044 Sakuyamon", () => {
   it("gives an opposing Digimon Security Attack -3 when it moves from breeding", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-044", as: "sakuya" }] }, 1: { breeding: { card: "BT1-009", as: "mover" }, battleArea: [{ card: "BT1-010", as: "other" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT5-044", as: "sakuya" }] },
+      1: { breeding: { card: "BT1-009", as: "mover" }, battleArea: [{ card: "BT1-010", as: "other" }] },
+    });
     s.state.phase = Phase.Breeding;
     s.state.turnSeat = 1;
-    expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).keywordAmount(s.perm("mover"), "SecurityAttack") === -3);
     expect(observe(s.engine).keywordAmount(s.perm("mover"), "SecurityAttack")).toBe(-3);
     expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(0);

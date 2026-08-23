@@ -29,7 +29,10 @@ describe("BT26-086 compiled behavior", () => {
           target: expect.objectContaining({
             count: 7,
             upTo: true,
-            filter: expect.objectContaining({ hasLinkRequirement: true, nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] }),
+            filter: expect.objectContaining({
+              hasLinkRequirement: true,
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+            }),
           }),
         }),
         expect.objectContaining({ kind: "Attack", withoutSuspending: true, optional: true }),

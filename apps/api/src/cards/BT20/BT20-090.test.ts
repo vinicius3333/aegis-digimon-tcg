@@ -63,8 +63,15 @@ describe("BT20-090 Yuuki — Tamer effects", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects.map((effect) => effect.trigger)).toEqual(["StartOfYourTurn", "EndOfYourTurn", "Security"]);
-    expect(compiled.effects[1]?.actions[0]).toMatchObject({ kind: "Attack", attackPlayer: true, cost: { kind: "suspend" } });
-    expect(compiled.effects[2]).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({
+      kind: "Attack",
+      attackPlayer: true,
+      cost: { kind: "suspend" },
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false }],
+    });
   });
 
   it("[Start of Your Turn] sets memory to 3 when it is <= 2", async () => {

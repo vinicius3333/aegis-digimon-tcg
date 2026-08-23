@@ -115,24 +115,27 @@ describe("P-031 Gatomon", () => {
     const purpleId = s.perm("purple").permanentId;
     expect(observe(s.engine).hasKeyword(s.perm("gatomon"), "Blocker")).toBe(true);
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    const deletePrompt = s.decisions.find(({ req }) =>
-      req.decisionId === s.state.pendingDecision?.decisionId
-    )!.req;
+    const deletePrompt = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
     expect(deletePrompt.sourceCardId).toBe("BT6-071");
-    expect(s.engine.applyIntent(1, {
-      type: "respondDecision",
-      decisionId: deletePrompt.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== purpleId) &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: deletePrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== purpleId) &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
     expect(observe(s.engine).hasKeyword(s.perm("gatomon"), "Blocker")).toBe(false);

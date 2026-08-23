@@ -6,87 +6,81 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "levelComparison": {
-                  "op": "gte",
-                  "value": 6
-                }
+              filter: {
+                controllerDefault: "mine",
+                levelComparison: {
+                  op: "gte",
+                  value: 6,
+                },
               },
-              "count": 2,
-              "upTo": true,
-              "to": "hand"
-            }
+              count: 2,
+              upTo: true,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dark Masters"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Dark Masters"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "breeding": true,
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          from: ["hand"],
+          payCost: false,
+          breeding: true,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 of your Digimon"
+            raw: "By deleting 1 of your Digimon",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [{
-        "kind": "Delete",
-        "target": { "filter": { "sourceRef": "battleOpponent" }, "count": 1 }
-      }],
-      "isInherited": true
-    }
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { sourceRef: "battleOpponent" }, count: 1 },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-077", compiled);

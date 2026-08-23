@@ -16,7 +16,7 @@
   margin: var(--ds-space-2) 0 0;
   color: var(--ds-fg);
   font: 800 clamp(2rem, 3vw, 2.75rem)/1 var(--ds-font-display);
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
@@ -80,20 +80,54 @@
 }
 
 @media (width < 960px) {
-  .collection-page { height: 100% !important; padding-bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom)); }
-  .collection-header { padding: var(--ds-space-5) var(--ds-gutter-tablet) var(--ds-space-3); }
-  .collection-page > .card-filter-rail { width: 100% !important; padding-inline: var(--ds-gutter-tablet) !important; }
-  .collection-results { padding: var(--ds-space-5) var(--ds-gutter-tablet) !important; }
-  .collection-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: var(--ds-space-3) !important; }
+  .collection-page {
+    height: 100% !important;
+    padding-bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
+  }
+  .collection-header {
+    padding: var(--ds-space-5) var(--ds-gutter-tablet) var(--ds-space-3);
+  }
+  .collection-page > .card-filter-rail {
+    width: 100% !important;
+    padding-inline: var(--ds-gutter-tablet) !important;
+  }
+  .collection-results {
+    padding: var(--ds-space-5) var(--ds-gutter-tablet) !important;
+  }
+  .collection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap: var(--ds-space-3) !important;
+  }
 }
 
 @media (width < 600px) {
-  .collection-page { flex-direction: column; }
-  .collection-header { align-items: start; flex-direction: column; gap: var(--ds-space-2); padding: var(--ds-space-4) var(--ds-gutter-phone) var(--ds-space-3); }
-  .collection-header h1 { font-size: var(--ds-text-3xl); }
-  .collection-page > .card-filter-trigger { width: calc(100% - (2 * var(--ds-gutter-phone))); margin-inline: var(--ds-gutter-phone); }
-  .collection-results { padding: var(--ds-space-4) var(--ds-gutter-phone) !important; }
-  .collection-results h1 { font-size: var(--ds-text-3xl) !important; }
-  .collection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; justify-content: stretch; }
-  .collection-grid > * { max-width: 100%; }
+  .collection-page {
+    flex-direction: column;
+  }
+  .collection-header {
+    align-items: start;
+    flex-direction: column;
+    gap: var(--ds-space-2);
+    padding: var(--ds-space-4) var(--ds-gutter-phone) var(--ds-space-3);
+  }
+  .collection-header h1 {
+    font-size: var(--ds-text-3xl);
+  }
+  .collection-page > .card-filter-trigger {
+    width: calc(100% - (2 * var(--ds-gutter-phone)));
+    margin-inline: var(--ds-gutter-phone);
+  }
+  .collection-results {
+    padding: var(--ds-space-4) var(--ds-gutter-phone) !important;
+  }
+  .collection-results h1 {
+    font-size: var(--ds-text-3xl) !important;
+  }
+  .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    justify-content: stretch;
+  }
+  .collection-grid > * {
+    max-width: 100%;
+  }
 }

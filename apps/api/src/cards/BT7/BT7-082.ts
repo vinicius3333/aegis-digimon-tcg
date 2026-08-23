@@ -7,86 +7,71 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Sistermon Blanc"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Sistermon Blanc"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash",
-                "digivolutionCards"
-              ]
+              count: 1,
+              from: ["hand", "trash", "digivolutionCards"],
             },
-            "raw": "by placing 1 [Sistermon Blanc] from your hand or trash at the bottom of this Digimon's digivolution cards",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
+            raw: "by placing 1 [Sistermon Blanc] from your hand or trash at the bottom of this Digimon's digivolution cards",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "excludeNames": [
-                "Sistermon Blanc (Awakened)"
-              ],
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              excludeNames: ["Sistermon Blanc (Awakened)"],
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Jesmon",
-                    "Huckmon"
-                  ],
-                  "match": "name"
+                  tokens: ["Jesmon", "Huckmon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Sistermon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Sistermon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
-    }
+          to: "hand",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-082", compiled);

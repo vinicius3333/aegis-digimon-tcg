@@ -6,137 +6,113 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            colors: ["Red", "Yellow"],
+          },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Marcus Damon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              toTop: true,
+            },
           ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+        },
+      ],
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "colors": [
-              "Red",
-              "Yellow"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            colors: ["Red", "Yellow"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "nameOrTrait": [
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Marcus Damon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Marcus Damon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "trash"
-              ],
-              "toTop": true
-            }
-          ]
-        }
+              from: ["trash"],
+              toTop: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      isInherited: true,
+      frequency: "OncePerTurn",
     },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "colors": [
-              "Red",
-              "Yellow"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Marcus Damon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1
-              },
-              "from": [
-                "trash"
-              ],
-              "toTop": true
-            }
-          ]
-        }
-      ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "GeoGreymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      names: ["GeoGreymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT13-015", compiled);

@@ -3,55 +3,48 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Dark Dragon",
-                  "Evil Dragon"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Dark Dragon", "Evil Dragon"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "hand",
-            "op": "lte",
-            "value": 4,
-            "raw": "you have 4 or fewer cards in your hand"
-          }
-        }
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "hand",
+            op: "lte",
+            value: 4,
+            raw: "you have 4 or fewer cards in your hand",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX7-006", compiled);

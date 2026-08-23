@@ -6,97 +6,91 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Opponent's Turn] Aura while-condition: Mother D-Reaper must have 6+ digivolution cards.
 // KB Q3345-Q3346: Security effect plays as a normal Digimon once it comes into play.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
+      isSecurity: true,
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Mother D-Reaper"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have a [Mother D-Reaper] in play"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": -1,
-              "raw": "＜Security Attack -1＞"
-            }
-          },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Mother D-Reaper"
-                  ],
-                  "match": "name"
-                }
+                  tokens: ["Mother D-Reaper"],
+                  match: "name",
+                },
               ],
-              "digivolutionCardsAtLeast": 6
             },
-            "raw": "you have a [Mother D-Reaper] with 6 or more digivolution cards in play"
-          }
-        }
-      ]
-    }
+            raw: "you have a [Mother D-Reaper] in play",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: -1,
+              raw: "＜Security Attack -1＞",
+            },
+          },
+          while: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Mother D-Reaper"],
+                  match: "name",
+                },
+              ],
+              digivolutionCardsAtLeast: 6,
+            },
+            raw: "you have a [Mother D-Reaper] with 6 or more digivolution cards in play",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-054", compiled);

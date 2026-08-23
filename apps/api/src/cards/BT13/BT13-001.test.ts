@@ -55,6 +55,10 @@ describe("BT13-001 Pinamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("ineligibleTarget").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.permanentId === s.perm("ineligibleTarget").permanentId,
+      ),
+    ).toBe(true);
   });
 });

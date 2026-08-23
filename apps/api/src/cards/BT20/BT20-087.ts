@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
       trigger: "StartOfYourTurn",
       actions: [
@@ -18,73 +18,65 @@ export const compiled: CompiledCard = {
             value: 2,
             controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "zone": "battleArea"
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  zone: "battleArea",
                 },
-                "count": 1
+                count: 1,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 6
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                levelComparison: {
+                  op: "lte",
+                  value: 6,
                 },
-                "nameOrTrait": [
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Chronicle"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "from": [
-                "hand"
-              ],
-              "reduceCost": 1,
-              "optional": true,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                    tokens: ["Chronicle"],
+                    match: "trait",
                   },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer"
+                ],
               },
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
+              from: ["hand"],
+              reduceCost: 1,
+              optional: true,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
     },
     {

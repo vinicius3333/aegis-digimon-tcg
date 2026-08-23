@@ -153,11 +153,17 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     return Math.floor(raw / per);
   }
   if ((filter as { suspendedByThisEffect?: boolean }).suspendedByThisEffect === true) {
-    const { suspendedByThisEffect: _receipt, ...matchingFilter } = filter as typeof filter & { suspendedByThisEffect?: boolean };
+    const { suspendedByThisEffect: _receipt, ...matchingFilter } = filter as typeof filter & {
+      suspendedByThisEffect?: boolean;
+    };
     raw = (ctx.lastSuspendedPermanentIds ?? []).filter((id) => {
       const permanent = ctx.game.permanentById(id);
       if (permanent === undefined || !permanent.isSuspended) return false;
-      if (matchingFilter.controller === "opponent" && permanent.controllerSeat !== ctx.game.opponentOf(ctx.source.ownerSeat)) return false;
+      if (
+        matchingFilter.controller === "opponent" &&
+        permanent.controllerSeat !== ctx.game.opponentOf(ctx.source.ownerSeat)
+      )
+        return false;
       if (matchingFilter.controller === "mine" && permanent.controllerSeat !== ctx.source.ownerSeat) return false;
       return permanentMatchesFilter(ctx, permanent, matchingFilter, ctx.source);
     }).length;
@@ -173,7 +179,8 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
   }
   switch (scaling.unit) {
     case "memory": {
-      const ownPerspective = ctx.source.ownerSeat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
+      const ownPerspective =
+        ctx.source.ownerSeat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
       const controller = filter.controller ?? "mine";
       raw = controller === "opponent" ? Math.max(0, -ownPerspective) : Math.max(0, ownPerspective);
       break;
@@ -222,8 +229,9 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
         const alternatives = (filter as Filter & { orFilters?: Filter[] }).orFilters ?? [];
         raw += Array.from(trash).filter((c) => {
           const definition = ctx.game.definitionOf(c);
-          return definitionMatches(filter, definition) || alternatives.some((alternative) =>
-            definitionMatches(alternative, definition),
+          return (
+            definitionMatches(filter, definition) ||
+            alternatives.some((alternative) => definitionMatches(alternative, definition))
           );
         }).length;
       }

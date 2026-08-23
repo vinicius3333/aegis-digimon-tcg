@@ -6,156 +6,136 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Fenriloogamon",
-                    "Kazuchimon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Fenriloogamon", "Kazuchimon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Eiji Nagasumi"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Eiji Nagasumi"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "[Eiji Nagasumi] is in this Digimon's digivolution cards"
+            raw: "[Eiji Nagasumi] is in this Digimon's digivolution cards",
           },
-          "optional": true,
-          "bindResultAs": "playedFenriloogamon"
+          optional: true,
+          bindResultAs: "playedFenriloogamon",
         },
         {
-          "kind": "DelayedEffect",
-          "effect": {
-            "kind": "Return",
-            "target": {
-              "filter": {
-                "boundRef": "playedFenriloogamon"
+          kind: "DelayedEffect",
+          effect: {
+            kind: "Return",
+            target: {
+              filter: {
+                boundRef: "playedFenriloogamon",
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
-            "to": "hand"
+            to: "hand",
           },
-          "trigger": "nextEndOfOpponentTurn"
-        }
-      ]
+          trigger: "nextEndOfOpponentTurn",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon",
-              "Tamer"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon", "Tamer"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "SoC"
-                ],
-                "match": "trait"
+                tokens: ["SoC"],
+                match: "trait",
               },
               {
-                "tokens": [
-                  "Pulsemon"
-                ],
-                "match": "text"
-              }
-            ]
+                tokens: ["Pulsemon"],
+                match: "text",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 10000
-                  }
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  dp: {
+                    op: "lte",
+                    value: 10000,
+                  },
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "turnEndConditionOpponentMemoryAtLeast",
-          "turnEndCondition": {
-            "opponentMemoryGte": 3
+          grant: "turnEndConditionOpponentMemoryAtLeast",
+          turnEndCondition: {
+            opponentMemoryGte: 3,
           },
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfHasNameContaining",
-            "names": [
-              "Fenriloogamon"
-            ],
-            "raw": "this Digimon has [Fenriloogamon] in its name"
+          duration: "permanent",
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Fenriloogamon"],
+            raw: "this Digimon has [Fenriloogamon] in its name",
           },
-          "raw": "While this Digimon has [Fenriloogamon] in its name, your turn ends when your opponent has 3 or more memory."
-        }
+          raw: "While this Digimon has [Fenriloogamon] in its name, your turn ends when your opponent has 3 or more memory.",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "SoC"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["SoC"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-069", compiled);

@@ -45,7 +45,9 @@ async function build(): Promise<Fixture> {
 
 /** An active participant with the competitive deck they froze when check-in closed. */
 async function freezeParticipant(accounts: AccountStore, tournamentId: string, accountId: string): Promise<void> {
-  const accountName = (await accounts.pool.query<{ display_name: string }>("SELECT display_name FROM accounts WHERE id=$1", [accountId])).rows[0]!.display_name;
+  const accountName = (
+    await accounts.pool.query<{ display_name: string }>("SELECT display_name FROM accounts WHERE id=$1", [accountId])
+  ).rows[0]!.display_name;
   const displayName = `Registered ${accountName}`;
   await accounts.pool.query(
     `INSERT INTO tournament_participants (id, tournament_id, kind, account_id, display_name, status, deck_snapshot, created_at)

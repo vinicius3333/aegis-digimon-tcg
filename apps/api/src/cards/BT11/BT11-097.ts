@@ -6,13 +6,28 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 } },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+        },
         {
           kind: "ActivateEffect",
-          target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Red"], nameOrTrait: [{ tokens: ["Vaccine"], match: "trait" }] }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Red"],
+              nameOrTrait: [{ tokens: ["Vaccine"], match: "trait" }],
+            },
+            count: 1,
+          },
           effectType: "OnDeletion",
           count: 1,
-          condition: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] }, raw: "you have a red Tamer in play" },
+          condition: {
+            kind: "youHave",
+            filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] },
+            raw: "you have a red Tamer in play",
+          },
           optional: true,
           useLenderAsSource: true,
         },

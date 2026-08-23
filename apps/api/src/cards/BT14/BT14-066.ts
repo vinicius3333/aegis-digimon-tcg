@@ -6,116 +6,102 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Numemon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Numemon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with [Numemon] in its name in your hand"
+            raw: "By trashing 1 card with [Numemon] in its name in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "GainMemory",
-          "amount": 2,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Numemon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 card with [Numemon] in its name in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Numemon",
-                    "Monzaemon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "names": [
-        "Numemon",
-        "Monzaemon"
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Numemon"],
+                    match: "name",
+                  },
+                ],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card with [Numemon] in its name in your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["Numemon", "Monzaemon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      names: ["Numemon", "Monzaemon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT14-066", compiled);

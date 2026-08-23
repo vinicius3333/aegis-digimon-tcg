@@ -4,9 +4,21 @@ import "./BT9-052.js";
 import "./BT9-109.js";
 describe("BT9-052 Okuwamon (X Antibody)", () => {
   it("suspends an opposing Digimon when evolving over Okuwamon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-077", as: "base" }], hand: [{ card: "BT9-052", as: "evolving" }] }, 1: { battleArea: [{ card: "BT2-047", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-077", as: "base" }], hand: [{ card: "BT9-052", as: "evolving" }] },
+        1: { battleArea: [{ card: "BT2-047", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 0;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
   });
@@ -36,9 +48,7 @@ describe("BT9-052 Okuwamon (X Antibody)", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () =>
-        s.perm("attacker").topCard.cardId === "BT9-052" &&
-        s.state.players[1]!.battleArea.length === 0,
+      () => s.perm("attacker").topCard.cardId === "BT9-052" && s.state.players[1]!.battleArea.length === 0,
       3000,
     );
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toContain(

@@ -12,235 +12,221 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Delete.target.filter.colorMatchesAnyDigivolutionCard:true
 //   - DeletePerColor (per-color mandatory delete using divo card colors)
 export const compiled: CompiledCard = {
-  "digivolutionRequirement": [
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "color": "Red",
-      "cost": 5,
-      "isAlternate": true
+      level: 4,
+      color: "Red",
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "color": "Blue",
-      "cost": 5,
-      "isAlternate": true
+      level: 4,
+      color: "Blue",
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "color": "Yellow",
-      "cost": 5,
-      "isAlternate": true
+      level: 4,
+      color: "Yellow",
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "color": "Green",
-      "cost": 5,
-      "isAlternate": true
+      level: 4,
+      color: "Green",
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "color": "Black",
-      "cost": 5,
-      "isAlternate": true
+      level: 4,
+      color: "Black",
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "color": "Purple",
-      "cost": 5,
-      "isAlternate": true
+      level: 4,
+      color: "Purple",
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "color": "White",
-      "cost": 5,
-      "isAlternate": true
-    }
+      level: 4,
+      color: "White",
+      cost: 5,
+      isAlternate: true,
+    },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Rush",
-          "raw": "＜Rush＞"
-        }
-      ]
+          keyword: "Rush",
+          raw: "＜Rush＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security A. +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security A. +1＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
-          },
-          "position": "top",
-          "optional": true
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+                  tokens: ["DM"],
+                  match: "trait",
+                },
               ],
-              "colorMatchesAnyDigivolutionCard": true
             },
-            "count": 1
+            count: 1,
+            from: ["trash"],
           },
-          "condition": {
-            "kind": "not", "condition": {"kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6},
-            "raw": "this Digimon has fewer than 6 colors in its digivolution cards"
-          }
+          position: "top",
+          optional: true,
         },
         {
-          "kind": "DeletePerColor",
-          "source": "digivolutionCards",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              colorMatchesAnyDigivolutionCard: true,
+            },
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6,
-            "raw": "this Digimon has 6 or more colors in its digivolution cards"
-          }
-        }
-      ]
+          condition: {
+            kind: "not",
+            condition: { kind: "selfDigivolutionStackDistinctColorCount", op: "gte", value: 6 },
+            raw: "this Digimon has fewer than 6 colors in its digivolution cards",
+          },
+        },
+        {
+          kind: "DeletePerColor",
+          source: "digivolutionCards",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+          },
+          condition: {
+            kind: "selfDigivolutionStackDistinctColorCount",
+            op: "gte",
+            value: 6,
+            raw: "this Digimon has 6 or more colors in its digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
-          },
-          "position": "top",
-          "optional": true
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+                  tokens: ["DM"],
+                  match: "trait",
+                },
               ],
-              "colorMatchesAnyDigivolutionCard": true
             },
-            "count": 1
+            count: 1,
+            from: ["trash"],
           },
-          "condition": {
-            "kind": "not", "condition": {"kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6},
-            "raw": "this Digimon has fewer than 6 colors in its digivolution cards"
-          }
+          position: "top",
+          optional: true,
         },
         {
-          "kind": "DeletePerColor",
-          "source": "digivolutionCards",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              colorMatchesAnyDigivolutionCard: true,
+            },
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6,
-            "raw": "this Digimon has 6 or more colors in its digivolution cards"
-          }
-        }
-      ]
+          condition: {
+            kind: "not",
+            condition: { kind: "selfDigivolutionStackDistinctColorCount", op: "gte", value: 6 },
+            raw: "this Digimon has fewer than 6 colors in its digivolution cards",
+          },
+        },
+        {
+          kind: "DeletePerColor",
+          source: "digivolutionCards",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+          },
+          condition: {
+            kind: "selfDigivolutionStackDistinctColorCount",
+            op: "gte",
+            value: 6,
+            raw: "this Digimon has 6 or more colors in its digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
+          amount: 1000,
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
             },
-            "unit": "colors"
-          }
-        }
-      ]
-    }
+            unit: "colors",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX9-074", compiled);

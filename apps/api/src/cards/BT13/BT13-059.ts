@@ -8,126 +8,126 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   • Suspend 1 of your opponent's Digimon, or
 //   • Unsuspend 1 of your Digimon.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "frequency": "OncePerTurn",
-      "actions": [
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": ["Digimon"]
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Modal",
-              "choose": 1,
-              "options": [
+              kind: "Modal",
+              choose: 1,
+              options: [
                 [
                   {
-                    "kind": "Suspend",
-                    "target": {
-                      "filter": {
-                        "controller": "opponent",
-                        "kind": ["Digimon"]
+                    kind: "Suspend",
+                    target: {
+                      filter: {
+                        controller: "opponent",
+                        kind: ["Digimon"],
                       },
-                      "count": 1
-                    }
-                  }
+                      count: 1,
+                    },
+                  },
                 ],
                 [
                   {
-                    "kind": "Unsuspend",
-                    "target": {
-                      "filter": {
-                        "controller": "mine",
-                        "kind": ["Digimon"]
+                    kind: "Unsuspend",
+                    target: {
+                      filter: {
+                        controller: "mine",
+                        kind: ["Digimon"],
                       },
-                      "count": 1
-                    }
-                  }
-                ]
+                      count: 1,
+                    },
+                  },
+                ],
               ],
-              "optional": true
-            }
-          ]
-        }
-      ]
-    }
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "dnaDigivolveRequirement": [
+  coverage: "full",
+  residual: [],
+  dnaDigivolveRequirement: [
     {
-      "cost": 4,
-      "materials": [
+      cost: 4,
+      materials: [
         {
-          "names": ["Slayerdramon"]
+          names: ["Slayerdramon"],
         },
         {
-          "names": ["Breakdramon"]
-        }
-      ]
-    }
-  ]
+          names: ["Breakdramon"],
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT13-059", compiled);

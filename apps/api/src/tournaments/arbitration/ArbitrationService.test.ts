@@ -533,10 +533,7 @@ describe("ArbitrationService", () => {
       const trail = await arbitration.trail(tournamentId);
       // The organizer's commands, in the order they were issued, wherever the machine's events fall
       // between them.
-      expect((await arbitrationTrail()).map((event) => event.command)).toEqual([
-        "concede_match",
-        "cancel_tournament",
-      ]);
+      expect((await arbitrationTrail()).map((event) => event.command)).toEqual(["concede_match", "cancel_tournament"]);
       // And the trail as a whole is gapless and explained, machine events included.
       expect(trail.map((event) => event.sequence)).toEqual(trail.map((_event, index) => index + 1));
       expect(trail.every((event) => event.reason.length > 0)).toBe(true);

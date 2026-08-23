@@ -9,11 +9,7 @@ import {
   type ServerEvent,
 } from "@aegis/shared";
 import { WinCheck } from "./winCheck.js";
-import {
-  runSecurityCheck,
-  type SecurityCheckDeps,
-  type SecurityCheckAttacker,
-} from "./securityCheck.js";
+import { runSecurityCheck, type SecurityCheckDeps, type SecurityCheckAttacker } from "./securityCheck.js";
 
 const ATTACKER_ID = "attacker-1";
 
@@ -67,8 +63,7 @@ function harness(securityCards: CardInstance[], overrides: Partial<SecurityCheck
   const deleted: string[][] = [];
   const firedTimings: EffectTiming[] = [];
 
-  const attackerLives = (): boolean =>
-    state.players[0]?.battleArea.some((p) => p.permanentId === ATTACKER_ID) ?? false;
+  const attackerLives = (): boolean => state.players[0]?.battleArea.some((p) => p.permanentId === ATTACKER_ID) ?? false;
 
   const deps: SecurityCheckDeps = {
     strikeFor: () => 1,

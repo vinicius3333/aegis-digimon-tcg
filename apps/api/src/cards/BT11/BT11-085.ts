@@ -7,7 +7,7 @@ const playLevelThree: any = {
   target: {
     filter: {
       controller: "mine",
-    kind: ["Digimon"],
+      kind: ["Digimon"],
       colors: ["Blue", "Purple"],
       levels: [3],
       hostFilter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Blue", "Purple"] },
@@ -25,12 +25,14 @@ const compiled: CompiledCard = {
     { trigger: "WhenDigivolving", actions: [playLevelThree] },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenPlayed",
-        sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
-        actions: [{ kind: "GainMemory", amount: 1 }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
       isInherited: true,
       frequency: "OncePerTurn",
     },

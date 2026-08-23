@@ -6,73 +6,68 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Keenan Crier"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Keenan Crier"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Keenan Crier"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Keenan Crier"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you don't have [Keenan Crier] in play"
+            raw: "you don't have [Keenan Crier] in play",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "chooser": "opponent",
-          "condition": {
-            "kind": "not", "condition": {"kind": "triggerRemovalCause", "removalCause": "byBattle"},
-            "raw": "deleted outside of a battle"
-          }
-        }
+          chooser: "opponent",
+          condition: {
+            kind: "not",
+            condition: { kind: "triggerRemovalCause", removalCause: "byBattle" },
+            raw: "deleted outside of a battle",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-055", compiled);

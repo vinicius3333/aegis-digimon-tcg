@@ -5,7 +5,14 @@
  * the scenario test harness.
  */
 import { Client, type Room } from "colyseus.js";
-import { DECISION_CHANNEL, GameState, ROOM_TYPE, type AttackTarget, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
+import {
+  DECISION_CHANNEL,
+  GameState,
+  ROOM_TYPE,
+  type AttackTarget,
+  type DecisionRequest,
+  type DecisionResponse,
+} from "@aegis/shared";
 import type { AegisJoinOptions } from "../../src/net/types";
 
 export interface HeadlessOpponent {
@@ -26,10 +33,7 @@ export interface HeadlessOpponent {
 }
 
 /** Joins the match as the second (headless) seat and returns raw intent senders. */
-export async function joinHeadlessOpponent(
-  endpoint: string,
-  options: AegisJoinOptions,
-): Promise<HeadlessOpponent> {
+export async function joinHeadlessOpponent(endpoint: string, options: AegisJoinOptions): Promise<HeadlessOpponent> {
   const client = new Client(endpoint);
   const room = await client.joinOrCreate<GameState>(ROOM_TYPE, options);
 
@@ -42,10 +46,11 @@ export async function joinHeadlessOpponent(
     attack: (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) =>
       room.send("attack", { attackerPermanentId, target, vortex }),
     onDecision: (handler) => room.onMessage<DecisionRequest>(DECISION_CHANNEL, handler),
-    respondDecision: (decisionId, response) => room.send("respondDecision", {
-      decisionId,
-      response,
-    }),
+    respondDecision: (decisionId, response) =>
+      room.send("respondDecision", {
+        decisionId,
+        response,
+      }),
     leave: () => room.leave(),
   };
 }

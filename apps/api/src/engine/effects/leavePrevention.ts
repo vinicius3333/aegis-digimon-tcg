@@ -77,7 +77,10 @@ export async function consultLeavePrevention(
         if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
         if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
         if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
-        const ctx = srcPerm !== undefined ? host.buildContext(srcPerm, leavingId) : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+        const ctx =
+          srcPerm !== undefined
+            ? host.buildContext(srcPerm, leavingId)
+            : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
         if (ctx === undefined) continue;
         if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
         await repl.apply(ctx);
@@ -91,7 +94,10 @@ export async function consultLeavePrevention(
         const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
         if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
         if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
-        const ctx = srcPerm !== undefined ? host.buildContext(srcPerm, leavingId) : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+        const ctx =
+          srcPerm !== undefined
+            ? host.buildContext(srcPerm, leavingId)
+            : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
         if (ctx === undefined) continue;
         if (repl.protects && !repl.protects(ctx, leavingId)) continue;
         if (repl.affectsAll && firedAll.has(repl.id)) {

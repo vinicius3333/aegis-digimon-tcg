@@ -5,7 +5,11 @@ import "../index.js";
 describe("BT25-028 Dianamon", () => {
   it("applies the level-6 cost reduction only while an opponent has a level 6+ Digimon", () => {
     const effect = BT25_028.effects?.find((entry) => entry.trigger === "Static");
-    expect(effect?.actions?.[0]).toMatchObject({ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { isSelfRef: true } });
+    expect(effect?.actions?.[0]).toMatchObject({
+      kind: "Replacement",
+      event: "wouldBePlayed",
+      sourceFilter: { isSelfRef: true },
+    });
     const nested = effect?.actions?.[0] as { actions?: unknown[] } | undefined;
     expect(nested?.actions?.[0]).toMatchObject({
       kind: "Replacement",
@@ -40,7 +44,10 @@ describe("BT25-028 Dianamon", () => {
     expect(effect?.actions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ event: "whenPlayed", sourceFilter: { controllerDefault: "any", kind: ["Digimon"] } }),
-        expect.objectContaining({ event: "whenAnyDigivolves", sourceFilter: { controllerDefault: "any", kind: ["Digimon"] } }),
+        expect.objectContaining({
+          event: "whenAnyDigivolves",
+          sourceFilter: { controllerDefault: "any", kind: ["Digimon"] },
+        }),
         expect.objectContaining({
           kind: "DnaDigivolve",
           materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },

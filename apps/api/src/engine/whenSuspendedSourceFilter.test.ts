@@ -59,12 +59,9 @@ describe("whenSuspended SubTrigger carries the printed subject as sourceFilter",
     expect(f.kind).toEqual(expect.arrayContaining(["Digimon", "Tamer"]));
   });
 
-  it.each(["P-093", "P-109", "P-150"])(
-    "%s keeps a pure self-reference explicitly scoped to its host",
-    (cardId) => {
-      const st = findSubTrigger(cardId, "whenSuspended");
-      expect(st).toBeDefined();
-      expect(st?.sourceFilter).toEqual({ isSelfRef: true });
-    },
-  );
+  it.each(["P-093", "P-109", "P-150"])("%s keeps a pure self-reference explicitly scoped to its host", (cardId) => {
+    const st = findSubTrigger(cardId, "whenSuspended");
+    expect(st).toBeDefined();
+    expect(st?.sourceFilter).toEqual({ isSelfRef: true });
+  });
 });

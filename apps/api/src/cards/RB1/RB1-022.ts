@@ -6,83 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ruli Tsukiyono"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Ruli Tsukiyono"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ruli Tsukiyono"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Ruli Tsukiyono"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you don't have [Ruli Tsukiyono]"
+            raw: "you don't have [Ruli Tsukiyono]",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "controllerDefault": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          while: {
+            kind: "opponentHasNone",
+            filter: {
+              controllerDefault: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has no unsuspended Digimon"
-          }
-        }
+            raw: "your opponent has no unsuspended Digimon",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("RB1-022", compiled);

@@ -6,13 +6,16 @@ import "./BT8-094.js";
 
 describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's Lv3 breeding->battle move", () => {
   it("suspends and draws when an opposing level 5 or lower Digimon is deleted", async () => {
-    const s = setup({
-      0: {
-        battleArea: [{ card: "BT8-094", as: "tamer" }],
-        deck: [{ card: "BT8-033", as: "drawn" }],
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT8-094", as: "tamer" }],
+          deck: [{ card: "BT8-033", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "deleted" }] },
       },
-      1: { battleArea: [{ card: "BT1-009", as: "deleted" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 0;
     const deletedInstance = s.perm("deleted").topCard!;
 
@@ -35,9 +38,7 @@ describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's 
     s.state.turnSeat = 1; // the opponent's (seat 1's) own turn, relative to BT8-094's owner (seat 0)
     s.state.memory = 0;
 
-    expect(
-      s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: mover.permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: mover.permanentId })).toEqual({ ok: true });
 
     await settle(() => s.state.memory !== 0, 200);
 
@@ -47,6 +48,10 @@ describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's 
   it("plays itself from a face-up Security check without memory cost", async () => {
     const s = setup({ 0: { security: [{ card: "BT8-094", as: "securityEmperor", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityEmperor"));
-    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard.instanceId === s.inst("securityEmperor").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("securityEmperor").instanceId,
+      ),
+    ).toBe(true);
   });
 });

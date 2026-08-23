@@ -6,12 +6,18 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
-      actions: [{
-        kind: "ModifyDP",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        amount: 1000,
-        scaling: { per: 1, unit: "digivolutionCards", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
-      }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 1000,
+          scaling: {
+            per: 1,
+            unit: "digivolutionCards",
+            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+          },
+        },
+      ],
     },
     {
       trigger: "WhenAttacking",
@@ -19,7 +25,11 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] }, from: ["hand"], count: 1 },
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+            from: ["hand"],
+            count: 1,
+          },
           underFilter: { isSelfRef: true },
           position: "bottom",
           optional: true,

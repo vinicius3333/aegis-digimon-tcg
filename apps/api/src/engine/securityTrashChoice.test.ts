@@ -14,7 +14,10 @@ describe("BT15-003 security-trash cost offers a top/bottom choice", () => {
       0: {
         battleArea: [HOST_PERM],
         // Distinct top/bottom security cards so we can tell which end was trashed.
-        security: [{ card: "BT1-010", as: "secTop" }, { card: "BT1-020", as: "secBottom" }],
+        security: [
+          { card: "BT1-010", as: "secTop" },
+          { card: "BT1-020", as: "secBottom" },
+        ],
       },
       1: { security: ["BT1-009"] },
     };

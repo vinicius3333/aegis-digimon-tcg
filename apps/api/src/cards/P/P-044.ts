@@ -12,10 +12,7 @@ const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
-          labels: [
-            "Suspend 1 of your opponent's Digimon",
-            "Suspend 1 or 2 opponent Digimon with 5000 DP or less",
-          ],
+          labels: ["Suspend 1 of your opponent's Digimon", "Suspend 1 or 2 opponent Digimon with 5000 DP or less"],
           options: [
             [
               {

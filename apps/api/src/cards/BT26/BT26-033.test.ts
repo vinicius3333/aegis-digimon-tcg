@@ -34,13 +34,16 @@ describe("BT26-033 compiled fidelity", () => {
   });
 
   it("publicly adds the top security card to hand and plays an Iliad card with the reduction", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-033", as: "jupitermon" }],
-        security: [{ card: "BT1-001", as: "securityCard" }],
-        hand: [{ card: "BT26-009", as: "iliad" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-033", as: "jupitermon" }],
+          security: [{ card: "BT1-001", as: "securityCard" }],
+          hand: [{ card: "BT26-009", as: "iliad" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
     s.state.memory = 10;
     await s.ready();
 
@@ -51,14 +54,17 @@ describe("BT26-033 compiled fidelity", () => {
   });
 
   it("uses its top stack card as bottom security to prevent a TS card from leaving", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT26-033", as: "jupitermon", under: [{ card: "BT1-009", as: "base" }] },
-          { card: "BT26-013", as: "protectedTs" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-033", as: "jupitermon", under: [{ card: "BT1-009", as: "base" }] },
+            { card: "BT26-013", as: "protectedTs" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
     await s.ready();
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("protectedTs").permanentId], "byEffect")).toBe(0);

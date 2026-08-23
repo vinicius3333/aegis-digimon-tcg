@@ -9,75 +9,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (permanentMatchesFilter reads both printed ＜Security Attack＞ text and granted SA
 // keywords — e.g. the SA-1 this card's [When Digivolving] clause confers).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "SecurityAttack"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              keywords: ["SecurityAttack"],
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "attack",
-          "specificTarget": "source",
-          "duration": "permanent"
+          restriction: "attack",
+          specificTarget: "source",
+          duration: "permanent",
         },
         {
-          "kind": "DisableTimingEffect",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "SecurityAttack"
-              ]
+          kind: "DisableTimingEffect",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              keywords: ["SecurityAttack"],
             },
-            "count": "all"
+            count: "all",
           },
-          "timings": [
-            "whenDigivolving",
-            "whenAttacking"
-          ],
-          "duration": "permanent"
-        }
-      ]
-    }
+          timings: ["whenDigivolving", "whenAttacking"],
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 registerIrCard("BT10-042", compiled);

@@ -6,53 +6,47 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Huckmon"
-                  ],
-                  "match": "name"
+                  tokens: ["Huckmon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Royal Knight"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Knight"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 2000,
-          "duration": "permanent",
-          "continuous": true
-        }
-      ]
+          amount: 2000,
+          duration: "permanent",
+          continuous: true,
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1
-        }
-      ]
-    }
+          kind: "GainMemory",
+          amount: 1,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-084", compiled);

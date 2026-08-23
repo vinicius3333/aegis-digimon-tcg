@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // end of their turn, 1 of your Digimon with the [Vortex Warriors] trait gets
 // +2000 DP."
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
       trigger: "StartOfYourMainPhase",
       actions: [
@@ -28,16 +28,14 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "return",
-            "position": "bottom",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "return",
+            position: "bottom",
+            target: {
+              filter: {
+                isSelfRef: true,
               },
               count: 1,
               isSelf: true,
@@ -62,59 +60,50 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "allOf",
-            "conditions": [
-              { "kind": "ifThisEffectActed" },
-              { "kind": "youHaveNone", "filter": { "kind": ["Digimon"] } }
-            ],
-            "raw": "you don't have a Digimon"
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "allOf",
+            conditions: [{ kind: "ifThisEffectActed" }, { kind: "youHaveNone", filter: { kind: ["Digimon"] } }],
+            raw: "you don't have a Digimon",
           },
           optional: true,
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Vortex Warriors"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Vortex Warriors"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2000,
-          "duration": "untilOpponentTurnEnd"
-          ,"condition": { "kind": "ifThisEffectActed" }
-        }
-      ]
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "ifThisEffectActed" },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
     },
     {

@@ -7,19 +7,29 @@ describe("EX10-003 Tumblemon", () => {
     expect(effect).toMatchObject({
       trigger: "OpponentsTurn",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenOpponentAttacks",
-        actions: [{
-          kind: "Prevent",
-          optional: true,
-          abortOnDecline: true,
-          cost: {
-            kind: "TrashDigivolution",
-            target: { filter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Mineral", "Rock"] }] } },
-          },
-        }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "Prevent",
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "TrashDigivolution",
+                target: {
+                  filter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ match: "trait", tokens: ["Mineral", "Rock"] }],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
     });
   });
 });

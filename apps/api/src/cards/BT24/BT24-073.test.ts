@@ -80,9 +80,7 @@ describe("BT24-073 SkullSatamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
-      ),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
     );
 
     expect(s.state.memory).toBe(2);
@@ -109,9 +107,7 @@ describe("BT24-073 SkullSatamon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("skullsatamon").permanentId], "byEffect");
     await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
-      ),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
     );
 
     expect(s.state.players[1]!.trash).toHaveLength(11);

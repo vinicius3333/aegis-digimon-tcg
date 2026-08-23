@@ -9,65 +9,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // TrashDigivolution before Return because the permanent must still exist on the field
 // for TrashDigivolution to act on it.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1,
-            "bindAs": "returnTarget"
+            count: 1,
+            bindAs: "returnTarget",
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": { "isSelfRef": true, "zone": "digivolutionCards" },
-              "count": 2
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { isSelfRef: true, zone: "digivolutionCards" },
+              count: 2,
             },
-            "raw": "＜Digi-Burst 2＞"
-          }
+            raw: "＜Digi-Burst 2＞",
+          },
         },
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "fromSelectionRef": "returnTarget",
-            "filter": {},
-            "count": 1
+          kind: "TrashDigivolution",
+          target: {
+            fromSelectionRef: "returnTarget",
+            filter: {},
+            count: 1,
           },
-          "amount": 99
+          amount: 99,
         },
         {
-          "kind": "Return",
-          "target": {
-            "fromSelectionRef": "returnTarget",
-            "filter": {},
-            "count": 1
+          kind: "Return",
+          target: {
+            fromSelectionRef: "returnTarget",
+            filter: {},
+            count: 1,
           },
-          "to": "hand"
-        }
+          to: "hand",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 2,
-          "raw": "＜Digi-Burst 2＞"
-        }
-      ]
-    }
+          keyword: "DigiBurst",
+          amount: 2,
+          raw: "＜Digi-Burst 2＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-033", compiled);

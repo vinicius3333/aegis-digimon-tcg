@@ -45,11 +45,10 @@ function ensurePdftotext() {
 function extractText(pdfPath) {
   // -raw follows the content stream, which preserves correct reading order for
   // the two-column rules layout (default mode reads across both columns).
-  const out = execFileSync(
-    "pdftotext",
-    ["-raw", "-nopgbrk", "-enc", "UTF-8", pdfPath, "-"],
-    { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
-  );
+  const out = execFileSync("pdftotext", ["-raw", "-nopgbrk", "-enc", "UTF-8", pdfPath, "-"], {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
   return out.replace(/\r\n?/g, "\n").trim();
 }
 
@@ -81,7 +80,10 @@ function ocrImagePdf(pdfPath, sourceId) {
   fs.rmSync(pageDir, { recursive: true, force: true });
   fs.mkdirSync(pageDir, { recursive: true });
   execFileSync("pdftoppm", ["-png", "-r", OCR_DPI, pdfPath, path.join(pageDir, "page")]);
-  const pages = fs.readdirSync(pageDir).filter((f) => f.endsWith(".png")).sort()
+  const pages = fs
+    .readdirSync(pageDir)
+    .filter((f) => f.endsWith(".png"))
+    .sort()
     .map((f) => path.join(pageDir, f));
 
   let text;
@@ -148,12 +150,7 @@ function buildUnits(text) {
 
 function isHeading(unit) {
   if (unit.marked) return true;
-  return (
-    unit.num !== null &&
-    unit.depth <= 3 &&
-    wordCount(unit.text) <= 6 &&
-    !/[.)]$/.test(unit.text)
-  );
+  return unit.num !== null && unit.depth <= 3 && wordCount(unit.text) <= 6 && !/[.)]$/.test(unit.text);
 }
 
 function splitByWords(text, target) {

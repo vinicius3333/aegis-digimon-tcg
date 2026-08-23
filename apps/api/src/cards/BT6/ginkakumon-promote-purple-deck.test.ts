@@ -31,14 +31,15 @@ describe("Ginkakumon Promote purple discard deck", () => {
     );
     s.state.memory = 10;
     const promoteInstanceId = s.inst("promote").instanceId;
-    const promote = () => s.state.players[0]!.battleArea.find((permanent) =>
-      permanent.topCard.instanceId === promoteInstanceId
-    );
+    const promote = () =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === promoteInstanceId);
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: promoteInstanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: promoteInstanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;
@@ -49,33 +50,36 @@ describe("Ginkakumon Promote purple discard deck", () => {
       { instanceId: s.inst("kinkakumon").instanceId, cardId: "BT6-071" },
       { instanceId: s.inst("ginkakumon").instanceId, cardId: "BT6-073" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: stackOrder },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      promote()?.stack.length === 2 &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("skullGreymon").instanceId) &&
-      s.state.memory === 5
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: stackOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        promote()?.stack.length === 2 &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("skullGreymon").instanceId) &&
+        s.state.memory === 5,
     );
 
     expect(promote()?.stack.map((card) => card.instanceId)).toEqual(stackOrder);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: promote()!.permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.state.memory === 6 &&
-      promote()?.stack.some((card) => card.instanceId === s.inst("skullGreymon").instanceId) === true
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: promote()!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.memory === 6 &&
+        promote()?.stack.some((card) => card.instanceId === s.inst("skullGreymon").instanceId) === true,
     );
 
-    expect(promote()?.stack.map((card) => card.instanceId)).toEqual([
-      s.inst("skullGreymon").instanceId,
-      ...stackOrder,
-    ]);
+    expect(promote()?.stack.map((card) => card.instanceId)).toEqual([s.inst("skullGreymon").instanceId, ...stackOrder]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(6);
     assertNoLoudGap(s);

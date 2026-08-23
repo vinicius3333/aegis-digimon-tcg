@@ -14,14 +14,33 @@ import { compiled as togemon } from "./BT1-074.js";
 
 describe("BT1 reveal, recovery, and target IR coverage", () => {
   it("registers complete IR for the migrated cards", () => {
-    for (const card of [agumon, metalGarurumon, patamon, petermon, magnaAngemon, mistymon, slashAngemon, seraphimon, palmon, woodmon, togemon]) {
+    for (const card of [
+      agumon,
+      metalGarurumon,
+      patamon,
+      petermon,
+      magnaAngemon,
+      mistymon,
+      slashAngemon,
+      seraphimon,
+      palmon,
+      woodmon,
+      togemon,
+    ]) {
       expect(card).toMatchObject({ coverage: "full", residual: [] });
     }
   });
 
   it("preserves reveal counts, destinations, target counts, and inherited clauses", () => {
-    expect(agumon.effects[0]?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 5, rest: "deckBottomAnyOrder" });
-    expect(metalGarurumon.effects[0]?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["digivolutionCards"] });
+    expect(agumon.effects[0]?.actions[0]).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 5,
+      rest: "deckBottomAnyOrder",
+    });
+    expect(metalGarurumon.effects[0]?.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["digivolutionCards"],
+    });
     expect(patamon.effects[0]?.actions[0]).toMatchObject({ revealCount: 4, add: [{ count: "all" }] });
     expect(petermon.effects[0]?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", optional: true });
     expect(magnaAngemon.effects[1]?.actions[0]?.scaling).toMatchObject({ per: 3, unit: "security" });

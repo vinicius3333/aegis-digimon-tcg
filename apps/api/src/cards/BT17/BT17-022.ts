@@ -6,149 +6,129 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Yellow"
-              ]
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Yellow"],
             },
-            "count": 1
+            count: 1,
           },
-          "asLevel": 3,
-          "from": "hand"
-        }
-      ]
+          asLevel: 3,
+          from: "hand",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "AncientGarurumon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["AncientGarurumon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 3,
-          "ignoreRequirements": true,
-          "optional": true,
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          payCost: true,
+          from: ["hand"],
+          costOverride: 3,
+          ignoreRequirements: true,
+          optional: true,
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "KendoGarurumon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["KendoGarurumon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "raw": "[KendoGarurumon] is in this Digimon's digivolution cards"
+                raw: "[KendoGarurumon] is in this Digimon's digivolution cards",
               },
               {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ],
-                  "colors": [
-                    "Black",
-                    "Purple"
-                  ]
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon", "Tamer"],
+                  colors: ["Black", "Purple"],
                 },
-                "raw": "you have a black or purple Digimon or Tamer"
-              }
+                raw: "you have a black or purple Digimon or Tamer",
+              },
             ],
-            "raw": "[KendoGarurumon] is in this Digimon's digivolution cards or you have a black or purple Digimon or Tamer"
-          }
+            raw: "[KendoGarurumon] is in this Digimon's digivolution cards or you have a black or purple Digimon or Tamer",
+          },
         },
         {
-          "kind": "DelayedDelete",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "DelayedDelete",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "ifThisEffectDigivolved",
-            "raw": "digivolved by this effect"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectDigivolved",
+            raw: "digivolved by this effect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "hand",
-            "op": "lte",
-            "value": 7,
-            "raw": "you have 7 or fewer cards in your hand"
-          }
-        }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "hand",
+            op: "lte",
+            value: 7,
+            raw: "you have 7 or fewer cards in your hand",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Koji Minamoto"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Koji Minamoto"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "names": [
-        "KendoGarurumon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["KendoGarurumon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-022", compiled);

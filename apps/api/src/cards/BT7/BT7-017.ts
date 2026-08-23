@@ -6,81 +6,81 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": []
+      trigger: "Static",
+      actions: [],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "colors": ["Red", "Black"],
-              "levels": [5],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              colors: ["Red", "Black"],
+              levels: [5],
+              nameOrTrait: [
                 {
-                  "tokens": ["Cyborg"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Cyborg"],
+                  match: "trait",
+                },
+              ],
             },
-            "from": ["hand", "trash"],
-            "count": 1
+            from: ["hand", "trash"],
+            count: 1,
           },
-          "underFilter": {
-            "isSelfRef": true
+          underFilter: {
+            isSelfRef: true,
           },
-          "position": "top",
-          "optional": true
+          position: "top",
+          optional: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "levels": [5],
-              "nameOrTrait": [
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
+              levels: [5],
+              nameOrTrait: [
                 {
-                  "tokens": ["Cyborg"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Cyborg"],
+                  match: "trait",
+                },
+              ],
             },
-            "unit": "digivolutionCards"
+            unit: "digivolutionCards",
           },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "PlaceUnder resolved"
-          }
-        }
-      ]
-    }
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "PlaceUnder resolved",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Machinedramon"],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Machinedramon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT7-017", compiled);

@@ -19,7 +19,11 @@ describe("BT25-041 Murasamemon", () => {
         expect(cardChoice.kind).toBe("Modal");
         expect(cardChoice.options).toHaveLength(2);
         expect(cardChoice.options?.[0]?.[0]).toMatchObject({ kind: "PlayWithoutCost", payCost: true, reduceCostBy: 3 });
-        expect(cardChoice.options?.[1]?.[0]).toMatchObject({ kind: "UseOptionWithoutCost", payCost: true, reduceCostBy: 3 });
+        expect(cardChoice.options?.[1]?.[0]).toMatchObject({
+          kind: "UseOptionWithoutCost",
+          payCost: true,
+          reduceCostBy: 3,
+        });
       }
     }
   });

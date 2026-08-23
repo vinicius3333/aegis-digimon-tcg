@@ -1040,9 +1040,9 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
   // only OmniShoutmon, which made the server accept an incomplete recipe.
   "AD1-006": [
     {
-      materials: ["OmniShoutmon", "ZeigGreymon", "Ballistamon", "Dorulumon", "Starmons", "Sparrowmon"].map(
-        (name) => ({ names: [name] }),
-      ),
+      materials: ["OmniShoutmon", "ZeigGreymon", "Ballistamon", "Dorulumon", "Starmons", "Sparrowmon"].map((name) => ({
+        names: [name],
+      })),
       count: 2,
     },
   ],

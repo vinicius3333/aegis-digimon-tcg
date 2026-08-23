@@ -2,11 +2,25 @@
    key here; an unrecognized one falls back to a generic string plus the raw code, so a server that
    grows a new reason never renders a blank message. */
 
-import type { BanlistPolicy, MatchStatus, PairingReason, RegistrationStatus, TournamentBanlistCard, TournamentStatus, TournamentStructure } from "@aegis/shared";
+import type {
+  BanlistPolicy,
+  MatchStatus,
+  PairingReason,
+  RegistrationStatus,
+  TournamentBanlistCard,
+  TournamentStatus,
+  TournamentStructure,
+} from "@aegis/shared";
 import type { TranslationKey, TranslationParams } from "../i18n";
 import { banlistCardName as cardName } from "./banlistPreview";
 import type { CountdownLevel } from "./hooks";
-import { PARTICIPANT_FAILURES, TOURNAMENT_VALIDATION_CODES, type DeckViolation, type LegacyTournamentMatch, type TournamentWindows } from "./types";
+import {
+  PARTICIPANT_FAILURES,
+  TOURNAMENT_VALIDATION_CODES,
+  type DeckViolation,
+  type LegacyTournamentMatch,
+  type TournamentWindows,
+} from "./types";
 
 export function statusKey(status: TournamentStatus): TranslationKey {
   return `tournaments.status.${status}` as TranslationKey;
@@ -72,12 +86,18 @@ export function banlistModeKey(policy: BanlistPolicy): TranslationKey {
 
 export function countdownLevelKey(level: CountdownLevel): TranslationKey {
   switch (level) {
-    case "expired": return "tournaments.countdown.expired";
-    case "warning_1m": return "tournaments.countdown.warning1";
-    case "warning_2m": return "tournaments.countdown.warning2";
-    case "warning_5m": return "tournaments.countdown.warning5";
-    case "normal": return "tournaments.countdown.normal";
-    default: return "tournaments.countdown.none";
+    case "expired":
+      return "tournaments.countdown.expired";
+    case "warning_1m":
+      return "tournaments.countdown.warning1";
+    case "warning_2m":
+      return "tournaments.countdown.warning2";
+    case "warning_5m":
+      return "tournaments.countdown.warning5";
+    case "normal":
+      return "tournaments.countdown.normal";
+    default:
+      return "tournaments.countdown.none";
   }
 }
 
@@ -85,7 +105,12 @@ export function countdownLevelKey(level: CountdownLevel): TranslationKey {
  * Every code that has copy. Derived from the two mirror arrays plus the client-only transport
  * failure, so adding a code to a mirror is enough for it to render.
  */
-const REASON_KEYS = new Set<string>([...PARTICIPANT_FAILURES, ...TOURNAMENT_VALIDATION_CODES, "network_error", "tournament_already_started"]);
+const REASON_KEYS = new Set<string>([
+  ...PARTICIPANT_FAILURES,
+  ...TOURNAMENT_VALIDATION_CODES,
+  "network_error",
+  "tournament_already_started",
+]);
 
 /** The key for a reason code, or undefined when the server sent one this build does not know. */
 export function reasonKey(code: string): TranslationKey | undefined {
@@ -96,12 +121,21 @@ export function reasonKey(code: string): TranslationKey | undefined {
 export function violationMessage(violation: DeckViolation): { key: TranslationKey; params: TranslationParams } {
   const key = `tournaments.violation.${camelCase(violation.kind)}` as TranslationKey;
   switch (violation.kind) {
-    case "main_deck_size": return { key, params: { size: violation.size, required: violation.required } };
-    case "egg_deck_size": return { key, params: { size: violation.size, max: violation.max } };
-    case "over_copy_limit": return { key, params: { card: cardName(violation.cardId), copies: violation.copies, allowed: violation.allowed } };
-    case "banned_pair": return { key, params: { card: cardName(violation.cardId), other: cardName(violation.conflictsWith) } };
-    case "wrong_deck": return { key, params: { card: cardName(violation.cardId), deck: violation.belongsIn } };
-    default: return { key, params: { card: cardName(violation.cardId) } };
+    case "main_deck_size":
+      return { key, params: { size: violation.size, required: violation.required } };
+    case "egg_deck_size":
+      return { key, params: { size: violation.size, max: violation.max } };
+    case "over_copy_limit":
+      return {
+        key,
+        params: { card: cardName(violation.cardId), copies: violation.copies, allowed: violation.allowed },
+      };
+    case "banned_pair":
+      return { key, params: { card: cardName(violation.cardId), other: cardName(violation.conflictsWith) } };
+    case "wrong_deck":
+      return { key, params: { card: cardName(violation.cardId), deck: violation.belongsIn } };
+    default:
+      return { key, params: { card: cardName(violation.cardId) } };
   }
 }
 

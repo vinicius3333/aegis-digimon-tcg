@@ -101,11 +101,13 @@ describe("BT26-028 Medicmon", () => {
     );
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("medicmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medicmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").linked.length === 1);
 
     expect(s.perm("base").topCard.cardId).toBe("BT26-028");
@@ -115,18 +117,23 @@ describe("BT26-028 Medicmon", () => {
   });
 
   it("applies both link-face debuffs when Medicmon itself is linked", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT26-028", as: "medicmon" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT26-028", as: "medicmon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "linkCard",
-      instanceId: s.inst("medicmon").instanceId,
-      targetPermanentId: s.perm("host").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("medicmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 4000);
 
     expect(s.perm("target").currentDP).toBe(4000);

@@ -28,10 +28,12 @@ describe("BT11-014 GrapLeomon", () => {
 
   it("does not trash security for another Digimon's target switch", async () => {
     const s = setupEngine({
-      0: { battleArea: [
-        { card: "BT1-064", as: "host", under: ["BT11-014"] },
-        { card: "BT1-064", as: "other" },
-      ] },
+      0: {
+        battleArea: [
+          { card: "BT1-064", as: "host", under: ["BT11-014"] },
+          { card: "BT1-064", as: "other" },
+        ],
+      },
       1: { security: ["BT1-009", "BT1-010"] },
     });
 

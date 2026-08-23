@@ -19,117 +19,103 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // ("this effect digivolved" — see interpreter.ts's `evaluateCondition` "raw" case); the printed
 // order ("digivolved by this effect") does not match that regex and silently never fires.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Search",
-          "controller": "mine",
-          "filter": {
-            "zone": "security"
+          kind: "Search",
+          controller: "mine",
+          filter: {
+            zone: "security",
           },
-          "count": "all",
-          "to": "revealed"
+          count: "all",
+          to: "revealed",
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow"
-              ],
-              "nameOrTrait": [
+          into: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Vaccine"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "security"
-          ],
-          "faceDownSecurityOk": true,
-          "amongPreviousSearch": true,
-          "payCost": false,
-          "optional": true
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "shuffle",
-          "controller": "mine"
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "colors": [
-                "Yellow"
+                  tokens: ["Vaccine"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Vaccine"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": false,
-          "condition": {
-            "kind": "ifThisEffectDigivolved",
-            "raw": "this effect digivolved"
+          from: ["security"],
+          faceDownSecurityOk: true,
+          amongPreviousSearch: true,
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "mine",
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              colors: ["Yellow"],
+              nameOrTrait: [
+                {
+                  tokens: ["Vaccine"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          toTop: false,
+          condition: {
+            kind: "ifThisEffectDigivolved",
+            raw: "this effect digivolved",
+          },
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAddSecurity",
-          "fireCondition": {
-            "kind": "triggerSecurityIsYours"
+          kind: "SubTrigger",
+          event: "whenAddSecurity",
+          fireCondition: {
+            kind: "triggerSecurityIsYours",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-033", compiled);

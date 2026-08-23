@@ -6,276 +6,254 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Decode",
-          "raw": "＜Decode (Lv.5 or lower w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait)＞"
-        }
-      ]
+          keyword: "Decode",
+          raw: "＜Decode (Lv.5 or lower w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait)＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "Counter",
-      "actions": [
+      trigger: "Counter",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 2
+            count: 2,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Omnimon"
-                ],
-                "match": "name"
+                tokens: ["Omnimon"],
+                match: "name",
               },
               {
-                "tokens": [
-                  "ME",
-                  "VB"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["ME", "VB"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": true,
-          "optional": true
+          payCost: true,
+          optional: true,
         },
         {
-          "kind": "RedirectAttack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "RedirectAttack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "dnaDigivolveRequirement": [
-    { "cost": 0, "materials": [{ "color": "Red", "level": 5 }, { "color": "Black", "level": 5 }] },
-    { "cost": 0, "materials": [{ "color": "Red", "level": 5 }, { "color": "Purple", "level": 5 }] },
-    { "cost": 0, "materials": [{ "color": "Yellow", "level": 5 }, { "color": "Black", "level": 5 }] },
-    { "cost": 0, "materials": [{ "color": "Yellow", "level": 5 }, { "color": "Purple", "level": 5 }] }
-  ],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  dnaDigivolveRequirement: [
     {
-      "level": 5,
-      "names": [
-        "Greymon"
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Black", level: 5 },
       ],
-      "cost": 3,
-      "isAlternate": true
     },
     {
-      "traits": [
-        "ME",
-        "VB"
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Purple", level: 5 },
       ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 5
-    }
-  ],
-  "assemblyRequirement": [
+    },
     {
-      "materials": [
-        {
-          "count": 1,
-          "nameOrTrait": [
-            {
-              "tokens": [
-                "Agumon",
-                "Greymon"
-              ],
-              "match": "name"
-            },
-            {
-              "tokens": [
-                "ME",
-                "VB"
-              ],
-              "match": "trait"
-            }
-          ],
-          "level": 5
-        },
-        {
-          "count": 1,
-          "nameOrTrait": [
-            {
-              "tokens": [
-                "Agumon",
-                "Greymon"
-              ],
-              "match": "name"
-            },
-            {
-              "tokens": [
-                "ME",
-                "VB"
-              ],
-              "match": "trait"
-            }
-          ],
-          "level": 4
-        },
-        {
-          "count": 1,
-          "nameOrTrait": [
-            {
-              "tokens": [
-                "Agumon",
-                "Greymon"
-              ],
-              "match": "name"
-            },
-            {
-              "tokens": [
-                "ME",
-                "VB"
-              ],
-              "match": "trait"
-            }
-          ],
-          "level": 3
-        }
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Black", level: 5 },
       ],
-      "reduceCost": 6
-    }
-  ]
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+  ],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      names: ["Greymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      traits: ["ME", "VB"],
+      cost: 3,
+      isAlternate: true,
+      level: 5,
+    },
+  ],
+  assemblyRequirement: [
+    {
+      materials: [
+        {
+          count: 1,
+          nameOrTrait: [
+            {
+              tokens: ["Agumon", "Greymon"],
+              match: "name",
+            },
+            {
+              tokens: ["ME", "VB"],
+              match: "trait",
+            },
+          ],
+          level: 5,
+        },
+        {
+          count: 1,
+          nameOrTrait: [
+            {
+              tokens: ["Agumon", "Greymon"],
+              match: "name",
+            },
+            {
+              tokens: ["ME", "VB"],
+              match: "trait",
+            },
+          ],
+          level: 4,
+        },
+        {
+          count: 1,
+          nameOrTrait: [
+            {
+              tokens: ["Agumon", "Greymon"],
+              match: "name",
+            },
+            {
+              tokens: ["ME", "VB"],
+              match: "trait",
+            },
+          ],
+          level: 3,
+        },
+      ],
+      reduceCost: 6,
+    },
+  ],
 };
 
 registerIrCard("EX12-017", compiled);

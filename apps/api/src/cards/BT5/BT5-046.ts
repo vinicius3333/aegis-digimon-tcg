@@ -6,53 +6,49 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 1,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 1,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Green"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Green"],
               },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
-              },
-              "count": 1
+              count: 1,
+              to: "hand",
             },
-            "raw": "＜Digi-Burst 1＞"
-          }
-        }
+          ],
+          rest: "deckBottom",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+              },
+              count: 1,
+            },
+            raw: "＜Digi-Burst 1＞",
+          },
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 1,
-          "raw": "＜Digi-Burst 1＞"
-        }
-      ]
-    }
+          keyword: "DigiBurst",
+          amount: 1,
+          raw: "＜Digi-Burst 1＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-046", compiled);

@@ -39,19 +39,22 @@ it("gives Marcus cards Security Attack +1 but only gives DP to effective Digimon
 });
 
 it("scales the digivolution DP reduction for each yellow or red Tamer", async () => {
-  const s = setupEngine({
-    0: {
-      battleArea: [
-        { card: "BT12-043", as: "shine" },
-        { card: "BT12-092", as: "yellowTamer" },
-        { card: "BT12-092", as: "redTamer" },
-      ],
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-043", as: "shine" },
+          { card: "BT12-092", as: "yellowTamer" },
+          { card: "BT12-092", as: "redTamer" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }],
+        security: ["BT1-009"],
+      },
     },
-    1: {
-      battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }],
-      security: ["BT1-009"],
-    },
-  }, { autoSelectCards: true });
+    { autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shine"));
   expect(s.perm("target").currentDP).toBe(4000);

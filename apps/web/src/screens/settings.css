@@ -19,7 +19,7 @@
 .settings-page h1 {
   margin: 0 !important;
   font-size: clamp(2rem, 4vw, 3rem) !important;
-  letter-spacing: .03em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
@@ -154,7 +154,7 @@
 }
 
 .settings-volume[data-disabled="true"] {
-  opacity: .5;
+  opacity: 0.5;
 }
 
 .settings-volume__heading {
@@ -286,7 +286,8 @@
 @media (width < 960px) {
   .settings-page {
     height: 100%;
-    padding: var(--ds-space-6) var(--ds-gutter-tablet) calc(var(--ds-nav-height-narrow) + var(--ds-space-8) + env(safe-area-inset-bottom));
+    padding: var(--ds-space-6) var(--ds-gutter-tablet)
+      calc(var(--ds-nav-height-narrow) + var(--ds-space-8) + env(safe-area-inset-bottom));
   }
 }
 
@@ -304,7 +305,8 @@
 
 @media (width < 600px) {
   .settings-page {
-    padding: var(--ds-space-5) var(--ds-gutter-phone) calc(var(--ds-nav-height-narrow) + var(--ds-space-6) + env(safe-area-inset-bottom));
+    padding: var(--ds-space-5) var(--ds-gutter-phone)
+      calc(var(--ds-nav-height-narrow) + var(--ds-space-6) + env(safe-area-inset-bottom));
   }
 
   .settings-page h1 {

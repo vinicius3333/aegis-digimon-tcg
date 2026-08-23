@@ -7,21 +7,25 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenDigivolutionTrashed",
-        sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-        actions: [{ kind: "Draw", amount: 2 }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          actions: [{ kind: "Draw", amount: 2 }],
+        },
+      ],
     },
     {
       trigger: "YourTurn",
-      actions: [{
-        kind: "GrantCanAttackUnsuspended",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        duration: "untilYourTurnEnd",
-        noDigivolutionCards: true,
-      }],
+      actions: [
+        {
+          kind: "GrantCanAttackUnsuspended",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "untilYourTurnEnd",
+          noDigivolutionCards: true,
+        },
+      ],
     },
   ],
   coverage: "full",

@@ -13,7 +13,11 @@ describe("BT20-027 Slayerdramon", () => {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect).toMatchObject({
         actions: [
-          { kind: "TrashDigivolution", amount: 3, target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } } },
+          {
+            kind: "TrashDigivolution",
+            amount: 3,
+            target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } },
+          },
           { kind: "Delete", target: { filter: { controller: "opponent", digivolutionCards: "none" } } },
         ],
       });
@@ -33,7 +37,16 @@ describe("BT20-027 Slayerdramon", () => {
       trigger: "AllTurns",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "prevent", affectsAll: true, leaveCause: "otherThanBattle", cost: { kind: "suspend", target: { isSelf: true } } }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          affectsAll: true,
+          leaveCause: "otherThanBattle",
+          cost: { kind: "suspend", target: { isSelf: true } },
+        },
+      ],
     });
   });
 });

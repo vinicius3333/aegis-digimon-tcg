@@ -162,10 +162,7 @@ describe("§7-2-2 DigiXros Rules (comprehensive-0115)", () => {
     } as never);
     expect(result).toEqual({ ok: true });
 
-    await settle(
-      () => p0.battleArea.find((p) => p.topCard?.cardId === "BT10-061")?.stack.length === 1,
-      200,
-    );
+    await settle(() => p0.battleArea.find((p) => p.topCard?.cardId === "BT10-061")?.stack.length === 1, 200);
     // The material is no longer a loose hand card — it left with the play, not on a later step.
     expect(p0.hand.some((c) => c.instanceId === material1.instanceId)).toBe(false);
     const played = findPermanent(s, 0, "BT10-061");
@@ -222,9 +219,7 @@ describe("§7-2-2-4 DigiXros Rules (comprehensive-0116)", () => {
       // source's TOP card alone; its own digivolution stack and link card go to the trash.
       expect(p0.trash.some((c) => c.instanceId === priorDigivolutionCard.instanceId)).toBe(true);
       const xrosPermanent = p0.battleArea.find((p) => p.topCard?.cardId === "BT10-061");
-      expect(xrosPermanent?.stack.some((c) => c.instanceId === priorDigivolutionCard.instanceId)).toBe(
-        false,
-      );
+      expect(xrosPermanent?.stack.some((c) => c.instanceId === priorDigivolutionCard.instanceId)).toBe(false);
       // The material's top card itself DID become a digivolution card of the new permanent.
       expect(xrosPermanent?.stack.some((c) => c.cardId === "BT7-058")).toBe(true);
     },
@@ -318,10 +313,7 @@ describe("§7-2-3-3 DigiXros Rules (comprehensive-0118)", () => {
     } as never);
     expect(result).toEqual({ ok: true });
 
-    await settle(
-      () => p0.battleArea.find((p) => p.topCard?.cardId === "BT10-061")?.stack.length === 2,
-      200,
-    );
+    await settle(() => p0.battleArea.find((p) => p.topCard?.cardId === "BT10-061")?.stack.length === 2, 200);
     expect(memoryBefore - s.state.memory).toBe(2); // 4 - 2*1
     const played = findPermanent(s, 0, "BT10-061");
     const stackIds = played.stack.map((c) => c.instanceId);
@@ -527,8 +519,14 @@ describe("§7-3-2-6 Assembly Rules (comprehensive-0121)", () => {
     const p0 = s.state.players[0]!;
     const susanoomon = instance("EX12-076", 0, false); // [Assembly -9] 8 [Hybrid]/[Shambala] cards
     const materialIds = [
-      "EX12-006", "EX12-009", "EX12-011", "EX12-012",
-      "EX12-015", "EX12-019", "EX12-020", "EX12-022",
+      "EX12-006",
+      "EX12-009",
+      "EX12-011",
+      "EX12-012",
+      "EX12-015",
+      "EX12-019",
+      "EX12-020",
+      "EX12-022",
     ];
     const materials = materialIds.map((id) => instance(id, 0, false));
     p0.hand.push(susanoomon);
@@ -543,10 +541,7 @@ describe("§7-3-2-6 Assembly Rules (comprehensive-0121)", () => {
     } as never);
     expect(result).toEqual({ ok: true });
 
-    await settle(
-      () => p0.battleArea.find((p) => p.topCard?.cardId === "EX12-076")?.stack.length === 8,
-      2000,
-    );
+    await settle(() => p0.battleArea.find((p) => p.topCard?.cardId === "EX12-076")?.stack.length === 8, 2000);
     const played = p0.battleArea.find((p) => p.topCard?.cardId === "EX12-076")!;
     // The FIRST-declared material ("shown on the left") ends up ON TOP — i.e. at the END of the
     // stack array, directly beneath the played card's top card (mirrors `swapTop`'s convention:
@@ -568,8 +563,14 @@ describe("§7-3-2-6 Assembly Rules (comprehensive-0121)", () => {
     const susanoomon = instance("EX12-076", 0, false);
     // 7 distinct names + 1 duplicate of the first, instead of 8 distinct names.
     const materialIds = [
-      "EX12-006", "EX12-006", "EX12-011", "EX12-012",
-      "EX12-015", "EX12-019", "EX12-020", "EX12-022",
+      "EX12-006",
+      "EX12-006",
+      "EX12-011",
+      "EX12-012",
+      "EX12-015",
+      "EX12-019",
+      "EX12-020",
+      "EX12-022",
     ];
     const materials = materialIds.map((id) => instance(id, 0, false));
     p0.hand.push(susanoomon);

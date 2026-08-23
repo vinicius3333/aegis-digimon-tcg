@@ -10,7 +10,11 @@ describe("EX11-044 Pyramidimon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ex11-044-main-effect" });
-      expect(effect.actions[0]).toMatchObject({ kind: "Delete", target: { filter: { superlative: "highestPlayCost", kind: ["Digimon", "Tamer"] } }, cost: { kind: "trash", target: { from: ["digivolutionCards"], count: 3 } } });
+      expect(effect.actions[0]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { superlative: "highestPlayCost", kind: ["Digimon", "Tamer"] } },
+        cost: { kind: "trash", target: { from: ["digivolutionCards"], count: 3 } },
+      });
     }
     const recovery = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
     expect(recovery.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenDigivolutionTrashed" });

@@ -8,135 +8,119 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Opponent's Turn][Once Per Turn]: when opponent's Digimon moves from breeding to battle, if [Rosemon]/[X Antibody]
 //   is in this Digimon's digivolution cards, you may suspend 1 of their Digimon.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "digimonTarget"
-          }
-        },
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "count": 1,
-            "bindAs": "tamerTarget"
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": { "fromSelectionRef": "digimonTarget" },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "Restrict",
-          "target": { "fromSelectionRef": "tamerTarget" },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+            count: 1,
+            bindAs: "digimonTarget",
           },
-          "actions": [
-            {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controllerDefault": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "optional": true
-            }
-          ]
-        }
+        },
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
+            },
+            count: 1,
+            bindAs: "tamerTarget",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: { fromSelectionRef: "digimonTarget" },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Restrict",
+          target: { fromSelectionRef: "tamerTarget" },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentMovedFromBreeding",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controllerDefault": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true,
-              "condition": {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentMovedFromBreeding",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              optional: true,
+              condition: {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Rosemon"
-                      ],
-                      "match": "name"
+                      tokens: ["Rosemon"],
+                      match: "name",
                     },
                     {
-                      "tokens": [
-                        "X Antibody"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["X Antibody"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "raw": "if [Rosemon] or [X Antibody] is in this Digimon's digivolution cards"
-              }
-            }
-          ]
-        }
+                raw: "if [Rosemon] or [X Antibody] is in this Digimon's digivolution cards",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-054", compiled);

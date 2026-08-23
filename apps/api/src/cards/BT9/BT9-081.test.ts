@@ -58,10 +58,12 @@ describe("BT9-081 DexDorugoramon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("dexDorugoramon").permanentId]);
 
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("level3").instanceId)).toBe(
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("level3").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("deathXmon").instanceId)).toBe(
       true,
     );
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("deathXmon").instanceId)).toBe(true);
   });
 
   it("deletes all opposing Digimon tied for the lowest level", async () => {

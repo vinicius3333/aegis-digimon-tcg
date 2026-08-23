@@ -95,19 +95,19 @@ describe("BT10-039 Taomon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
-    expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toEqual([
-      s.inst("plugin").instanceId,
-    ]);
-    expect(s.state.players[0]!.hand.some(({ instanceId }) =>
-      instanceId === s.inst("otherOption").instanceId
-    )).toBe(true);
+    expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toEqual([s.inst("plugin").instanceId]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("otherOption").instanceId)).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 });

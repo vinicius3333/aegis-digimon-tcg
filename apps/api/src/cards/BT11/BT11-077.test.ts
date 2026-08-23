@@ -34,7 +34,9 @@ describe("BT11-077 Chikurimon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chikurimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chikurimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT11-077")).toBe(true);
@@ -71,11 +73,7 @@ describe("BT11-077 Chikurimon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("source").instanceId],
-      1,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("source").instanceId], 1);
     await settle(() => s.state.memory === -1);
 
     expect(s.state.memory).toBe(-1);

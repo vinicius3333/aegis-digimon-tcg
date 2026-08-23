@@ -15,7 +15,9 @@ describe("BT18-067 MetalKabuterimon", () => {
     s.state.memory = 10;
     const removed = s.perm("opponentTarget").topCard!.instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalKabuterimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalKabuterimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-067"));
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === removed));
     await s.ready();

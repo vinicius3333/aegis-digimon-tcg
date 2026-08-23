@@ -22,11 +22,13 @@ describe("EX11-012 Medusamon", () => {
     );
     preferInstanceIds.push(s.inst("returnCost").instanceId);
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("medusamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medusamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX11-008"), 600);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX11-008")).toBe(true);
     expect(s.perm("base").topCard?.cardId).toBe("EX11-012");
@@ -48,13 +50,25 @@ describe("EX11-012 Medusamon", () => {
         ],
       });
     }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "OnDeletion",
-      actions: [expect.objectContaining({ kind: "Trash", target: expect.objectContaining({ count: 1, filter: expect.objectContaining({ zone: "security", position: "top" }) }) })],
-    }));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "AllTurns",
-      actions: [expect.objectContaining({ kind: "Replacement", event: "wouldLeavePlay" })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OnDeletion",
+        actions: [
+          expect.objectContaining({
+            kind: "Trash",
+            target: expect.objectContaining({
+              count: 1,
+              filter: expect.objectContaining({ zone: "security", position: "top" }),
+            }),
+          }),
+        ],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        actions: [expect.objectContaining({ kind: "Replacement", event: "wouldLeavePlay" })],
+      }),
+    );
   });
 });

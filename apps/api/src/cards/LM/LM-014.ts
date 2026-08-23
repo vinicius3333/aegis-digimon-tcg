@@ -3,58 +3,54 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-              "nameOrTrait": [
-                { "tokens": ["Draw"], "match": "text" }
-              ]
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Draw"], match: "text" }],
               },
-              "orFilters": [
+              orFilters: [
                 {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
-                }
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                },
               ],
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttackTargetSwitched",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenAttackTargetSwitched",
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-014", compiled);

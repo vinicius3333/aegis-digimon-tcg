@@ -16,10 +16,23 @@ describe("BT26-081 compiled behavior", () => {
     ]);
     expect(compiled.assemblyRequirement).toEqual([{ reduceCost: 5, materials: [{ names: ["Minervamon"], count: 1 }] }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({ actions: [
-        { kind: "PlayMultiple", from: ["hand", "trash"], payCost: false, totalCost: 8, filter: { nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] } },
-        { kind: "ModifyDP", amount: -4000, duration: "untilOpponentTurnEnd", scaling: { per: 1, unit: "cards", filter: { nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }] } } },
-      ] });
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        actions: [
+          {
+            kind: "PlayMultiple",
+            from: ["hand", "trash"],
+            payCost: false,
+            totalCost: 8,
+            filter: { nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] },
+          },
+          {
+            kind: "ModifyDP",
+            amount: -4000,
+            duration: "untilOpponentTurnEnd",
+            scaling: { per: 1, unit: "cards", filter: { nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }] } },
+          },
+        ],
+      });
     }
   });
 
@@ -33,25 +46,27 @@ describe("BT26-081 compiled behavior", () => {
   });
 
   it("plays eligible Iliad cards from hand and trash within 8 cost, then scales the DP reduction", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-081", as: "mervamon" }],
-        hand: [
-          { card: "BT24-019", as: "handKamemon" },
-          { card: "BT24-020", as: "handGomamon" },
-          { card: "BT26-067", as: "wrongTrait" },
-        ],
-        trash: [{ card: "BT26-029", as: "trashAegiochusmon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-081", as: "mervamon" }],
+          hand: [
+            { card: "BT24-019", as: "handKamemon" },
+            { card: "BT24-020", as: "handGomamon" },
+            { card: "BT26-067", as: "wrongTrait" },
+          ],
+          trash: [{ card: "BT26-029", as: "trashAegiochusmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT1-084", as: "target" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("mervamon"));
 
-    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(expect.arrayContaining([
-      "BT24-019",
-      "BT24-020",
-    ]));
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["BT24-019", "BT24-020"]),
+    );
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-019")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT26-067")).toBe(true);
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(3000);

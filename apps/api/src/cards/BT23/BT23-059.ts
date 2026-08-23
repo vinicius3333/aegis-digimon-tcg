@@ -8,176 +8,159 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   New event `whenOptionInBattleAreaTrashed` specified in LANE_H.md (CAP-H-06).
 //   Q5323: the trash targets Option cards placed by "place this card in the battle area" effects.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestPlayCost"
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "battleArea",
-                "kind": [
-                  "Option"
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)"
-          },
-          "abortOnDecline": true
-        }
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestPlayCost"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestPlayCost",
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "battleArea",
-                "kind": [
-                  "Option"
-                ]
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "battleArea",
+                kind: ["Option"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)"
+            raw: "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)",
           },
-          "abortOnDecline": true
-        }
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestPlayCost"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestPlayCost",
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "battleArea",
-                "kind": [
-                  "Option"
-                ]
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "battleArea",
+                kind: ["Option"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)"
+            raw: "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)",
           },
-          "abortOnDecline": true
-        }
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionInBattleAreaTrashed",
-          "actions": [
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestPlayCost",
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "battleArea",
+                kind: ["Option"],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)",
+          },
+          abortOnDecline: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOptionInBattleAreaTrashed",
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
-              }
+                count: 1,
+                isSelf: true,
+              },
             },
             {
-              "kind": "GrantStatic",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GrantStatic",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "grant": "immuneToOpponentDigimonEffects",
-              "tokens": [],
-              "duration": "forTheTurn"
-            }
+              grant: "immuneToOpponentDigimonEffects",
+              tokens: [],
+              duration: "forTheTurn",
+            },
           ],
-          "raw": "When Option cards in the battle area are trashed, this Digimon unsuspends. Then, your opponent's Digimon's effects don't affect this Digimon for the turn"
-        }
+          raw: "When Option cards in the battle area are trashed, this Digimon unsuspends. Then, your opponent's Digimon's effects don't affect this Digimon for the turn",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Justimon: Accel Arm",
-        "Justimon: Critical Arm"
-      ],
-      "cost": 1,
-      "isAlternate": true
+      names: ["Justimon: Accel Arm", "Justimon: Critical Arm"],
+      cost: 1,
+      isAlternate: true,
     },
     {
-      "level": 5,
-      "traits": [
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-059", compiled);

@@ -7,34 +7,42 @@ import "./EX2-044.js";
 
 describe("EX2 mixed Beelzemon line", () => {
   it("combines Impmon and Mephistomon inherited effects with Beelzemon's attack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{
-          card: "EX2-044",
-          as: "beelzemon",
-          under: ["EX2-039", "EX2-042"],
-        }],
-        hand: [{ card: "BT1-001", as: "discard" }],
-        deck: ["BT1-002", "BT1-003", "BT1-004"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX2-044",
+              as: "beelzemon",
+              under: ["EX2-039", "EX2-042"],
+            },
+          ],
+          hand: [{ card: "BT1-001", as: "discard" }],
+          deck: ["BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: {
+          battleArea: [{ card: "EX2-008", as: "levelThree" }],
+          security: ["BT1-005"],
+        },
       },
-      1: {
-        battleArea: [{ card: "EX2-008", as: "levelThree" }],
-        security: ["BT1-005"],
-      },
-    }, { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
     s.state.memory = 3;
     await s.ready();
     await settle(() => s.perm("beelzemon").currentDP === 14_000);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("beelzemon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 4 &&
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discard").instanceId),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beelzemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === 4 &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discard").instanceId),
     );
 
     expect(s.perm("beelzemon").currentDP).toBe(14_000);

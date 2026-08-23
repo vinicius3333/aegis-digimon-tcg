@@ -43,79 +43,88 @@ describe("BT6 Agumon Bond of Bravery historical deck", () => {
     s.state.phase = Phase.Breeding;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "moveFromBreeding",
-      permanentId: agumonPermanentId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 1 &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("taiDraw").instanceId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: agumonPermanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === 1 &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("taiDraw").instanceId),
     );
 
     s.state.phase = Phase.Main;
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("tai").topCard.instanceId,
-      effectKey: "BT6-087/main-digivolve-bond-of-bravery",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("tai").topCard.instanceId,
+        effectKey: "BT6-087/main-digivolve-bond-of-bravery",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const agumonDecision = s.decisions.at(-1)!.req;
     expect(agumonDecision.sourceCardId).toBe("BT6-087");
     expect(agumonDecision.options?.candidateInstanceIds).toEqual([agumonPermanentId]);
-    expect(agumonDecision.options?.candidateInstanceIds).not.toContain(
-      s.perm("toyAgumon").permanentId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: agumonDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [agumonPermanentId] },
-    })).toEqual({ ok: true });
+    expect(agumonDecision.options?.candidateInstanceIds).not.toContain(s.perm("toyAgumon").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: agumonDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [agumonPermanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const bondDecision = s.decisions.at(-1)!.req;
-    expect(new Set(bondDecision.options?.candidateInstanceIds)).toEqual(new Set([
-      chosenBondInstanceId,
-      keptBondInstanceId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: bondDecision.decisionId,
-      response: { kind: "selectCards", instanceIds: [chosenBondInstanceId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("agumon").topCard.instanceId === chosenBondInstanceId &&
-      s.state.players[0]!.security.length === 2 &&
-      observe(s.engine).subscriptions("endOfTurn").length === 1
+    expect(new Set(bondDecision.options?.candidateInstanceIds)).toEqual(
+      new Set([chosenBondInstanceId, keptBondInstanceId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: bondDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [chosenBondInstanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("agumon").topCard.instanceId === chosenBondInstanceId &&
+        s.state.players[0]!.security.length === 2 &&
+        observe(s.engine).subscriptions("endOfTurn").length === 1,
     );
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === keptBondInstanceId)).toBe(true);
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).keywordAmount(s.perm("agumon"), "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: agumonPermanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: agumonPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const deleteDecision = s.decisions.at(-1)!.req;
     expect(deleteDecision.sourceCardId).toBe("BT6-018");
-    expect(new Set(deleteDecision.options?.candidateInstanceIds)).toEqual(new Set([
-      largeTargetId,
-      smallTargetId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: deleteDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [largeTargetId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === largeTargetId) &&
-      s.state.players[1]!.security.length === 2 &&
-      !observe(s.engine).isAttacking()
+    expect(new Set(deleteDecision.options?.candidateInstanceIds)).toEqual(new Set([largeTargetId, smallTargetId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deleteDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [largeTargetId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === largeTargetId) &&
+        s.state.players[1]!.security.length === 2 &&
+        !observe(s.engine).isAttacking(),
     );
 
     expect(s.perm("agumon").isSuspended).toBe(true);
@@ -127,12 +136,8 @@ describe("BT6 Agumon Bond of Bravery historical deck", () => {
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === taiPermanentId)).toBe(false);
 
     await advance(s.engine).fireSubTrigger("endOfTurn");
-    await settle(() =>
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === chosenBondInstanceId)
-    );
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) =>
-      permanentId === agumonPermanentId
-    )).toBe(false);
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === chosenBondInstanceId));
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === agumonPermanentId)).toBe(false);
     assertNoLoudGap(s);
   });
 });

@@ -8,16 +8,16 @@ import "./BT6-109.js";
 
 describe("BT6-065 Gundramon", () => {
   it("has Blocker and may use a revealed cost-7 Option without paying its cost", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT6-065", as: "gundramon" }],
-        deck: [
-          { card: "BT6-109", as: "option" },
-          "BT1-010", "BT1-011", "BT1-012", "BT1-013",
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-065", as: "gundramon" }],
+          deck: [{ card: "BT6-109", as: "option" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT6-030", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT6-030", as: "target" }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 0;
     const _targetInstanceId = s.perm("target").topCard!.instanceId;
     await s.ready();
@@ -55,36 +55,38 @@ describe("BT6-065 Gundramon", () => {
       { instanceId: s.inst("otherThree").instanceId, cardId: "BT1-012" },
       { instanceId: s.inst("otherFour").instanceId, cardId: "BT1-013" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: selection.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("option").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("option").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await resolution;
 
-    expect(s.state.players[0]!.trash.some((card) =>
-      card.instanceId === s.inst("option").instanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
   it("deletes an opposing play-cost-4-or-lower Digimon when the Option use is declined", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT6-065", as: "gundramon" }],
-        deck: [
-          { card: "BT6-109", as: "option" },
-          "BT1-010", "BT1-011", "BT1-012", "BT1-013",
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-065", as: "gundramon" }],
+          deck: [{ card: "BT6-109", as: "option" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT1-010", as: "target" }] },
-    }, { autoSelectCards: true, autoDeclineOptional: true });
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
     const targetInstanceId = s.perm("target").topCard!.instanceId;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gundramon"));
 
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(targetInstanceId);
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).not.toContain(targetInstanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).not.toContain(
+      targetInstanceId,
+    );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

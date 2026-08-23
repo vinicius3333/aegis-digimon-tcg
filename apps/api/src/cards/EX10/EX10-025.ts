@@ -4,87 +4,74 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "trash",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Mineral",
-                    "Rock"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            }
+                  tokens: ["Mineral", "Rock"],
+                  match: "trait",
+                },
+              ],
+            },
           },
-          "from": ["trash"],
-          "count": 2,
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          from: ["trash"],
+          count: 2,
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Mineral",
-                  "Rock"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Mineral", "Rock"],
+                match: "trait",
+              },
+            ],
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardDiscarded",
-          "sourceFilter": {
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "onDigivolutionCardDiscarded",
+          sourceFilter: {
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Mineral",
-                  "Rock"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Mineral", "Rock"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "playCostLte": 4
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  playCostLte: 4,
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 export { compiled };

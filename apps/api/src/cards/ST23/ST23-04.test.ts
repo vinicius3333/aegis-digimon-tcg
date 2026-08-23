@@ -5,13 +5,26 @@ import "./ST23-04.js";
 
 describe("ST23-04 Murasamemon", () => {
   it("reduces an opponent Digimon by 5000 when digivolving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST23-03", as: "base" }], hand: [{ card: "ST23-04", as: "murasamemon" }], deck: ["BT1-002"] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }], deck: ["BT1-002"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST23-03", as: "base" }],
+          hand: [{ card: "ST23-04", as: "murasamemon" }],
+          deck: ["BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }], deck: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 3;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("murasamemon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("murasamemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "ST23-04" && s.perm("opponent").currentDP === 5000);
     expect(s.perm("base").topCard?.cardId).toBe("ST23-04");
     expect(s.perm("opponent").currentDP).toBe(5000);

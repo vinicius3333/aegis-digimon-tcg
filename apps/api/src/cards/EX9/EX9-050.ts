@@ -10,93 +10,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q4805: All 3 cards must be placed; partial cost cannot be met.
 // The place cost already encodes faceDown/position/host correctly.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Ver.1"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "optional": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Ver.1"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                tokens: ["Ver.1"],
+                match: "trait",
               },
-              "count": 3,
-              "from": [
-                "trash"
-              ]
-            },
-            "raw": "By placing 3 Digimon cards with the [Ver.1] trait from your trash face down as this Digimon's bottom digivolution cards",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
+            ],
           },
-          "abortOnDecline": true
-        }
+          from: ["hand", "trash"],
+          optional: true,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Ver.1"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 3,
+              from: ["trash"],
+            },
+            raw: "By placing 3 Digimon cards with the [Ver.1] trait from your trash face down as this Digimon's bottom digivolution cards",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
+          },
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "traits": [
-        "DM"
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      traits: ["DM"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-050", compiled);

@@ -23,9 +23,11 @@ function fireTiming(
   timing: EffectTiming,
   trigger: Record<string, unknown> = {},
 ): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
 describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
@@ -52,7 +54,13 @@ describe("P-143 [End of Your Turn][OPT] move to breeding area", () => {
 
   it("preserves digivolution cards when moving to breeding (KB Q4251)", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "P-143", dp: 5000, as: "drimogemon", under: [{ card: "BT1-001", as: "stackCard", faceUp: false }] }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "P-143", dp: 5000, as: "drimogemon", under: [{ card: "BT1-001", as: "stackCard", faceUp: false }] },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p0 = s.state.players[0] as PlayerState;

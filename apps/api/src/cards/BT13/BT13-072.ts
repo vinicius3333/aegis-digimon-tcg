@@ -6,76 +6,68 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "X Antibody"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["X Antibody"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "placeUnder"
-            }
+              count: 1,
+              to: "placeUnder",
+            },
           ],
-          "rest": "trash"
+          rest: "trash",
         },
         {
-          "kind": "Restrict",
-          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
-          "restriction": "dpImmune",
-          "duration": "untilOpponentTurnEnd",
-      "condition": {"kind": "ifThisEffectActed", "raw": "you did"}
-        }
-      ]
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "dpImmune",
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "ifThisEffectActed", raw: "you did" },
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "hand",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "hand"
-            ]
+            count: 1,
+            from: ["hand"],
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-072", compiled);

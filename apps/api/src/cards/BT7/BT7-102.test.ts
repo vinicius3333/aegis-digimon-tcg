@@ -49,9 +49,7 @@ describe("BT7-102 ＜Delay＞ option-permanent subsystem", () => {
     const foe = s.perm("foe");
 
     playBooster(s);
-    await settle(() =>
-      p0.battleArea.some((perm) => perm.topCard?.cardId === "BT7-102") && foe.isSuspended,
-    );
+    await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT7-102") && foe.isSuspended);
 
     expect(foe.isSuspended).toBe(true); // opponent Digimon suspended
     // NEGATIVE CONTROL: a wrong implementation that never calls placeOptionAsPermanent
@@ -65,20 +63,21 @@ describe("BT7-102 ＜Delay＞ option-permanent subsystem", () => {
     const p0 = s.state.players[0] as PlayerState;
 
     playBooster(s);
-    await settle(() =>
-      p0.battleArea.some((perm) => perm.topCard?.cardId === "BT7-102") &&
-      s.state.pendingDecision === undefined,
+    await settle(
+      () => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT7-102") && s.state.pendingDecision === undefined,
     );
     const perm = p0.battleArea.find((p) => p.topCard?.cardId === "BT7-102")!;
     const optionInstanceId = perm.topCard!.instanceId;
 
     // NEGATIVE CONTROL: a wrong implementation that omits the enterFieldTurnCount gate
     // would let this same-turn activation succeed and gain memory immediately.
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: optionInstanceId,
-      effectKey: DELAY_KEY,
-    }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: optionInstanceId,
+        effectKey: DELAY_KEY,
+      }).ok,
+    ).toBe(false);
     expect(s.state.memory).toBe(0); // same turn: gate blocks activation, no gain
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT7-102")).toBe(true); // still on board
 

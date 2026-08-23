@@ -21,11 +21,19 @@ describe("BT18-086 Lucemon: Larva", () => {
   });
 
   it("plays a Lucemon from trash when revealed from security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT18-086", as: "larva", faceUp: true }], trash: [{ card: "BT18-034", as: "lucemon" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT18-086", as: "larva", faceUp: true }],
+          trash: [{ card: "BT18-034", as: "lucemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("larva"));
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("lucemon").instanceId),
+    ).toBe(true);
   });
 });

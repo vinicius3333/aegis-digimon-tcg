@@ -6,13 +6,34 @@ import "../index.js";
 
 describe("EX9-040", () => {
   it("has Blocker and once per turn suspends an opposing Digimon when suspended", () => {
-    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({ keyword: "Blocker", raw: "＜Blocker＞" });
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns" && !entry.isInherited)).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "Suspend", target: { filter: { controller: "opponent" } } }] }] });
+    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Blocker",
+      raw: "＜Blocker＞",
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns" && !entry.isInherited)).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [{ kind: "Suspend", target: { filter: { controller: "opponent" } } }],
+        },
+      ],
+    });
   });
-  it("inherits +1000 DP", () => expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({ actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }] }));
+  it("inherits +1000 DP", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
+    }));
 
   it("suspends one opposing Digimon when this Digimon suspends", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX9-040", as: "source" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } }, { autoOrderTriggers: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-040", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
     await advance(s.engine).verb.suspend([s.perm("source").permanentId]);
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("source").isSuspended).toBe(true);

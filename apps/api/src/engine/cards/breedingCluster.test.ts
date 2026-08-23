@@ -32,11 +32,7 @@ import "../../cards/index.js";
  * continuous/modifier ledgers). This drives a [Breeding]/[Start of Your Main Phase] effect
  * exactly as the turn loop would, running the real interpreter and real primitives.
  */
-async function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
+async function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
   const engine = s.engine as unknown as {
     fireTiming(t: EffectTiming, trig?: Record<string, unknown>): Promise<void>;
   };

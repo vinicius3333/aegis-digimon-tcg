@@ -18,15 +18,18 @@ describe("P-074 Boutmon", () => {
     await s.ready();
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("boutmon").permanentId,
-      instanceId: s.inst("venusmon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("boutmon").topCard.cardId === "BT10-042" &&
-      s.state.players[0]!.security.length === 0 &&
-      s.state.memory === 0,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("boutmon").permanentId,
+        instanceId: s.inst("venusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("boutmon").topCard.cardId === "BT10-042" &&
+        s.state.players[0]!.security.length === 0 &&
+        s.state.memory === 0,
       2_000,
     );
 
@@ -49,11 +52,13 @@ describe("P-074 Boutmon", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("boutmon").permanentId,
-      instanceId: s.inst("venusmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("boutmon").permanentId,
+        instanceId: s.inst("venusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("boutmon").topCard.cardId === "BT10-042" && s.state.memory === 0, 2_000);
 
     expect(s.state.players[0]!.security).toHaveLength(3);
@@ -71,11 +76,13 @@ describe("P-074 Boutmon", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("boutmon").permanentId,
-      instanceId: s.inst("shineGreymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("boutmon").permanentId,
+        instanceId: s.inst("shineGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("boutmon").topCard.cardId === "BT2-041");
 
     expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(0);
@@ -86,23 +93,31 @@ describe("P-074 Boutmon", () => {
   it("unsuspends its host once per turn only at exactly 3 security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-057", as: "host", under: ["P-074"] }], security: 3 },
-      1: { battleArea: [
-        { card: "BT1-009", as: "first", suspended: true, dp: 1000 },
-        { card: "BT1-010", as: "second", suspended: true, dp: 1000 },
-      ] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "first", suspended: true, dp: 1000 },
+          { card: "BT1-010", as: "second", suspended: true, dp: 1000 },
+        ],
+      },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack", attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("first").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("first").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("host").isSuspended);
     await settle();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack", attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("second").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").isSuspended).toBe(true);
   });

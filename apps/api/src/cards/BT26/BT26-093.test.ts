@@ -51,15 +51,18 @@ describe("BT26-093 compiled fidelity", () => {
   });
 
   it("pays the attack reaction and grants Collision and Blocker to a BEATBREAK Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT26-093", as: "reina" },
-          { card: "BT26-052", as: "beatbreak" },
-        ],
-        deck: [{ card: "BT1-001", as: "placed" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-093", as: "reina" },
+            { card: "BT26-052", as: "beatbreak" },
+          ],
+          deck: [{ card: "BT1-001", as: "placed" }],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenAttacking", {

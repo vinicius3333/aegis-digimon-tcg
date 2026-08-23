@@ -16,11 +16,13 @@ describe("EX12-020 Gasamon", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("source").permanentId,
-      instanceId: s.inst("target").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("target").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard?.cardId === "EX12-026");
 
     expect(s.perm("source").topCard?.cardId).toBe("EX12-026");
@@ -37,11 +39,13 @@ describe("EX12-020 Gasamon", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("source").permanentId,
-      instanceId: s.inst("target").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("target").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard?.cardId === "EX12-025");
     expect(s.state.memory).toBe(-1);
   });
@@ -56,23 +60,28 @@ describe("EX12-020 Gasamon", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("source").permanentId,
-      instanceId: s.inst("target").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("target").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "EX12-026");
     expect(s.state.memory).toBe(-1);
   });
 
   it("draws once when the inherited attack effect sees seven or fewer cards", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX12-026", as: "host", under: ["EX12-020"] }],
-        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
-        deck: ["BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-026", as: "host", under: ["EX12-020"] }],
+          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-010"],
+        },
       },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle(() => s.state.players[0]!.hand.length === 8);
@@ -84,18 +93,18 @@ describe("EX12-020 Gasamon", () => {
 
   it("encodes the TB-only replacement, the inherited hand gate, and the Shambala evolution", () => {
     const compiled = registeredCompiledCards.get("EX12-020")!;
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 2, traits: ["Shambala"], cost: 0, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["Shambala"], cost: 0, isAlternate: true }]);
     const replacement = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(replacement).toMatchObject({
-      actions: [{
-        kind: "Replacement",
-        event: "wouldDigivolve",
-        sourceFilter: { isSelfRef: true },
-        into: { controllerDefault: "mine", kind: ["Digimon"], traits: ["TB"] },
-        actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
-      }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { isSelfRef: true },
+          into: { controllerDefault: "mine", kind: ["Digimon"], traits: ["TB"] },
+          actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
+        },
+      ],
     });
     expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "WhenAttacking",

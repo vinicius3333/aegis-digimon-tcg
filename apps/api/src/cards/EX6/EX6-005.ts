@@ -6,44 +6,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Legend-Arms"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Legend-Arms"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By returning 1 card with the [Legend-Arms] trait from this Digimon's digivolution cards to the hand"
+            raw: "By returning 1 card with the [Legend-Arms] trait from this Digimon's digivolution cards to the hand",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-005", compiled);

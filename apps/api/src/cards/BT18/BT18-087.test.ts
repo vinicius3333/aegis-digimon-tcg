@@ -11,7 +11,9 @@ describe("BT18-087 Owen Dreadnought", () => {
     expect(compiled.effects[0]).toMatchObject({ trigger: "StartOfYourTurn" });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "AllTurns",
-      actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved", actions: [{ kind: "Delete", cost: { kind: "suspend" } }] }],
+      actions: [
+        { kind: "SubTrigger", event: "whenSecurityRemoved", actions: [{ kind: "Delete", cost: { kind: "suspend" } }] },
+      ],
     });
     expect(compiled.effects[2]).toMatchObject({ trigger: "Security", isSecurity: true });
   });
@@ -28,7 +30,13 @@ describe("BT18-087 Owen Dreadnought", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-087", as: "owen" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "low", dp: 4000 }, { card: "BT1-010", as: "high", dp: 5000 }], security: ["BT1-001"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "low", dp: 4000 },
+            { card: "BT1-010", as: "high", dp: 5000 },
+          ],
+          security: ["BT1-001"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -44,6 +52,8 @@ describe("BT18-087 Owen Dreadnought", () => {
     const s = setupEngine({ 0: { security: [{ card: "BT18-087", as: "owen", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("owen"));
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("owen").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("owen").instanceId)).toBe(
+      true,
+    );
   });
 });

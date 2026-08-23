@@ -10,136 +10,116 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Audit findings reviewed: [Main] trigger not in card text (auditor false positive).
 // whenSecurityRemoved is the correct registered event name.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Reptile",
-                    "Dragonkin"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Reptile", "Dragonkin"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Raid",
-            "raw": "＜Raid＞"
+          keyword: {
+            keyword: "Raid",
+            raw: "＜Raid＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Reptile",
-                    "Dragonkin"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "amount": 3000,
-          "duration": "forTheTurn"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Reptile", "Dragonkin"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Reptile",
-                    "Dragonkin"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Raid",
-            "raw": "＜Raid＞"
-          },
-          "duration": "forTheTurn"
+          amount: 3000,
+          duration: "forTheTurn",
         },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Reptile",
-                    "Dragonkin"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "amount": 3000,
-          "duration": "forTheTurn"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "seat": "opponent",
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Reptile", "Dragonkin"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Raid",
+            raw: "＜Raid＞",
+          },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Reptile", "Dragonkin"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          amount: 3000,
+          duration: "forTheTurn",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          seat: "opponent",
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-008", compiled);

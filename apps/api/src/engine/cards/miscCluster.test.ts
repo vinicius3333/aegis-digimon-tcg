@@ -1,18 +1,11 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type GameState,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../effects/registry.js";
 import type { CardSource } from "../effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../effects/EffectContext.js";
 // Boot side-effect: register the misc cluster's hand-written override modules.
 import "../../cards/BT22/BT22-067.js";
 import "../../cards/BT7/BT7-004.js";
-
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -88,8 +81,22 @@ function makeContext(opts: {
     };
 
   const players = [
-    { seat: 0 as Seat, battleArea: ownerSeat === 0 ? ownerBattleArea : [], security: [], hand: [], deck: ownerSeat === 0 ? ownerDeck : [], trash: [] },
-    { seat: 1 as Seat, battleArea: ownerSeat === 1 ? ownerBattleArea : [], security: [], hand: [], deck: ownerSeat === 1 ? ownerDeck : [], trash: [] },
+    {
+      seat: 0 as Seat,
+      battleArea: ownerSeat === 0 ? ownerBattleArea : [],
+      security: [],
+      hand: [],
+      deck: ownerSeat === 0 ? ownerDeck : [],
+      trash: [],
+    },
+    {
+      seat: 1 as Seat,
+      battleArea: ownerSeat === 1 ? ownerBattleArea : [],
+      security: [],
+      hand: [],
+      deck: ownerSeat === 1 ? ownerDeck : [],
+      trash: [],
+    },
   ];
   const state = { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState;
 
@@ -125,10 +132,8 @@ function makeContext(opts: {
 
   const ask: DecisionApi = {
     optional: async () => false, // decline the optional "may attack" / second-step prompts
-    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
-    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
+    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
+    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
     chooseOption: async () => 1, // "bottom" for BT7-004
   } as unknown as DecisionApi;
 

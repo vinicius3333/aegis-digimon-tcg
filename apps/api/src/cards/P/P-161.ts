@@ -12,96 +12,94 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     suspend. Then, place this card in the battle area."
 // (4) Security: (from existing IR) Return 1 opponent Digimon lv≤5 to deck bottom; add self to hand.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
       // Continuous: while no other [Bishop Device] is in play, may ignore color requirements for this card.
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
-                { "tokens": ["Bishop Device"], "match": "name" }
-              ]
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [{ tokens: ["Bishop Device"], match: "name" }],
             },
-            "raw": "you don't have [Bishop Device]"
-          }
-        }
-      ]
+            raw: "you don't have [Bishop Device]",
+          },
+        },
+      ],
     },
     {
       // Triggered: when this card is trashed from the battle area by an effect,
       // until the end of your opponent's turn 1 of their Digimon or Tamers can't suspend.
-      "trigger": "whenTrashedFromBattleArea",
-      "actions": [
+      trigger: "whenTrashedFromBattleArea",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
       // [Main]: Until the end of your opponent's turn, 1 of their Digimon or Tamers can't
       // suspend. Then, place this card in the battle area.
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "levelComparison": { "op": "lte", "value": 5 }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom"
+          to: "deckBottom",
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-161", compiled);

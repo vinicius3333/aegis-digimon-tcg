@@ -74,11 +74,13 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toEqual([]);
 
     await advance(1);
-    expect(intents).toEqual([{
-      type: "attack",
-      attackerPermanentId: "large",
-      target: { kind: "player" },
-    }]);
+    expect(intents).toEqual([
+      {
+        type: "attack",
+        attackerPermanentId: "large",
+        target: { kind: "player" },
+      },
+    ]);
   });
 
   it("waits another two seconds before the next attack after combat settles", async () => {
@@ -153,11 +155,13 @@ describe("BotPlayer action pacing and player attacks", () => {
     bot.onDecisionRequested(request);
     await advance(2_000);
 
-    expect(intents).toEqual([{
-      type: "respondDecision",
-      decisionId: "dec-order",
-      response: { kind: "orderCards", order: ["card-c", "card-a", "card-b"] },
-    }]);
+    expect(intents).toEqual([
+      {
+        type: "respondDecision",
+        decisionId: "dec-order",
+        response: { kind: "orderCards", order: ["card-c", "card-a", "card-b"] },
+      },
+    ]);
   });
 
   // The benchmark decks are mono-color BT1 lists that print no ＜Counter＞, ＜Alliance＞,

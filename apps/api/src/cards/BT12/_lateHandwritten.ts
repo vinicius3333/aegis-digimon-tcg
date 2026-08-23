@@ -58,9 +58,9 @@ function hasText(definition: CardDefinition, token: string): boolean {
 function sourcePermanent(ctx: EffectContext, source: CardSource): Permanent | undefined {
   return (
     source.permanent() ??
-    ctx.game.player(source.ownerSeat).battleArea.find(
-      (permanent) => permanent.topCard?.instanceId === source.instanceId,
-    )
+    ctx.game
+      .player(source.ownerSeat)
+      .battleArea.find((permanent) => permanent.topCard?.instanceId === source.instanceId)
   );
 }
 
@@ -339,7 +339,8 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ctx,
                     pool.filter(
                       (item) =>
-                        isDigimon(ctx.game.definitionOf(item)) && cardHasTrait(ctx.game.definitionOf(item), "Xros Heart"),
+                        isDigimon(ctx.game.definitionOf(item)) &&
+                        cardHasTrait(ctx.game.definitionOf(item), "Xros Heart"),
                     ),
                     true,
                   );
@@ -692,9 +693,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     myPermanents(
                       ctx,
                       source,
-                      (definition) =>
-                        isDigimon(definition) &&
-                        cardHasTrait(definition, "Hybrid"),
+                      (definition) => isDigimon(definition) && cardHasTrait(definition, "Hybrid"),
                     ),
                   );
                   if (hybrid) {
@@ -852,7 +851,8 @@ export function lateBt12Module(cardId: string): EffectModule {
                 const permanent = ctx.game.permanentById(permanentId);
                 return (
                   permanent?.topCard !== undefined &&
-                  (isDigimon(ctx.game.definitionOf(permanent.topCard)) || isTamer(ctx.game.definitionOf(permanent.topCard)))
+                  (isDigimon(ctx.game.definitionOf(permanent.topCard)) ||
+                    isTamer(ctx.game.definitionOf(permanent.topCard)))
                 );
               },
             );
@@ -888,7 +888,8 @@ export function lateBt12Module(cardId: string): EffectModule {
                   myPermanents(
                     ctx,
                     source,
-                    (definition) => isDigimon(definition) && definition.level === 6 && cardHasTrait(definition, "Machine"),
+                    (definition) =>
+                      isDigimon(definition) && definition.level === 6 && cardHasTrait(definition, "Machine"),
                   ).length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
@@ -1098,15 +1099,16 @@ export function lateBt12Module(cardId: string): EffectModule {
                   if (target) await ctx.fx.deletePermanent([target], "byEffect");
                   const self =
                     source.permanent() ??
-                    ctx.game.player(source.ownerSeat).battleArea.find(
-                      (permanent) => permanent.topCard?.instanceId === source.instanceId,
-                    );
+                    ctx.game
+                      .player(source.ownerSeat)
+                      .battleArea.find((permanent) => permanent.topCard?.instanceId === source.instanceId);
                   if (!self) return;
                   const cards = ctx.game
                     .player(source.ownerSeat)
                     .trash.filter(
                       (item) =>
-                        isDigimon(ctx.game.definitionOf(item)) && cardHasTrait(ctx.game.definitionOf(item), "Bagra Army"),
+                        isDigimon(ctx.game.definitionOf(item)) &&
+                        cardHasTrait(ctx.game.definitionOf(item), "Bagra Army"),
                     );
                   const selected = await ctx.ask.selectCards(ctx, {
                     candidates: cards.map(({ instanceId }) => instanceId),

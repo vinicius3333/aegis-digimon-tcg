@@ -46,9 +46,7 @@ describe("BT24-001 Gigimon", () => {
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(
-      s.state.players[1]!.battleArea.some(
-        (permanent) => permanent.permanentId === s.perm("tooLarge").permanentId,
-      ),
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooLarge").permanentId),
     ).toBe(true);
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });

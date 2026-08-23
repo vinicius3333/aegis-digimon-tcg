@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-060.js";
@@ -81,12 +76,7 @@ function makeCtx(
     memory?: number;
   } = {},
 ): EffectContext {
-  const {
-    ownerHand = [],
-    attackerPermanentId = "attacker-perm",
-    attackerCardId = "Renamon-card",
-    memory = 3,
-  } = opts;
+  const { ownerHand = [], attackerPermanentId = "attacker-perm", attackerCardId = "Renamon-card", memory = 3 } = opts;
 
   const attackerPerm: PermanentEntry = {
     permanentId: attackerPermanentId,
@@ -119,8 +109,7 @@ function makeCtx(
     state: { memory, players, turnSeat: 0 as Seat } as never,
     player: (seat: Seat) => players[seat] as never,
     opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: (id: string) =>
-      id === attackerPermanentId ? (attackerPerm as never) : undefined,
+    permanentById: (id: string) => (id === attackerPermanentId ? (attackerPerm as never) : undefined),
     definitionOf: (c: { cardId: string }) => {
       if (c.cardId === PLUG_IN_ID) {
         return { cardId: c.cardId, kinds: ["Option"], nameEn: "Plug-In S", playCost: 3 } as never;
@@ -205,10 +194,12 @@ describe("EX2-060 Rika Nonaka", () => {
   it("[When Attacking] suspends self and uses a Plug-In Option from hand", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
     const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
-    expect(actions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: "Suspend" }),
-      expect.objectContaining({ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false }),
-    ]));
+    expect(actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "Suspend" }),
+        expect.objectContaining({ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false }),
+      ]),
+    );
   });
 
   it("requires the Tamer suspension as the activation cost", () => {
@@ -220,12 +211,16 @@ describe("EX2-060 Rika Nonaka", () => {
   it("filters the used card to Plug-In Options", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
     const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
-    expect(actions[1]).toMatchObject({ kind: "UseOptionWithoutCost", filter: { nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] } });
+    expect(actions[1]).toMatchObject({
+      kind: "UseOptionWithoutCost",
+      filter: { nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
+    });
   });
 
   it("matches all four printed attacker names", () => {
     const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
-    const sourceFilter = (effect?.actions[0] as { sourceFilter?: { nameOrTrait?: { tokens?: string[] }[] } }).sourceFilter;
+    const sourceFilter = (effect?.actions[0] as { sourceFilter?: { nameOrTrait?: { tokens?: string[] }[] } })
+      .sourceFilter;
     expect(sourceFilter?.nameOrTrait?.[0]?.tokens).toEqual(["Renamon", "Kyubimon", "Taomon", "Sakuyamon"]);
   });
 });

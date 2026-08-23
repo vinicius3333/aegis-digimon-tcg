@@ -6,7 +6,12 @@ import "./BT10-004.js";
 describe("BT10-004 Bosamon", () => {
   it("gives its host +1000 DP once per turn when an effect suspends a Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-054", as: "host", under: ["BT10-004"] }, { card: "BT10-046", as: "ally" }] },
+      0: {
+        battleArea: [
+          { card: "BT10-054", as: "host", under: ["BT10-004"] },
+          { card: "BT10-046", as: "ally" },
+        ],
+      },
       1: { battleArea: [{ card: "BT10-020", as: "opponent" }] },
     });
     const base = s.perm("host").baseDP;

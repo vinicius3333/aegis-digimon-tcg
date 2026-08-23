@@ -6,13 +6,27 @@ import "./BT6-089.js";
 
 describe("BT6-089 T.K. Takaishi", () => {
   it("may suspend when a yellow Digimon attacks to give an opponent Digimon -1000 DP", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-089", as: "tk" }, { card: "BT6-033", as: "attacker" }] },
-      1: { battleArea: [{ card: "BT6-075", as: "target" }], security: ["BT6-074"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-089", as: "tk" },
+            { card: "BT6-033", as: "attacker" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT6-075", as: "target" }], security: ["BT6-074"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const baseDP = s.perm("target").currentDP;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tk").isSuspended && s.perm("target").currentDP === baseDP - 1000);
 
     expect(s.perm("target").currentDP).toBe(baseDP - 1000);

@@ -80,9 +80,7 @@ export type TournamentEvent = {
   createdAt: number;
 };
 
-export type AppendResult =
-  | { kind: "appended"; event: TournamentEvent }
-  | { kind: "replayed"; event: TournamentEvent };
+export type AppendResult = { kind: "appended"; event: TournamentEvent } | { kind: "replayed"; event: TournamentEvent };
 
 export class MissingReasonError extends Error {}
 
@@ -139,10 +137,25 @@ export async function appendTournamentEvent(db: Queryable, input: TournamentEven
         phase_id, round_id, match_id, series_id, participant_id, reason, reason_code, before_state, after_state, created_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
     [
-      event.id, event.tournamentId, event.sequence, event.actorKind, event.actorId, event.command,
-      event.commandId, event.subjectKind, event.subjectId, event.phaseId, event.roundId, event.matchId,
-      event.seriesId, event.participantId, event.reason, event.reasonCode,
-      JSON.stringify(event.before ?? null), JSON.stringify(event.after ?? null), event.createdAt,
+      event.id,
+      event.tournamentId,
+      event.sequence,
+      event.actorKind,
+      event.actorId,
+      event.command,
+      event.commandId,
+      event.subjectKind,
+      event.subjectId,
+      event.phaseId,
+      event.roundId,
+      event.matchId,
+      event.seriesId,
+      event.participantId,
+      event.reason,
+      event.reasonCode,
+      JSON.stringify(event.before ?? null),
+      JSON.stringify(event.after ?? null),
+      event.createdAt,
     ],
   );
   logTournamentEvent({
@@ -238,10 +251,10 @@ export async function findEventByCommandId(
   tournamentId: string,
   commandId: string,
 ): Promise<TournamentEvent | undefined> {
-  const result = await db.query<EventRow>(
-    "SELECT * FROM tournament_events WHERE tournament_id=$1 AND command_id=$2",
-    [tournamentId, commandId],
-  );
+  const result = await db.query<EventRow>("SELECT * FROM tournament_events WHERE tournament_id=$1 AND command_id=$2", [
+    tournamentId,
+    commandId,
+  ]);
   const row = result.rows[0];
   return row ? toEvent(row) : undefined;
 }

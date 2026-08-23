@@ -16,8 +16,16 @@ describe("P-203 Justimon: Accel Arm", () => {
       expect(card.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         frequency: "OncePerTurn",
         actions: [
-          { kind: "DeDigivolve", amount: 1, target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } },
-          { kind: "GainKeyword", keyword: { keyword: "Piercing" }, cost: { kind: "trash", target: { count: 1, filter: { zone: "battleArea", kind: ["Option"] } } } },
+          {
+            kind: "DeDigivolve",
+            amount: 1,
+            target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
+          },
+          {
+            kind: "GainKeyword",
+            keyword: { keyword: "Piercing" },
+            cost: { kind: "trash", target: { count: 1, filter: { zone: "battleArea", kind: ["Option"] } } },
+          },
           { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } },
         ],
       });
@@ -28,7 +36,16 @@ describe("P-203 Justimon: Accel Arm", () => {
   it("restricts one opponent Digimon after either player's battle-area Option is effect-trashed", () => {
     expect(runtimeCompiledCard("P-203")!.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ event: "whenTrashedByEffect", sourceFilter: { zone: "battleArea", kind: ["Option"] }, actions: [{ kind: "Restrict", restriction: "digivolve" }, { kind: "Restrict", restriction: "attackPlayers", target: { sameTarget: true } }] }],
+      actions: [
+        {
+          event: "whenTrashedByEffect",
+          sourceFilter: { zone: "battleArea", kind: ["Option"] },
+          actions: [
+            { kind: "Restrict", restriction: "digivolve" },
+            { kind: "Restrict", restriction: "attackPlayers", target: { sameTarget: true } },
+          ],
+        },
+      ],
     });
   });
 });

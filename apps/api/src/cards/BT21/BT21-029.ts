@@ -12,114 +12,108 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4538: the token of the player that activated this effect is played as opponent's Digimon.
 // Audit: dual trigger — onDeletionOf + whenSecurityRemoved both fire the same PlayToken.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Progress",
-          "raw": "＜Progress＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
-            },
-            "count": 1
-          },
-          "optional": true
-        }
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
-            },
-            "count": 1
-          },
-          "optional": true
-        }
+          keyword: "Progress",
+          raw: "＜Progress＞",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: 1,
           },
-          "actions": [
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+          },
+          actions: [
             {
-              "kind": "PlayToken",
-              "token": "Petrification",
-              "amount": 1,
-              "controller": "opponent"
-            }
+              kind: "PlayToken",
+              token: "Petrification",
+              amount: 1,
+              controller: "opponent",
+            },
           ],
-          "raw": "When any of your opponent's Digimon are deleted, they play 1 Petrification Token"
+          raw: "When any of your opponent's Digimon are deleted, they play 1 Petrification Token",
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "sourceFilter": {
-            "controller": "opponent"
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          sourceFilter: {
+            controller: "opponent",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayToken",
-              "token": "Petrification",
-              "amount": 1,
-              "controller": "opponent"
-            }
+              kind: "PlayToken",
+              token: "Petrification",
+              amount: 1,
+              controller: "opponent",
+            },
           ],
-          "raw": "When their security stack is removed from, they play 1 Petrification Token"
-        }
+          raw: "When their security stack is removed from, they play 1 Petrification Token",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT21-029", compiled);

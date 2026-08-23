@@ -7,42 +7,48 @@ import "./BT8-091.js";
 
 describe("BT8-091 Willis", () => {
   it("may hatch a Digi-Egg into an empty breeding area", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [
-      { card: "BT8-005", as: "egg" },
-    ] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [{ card: "BT8-005", as: "egg" }] },
+    });
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
     const hatchDecision = s.decisions.find(({ req }) => req.kind === "optional")!.req;
     expect(hatchDecision.sourceCardId).toBe("BT8-091");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: hatchDecision.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: hatchDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => player.breeding?.topCard?.instanceId === s.inst("egg").instanceId);
     expect(player.eggDeck).toHaveLength(0);
   });
 
   it("leaves the Digi-Egg deck unchanged when the optional hatch is declined", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [
-      { card: "BT8-005", as: "egg" },
-    ] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [{ card: "BT8-005", as: "egg" }] },
+    });
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
     const hatchDecision = s.decisions.find(({ req }) => req.kind === "optional")!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: hatchDecision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard?.cardId === "BT8-091"
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: hatchDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-091"));
 
     expect(player.breeding).toBeUndefined();
     expect(player.eggDeck).toHaveLength(1);
@@ -53,13 +59,13 @@ describe("BT8-091 Willis", () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT8-091", as: "source" }] } });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard?.cardId === "BT8-091"
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-091"));
     await settle(() => false, 40);
 
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
@@ -76,13 +82,13 @@ describe("BT8-091 Willis", () => {
     });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard?.cardId === "BT8-091"
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-091"));
     await settle(() => false, 40);
 
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
@@ -91,11 +97,28 @@ describe("BT8-091 Willis", () => {
   });
 
   it("may suspend itself to reduce a Rapidmon digivolution cost by 1", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-091", as: "willis" }, { card: "BT8-046", as: "base" }], hand: [{ card: "BT8-039", as: "rapidmon" }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT8-091", as: "willis" },
+            { card: "BT8-046", as: "base" },
+          ],
+          hand: [{ card: "BT8-039", as: "rapidmon" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 4;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("rapidmon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rapidmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === s.inst("rapidmon").instanceId);
     await settle();
 
@@ -119,11 +142,13 @@ describe("BT8-091 Willis", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("rapidmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rapidmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT8-039");
 
     expect(s.state.memory).toBe(0);
@@ -135,6 +160,10 @@ describe("BT8-091 Willis", () => {
   it("plays itself from a face-up Security check without memory cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT8-091", as: "securityWillis", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityWillis"));
-    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard.instanceId === s.inst("securityWillis").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("securityWillis").instanceId,
+      ),
+    ).toBe(true);
   });
 });

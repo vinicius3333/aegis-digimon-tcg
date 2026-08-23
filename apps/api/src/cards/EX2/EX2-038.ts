@@ -6,84 +6,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          options: [
             [
               {
-                "kind": "ModifyDP",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                kind: "ModifyDP",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
+                  count: 1,
+                  isSelf: true,
                 },
-                "amount": 2000,
-                "duration": "forTheTurn"
-              }
+                amount: 2000,
+                duration: "forTheTurn",
+              },
             ],
             [
               {
-                "kind": "Unsuspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                kind: "Unsuspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
-                }
-              }
+                  count: 1,
+                  isSelf: true,
+                },
+              },
             ],
             [
               {
-                "kind": "Delete",
-                "target": {
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "playCostLte": 5
+                kind: "Delete",
+                target: {
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
+                    playCostLte: 5,
                   },
-                  "count": 1
-                }
-              }
-            ]
-          ]
-        }
-      ]
+                  count: 1,
+                },
+              },
+            ],
+          ],
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ReactivateEffect",
-          "fromTrigger": "WhenDigivolving",
-          "count": 1,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "battleArea",
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "ReactivateEffect",
+          fromTrigger: "WhenDigivolving",
+          count: 1,
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "battleArea",
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "unit": "cards"
-          }
-        }
+            unit: "cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-038", compiled);

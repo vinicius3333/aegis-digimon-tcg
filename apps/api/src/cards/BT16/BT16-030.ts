@@ -6,121 +6,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q2626: digivolution requirements must be met (no ignoreReqs).
 // Two separate effects for the two timings is the established convention (cf. EX6-063).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levels": [
-              4
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levels: [4],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Holy Beast",
-                  "Free"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "trash"
-          ],
-          "reduceCost": 1,
-          "payCost": true,
-          "optional": true,
-          "condition": {
-            "kind": "isYourTurn",
-            "raw": "it's your turn"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
+                tokens: ["Holy Beast", "Free"],
+                match: "trait",
+              },
             ],
-            "levels": [
-              4
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Holy Beast",
-                  "Free"
-                ],
-                "match": "trait"
-              }
-            ]
           },
-          "from": [
-            "trash"
-          ],
-          "reduceCost": 1,
-          "payCost": true,
-          "optional": true,
-          "condition": {
-            "kind": "isYourTurn",
-            "raw": "it's your turn"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifySecurityDP",
-          "controller": "opponent",
-          "amount": -3000,
-          "duration": "forTheTurn"
-        }
+          from: ["trash"],
+          reduceCost: 1,
+          payCost: true,
+          optional: true,
+          condition: {
+            kind: "isYourTurn",
+            raw: "it's your turn",
+          },
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levels: [4],
+            nameOrTrait: [
+              {
+                tokens: ["Holy Beast", "Free"],
+                match: "trait",
+              },
+            ],
+          },
+          from: ["trash"],
+          reduceCost: 1,
+          payCost: true,
+          optional: true,
+          condition: {
+            kind: "isYourTurn",
+            raw: "it's your turn",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifySecurityDP",
+          controller: "opponent",
+          amount: -3000,
+          duration: "forTheTurn",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Nyaromon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Nyaromon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-030", compiled);

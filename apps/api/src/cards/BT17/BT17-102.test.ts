@@ -20,7 +20,10 @@ const AGUMON_LV3 = "BT1-010";
 
 describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4713)", () => {
   it("keeps the delete clause independent from the Koromon-only DP boost", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", actions: expect.arrayContaining([expect.objectContaining({ kind: "Delete" })]) });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: expect.arrayContaining([expect.objectContaining({ kind: "Delete" })]),
+    });
   });
 
   it("[When Digivolving] deletes 1 opponent Digimon with DP ≤ Greymon's 5000 DP", async () => {
@@ -75,8 +78,6 @@ describe("BT17-102 Greymon — dynamic stack names", () => {
     });
     await s.ready();
 
-    expect(observe(s.engine).effectiveNames(s.perm("greymon"))).toEqual(
-      expect.arrayContaining(["greymon", "agumon"]),
-    );
+    expect(observe(s.engine).effectiveNames(s.perm("greymon"))).toEqual(expect.arrayContaining(["greymon", "agumon"]));
   });
 });

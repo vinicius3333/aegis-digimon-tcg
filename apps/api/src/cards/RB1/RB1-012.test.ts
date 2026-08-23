@@ -12,7 +12,14 @@ describe("RB1-012 KausGammamon", () => {
   });
 
   it("does not grant Evade to a different Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "RB1-012", as: "kaus" }, { card: "RB1-011", as: "other" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "RB1-012", as: "kaus" },
+          { card: "RB1-011", as: "other" },
+        ],
+      },
+    });
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Evade")).toBe(false);

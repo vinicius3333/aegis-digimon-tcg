@@ -62,9 +62,13 @@ describe("BT22-043 Terriermon", () => {
     const host = s.perm("host");
     const terriermon = host.stack.find((card) => card.cardId === "BT22-043")!;
     const source = (s.engine as any).cardSourceOf(terriermon);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-043/"))!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-043/"),
+    )!.effectKey;
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: terriermon.instanceId, effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: terriermon.instanceId, effectKey }),
+    ).toEqual({ ok: true });
     await settle(() => host.topCard?.cardId === "BT22-043");
     await settle();
 

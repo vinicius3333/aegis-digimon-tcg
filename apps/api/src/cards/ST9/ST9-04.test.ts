@@ -7,7 +7,9 @@ describe("ST9-04 ExVeemon", () => {
     const s = setupEngine({ 0: { battleArea: ["BT1-064"], hand: [{ card: "ST9-04", as: "exveemon" }] } });
     s.state.memory = 4;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exveemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exveemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     expect(s.state.memory).toBe(1);
   });
@@ -16,7 +18,9 @@ describe("ST9-04 ExVeemon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "ST9-04", as: "exveemon" }] } });
     s.state.memory = 4;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exveemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exveemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(0);
   });
@@ -28,11 +32,13 @@ describe("ST9-04 ExVeemon", () => {
     });
 
     expect(s.perm("host").currentDP).toBe(8000);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").currentDP === 9000);
 
     expect(s.perm("host").currentDP).toBe(9000);

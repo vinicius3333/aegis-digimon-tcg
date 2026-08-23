@@ -17,11 +17,7 @@ import {
   type DigivolveDeps,
   type DigivolveIntent,
 } from "../../engine/actions/digivolve.js";
-import {
-  cardHasTrait,
-  definitionOf,
-  matchingAlternateDigivolutionRequirement,
-} from "../../engine/cards/cardData.js";
+import { cardHasTrait, definitionOf, matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT7-112.js"; // side-effect: registers the alternate digivolution requirement
 
 // BT7-112 (Susanoomon) alternate digivolution path:
@@ -120,7 +116,8 @@ function placementDeps(): Pick<DigivolveDeps, "alternatePlacementPayable" | "pay
     return out;
   };
   return {
-    alternatePlacementPayable: (state, seat, req) => matching(state, seat, req).length >= (req.placementCost?.count ?? 0),
+    alternatePlacementPayable: (state, seat, req) =>
+      matching(state, seat, req).length >= (req.placementCost?.count ?? 0),
     payAlternatePlacement: async (state, seat, req) => {
       const need = req.placementCost?.count ?? 0;
       const cards = matching(state, seat, req);

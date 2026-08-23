@@ -58,7 +58,8 @@ function makeSource(permanentId = "PERM#sora", onBattleArea = true): CardSource 
 function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3) {
   const fakeState = { memory, turnSeat: 0 as Seat };
   const fx = new Proxy({} as Primitives, {
-    get: (_, verb: string) =>
+    get:
+      (_, verb: string) =>
       (...args: unknown[]) => {
         recorder.calls.push({ verb, args });
       },
@@ -75,8 +76,12 @@ function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3
 describe("BT15-082 Sora Takenouchi", () => {
   it("excludes Sea Animal cards from both the trigger and play filters", () => {
     const watcher = compiled.effects?.[1]?.actions?.[0] as any;
-    expect(watcher.sourceFilter.nameOrTrait).toEqual(expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]));
-    expect(watcher.actions[0].target.filter.nameOrTrait).toEqual(expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]));
+    expect(watcher.sourceFilter.nameOrTrait).toEqual(
+      expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]),
+    );
+    expect(watcher.actions[0].target.filter.nameOrTrait).toEqual(
+      expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]),
+    );
   });
   const module = getEffectModule("BT15-082");
 

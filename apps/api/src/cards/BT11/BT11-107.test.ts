@@ -26,7 +26,9 @@ describe("BT11-107 Hades Force", () => {
     expect(getCardDefinition("BT11-107")!.playCost).toBe(7);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 400);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -37,7 +39,9 @@ describe("BT11-107 Hades Force", () => {
     const compiled = runtimeCompiledCard("BT11-107")!;
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toHaveLength(0);
-    expect(compiled.effects?.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({ kind: "SelectBind" });
+    expect(compiled.effects?.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "SelectBind",
+    });
     expect(compiled.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
   });
 });

@@ -111,10 +111,7 @@ function makeState(opts: {
   return { state, gauge, baseTop, evolver, permanent };
 }
 
-function depsFrom(
-  gauge: MemoryGauge,
-  overrides?: Partial<DigivolveDeps>,
-): DigivolveDeps & { fired: Permanent[] } {
+function depsFrom(gauge: MemoryGauge, overrides?: Partial<DigivolveDeps>): DigivolveDeps & { fired: Permanent[] } {
   const mem = memoryDepsFromGauge(gauge);
   const fired: Permanent[] = [];
   const deps: DigivolveDeps & { fired: Permanent[] } = {
@@ -238,22 +235,42 @@ describe("digivolve — validation (EvoCost color+level, memory, gates)", () => 
   it("enforces turn / phase / decision / game-over gates", () => {
     const offTurn = makeState({ turnSeat: 1 });
     expect(
-      validateDigivolve(offTurn.state, 0, intent(offTurn.permanent.permanentId, offTurn.evolver.instanceId), depsFrom(offTurn.gauge)),
+      validateDigivolve(
+        offTurn.state,
+        0,
+        intent(offTurn.permanent.permanentId, offTurn.evolver.instanceId),
+        depsFrom(offTurn.gauge),
+      ),
     ).toEqual({ ok: false, reason: "not-your-turn" });
 
     const offPhase = makeState({ phase: Phase.Breeding });
     expect(
-      validateDigivolve(offPhase.state, 0, intent(offPhase.permanent.permanentId, offPhase.evolver.instanceId), depsFrom(offPhase.gauge)),
+      validateDigivolve(
+        offPhase.state,
+        0,
+        intent(offPhase.permanent.permanentId, offPhase.evolver.instanceId),
+        depsFrom(offPhase.gauge),
+      ),
     ).toEqual({ ok: false, reason: "wrong-phase" });
 
     const pending = makeState({ pendingDecision: true });
     expect(
-      validateDigivolve(pending.state, 0, intent(pending.permanent.permanentId, pending.evolver.instanceId), depsFrom(pending.gauge)),
+      validateDigivolve(
+        pending.state,
+        0,
+        intent(pending.permanent.permanentId, pending.evolver.instanceId),
+        depsFrom(pending.gauge),
+      ),
     ).toEqual({ ok: false, reason: "decision-pending" });
 
     const over = makeState({ gameOver: true });
     expect(
-      validateDigivolve(over.state, 0, intent(over.permanent.permanentId, over.evolver.instanceId), depsFrom(over.gauge)),
+      validateDigivolve(
+        over.state,
+        0,
+        intent(over.permanent.permanentId, over.evolver.instanceId),
+        depsFrom(over.gauge),
+      ),
     ).toEqual({ ok: false, reason: "game-over" });
   });
 
@@ -324,12 +341,7 @@ describe("digivolve — apply (stack, DP, cost, draw, suspended carry, timing)",
       },
     });
 
-    const result = await applyDigivolve(
-      state,
-      0,
-      intent(permanent.permanentId, evolver.instanceId),
-      deps,
-    );
+    const result = await applyDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps);
 
     expect(result.ok).toBe(true);
     expect(events).toEqual(["wouldDigivolve", "payMemory"]);
@@ -482,11 +494,7 @@ describe("digivolve — apply (stack, DP, cost, draw, suspended carry, timing)",
  * (inBreeding = true) and the evolving card is in hand. Mirrors makeState but routes
  * the permanent through player.breeding instead of battleArea.
  */
-function makeBreedingState(opts: {
-  baseCardId?: string;
-  evolverCardId?: string;
-  memory?: number;
-}): {
+function makeBreedingState(opts: { baseCardId?: string; evolverCardId?: string; memory?: number }): {
   state: GameState;
   gauge: MemoryGauge;
   baseTop: CardInstance;

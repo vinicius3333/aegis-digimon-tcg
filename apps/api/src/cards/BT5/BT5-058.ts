@@ -3,86 +3,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-validated effect IR for BT5-058 (Argomon).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "mode": "reduceCost",
-          "amount": 2,
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "reduceCost",
+          amount: 2,
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "optional": true
+            optional: true,
           },
-          "raw": "＜Digisorption -2＞"
-        }
+          raw: "＜Digisorption -2＞",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Digisorption",
-          "amount": -2,
-          "raw": "＜Digisorption -2＞"
-        }
-      ]
+          keyword: "Digisorption",
+          amount: -2,
+          raw: "＜Digisorption -2＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
             },
-            "count": "all"
-          }
-        }
-      ]
+            count: "all",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "Aura",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
             },
-            "count": "all"
+            count: "all",
           },
-          "effect": {
-            "kind": "restriction",
-            "restriction": "unsuspend"
+          effect: {
+            kind: "restriction",
+            restriction: "unsuspend",
           },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "isSelfRef": true
-            }
-          }
-        }
-      ]
-    }
+          while: {
+            kind: "youHave",
+            filter: {
+              isSelfRef: true,
+            },
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-058", compiled);

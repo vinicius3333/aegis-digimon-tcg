@@ -6,126 +6,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "PlaceUnder",
-          "fromDeckTop": true,
-          "target": {
-            "filter": {
-              "controller": "mine"
+          kind: "PlaceUnder",
+          fromDeckTop: true,
+          target: {
+            filter: {
+              controller: "mine",
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "DATA SQUAD"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["DATA SQUAD"],
+                match: "trait",
+              },
+            ],
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "optional": true
+          optional: true,
         },
-        {
-          "kind": "PlaceUnder",
-          "fromDeckTop": true,
-          "target": {
-            "filter": {
-              "controller": "mine"
-            },
-            "count": 1
-          },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "DATA SQUAD"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 1000,
-          "duration": "permanent"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+        {
+          kind: "PlaceUnder",
+          fromDeckTop: true,
+          target: {
+            filter: {
+              controller: "mine",
+            },
+            count: 1,
+          },
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            nameOrTrait: [
+              {
+                tokens: ["DATA SQUAD"],
+                match: "trait",
+              },
+            ],
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 1000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "DATA SQUAD"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["DATA SQUAD"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST24-09", compiled);

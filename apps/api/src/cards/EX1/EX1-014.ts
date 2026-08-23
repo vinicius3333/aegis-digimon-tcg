@@ -8,16 +8,21 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       isInherited: true,
-      actions: [{
-        kind: "GainKeyword",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
-        duration: "permanent",
-        condition: { kind: "anyOf", conditions: [
-          { kind: "selfHasNameContaining", names: ["Imperialdramon"] },
-          { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } },
-        ] },
-      }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
+          duration: "permanent",
+          condition: {
+            kind: "anyOf",
+            conditions: [
+              { kind: "selfHasNameContaining", names: ["Imperialdramon"] },
+              { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } },
+            ],
+          },
+        },
+      ],
     },
   ],
   coverage: "full",

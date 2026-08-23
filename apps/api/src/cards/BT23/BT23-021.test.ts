@@ -11,6 +11,11 @@ describe("BT23-021 Dosukomon", () => {
 
   it("installs only the printed Your Turn linked battle-deletion immunity", () => {
     const effect = compiled.effects.find(({ trigger }) => trigger === "YourTurn")!;
-    expect(effect).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Restrict", restriction: "beDeletedInBattle" }] }] });
+    expect(effect).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Restrict", restriction: "beDeletedInBattle" }] },
+      ],
+    });
   });
 });

@@ -36,20 +36,28 @@ describe("historical multicolor control options", () => {
     s.state.turnSeat = 0;
     s.state.memory = 10;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rookie").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rookie").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009" && p.isSuspended));
 
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deathParade").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deathParade").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("boss").stack.length === 0 && s.perm("boss").isSuspended);
 
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bifrost").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bifrost").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).keywordAmount(s.perm("boss"), "SecurityAttack") === -1);
     await settle();
 
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("spiral").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("spiral").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("boss").currentDP === 3000);
 
     // Bifrost contributes -3000 first; Spiral Masquerade then contributes

@@ -41,21 +41,20 @@ describe("BT10-era Beelzemon deck", () => {
     const levelFiveId = s.perm("levelFive").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("miller").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.some((card) =>
-        card.instanceId === s.inst("milledBlastMode").instanceId
-      ) &&
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFourId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("miller").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("milledBlastMode").instanceId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFourId),
     );
 
-    expect(s.state.players[1]!.battleArea.some((permanent) =>
-      permanent.permanentId === levelFiveId
-    )).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFiveId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(5);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     assertNoLoudGap(s);
@@ -89,40 +88,48 @@ describe("BT10-era Beelzemon deck", () => {
     await s.ready();
     const levelFourPermanentId = s.perm("levelFour").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("impmon").permanentId,
-      instanceId: s.inst("classicBeelzemon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("impmon").topCard.instanceId === s.inst("classicBeelzemon").instanceId &&
-      !s.state.players[1]!.battleArea.some((permanent) =>
-        permanent.permanentId === levelFourPermanentId,
-      ) &&
-      s.perm("impmon").currentDP === 14_000,
-    5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("impmon").permanentId,
+        instanceId: s.inst("classicBeelzemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("impmon").topCard.instanceId === s.inst("classicBeelzemon").instanceId &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFourPermanentId) &&
+        s.perm("impmon").currentDP === 14_000,
+      5000,
+    );
 
     expect(s.state.memory).toBe(6);
     expect(s.perm("impmon").currentDP).toBe(14_000);
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("impmon").permanentId,
-      instanceId: s.inst("blastMode").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("impmon").topCard.instanceId === s.inst("blastMode").instanceId &&
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.perm("impmon").currentDP === 18_000,
-    5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("impmon").permanentId,
+        instanceId: s.inst("blastMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("impmon").topCard.instanceId === s.inst("blastMode").instanceId &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.perm("impmon").currentDP === 18_000,
+      5000,
+    );
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("impmon").currentDP).toBe(18_000);
     expect(observe(s.engine).keywordAmount(s.perm("impmon"), "SecurityAttack")).toBe(2);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("impmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("impmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0, 5000);
 
     expect(s.state.players[1]!.security).toHaveLength(0);

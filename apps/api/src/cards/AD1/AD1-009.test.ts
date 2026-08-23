@@ -16,7 +16,6 @@ describe("AD1-009 BlitzGreymon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("de-digivolves three sources on play and grants the same-turn Garurumon protection", async () => {
@@ -51,7 +50,14 @@ describe("AD1-009 BlitzGreymon", () => {
       });
       s.state.memory = 5;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("blitz").instanceId, alternateRequirementIndex: baseCard === "BT1-021" ? 0 : 1 })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("blitz").instanceId,
+          alternateRequirementIndex: baseCard === "BT1-021" ? 0 : 1,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard?.cardId === "AD1-009");
       expect(s.state.memory).toBe(2);
     }
@@ -71,7 +77,10 @@ describe("AD1-009 BlitzGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-009", as: "blitz" }, { card: "AD1-012", as: "cres" }],
+          battleArea: [
+            { card: "AD1-009", as: "blitz" },
+            { card: "AD1-012", as: "cres" },
+          ],
           hand: [{ card: "EX4-060", as: "alter-s" }],
         },
         1: { security: ["BT1-001"] },
@@ -89,16 +98,29 @@ describe("AD1-009 BlitzGreymon", () => {
   it("uses Alliance and Piercing in the same battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-009", as: "blitz" }, { card: "BT1-010", as: "ally", dp: 3000 }] },
+        0: {
+          battleArea: [
+            { card: "AD1-009", as: "blitz" },
+            { card: "BT1-010", as: "ally", dp: 3000 },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 13000, suspended: true }], security: ["BT1-001"] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("blitz").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blitz").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
     await settle(() => combat.hasOpenAllianceDecision);
-    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0, 5000);
 
     expect(s.perm("ally").isSuspended).toBe(true);
@@ -113,7 +135,13 @@ describe("AD1-009 BlitzGreymon", () => {
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0, 20000);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });

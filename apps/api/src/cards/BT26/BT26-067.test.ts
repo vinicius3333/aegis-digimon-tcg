@@ -7,7 +7,12 @@ import "../index.js";
 
 describe("BT26-067 Wizardmon", () => {
   it("draws then mandates one hand trash on play and digivolving", () => {
-    expect(digivolutionRequirementsFor("BT26-067")).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
+    expect(digivolutionRequirementsFor("BT26-067")).toContainEqual({
+      level: 3,
+      traits: ["TS"],
+      cost: 2,
+      isAlternate: true,
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)?.actions).toEqual([
         { kind: "Draw", controller: "mine", amount: 1 },
@@ -18,14 +23,16 @@ describe("BT26-067 Wizardmon", () => {
 
   it("returns itself before the optional reduced-cost red/blue Iliad trash play", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
-      actions: [{
-        kind: "PlayWithoutCost",
-        from: ["trash"],
-        payCost: true,
-        reduceCostBy: 4,
-        optional: true,
-        cost: { kind: "return", to: "deckBottom", target: { filter: { isSelfRef: true } } },
-      }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: true,
+          reduceCostBy: 4,
+          optional: true,
+          cost: { kind: "return", to: "deckBottom", target: { filter: { isSelfRef: true } } },
+        },
+      ],
     });
   });
 
@@ -37,13 +44,16 @@ describe("BT26-067 Wizardmon", () => {
   });
 
   it("publicly draws one and trashes one card on play", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-067", as: "wizardmon" }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
-        hand: [{ card: "BT1-002", as: "discarded" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-067", as: "wizardmon" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+          hand: [{ card: "BT1-002", as: "discarded" }],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wizardmon"));

@@ -32,12 +32,14 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
       },
     });
     valid.state.memory = 3;
-    expect(valid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: valid.perm("nene").permanentId,
-      instanceId: valid.inst("luminamon").instanceId,
-      alternateRequirementIndex: 1,
-    })).toEqual({ ok: true });
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: valid.perm("nene").permanentId,
+        instanceId: valid.inst("luminamon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => valid.perm("nene").topCard.cardId === "BT19-102");
     expect(valid.perm("nene").topCard.cardId).toBe("BT19-102");
     expect(valid.state.memory).toBe(0);
@@ -49,12 +51,14 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
       },
     });
     invalid.state.memory = 3;
-    expect(invalid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: invalid.perm("nene").permanentId,
-      instanceId: invalid.inst("luminamon").instanceId,
-      alternateRequirementIndex: 1,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nene").permanentId,
+        instanceId: invalid.inst("luminamon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("DigiXroses with Nene and either named Digimon, including the Tamer material", async () => {
@@ -68,11 +72,13 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
       },
     });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("luminamon").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("nene").instanceId, s.inst("shade").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("luminamon").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("nene").instanceId, s.inst("shade").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const permanent = s.state.players[0]!.battleArea.find((candidate) => candidate.topCard.cardId === "BT19-102");
       return permanent?.stack.length === 2;
@@ -85,7 +91,12 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
   it("plays a level-4 source and deletes that same chosen Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT19-102", as: "source" }, { card: "BT1-009", as: "empty" }] },
+        0: {
+          battleArea: [
+            { card: "BT19-102", as: "source" },
+            { card: "BT1-009", as: "empty" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-012", as: "chosen", under: [{ card: "BT1-009", as: "material" }] }] },
       },
       { autoSelectCards: true },
@@ -94,14 +105,20 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === chosenTop));
     expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("material").instanceId),
-      JSON.stringify(s.state.players.map((player) => ({
-        battle: player?.battleArea.map((permanent) => permanent.topCard.cardId),
-        trash: player?.trash.map((card) => card.cardId),
-      }))),
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("material").instanceId,
+      ),
+      JSON.stringify(
+        s.state.players.map((player) => ({
+          battle: player?.battleArea.map((permanent) => permanent.topCard.cardId),
+          trash: player?.trash.map((card) => card.cardId),
+        })),
+      ),
     ).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === chosenTop)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("empty").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("empty").permanentId),
+    ).toBe(true);
   });
 
   it("optionally plays only a cost-5-or-less card from under your Tamer on deletion", async () => {
@@ -117,7 +134,15 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("playable").instanceId));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("playable").instanceId)).toBe(true);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("playable").instanceId,
+      ),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("playable").instanceId,
+      ),
+    ).toBe(true);
   });
 });

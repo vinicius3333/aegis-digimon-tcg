@@ -8,8 +8,11 @@ describe("BT18-064 Mercurymon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT18-064", as: "mercurymon" }] } });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mercurymon").instanceId })).toEqual({ ok: true });
-    const mercurymon = () => s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT18-064")!;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mercurymon").instanceId })).toEqual({
+      ok: true,
+    });
+    const mercurymon = () =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT18-064")!;
     await settle(() => observe(s.engine).isRestricted(mercurymon(), "beReturned"));
 
     expect(observe(s.engine).isRestricted(mercurymon(), "beReturned")).toBe(true);

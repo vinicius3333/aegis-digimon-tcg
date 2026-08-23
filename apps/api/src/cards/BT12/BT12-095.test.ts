@@ -52,7 +52,14 @@ describe("BT12-095 handwritten module", () => {
 
   it("gives an Agumon or Greymon +1000 DP and Blocker at the start of main phase", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT12-095", as: "tai" }, { card: "BT12-034", as: "agumon" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-095", as: "tai" },
+            { card: "BT12-034", as: "agumon" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

@@ -6,117 +6,123 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDNADigivolve",
-          "raw": "＜Blast DNA Digivolve ([WarGreymon] + [MetalGarurumon])＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "SelectBind",
-          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "bindAs": "dnaReturnLevel", "upTo": true },
-          "condition": { "kind": "isDnaDigivolving" }
+          keyword: "BlastDNADigivolve",
+          raw: "＜Blast DNA Digivolve ([WarGreymon] + [MetalGarurumon])＞",
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "relativeTo": { "attr": "level", "op": "eq", "selectionRef": "dnaReturnLevel" }
-            },
-            "count": "all"
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "SelectBind",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "dnaReturnLevel",
+            upTo: true,
           },
-          "to": "deckBottom",
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
+          condition: { kind: "isDnaDigivolving" },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: { attr: "level", op: "eq", selectionRef: "dnaReturnLevel" },
             },
-            "count": 1
-          }
-        }
-      ]
+            count: "all",
+          },
+          to: "deckBottom",
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "bindAs": "dnaReturnLevel", "upTo": true },
-          "condition": { "kind": "isDnaDigivolving" }
-        },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "relativeTo": { "attr": "level", "op": "eq", "selectionRef": "dnaReturnLevel" }
-            },
-            "count": "all"
+          kind: "SelectBind",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "dnaReturnLevel",
+            upTo: true,
           },
-          "to": "deckBottom",
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
+          condition: { kind: "isDnaDigivolving" },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: { attr: "level", op: "eq", selectionRef: "dnaReturnLevel" },
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: "all",
+          },
+          to: "deckBottom",
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-078", compiled);

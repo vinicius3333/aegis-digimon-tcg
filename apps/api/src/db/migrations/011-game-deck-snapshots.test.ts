@@ -58,8 +58,9 @@ describe("011-game-deck-snapshots", () => {
       JSON.stringify({ mainDeck: ["BT1-001"] }),
       gameId,
     ]);
-    const stored = (await pool.query<{ player0_deck_snapshot: unknown }>("SELECT player0_deck_snapshot FROM tournament_games"))
-      .rows[0]!.player0_deck_snapshot;
+    const stored = (
+      await pool.query<{ player0_deck_snapshot: unknown }>("SELECT player0_deck_snapshot FROM tournament_games")
+    ).rows[0]!.player0_deck_snapshot;
     const parsed = typeof stored === "string" ? JSON.parse(stored) : stored;
     expect(parsed).toEqual({ mainDeck: ["BT1-001"] });
   });

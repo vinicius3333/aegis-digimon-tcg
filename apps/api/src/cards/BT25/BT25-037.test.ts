@@ -16,8 +16,14 @@ describe("BT25-037 Pegasusmon", () => {
         optional: true,
         source: {
           count: 1,
-          filter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels", "Iliad"], match: "trait" }] },
-          orFilters: [{ controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] }],
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels", "Iliad"], match: "trait" }],
+          },
+          orFilters: [
+            { controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+          ],
         },
       });
     }

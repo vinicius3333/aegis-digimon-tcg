@@ -6,7 +6,13 @@ describe("BT20-096 Black Sabbath", () => {
     const effect = compiled.effects.find((entry) => entry.isFromTrash);
     expect(effect).toMatchObject({
       actions: [
-        { kind: "Return", to: "deckBottom", condition: { kind: "zoneCount", zone: "hand", op: "lte", value: 4 }, cost: { kind: "payMemory", memory: 6 }, abortOnDecline: true },
+        {
+          kind: "Return",
+          to: "deckBottom",
+          condition: { kind: "zoneCount", zone: "hand", op: "lte", value: 4 },
+          cost: { kind: "payMemory", memory: 6 },
+          abortOnDecline: true,
+        },
         { kind: "Delete", target: { filter: { controller: "opponent", unsuspended: true } } },
       ],
     });

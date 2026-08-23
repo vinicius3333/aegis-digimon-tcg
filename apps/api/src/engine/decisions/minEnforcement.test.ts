@@ -55,16 +55,20 @@ describe("DecisionManager — min enforcement against a hostile client", () => {
     });
     const id = sent[0]!.req.decisionId;
 
-    expect(mgr.respond(0, id, {
-      kind: "selectCards",
-      instanceIds: ["copy-a", "copy-b"],
-    })).toBe(false);
+    expect(
+      mgr.respond(0, id, {
+        kind: "selectCards",
+        instanceIds: ["copy-a", "copy-b"],
+      }),
+    ).toBe(false);
     expect(mgr.hasPending).toBe(true);
 
-    expect(mgr.respond(0, id, {
-      kind: "selectCards",
-      instanceIds: ["copy-a", "other"],
-    })).toBe(true);
+    expect(
+      mgr.respond(0, id, {
+        kind: "selectCards",
+        instanceIds: ["copy-a", "other"],
+      }),
+    ).toBe(true);
     expect(mgr.hasPending).toBe(false);
   });
 
@@ -142,16 +146,12 @@ describe("DecisionManager — min enforcement against a hostile client", () => {
     const id = sent[0]!.req.decisionId;
 
     // Only unoffered ids + a duplicate: doesn't meet min via legitimate ids.
-    expect(mgr.respond(0, id, { kind: "selectCards", instanceIds: ["c9", "c1", "c1"] })).toBe(
-      false,
-    );
+    expect(mgr.respond(0, id, { kind: "selectCards", instanceIds: ["c9", "c1", "c1"] })).toBe(false);
     expect(mgr.hasPending).toBe(true);
 
     // Enough distinct offered ids (plus an over-max extra, which clampSelection
     // — exercised at the decisionApi layer, not here — truncates downstream).
-    expect(
-      mgr.respond(0, id, { kind: "selectCards", instanceIds: ["c1", "c2", "c3"] }),
-    ).toBe(true);
+    expect(mgr.respond(0, id, { kind: "selectCards", instanceIds: ["c1", "c2", "c3"] })).toBe(true);
     expect(mgr.hasPending).toBe(false);
   });
 

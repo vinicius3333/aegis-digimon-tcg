@@ -7,8 +7,16 @@ const compiled: CompiledCard = {
     {
       trigger: "Static",
       actions: [
-        { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Plug-In"] },
-        { kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] } } },
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["Plug-In"],
+        },
+        {
+          kind: "WaiveColorRequirement",
+          condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] } },
+        },
       ],
     },
     {
@@ -16,7 +24,17 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Digivolve",
-          target: { filter: { controllerDefault: "mine", kind: ["Digimon"], levels: [6], nameOrTrait: [{ tokens: ["Gallantmon", "Sakuyamon", "MegaGargomon"], match: "name" }] }, count: 1, upTo: true, bindAs: "chosenBase" },
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              levels: [6],
+              nameOrTrait: [{ tokens: ["Gallantmon", "Sakuyamon", "MegaGargomon"], match: "name" }],
+            },
+            count: 1,
+            upTo: true,
+            bindAs: "chosenBase",
+          },
           into: { controllerDefault: "mine", kind: ["Digimon"], levels: [6] },
           from: ["hand"],
           payCost: false,
@@ -31,7 +49,11 @@ const compiled: CompiledCard = {
       trigger: "Security",
       isSecurity: true,
       actions: [
-        { kind: "Return", target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 1 }, to: "hand" },
+        {
+          kind: "Return",
+          target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 1 },
+          to: "hand",
+        },
         { kind: "AddToHandSelf" },
       ],
     },

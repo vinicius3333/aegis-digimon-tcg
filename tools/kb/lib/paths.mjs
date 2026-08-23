@@ -33,5 +33,4 @@ export const SOURCES = {
 };
 
 // Polite, identifiable UA. The site exposes no robots.txt; we still throttle.
-export const USER_AGENT =
-  "aegis-kb-research/0.1 (Digimon TCG migration tooling)";
+export const USER_AGENT = "aegis-kb-research/0.1 (Digimon TCG migration tooling)";

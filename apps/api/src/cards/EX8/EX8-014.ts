@@ -6,82 +6,90 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {"isSelfRef": true},
-          "actions": [{
-            "kind": "Delete",
-            "target": {"filter": {"controller": "opponent", "kind": ["Digimon"], "dp": {"op": "lte", "value": 8000}}, "count": 1},
-            "condition": {"kind": "selfIsSuspended", "raw": "if this Digimon is suspended"}
-          }]
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
         },
-        {
-          "kind": "Suspend",
-          "target": {"filter": {"controllerDefault": "any", "kind": ["Digimon"]}, "count": 1},
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {"isSelfRef": true},
-          "actions": [{
-            "kind": "Delete",
-            "target": {"filter": {"controller": "opponent", "kind": ["Digimon"], "dp": {"op": "lte", "value": 8000}}, "count": 1},
-            "condition": {"kind": "selfIsSuspended", "raw": "if this Digimon is suspended"}
-          }]
-        },
-        {
-          "kind": "Suspend",
-          "target": {"filter": {"controllerDefault": "any", "kind": ["Digimon"]}, "count": 1},
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
-        {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "traits": [
-        "Dinosaur"
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } },
+                count: 1,
+              },
+              condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
+            },
+          ],
+        },
+        {
+          kind: "Suspend",
+          target: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } },
+                count: 1,
+              },
+              condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
+            },
+          ],
+        },
+        {
+          kind: "Suspend",
+          target: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      traits: ["Dinosaur"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-014", compiled);

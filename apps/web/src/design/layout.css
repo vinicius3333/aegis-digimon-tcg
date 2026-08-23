@@ -11,8 +11,7 @@
   isolation: isolate;
   background:
     linear-gradient(135deg, transparent 0 72%, rgb(7 95 247 / 3%) 72% 72.2%, transparent 72.2%),
-    radial-gradient(circle at 68% 8%, rgb(72 151 255 / 10%), transparent 24%),
-    var(--ds-bg);
+    radial-gradient(circle at 68% 8%, rgb(72 151 255 / 10%), transparent 24%), var(--ds-bg);
 }
 
 .aegis-app-viewport::before {
@@ -25,7 +24,9 @@
   background-image:
     linear-gradient(30deg, transparent 49.6%, rgb(82 113 161 / 7%) 49.8% 50.2%, transparent 50.4%),
     linear-gradient(150deg, transparent 49.6%, rgb(82 113 161 / 5%) 49.8% 50.2%, transparent 50.4%);
-  background-position: 0 0, 90px 52px;
+  background-position:
+    0 0,
+    90px 52px;
   background-size: 180px 104px;
   mask-image: linear-gradient(to bottom right, rgb(0 0 0 / 35%), transparent 44%);
 }

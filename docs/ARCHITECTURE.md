@@ -73,12 +73,12 @@ A Colyseus process is single-threaded, so one process uses one CPU core no matte
 many the host has. The API therefore runs as several processes that share their
 matchmaking state, and each one advertises the public path where clients reach it.
 
-| Variable | Meaning |
-| --- | --- |
-| `AEGIS_REDIS_URL` | Shared matchmaking state. Unset means single-process: local presence, local driver, no public address. |
-| `AEGIS_PROCESS_PATH` | This process's unique path segment (`p1`, `p2`, …). Required whenever `AEGIS_REDIS_URL` is set. |
-| `AEGIS_PUBLIC_HOST` | Host clients connect to; falls back to `AEGIS_API_URL`. Combined with the path into the address Colyseus returns with each seat reservation. |
-| `AEGIS_LOG_MAX_BYTES` / `AEGIS_LOG_FILES` | Size and generation count for the rotating `apps/api/logs/api.log`. |
+| Variable                                  | Meaning                                                                                                                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AEGIS_REDIS_URL`                         | Shared matchmaking state. Unset means single-process: local presence, local driver, no public address.                                       |
+| `AEGIS_PROCESS_PATH`                      | This process's unique path segment (`p1`, `p2`, …). Required whenever `AEGIS_REDIS_URL` is set.                                              |
+| `AEGIS_PUBLIC_HOST`                       | Host clients connect to; falls back to `AEGIS_API_URL`. Combined with the path into the address Colyseus returns with each seat reservation. |
+| `AEGIS_LOG_MAX_BYTES` / `AEGIS_LOG_FILES` | Size and generation count for the rotating `apps/api/logs/api.log`.                                                                          |
 
 Two consequences follow from rooms living on one process each:
 

@@ -18,155 +18,139 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   is a `deleteOwn` cost that does NOT write the ctx delete-count (only the opponent Delete does),
 //   so the gate reflects the OPPONENT-delete outcome.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Execute"
+          keyword: {
+            keyword: "Execute",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ghost"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Ghost"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "actions": [
-            {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 6
-                  }
+                  tokens: ["Ghost"],
+                  match: "trait",
                 },
-                "count": 1
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
               },
-              "cost": {
-                "kind": "deleteOwn",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+              nameOrTrait: [
+                {
+                  tokens: ["Ghost"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 6,
                   },
-                  "count": 1,
-                  "isSelf": true
                 },
-                "raw": "by deleting this Digimon"
-              }
+                count: 1,
+              },
+              cost: {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by deleting this Digimon",
+              },
             },
             {
-              "kind": "EndAttack",
-              "optional": true,
-              "condition": {
-                "kind": "ifThisEffectDidNotDelete"
+              kind: "EndAttack",
+              optional: true,
+              condition: {
+                kind: "ifThisEffectDidNotDelete",
               },
-              "raw": "If this effect didn't delete your opponent's Digimon, you may end that attack"
-            }
+              raw: "If this effect didn't delete your opponent's Digimon, you may end that attack",
+            },
           ],
-          "raw": "When another Digimon attacks, by deleting this Digimon, delete 1 of your opponent's level 6 or lower Digimon. If this effect didn't delete your opponent's Digimon, you may end that attack",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          }
-        }
-      ]
-    }
+          raw: "When another Digimon attacks, by deleting this Digimon, delete 1 of your opponent's level 6 or lower Digimon. If this effect didn't delete your opponent's Digimon, you may end that attack",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+          },
+        },
+      ],
+    },
   ],
   // The delete-outcome-conditional clause is now authored (the [All Turns] EndAttack is gated on
   // the Wave-1 `ifThisEffectDidNotDelete` Condition, inside the whenAttacking SubTrigger body so
   // the gate reads the opponent Delete's ctx count). 08-14 removes the JSON residual in lockstep.
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-069", compiled);

@@ -6,57 +6,53 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "breeding": true,
-          "requiresEmpty": "breedingArea",
-          "payCost": false,
-          "condition": {
-            "kind": "breedingAreaEmpty",
-            "raw": "your breeding area is empty"
+          breeding: true,
+          requiresEmpty: "breedingArea",
+          payCost: false,
+          condition: {
+            kind: "breedingAreaEmpty",
+            raw: "your breeding area is empty",
           },
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Three Great Angels"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Three Great Angels"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by returning 1 Digimon card with the [Three Great Angels] trait from your trash to the bottom of the deck"
+            raw: "by returning 1 Digimon card with the [Three Great Angels] trait from your trash to the bottom of the deck",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isFromHand": true
-    }
+      isFromHand: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT18-033", compiled);

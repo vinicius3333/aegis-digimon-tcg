@@ -3,7 +3,13 @@
    the reason codes that come back are rendered inline, against the field they blame. */
 
 import { useId, useMemo, useState, type FormEvent } from "react";
-import { swissRoundCount, topCutSize, type BanlistPolicy, type CreateTournamentInput, type TournamentStructure } from "@aegis/shared";
+import {
+  swissRoundCount,
+  topCutSize,
+  type BanlistPolicy,
+  type CreateTournamentInput,
+  type TournamentStructure,
+} from "@aegis/shared";
 import { Alert, Badge, Button, Field, Panel, Switch } from "../design/primitives";
 import { useTranslation } from "../i18n";
 import { banlistCardName, banlistSetOptions, previewBanlist } from "./banlistPreview";
@@ -37,7 +43,13 @@ function toLocalInputValue(epochMs: number): string {
   return local.toISOString().slice(0, 16);
 }
 
-export function CreateTournamentForm({ onCreated, onCancel }: { onCreated: (tournament: TournamentDetail) => void; onCancel: () => void }) {
+export function CreateTournamentForm({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (tournament: TournamentDetail) => void;
+  onCancel: () => void;
+}) {
   const { t } = useTranslation();
   const formId = useId();
   const [name, setName] = useState("");
@@ -139,31 +151,72 @@ export function CreateTournamentForm({ onCreated, onCancel }: { onCreated: (tour
         />
 
         <div className="aegis-field">
-          <label className="aegis-field__label" htmlFor={`${formId}-preset`}>{t("tournaments.create.preset")}</label>
-          <select id={`${formId}-preset`} className="aegis-field__control" value={presetId} onChange={(event) => selectPreset(event.target.value)}>
-            {TOURNAMENT_PRESETS.map((option) => <option key={option.id} value={option.id}>{t(option.labelKey)}</option>)}
+          <label className="aegis-field__label" htmlFor={`${formId}-preset`}>
+            {t("tournaments.create.preset")}
+          </label>
+          <select
+            id={`${formId}-preset`}
+            className="aegis-field__control"
+            value={presetId}
+            onChange={(event) => selectPreset(event.target.value)}
+          >
+            {TOURNAMENT_PRESETS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {t(option.labelKey)}
+              </option>
+            ))}
           </select>
-          {messageFor(errorFor("rulesetPreset"), t) ? <span className="aegis-field__message" data-error>{messageFor(errorFor("rulesetPreset"), t)}</span> : null}
+          {messageFor(errorFor("rulesetPreset"), t) ? (
+            <span className="aegis-field__message" data-error>
+              {messageFor(errorFor("rulesetPreset"), t)}
+            </span>
+          ) : null}
         </div>
 
         <div className="aegis-field">
-          <label className="aegis-field__label" htmlFor={`${formId}-structure`}>{t("tournaments.create.structure")}</label>
-          <select id={`${formId}-structure`} className="aegis-field__control" value={structure} onChange={(event) => selectStructure(event.target.value as TournamentStructure)}>
+          <label className="aegis-field__label" htmlFor={`${formId}-structure`}>
+            {t("tournaments.create.structure")}
+          </label>
+          <select
+            id={`${formId}-structure`}
+            className="aegis-field__control"
+            value={structure}
+            onChange={(event) => selectStructure(event.target.value as TournamentStructure)}
+          >
             {(["swiss", "single_elimination"] as const).map((option) => (
-              <option key={option} value={option} disabled={preset ? !preset.structures.includes(option) : false}>{t(structureKey(option))}</option>
+              <option key={option} value={option} disabled={preset ? !preset.structures.includes(option) : false}>
+                {t(structureKey(option))}
+              </option>
             ))}
           </select>
-          {messageFor(errorFor("structure"), t) ? <span className="aegis-field__message" data-error>{messageFor(errorFor("structure"), t)}</span> : null}
+          {messageFor(errorFor("structure"), t) ? (
+            <span className="aegis-field__message" data-error>
+              {messageFor(errorFor("structure"), t)}
+            </span>
+          ) : null}
         </div>
 
         <div className="aegis-field">
-          <label className="aegis-field__label" htmlFor={`${formId}-best-of`}>{t("tournaments.create.bestOf")}</label>
-          <select id={`${formId}-best-of`} className="aegis-field__control" value={bestOf} onChange={(event) => setBestOf(Number(event.target.value) as BestOf)}>
+          <label className="aegis-field__label" htmlFor={`${formId}-best-of`}>
+            {t("tournaments.create.bestOf")}
+          </label>
+          <select
+            id={`${formId}-best-of`}
+            className="aegis-field__control"
+            value={bestOf}
+            onChange={(event) => setBestOf(Number(event.target.value) as BestOf)}
+          >
             {([1, 3] as const).map((option) => (
-              <option key={option} value={option} disabled={preset ? !preset.bestOfOptions.includes(option) : false}>{t("tournaments.bestOf", { count: option })}</option>
+              <option key={option} value={option} disabled={preset ? !preset.bestOfOptions.includes(option) : false}>
+                {t("tournaments.bestOf", { count: option })}
+              </option>
             ))}
           </select>
-          {messageFor(errorFor("bestOf"), t) ? <span className="aegis-field__message" data-error>{messageFor(errorFor("bestOf"), t)}</span> : null}
+          {messageFor(errorFor("bestOf"), t) ? (
+            <span className="aegis-field__message" data-error>
+              {messageFor(errorFor("bestOf"), t)}
+            </span>
+          ) : null}
         </div>
 
         {showTopCut ? (
@@ -173,9 +226,17 @@ export function CreateTournamentForm({ onCreated, onCancel }: { onCreated: (tour
               onChange={setTopCut}
               disabled={preset ? !preset.supportsTopCut : false}
               label={t("tournaments.create.topCut")}
-              description={preset && !preset.supportsTopCut ? t("tournaments.reason.topCutNotSupportedByPreset") : t("tournaments.create.topCutDesc")}
+              description={
+                preset && !preset.supportsTopCut
+                  ? t("tournaments.reason.topCutNotSupportedByPreset")
+                  : t("tournaments.create.topCutDesc")
+              }
             />
-            {messageFor(errorFor("topCut"), t) ? <span className="aegis-field__message" data-error>{messageFor(errorFor("topCut"), t)}</span> : null}
+            {messageFor(errorFor("topCut"), t) ? (
+              <span className="aegis-field__message" data-error>
+                {messageFor(errorFor("topCut"), t)}
+              </span>
+            ) : null}
           </>
         ) : null}
 
@@ -184,28 +245,62 @@ export function CreateTournamentForm({ onCreated, onCancel }: { onCreated: (tour
           onChange={setAllowBots}
           disabled={preset ? !preset.supportsBots : false}
           label={t("tournaments.create.allowBots")}
-          description={preset && !preset.supportsBots ? t("tournaments.reason.botsRequireCustomRuleset") : t("tournaments.create.allowBotsDesc")}
+          description={
+            preset && !preset.supportsBots
+              ? t("tournaments.reason.botsRequireCustomRuleset")
+              : t("tournaments.create.allowBotsDesc")
+          }
         />
-        {messageFor(errorFor("allowBots"), t) ? <span className="aegis-field__message" data-error>{messageFor(errorFor("allowBots"), t)}</span> : null}
+        {messageFor(errorFor("allowBots"), t) ? (
+          <span className="aegis-field__message" data-error>
+            {messageFor(errorFor("allowBots"), t)}
+          </span>
+        ) : null}
 
         <div className="aegis-field">
-          <label className="aegis-field__label" htmlFor={`${formId}-banlist`}>{t("tournaments.create.banlist")}</label>
-          <select id={`${formId}-banlist`} className="aegis-field__control" value={banlistMode} onChange={(event) => setBanlistMode(event.target.value as BanlistMode)}>
-            <option value="none" disabled={!unrestrictedAllowed}>{t("tournaments.banlist.none")}</option>
+          <label className="aegis-field__label" htmlFor={`${formId}-banlist`}>
+            {t("tournaments.create.banlist")}
+          </label>
+          <select
+            id={`${formId}-banlist`}
+            className="aegis-field__control"
+            value={banlistMode}
+            onChange={(event) => setBanlistMode(event.target.value as BanlistMode)}
+          >
+            <option value="none" disabled={!unrestrictedAllowed}>
+              {t("tournaments.banlist.none")}
+            </option>
             <option value="current">{t("tournaments.banlist.current")}</option>
             <option value="as_of_set">{t("tournaments.banlist.asOfSetOption")}</option>
           </select>
           <span className="aegis-field__message">
-            {unrestrictedAllowed ? t("tournaments.create.banlistNoneHint") : t("tournaments.create.banlistNoneDisabled")}
+            {unrestrictedAllowed
+              ? t("tournaments.create.banlistNoneHint")
+              : t("tournaments.create.banlistNoneDisabled")}
           </span>
-          {messageFor(errorFor("banlist"), t) ? <span className="aegis-field__message" data-error>{messageFor(errorFor("banlist"), t)}</span> : null}
+          {messageFor(errorFor("banlist"), t) ? (
+            <span className="aegis-field__message" data-error>
+              {messageFor(errorFor("banlist"), t)}
+            </span>
+          ) : null}
         </div>
 
         {banlistMode === "as_of_set" ? (
           <div className="aegis-field">
-            <label className="aegis-field__label" htmlFor={`${formId}-set`}>{t("tournaments.create.set")}</label>
-            <select id={`${formId}-set`} className="aegis-field__control" value={banlistSetId} onChange={(event) => setBanlistSetId(event.target.value)}>
-              {banlistSetOptions().map((setId) => <option key={setId} value={setId}>{setId}</option>)}
+            <label className="aegis-field__label" htmlFor={`${formId}-set`}>
+              {t("tournaments.create.set")}
+            </label>
+            <select
+              id={`${formId}-set`}
+              className="aegis-field__control"
+              value={banlistSetId}
+              onChange={(event) => setBanlistSetId(event.target.value)}
+            >
+              {banlistSetOptions().map((setId) => (
+                <option key={setId} value={setId}>
+                  {setId}
+                </option>
+              ))}
             </select>
           </div>
         ) : null}
@@ -231,16 +326,26 @@ export function CreateTournamentForm({ onCreated, onCancel }: { onCreated: (tour
 
         <BanlistPreviewSection preview={preview} />
 
-        {failure ? <Alert tone="danger" title={t("tournaments.error.create")}>{describeFailure(failure, t)}</Alert> : null}
+        {failure ? (
+          <Alert tone="danger" title={t("tournaments.error.create")}>
+            {describeFailure(failure, t)}
+          </Alert>
+        ) : null}
         {errors.length ? (
           <ul className="tournaments-reasons" aria-label={t("tournaments.error.create")}>
-            {errors.map((error) => <li key={`${error.field}:${error.code}`}>{messageFor(error, t)}</li>)}
+            {errors.map((error) => (
+              <li key={`${error.field}:${error.code}`}>{messageFor(error, t)}</li>
+            ))}
           </ul>
         ) : null}
 
         <div className="tournaments-form__actions">
-          <Button type="submit" disabled={submitting}>{t("tournaments.create.submit")}</Button>
-          <Button type="button" variant="secondary" onClick={onCancel}>{t("common.cancel")}</Button>
+          <Button type="submit" disabled={submitting}>
+            {t("tournaments.create.submit")}
+          </Button>
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            {t("common.cancel")}
+          </Button>
         </div>
       </form>
     </Panel>
@@ -263,7 +368,9 @@ function BanlistPreviewSection({ preview }: { preview: ReturnType<typeof preview
                 <span className="tournaments-banlist__name">{banlistCardName(card.cardId)}</span>
                 <span className="tournaments-banlist__id">{card.cardId}</span>
                 <Badge tone={card.status === "banned" ? "danger" : "warning"}>{t(restrictionKey(card.status))}</Badge>
-                <span className="tournaments-banlist__copies">{t("tournaments.detail.copies", { count: card.allowedCopies })}</span>
+                <span className="tournaments-banlist__copies">
+                  {t("tournaments.detail.copies", { count: card.allowedCopies })}
+                </span>
               </li>
             ))}
           </ul>
@@ -273,7 +380,10 @@ function BanlistPreviewSection({ preview }: { preview: ReturnType<typeof preview
   );
 }
 
-function messageFor(error: TournamentValidationError | undefined, t: ReturnType<typeof useTranslation>["t"]): string | undefined {
+function messageFor(
+  error: TournamentValidationError | undefined,
+  t: ReturnType<typeof useTranslation>["t"],
+): string | undefined {
   if (!error) return undefined;
   const key = reasonKey(error.code);
   return key ? t(key) : t("tournaments.reason.unknown", { code: error.code });

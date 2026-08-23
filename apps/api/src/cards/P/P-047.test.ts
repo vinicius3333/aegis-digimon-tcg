@@ -27,9 +27,8 @@ describe("P-047 AeroVeedramon Zero", () => {
         instanceId: s.inst("source").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.deck.length === 0 &&
-      s.perm("base").currentDP === s.perm("base").baseDP + 3000,
+    await settle(
+      () => s.state.players[0]!.deck.length === 0 && s.perm("base").currentDP === s.perm("base").baseDP + 3000,
     );
 
     expect(s.state.players[0]!.trash).toHaveLength(2);
@@ -79,9 +78,7 @@ describe("P-047 AeroVeedramon Zero", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    const returnedIds = [s.inst("trash-a"), s.inst("trash-b"), s.inst("trash-c")].map(
-      (card) => card.instanceId,
-    );
+    const returnedIds = [s.inst("trash-a"), s.inst("trash-b"), s.inst("trash-c")].map((card) => card.instanceId);
     const eggId = s.inst("egg").instanceId;
     const baseDp = s.perm("attacker").baseDP;
 

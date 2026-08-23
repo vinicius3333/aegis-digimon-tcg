@@ -24,7 +24,9 @@ describe("EX11-011 Dinomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 13;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dinomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dinomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX11-008"), 600);
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX11-008")).toBe(true);
@@ -42,13 +44,17 @@ describe("EX11-011 Dinomon", () => {
     const staticActions = compiled.effects
       .filter((effect) => effect.trigger === "Static")
       .flatMap((effect) => effect.actions);
-    expect(staticActions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } }),
-      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Fortitude" } }),
-    ]));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      isInherited: true,
-      actions: [expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } })],
-    }));
+    expect(staticActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } }),
+        expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Fortitude" } }),
+      ]),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        isInherited: true,
+        actions: [expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } })],
+      }),
+    );
   });
 });

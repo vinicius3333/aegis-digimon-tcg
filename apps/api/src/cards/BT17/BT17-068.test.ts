@@ -11,9 +11,11 @@ const GULFMON = "BT17-070"; // Gulfmon Lv6 — eligible for [On Deletion]
 
 describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => {
   it("keeps the Gulfmon-or-level-6-Dark-Masters alternatives distinct", () => {
-    const action = (compiled.effects?.[1]?.actions?.[0]) as any;
+    const action = compiled.effects?.[1]?.actions?.[0] as any;
     expect(action.target.filter.nameOrTrait).toEqual([{ tokens: ["Gulfmon"], match: "name" }]);
-    expect(action.target.orFilters).toEqual([expect.objectContaining({ levels: [6], nameOrTrait: [{ tokens: ["Dark Masters"], match: "trait" }] })]);
+    expect(action.target.orFilters).toEqual([
+      expect.objectContaining({ levels: [6], nameOrTrait: [{ tokens: ["Dark Masters"], match: "trait" }] }),
+    ]);
   });
 
   it("[On Deletion] plays Gulfmon from hand to battle area when Mephistomon is deleted", async () => {

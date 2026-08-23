@@ -6,97 +6,91 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourTurn",
-      "actions": [
+      trigger: "StartOfYourTurn",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "condition": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "raw": "your opponent doesn't have a level 4 or lower Digimon in play"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Purple"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "opponentHasNone",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "optional": true,
-              "abortOnDecline": true
             },
-            {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            },
-            {
-              "kind": "Trash",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "hand"
-                },
-                "count": 1
-              }
-            }
-          ]
-        }
-      ]
+            raw: "your opponent doesn't have a level 4 or lower Digimon in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            colors: ["Purple"],
           },
-          "payCost": false
-        }
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+            {
+              kind: "Trash",
+              target: {
+                filter: {
+                  controller: "mine",
+                  zone: "hand",
+                },
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-091", compiled);

@@ -18,144 +18,124 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTopOrBottom",
-          "controller": "mine",
-          "amount": 1,
-          "source": {
-            "filter": {
-              "trait": [
-                "Angel",
-                "Archangel",
-                "Three Great Angels",
-                "Iliad"
-              ]
+          kind: "SecurityManipulation",
+          op: "addTopOrBottom",
+          controller: "mine",
+          amount: 1,
+          source: {
+            filter: {
+              trait: ["Angel", "Archangel", "Three Great Angels", "Iliad"],
             },
-            "location": [
-              "hand",
-              "digivolution"
-            ]
+            location: ["hand", "digivolution"],
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "mine",
-          "bothPlayers": true,
-          "amount": 1,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          bothPlayers: true,
+          amount: 1,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTopOrBottom",
-          "controller": "mine",
-          "amount": 1,
-          "source": {
-            "filter": {
-              "trait": [
-                "Angel",
-                "Archangel",
-                "Three Great Angels",
-                "Iliad"
-              ]
+          kind: "SecurityManipulation",
+          op: "addTopOrBottom",
+          controller: "mine",
+          amount: 1,
+          source: {
+            filter: {
+              trait: ["Angel", "Archangel", "Three Great Angels", "Iliad"],
             },
-            "location": [
-              "hand",
-              "digivolution"
-            ]
+            location: ["hand", "digivolution"],
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "mine",
-          "bothPlayers": true,
-          "amount": 1,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          bothPlayers: true,
+          amount: 1,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAddSecurity",
-          "sourceFilter": {
-            "controller": "mine"
+          kind: "SubTrigger",
+          event: "whenAddSecurity",
+          sourceFilter: {
+            controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "DeDigivolve",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DeDigivolve",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 1
-            }
+              amount: 1,
+            },
           ],
-          "raw": "whenAddSecurity"
-        }
+          raw: "whenAddSecurity",
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "sourceFilter": {
-            "controller": "mine"
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          sourceFilter: {
+            controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -4000,
-              "duration": "forTheTurn"
-            }
+              amount: -4000,
+              duration: "forTheTurn",
+            },
           ],
-          "raw": "whenSecurityRemoved"
-        }
+          raw: "whenSecurityRemoved",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT25-038", compiled);

@@ -3,13 +3,34 @@ import type { ParticipantView, RegistrationStatus, TournamentStatus } from "@aeg
 import { entryActions, ownParticipant } from "./entry";
 import type { TournamentDetail } from "./types";
 
-function detail(status: TournamentStatus, participants: ParticipantView[], registeredCount = participants.length, maxPlayers = 8): TournamentDetail {
+function detail(
+  status: TournamentStatus,
+  participants: ParticipantView[],
+  registeredCount = participants.length,
+  maxPlayers = 8,
+): TournamentDetail {
   return {
-    id: "t-1", name: "Event", status, structure: "swiss", topCutEnabled: false, topCutSize: null,
-    bestOf: 3, allowBots: false, rulesetPreset: "bandai_general", rulesetVersion: null,
-    startsAt: 0, maxPlayers, registeredCount, banlistPolicy: { mode: "current" },
-    block: "BT10", createdBy: null, winnerAccountId: null,
-    rules: null, banlistCards: [], matches: [], participants,
+    id: "t-1",
+    name: "Event",
+    status,
+    structure: "swiss",
+    topCutEnabled: false,
+    topCutSize: null,
+    bestOf: 3,
+    allowBots: false,
+    rulesetPreset: "bandai_general",
+    rulesetVersion: null,
+    startsAt: 0,
+    maxPlayers,
+    registeredCount,
+    banlistPolicy: { mode: "current" },
+    block: "BT10",
+    createdBy: null,
+    winnerAccountId: null,
+    rules: null,
+    banlistCards: [],
+    matches: [],
+    participants,
   };
 }
 
@@ -29,7 +50,9 @@ describe("ownParticipant", () => {
     expect(ownParticipant(shared, undefined)).toBeUndefined();
     expect(ownParticipant(shared, "Nobody")).toBeUndefined();
     // A bot with the same display name is never the signed-in human.
-    expect(ownParticipant([{ id: "b", kind: "bot", displayName: "Tamer", status: "active", seed: null }], "Tamer")).toBeUndefined();
+    expect(
+      ownParticipant([{ id: "b", kind: "bot", displayName: "Tamer", status: "active", seed: null }], "Tamer"),
+    ).toBeUndefined();
   });
 });
 
@@ -77,7 +100,10 @@ describe("entryActions", () => {
 
   it("offers the action when identity is unknown, so a name clash never costs an action", () => {
     // Unidentified means "the payload cannot rule it out"; the server still decides.
-    const actions = entryActions(detail("check_in", [human("Twin", "registered"), human("Twin", "registered")]), undefined);
+    const actions = entryActions(
+      detail("check_in", [human("Twin", "registered"), human("Twin", "registered")]),
+      undefined,
+    );
     expect(actions.checkIn).toBe(true);
     expect(actions.drop).toBe(true);
   });

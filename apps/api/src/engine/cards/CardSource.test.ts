@@ -54,11 +54,7 @@ describe("createCardSource", () => {
     expect(source.permanent()).toBe(perm);
     expect(source.isOnBattleArea()).toBe(true);
     expect(source.isOwnersTurn()).toBe(true); // owner is seat 1
-    expect(calls).toEqual([
-      "permanentOf:BT7-089#1",
-      "isOnBattleArea:BT7-089#1",
-      "isSeatsTurn:1",
-    ]);
+    expect(calls).toEqual(["permanentOf:BT7-089#1", "isOnBattleArea:BT7-089#1", "isSeatsTurn:1"]);
   });
 
   it("throws when the instance references an unknown card", () => {

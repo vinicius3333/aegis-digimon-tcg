@@ -517,10 +517,9 @@ describe("seeding the cut", () => {
     fixture = await frozenField({ playerCount: 12, topCutSize: 4, wins: seededWins(12) });
     const standings = await fixture.swiss.standings(fixture.tournamentId);
     const promoted = standings[2]!.participantId;
-    await fixture.accounts.pool.query(
-      "UPDATE tournament_participants SET kind='bot', account_id=NULL WHERE id=$1",
-      [promoted],
-    );
+    await fixture.accounts.pool.query("UPDATE tournament_participants SET kind='bot', account_id=NULL WHERE id=$1", [
+      promoted,
+    ]);
 
     expect(await fixture.topCut.startTopCut(fixture.tournamentId, T0)).toEqual({
       ok: false,

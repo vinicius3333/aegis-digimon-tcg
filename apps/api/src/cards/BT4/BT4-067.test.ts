@@ -9,7 +9,13 @@ describe("BT4-067 Sealsdramon", () => {
     s.state.memory = 3;
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("seals"), "Blocker")).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("seals").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("seals").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);
   });

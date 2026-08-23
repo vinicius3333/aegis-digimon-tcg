@@ -7,38 +7,36 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q2814 (binding): triggers only once even when multiple same-named Digimon are played
 // simultaneously (e.g. via token creation). Encoded as oncePerTiming:true.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ],
-            "isSameName": true,
-            "sameNameAs": "sourceTopCard"
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            isSameName: true,
+            sameNameAs: "sourceTopCard",
           },
-          "oncePerTiming": true,
-          "raw": "when you play another Digimon with the same name as this Digimon (the name of the Digimon this has digivolved into)",
-          "actions": [
+          oncePerTiming: true,
+          raw: "when you play another Digimon with the same name as this Digimon (the name of the Digimon this has digivolved into)",
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-053", compiled);

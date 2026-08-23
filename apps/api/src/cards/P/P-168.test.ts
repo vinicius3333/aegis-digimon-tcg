@@ -4,9 +4,7 @@ import "./P-168.js";
 
 describe("P-168 Yao Qinglan", () => {
   it("gains memory at start of main only when the opponent has a Digimon", () => {
-    const effect = runtimeCompiledCard("P-168")!.effects.find(
-      (entry) => entry.trigger === "StartOfYourMainPhase",
-    );
+    const effect = runtimeCompiledCard("P-168")!.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(effect?.actions[0]).toMatchObject({
       kind: "GainMemory",
       amount: 1,

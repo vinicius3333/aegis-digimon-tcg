@@ -30,8 +30,14 @@ describe("BT10-083 Minervamon", () => {
     s.state.memory = 10;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentPlay").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("labramon").instanceId));
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("labramon").instanceId,
+      ),
+    );
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
@@ -49,7 +55,9 @@ describe("BT10-083 Minervamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("minervamon").permanentId]);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("baalmon").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("baalmon").instanceId),
+    ).toBe(true);
   });
 
   it("may play Mervamon from trash regardless of its level", async () => {
@@ -66,9 +74,9 @@ describe("BT10-083 Minervamon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("minervamon").permanentId]);
 
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) =>
-      topCard.instanceId === s.inst("mervamon").instanceId
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("mervamon").instanceId),
+    ).toBe(true);
   });
 
   it("does not offer its deletion play above 2 opposing Digimon and allows refusal at the boundary", async () => {
@@ -83,9 +91,9 @@ describe("BT10-083 Minervamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(above.engine).verb.deletePermanent([above.perm("minervamon").permanentId]);
-    expect(above.state.players[0]!.trash.some(({ instanceId }) =>
-      instanceId === above.inst("candidate").instanceId
-    )).toBe(true);
+    expect(
+      above.state.players[0]!.trash.some(({ instanceId }) => instanceId === above.inst("candidate").instanceId),
+    ).toBe(true);
 
     const declined = setupEngine(
       {
@@ -98,9 +106,9 @@ describe("BT10-083 Minervamon", () => {
       { autoDeclineOptional: true },
     );
     await advance(declined.engine).verb.deletePermanent([declined.perm("minervamon").permanentId]);
-    expect(declined.state.players[0]!.trash.some(({ instanceId }) =>
-      instanceId === declined.inst("candidate").instanceId
-    )).toBe(true);
+    expect(
+      declined.state.players[0]!.trash.some(({ instanceId }) => instanceId === declined.inst("candidate").instanceId),
+    ).toBe(true);
   });
 
   it("only observes an opposing Digimon, not your Digimon or an opposing Tamer", async () => {
@@ -136,8 +144,10 @@ describe("BT10-083 Minervamon", () => {
     await advance(s.engine).fireSubTrigger("whenPlayed", {
       subjectPermanentId: s.perm("opposingDigimon").permanentId,
     });
-    expect(s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("labramon").instanceId,
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("labramon").instanceId,
+      ),
+    ).toBe(true);
   });
 });

@@ -88,9 +88,9 @@ describe("reveal-add family — Memory Boost! primary (reveal 3, add 1 of the co
       const p0 = s.state.players[0] as PlayerState;
       s.state.memory = 3; // exactly the play cost
 
-      expect(
-        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }),
-      ).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
       await settle(() => p0.hand.some((c) => c.cardId === match));
 
       // The matching-color Digimon was added to hand; the two non-matching cards went back to the

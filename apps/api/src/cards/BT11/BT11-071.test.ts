@@ -6,10 +6,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-071.js";
 describe("BT11-071 MusouKnightmon", () => {
   it("publishes its two-slot DigiXros recipe and permanent rule names", async () => {
-    expect(digiXrosRequirementFor("BT11-071")).toEqual([{
-      materials: [{ names: ["DarkKnightmon"] }, { names: ["Tuwarmon"] }],
-      count: 2,
-    }]);
+    expect(digiXrosRequirementFor("BT11-071")).toEqual([
+      {
+        materials: [{ names: ["DarkKnightmon"] }, { names: ["Tuwarmon"] }],
+        count: 2,
+      },
+    ]);
     const s = setupEngine({ 0: { battleArea: [{ card: "BT11-071", as: "musou" }] } });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).effectiveNames(s.perm("musou"))).toEqual(
@@ -29,11 +31,13 @@ describe("BT11-071 MusouKnightmon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("musou").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("darkKnightmon").instanceId, s.inst("tuwarmon").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("musou").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("darkKnightmon").instanceId, s.inst("tuwarmon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some(({ topCard, stack }) => topCard?.cardId === "BT11-071" && stack.length === 2),
     );
@@ -94,7 +98,9 @@ describe("BT11-071 MusouKnightmon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("musou").permanentId]);
     await settle(() => s.state.players[0]!.hand.length === 2);
 
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT11-061", "BT11-082"]));
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT11-061", "BT11-082"]),
+    );
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 });

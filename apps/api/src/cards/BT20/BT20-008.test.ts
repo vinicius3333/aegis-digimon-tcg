@@ -8,6 +8,10 @@ describe("BT20-008 Huckmon", () => {
     expect(main?.actions[0]?.optional).not.toBe(true);
     expect(main?.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1 });
     expect(main?.actions[1]?.optional).not.toBe(true);
-    expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({ kind: "ModifyDP", amount: 1000, target: { count: "all" } });
+    expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
+      kind: "ModifyDP",
+      amount: 1000,
+      target: { count: "all" },
+    });
   });
 });

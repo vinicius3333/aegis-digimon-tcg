@@ -6,206 +6,173 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Two SubTriggers: (1) whenPlayed for Digimon/Tamers with [Garurumon] or [Tai Kamiya];
 // (2) whenOneOfYoursDigivolves into [Garurumon] Digimon.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 8000
-              }
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 8000
-              }
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon",
-              "Tamer"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Garurumon"
-                ],
-                "match": "name"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 8000,
               },
-              {
-                "tokens": [
-                  "Tai Kamiya"
-                ],
-                "match": "name"
-              }
-            ]
+            },
+            count: 1,
           },
-          "actions": [
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 8000,
+              },
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon", "Tamer"],
+            nameOrTrait: [
+              {
+                tokens: ["Garurumon"],
+                match: "name",
+              },
+              {
+                tokens: ["Tai Kamiya"],
+                match: "name",
+              },
+            ],
+          },
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Greymon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Greymon"],
+                    match: "name",
+                  },
+                ],
               },
-              "payCost": false,
-              "from": [
-                "hand"
-              ],
-              "optional": true
-            }
-          ]
+              payCost: false,
+              from: ["hand"],
+              optional: true,
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "digivolveIntoFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          digivolveIntoFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Garurumon"
-                ],
-                "match": "name"
-              }
+                tokens: ["Garurumon"],
+                match: "name",
+              },
             ],
-            "excludeSelf": true
+            excludeSelf: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Greymon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Greymon"],
+                    match: "name",
+                  },
+                ],
               },
-              "payCost": false,
-              "from": [
-                "hand"
-              ],
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              payCost: false,
+              from: ["hand"],
+              optional: true,
             },
-            "count": 1,
-            "isSelf": true
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
           },
-          "amount": 4000,
-          "duration": "permanent"
-        }
+          amount: 4000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "MetalGreymon"
-      ],
-      "cost": 1,
-      "isAlternate": true
+      names: ["MetalGreymon"],
+      cost: 1,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "names": [
-        "Greymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      level: 4,
+      names: ["Greymon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "ADVENTURE"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 4
-    }
-  ]
+      traits: ["ADVENTURE"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
+    },
+  ],
 };
 
 registerIrCard("EX9-012", compiled);

@@ -3,127 +3,117 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a card w/[TS] trait"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "ActivateMain"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+                  tokens: ["TS"],
+                  match: "trait",
+                },
               ],
-              "superlative": "lowestDP"
             },
-            "count": "all"
-          }
+            raw: "you have a card w/[TS] trait",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: "all",
+          },
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "zone": "battleArea",
-              "controller": "opponent",
-              "kind": [
-                "Option"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              zone: "battleArea",
+              controller: "opponent",
+              kind: ["Option"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
         },
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Link",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1
+            count: 1,
           },
-          "recipient": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          recipient: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "allowBreedingRecipient": true,
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          allowBreedingRecipient: true,
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "isLinked": true,
-      "frequency": "OncePerTurn",
-      "actions": [
+      trigger: "WhenAttacking",
+      isLinked: true,
+      frequency: "OncePerTurn",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
+              },
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT25-093", compiled);

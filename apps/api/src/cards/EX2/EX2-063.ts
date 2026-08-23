@@ -11,7 +11,12 @@ const compiled: CompiledCard = {
           amount: 1,
           condition: {
             kind: "youHave",
-            filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }] },
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }],
+            },
           },
         },
       ],
@@ -23,13 +28,21 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenSuspended",
           raw: "When one of your Digimon with [Cyborg] or [Machine] in its traits becomes suspended",
-          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }] },
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }],
+          },
           actions: [
             {
               kind: "Draw",
               controller: "mine",
               amount: 1,
-              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
               optional: true,
               abortOnDecline: true,
             },
@@ -38,7 +51,13 @@ const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }], isSecurity: true },
+    {
+      trigger: "Security",
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+      isSecurity: true,
+    },
   ],
   coverage: "full",
   residual: [],

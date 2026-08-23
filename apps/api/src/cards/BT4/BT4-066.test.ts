@@ -4,7 +4,14 @@ import "./BT4-066.js";
 
 describe("BT4-066 Golemon", () => {
   it("gives itself and all of your other black Digimon +1000 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-066", as: "gole" }, { card: "BT4-067", as: "other" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT4-066", as: "gole" },
+          { card: "BT4-067", as: "other" },
+        ],
+      },
+    });
     await s.engine.recomputeContinuousEffects();
 
     expect(s.perm("gole").currentDP).toBe(s.perm("gole").baseDP + 1000);

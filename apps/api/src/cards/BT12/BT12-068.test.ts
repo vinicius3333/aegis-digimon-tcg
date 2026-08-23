@@ -62,7 +62,9 @@ describe("BT12-068 MetalGreymon", () => {
     await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
-    await settle(() => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085").length === 1);
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085").length === 1,
+    );
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085")).toHaveLength(1);
   });
 });

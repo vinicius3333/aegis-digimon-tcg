@@ -32,11 +32,13 @@ describe("BT9-012 Greymon (X Antibody)", () => {
     const deleting = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await new Promise((resolve) => setTimeout(resolve, 0));
     const decision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await deleting;
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(3);

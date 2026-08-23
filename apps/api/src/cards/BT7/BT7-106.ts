@@ -19,21 +19,25 @@ const effect = {
   labels: ["Delete a Digimon with play cost 6 or less", "Instead, delete a Digimon without [X Antibody] in its traits"],
   optionConditions: [null, loadedCondition],
   options: [
-    [{
-      kind: "Delete",
-      target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 1 },
-    }],
-    [{
-      kind: "Delete",
-      target: {
-        filter: {
-          controller: "opponent",
-          kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["X-Antibody"], match: "trait", negate: true }],
-        },
-        count: 1,
+    [
+      {
+        kind: "Delete",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 1 },
       },
-    }],
+    ],
+    [
+      {
+        kind: "Delete",
+        target: {
+          filter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["X-Antibody"], match: "trait", negate: true }],
+          },
+          count: 1,
+        },
+      },
+    ],
   ],
 };
 

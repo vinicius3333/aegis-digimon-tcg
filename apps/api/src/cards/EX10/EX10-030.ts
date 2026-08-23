@@ -6,145 +6,150 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "isLinked": true,
-      "actions": [{
-        "kind": "Return",
-        "to": "hand",
-        "target": { "filter": { "controller": "mine", "zone": "trash", "kind": ["Digimon"], "nameOrTrait": [{ "match": "trait", "tokens": ["Appmon"] }] }, "count": 1 },
-        "cost": { "kind": "trash", "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "linked" }, "count": 1 }, "raw": "By trashing 1 of this Digimon's link cards" },
-        "optional": true,
-        "abortOnDecline": true
-      }]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "WhenAttacking",
+      isLinked: true,
+      actions: [
         {
-          "keyword": "Collision",
-          "raw": "＜Collision＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Return",
+          to: "hand",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "trait", tokens: ["Appmon"] }],
             },
-          "count": 1
+            count: 1,
           },
-          "from": ["hand", "digivolutionCards"],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          cost: {
+            kind: "trash",
+            target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+            raw: "By trashing 1 of this Digimon's link cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          keyword: "Collision",
+          raw: "＜Collision＞",
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-          "count": 1
+            count: 1,
           },
-          "from": ["hand", "digivolutionCards"],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinkTrashed",
-          "actions": [
-            {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "amount": -8000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+            },
+            count: 1,
+          },
+          from: ["hand", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinkTrashed",
+          actions: [
             {
-              "kind": "Prevent",
-              "mode": "leavePlay",
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": { "isSelfRef": true, "zone": "linked" },
-                  "count": 1
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "raw": "by trashing 1 of its link cards"
+                count: 1,
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+              amount: -8000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "Prevent",
+              mode: "leavePlay",
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: { isSelfRef: true, zone: "linked" },
+                  count: 1,
+                },
+                raw: "by trashing 1 of its link cards",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Warpmon",
-        "Weatherdramon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Warpmon", "Weatherdramon"],
+      cost: 0,
+    },
+  ],
 };
 
 export { compiled };

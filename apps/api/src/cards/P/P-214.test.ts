@@ -47,25 +47,26 @@ describe("P-214 [On Play] tuck under a friendly [Seadramon], return a level-boun
   });
 
   it("encodes Decode as a non-battle leave replacement with exact source names", () => {
-    const replacement = runtimeCompiledCard("P-214")!.effects
-      .find((effect) => effect.trigger === "Static")!.actions[0];
+    const replacement = runtimeCompiledCard("P-214")!.effects.find((effect) => effect.trigger === "Static")!.actions[0];
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
       mode: "instead",
       leaveCause: "otherThanBattle",
-      actions: [{
-        kind: "PlayWithoutCost",
-        from: ["digivolutionCards"],
-        payCost: false,
-        optional: true,
-        playedByDecode: true,
-        target: {
-          filter: {
-            nameOrTrait: [{ tokens: ["Betamon", "ModokiBetamon"], match: "nameExact" }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+          playedByDecode: true,
+          target: {
+            filter: {
+              nameOrTrait: [{ tokens: ["Betamon", "ModokiBetamon"], match: "nameExact" }],
+            },
           },
         },
-      }],
+      ],
     });
   });
 });

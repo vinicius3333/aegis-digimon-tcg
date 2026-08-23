@@ -51,7 +51,9 @@ describe("BT22-050 Roamon", () => {
     );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("roamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("roamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
   });

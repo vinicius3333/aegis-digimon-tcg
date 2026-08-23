@@ -6,60 +6,54 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "CostModifier",
-          "mode": "reduce",
-          "costType": "digivolve",
-          "amount": 5,
-          "target": {
-            "filter": {
-              "zone": "battleArea",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Green"
-              ]
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "digivolve",
+          amount: 5,
+          target: {
+            filter: {
+              zone: "battleArea",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Green"],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "you may suspend 1 of your Digimon to reduce the memory cost of the digivolution by 5"
+            raw: "you may suspend 1 of your Digimon to reduce the memory cost of the digivolution by 5",
           },
-          "optional": true,
-          "once": true,
-          "duration": "forTheTurn",
-          "restriction": "next time one of your green Digimon digivolves this turn"
-        }
-      ]
+          optional: true,
+          once: true,
+          duration: "forTheTurn",
+          restriction: "next time one of your green Digimon digivolves this turn",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-103", compiled);

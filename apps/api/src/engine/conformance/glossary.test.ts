@@ -87,7 +87,11 @@ describe("glossary-0002 (Areas on the Playing Field, part 2)", () => {
     // p1 (s.state.players[1]) has an empty security stack.
 
     expect(
-      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
     ).toEqual({ ok: true });
     await settle(() => s.state.gameOver, 5000);
 
@@ -122,7 +126,11 @@ describe("glossary-0003 (Timings, part 1)", () => {
 
     const eventsBefore = s.events.length;
     expect(
-      s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: digivolveCard.instanceId }),
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: digivolveCard.instanceId,
+      }),
     ).toEqual({ ok: true });
     await settle(() => base.topCard?.cardId === "AD1-002", 5000);
 
@@ -215,7 +223,11 @@ function fullTurnHarness(firstSeat: Seat = 0): Harness {
   let engineRef: GameEngine | undefined;
   const respond = (seat: Seat, req: DecisionRequest, response: unknown): void => {
     queueMicrotask(() =>
-      engineRef?.applyIntent(seat, { type: "respondDecision", decisionId: req.decisionId, response: response as never }),
+      engineRef?.applyIntent(seat, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: response as never,
+      }),
     );
   };
   const hooks: GameEngineHooks = {
@@ -278,9 +290,7 @@ describe("glossary-0006 (Game Phases)", () => {
       expect(h.state.gameOver).toBe(true);
       expect(p1.lost).toBe(true);
       expect(h.state.winnerSeat).toBe(0);
-      expect(
-        h.events.some((e) => e.kind === "gameOver" && "reason" in e && e.reason === "deckOut"),
-      ).toBe(true);
+      expect(h.events.some((e) => e.kind === "gameOver" && "reason" in e && e.reason === "deckOut")).toBe(true);
     },
   );
 });
@@ -316,7 +326,10 @@ describe("glossary-0007 (Properties Common to All Card Types)", () => {
 
 describe("glossary-0008 (Digimon Card Properties)", () => {
   it("DP: 'the Digimon with the lower number loses and is deleted' in battle", async () => {
-    cite("glossary-0008", "DP: 'When battling, the DP of both Digimon are compared, and the Digimon with the lower number loses and is deleted.'");
+    cite(
+      "glossary-0008",
+      "DP: 'When battling, the DP of both Digimon are compared, and the Digimon with the lower number loses and is deleted.'",
+    );
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -487,7 +500,11 @@ describe("glossary-0014 (Keyword Effects — <Security Attack -x>)", () => {
     // p1's security stack is EMPTY — normally an automatic win for a 1+-check attack (glossary-0002).
 
     expect(
-      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
     ).toEqual({ ok: true });
     await settle(() => false, 5000);
 
@@ -520,7 +537,11 @@ describe("glossary-0015 (Keyword Effects — <Jamming>)", () => {
     p1.security.push(instance("AD1-001", 1, false), instance("BT1-009", 1, false)); // [0] 5000 DP Security Digimon, [1] a plain card
 
     expect(
-      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
     ).toEqual({ ok: true });
     await settle(() => p1.security.length === 0, 5000);
 
@@ -588,7 +609,7 @@ describe("glossary-0018 (Keyword Effects — <Delay>)", () => {
     cite(
       "glossary-0018",
       "<Delay>: \"It's not necessary to pay an Option card's memory cost or meet color " +
-        "requirements when activating its <Delay> effect.\"",
+        'requirements when activating its <Delay> effect."',
     );
 
     const s = setup();

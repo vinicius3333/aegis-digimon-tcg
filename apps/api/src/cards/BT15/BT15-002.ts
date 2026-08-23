@@ -12,7 +12,10 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           amount: 1000,
           duration: "untilOpponentTurnEnd",
-          condition: { kind: "triggerByYourDigimonEffect", raw: "one of your Digimon's effects adds cards to your hand" },
+          condition: {
+            kind: "triggerByYourDigimonEffect",
+            raw: "one of your Digimon's effects adds cards to your hand",
+          },
         },
       ],
       // The cause gate belongs to the EFFECT, not just its action: an add-to-hand that was not

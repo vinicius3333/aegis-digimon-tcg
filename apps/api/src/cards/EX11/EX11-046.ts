@@ -3,201 +3,180 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
-    { "level": 5, "cost": 6, "isAlternate": true },
-    { "names": ["Snatchmon"], "cost": 9, "isAlternate": true },
-    { "names": ["Galacticmon"], "cost": 5, "isAlternate": true }
+  digivolutionRequirement: [
+    { level: 5, cost: 6, isAlternate: true },
+    { names: ["Snatchmon"], cost: 9, isAlternate: true },
+    { names: ["Galacticmon"], cost: 5, isAlternate: true },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all",
-            "except": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
+            count: "all",
+            except: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1,
-              "selector": "highestPlayCost"
-            }
-          }
+              count: 1,
+              selector: "highestPlayCost",
+            },
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "digivolutionCardCount",
-            "nameOrTrait": [
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "digivolutionCardCount",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Vemmon"
-                ],
-                "match": "name"
-              }
+                tokens: ["Vemmon"],
+                match: "name",
+              },
             ],
-            "op": "gte",
-            "value": 4
+            op: "gte",
+            value: 4,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          }
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
         },
         {
-          "kind": "GrantImmunity",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantImmunity",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "digivolutionCardCount",
-            "nameOrTrait": [
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "digivolutionCardCount",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Vemmon"
-                ],
-                "match": "name"
-              }
+                tokens: ["Vemmon"],
+                match: "name",
+              },
             ],
-            "op": "gte",
-            "value": 4
-          }
-        }
-      ]
+            op: "gte",
+            value: 4,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all",
-            "except": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
+            count: "all",
+            except: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1,
-              "selector": "highestPlayCost"
-            }
-          }
+              count: 1,
+              selector: "highestPlayCost",
+            },
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "digivolutionCardCount",
-            "nameOrTrait": [
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "digivolutionCardCount",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Vemmon"
-                ],
-                "match": "name"
-              }
+                tokens: ["Vemmon"],
+                match: "name",
+              },
             ],
-            "op": "gte",
-            "value": 4
+            op: "gte",
+            value: 4,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          }
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
         },
         {
-          "kind": "GrantImmunity",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantImmunity",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "digivolutionCardCount",
-            "nameOrTrait": [
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "digivolutionCardCount",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Vemmon"
-                ],
-                "match": "name"
-              }
+                tokens: ["Vemmon"],
+                match: "name",
+              },
             ],
-            "op": "gte",
-            "value": 4
-          }
-        }
-      ]
+            op: "gte",
+            value: 4,
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
+      trigger: "EndOfOpponentsTurn",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "names": [
-              "Galacticmon"
-            ]
+          into: {
+            controllerDefault: "mine",
+            names: ["Galacticmon"],
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "ignoreRequirements": true,
-          "optional": true
-        }
-      ]
-    }
+          from: ["hand", "trash"],
+          payCost: false,
+          ignoreRequirements: true,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-046", compiled);

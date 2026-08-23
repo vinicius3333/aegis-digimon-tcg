@@ -15,9 +15,11 @@ function isGuilmon(def: { nameEn: string }): boolean {
 }
 
 function isTakatoMatsuki(def: { nameEn: string }): boolean {
-  return def.nameEn === "Takato Matsuki" ||
+  return (
+    def.nameEn === "Takato Matsuki" ||
     def.nameEn === "TakatoMatsuki" ||
-    def.nameEn.replace(/\s+/g, "") === "TakatoMatsuki";
+    def.nameEn.replace(/\s+/g, "") === "TakatoMatsuki"
+  );
 }
 
 function guilmonCandidates(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
@@ -60,12 +62,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const perm = ctx.source.permanent();
             if (perm === undefined) return;
-            ctx.fx.grantNameTrait(
-              perm.permanentId,
-              "name",
-              ["ChaosGallantmon"],
-              EffectDuration.Permanent,
-            );
+            ctx.fx.grantNameTrait(perm.permanentId, "name", ["ChaosGallantmon"], EffectDuration.Permanent);
           },
         }),
       ];
@@ -136,8 +133,7 @@ const module: EffectModule = {
             "and/or trash without paying their memory costs.",
           optional: true,
           canActivate: (ctx) =>
-            guilmonCandidates(ctx, ownerSeat).length > 0 ||
-            takatoCandidates(ctx, ownerSeat).length > 0,
+            guilmonCandidates(ctx, ownerSeat).length > 0 || takatoCandidates(ctx, ownerSeat).length > 0,
           resolve: async (ctx) => {
             // Play 1 [Guilmon] from hand/trash without paying cost
             const guilmons = guilmonCandidates(ctx, ownerSeat);
@@ -180,20 +176,50 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["ChaosGallantmon"] }],
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["ChaosGallantmon"],
+        },
+      ],
     },
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 10000 } }, count: 1 } },
-        { kind: "TrashTopDeck", controller: "both", amount: 5, condition: { kind: "ifThisEffectDidNotDelete", raw: "no Digimon was deleted by this effect" } },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 10000 } }, count: 1 },
+        },
+        {
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 5,
+          condition: { kind: "ifThisEffectDidNotDelete", raw: "no Digimon was deleted by this effect" },
+        },
       ],
     },
     {
       trigger: "OnDeletion",
       actions: [
-        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] }, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true },
-        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }] }, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true },
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] }, count: 1 },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }] },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
     },
   ],

@@ -1,11 +1,4 @@
-import {
-  CardInstance,
-  Zone,
-  type GameState,
-  type PlayerState,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { CardInstance, Zone, type GameState, type PlayerState, type Permanent, type Seat } from "@aegis/shared";
 import { extractCardAt, findPermanentInPlayer } from "../state/access.js";
 
 /**
@@ -30,10 +23,7 @@ export function playerAt(state: GameState, seat: Seat): PlayerState | undefined 
 }
 
 /** Find a battle-area Permanent by id for a given player. */
-export function findBattleAreaPermanent(
-  player: PlayerState,
-  permanentId: string,
-): Permanent | undefined {
+export function findBattleAreaPermanent(player: PlayerState, permanentId: string): Permanent | undefined {
   return player.battleArea.find((p) => p.permanentId === permanentId);
 }
 
@@ -41,10 +31,7 @@ export function findBattleAreaPermanent(
  * Find a Permanent owned by the player in either the battle area or the
  * breeding area. Digivolve is legal on both targets during the Main phase.
  */
-export function findOwnedPermanent(
-  player: PlayerState,
-  permanentId: string,
-): Permanent | undefined {
+export function findOwnedPermanent(player: PlayerState, permanentId: string): Permanent | undefined {
   return findPermanentInPlayer(player, permanentId);
 }
 
@@ -65,10 +52,7 @@ export function findInHand(
 }
 
 /** Where a given instance currently lives for its owner, or undefined if nowhere obvious. */
-export function zoneOfInstance(
-  player: PlayerState,
-  instanceId: string,
-): Zone | undefined {
+export function zoneOfInstance(player: PlayerState, instanceId: string): Zone | undefined {
   if (player.hand.some((c) => c.instanceId === instanceId)) return Zone.Hand;
   if (player.deck.some((c) => c.instanceId === instanceId)) return Zone.Deck;
   if (player.trash.some((c) => c.instanceId === instanceId)) return Zone.Trash;

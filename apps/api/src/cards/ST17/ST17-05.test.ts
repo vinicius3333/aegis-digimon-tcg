@@ -6,9 +6,12 @@ import "../index.js";
 
 describe("ST17-05 Gargomon", () => {
   it("grants one of your Digimon Jamming when it becomes suspended on your turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST17-05", as: "gargomon" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-05", as: "gargomon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenSuspended", {

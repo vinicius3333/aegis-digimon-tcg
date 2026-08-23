@@ -4,18 +4,23 @@ import "../index.js";
 
 describe("ST17-04 Wendigomon", () => {
   it("deletes an own level 3 Terriermon and may play it back from trash for free", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "ST17-04", as: "wendigomon" }],
-        battleArea: [{ card: "ST17-02", as: "terriermon" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST17-04", as: "wendigomon" }],
+          battleArea: [{ card: "ST17-02", as: "terriermon" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("wendigomon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("wendigomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-02"));
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-04")).toBe(true);

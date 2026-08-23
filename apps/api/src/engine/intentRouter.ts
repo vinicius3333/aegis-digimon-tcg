@@ -1,9 +1,4 @@
-import {
-  type GameState,
-  type Seat,
-  type IntentResult,
-  type DecisionResponse,
-} from "@aegis/shared";
+import { type GameState, type Seat, type IntentResult, type DecisionResponse } from "@aegis/shared";
 import type { WinCheck } from "./security/index.js";
 import type { DecisionManager } from "./decisions/index.js";
 import type { MainPhaseController } from "./MainPhaseController.js";

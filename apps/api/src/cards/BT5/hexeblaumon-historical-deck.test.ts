@@ -54,7 +54,9 @@ describe("BT5 Hexeblaumon historical deck gauntlet", () => {
     );
 
     // Q1310: Jamming is evaluated after the source trash, during this same attack.
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("hexeblaumon").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("hexeblaumon").permanentId),
+    ).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("hexeblaumon"), "Jamming")).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("hexeblaumon"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).isRestricted(s.perm("sourceTarget"), "attack")).toBe(true);

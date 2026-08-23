@@ -1,14 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ArraySchema, Encoder } from "@colyseus/schema";
-import {
-  GameState,
-  PlayerState,
-  CardInstance,
-  Permanent,
-  PRIVATE_VIEW_TAG,
-  Zone,
-  type Seat,
-} from "@aegis/shared";
+import { GameState, PlayerState, CardInstance, Permanent, PRIVATE_VIEW_TAG, Zone, type Seat } from "@aegis/shared";
 import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import { GameStateAccess } from "../state/access.js";
@@ -221,10 +213,7 @@ describe("§3-4-5 Breeding Area (comprehensive-0061, 0062)", () => {
   });
 
   it("3-4-5-4: a card's [Main] ability can't be activated while it's in the breeding area", () => {
-    cite(
-      "comprehensive-0062",
-      "3-4-5-4 effects on cards in breeding areas can't trigger or activate",
-    );
+    cite("comprehensive-0062", "3-4-5-4 effects on cards in breeding areas can't trigger or activate");
 
     const s = setup({ autoSelectCards: true });
     const p0 = s.state.players[0]!;

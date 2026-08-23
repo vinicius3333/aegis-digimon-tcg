@@ -8,7 +8,13 @@ describe("P-117 Veemon", () => {
       0: { battleArea: [{ card: "BT16-017", as: "host", under: ["P-117"] }], deck: [{ card: "BT1-001", as: "drawn" }] },
       1: { security: ["BT1-001"] },
     });
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     assertNoLoudGap(s);

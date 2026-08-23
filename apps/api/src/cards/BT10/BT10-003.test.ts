@@ -6,7 +6,9 @@ import "./BT10-003.js";
 
 describe("BT10-003 Pickmons", () => {
   it("draws when its Xros Heart host attacks", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-009", as: "host", under: ["BT10-003"] }], deck: ["BT1-001"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-009", as: "host", under: ["BT10-003"] }], deck: ["BT1-001"] },
+    });
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
@@ -35,11 +37,13 @@ describe("BT10-003 Pickmons", () => {
     });
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
 
     expect(s.state.players[0]!.hand).toHaveLength(0);

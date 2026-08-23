@@ -35,9 +35,7 @@ describe("WinCheck", () => {
     expect(state.gameOver).toBe(true);
     expect(state.winnerSeat).toBe(1);
     expect(state.players[0]?.lost).toBe(true);
-    expect(events).toEqual([
-      { kind: "gameOver", result: { outcome: "win", winnerSeat: 1 }, reason: "deckOut" },
-    ]);
+    expect(events).toEqual([{ kind: "gameOver", result: { outcome: "win", winnerSeat: 1 }, reason: "deckOut" }]);
   });
 
   it("is idempotent: the first declaration wins, later ones are ignored", () => {

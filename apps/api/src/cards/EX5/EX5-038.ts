@@ -6,100 +6,92 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Deva"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "breeding": true,
-          "notSameNameAs": [
-            "battleArea",
-            "trash"
-          ],
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "actions": [
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+                  tokens: ["Deva"],
+                  match: "trait",
                 },
-                "count": 1,
-                "isSelf": true
-              }
-            }
-          ]
-        }
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          breeding: true,
+          notSameNameAs: ["battleArea", "trash"],
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          actions: [
+            {
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Piercing",
-              "raw": "＜Piercing＞"
-            }
-          },
-          "while": {
-            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Four Sovereigns","God Beast"], "match": "trait"}]},
-            "raw": "this Digimon has the [Four Sovereigns]/[God Beast] trait"
-          }
-        }
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Piercing",
+              raw: "＜Piercing＞",
+            },
+          },
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] },
+            raw: "this Digimon has the [Four Sovereigns]/[God Beast] trait",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-038", compiled);

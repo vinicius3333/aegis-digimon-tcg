@@ -32,9 +32,17 @@ describe("BT12-074 Gumdramon", () => {
   });
 
   it("saves itself under a Tamer when deleted", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT12-074", as: "gum" }, { card: "BT12-094", as: "tamer" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-074", as: "gum" },
+            { card: "BT12-094", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const sourceId = s.perm("gum").topCard.instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("gum").permanentId]);
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId));
@@ -57,6 +65,8 @@ describe("BT12-074 Gumdramon", () => {
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "BT1-010" || cardId === "BT1-011")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "BT1-010" || cardId === "BT1-011")).toHaveLength(
+      1,
+    );
   });
 });

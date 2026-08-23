@@ -15,241 +15,211 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   of activating the effect (only the preceding Suspend is "may"); removed the stray
 //   `optional: true` from the Delete action.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Fortitude"
+          keyword: {
+            keyword: "Fortitude",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestPlayCost"
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              superlative: "highestPlayCost",
             },
-            "count": 1,
-            "bindAs": "sparedMine",
-            "upTo": true
-          }
-        },
-        {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestPlayCost"
-            },
-            "count": 1,
-            "bindAs": "sparedOpponent",
-            "upTo": true
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "kind": [
-                "Digimon"
-              ],
-              "excludeSelectionRef": [
-                "sparedMine",
-                "sparedOpponent"
-              ]
-            },
-            "count": "all"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+            count: 1,
+            bindAs: "sparedMine",
+            upTo: true,
           },
-          "optional": true
         },
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestPlayCost"
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestPlayCost",
             },
-            "count": 1,
-            "bindAs": "sparedMine",
-            "upTo": true
-          }
-        },
-        {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestPlayCost"
-            },
-            "count": 1,
-            "bindAs": "sparedOpponent",
-            "upTo": true
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "kind": [
-                "Digimon"
-              ],
-              "excludeSelectionRef": [
-                "sparedMine",
-                "sparedOpponent"
-              ]
-            },
-            "count": "all"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            bindAs: "sparedOpponent",
+            upTo: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              excludeSelectionRef: ["sparedMine", "sparedOpponent"],
+            },
+            count: "all",
           },
-          "duration": "permanent"
-        }
+        },
       ],
-      "isInherited": true
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: 1,
           },
-          "grant": "effect",
-          "tokens": [
-            "can only attack suspended Digimon"
-          ],
-          "condition": {
-            "kind": "selfIsSuspended",
-            "raw": "this Digimon is suspended"
-          }
-        }
-      ]
-    }
+          optional: true,
+        },
+        {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              superlative: "highestPlayCost",
+            },
+            count: 1,
+            bindAs: "sparedMine",
+            upTo: true,
+          },
+        },
+        {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestPlayCost",
+            },
+            count: 1,
+            bindAs: "sparedOpponent",
+            upTo: true,
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              excludeSelectionRef: ["sparedMine", "sparedOpponent"],
+            },
+            count: "all",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+          },
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          grant: "effect",
+          tokens: ["can only attack suspended Digimon"],
+          condition: {
+            kind: "selfIsSuspended",
+            raw: "this Digimon is suspended",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "names": [
-        "Tyrannomon"
-      ],
-      "cost": 4,
-      "isAlternate": true
+      level: 5,
+      names: ["Tyrannomon"],
+      cost: 4,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "Dinosaur"
-      ],
-      "cost": 4,
-      "isAlternate": true,
-      "level": 5
-    }
-  ]
+      traits: ["Dinosaur"],
+      cost: 4,
+      isAlternate: true,
+      level: 5,
+    },
+  ],
 };
 
 registerIrCard("EX11-011", compiled);

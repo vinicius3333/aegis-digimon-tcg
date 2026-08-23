@@ -11,10 +11,27 @@ describe("BT4-075 Blastmon", () => {
   });
 
   it("lets the opponent redirect its attack to an unsuspended Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-075", as: "blast" }] }, 1: { battleArea: [{ card: "BT2-083", as: "declared", suspended: true }, { card: "BT1-009", as: "redirect" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-075", as: "blast" }] },
+        1: {
+          battleArea: [
+            { card: "BT2-083", as: "declared", suspended: true },
+            { card: "BT1-009", as: "redirect" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     const declaredId = s.perm("declared").permanentId;
     const redirectId = s.perm("redirect").permanentId;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("blast").permanentId, target: { kind: "permanent", permanentId: declaredId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blast").permanentId,
+        target: { kind: "permanent", permanentId: declaredId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === redirectId));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === redirectId)).toBe(false);

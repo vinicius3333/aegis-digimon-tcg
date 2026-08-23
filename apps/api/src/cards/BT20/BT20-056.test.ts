@@ -27,9 +27,26 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
   it("compiles Barrier, attack-gated breeding digivolution, and inherited protection", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords).toContainEqual({ keyword: "Barrier", raw: "＜Barrier＞" });
-    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions[1]).toMatchObject({ kind: "Digivolve", condition: { kind: "duringAttack" }, from: ["hand", "trash"], payCost: false });
-    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "Replacement", condition: { kind: "selfHasName", names: ["Alphamon: Ouryuken"] }, cost: { kind: "trashSecurityTop" } }] });
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords).toContainEqual({
+      keyword: "Barrier",
+      raw: "＜Barrier＞",
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions[1]).toMatchObject({
+      kind: "Digivolve",
+      condition: { kind: "duringAttack" },
+      from: ["hand", "trash"],
+      payCost: false,
+    });
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          condition: { kind: "selfHasName", names: ["Alphamon: Ouryuken"] },
+          cost: { kind: "trashSecurityTop" },
+        },
+      ],
+    });
   });
   it("does not use the breeding-area digivolution clause outside an attack", async () => {
     const s = setupEngine(
@@ -104,7 +121,11 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
 
     const initialDP = oppDigimon.currentDP;
     await advance(s.engine).recompute();
-    expect(advance(s.engine).ledgers.subTriggers.subscriptionsFor("whenSecurityRemoved").some((entry) => entry.sourcePermanentId === alphamonPerm.permanentId)).toBe(true);
+    expect(
+      advance(s.engine)
+        .ledgers.subTriggers.subscriptionsFor("whenSecurityRemoved")
+        .some((entry) => entry.sourcePermanentId === alphamonPerm.permanentId),
+    ).toBe(true);
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     await settle(() => oppDigimon.currentDP !== initialDP, 600);
 

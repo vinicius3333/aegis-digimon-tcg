@@ -146,15 +146,20 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("kaiserNail").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("kaiserNail").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "chooseTargets" && latest.sourceCardId === "ST2-15";
+        latest.kind === "chooseTargets" &&
+        latest.sourceCardId === "ST2-15"
+      );
     });
 
     const hostDecision = s.decisions.at(-1)!.req;
@@ -162,33 +167,43 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       s.perm("firstHost").permanentId,
       s.perm("secondHost").permanentId,
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: hostDecision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("secondHost").permanentId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: hostDecision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("secondHost").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
+        latest.kind === "selectCards" &&
+        latest.sourceCardId === "ST2-15"
+      );
     });
 
     const optionalDecision = s.state.pendingDecision;
     expect(optionalDecision?.kind).toBe("optional");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optionalDecision!.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optionalDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
+        latest.kind === "selectCards" &&
+        latest.sourceCardId === "ST2-15"
+      );
     });
     const sourceDecision = s.state.pendingDecision;
     expect(sourceDecision?.kind).toBe("selectCards");
@@ -197,24 +212,24 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       s.inst("secondSource").instanceId,
       s.inst("secondOtherSource").instanceId,
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: sourceDecision!.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("secondSource").instanceId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.inst("secondSource").instanceId
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: sourceDecision!.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("secondSource").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("secondSource").instanceId,
+      ),
+    );
 
-    expect(s.perm("firstHost").stack.map((card) => card.instanceId)).toEqual([
-      s.inst("firstSource").instanceId,
-    ]);
-    expect(s.perm("secondHost").stack.map((card) => card.instanceId)).toEqual([
-      s.inst("secondOtherSource").instanceId,
-    ]);
+    expect(s.perm("firstHost").stack.map((card) => card.instanceId)).toEqual([s.inst("firstSource").instanceId]);
+    expect(s.perm("secondHost").stack.map((card) => card.instanceId)).toEqual([s.inst("secondOtherSource").instanceId]);
   });
 
   it("does NOT play when there are no Digimon digi-cards in any of your Digimon's stacks", async () => {

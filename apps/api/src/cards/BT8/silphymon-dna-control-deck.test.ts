@@ -38,10 +38,7 @@ describe("BT8 Silphymon DNA control deck gauntlet", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
-        materialPermanentIds: [
-          s.perm("redMaterial").permanentId,
-          s.perm("yellowMaterial").permanentId,
-        ],
+        materialPermanentIds: [s.perm("redMaterial").permanentId, s.perm("yellowMaterial").permanentId],
         instanceId: s.inst("silphymon").instanceId,
       }),
     ).toEqual({ ok: true });
@@ -60,9 +57,9 @@ describe("BT8 Silphymon DNA control deck gauntlet", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.state.pendingDecision?.kind === "chooseTargets" &&
-      s.state.pendingDecision.decisionId !== dpChoice.decisionId
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== dpChoice.decisionId,
     );
     const deleteChoice = s.state.pendingDecision!;
     const deleteRequest = s.decisions.find(({ req }) => req.decisionId === deleteChoice.decisionId)?.req;
@@ -77,9 +74,10 @@ describe("BT8 Silphymon DNA control deck gauntlet", () => {
         response: { kind: "chooseTargets", instanceIds: [dnaDeleteTargetId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === dnaDeleteTargetId) &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === dnaDeleteTargetId) &&
+        s.state.pendingDecision === undefined,
     );
 
     const silphymon = s.state.players[0]!.battleArea.find(
@@ -120,9 +118,10 @@ describe("BT8 Silphymon DNA control deck gauntlet", () => {
         response: { kind: "chooseTargets", instanceIds: [attackDeleteTargetId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === attackDeleteTargetId) &&
-      !observe(s.engine).isAttacking()
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === attackDeleteTargetId) &&
+        !observe(s.engine).isAttacking(),
     );
 
     expect(s.state.players[1]!.security).toHaveLength(0);

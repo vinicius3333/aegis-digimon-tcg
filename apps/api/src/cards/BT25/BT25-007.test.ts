@@ -8,8 +8,19 @@ describe("BT25-007 Gatchmon", () => {
     expect(effect?.actions?.[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
     const revealAdd = effect?.actions?.[0] as { add?: unknown } | undefined;
     expect(revealAdd?.add).toEqual([
-      expect.objectContaining({ count: 1, to: "hand", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] } }),
-      expect.objectContaining({ count: 1, to: "hand", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Social", "Tool", "Reboot", "Creation"], match: "trait" }] } }),
+      expect.objectContaining({
+        count: 1,
+        to: "hand",
+        filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
+      }),
+      expect.objectContaining({
+        count: 1,
+        to: "hand",
+        filter: {
+          controllerDefault: "mine",
+          nameOrTrait: [{ tokens: ["Social", "Tool", "Reboot", "Creation"], match: "trait" }],
+        },
+      }),
     ]);
   });
 });

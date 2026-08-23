@@ -3,59 +3,55 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Mother D-Reaper"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have a [Mother D-Reaper] in play"
-          },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
               },
-              "count": 1,
-              "isSelf": true
             },
-            "raw": "by suspending this Digimon"
+            count: 1,
           },
-          "optional": true
-        }
-      ]
-    }
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Mother D-Reaper"],
+                  match: "name",
+                },
+              ],
+            },
+            raw: "you have a [Mother D-Reaper] in play",
+          },
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Digimon",
+          },
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-051", compiled);

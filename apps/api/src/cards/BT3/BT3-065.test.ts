@@ -18,13 +18,8 @@ describe("BT3-065 Gururumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId),
-      5000,
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId), 5000);
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(
-      true,
-    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
   });
 });

@@ -8,7 +8,10 @@ describe("BT9-082 Ordinemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-014", as: "purple" }, { card: "AD1-016", as: "yellow" }],
+          battleArea: [
+            { card: "AD1-014", as: "purple" },
+            { card: "AD1-016", as: "yellow" },
+          ],
           hand: [{ card: "BT9-082", as: "ordinemon" }],
           deck: ["BT1-001", "BT1-002", "BT1-003"],
         },
@@ -18,11 +21,13 @@ describe("BT9-082 Ordinemon", () => {
     );
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "dnaDigivolve",
-      materialPermanentIds: [s.perm("purple").permanentId, s.perm("yellow").permanentId],
-      instanceId: s.inst("ordinemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("purple").permanentId, s.perm("yellow").permanentId],
+        instanceId: s.inst("ordinemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 3);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -30,21 +35,26 @@ describe("BT9-082 Ordinemon", () => {
   });
 
   it("does not run its mass deletion or Recovery after a normal digivolution", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT9-080", as: "base" }],
-        hand: [{ card: "BT9-082", as: "ordinemon" }],
-        deck: ["BT1-001", "BT1-002"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-080", as: "base" }],
+          hand: [{ card: "BT9-082", as: "ordinemon" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT6-111", as: "opponent" }] },
       },
-      1: { battleArea: [{ card: "BT6-111", as: "opponent" }] },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("ordinemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ordinemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT9-082");
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -53,35 +63,37 @@ describe("BT9-082 Ordinemon", () => {
   });
 
   it("trashes the top security card to replay only Ordinemon as a fresh Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{
-          card: "BT9-082",
-          as: "ordinemon",
-          under: [
-            { card: "BT9-080", as: "oldRaguel" },
-            { card: "BT9-074", as: "oldMeicoomon" },
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT9-082",
+              as: "ordinemon",
+              under: [
+                { card: "BT9-080", as: "oldRaguel" },
+                { card: "BT9-074", as: "oldMeicoomon" },
+              ],
+            },
           ],
-        }],
-        security: [{ card: "BT1-001", as: "cost", faceUp: false }],
+          security: [{ card: "BT1-001", as: "cost", faceUp: false }],
+        },
       },
-    }, {
-      autoAcceptOptional: true,
-      autoSelectCards: true,
-    });
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+      },
+    );
     const ordinemonInstanceId = s.perm("ordinemon").topCard.instanceId;
-    const oldSourceIds = new Set([
-      s.inst("oldRaguel").instanceId,
-      s.inst("oldMeicoomon").instanceId,
-    ]);
+    const oldSourceIds = new Set([s.inst("oldRaguel").instanceId, s.inst("oldMeicoomon").instanceId]);
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("ordinemon").permanentId])).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === ordinemonInstanceId,
-    ));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ordinemonInstanceId),
+    );
 
-    const replayed = s.state.players[0]!.battleArea.find((permanent) =>
-      permanent.topCard.instanceId === ordinemonInstanceId,
+    const replayed = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === ordinemonInstanceId,
     );
     expect(replayed).toBeDefined();
     expect(replayed!.stack).toHaveLength(0);

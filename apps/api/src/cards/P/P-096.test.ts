@@ -13,10 +13,12 @@ describe("P-096 Prism Garrett", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
   it("places the only available Save card and grants exactly +1000 DP", async () => {
@@ -39,13 +41,14 @@ describe("P-096 Prism Garrett", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      recipient.stack.some((card) => card.instanceId === savedId) &&
-      recipient.currentDP === baseDP + 1000
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => recipient.stack.some((card) => card.instanceId === savedId) && recipient.currentDP === baseDP + 1000,
     );
 
     expect(recipient.stack.some((card) => card.instanceId === savedId)).toBe(true);
@@ -77,10 +80,12 @@ describe("P-096 Prism Garrett", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const request = s.decisions.at(-1)!.req;
 
@@ -88,14 +93,17 @@ describe("P-096 Prism Garrett", () => {
     expect(request.options?.min).toBe(0);
     expect(request.options?.max).toBe(2);
     expect(request.options?.candidateInstanceIds).toEqual(expect.arrayContaining(sourceIds));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: request.decisionId,
-      response: { kind: "selectCards", instanceIds: sourceIds },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      sourceIds.every((id) => recipient.stack.some((card) => card.instanceId === id)) &&
-      recipient.currentDP === baseDP + 2000
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "selectCards", instanceIds: sourceIds },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        sourceIds.every((id) => recipient.stack.some((card) => card.instanceId === id)) &&
+        recipient.currentDP === baseDP + 2000,
     );
 
     expect(sourceIds.every((id) => recipient.stack.some((card) => card.instanceId === id))).toBe(true);
@@ -127,22 +135,24 @@ describe("P-096 Prism Garrett", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const request = s.decisions.at(-1)!.req;
     expect(request.options?.min).toBe(0);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: request.decisionId,
-      response: { kind: "selectCards", instanceIds: [] },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some(
-      (card) => card.cardId === "P-096",
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "P-096"));
 
     expect(recipient.stack.some((card) => card.instanceId === availableId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === availableId)).toBe(true);

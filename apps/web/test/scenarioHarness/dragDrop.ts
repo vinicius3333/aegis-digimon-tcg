@@ -19,7 +19,17 @@ import { fireEvent } from "@testing-library/react";
  */
 export function dragOnto(sourceEl: Element, targetEl: HTMLElement): void {
   targetEl.getBoundingClientRect = () =>
-    ({ left: 500, right: 600, top: 500, bottom: 600, width: 100, height: 100, x: 500, y: 500, toJSON: () => {} }) as DOMRect;
+    ({
+      left: 500,
+      right: 600,
+      top: 500,
+      bottom: 600,
+      width: 100,
+      height: 100,
+      x: 500,
+      y: 500,
+      toJSON: () => {},
+    }) as DOMRect;
   fireEvent.pointerDown(sourceEl, { clientX: 100, clientY: 100 });
   fireEvent.pointerMove(window, { clientX: 550, clientY: 550 });
   fireEvent.pointerUp(window, { clientX: 550, clientY: 550 });

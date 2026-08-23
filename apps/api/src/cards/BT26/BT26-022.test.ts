@@ -122,17 +122,30 @@ describe("BT26-022 Sorcermon", () => {
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("sorcermon"));
 
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
-      sorcermonId,
-    );
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(sorcermonId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("iliad").instanceId]);
   });
 
   it("encodes the ordered recovery, conditional security cost, and inherited Barrier", () => {
     expect(compiled.effects).toMatchObject([
-      { trigger: "OnPlay", actions: [{ kind: "SecurityManipulation", op: "toHand" }, { kind: "SecurityManipulation", op: "addTop" }] },
-      { trigger: "WhenDigivolving", actions: [{ kind: "SecurityManipulation", op: "toHand" }, { kind: "SecurityManipulation", op: "addTop" }] },
-      { trigger: "EndOfYourTurn", actions: [{ kind: "PlayWithoutCost", reduceCostBy: 4, cost: { kind: "place", position: "bottom" } }] },
+      {
+        trigger: "OnPlay",
+        actions: [
+          { kind: "SecurityManipulation", op: "toHand" },
+          { kind: "SecurityManipulation", op: "addTop" },
+        ],
+      },
+      {
+        trigger: "WhenDigivolving",
+        actions: [
+          { kind: "SecurityManipulation", op: "toHand" },
+          { kind: "SecurityManipulation", op: "addTop" },
+        ],
+      },
+      {
+        trigger: "EndOfYourTurn",
+        actions: [{ kind: "PlayWithoutCost", reduceCostBy: 4, cost: { kind: "place", position: "bottom" } }],
+      },
       { trigger: "Static", isInherited: true, keywords: [{ keyword: "Barrier" }] },
     ]);
   });

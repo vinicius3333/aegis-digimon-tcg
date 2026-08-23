@@ -241,7 +241,7 @@ export function textHasKeyword(
   const hay = `${def.effectText ?? ""} ${def.inheritedEffectText ?? ""}`.toLowerCase();
   // Normalize the keyword to its prose token (handles "DeDigivolve" -> "de-digivolve",
   // "SecurityAttack" -> "security attack", "IceClad" -> "ice clad").
-  const token = (typeof keyword === "string" ? keyword : keyword.keyword ?? "")
+  const token = (typeof keyword === "string" ? keyword : (keyword.keyword ?? ""))
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/DeDigivolve/i, "De-Digivolve")
     .replace(/Digi Burst/i, "Digi-Burst")

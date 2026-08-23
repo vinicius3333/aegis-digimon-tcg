@@ -9,7 +9,8 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      description: "[When Digivolving] You may place 1 [Trial of the Four Great Dragons] from your hand in the battle area if you don't have one in play.",
+      description:
+        "[When Digivolving] You may place 1 [Trial of the Four Great Dragons] from your hand in the battle area if you don't have one in play.",
       actions: [
         {
           kind: "PlaceInBattleAreaSelf",

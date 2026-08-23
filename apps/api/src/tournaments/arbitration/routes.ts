@@ -39,7 +39,12 @@ export function installArbitrationRoutes({ app, arbitration, session, limiter }:
 
   const command = <T>(
     path: string,
-    run: (input: { req: Request; accountId: string; reason: string; commandId?: string }) => Promise<ArbitrationResult<T>>,
+    run: (input: {
+      req: Request;
+      accountId: string;
+      reason: string;
+      commandId?: string;
+    }) => Promise<ArbitrationResult<T>>,
   ) =>
     app.post(path, (req, res, next) => {
       void (async () => {
@@ -156,7 +161,13 @@ export function installArbitrationRoutes({ app, arbitration, session, limiter }:
 }
 
 function send(res: Response, reason: ArbitrationFailure): void {
-  const status = NOT_FOUND.includes(reason) ? 404 : FORBIDDEN.includes(reason) ? 403 : BAD_REQUEST.includes(reason) ? 400 : 409;
+  const status = NOT_FOUND.includes(reason)
+    ? 404
+    : FORBIDDEN.includes(reason)
+      ? 403
+      : BAD_REQUEST.includes(reason)
+        ? 400
+        : 409;
   res.status(status).json({ error: reason });
 }
 
@@ -176,7 +187,8 @@ function parseDecision(body: Record<string, unknown>): SeriesDecision | undefine
   const { decision, winnerAccountId, winnerParticipantId } = body;
   if (decision === "draw") return { kind: "draw" };
   if (decision === "double_loss") return { kind: "double_loss" };
-  if (typeof winnerAccountId === "string" && winnerAccountId) return { kind: "winner_account", accountId: winnerAccountId };
+  if (typeof winnerAccountId === "string" && winnerAccountId)
+    return { kind: "winner_account", accountId: winnerAccountId };
   if (typeof winnerParticipantId === "string" && winnerParticipantId)
     return { kind: "winner_participant", participantId: winnerParticipantId };
   return undefined;

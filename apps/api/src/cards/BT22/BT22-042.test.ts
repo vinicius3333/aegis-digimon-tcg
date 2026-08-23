@@ -79,7 +79,9 @@ describe("BT22-042 Nyabootmon", () => {
     await settle();
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId !== "BT22-088")).toHaveLength(3);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId !== "BT22-088")).toHaveLength(
+      3,
+    );
     expect(s.perm("target").currentDP).toBe(3000);
   });
 
@@ -102,7 +104,9 @@ describe("BT22-042 Nyabootmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    const primitives = (s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> } }).primitives;
+    const primitives = (
+      s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> } }
+    ).primitives;
 
     await primitives.deletePermanent([s.perm("first").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-032"));

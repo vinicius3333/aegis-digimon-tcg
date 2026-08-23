@@ -6,91 +6,86 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "AddDPFromSuspendedCost",
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "battleArea",
-                "kind": [
-                  "Digimon"
-                ],
-                "excludeSelf": true,
-                "unsuspended": true
+          kind: "AddDPFromSuspendedCost",
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "battleArea",
+                kind: ["Digimon"],
+                excludeSelf: true,
+                unsuspended: true,
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by suspending 1 of your other Digimon"
+            raw: "by suspending 1 of your other Digimon",
           },
-          "dpSource": {
-            "kind": "suspendedTarget"
+          dpSource: {
+            kind: "suspendedTarget",
           },
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "forThisAttack",
-          "alsoGainKeywords": [
+          duration: "forThisAttack",
+          alsoGainKeywords: [
             {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
           ],
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
+      isInherited: true,
     },
     {
-      "trigger": "YourTurn",
-      "frequency": "OncePerTurn",
-      "isInherited": true,
-      "actions": [
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      isInherited: true,
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "amount": 2000,
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "names": [
-        "Lopmon",
-        "Terriermon"
+              amount: 2000,
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      names: ["Lopmon", "Terriermon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX4-035", compiled);

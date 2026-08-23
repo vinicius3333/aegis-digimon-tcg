@@ -6,9 +6,19 @@ import "./ST8-11.js";
 
 describe("ST8-11 Victory Sword", () => {
   it("unsuspends one of your blue Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST8-04", as: "target", suspended: true }], hand: [{ card: "ST8-11", as: "option" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST8-04", as: "target", suspended: true }],
+          hand: [{ card: "ST8-11", as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.perm("target").isSuspended);
   });
 

@@ -19,8 +19,11 @@ export interface ResolverDecisions {
 export function createResolverDecisions(manager: DecisionManager): ResolverDecisions {
   return {
     async chooseOrder(seat, active, timing) {
-      log("[chooseOrder]", `seat=${seat} count=${active.length}`,
-        active.map((c) => ({ card: c.source.cardId, desc: c.effect.description, optional: c.effect.optional })));
+      log(
+        "[chooseOrder]",
+        `seat=${seat} count=${active.length}`,
+        active.map((c) => ({ card: c.source.cardId, desc: c.effect.description, optional: c.effect.optional })),
+      );
       // Ordering is only a player decision when at least two effects compete for
       // the next slot. Keep this guard even though the stack resolver already skips
       // lone groups so any direct/legacy caller cannot recreate a confirmation-only
@@ -63,7 +66,10 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
     },
 
     async askOptional(seat, collected) {
-      log("[askOptional]", `seat=${seat} card=${collected.source.cardId} desc="${collected.effect.description}" optional=${collected.effect.optional} isSecurity=${collected.effect.isSecurity}`);
+      log(
+        "[askOptional]",
+        `seat=${seat} card=${collected.source.cardId} desc="${collected.effect.description}" optional=${collected.effect.optional} isSecurity=${collected.effect.isSecurity}`,
+      );
       const response = await manager.request({
         seat,
         kind: "optional",

@@ -857,9 +857,9 @@ export class ContinuousEffectLedger {
   grantedNames(permanentId: string): string[] {
     return this.nameTraitGrants
       .filter((g) => g.permanentId === permanentId && g.kind === "name" && !g.digiXrosOnly)
-      .flatMap((g) => g.dynamicTokens
-        ? g.dynamicTokens().map((t) => t.toLowerCase())
-        : g.tokens.map((t) => t.toLowerCase()));
+      .flatMap((g) =>
+        g.dynamicTokens ? g.dynamicTokens().map((t) => t.toLowerCase()) : g.tokens.map((t) => t.toLowerCase()),
+      );
   }
 
   /**
@@ -982,10 +982,9 @@ export class ContinuousEffectLedger {
 
   /** Whether a permanent currently has a given keyword from any active grant. */
   hasKeyword(permanentId: string, keyword: string): boolean {
-    const result = (
+    const result =
       this.printedKeywordsOfPermanent?.(permanentId)?.includes(keyword) === true ||
-      this.grantedKeywords(permanentId).some((grant) => grant.keyword === keyword)
-    );
+      this.grantedKeywords(permanentId).some((grant) => grant.keyword === keyword);
     return result;
   }
 
@@ -1229,7 +1228,8 @@ export class ContinuousEffectLedger {
       (c) =>
         c.targetPermanentId === targetPermanentId &&
         c.stackInstanceId === stackInstanceId &&
-        c.trigger === opts?.trigger && c.inheritedOnly === opts?.inheritedOnly,
+        c.trigger === opts?.trigger &&
+        c.inheritedOnly === opts?.inheritedOnly,
     );
     if (exists) return;
     this.stackEffectConferrals.push({

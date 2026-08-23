@@ -1,17 +1,5 @@
-import {
-  CardInstance,
-  PlayerState,
-  Zone,
-  type GameState,
-  type Seat,
-} from "@aegis/shared";
-import {
-  clearBattleArea,
-  clearZone,
-  fillZone,
-  insertCard,
-  takeTop,
-} from "./state/access.js";
+import { CardInstance, PlayerState, Zone, type GameState, type Seat } from "@aegis/shared";
+import { clearBattleArea, clearZone, fillZone, insertCard, takeTop } from "./state/access.js";
 
 /**
  * Match setup: build each seat's zones from its decklist and run the official
@@ -149,12 +137,7 @@ export function loadDeckInto(player: PlayerState, seat: Seat, deck: Decklist): P
  * tests and standalone setup; the engine reuses the already-seated placeholder via
  * {@link loadDeckInto} to preserve its StateView identity.
  */
-export function buildPlayerState(
-  seat: Seat,
-  sessionId: string,
-  displayName: string,
-  deck: Decklist,
-): PlayerState {
+export function buildPlayerState(seat: Seat, sessionId: string, displayName: string, deck: Decklist): PlayerState {
   const player = new PlayerState();
   player.sessionId = sessionId;
   player.displayName = displayName;

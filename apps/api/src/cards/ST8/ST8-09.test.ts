@@ -6,9 +6,17 @@ import "./ST8-09.js";
 
 describe("ST8-09 Slayerdramon", () => {
   it("gains Security Attack +1 for the turn when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST8-08", as: "base" }], hand: [{ card: "ST8-09", as: "slayer" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST8-08", as: "base" }], hand: [{ card: "ST8-09", as: "slayer" }] },
+    });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("slayer").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("slayer").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack") === 1);
   });
 

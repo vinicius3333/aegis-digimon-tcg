@@ -5,9 +5,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-001.webp",
     "cardLv": "Lv.2",
@@ -57,9 +55,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-002.webp",
     "cardLv": "Lv.2",
@@ -109,9 +105,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-003.webp",
     "cardLv": "Lv.2",
@@ -161,9 +155,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-004.webp",
     "cardLv": "Lv.2",
@@ -213,9 +205,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-005.webp",
     "cardLv": "Lv.2",
@@ -265,9 +255,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-006.webp",
     "cardLv": "Lv.2",
@@ -317,9 +305,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Navi",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-007.webp",
     "cardLv": "Lv.2",
@@ -369,9 +355,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-008.webp",
     "cardLv": "Lv.3",
@@ -427,9 +411,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-009.webp",
     "cardLv": "Lv.3",
@@ -485,9 +467,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Game",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-010.webp",
     "cardLv": "Lv.3",
@@ -543,9 +523,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-011.webp",
     "cardLv": "Lv.4",
@@ -601,9 +579,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-012.webp",
     "cardLv": "Lv.4",
@@ -664,9 +640,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-013.webp",
     "cardLv": "Lv.4",
@@ -727,9 +701,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.4 or lower [TB] trait card",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-014.webp",
     "cardLv": "Lv.5",
@@ -790,9 +762,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-015.webp",
     "cardLv": "Lv.5",
@@ -860,9 +830,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-016.webp",
     "cardLv": "Lv.6",
@@ -923,9 +891,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -4] 2 Lv.5 or lower [Shambala] trait cards w/different levels",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-017.webp",
     "cardLv": "Lv.6",
@@ -986,9 +952,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-018.webp",
     "cardLv": "Lv.3",
@@ -1044,9 +1008,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Social",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-019.webp",
     "cardLv": "Lv.3",
@@ -1102,9 +1064,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-020.webp",
     "cardLv": "Lv.4",
@@ -1160,9 +1120,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-021.webp",
     "cardLv": "Lv.4",
@@ -1223,9 +1181,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-022.webp",
     "cardLv": "Lv.4",
@@ -1286,9 +1242,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-023.webp",
     "cardLv": "Lv.4",
@@ -1344,9 +1298,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-024.webp",
     "cardLv": "Lv.3",
@@ -1407,9 +1359,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-025.webp",
     "cardLv": "Lv.3",
@@ -1465,9 +1415,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-026.webp",
     "cardLv": "Lv.4",
@@ -1523,9 +1471,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-027.webp",
     "cardLv": "Lv.4",
@@ -1586,9 +1532,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.3 [Life]/[System]/[Seven Code] trait Digimon card",
     "attribute": "Life",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-028.webp",
     "cardLv": "Lv.4",
@@ -1649,9 +1593,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-029.webp",
     "cardLv": "Lv.5",
@@ -1712,9 +1654,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-030.webp",
     "cardLv": "Lv.5",
@@ -1782,9 +1722,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-031.webp",
     "cardLv": "Lv.5",
@@ -1852,9 +1790,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-032.webp",
     "cardLv": "Lv.6",
@@ -1928,9 +1864,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-033.webp",
     "cardLv": "Lv.6",
@@ -1991,9 +1925,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-034.webp",
     "cardLv": "Lv.3",
@@ -2049,9 +1981,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-035.webp",
     "cardLv": "Lv.3",
@@ -2107,9 +2037,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-036.webp",
     "cardLv": "Lv.3",
@@ -2165,9 +2093,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.3 [Navi]/[System]/[Seven Code] trait Digimon card",
     "attribute": "Navi",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-037.webp",
     "cardLv": "Lv.4",
@@ -2228,9 +2154,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-038.webp",
     "cardLv": "Lv.4",
@@ -2286,9 +2210,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-039.webp",
     "cardLv": "Lv.4",
@@ -2344,9 +2266,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-040.webp",
     "cardLv": "Lv.4",
@@ -2402,9 +2322,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Free",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-041.webp",
     "cardLv": "Lv.4",
@@ -2465,9 +2383,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-042.webp",
     "cardLv": "Lv.5",
@@ -2523,9 +2439,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-043.webp",
     "cardLv": "Lv.5",
@@ -2581,9 +2495,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-044.webp",
     "cardLv": "Lv.5",
@@ -2639,9 +2551,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Free",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-045.webp",
     "cardLv": "Lv.6",
@@ -2697,9 +2607,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-046.webp",
     "cardLv": "Lv.6",
@@ -2760,9 +2668,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -6] 4 [Larva]/[Insectoid]/[Titan] trait Digimon cards w/different levels",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-047.webp",
     "cardLv": "Lv.6",
@@ -2818,9 +2724,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-048.webp",
     "cardLv": "Lv.6",
@@ -2881,9 +2785,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-049.webp",
     "cardLv": "Lv.6",
@@ -2952,9 +2854,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "[Digivolve] Lv.6 w/[DATA SQUAD] trait: Cost 5 [Burst Digivolve] [Rosemon]: Cost 0 by returning 1 [Yoshino Fujieda] to the hand.",
     "cardImage": "assets/images/cards/BT26-050.webp",
     "cardLv": "Lv.7",
@@ -3010,9 +2910,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Tool",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-051.webp",
     "cardLv": "Lv.3",
@@ -3068,9 +2966,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-052.webp",
     "cardLv": "Lv.3",
@@ -3126,9 +3022,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-053.webp",
     "cardLv": "Lv.4",
@@ -3184,9 +3078,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-054.webp",
     "cardLv": "Lv.5",
@@ -3247,9 +3139,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-055.webp",
     "cardLv": "Lv.5",
@@ -3305,9 +3195,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-056.webp",
     "cardLv": "Lv.5",
@@ -3375,9 +3263,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-057.webp",
     "cardLv": "Lv.5",
@@ -3438,9 +3324,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-058.webp",
     "cardLv": "Lv.6",
@@ -3514,9 +3398,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-059.webp",
     "cardLv": "Lv.6",
@@ -3590,9 +3472,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-060.webp",
     "cardLv": "Lv.7",
@@ -3653,9 +3533,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-061.webp",
     "cardLv": "Lv.3",
@@ -3711,9 +3589,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-062.webp",
     "cardLv": "Lv.3",
@@ -3774,9 +3650,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Entertainment",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-063.webp",
     "cardLv": "Lv.3",
@@ -3832,9 +3706,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-064.webp",
     "cardLv": "Lv.3",
@@ -3890,9 +3762,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-065.webp",
     "cardLv": "Lv.3",
@@ -3948,9 +3818,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-066.webp",
     "cardLv": "Lv.3",
@@ -4006,9 +3874,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-067.webp",
     "cardLv": "Lv.4",
@@ -4069,9 +3935,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-068.webp",
     "cardLv": "Lv.4",
@@ -4127,9 +3991,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-069.webp",
     "cardLv": "Lv.4",
@@ -4185,9 +4047,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-070.webp",
     "cardLv": "Lv.4",
@@ -4243,9 +4103,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-071.webp",
     "cardLv": "Lv.4",
@@ -4306,9 +4164,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-072.webp",
     "cardLv": "Lv.4",
@@ -4364,9 +4220,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.4 or lower Digimon card w/[Chronomon] in text or w/[TS] trait",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-073.webp",
     "cardLv": "Lv.5",
@@ -4427,9 +4281,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-074.webp",
     "cardLv": "Lv.5",
@@ -4497,9 +4349,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-075.webp",
     "cardLv": "Lv.5",
@@ -4560,9 +4410,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-076.webp",
     "cardLv": "Lv.5",
@@ -4618,9 +4466,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-077.webp",
     "cardLv": "Lv.6",
@@ -4681,9 +4527,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-078.webp",
     "cardLv": "Lv.6",
@@ -4751,9 +4595,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] [Plutomon]",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-079.webp",
     "cardLv": "Lv.6",
@@ -4816,9 +4658,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-080.webp",
     "cardLv": "Lv.6",
@@ -4891,9 +4731,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -5] [Minervamon]",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-081.webp",
     "cardLv": "Lv.6",
@@ -4966,9 +4804,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-082.webp",
     "cardLv": "Lv.6",
@@ -5031,9 +4867,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -4] [Junomon]",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-083.webp",
     "cardLv": "Lv.7",
@@ -5094,9 +4928,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "System",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-084.webp",
     "cardLv": "Lv.3",
@@ -5152,9 +4984,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -5] 5 different-level cards w/[Chronomon] in text or w/[Shaman] trait",
     "attribute": "NO DATA",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-085.webp",
     "cardLv": "-",
@@ -5211,9 +5041,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -7] 7 [Seven Code] trait Digimon cards w/different names",
     "attribute": "Unknown",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-086.webp",
     "cardLv": "Lv.7",
@@ -5269,9 +5097,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-087.webp",
     "cardLv": "-",
@@ -5321,9 +5147,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-088.webp",
     "cardLv": "-",
@@ -5373,9 +5197,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-089.webp",
     "cardLv": "-",
@@ -5432,9 +5254,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-090.webp",
     "cardLv": "-",
@@ -5484,9 +5304,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-091.webp",
     "cardLv": "-",
@@ -5536,9 +5354,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-092.webp",
     "cardLv": "-",
@@ -5595,9 +5411,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-093.webp",
     "cardLv": "-",
@@ -5647,9 +5461,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-094.webp",
     "cardLv": "-",
@@ -5706,9 +5518,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-095.webp",
     "cardLv": "-",
@@ -5758,9 +5568,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-096.webp",
     "cardLv": "-",
@@ -5810,9 +5618,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-097.webp",
     "cardLv": "-",
@@ -5862,9 +5668,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-098.webp",
     "cardLv": "-",
@@ -5914,9 +5718,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-099.webp",
     "cardLv": "-",
@@ -5966,9 +5768,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-100.webp",
     "cardLv": "-",
@@ -6018,9 +5818,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-101.webp",
     "cardLv": "-",
@@ -6070,9 +5868,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-102.webp",
     "cardLv": "-",
@@ -6135,9 +5931,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-103.webp",
     "cardLv": "Lv.7",
@@ -6216,9 +6010,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/BT26-104.webp",
     "cardLv": "-",
@@ -6282,9 +6074,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-001.webp",
     "cardLv": "Lv.2",
@@ -6348,9 +6138,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-002.webp",
     "cardLv": "Lv.2",
@@ -6414,9 +6202,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-003.webp",
     "cardLv": "Lv.2",
@@ -6480,9 +6266,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-004.webp",
     "cardLv": "Lv.2",
@@ -6546,9 +6330,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-005.webp",
     "cardLv": "Lv.3",
@@ -6604,9 +6386,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-006.webp",
     "cardLv": "Lv.3",
@@ -6676,9 +6456,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-007.webp",
     "cardLv": "Lv.3",
@@ -6753,9 +6531,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-008.webp",
     "cardLv": "Lv.3",
@@ -6825,9 +6601,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-009.webp",
     "cardLv": "Lv.3",
@@ -6897,9 +6671,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-010.webp",
     "cardLv": "Lv.4",
@@ -6974,9 +6746,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-011.webp",
     "cardLv": "Lv.4",
@@ -7046,9 +6816,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-012.webp",
     "cardLv": "Lv.4",
@@ -7118,9 +6886,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-013.webp",
     "cardLv": "Lv.4",
@@ -7195,9 +6961,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-014.webp",
     "cardLv": "Lv.5",
@@ -7272,9 +7036,7 @@
     "aceEffect": "-",
     "assembly": "[DigiXros -2] 1 Lv.5 or lower Digimon card w/[Gokuumon] in text or w/[SW] trait",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-015.webp",
     "cardLv": "Lv.5",
@@ -7335,9 +7097,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.4 or lower w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-016.webp",
     "cardLv": "Lv.5",
@@ -7412,9 +7172,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -6] Lv.5 x Lv.4 x Lv.3, all w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-017.webp",
     "cardLv": "Lv.6",
@@ -7489,9 +7247,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-018.webp",
     "cardLv": "Lv.6",
@@ -7578,9 +7334,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-019.webp",
     "cardLv": "Lv.6",
@@ -7655,9 +7409,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-020.webp",
     "cardLv": "Lv.3",
@@ -7727,9 +7479,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-021.webp",
     "cardLv": "Lv.3",
@@ -7799,9 +7549,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-022.webp",
     "cardLv": "Lv.3",
@@ -7864,9 +7612,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-023.webp",
     "cardLv": "Lv.3",
@@ -7941,9 +7687,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-024.webp",
     "cardLv": "Lv.4",
@@ -8018,9 +7762,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-025.webp",
     "cardLv": "Lv.4",
@@ -8090,9 +7832,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-026.webp",
     "cardLv": "Lv.4",
@@ -8162,9 +7902,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-027.webp",
     "cardLv": "Lv.4",
@@ -8239,9 +7977,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-028.webp",
     "cardLv": "Lv.5",
@@ -8316,9 +8052,7 @@
     "aceEffect": "-",
     "assembly": "[DigiXros -2] 1 Lv.5 or lower Digimon card w/[Gokuumon] in text or w/[SW] trait",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-029.webp",
     "cardLv": "Lv.5",
@@ -8393,9 +8127,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-030.webp",
     "cardLv": "Lv.5",
@@ -8470,9 +8202,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.4 or lower card w/[Aqua]/[Sea Animal] in any trait or w/[TB] trait",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-031.webp",
     "cardLv": "Lv.5",
@@ -8533,9 +8263,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-032.webp",
     "cardLv": "Lv.5",
@@ -8610,9 +8338,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-033.webp",
     "cardLv": "Lv.6",
@@ -8699,9 +8425,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-034.webp",
     "cardLv": "Lv.6",
@@ -8776,9 +8500,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -6] Lv.5 x Lv.4 x Lv.3, all w/[Gabumon]/[Garurumon] in name or w/[ME]/[VB] trait",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-035.webp",
     "cardLv": "Lv.6",
@@ -8865,9 +8587,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-036.webp",
     "cardLv": "Lv.6",
@@ -8942,9 +8662,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-037.webp",
     "cardLv": "Lv.7",
@@ -9024,9 +8742,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-038.webp",
     "cardLv": "Lv.3",
@@ -9101,9 +8817,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-039.webp",
     "cardLv": "Lv.3",
@@ -9173,9 +8887,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-040.webp",
     "cardLv": "Lv.3",
@@ -9245,9 +8957,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-041.webp",
     "cardLv": "Lv.4",
@@ -9322,9 +9032,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-042.webp",
     "cardLv": "Lv.4",
@@ -9399,9 +9107,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-043.webp",
     "cardLv": "Lv.4",
@@ -9457,9 +9163,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-044.webp",
     "cardLv": "Lv.5",
@@ -9515,9 +9219,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-045.webp",
     "cardLv": "Lv.5",
@@ -9573,9 +9275,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.4 or lower [TB] trait card",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-046.webp",
     "cardLv": "Lv.5",
@@ -9662,9 +9362,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-047.webp",
     "cardLv": "Lv.6",
@@ -9745,9 +9443,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -6] 3 [Gokuumon]/[Sangomon]/[Cho-Hakkaimon]/[Sanzomon] w/different names",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-048.webp",
     "cardLv": "Lv.6",
@@ -9827,9 +9523,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-049.webp",
     "cardLv": "Lv.3",
@@ -9904,9 +9598,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-050.webp",
     "cardLv": "Lv.4",
@@ -9981,9 +9673,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-051.webp",
     "cardLv": "Lv.5",
@@ -10058,9 +9748,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-052.webp",
     "cardLv": "Lv.6",
@@ -10135,9 +9823,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-053.webp",
     "cardLv": "Lv.3",
@@ -10207,9 +9893,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-054.webp",
     "cardLv": "Lv.4",
@@ -10265,9 +9949,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-055.webp",
     "cardLv": "Lv.5",
@@ -10342,9 +10024,7 @@
     "aceEffect": "-",
     "assembly": "[DigiXros -2] 1 Lv.5 or lower Digimon card w/[Gokuumon] in text or w/[SW] trait",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-056.webp",
     "cardLv": "Lv.5",
@@ -10405,9 +10085,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-057.webp",
     "cardLv": "Lv.6",
@@ -10468,9 +10146,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-058.webp",
     "cardLv": "Lv.6",
@@ -10545,9 +10221,7 @@
     "aceEffect": "Overflow ＜-4＞ ",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-059.webp",
     "cardLv": "Lv.6",
@@ -10622,9 +10296,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -8] 6 Lv.6 or lower [Machine]/[Cyborg]/[ME] trait cards w/different names",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-060.webp",
     "cardLv": "Lv.7",
@@ -10704,9 +10376,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-061.webp",
     "cardLv": "Lv.3",
@@ -10781,9 +10451,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-062.webp",
     "cardLv": "Lv.4",
@@ -10853,9 +10521,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.4 or lower [Puppet]/[TB] trait card",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-063.webp",
     "cardLv": "Lv.5",
@@ -10916,9 +10582,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -2] Lv.4 or lower [Machine]/[Cyborg]/[ME] trait card",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-064.webp",
     "cardLv": "Lv.5",
@@ -11005,9 +10669,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Data",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-065.webp",
     "cardLv": "Lv.6",
@@ -11082,9 +10744,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-066.webp",
     "cardLv": "-",
@@ -11148,9 +10808,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-067.webp",
     "cardLv": "-",
@@ -11214,9 +10872,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-068.webp",
     "cardLv": "-",
@@ -11280,9 +10936,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-069.webp",
     "cardLv": "-",
@@ -11346,9 +11000,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-070.webp",
     "cardLv": "-",
@@ -11412,9 +11064,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-071.webp",
     "cardLv": "-",
@@ -11478,9 +11128,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-072.webp",
     "cardLv": "-",
@@ -11544,9 +11192,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-073.webp",
     "cardLv": "-",
@@ -11610,9 +11256,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-074.webp",
     "cardLv": "-",
@@ -11662,9 +11306,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-075.webp",
     "cardLv": "-",
@@ -11740,9 +11382,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -9] 8 [Hybrid]/[Shambala] trait cards w/different names",
     "attribute": "Vaccine",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-076.webp",
     "cardLv": "Lv.7",
@@ -11812,9 +11452,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/EX12-077.webp",
     "cardLv": "Lv.7",
@@ -11888,9 +11526,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/P-239.webp",
     "cardLv": "Lv.3",
@@ -11959,9 +11595,7 @@
     "aceEffect": "-",
     "assembly": "[Assembly -6] Lv.5 x Lv.4 x Lv.3, all w/[Gammamon] in text or w/[VB] trait",
     "attribute": "Virus",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/P-240.webp",
     "cardLv": "Lv.6",
@@ -12035,9 +11669,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/P-241.webp",
     "cardLv": "-",
@@ -12100,9 +11732,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/P-242.webp",
     "cardLv": "-",
@@ -12165,9 +11795,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/P-243.webp",
     "cardLv": "-",
@@ -12230,9 +11858,7 @@
     "aceEffect": "-",
     "assembly": "-",
     "attribute": "-",
-    "block": [
-      "06"
-    ],
+    "block": ["06"],
     "burstDigivolve": "-",
     "cardImage": "assets/images/cards/P-244.webp",
     "cardLv": "-",

@@ -23,6 +23,8 @@ describe("BT18-042 MagnaGarurumon", () => {
 
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-060")).toBe(true);
     expect(s.perm("host").stack).toHaveLength(0);
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("target").instanceId)).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("target").instanceId),
+    ).toBe(false);
   });
 });

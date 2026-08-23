@@ -22,7 +22,11 @@ describe("BT25-025 Aegiochusmon: Blue", () => {
   it("only watches removal from your own security and preserves Blocker/Decode", () => {
     const inherited = BT25_025.effects?.find((entry) => entry.isInherited);
     const watcher = inherited?.actions?.[0] as { sourceFilter?: unknown } | undefined;
-    expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenSecurityRemoved", sourceFilter: { controller: "mine" } });
+    expect(watcher).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      sourceFilter: { controller: "mine" },
+    });
     expect(BT25_025.effects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] }),

@@ -432,13 +432,11 @@ export function installAccountRoutes(
     const program = await swiss.startTournamentProgram(req.params.id!);
     // The field is frozen either way — that write committed — but a Swiss event whose round 1 did
     // not publish has NOT started, and answering 200 would tell the organizer it had.
-    res
-      .status(program.ok ? 200 : 409)
-      .json({
-        participants: result.value,
-        phase: program.ok ? program.value : null,
-        error: program.ok ? undefined : program.reason,
-      });
+    res.status(program.ok ? 200 : 409).json({
+      participants: result.value,
+      phase: program.ok ? program.value : null,
+      error: program.ok ? undefined : program.reason,
+    });
   });
   // The organizer's undo for an event that has not started. Deliberately unavailable from the
   // moment it starts: from then on the tournament is a record other players appear in.

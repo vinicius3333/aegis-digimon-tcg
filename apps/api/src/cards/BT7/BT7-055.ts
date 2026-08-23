@@ -19,5 +19,32 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  * Modeled here as a static modifier that installs the cost gate; the engine's unsuspend
  * path consults the continuous ledger for active unsuspend-cost requirements.
  */
-const compiled: CompiledCard = { effects: [{ trigger: "WhenDigivolving", actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }, { kind: "GainMemory", amount: 1, scaling: { per: 1, unit: "cards", filter: { controller: "opponent", kind: ["Digimon"], suspended: true } } }] }, { trigger: "Static", actions: [{ kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 99 }, restriction: "unsuspendHandTrashCost", duration: "untilOpponentTurnEnd" }] }], coverage: "full", residual: [] };
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          scaling: { per: 1, unit: "cards", filter: { controller: "opponent", kind: ["Digimon"], suspended: true } },
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 99 },
+          restriction: "unsuspendHandTrashCost",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
 registerIrCard("BT7-055", compiled);

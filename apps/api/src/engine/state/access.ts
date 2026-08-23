@@ -35,13 +35,7 @@ interface OverflowMemoryPort {
  */
 
 /** The six zones that hold loose {@link CardInstance}s (battle area/breeding hold Permanents). */
-export type CardZone =
-  | Zone.Deck
-  | Zone.Hand
-  | Zone.Security
-  | Zone.Trash
-  | Zone.EggDeck
-  | Zone.Delay;
+export type CardZone = Zone.Deck | Zone.Hand | Zone.Security | Zone.Trash | Zone.EggDeck | Zone.Delay;
 
 /** Where a card lands in an ordered zone. `security[0]`/`deck[0]` are the "top". */
 export type ZonePosition = "top" | "bottom";
@@ -77,21 +71,13 @@ export function insertCard(
 }
 
 /** Remove the card at `index` from a loose zone; undefined when out of range. */
-export function extractCardAt(
-  player: PlayerState,
-  zone: CardZone,
-  index: number,
-): CardInstance | undefined {
+export function extractCardAt(player: PlayerState, zone: CardZone, index: number): CardInstance | undefined {
   if (index < 0) return undefined;
   return zoneArrayOf(player, zone).splice(index, 1)[0];
 }
 
 /** Remove a card from a loose zone by instance id; undefined when absent. */
-export function extractCardById(
-  player: PlayerState,
-  zone: CardZone,
-  instanceId: string,
-): CardInstance | undefined {
+export function extractCardById(player: PlayerState, zone: CardZone, instanceId: string): CardInstance | undefined {
   const arr = zoneArrayOf(player, zone);
   const index = arr.findIndex((card) => card.instanceId === instanceId);
   if (index === -1) return undefined;
@@ -152,10 +138,7 @@ export function clearBattleArea(player: PlayerState): Permanent[] {
  * documented behavior without the presentation component noise.
  */
 /** Find a permanent in a single player's battle area or breeding slot, or undefined. */
-export function findPermanentInPlayer(
-  player: PlayerState,
-  permanentId: string,
-): Permanent | undefined {
+export function findPermanentInPlayer(player: PlayerState, permanentId: string): Permanent | undefined {
   for (const permanent of player.battleArea) {
     if (permanent.permanentId === permanentId) {
       return permanent;
@@ -340,11 +323,7 @@ export class GameStateAccess {
       if (target === undefined) {
         continue;
       }
-      const cards: CardInstance[] = [
-        ...target.stack,
-        ...(target.topCard ? [target.topCard] : []),
-        ...target.linked,
-      ];
+      const cards: CardInstance[] = [...target.stack, ...(target.topCard ? [target.topCard] : []), ...target.linked];
       for (const card of cards) {
         // CR §4-20-5: a token leaving the field is removed from the game instead of trashed —
         // dropping it here (inserting into no zone) is that removal; every other leaving card

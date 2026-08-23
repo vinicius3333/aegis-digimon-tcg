@@ -2374,7 +2374,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     unsuspend: true,
     useOptionFromHand: true,
     waiveColorRequirement: true,
-};
+  };
 
   // `addDpDeleteBudget`/`dpDeleteBudgetBonus` (BT19-011's inherited "AddToDPDeleteBudget"
   // modifier, interpreter.ts ~3206/3151) were the last two entries here: declared on Primitives

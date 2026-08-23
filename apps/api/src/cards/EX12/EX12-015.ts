@@ -14,184 +14,164 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // "may gain <Alliance> and attack": Alliance gain is optional; attack part is also
 // optional (KB ST21-04 Q4474 pattern). Can choose different Digimon for each.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -4000,
-          "duration": "untilOpponentTurnEnd"
+          keyword: "Raid",
+          raw: "＜Raid＞",
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "SW"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Alliance",
-            "raw": "＜Alliance＞"
-          },
-          "duration": "forTheTurn",
-          "optional": true
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "withoutSuspending": false,
-          "mandatory": true,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if a Digimon gained Alliance"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -4000,
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "SW"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Alliance",
-            "raw": "＜Alliance＞"
-          },
-          "duration": "forTheTurn",
-          "optional": true
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "withoutSuspending": false,
-          "mandatory": true,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if a Digimon gained Alliance"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
-            },
-            "count": 1
-          },
-          "optional": true
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["SW"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Alliance",
+            raw: "＜Alliance＞",
+          },
+          duration: "forTheTurn",
+          optional: true,
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          withoutSuspending: false,
+          mandatory: true,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if a Digimon gained Alliance",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["SW"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Alliance",
+            raw: "＜Alliance＞",
+          },
+          duration: "forTheTurn",
+          optional: true,
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          withoutSuspending: false,
+          mandatory: true,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if a Digimon gained Alliance",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "Shambala"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["Shambala"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-015", compiled);

@@ -13,9 +13,7 @@ describe("BT10/EX2 Taomon Plug-In deck gauntlet", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX2-021", as: "kyubimon", under: [{ card: "EX2-019", as: "renamon" }] },
-          ],
+          battleArea: [{ card: "EX2-021", as: "kyubimon", under: [{ card: "EX2-019", as: "renamon" }] }],
           hand: [
             { card: "BT10-039", as: "taomon" },
             { card: "EX2-066", as: "offensivePlugin" },
@@ -56,15 +54,15 @@ describe("BT10/EX2 Taomon Plug-In deck gauntlet", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === offensivePluginId) &&
-      s.perm("dpTarget").currentDP === 3000
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === offensivePluginId) &&
+        s.perm("dpTarget").currentDP === 3000,
     );
 
-    const optionChoice = s.decisions.find(({ req }) =>
-      req.kind === "selectCards" &&
-      req.options?.candidateInstanceIds?.includes(offensivePluginId)
+    const optionChoice = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(offensivePluginId),
     )?.req;
     expect(new Set(optionChoice?.options?.candidateInstanceIds ?? [])).toEqual(
       new Set([offensivePluginId, defensePluginId]),

@@ -9,7 +9,12 @@ describe("RB1-025 Diarbbitmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "RB1-025", as: "diarbbit" }] },
-        1: { battleArea: [{ card: "EX2-045", as: "target" }, { card: "BT1-009", as: "alreadySuspended", suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "EX2-045", as: "target" },
+            { card: "BT1-009", as: "alreadySuspended", suspended: true },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -24,7 +29,12 @@ describe("RB1-025 Diarbbitmon", () => {
   it("may force an Angoramon Digimon to attack an opponent Digimon at end of turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "RB1-025", as: "diarbbit" }, { card: "RB1-020", as: "angoramon" }] },
+        0: {
+          battleArea: [
+            { card: "RB1-025", as: "diarbbit" },
+            { card: "RB1-020", as: "angoramon" },
+          ],
+        },
         1: { battleArea: [{ card: "EX2-045", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -34,7 +44,9 @@ describe("RB1-025 Diarbbitmon", () => {
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("diarbbit"));
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045"));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045")).toBe(true);
   });
 
@@ -50,7 +62,9 @@ describe("RB1-025 Diarbbitmon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("diarbbit"));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045")).toBe(false);
   });
 });

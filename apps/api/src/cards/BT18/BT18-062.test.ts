@@ -19,7 +19,9 @@ describe("BT18-062 Gladimon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gladimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gladimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("protectedDigimon"), "beDeleted"));
 
     expect(observe(s.engine).isRestricted(s.perm("protectedDigimon"), "beDeleted")).toBe(true);

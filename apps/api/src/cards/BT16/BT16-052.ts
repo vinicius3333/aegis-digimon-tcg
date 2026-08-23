@@ -7,44 +7,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The previous IR incorrectly added a Restrict action to BT16-052's effect — removed.
 // Inherited: <Blocker>
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "KoHagurumon Token"
-          ],
-          "count": 1,
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          kind: "PlayToken",
+          tokens: ["KoHagurumon Token"],
+          count: 1,
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Hagurumon"
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Hagurumon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-052", compiled);

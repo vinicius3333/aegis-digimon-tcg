@@ -18,71 +18,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    Use ModifySecurityDP { controller: "mine", amount: 3000 } instead of ModifyDP on
 //    battle-area Digimon.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "kind": ["Tamer"],
-              "color": "yellow"
+          kind: "Digivolve",
+          target: {
+            filter: {
+              kind: ["Tamer"],
+              color: "yellow",
             },
-            "count": 1,
-            "upTo": false,
-            "isSelf": false
+            count: 1,
+            upTo: false,
+            isSelf: false,
           },
-          "from": "hand",
-          "costSuffix": "2",
-          "asIf": {
-            "level": 3,
-            "color": "yellow"
-          }
-        }
-      ]
+          from: "hand",
+          costSuffix: "2",
+          asIf: {
+            level: 3,
+            color: "yellow",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifySecurityDP",
-          "controller": "mine",
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          kind: "ModifySecurityDP",
+          controller: "mine",
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid"
-                  ],
-                  "match": "trait"
+                  tokens: ["Hybrid"],
+                  match: "trait",
                 },
                 {
-                  "tokens": [
-                    "Zoe Orimoto"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Zoe Orimoto"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a card with [Hybrid] in its traits or [Zoe Orimoto] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    }
+            raw: "a card with [Hybrid] in its traits or [Zoe Orimoto] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 2,
-      "isAlternate": true,
-      "baseIsTamer": true
-    }
-  ]
+      cost: 2,
+      isAlternate: true,
+      baseIsTamer: true,
+    },
+  ],
 };
 
 registerIrCard("BT7-036", compiled);

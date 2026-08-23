@@ -18,56 +18,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // per-card override is the only way to keep this card's KB-verified reading from being
 // silently reverted by a future recompile.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-            "count": 3
+            count: 3,
           },
-          "amount": 1
-        }
-      ]
+          amount: 1,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "digivolutionCardsCompareToSource": "gte",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          condition: {
+            kind: "opponentHasNone",
+            filter: {
+              digivolutionCardsCompareToSource: "gte",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has no Digimon with more digivolution cards than this Digimon"
-          }
-        }
+            raw: "your opponent has no Digimon with more digivolution cards than this Digimon",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-029", compiled);

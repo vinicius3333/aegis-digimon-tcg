@@ -153,7 +153,10 @@ describe("ST19-02 Decoy A3", () => {
 
     // Verify that the Decoy replacement is installed.
     const decoyReplacements = subTriggers.replacementsFor("wouldBeDeleted");
-    expect(decoyReplacements.length, "At least 1 wouldBeDeleted replacement should be installed").toBeGreaterThanOrEqual(1);
+    expect(
+      decoyReplacements.length,
+      "At least 1 wouldBeDeleted replacement should be installed",
+    ).toBeGreaterThanOrEqual(1);
 
     // Now simulate the deletion consult: the PUPPET Digimon would be deleted by an
     // opponent's effect (resolvingSeat = 1, cause = "byEffect").

@@ -9,16 +9,29 @@ describe("AD1-002 Aldamon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-001", as: "base" }], hand: [{ card: "AD1-002", as: "aldamon" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }, { card: "BT1-010", as: "tooLarge", dp: 9000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target", dp: 8000 },
+            { card: "BT1-010", as: "tooLarge", dp: 9000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("aldamon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aldamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooLarge").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooLarge").permanentId),
+    ).toBe(true);
   });
 
   it("digivolves from Takuya with 2 Hybrid cards under it and can attack immediately with Rush", async () => {
@@ -35,11 +48,23 @@ describe("AD1-002 Aldamon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("takuya").permanentId, instanceId: s.inst("aldamon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("aldamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("takuya").topCard?.cardId === "AD1-002");
     expect(s.state.memory).toBe(0);
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("takuya").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("takuya").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
@@ -49,15 +74,27 @@ describe("AD1-002 Aldamon", () => {
       {
         0: {
           battleArea: [{ card: "AD1-002", as: "aldamon" }],
-          hand: [{ card: "BT12-009", as: "hybrid" }, { card: "BT12-088", as: "takuya" }],
-          deck: [{ card: "BT1-001", as: "draw1" }, { card: "BT1-001", as: "draw2" }],
+          hand: [
+            { card: "BT12-009", as: "hybrid" },
+            { card: "BT12-088", as: "takuya" },
+          ],
+          deck: [
+            { card: "BT1-001", as: "draw1" },
+            { card: "BT1-001", as: "draw2" },
+          ],
         },
         1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("aldamon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("aldamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-088"));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
@@ -69,13 +106,23 @@ describe("AD1-002 Aldamon", () => {
   it("still plays the Tamer after an attack when no card was trashed, per Q6052", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-002", as: "aldamon" }], trash: [{ card: "BT12-088", as: "takuya" }], deck: ["BT1-001", "BT1-001"] },
+        0: {
+          battleArea: [{ card: "AD1-002", as: "aldamon" }],
+          trash: [{ card: "BT12-088", as: "takuya" }],
+          deck: ["BT1-001", "BT1-001"],
+        },
         1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("aldamon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("aldamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-088"));
 
     expect(s.state.players[0]!.deck).toHaveLength(2);
@@ -98,8 +145,17 @@ describe("AD1-002 Aldamon", () => {
     s.state.turnSeat = 1;
     const aldmonId = s.perm("aldamon").permanentId;
 
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: aldmonId } })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-088"), 5000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: aldmonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-088"),
+      5000,
+    );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === aldmonId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
@@ -120,7 +176,10 @@ describe("AD1-002 Aldamon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "AD1-002", as: "aldamon" }] } });
     s.state.memory = -10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aldamon").instanceId })).toEqual({ ok: false, reason: "insufficient-memory" });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("aldamon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {
@@ -132,6 +191,5 @@ describe("AD1-002 Aldamon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 });

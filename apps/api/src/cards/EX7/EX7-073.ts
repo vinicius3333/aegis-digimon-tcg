@@ -6,148 +6,130 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "controller": "mine",
-            "kind": [
-              "Option"
-            ],
-            "nameOrTrait": [
+          kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Three Musketeers"
-                ],
-                "match": "text"
-              }
-            ]
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestLevel"
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "digivolutionCards",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Three Musketeers"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                tokens: ["Three Musketeers"],
+                match: "text",
               },
-              "count": 2
-            },
-            "raw": "By trashing 2 cards with the [Three Musketeers] trait in this Digimon's digivolution cards"
+            ],
           },
-          "optional": true,
-          "abortOnDecline": true
+          from: ["hand"],
+          payCost: false,
+          optional: true,
         },
-        {
-          "kind": "SecurityManipulation",
-          "op": "trash",
-          "controller": "opponent",
-          "amount": 1,
-          "toTop": true,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect trashed the cost"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestLevel"
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "digivolutionCards",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Three Musketeers"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 2
-            },
-            "raw": "By trashing 2 cards with the [Three Musketeers] trait in this Digimon's digivolution cards"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "trash",
-          "controller": "opponent",
-          "amount": 1,
-          "toTop": true,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect trashed the cost"
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 6,
-      "traits": [
-        "Three Musketeers"
       ],
-      "cost": 1,
-      "isAlternate": true,
-      "excludeTraits": [
-        "X Antibody"
-      ]
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestLevel",
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                nameOrTrait: [
+                  {
+                    tokens: ["Three Musketeers"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 2,
+            },
+            raw: "By trashing 2 cards with the [Three Musketeers] trait in this Digimon's digivolution cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "trash",
+          controller: "opponent",
+          amount: 1,
+          toTop: true,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect trashed the cost",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestLevel",
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                nameOrTrait: [
+                  {
+                    tokens: ["Three Musketeers"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 2,
+            },
+            raw: "By trashing 2 cards with the [Three Musketeers] trait in this Digimon's digivolution cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "trash",
+          controller: "opponent",
+          amount: 1,
+          toTop: true,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect trashed the cost",
+          },
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 6,
+      traits: ["Three Musketeers"],
+      cost: 1,
+      isAlternate: true,
+      excludeTraits: ["X Antibody"],
+    },
+  ],
 };
 
 registerIrCard("EX7-073", compiled);

@@ -1,12 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { ArraySchema } from "@colyseus/schema";
-import {
-  GameState,
-  PlayerState,
-  type DecisionRequest,
-  type DecisionResponse,
-  type Seat,
-} from "@aegis/shared";
+import { GameState, PlayerState, type DecisionRequest, type DecisionResponse, type Seat } from "@aegis/shared";
 import { DecisionManager, type DecisionTransport } from "./index.js";
 import { createDecisionApi } from "./decisionApi.js";
 import type { EffectContext } from "../effects/EffectContext.js";
@@ -122,9 +116,7 @@ describe("DecisionManager", () => {
     const { transport } = recordingTransport();
     const mgr = new DecisionManager(state, transport);
     void mgr.request({ seat: 0, kind: "optional", promptText: "first" });
-    expect(() => mgr.request({ seat: 1, kind: "optional", promptText: "second" })).toThrow(
-      /still open/,
-    );
+    expect(() => mgr.request({ seat: 1, kind: "optional", promptText: "second" })).toThrow(/still open/);
   });
 
   it("auto-resolves a stalled decision with the safe default after the timeout", async () => {

@@ -185,8 +185,6 @@ describe("applyIntent routing (intent-protocol-and-room)", () => {
     const h = setup({ turnSeat: 0, phase: Phase.Main });
     // wrong-phase reasons collapse onto the shared vocabulary; both are rejected.
     expect(h.engine.applyIntent(0, { type: "hatchEgg" }).ok).toBe(false);
-    expect(
-      h.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: "p" }).ok,
-    ).toBe(false);
+    expect(h.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: "p" }).ok).toBe(false);
   });
 });

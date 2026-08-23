@@ -5,9 +5,17 @@ import "./BT5-010.js";
 
 describe("BT5-010 Greymon", () => {
   it("gains 1 memory with Agumon in its sources", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-007", as: "base" }], hand: [{ card: "BT5-010", as: "evolving" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT5-007", as: "base" }], hand: [{ card: "BT5-010", as: "evolving" }] },
+    });
     s.state.memory = 2;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);
   });
@@ -19,7 +27,14 @@ describe("BT5-010 Greymon", () => {
   });
 
   it("does not boost an explicitly excluded BurningGreymon host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-013", as: "host", under: ["BT5-010"] }, { card: "BT4-013", as: "control" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT4-013", as: "host", under: ["BT5-010"] },
+          { card: "BT4-013", as: "control" },
+        ],
+      },
+    });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("control").currentDP);
   });

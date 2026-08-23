@@ -14,25 +14,33 @@ describe("AD1-017 Dynasmon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("trashes one security card and gives every opposing Digimon -6000 DP on play", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-028", "BT1-029"] },
-      1: {
-        battleArea: [
-          { card: "BT1-010", as: "decoy", dp: 7000 },
-          { card: "BT1-010", as: "target", dp: 8000 },
-        ],
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-028", "BT1-029"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "decoy", dp: 7000 },
+            { card: "BT1-010", as: "target", dp: 8000 },
+          ],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 11;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.some((decision) => decision.req.kind === "chooseOption"));
     const choice = s.decisions.find((decision) => decision.req.kind === "chooseOption");
     expect(choice).toBeDefined();
-    s.engine.applyIntent(0, { type: "respondDecision", decisionId: choice!.req.decisionId, response: { kind: "chooseOption", optionIndex: 0 } });
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: choice!.req.decisionId,
+      response: { kind: "chooseOption", optionIndex: 0 },
+    });
     await settle(() => s.perm("target").currentDP === 2000);
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.perm("target").currentDP).toBe(2000);
@@ -49,7 +57,9 @@ describe("AD1-017 Dynasmon", () => {
     await s.ready();
     s.state.memory = 7;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-017"));
     expect(s.state.memory).toBe(1);
   });
@@ -62,13 +72,24 @@ describe("AD1-017 Dynasmon", () => {
           hand: [{ card: "AD1-017", as: "dynasmon" }],
           security: ["BT1-028"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "lower-after-reduction", dp: 8000 }, { card: "BT1-010", as: "higher-after-reduction", dp: 9000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "lower-after-reduction", dp: 8000 },
+            { card: "BT1-010", as: "higher-after-reduction", dp: 9000 },
+          ],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dynasmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("higher-after-reduction").permanentId);
@@ -79,14 +100,26 @@ describe("AD1-017 Dynasmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 6000 }, { card: "AD1-001", as: "other", dp: 7000 }], security: ["BT1-001"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker", dp: 6000 },
+            { card: "AD1-001", as: "other", dp: 7000 },
+          ],
+          security: ["BT1-001"],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1, 5000);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("other").permanentId);
   });
@@ -101,7 +134,13 @@ describe("AD1-017 Dynasmon", () => {
     );
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 5000);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

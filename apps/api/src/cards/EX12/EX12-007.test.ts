@@ -16,10 +16,14 @@ describe("EX12-007 Gammamon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 1);
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["RB1-005", "EX12-005"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["RB1-005", "EX12-005"]),
+    );
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
@@ -35,7 +39,9 @@ describe("EX12-007 Gammamon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX12-005");
@@ -57,15 +63,17 @@ describe("EX12-007 Gammamon", () => {
     const onPlay = registeredCompiledCards.get("EX12-007")!.effects[0]!;
     expect(onPlay).toMatchObject({
       trigger: "OnPlay",
-      actions: [{
-        kind: "RevealAdd",
-        revealCount: 3,
-        rest: "deckBottom",
-        add: [
-          { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "text", tokens: ["Gammamon"] }] } },
-          { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "trait", tokens: ["VB"] }] } },
-        ],
-      }],
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          rest: "deckBottom",
+          add: [
+            { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "text", tokens: ["Gammamon"] }] } },
+            { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "trait", tokens: ["VB"] }] } },
+          ],
+        },
+      ],
     });
     expect(registeredCompiledCards.get("EX12-007")!.effects[1]).toMatchObject({
       trigger: "YourTurn",

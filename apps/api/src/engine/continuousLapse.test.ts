@@ -7,7 +7,6 @@ import { advance } from "./testkit/advance.js";
 import { observe } from "./testkit/observe.js";
 import { extractPermanentAt } from "./state/access.js";
 
-
 const SOURCE_CARD = "BT3-040"; // [Opponent's Turn] opponent no-evo Digimon gain ＜Security Attack -1＞
 const TARGET_NO_EVO = "BT1-009"; // a vanilla Digimon with no digivolution cards (eligible target)
 

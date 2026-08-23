@@ -1,4 +1,3 @@
-
 /**
  * Side registry for the ＜Digisorption -N＞ keyword (BT2-050, BT3-054, BT3-056, ...).
  *

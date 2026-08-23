@@ -5,7 +5,6 @@ import "../cards/index.js";
 import { advance } from "./testkit/advance.js";
 import { setupEngine, type EngineSetup } from "./testkit/harness.js";
 
-
 /** Drive the OnStartMainPhase timing seam directly (the TurnStateMachine main-phase entry). */
 async function fireStartMainPhase(s: EngineSetup, turnSeat: 0 | 1): Promise<void> {
   s.state.turnSeat = turnSeat;

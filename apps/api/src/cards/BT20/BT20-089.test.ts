@@ -60,7 +60,12 @@ async function driveTurn(h: Harness, seat: Seat): Promise<void> {
 describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
   it("keeps the Rule name treatment permanent", () => {
     const rule = compiled.effects.find((effect) => effect.trigger === "Rule");
-    expect(rule?.actions[0]).toMatchObject({ kind: "GrantStatic", grant: "name", tokens: ["Eiji Nagasumi", "Leon Alexander"], duration: "permanent" });
+    expect(rule?.actions[0]).toMatchObject({
+      kind: "GrantStatic",
+      grant: "name",
+      tokens: ["Eiji Nagasumi", "Leon Alexander"],
+      duration: "permanent",
+    });
   });
 
   it("[Start of Your Main Phase] gains 1 memory when opponent has a Digimon", async () => {

@@ -126,10 +126,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
 
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("first").instanceId,
-      s.inst("second").instanceId,
-    ]));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
+    );
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notRecovered").instanceId]);
   });
@@ -154,10 +153,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
 
     expect(s.state.players[0]!.eggDeck.map((card) => card.instanceId)).toContain(s.inst("egg").instanceId);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("first").instanceId,
-      s.inst("second").instanceId,
-    ]));
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
+    );
   });
 
   it("publishes printed Piercing and Engage and spends one security to prevent a real deletion", async () => {

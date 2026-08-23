@@ -16,95 +16,83 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - rest: "deckBottomAnyOrder" per KB Q3362 "return remaining cards to the bottom... in any order".
 // - [Security] PlayWithoutCost a Tamer from hand — preserved.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you have a Tamer in play"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 5,
-          "digivolveOption": {
-            "into": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "excludeColors": [
-                "White"
-              ]
-            },
-            "payCost": false,
-            "optional": true
+            raw: "you have a Tamer in play",
           },
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1,
-              "to": "hand",
-              "ifDigivolveDeclined": true
-            }
-          ],
-          "rest": "deckBottomAnyOrder"
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 5,
+          digivolveOption: {
+            into: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              excludeColors: ["White"],
+            },
+            payCost: false,
+            optional: true,
+          },
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+              },
+              count: 1,
+              to: "hand",
+              ifDigivolveDeclined: true,
+            },
+          ],
+          rest: "deckBottomAnyOrder",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-072", compiled);

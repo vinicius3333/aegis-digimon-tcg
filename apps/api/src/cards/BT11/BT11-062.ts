@@ -29,34 +29,36 @@ const compiled: CompiledCard = {
     { trigger: "WhenDigivolving", actions: [reveal] },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldLeavePlay",
-        mode: "prevent",
-        sourceFilter: { isSelfRef: true },
-        leaveCause: "byEffect",
-        condition: {
-          kind: "selfHasNameContaining",
-          names: ["Greymon", "Omnimon"],
-          raw: "this Digimon has [Greymon] or [Omnimon] in its name",
-        },
-        cost: {
-          kind: "return",
-          target: {
-            filter: {
-              zone: "digivolutionCards",
-              controller: "mine",
-              kind: ["Option"],
-              nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
-              hostFilter: { isSelfRef: true },
-            },
-            count: 1,
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          sourceFilter: { isSelfRef: true },
+          leaveCause: "byEffect",
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Greymon", "Omnimon"],
+            raw: "this Digimon has [Greymon] or [Omnimon] in its name",
           },
-          to: "deckBottom",
-          raw: "place 1 [X Antibody] from this Digimon's digivolution cards at the bottom of its owner's deck",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                controller: "mine",
+                kind: ["Option"],
+                nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
+                hostFilter: { isSelfRef: true },
+              },
+              count: 1,
+            },
+            to: "deckBottom",
+            raw: "place 1 [X Antibody] from this Digimon's digivolution cards at the bottom of its owner's deck",
+          },
+          optional: true,
         },
-        optional: true,
-      }],
+      ],
       isInherited: true,
     },
   ],

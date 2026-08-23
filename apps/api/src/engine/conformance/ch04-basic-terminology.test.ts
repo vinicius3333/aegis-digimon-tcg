@@ -18,7 +18,12 @@ import { MemoryGauge, MEMORY_MAX } from "../MemoryGauge.js";
 import { GameStateAccess, applyOverflow, insertCard, extractCardById } from "../state/access.js";
 import { buildStateView } from "../state/visibility.js";
 import { dealOpeningHand } from "../setup.js";
-import { validateHatchEgg, applyHatchEgg, applyMoveFromBreeding, validateMoveFromBreeding } from "../actions/breeding.js";
+import {
+  validateHatchEgg,
+  applyHatchEgg,
+  applyMoveFromBreeding,
+  validateMoveFromBreeding,
+} from "../actions/breeding.js";
 import { setupEngine as setup, makeInstance as instance, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
@@ -97,40 +102,37 @@ describe("§4-2 Digimon (comprehensive-0069)", () => {
     expect(access.isBattleAreaDigimon(digiEggPermanent)).toBe(true);
   });
 
-  it(
-    "NOW MET: a Digimon with a Link card should get the printed link DP bonus added to its DP",
-    async () => {
-      cite(
-        "comprehensive-0069",
-        "DIVERGENCE: §4-2-4 'A Digimon gets the link DP value on its link card.' " +
-          "CardDefinition.linkDp is extracted and populated for real link cards (e.g. BT21-009, " +
-          "linkDp: 2000), but it is referenced NOWHERE in the DP-computation path: " +
-          "ModifierLedger.baseDpOf (effects/modifiers.ts) reads only the active base-DP override " +
-          "or the permanent's printed baseDP, and recomputeDP sums that with the active DP-delta " +
-          "modifiers — neither term ever inspects `permanent.linked` or any linked card's " +
-          "linkDp. A linked card changes nothing about currentDP.",
-      );
+  it("NOW MET: a Digimon with a Link card should get the printed link DP bonus added to its DP", async () => {
+    cite(
+      "comprehensive-0069",
+      "DIVERGENCE: §4-2-4 'A Digimon gets the link DP value on its link card.' " +
+        "CardDefinition.linkDp is extracted and populated for real link cards (e.g. BT21-009, " +
+        "linkDp: 2000), but it is referenced NOWHERE in the DP-computation path: " +
+        "ModifierLedger.baseDpOf (effects/modifiers.ts) reads only the active base-DP override " +
+        "or the permanent's printed baseDP, and recomputeDP sums that with the active DP-delta " +
+        "modifiers — neither term ever inspects `permanent.linked` or any linked card's " +
+        "linkDp. A linked card changes nothing about currentDP.",
+    );
 
-      const linkCardId = "BT21-009";
-      const s = setup({
-        0: { battleArea: [{ card: "AD1-001", dp: 5000, as: "host" }], hand: [{ card: linkCardId, as: "loose" }] },
-      });
-      const host = s.perm("host");
-      const def = requireCardDefinition(linkCardId);
-      expect(def.linkDp).toBe(2000);
-      const loose = s.inst("loose");
+    const linkCardId = "BT21-009";
+    const s = setup({
+      0: { battleArea: [{ card: "AD1-001", dp: 5000, as: "host" }], hand: [{ card: linkCardId, as: "loose" }] },
+    });
+    const host = s.perm("host");
+    const def = requireCardDefinition(linkCardId);
+    expect(def.linkDp).toBe(2000);
+    const loose = s.inst("loose");
 
-      // Drive the real link primitive rather than mutating the schema: currentDP is a plain
-      // synced field, so a raw push would leave it stale no matter how the DP path behaves.
-      // (There is still no player-facing link intent — see the ch06 divergence for §6-5-1-4.)
-      await (
-        s.engine as unknown as { primitives: { link(id: string, ids: string[]): Promise<unknown> } }
-      ).primitives.link(host.permanentId, [loose.instanceId]);
+    // Drive the real link primitive rather than mutating the schema: currentDP is a plain
+    // synced field, so a raw push would leave it stale no matter how the DP path behaves.
+    // (There is still no player-facing link intent — see the ch06 divergence for §6-5-1-4.)
+    await (
+      s.engine as unknown as { primitives: { link(id: string, ids: string[]): Promise<unknown> } }
+    ).primitives.link(host.permanentId, [loose.instanceId]);
 
-      // EXPECTED (per §4-2-4): host.currentDP should now include the link card's +2000 DP.
-      expect(host.currentDP).toBe(5000 + def.linkDp!);
-    },
-  );
+    // EXPECTED (per §4-2-4): host.currentDP should now include the link card's +2000 DP.
+    expect(host.currentDP).toBe(5000 + def.linkDp!);
+  });
 });
 
 describe("§4-3 Tamers (comprehensive-0070)", () => {
@@ -174,60 +176,57 @@ describe("§4-4 Security Digimon (comprehensive-0071)", () => {
 });
 
 describe("§4-5 DUAL Cards (comprehensive-0072)", () => {
-  it(
-    "playing a DUAL card lets the player declare which side (Digimon or Option) it's used as",
-    async () => {
-      cite(
-        "comprehensive-0072",
-        "§4-5-2 'A player declares whether they will use either the Digimon information or " +
-          "Option information on a DUAL card, then it can be used.' playCard.ts's playModeOf() " +
-          "honors an explicit `useAs: \"option\"` on the intent (falling back to the permanent " +
-          "side otherwise), and the Option side's [Main] effect is now compiled into the IR " +
-          "(runtime effect records reads card.optionEffect) — BT25-043 (isDualCard:true, " +
-          "printed Option effect '-8000 DP') actually resolves the Option side end to end.",
-      );
+  it("playing a DUAL card lets the player declare which side (Digimon or Option) it's used as", async () => {
+    cite(
+      "comprehensive-0072",
+      "§4-5-2 'A player declares whether they will use either the Digimon information or " +
+        "Option information on a DUAL card, then it can be used.' playCard.ts's playModeOf() " +
+        'honors an explicit `useAs: "option"` on the intent (falling back to the permanent ' +
+        "side otherwise), and the Option side's [Main] effect is now compiled into the IR " +
+        "(runtime effect records reads card.optionEffect) — BT25-043 (isDualCard:true, " +
+        "printed Option effect '-8000 DP') actually resolves the Option side end to end.",
+    );
 
-      const s = setup({
-        0: {
-          // BT1-045 Tsukaimon is a mono-Yellow VANILLA Digimon (no compiled effects): BT25-043
-          // carries optionColorRequirements: ["Yellow"], so this satisfies the color gate
-          // (unrelated to this test's DUAL-side-choice assertion) without confounding the DP
-          // assertion below with a DP-modifying trigger of its own.
-          battleArea: [{ card: "BT1-045", dp: 3000 }],
-          hand: [{ card: "BT25-043", as: "dualCard" }],
-        },
-        1: {
-          // BT1-080 Titamon: a VANILLA Digimon (no compiled effects) with printed DP 12000,
-          // matching the forced currentDP below so the engine's continuous DP recompute (which
-          // derives currentDP from the definition's own printed DP) doesn't clobber the override
-          // before the Option effect applies, and so the target can't itself fire a confounding
-          // DP-modifying trigger.
-          battleArea: [{ card: "BT1-080", dp: 12000, as: "oppTarget" }],
-        },
-      });
-      const p0 = s.state.players[0]!;
-      const def = requireCardDefinition("BT25-043");
-      expect(def.isDualCard).toBe(true);
-      expect(def.kinds).toEqual(expect.arrayContaining(["Digimon", "Option"]));
+    const s = setup({
+      0: {
+        // BT1-045 Tsukaimon is a mono-Yellow VANILLA Digimon (no compiled effects): BT25-043
+        // carries optionColorRequirements: ["Yellow"], so this satisfies the color gate
+        // (unrelated to this test's DUAL-side-choice assertion) without confounding the DP
+        // assertion below with a DP-modifying trigger of its own.
+        battleArea: [{ card: "BT1-045", dp: 3000 }],
+        hand: [{ card: "BT25-043", as: "dualCard" }],
+      },
+      1: {
+        // BT1-080 Titamon: a VANILLA Digimon (no compiled effects) with printed DP 12000,
+        // matching the forced currentDP below so the engine's continuous DP recompute (which
+        // derives currentDP from the definition's own printed DP) doesn't clobber the override
+        // before the Option effect applies, and so the target can't itself fire a confounding
+        // DP-modifying trigger.
+        battleArea: [{ card: "BT1-080", dp: 12000, as: "oppTarget" }],
+      },
+    });
+    const p0 = s.state.players[0]!;
+    const def = requireCardDefinition("BT25-043");
+    expect(def.isDualCard).toBe(true);
+    expect(def.kinds).toEqual(expect.arrayContaining(["Digimon", "Option"]));
 
-      const oppTarget = s.perm("oppTarget");
-      const dualCard = s.inst("dualCard");
-      s.state.memory = def.playCost;
+    const oppTarget = s.perm("oppTarget");
+    const dualCard = s.inst("dualCard");
+    s.state.memory = def.playCost;
 
-      // EXPECTED (per §4-5-2): a player-declared "use as Option" choice exists on the intent.
-      const result = s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: dualCard.instanceId,
-        useAs: "option",
-      } as never);
-      expect(result).toEqual({ ok: true });
-      await settle(() => oppTarget.currentDP !== 12000, 5000);
-      expect(oppTarget.currentDP).toBe(4000); // the Option side's "-8000 DP" actually applied
-      expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043")).toBe(false); // NOT played as a Digimon permanent
-    },
-  );
+    // EXPECTED (per §4-5-2): a player-declared "use as Option" choice exists on the intent.
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: dualCard.instanceId,
+      useAs: "option",
+    } as never);
+    expect(result).toEqual({ ok: true });
+    await settle(() => oppTarget.currentDP !== 12000, 5000);
+    expect(oppTarget.currentDP).toBe(4000); // the Option side's "-8000 DP" actually applied
+    expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043")).toBe(false); // NOT played as a Digimon permanent
+  });
 
-  it("negative control: playing the SAME DUAL card WITHOUT useAs:\"option\" does NOT fire the Option side", async () => {
+  it('negative control: playing the SAME DUAL card WITHOUT useAs:"option" does NOT fire the Option side', async () => {
     const s = setup({
       0: {
         battleArea: [{ card: "BT1-045", dp: 3000 }], // vanilla Yellow source for the color gate
@@ -301,7 +300,10 @@ describe("§4-5-6 Option Information (comprehensive-0074)", () => {
 
 describe("§4-6 Stacked Cards (comprehensive-0075)", () => {
   it("4-6-1/4-6-2: a permanent's stack is empty for a single (un-digivolved) card, and gains entries only once digivolved", async () => {
-    cite("comprehensive-0075", "4-6-1 stacked cards = all cards in a stack of 1+; 4-6-2 a lone card isn't 'stacked cards'");
+    cite(
+      "comprehensive-0075",
+      "4-6-1 stacked cards = all cards in a stack of 1+; 4-6-2 a lone card isn't 'stacked cards'",
+    );
 
     const s = setup({
       0: {
@@ -350,7 +352,10 @@ describe("§4-6 Stacked Cards (comprehensive-0075)", () => {
 
 describe("§4-6-8 Stacked Cards, cont'd (comprehensive-0076)", () => {
   it("4-6-8: deleting a permanent trashes its stacked (digivolution) cards at the same time", () => {
-    cite("comprehensive-0076", "4-6-8 when a card with stacked cards is removed from the field, those cards are trashed too");
+    cite(
+      "comprehensive-0076",
+      "4-6-8 when a card with stacked cards is removed from the field, those cards are trashed too",
+    );
 
     const state = new GameState();
     const p0 = new PlayerState();
@@ -499,7 +504,10 @@ describe("§4-9 Linked Cards (comprehensive-0079)", () => {
 
 describe("§4-10 Players (comprehensive-0080)", () => {
   it("4-10-2/4-10-3: 'owner' is the card's controlling player, and 'opponent' is always the other seat", () => {
-    cite("comprehensive-0080", "4-10-2 owner = the player currently using the card; 4-10-3 opponent = the other player");
+    cite(
+      "comprehensive-0080",
+      "4-10-2 owner = the player currently using the card; 4-10-3 opponent = the other player",
+    );
 
     const state = new GameState();
     for (const seat of [0, 1] as Seat[]) {
@@ -553,7 +561,10 @@ describe("§4-12 Card Orientation (comprehensive-0082)", () => {
 
 describe("§4-13 Draw (comprehensive-0083)", () => {
   it("4-13-1/4-13-2: drawing moves a card from a player's OWN deck to their OWN hand", () => {
-    cite("comprehensive-0083", "4-13-1 drawing moves cards from deck to hand; 4-13-2 unless stated, from your own deck");
+    cite(
+      "comprehensive-0083",
+      "4-13-1 drawing moves cards from deck to hand; 4-13-2 unless stated, from your own deck",
+    );
 
     const s = setup({
       0: { deck: [{ card: "AD1-001", as: "deckCard" }] },
@@ -720,7 +731,10 @@ describe("§4-16 Moving (comprehensive-0086)", () => {
 
 describe("§4-17 Hatching a Digi-Egg (comprehensive-0087)", () => {
   it("4-17-2/4-17-3: hatching is rejected with an empty egg deck, and rejected when breeding is already occupied", () => {
-    cite("comprehensive-0087", "4-17-2 can't hatch with an empty Digi-Egg deck; 4-17-3 can't hatch into an occupied breeding area");
+    cite(
+      "comprehensive-0087",
+      "4-17-2 can't hatch with an empty Digi-Egg deck; 4-17-3 can't hatch into an occupied breeding area",
+    );
 
     const { state, p0 } = bareState();
     state.phase = Phase.Breeding;
@@ -764,7 +778,10 @@ describe("§4-17 Hatching a Digi-Egg (comprehensive-0087)", () => {
 
 describe("§4-18 Overflow (comprehensive-0088)", () => {
   it("4-18-1: an <Overflow> ACE card leaving the field costs its OWNER its printed overflow amount", () => {
-    cite("comprehensive-0088", "4-18-1 <Overflow>: a card leaving the field/stack moves the memory marker by its printed value");
+    cite(
+      "comprehensive-0088",
+      "4-18-1 <Overflow>: a card leaving the field/stack moves the memory marker by its printed value",
+    );
 
     const def = requireCardDefinition("AD1-005");
     expect(def.isAce).toBe(true);
@@ -781,7 +798,10 @@ describe("§4-18 Overflow (comprehensive-0088)", () => {
   });
 
   it("4-18-5-1/4-18-5-2: simultaneous Overflow is charged turn-player-first, then the non-turn player — order changes the clamped result", () => {
-    cite("comprehensive-0088", "4-18-5 simultaneous <Overflow> instances: turn player's first, then the non-turn player's");
+    cite(
+      "comprehensive-0088",
+      "4-18-5 simultaneous <Overflow> instances: turn player's first, then the non-turn player's",
+    );
 
     const { state } = bareState();
     state.turnSeat = 0;
@@ -817,7 +837,7 @@ describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
         "that DUAL card without paying the cost.' §4-19-2 'Arts Digivolve is overwrite processing " +
         "that replaces the trashing of an Option card from the pending processing.' The precondition " +
         "this chunk was previously marked unreachable for (the Option-use branch, comprehensive-0072) " +
-        "is now reachable: playCard.ts's playModeOf() honors an explicit `useAs: \"option\"`, and " +
+        'is now reachable: playCard.ts\'s playModeOf() honors an explicit `useAs: "option"`, and ' +
         "GameEngine.resolveArtsDigivolve offers the free digivolve (via the SAME cost-free " +
         "`digivolveFromInstance` primitive other 'digivolve without paying the cost' effects use) " +
         "BEFORE the trash step in playCard.ts's finally block, sourcing the DUAL card straight out " +
@@ -922,9 +942,13 @@ describe("§4-20 Tokens (comprehensive-0090)", () => {
 
     const s = setup();
     s.state.memory = 20; // affordable ceiling for the token's own play cost
-    const permanent = await (s.engine as unknown as {
-      primitives: { playToken(seat: Seat, name: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined> };
-    }).primitives.playToken(0, "KoHagurumon Token", { payCost: false });
+    const permanent = await (
+      s.engine as unknown as {
+        primitives: {
+          playToken(seat: Seat, name: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined>;
+        };
+      }
+    ).primitives.playToken(0, "KoHagurumon Token", { payCost: false });
 
     expect(permanent).toBeDefined();
     expect(permanent!.topCard?.faceUp).toBe(true);
@@ -932,40 +956,44 @@ describe("§4-20 Tokens (comprehensive-0090)", () => {
     expect(requireCardDefinition(permanent!.topCard!.cardId).isToken).toBe(true);
   });
 
-  it(
-    "NOW MET: a token removed from the field should be removed from the game, not placed in the trash",
-    async () => {
-      cite(
-        "comprehensive-0090",
-        "DIVERGENCE: §4-20-5 'When a token is removed from the field, it is removed from the " +
-          "game instead of being placed in a different area.' The deletion seam " +
-          "(GameStateAccess.moveDeletedPermanentCardsToTrash, state/access.ts) unconditionally " +
-          "calls `insertCard(this.player(card.ownerSeat), Zone.Trash, card)` for every card a " +
-          "deleted permanent carries — it never checks CardDefinition.isToken to divert a token " +
-          "out of the game instead. `isToken` is consulted elsewhere (targeting filters, " +
-          "continuous-effect exemptions) but nowhere in the deletion/trash path.",
-      );
+  it("NOW MET: a token removed from the field should be removed from the game, not placed in the trash", async () => {
+    cite(
+      "comprehensive-0090",
+      "DIVERGENCE: §4-20-5 'When a token is removed from the field, it is removed from the " +
+        "game instead of being placed in a different area.' The deletion seam " +
+        "(GameStateAccess.moveDeletedPermanentCardsToTrash, state/access.ts) unconditionally " +
+        "calls `insertCard(this.player(card.ownerSeat), Zone.Trash, card)` for every card a " +
+        "deleted permanent carries — it never checks CardDefinition.isToken to divert a token " +
+        "out of the game instead. `isToken` is consulted elsewhere (targeting filters, " +
+        "continuous-effect exemptions) but nowhere in the deletion/trash path.",
+    );
 
-      const s = setup();
-      s.state.memory = 20;
-      const permanent = await (s.engine as unknown as {
-        primitives: { playToken(seat: Seat, name: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined> };
-      }).primitives.playToken(0, "KoHagurumon Token", { payCost: false });
-      const p0 = s.state.players[0]!;
-      const tokenInstanceId = permanent!.topCard!.instanceId;
+    const s = setup();
+    s.state.memory = 20;
+    const permanent = await (
+      s.engine as unknown as {
+        primitives: {
+          playToken(seat: Seat, name: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined>;
+        };
+      }
+    ).primitives.playToken(0, "KoHagurumon Token", { payCost: false });
+    const p0 = s.state.players[0]!;
+    const tokenInstanceId = permanent!.topCard!.instanceId;
 
-      const access = new GameStateAccess(s.state);
-      access.deletePermanent(permanent!.permanentId);
+    const access = new GameStateAccess(s.state);
+    access.deletePermanent(permanent!.permanentId);
 
-      // EXPECTED (per §4-20-5): the token is gone entirely — NOT sitting in the trash.
-      expect(p0.trash.some((c) => c.instanceId === tokenInstanceId)).toBe(false);
-    },
-  );
+    // EXPECTED (per §4-20-5): the token is gone entirely — NOT sitting in the trash.
+    expect(p0.trash.some((c) => c.instanceId === tokenInstanceId)).toBe(false);
+  });
 });
 
 describe("§4-21 Color Requirements (comprehensive-0091)", () => {
   it("4-21-2 (structural): the color-requirement gate is real and driven by CardDefinition.optionColorRequirements", () => {
-    cite("comprehensive-0091", "4-21-2 to meet color requirements, you need a Digimon/Tamer of that color on your field");
+    cite(
+      "comprehensive-0091",
+      "4-21-2 to meet color requirements, you need a Digimon/Tamer of that color on your field",
+    );
 
     // BT25-043 is one of only 6 cards in the whole corpus with `optionColorRequirements`
     // populated — proving the gate itself (GameEngine.printedColorRequirementMet) is real and
@@ -1019,10 +1047,12 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     s.perm("placedBlueOption").placedByEffect = true;
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("blueOption").instanceId,
-    })).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("blueOption").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
   it("4-21-2 (positive control): the same mono-color Option plays once a matching-color source is on the field", async () => {
@@ -1081,8 +1111,7 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
   it("4-21-4: a single multicolor Digimon/Tamer can meet the requirement for more than 1 color at once", async () => {
     cite(
       "comprehensive-0091",
-      "4-21-4 'A multicolor Digimon or multicolor Tamer can meet the color requirements for " +
-        "multiple colors.'",
+      "4-21-4 'A multicolor Digimon or multicolor Tamer can meet the color requirements for " + "multiple colors.'",
     );
 
     const s = setup(
@@ -1125,10 +1154,7 @@ describe("§4-21 Color Requirements (comprehensive-0091)", () => {
     // WaiveColorRequirement-only Static/Rule effects through the new `colorWaiverStatic`
     // builder (no on-field guard) instead — `isColorWaiverStatic` in interpreter.ts's
     // `builderForTrigger`.
-    const s = setup(
-      { 0: { hand: [{ card: "EX2-072", as: "noTamerBoard" }] } },
-      { autoAcceptOptional: true },
-    );
+    const s = setup({ 0: { hand: [{ card: "EX2-072", as: "noTamerBoard" }] } }, { autoAcceptOptional: true });
     const p0 = s.state.players[0]!;
     const def = requireCardDefinition("EX2-072");
     expect(def.colors).toEqual(["White"]); // no White source anywhere on this board, ever
@@ -1284,7 +1310,12 @@ describe('§4-26-5 "Each" or "Every", cont\'d (comprehensive-0097)', () => {
           deck: Array(10).fill("AD1-001"),
           hand: [{ card: "BT10-020", as: "deckerdramon" }],
         },
-        1: { battleArea: [{ card: "AD1-001", dp: 1000 }, { card: "AD1-001", dp: 1000 }] },
+        1: {
+          battleArea: [
+            { card: "AD1-001", dp: 1000 },
+            { card: "AD1-001", dp: 1000 },
+          ],
+        },
       },
       { autoAcceptOptional: true },
     );

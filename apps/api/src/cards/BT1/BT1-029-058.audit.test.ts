@@ -12,7 +12,18 @@ import { compiled as chirinmon } from "./BT1-058.js";
 
 describe("BT1-029 through BT1-058 IR coverage", () => {
   it("registers each migrated module with complete IR", () => {
-    for (const card of [gabumon, gomamon, monmon, frigimon, leomon, garurumon, wereGarurumon, kudamon, seasarmon, chirinmon]) {
+    for (const card of [
+      gabumon,
+      gomamon,
+      monmon,
+      frigimon,
+      leomon,
+      garurumon,
+      wereGarurumon,
+      kudamon,
+      seasarmon,
+      chirinmon,
+    ]) {
       expect(card).toMatchObject({ coverage: "full", residual: [] });
     }
   });
@@ -24,8 +35,14 @@ describe("BT1-029 through BT1-058 IR coverage", () => {
     expect(frigimon.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Jamming" }] });
     expect(leomon.effects[0]?.actions[0]).toMatchObject({ kind: "GainMemory", amount: 2 });
     expect(garurumon.effects[0]?.actions[0]).toMatchObject({ kind: "Unsuspend" });
-    for (const card of [wereGarurumon, chirinmon]) expect(card.effects[0]?.actions[1]).toMatchObject({ kind: "GainMemory", amount: -3, at: "endOfTurn" });
-    expect(kudamon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "zoneCount", zone: "hand", op: "lte", value: 4 });
+    for (const card of [wereGarurumon, chirinmon])
+      expect(card.effects[0]?.actions[1]).toMatchObject({ kind: "GainMemory", amount: -3, at: "endOfTurn" });
+    expect(kudamon.effects[0]?.actions[0]?.condition).toMatchObject({
+      kind: "zoneCount",
+      zone: "hand",
+      op: "lte",
+      value: 4,
+    });
     expect(seasarmon.effects[0]).toMatchObject({ keywords: [{ keyword: "Jamming" }] });
   });
 });

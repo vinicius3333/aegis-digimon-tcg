@@ -422,9 +422,10 @@ async function findBotParticipant(
   if (participantIds.length === 0) return undefined;
   const bots = new Set(
     (
-      await client.query<{ id: string }>("SELECT id FROM tournament_participants WHERE tournament_id=$1 AND kind='bot'", [
-        tournamentId,
-      ])
+      await client.query<{ id: string }>(
+        "SELECT id FROM tournament_participants WHERE tournament_id=$1 AND kind='bot'",
+        [tournamentId],
+      )
     ).rows.map((row) => row.id),
   );
   return participantIds.find((id) => bots.has(id));

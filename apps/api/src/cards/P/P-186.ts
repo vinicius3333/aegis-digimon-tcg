@@ -13,138 +13,138 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // the Q&As do not address it and the printed condition "if there is a Digimon with 13000
 // DP or more" is thematically consistent as a separate clause.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "condition": {
-            "kind": "anyHas",
-            "filter": {
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "gte",
-                "value": 13000
-              }
+          condition: {
+            kind: "anyHas",
+            filter: {
+              kind: ["Digimon"],
+              dp: {
+                op: "gte",
+                value: 13000,
+              },
             },
-            "raw": "there is a Digimon with 13000 DP or more"
+            raw: "there is a Digimon with 13000 DP or more",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 2,
-              "raw": "reduce the play cost by 2 for every 5 total cards in both players' trashes",
-              "scaling": {
-                "per": 5,
-                "filter": {
-                  "zone": "trash",
-                  "controller": "both"
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the play cost by 2 for every 5 total cards in both players' trashes",
+              scaling: {
+                per: 5,
+                filter: {
+                  zone: "trash",
+                  controller: "both",
                 },
-                "unit": "cards"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Rush",
-          "raw": "＜Rush＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "lte",
-                "value": 13000
-              }
+                unit: "cards",
+              },
             },
-            "count": 1
-          }
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Rush",
+          raw: "＜Rush＞",
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 13000,
+              },
+            },
+            count: 1,
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "lte",
-                "value": 13000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 13000,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
-        }
-      ]
-    }
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this effect didn't delete",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "names": ["WarGrowlmon"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      names: ["WarGrowlmon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("P-186", compiled);

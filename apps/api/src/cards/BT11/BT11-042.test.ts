@@ -6,27 +6,33 @@ import "./BT11-042.js";
 
 describe("BT11-042 Angewomon", () => {
   it("searches all security, adds an Angel-family card, recovers and shuffles", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT11-039", as: "base" }],
-        hand: [{ card: "BT11-042", as: "angewomon" }],
-        security: [
-          { card: "BT11-038", as: "angel" },
-          { card: "BT1-001", as: "securityRest" },
-        ],
-        deck: [{ card: "BT1-001", as: "recovery" }, "BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-039", as: "base" }],
+          hand: [{ card: "BT11-042", as: "angewomon" }],
+          security: [
+            { card: "BT11-038", as: "angel" },
+            { card: "BT1-001", as: "securityRest" },
+          ],
+          deck: [{ card: "BT1-001", as: "recovery" }, "BT1-001"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("angewomon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.security.length === 2 &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("angel").instanceId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("angewomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 2 &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("angel").instanceId),
     );
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("angel").instanceId);
@@ -44,7 +50,9 @@ describe("BT11-042 Angewomon", () => {
     s.state.memory = 10;
     const playCost = 7;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ladyDevimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ladyDevimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 10 - playCost + 1);
 
     expect(s.state.memory).toBe(4);

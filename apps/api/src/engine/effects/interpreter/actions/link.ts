@@ -11,11 +11,9 @@ import { isTamer } from "@aegis/shared";
 import type { Action, CardDefinition, Filter, Permanent } from "@aegis/shared";
 
 function linkTargetIncludesSelf(action: Extract<Action, { kind: "Link" }>): boolean {
-  return [
-    action.target.filter,
-    ...(action.target.orFilters ?? []),
-    ...(action.target.filter.orFilters ?? []),
-  ].some((filter) => filter.isSelfRef === true);
+  return [action.target.filter, ...(action.target.orFilters ?? []), ...(action.target.filter.orFilters ?? [])].some(
+    (filter) => filter.isSelfRef === true,
+  );
 }
 
 /** Whether a declared Link action currently has both legal material and a legal recipient. */

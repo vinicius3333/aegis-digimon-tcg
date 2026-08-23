@@ -42,10 +42,18 @@ describe("ST7-03 Guilmon", () => {
   it("draws only once across two opposing deletions in the same turn", async () => {
     const s = setupEngine({
       0: {
-        deck: [{ card: "ST7-02", as: "firstDraw" }, { card: "ST7-02", as: "secondDraw" }],
+        deck: [
+          { card: "ST7-02", as: "firstDraw" },
+          { card: "ST7-02", as: "secondDraw" },
+        ],
         battleArea: [{ card: "ST7-09", as: "host", under: ["ST7-03"] }],
       },
-      1: { battleArea: [{ card: "ST7-02", as: "first" }, { card: "ST7-02", as: "second" }] },
+      1: {
+        battleArea: [
+          { card: "ST7-02", as: "first" },
+          { card: "ST7-02", as: "second" },
+        ],
+      },
     });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId]);
@@ -78,10 +86,7 @@ describe("ST7-03 Guilmon", () => {
       1: { battleArea: [{ card: "ST7-02", as: "opponent" }] },
     });
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([
-      s.perm("host").permanentId,
-      s.perm("opponent").permanentId,
-    ]);
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId, s.perm("opponent").permanentId]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });

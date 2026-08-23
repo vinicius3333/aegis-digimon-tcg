@@ -14,7 +14,10 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Return",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } }, count: 1 },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } },
+            count: 1,
+          },
           to: "deckBottom",
         },
       ],
@@ -30,14 +33,28 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlayWithoutCost",
-              target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["BlitzGreymon"], match: "nameExact" }] }, count: 1 },
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["BlitzGreymon"], match: "nameExact" }],
+                },
+                count: 1,
+              },
               from: ["digivolutionCards"],
               payCost: false,
               optional: true,
             },
             {
               kind: "PlayWithoutCost",
-              target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CresGarurumon"], match: "nameExact" }] }, count: 1 },
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["CresGarurumon"], match: "nameExact" }],
+                },
+                count: 1,
+              },
               from: ["digivolutionCards"],
               payCost: false,
               optional: true,

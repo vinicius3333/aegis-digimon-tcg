@@ -9,115 +9,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited: whenTrashedFromDigivolutionCards sourceFilter restricts to host Digimon
 //   with Mineral or Rock trait (the Digimon whose digivolution stack this card was in).
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
-    { "level": 2, "cost": 0, "isAlternate": true }
-  ],
-  "effects": [
+  digivolutionRequirement: [{ level: 2, cost: 0, isAlternate: true }],
+  effects: [
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Mineral",
-                      "Rock"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "from": [
-                "hand",
-                "digivolutionCards"
-              ],
-              "count": 1
-            },
-            "raw": "By trashing 1 [Mineral] or [Rock] trait card from your hand or your Digimon's digivolution cards"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Mineral",
-                      "Rock"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "from": [
-                "hand",
-                "digivolutionCards"
-              ],
-              "count": 1
-            },
-            "raw": "By trashing 1 [Mineral] or [Rock] trait card from your hand or your Digimon's digivolution cards"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardDiscarded",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Mineral",
-                  "Rock"
+                    tokens: ["Mineral", "Rock"],
+                    match: "trait",
+                  },
                 ],
-                "match": "trait"
-              }
-            ]
+              },
+              from: ["hand", "digivolutionCards"],
+              count: 1,
+            },
+            raw: "By trashing 1 [Mineral] or [Rock] trait card from your hand or your Digimon's digivolution cards",
           },
-          "actions": [
-            {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Mineral", "Rock"],
+                    match: "trait",
+                  },
+                ],
+              },
+              from: ["hand", "digivolutionCards"],
+              count: 1,
+            },
+            raw: "By trashing 1 [Mineral] or [Rock] trait card from your hand or your Digimon's digivolution cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardDiscarded",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Mineral", "Rock"],
+                match: "trait",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-038", compiled);

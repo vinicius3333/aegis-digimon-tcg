@@ -9,12 +9,23 @@ describe("BT18-069 Knightmon", () => {
       trigger: "EndOfOpponentsTurn",
       optional: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "Attack", mandatory: true, attackPlayer: true, target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
+      actions: [
+        {
+          kind: "Attack",
+          mandatory: true,
+          attackPlayer: true,
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        },
+      ],
     });
   });
 
   it("keeps Blocker and the inherited Knightmon DP effect", () => {
     expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Blocker" }] });
-    expect(compiled.effects[2]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }] });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }],
+    });
   });
 });

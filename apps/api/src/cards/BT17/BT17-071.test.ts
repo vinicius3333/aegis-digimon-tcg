@@ -34,15 +34,31 @@ describe("BT17-071 Ornismon", () => {
       kind: "SubTrigger",
       event: "onDeletionOf",
       sourceFilter: { controller: "mine", excludeSelf: true },
-      actions: [{ kind: "Delete", target: { filter: { controller: "opponent", levelComparison: { op: "lte", relativeTo: "lastDeleted" } }, count: 1 } }],
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", levelComparison: { op: "lte", relativeTo: "lastDeleted" } },
+            count: 1,
+          },
+        },
+      ],
     });
   });
 
   it("deletes an opposing Digimon after another level-5 Digimon is deleted", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-071", as: "murmukusmon" }, { card: "BT17-066", as: "ally" }] },
-      1: { battleArea: [{ card: "BT17-063", as: "target" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-071", as: "murmukusmon" },
+            { card: "BT17-066", as: "ally" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT17-063", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     const targetId = s.perm("target").permanentId;
 
     await advance(s.engine).verb.deletePermanent([s.perm("ally").permanentId], "byEffect");

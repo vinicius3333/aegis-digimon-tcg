@@ -7,92 +7,87 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon",
-              "Tamer"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon", "Tamer"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                    "zone": "digivolutionCards"
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "digivolutionCards",
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "raw": "by trashing 1 of this Digimon's digivolution cards"
+                raw: "by trashing 1 of this Digimon's digivolution cards",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              optional: true,
+              abortOnDecline: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ]
-          },
-          "optional": true
-        }
+          ],
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Save",
-          "raw": "＜Save＞"
-        }
-      ]
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardsDiscardedBatch",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
           },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+          },
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      keywords: [
+        {
+          keyword: "Save",
+          raw: "＜Save＞",
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-076", compiled);

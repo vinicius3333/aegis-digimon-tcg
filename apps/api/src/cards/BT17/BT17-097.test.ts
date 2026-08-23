@@ -13,7 +13,11 @@ describe("BT17-097 Return to the Primogenitor", () => {
           from: ["hand"],
           reduceCost: 4,
           optional: true,
-          into: { kind: ["Digimon"], levelComparison: { op: "gte", value: 5 }, nameOrTrait: [{ tokens: ["Free"], match: "trait" }] },
+          into: {
+            kind: ["Digimon"],
+            levelComparison: { op: "gte", value: 5 },
+            nameOrTrait: [{ tokens: ["Free"], match: "trait" }],
+          },
         },
         { kind: "PlaceInBattleAreaSelf" },
       ],
@@ -28,7 +32,13 @@ describe("BT17-097 Return to the Primogenitor", () => {
     });
     expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({
       actions: [
-        { kind: "Digivolve", from: ["hand"], payCost: false, bindResultAs: "digivolvedToPreventDeletion", into: { nameOrTrait: [{ tokens: ["Imperialdramon"], match: "name" }] } },
+        {
+          kind: "Digivolve",
+          from: ["hand"],
+          payCost: false,
+          bindResultAs: "digivolvedToPreventDeletion",
+          into: { nameOrTrait: [{ tokens: ["Imperialdramon"], match: "name" }] },
+        },
         { kind: "Prevent", condition: { kind: "bindingExists", ref: "digivolvedToPreventDeletion" } },
       ],
     });
@@ -39,14 +49,24 @@ describe("BT17-097 Return to the Primogenitor", () => {
       trigger: "Security",
       isSecurity: true,
       actions: [
-        { kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true, target: { filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Davis Motomiya", "Ken Ichijoji"], match: "name" }] } } },
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          optional: true,
+          target: {
+            filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Davis Motomiya", "Ken Ichijoji"], match: "name" }] },
+          },
+        },
         { kind: "PlaceInBattleAreaSelf" },
       ],
     });
   });
 
   it("places itself after the optional Main evolution is declined", async () => {
-    const s = setupEngine({ 0: { battleArea: ["BT17-019", "BT17-030"], hand: [{ card: "BT17-097", as: "option" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: ["BT17-019", "BT17-030"], hand: [{ card: "BT17-097", as: "option" }] } },
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 2;
     const optionId = s.inst("option").instanceId;
 

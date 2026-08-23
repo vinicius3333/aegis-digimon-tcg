@@ -5,9 +5,7 @@ describe("EX10-036 Magneticdramon", () => {
   it("proves Fragment, deletion plus security trash, shared unsuspend, and alternate digivolution", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Close", "Proganomon"], cost: 6, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Close", "Proganomon"], cost: 6, isAlternate: true }]);
     expect(compiled.effects?.find((effect) => effect.trigger === "Static")).toMatchObject({
       keywords: [{ keyword: "Fragment", amount: 3 }],
     });

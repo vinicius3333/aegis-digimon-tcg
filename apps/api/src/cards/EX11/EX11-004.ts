@@ -3,22 +3,22 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenFaceUpCardsAddedToOpponentSecurity",
-          "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
-        }
+          kind: "SubTrigger",
+          event: "whenFaceUpCardsAddedToOpponentSecurity",
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-004", compiled);

@@ -6,7 +6,12 @@ import "./BT7-084.js";
 describe("BT7-084 Eosmon", () => {
   it("gives each other Eosmon +1000 DP during its turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT7-084", as: "source" }, { card: "BT6-085", as: "other" }] },
+      0: {
+        battleArea: [
+          { card: "BT7-084", as: "source" },
+          { card: "BT6-085", as: "other" },
+        ],
+      },
     });
     await s.ready();
 
@@ -26,12 +31,12 @@ describe("BT7-084 Eosmon", () => {
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId,
-    ));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId,
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId),
+    ).toBe(true);
   });
 });

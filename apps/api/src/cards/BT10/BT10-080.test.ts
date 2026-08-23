@@ -96,18 +96,20 @@ describe("BT10-080 SkullBaluchimon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("skull").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skull").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("skull").instanceId);
     expect(observe(s.engine).subscriptions("onDeletionOf", s.perm("base").permanentId)).toHaveLength(0);
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect")).toBe(1);
-    expect(s.state.players[1]!.battleArea.some(({ permanentId }) =>
-      permanentId === s.perm("victim").permanentId
-    )).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("victim").permanentId)).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 });

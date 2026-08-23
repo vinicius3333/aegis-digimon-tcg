@@ -62,17 +62,18 @@ describe("BT6 Eosmon/Menoa historical deck", () => {
     const deleteTargetId = s.perm("deleteTarget").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard.instanceId === playedEosmonId
-      ) &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === revealedEosmonId) &&
-      !observe(s.engine).isAttacking(),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedEosmonId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === revealedEosmonId) &&
+        !observe(s.engine).isAttacking(),
     );
 
     expect(s.perm("menoa").isSuspended).toBe(true);
@@ -83,15 +84,17 @@ describe("BT6 Eosmon/Menoa historical deck", () => {
     ]);
     expect(s.state.players[1]!.security).toHaveLength(0);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("attacker").permanentId,
-      instanceId: s.inst("levelSix").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some((permanent) =>
-        permanent.permanentId === deleteTargetId
-      ) && s.perm("attacker").stack.length === 4,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("attacker").permanentId,
+        instanceId: s.inst("levelSix").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === deleteTargetId) &&
+        s.perm("attacker").stack.length === 4,
     );
 
     expect(s.perm("attacker").stack.map((card) => card.instanceId)).toEqual(
@@ -102,9 +105,9 @@ describe("BT6 Eosmon/Menoa historical deck", () => {
       ]),
     );
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("digivolutionDraw").instanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digivolutionDraw").instanceId)).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 
@@ -139,76 +142,87 @@ describe("BT6 Eosmon/Menoa historical deck", () => {
       s.inst("sourceThree").instanceId,
     ];
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("levelSix").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("levelSix").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "optional" && latest.sourceCardId === "BT6-086";
+        latest.kind === "optional" &&
+        latest.sourceCardId === "BT6-086"
+      );
     });
 
     const optionalDecision = s.decisions.at(-1)!.req;
     expect(optionalDecision.kind).toBe("optional");
     expect(optionalDecision.sourceCardId).toBe("BT6-086");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optionalDecision.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optionalDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "selectCards" && latest.sourceCardId === "BT6-086";
+        latest.kind === "selectCards" &&
+        latest.sourceCardId === "BT6-086"
+      );
     });
 
     const sourceDecision = s.decisions.at(-1)!.req;
     expect(sourceDecision.options).toMatchObject({ min: 0, max: 3 });
     expect(sourceDecision.options?.candidateInstanceIds).toEqual(sourceIds);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: sourceDecision.decisionId,
-      response: { kind: "selectCards", instanceIds: sourceIds.slice(0, 2) },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: sourceDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: sourceIds.slice(0, 2) },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "chooseTargets" && latest.sourceCardId === "BT6-086";
+        latest.kind === "chooseTargets" &&
+        latest.sourceCardId === "BT6-086"
+      );
     });
 
     const targetDecision = s.decisions.at(-1)!.req;
-    const targetIds = [
-      s.perm("emptyCopy").permanentId,
-      s.perm("stackedCopy").permanentId,
-    ];
+    const targetIds = [s.perm("emptyCopy").permanentId, s.perm("stackedCopy").permanentId];
     expect(targetDecision.options?.candidateInstanceIds).toEqual(targetIds);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: targetDecision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("stackedCopy").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      !s.state.players[1]!.battleArea.some((permanent) =>
-        permanent.permanentId === targetIds[1]
-      ),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("stackedCopy").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetIds[1]),
     );
 
-    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining(sourceIds.slice(0, 2)),
-    );
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds.slice(0, 2)));
     expect(s.perm("base").stack.some((card) => card.instanceId === sourceIds[2])).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) =>
-      permanent.permanentId === s.perm("emptyCopy").permanentId
-    )).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("emptyCopy").permanentId),
+    ).toBe(true);
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT6-075")).toHaveLength(1);
     assertNoLoudGap(s);
   });

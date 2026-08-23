@@ -12,19 +12,37 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       isBreeding: true,
-      actions: [{ kind: "MovePermanent", direction: "toBattle", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true }],
+      actions: [
+        {
+          kind: "MovePermanent",
+          direction: "toBattle",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          optional: true,
+        },
+      ],
     },
     {
       trigger: "EndOfYourTurn",
-      actions: [{
-        kind: "Digivolve",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Lucemon: Chaos Mode"], match: "nameExact" }] },
-        from: ["trash"],
-        payCost: false,
-        optional: true,
-        cost: { kind: "return", target: { filter: { controller: "mine", zone: "trash", textContains: "Lucemon" }, count: 5 }, to: "deckBottom", raw: "By returning 5 cards with [Lucemon] in their texts from your trash to the bottom of the deck" },
-      }],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Lucemon: Chaos Mode"], match: "nameExact" }],
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          cost: {
+            kind: "return",
+            target: { filter: { controller: "mine", zone: "trash", textContains: "Lucemon" }, count: 5 },
+            to: "deckBottom",
+            raw: "By returning 5 cards with [Lucemon] in their texts from your trash to the bottom of the deck",
+          },
+        },
+      ],
     },
   ],
   coverage: "full",

@@ -7,7 +7,14 @@ import "./EX1-065.js";
 
 describe("EX1-065 Diaboromon", () => {
   it("gives every allied Diaboromon Blocker during the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-065", as: "source" }, { card: "EX1-065", as: "other" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-065", as: "source" },
+          { card: "EX1-065", as: "other" },
+        ],
+      },
+    });
     s.state.turnSeat = 1;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
@@ -15,7 +22,10 @@ describe("EX1-065 Diaboromon", () => {
   });
 
   it("may play a Diaboromon Token from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX1-065", as: "security", faceUp: true }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      { 0: { security: [{ card: "EX1-065", as: "security", faceUp: true }] } },
+      { autoAcceptOptional: true },
+    );
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("TOKEN-Diaboromon");

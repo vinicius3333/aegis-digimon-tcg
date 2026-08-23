@@ -39,8 +39,7 @@ function harness(
   const deleted: string[][] = [];
   const firedTimings: EffectTiming[] = [];
 
-  const attackerLives = (): boolean =>
-    state.players[0]?.battleArea.some((p) => p.permanentId === ATTACKER_ID) ?? false;
+  const attackerLives = (): boolean => state.players[0]?.battleArea.some((p) => p.permanentId === ATTACKER_ID) ?? false;
 
   const deps: SecurityCheckDeps = {
     strikeFor: () => 1,
@@ -73,7 +72,10 @@ function harness(
 
 describe("§13-1 Security Checks (comprehensive-0153)", () => {
   it("13-1-1/13-1-4: a security check on the opponent's security stack is mandatory whenever it applies", async () => {
-    cite("comprehensive-0153", "13-1-1 a security check performs a check on the opponent's security stack; 13-1-4 it is mandatory");
+    cite(
+      "comprehensive-0153",
+      "13-1-1 a security check performs a check on the opponent's security stack; 13-1-4 it is mandatory",
+    );
 
     const card = makeSecurityCard(1, 0, "OPTION-X");
     const h = harness([card]);
@@ -134,10 +136,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
   });
 
   it("13-1-3: re-evaluates the live check count after each resolved card", async () => {
-    cite(
-      "comprehensive-0153",
-      "13-1-3 each card is fully resolved before the next security card is checked",
-    );
+    cite("comprehensive-0153", "13-1-3 each card is fully resolved before the next security card is checked");
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1)];
     let liveStrike = 2;
@@ -158,7 +157,10 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
   });
 
   it("13-1-5: if the checking Digimon leaves play mid-check, no further security checks are performed", async () => {
-    cite("comprehensive-0153", "13-1-5 if the Digimon performing the security check is removed from the battle area, it can't check any more");
+    cite(
+      "comprehensive-0153",
+      "13-1-5 if the Digimon performing the security check is removed from the battle area, it can't check any more",
+    );
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1)];
     const h = harness(cards, {
@@ -180,7 +182,10 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
   });
 
   it("13-1-6: a checked card leaves the security stack immediately — before any battle against it resolves", async () => {
-    cite("comprehensive-0153", "13-1-6 a checked card is removed from the security stack and treated as not being in any particular area");
+    cite(
+      "comprehensive-0153",
+      "13-1-6 a checked card is removed from the security stack and treated as not being in any particular area",
+    );
 
     const card = makeSecurityCard(1, 0, "AD1-002");
     let inSecurityDuringBattle: boolean | undefined;
@@ -195,7 +200,8 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
     // Read the zone from inside `dpOf` — called only during the battle-compare step, which
     // §13-1-8-3 places AFTER the card already left the security stack (§13-1-6).
     h.deps.dpOf = (id) => {
-      if (id === ATTACKER_ID) inSecurityDuringBattle = h.state.players[1]?.security.some((c) => c.instanceId === card.instanceId);
+      if (id === ATTACKER_ID)
+        inSecurityDuringBattle = h.state.players[1]?.security.some((c) => c.instanceId === card.instanceId);
       return 9000;
     };
     await runSecurityCheck(h.state, () => {}, h.win, h.deps, 1, attacker);
@@ -221,7 +227,10 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
   });
 
   it("13-1-8-2: an effect triggered by the security check is fully resolved before the next action begins", async () => {
-    cite("comprehensive-0153", "13-1-8-2-1 an effect triggered by a security check is resolved before the next action begins");
+    cite(
+      "comprehensive-0153",
+      "13-1-8-2-1 an effect triggered by a security check is resolved before the next action begins",
+    );
 
     const order: (EffectTiming | string)[] = [];
     const card = makeSecurityCard(1, 0);
@@ -259,7 +268,10 @@ describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0154)", () => {
   });
 
   it("13-1-8-4: a revealed card is trashed unless an effect already relocated it to an area", async () => {
-    cite("comprehensive-0154", "13-1-8-4 a card revealed from a security check is placed in the trash unless it belongs to an area");
+    cite(
+      "comprehensive-0154",
+      "13-1-8-4 a card revealed from a security check is placed in the trash unless it belongs to an area",
+    );
 
     const stays = makeSecurityCard(1, 0, "OPTION-X");
     const relocated = makeSecurityCard(1, 1, "OPTION-X");

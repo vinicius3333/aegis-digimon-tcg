@@ -25,7 +25,14 @@ describe("BT12-092 handwritten module", () => {
 
   it("pays 1 memory and becomes a 3000 DP Digimon when Agumon or Greymon is present", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT12-092", as: "marcus" }, { card: "BT12-034", as: "agumon" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-092", as: "marcus" },
+            { card: "BT12-034", as: "agumon" },
+          ],
+        },
+      },
       { autoAcceptOptional: true },
     );
     await s.ready();

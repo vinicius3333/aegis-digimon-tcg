@@ -5,10 +5,13 @@ import "./BT11-043.js";
 
 describe("BT11-043 KingSukamon", () => {
   it("replaces an opponent Digimon's original name, color and DP", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "BT11-043", as: "king" }], trash: ["BT11-040", "BT11-040", "BT11-040"] },
-      1: { battleArea: [{ card: "ST15-11", as: "target" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT11-043", as: "king" }], trash: ["BT11-040", "BT11-040", "BT11-040"] },
+        1: { battleArea: [{ card: "ST15-11", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 20;
     const target = s.perm("target");
 
@@ -21,10 +24,13 @@ describe("BT11-043 KingSukamon", () => {
   });
 
   it("does nothing when neither trash condition is met", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "BT11-043", as: "king" }] },
-      1: { battleArea: [{ card: "ST15-11", as: "target" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT11-043", as: "king" }] },
+        1: { battleArea: [{ card: "ST15-11", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 20;
     const target = s.perm("target");
 

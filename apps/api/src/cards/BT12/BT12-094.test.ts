@@ -24,9 +24,12 @@ describe("BT12-094 handwritten module", () => {
   });
 
   it("places a Save Digimon under Yuu and gains 1 memory", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT12-094", as: "yuu" }], hand: [{ card: "BT12-008", as: "save" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-094", as: "yuu" }], hand: [{ card: "BT12-008", as: "save" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yuu"));

@@ -19,7 +19,9 @@ describe("BT7-048 Monochromon", () => {
 
     const s = setupEngine({ 0: { hand: [{ card: "BT7-048", as: "monochromon" }] } });
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("monochromon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("monochromon").instanceId })).toEqual({
+      ok: true,
+    });
     await s.ready();
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();

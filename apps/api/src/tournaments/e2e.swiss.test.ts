@@ -76,7 +76,12 @@ class TournamentTestRoom extends AegisRoom {
 // oxlint-disable-next-line typescript/no-explicit-any -- a wire body is untyped by definition
 type Wire = any;
 
-async function request(method: "GET" | "POST" | "PUT", path: string, as: string, body?: unknown): Promise<{ status: number; body: Wire }> {
+async function request(
+  method: "GET" | "POST" | "PUT",
+  path: string,
+  as: string,
+  body?: unknown,
+): Promise<{ status: number; body: Wire }> {
   const response = await fetch(`${url}${path}`, {
     method,
     headers: { "Content-Type": "application/json", Cookie: cookieOf.get(as) ?? "" },
@@ -101,12 +106,23 @@ function makeRoom(): TournamentTestRoom {
 
 function joinOptions(gameId: string, token: string): AegisJoinOptions {
   // Whatever a client claims about its name and deck is ignored; the authorization decides both.
-  return { displayName: "ignored", deck: { mainDeck: [], eggDeck: [] }, tournamentGameId: gameId, tournamentGameToken: token };
+  return {
+    displayName: "ignored",
+    deck: { mainDeck: [], eggDeck: [] },
+    tournamentGameId: gameId,
+    tournamentGameToken: token,
+  };
 }
 
 function reportGameOver(room: TournamentTestRoom, winnerSeat: Seat): Promise<void> {
-  const event: ServerEvent & { kind: "gameOver" } = { kind: "gameOver", result: { outcome: "win", winnerSeat }, reason: "security" };
-  return (room as unknown as { recordAuthoritativeResult: (e: typeof event) => Promise<void> }).recordAuthoritativeResult(event);
+  const event: ServerEvent & { kind: "gameOver" } = {
+    kind: "gameOver",
+    result: { outcome: "win", winnerSeat },
+    reason: "security",
+  };
+  return (
+    room as unknown as { recordAuthoritativeResult: (e: typeof event) => Promise<void> }
+  ).recordAuthoritativeResult(event);
 }
 
 /**
@@ -145,7 +161,10 @@ type OpenMatch = { matchId: string; seats: [string, string] };
 async function openMatches(): Promise<OpenMatch[]> {
   return (await series.scoreViews(tournamentId))
     .filter((view) => view.participant0Id && view.participant1Id && view.status !== "resolved")
-    .map((view) => ({ matchId: view.matchId, seats: [view.participant0Id!, view.participant1Id!] as [string, string] }));
+    .map((view) => ({
+      matchId: view.matchId,
+      seats: [view.participant0Id!, view.participant1Id!] as [string, string],
+    }));
 }
 
 async function joinDeadlineOf(matchId: string): Promise<number | null> {
@@ -184,7 +203,17 @@ beforeEach(async () => {
 
   const app = express();
   app.use(express.json());
-  installAccountRoutes(app, accounts, participants, series, swiss, elimination, new BotSeatingStore(accounts), topCut, arbitration);
+  installAccountRoutes(
+    app,
+    accounts,
+    participants,
+    series,
+    swiss,
+    elimination,
+    new BotSeatingStore(accounts),
+    topCut,
+    arbitration,
+  );
   const server = app.listen(0);
   await new Promise((resolve) => server.once("listening", resolve));
   url = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -211,342 +240,347 @@ afterEach(async () => {
 });
 
 describe("a full official Swiss event", () => {
-  it(
-    "runs from creation to a champion, and its whole trail replays the outcome",
-    async () => {
-      // ── Creation ────────────────────────────────────────────────────────────────────────────
-      const created = await request("POST", "/tournaments", "organizer", {
-        name: "Regional Qualifier",
-        structure: "swiss",
-        bestOf: 3,
-        topCut: false,
-        startsAt: Date.now() + 86_400_000,
-        maxPlayers: 8,
-        rulesetPreset: BANDAI_GENERAL_PRESET.id,
-        banlist: { mode: "current" },
+  it("runs from creation to a champion, and its whole trail replays the outcome", async () => {
+    // ── Creation ────────────────────────────────────────────────────────────────────────────
+    const created = await request("POST", "/tournaments", "organizer", {
+      name: "Regional Qualifier",
+      structure: "swiss",
+      bestOf: 3,
+      topCut: false,
+      startsAt: Date.now() + 86_400_000,
+      maxPlayers: 8,
+      rulesetPreset: BANDAI_GENERAL_PRESET.id,
+      banlist: { mode: "current" },
+    });
+    expect(created.status).toBe(201);
+    tournamentId = created.body.id;
+    expect(created.body.rulesetVersion).toBe(BANDAI_GENERAL_PRESET.version);
+
+    // ── Entry and check-in, every step over HTTP ────────────────────────────────────────────
+    for (const name of SWISS_PLAYERS) {
+      const deck = await request("PUT", "/account/decks", name, {
+        name: "Competitive",
+        mainDeck: [...RED_DECK.mainDeck],
+        eggDeck: [...RED_DECK.eggDeck],
       });
-      expect(created.status).toBe(201);
-      tournamentId = created.body.id;
-      expect(created.body.rulesetVersion).toBe(BANDAI_GENERAL_PRESET.version);
+      expect(deck.status).toBe(200);
+      expect(
+        (await request("POST", `/tournaments/${tournamentId}/participants`, name, { savedDeckId: deck.body.id }))
+          .status,
+      ).toBe(201);
+      expect((await request("POST", `/tournaments/${tournamentId}/check-in`, name)).status).toBe(200);
+    }
 
-      // ── Entry and check-in, every step over HTTP ────────────────────────────────────────────
-      for (const name of SWISS_PLAYERS) {
-        const deck = await request("PUT", "/account/decks", name, {
-          name: "Competitive",
-          mainDeck: [...RED_DECK.mainDeck],
-          eggDeck: [...RED_DECK.eggDeck],
-        });
-        expect(deck.status).toBe(200);
-        expect((await request("POST", `/tournaments/${tournamentId}/participants`, name, { savedDeckId: deck.body.id })).status).toBe(201);
-        expect((await request("POST", `/tournaments/${tournamentId}/check-in`, name)).status).toBe(200);
-      }
+    // ── Close: the field freezes and round 1 publishes with its deadlines ───────────────────
+    const closed = await request("POST", `/tournaments/${tournamentId}/close-check-in`, "organizer");
+    expect(closed.status).toBe(200);
+    expect(closed.body.phase.rounds).toHaveLength(1);
+    const roundOne = await openMatches();
+    expect(roundOne).toHaveLength(4);
+    // Every published confrontation carries the instant its players must have arrived by.
+    for (const match of roundOne) expect(await joinDeadlineOf(match.matchId)).not.toBeNull();
 
-      // ── Close: the field freezes and round 1 publishes with its deadlines ───────────────────
-      const closed = await request("POST", `/tournaments/${tournamentId}/close-check-in`, "organizer");
-      expect(closed.status).toBe(200);
-      expect(closed.body.phase.rounds).toHaveLength(1);
-      const roundOne = await openMatches();
-      expect(roundOne).toHaveLength(4);
-      // Every published confrontation carries the instant its players must have arrived by.
-      for (const match of roundOne) expect(await joinDeadlineOf(match.matchId)).not.toBeNull();
+    // ── Round 1, played four different ways ─────────────────────────────────────────────────
+    const [twoNil, twoOne, noShow, disputed] = roundOne as [OpenMatch, OpenMatch, OpenMatch, OpenMatch];
 
-      // ── Round 1, played four different ways ─────────────────────────────────────────────────
-      const [twoNil, twoOne, noShow, disputed] = roundOne as [OpenMatch, OpenMatch, OpenMatch, OpenMatch];
+    // Arming the attendance ladder is the round publisher's job in production and is not yet
+    // wired there (`DeadlineScheduler.enqueueJoinDeadline` has no production caller in this tree).
+    // The E2E arms it explicitly, and only for the confrontation whose absentee it is about to
+    // judge, so the assertions below count that ladder's rungs and nothing else. When publication
+    // arms every match, this call is what becomes redundant.
+    await scheduler.enqueueJoinDeadline({
+      tournamentId,
+      matchId: noShow.matchId,
+      dueAt: (await joinDeadlineOf(noShow.matchId))!,
+      now: Date.now(),
+    });
 
-      // Arming the attendance ladder is the round publisher's job in production and is not yet
-      // wired there (`DeadlineScheduler.enqueueJoinDeadline` has no production caller in this tree).
-      // The E2E arms it explicitly, and only for the confrontation whose absentee it is about to
-      // judge, so the assertions below count that ladder's rungs and nothing else. When publication
-      // arms every match, this call is what becomes redundant.
-      await scheduler.enqueueJoinDeadline({
-        tournamentId,
-        matchId: noShow.matchId,
-        dueAt: (await joinDeadlineOf(noShow.matchId))!,
-        now: Date.now(),
-      });
+    // 2-0 through real rooms.
+    const cleanSweep = await bothPresent(twoNil.matchId, twoNil.seats);
+    await playGame(cleanSweep, twoNil.seats, 0);
+    await playGame(cleanSweep, twoNil.seats, 0);
+    expect((await series.series(cleanSweep))?.wins).toEqual([2, 0]);
+    expect((await series.series(cleanSweep))?.officialResult).toBe("participant0");
+    // Each game really was played in its own room; nothing here took a shortcut past AegisRoom.
+    expect((await series.series(cleanSweep))?.games.map((game) => game.roomId)).toEqual(["e2e-room-1", "e2e-room-2"]);
 
-      // 2-0 through real rooms.
-      const cleanSweep = await bothPresent(twoNil.matchId, twoNil.seats);
-      await playGame(cleanSweep, twoNil.seats, 0);
-      await playGame(cleanSweep, twoNil.seats, 0);
-      expect((await series.series(cleanSweep))?.wins).toEqual([2, 0]);
-      expect((await series.series(cleanSweep))?.officialResult).toBe("participant0");
-      // Each game really was played in its own room; nothing here took a shortcut past AegisRoom.
-      expect((await series.series(cleanSweep))?.games.map((game) => game.roomId)).toEqual(["e2e-room-1", "e2e-room-2"]);
+    // 2-1 through real rooms, on the one clock the first game started.
+    const threeGames = await bothPresent(twoOne.matchId, twoOne.seats);
+    const startedAt = (await series.series(threeGames))!.seriesDeadlineAt;
+    await playGame(threeGames, twoOne.seats, 1);
+    await playGame(threeGames, twoOne.seats, 0);
+    await playGame(threeGames, twoOne.seats, 1);
+    expect((await series.series(threeGames))?.wins).toEqual([1, 2]);
+    expect((await series.series(threeGames))?.officialResult).toBe("participant1");
+    // The clock never moved between games; that is the BO3 invariant.
+    expect((await series.series(threeGames))?.seriesDeadlineAt).toBe(startedAt);
 
-      // 2-1 through real rooms, on the one clock the first game started.
-      const threeGames = await bothPresent(twoOne.matchId, twoOne.seats);
-      const startedAt = (await series.series(threeGames))!.seriesDeadlineAt;
-      await playGame(threeGames, twoOne.seats, 1);
-      await playGame(threeGames, twoOne.seats, 0);
-      await playGame(threeGames, twoOne.seats, 1);
-      expect((await series.series(threeGames))?.wins).toEqual([1, 2]);
-      expect((await series.series(threeGames))?.officialResult).toBe("participant1");
-      // The clock never moved between games; that is the BO3 invariant.
-      expect((await series.series(threeGames))?.seriesDeadlineAt).toBe(startedAt);
+    // A no-show, settled by the scheduler at the exact instants the ruleset names.
+    expect(
+      (await request("POST", `/tournaments/${tournamentId}/matches/${noShow.matchId}/present`, noShow.seats[0])).status,
+    ).toBe(200);
+    const base = await attendanceBase(noShow.matchId);
+    // A null game-loss step means a ruleset that goes straight to the match loss; the official
+    // preset has both rungs, and the two-step ladder is precisely what this asserts.
+    expect(BANDAI_GENERAL_PRESET.attendance.gameLossAtMs).not.toBeNull();
+    const gameLossAt = base + BANDAI_GENERAL_PRESET.attendance.gameLossAtMs!;
+    const matchLossAt = base + BANDAI_GENERAL_PRESET.attendance.matchLossAtMs;
+    expect(await scheduler.processDueDeadlines(gameLossAt - 1)).toBe(0);
+    expect(await scheduler.processDueDeadlines(gameLossAt)).toBe(1);
+    expect((await series.seriesForMatch(noShow.matchId))?.wins).toEqual([1, 0]);
+    expect(await scheduler.processDueDeadlines(matchLossAt - 1)).toBe(0);
+    expect(await scheduler.processDueDeadlines(matchLossAt)).toBe(1);
+    expect((await series.seriesForMatch(noShow.matchId))?.officialResult).toBe("participant0");
 
-      // A no-show, settled by the scheduler at the exact instants the ruleset names.
-      expect((await request("POST", `/tournaments/${tournamentId}/matches/${noShow.matchId}/present`, noShow.seats[0])).status).toBe(200);
-      const base = await attendanceBase(noShow.matchId);
-      // A null game-loss step means a ruleset that goes straight to the match loss; the official
-      // preset has both rungs, and the two-step ladder is precisely what this asserts.
-      expect(BANDAI_GENERAL_PRESET.attendance.gameLossAtMs).not.toBeNull();
-      const gameLossAt = base + BANDAI_GENERAL_PRESET.attendance.gameLossAtMs!;
-      const matchLossAt = base + BANDAI_GENERAL_PRESET.attendance.matchLossAtMs;
-      expect(await scheduler.processDueDeadlines(gameLossAt - 1)).toBe(0);
-      expect(await scheduler.processDueDeadlines(gameLossAt)).toBe(1);
-      expect((await series.seriesForMatch(noShow.matchId))?.wins).toEqual([1, 0]);
-      expect(await scheduler.processDueDeadlines(matchLossAt - 1)).toBe(0);
-      expect(await scheduler.processDueDeadlines(matchLossAt)).toBe(1);
-      expect((await series.seriesForMatch(noShow.matchId))?.officialResult).toBe("participant0");
+    // A confrontation the server may not decide for itself, parked exactly as an unresolvable
+    // double no-show or a voided series leaves it — and therefore a round that cannot close.
+    const parked = await series.resolveSeriesAdministratively({
+      tournamentId,
+      matchId: disputed.matchId,
+      reason: "double_no_show_needs_organizer_decision",
+      winsRequired: 2,
+      seriesDurationMs: null,
+      outcome: { status: "needs_organizer_decision", officialResult: null },
+    });
+    expect(parked.ok && parked.value.status).toBe("needs_organizer_decision");
+    expect(await swiss.sweepOpenTournaments()).toBe(0);
+    expect((await request("GET", `/tournaments/${tournamentId}`, "organizer")).body.phases[0].rounds).toHaveLength(1);
 
-      // A confrontation the server may not decide for itself, parked exactly as an unresolvable
-      // double no-show or a voided series leaves it — and therefore a round that cannot close.
-      const parked = await series.resolveSeriesAdministratively({
-        tournamentId,
-        matchId: disputed.matchId,
-        reason: "double_no_show_needs_organizer_decision",
-        winsRequired: 2,
-        seriesDurationMs: null,
-        outcome: { status: "needs_organizer_decision", officialResult: null },
-      });
-      expect(parked.ok && parked.value.status).toBe("needs_organizer_decision");
-      expect(await swiss.sweepOpenTournaments()).toBe(0);
-      expect((await request("GET", `/tournaments/${tournamentId}`, "organizer")).body.phases[0].rounds).toHaveLength(1);
+    // ── Arbitration unblocks it, and the round closes through the normal path ────────────────
+    const decided = await request(
+      "POST",
+      `/tournaments/${tournamentId}/arbitration/series/${(parked as { value: { id: string } }).value.id}/decide`,
+      "organizer",
+      { winnerAccountId: disputed.seats[0], reason: "opponent forfeited to the judge before the round" },
+    );
+    expect(decided.status).toBe(200);
+    expect(decided.body.reasonCode).toBe("organizer_winner");
+    const afterRoundOne = await request("GET", `/tournaments/${tournamentId}`, "organizer");
+    expect(afterRoundOne.body.phases[0].rounds).toHaveLength(2);
 
-      // ── Arbitration unblocks it, and the round closes through the normal path ────────────────
-      const decided = await request(
-        "POST",
-        `/tournaments/${tournamentId}/arbitration/series/${(parked as { value: { id: string } }).value.id}/decide`,
-        "organizer",
-        { winnerAccountId: disputed.seats[0], reason: "opponent forfeited to the judge before the round" },
-      );
-      expect(decided.status).toBe(200);
-      expect(decided.body.reasonCode).toBe("organizer_winner");
-      const afterRoundOne = await request("GET", `/tournaments/${tournamentId}`, "organizer");
-      expect(afterRoundOne.body.phases[0].rounds).toHaveLength(2);
+    // ── Standings are a projection of the ledger, and say so ─────────────────────────────────
+    const standings = afterRoundOne.body.standings as { points: number; wins: number }[];
+    expect(standings).toHaveLength(8);
+    expect(standings.filter((row) => row.points === 3)).toHaveLength(4);
+    expect(standings.filter((row) => row.points === 0)).toHaveLength(4);
 
-      // ── Standings are a projection of the ledger, and say so ─────────────────────────────────
-      const standings = afterRoundOne.body.standings as { points: number; wins: number }[];
-      expect(standings).toHaveLength(8);
-      expect(standings.filter((row) => row.points === 3)).toHaveLength(4);
-      expect(standings.filter((row) => row.points === 0)).toHaveLength(4);
-
-      // ── Rounds 2 and 3 ──────────────────────────────────────────────────────────────────────
-      // Round 2 keeps one confrontation on the real rooms, so the room path is exercised on a round
-      // the pairer produced rather than only on the one the phase opened with. The rest are
-      // conceded, which is a real command over the real route and reaches the champion without
-      // twenty more room boots.
-      for (let round = 2; round <= 3; round += 1) {
-        const pending = await openMatches();
-        expect(pending.length).toBeGreaterThan(0);
-        for (const [index, match] of pending.entries()) {
-          if (round === 2 && index === 0) {
-            const seriesId = await bothPresent(match.matchId, match.seats);
-            await playGame(seriesId, match.seats, 0);
-            await playGame(seriesId, match.seats, 0);
-            continue;
-          }
-          const conceded = await request(
-            "POST",
-            `/tournaments/${tournamentId}/arbitration/matches/${match.matchId}/concede`,
-            match.seats[1],
-            { reason: "cannot continue the event" },
-          );
-          expect(conceded.status).toBe(200);
+    // ── Rounds 2 and 3 ──────────────────────────────────────────────────────────────────────
+    // Round 2 keeps one confrontation on the real rooms, so the room path is exercised on a round
+    // the pairer produced rather than only on the one the phase opened with. The rest are
+    // conceded, which is a real command over the real route and reaches the champion without
+    // twenty more room boots.
+    for (let round = 2; round <= 3; round += 1) {
+      const pending = await openMatches();
+      expect(pending.length).toBeGreaterThan(0);
+      for (const [index, match] of pending.entries()) {
+        if (round === 2 && index === 0) {
+          const seriesId = await bothPresent(match.matchId, match.seats);
+          await playGame(seriesId, match.seats, 0);
+          await playGame(seriesId, match.seats, 0);
+          continue;
         }
+        const conceded = await request(
+          "POST",
+          `/tournaments/${tournamentId}/arbitration/matches/${match.matchId}/concede`,
+          match.seats[1],
+          { reason: "cannot continue the event" },
+        );
+        expect(conceded.status).toBe(200);
       }
+    }
 
-      // ── One champion ────────────────────────────────────────────────────────────────────────
-      const finished = await accounts.tournament(tournamentId);
-      expect(finished?.status).toBe("finished");
-      expect(finished?.winnerAccountId).not.toBeNull();
-      const final = await request("GET", `/tournaments/${tournamentId}`, "organizer");
-      expect(final.body.phases[0].status).toBe("finished");
-      expect(final.body.phases[0].rounds).toHaveLength(3);
-      // No cut was configured, so the Swiss phase IS the event and finishing it finishes the
-      // tournament. The `topCut: true` case below is where the phase parks in `frozen` instead.
-      expect(final.body.topCutEnabled).toBe(false);
-      expect(replayTournament(await readTournamentEvents(accounts.pool, tournamentId)).topCut).toBeNull();
+    // ── One champion ────────────────────────────────────────────────────────────────────────
+    const finished = await accounts.tournament(tournamentId);
+    expect(finished?.status).toBe("finished");
+    expect(finished?.winnerAccountId).not.toBeNull();
+    const final = await request("GET", `/tournaments/${tournamentId}`, "organizer");
+    expect(final.body.phases[0].status).toBe("finished");
+    expect(final.body.phases[0].rounds).toHaveLength(3);
+    // No cut was configured, so the Swiss phase IS the event and finishing it finishes the
+    // tournament. The `topCut: true` case below is where the phase parks in `frozen` instead.
+    expect(final.body.topCutEnabled).toBe(false);
+    expect(replayTournament(await readTournamentEvents(accounts.pool, tournamentId)).topCut).toBeNull();
 
-      // The champion is the leader of the final standings AND still in the event: a player who
-      // dropped or was thrown out cannot be crowned by having left early enough.
-      const finalStandings = final.body.standings as { participantId: string; points: number }[];
-      const roster = await participants.participants(tournamentId);
-      const crowned = roster.find((entry) => entry.accountId === finished!.winnerAccountId);
-      expect(crowned?.status).toBe("active");
-      expect(finalStandings[0]?.participantId).toBe(crowned?.id);
+    // The champion is the leader of the final standings AND still in the event: a player who
+    // dropped or was thrown out cannot be crowned by having left early enough.
+    const finalStandings = final.body.standings as { participantId: string; points: number }[];
+    const roster = await participants.participants(tournamentId);
+    const crowned = roster.find((entry) => entry.accountId === finished!.winnerAccountId);
+    expect(crowned?.status).toBe("active");
+    expect(finalStandings[0]?.participantId).toBe(crowned?.id);
 
-      // ── The trail is complete and replays the outcome ────────────────────────────────────────
-      const trail = await readTournamentEvents(accounts.pool, tournamentId);
-      expect(trail.map((event) => event.sequence)).toEqual(trail.map((_, index) => index + 1));
-      expect(trail.every((event) => event.reason.trim().length > 0)).toBe(true);
-      expect(trail.every((event) => event.reasonCode.trim().length > 0)).toBe(true);
-      // Every kind of actor is in the one trail: what a machine did, what a scheduler decided, what
-      // an organizer ruled, and what a player asked for.
-      expect(new Set(trail.map((event) => event.actorKind))).toEqual(
-        new Set(["system", "scheduler", "organizer", "participant"]),
-      );
-      expect(trail.filter((event) => event.command === "administrative_loss")).toHaveLength(2);
-      expect(trail.filter((event) => event.command === "decide_series")).toHaveLength(1);
+    // ── The trail is complete and replays the outcome ────────────────────────────────────────
+    const trail = await readTournamentEvents(accounts.pool, tournamentId);
+    expect(trail.map((event) => event.sequence)).toEqual(trail.map((_, index) => index + 1));
+    expect(trail.every((event) => event.reason.trim().length > 0)).toBe(true);
+    expect(trail.every((event) => event.reasonCode.trim().length > 0)).toBe(true);
+    // Every kind of actor is in the one trail: what a machine did, what a scheduler decided, what
+    // an organizer ruled, and what a player asked for.
+    expect(new Set(trail.map((event) => event.actorKind))).toEqual(
+      new Set(["system", "scheduler", "organizer", "participant"]),
+    );
+    expect(trail.filter((event) => event.command === "administrative_loss")).toHaveLength(2);
+    expect(trail.filter((event) => event.command === "decide_series")).toHaveLength(1);
 
-      // ── The replay ───────────────────────────────────────────────────────────────────────────
-      // Rebuild the tournament from the EVENTS ALONE, then compare with the database. Nothing below
-      // reads a table to build `replayed` — that is the point. If any resolution, publication or
-      // completion stopped being recorded, the reconstruction loses it and one of these fails.
-      const replayed = replayTournament(trail);
+    // ── The replay ───────────────────────────────────────────────────────────────────────────
+    // Rebuild the tournament from the EVENTS ALONE, then compare with the database. Nothing below
+    // reads a table to build `replayed` — that is the point. If any resolution, publication or
+    // completion stopped being recorded, the reconstruction loses it and one of these fails.
+    const replayed = replayTournament(trail);
 
-      // Rounds: the trail knows how many were published and closed.
-      const rounds = await accounts.pool.query<{ id: string; number: number | string; status: string }>(
-        `SELECT r.id, r.number, r.status FROM tournament_rounds r
+    // Rounds: the trail knows how many were published and closed.
+    const rounds = await accounts.pool.query<{ id: string; number: number | string; status: string }>(
+      `SELECT r.id, r.number, r.status FROM tournament_rounds r
            JOIN tournament_phases p ON p.id = r.phase_id
           WHERE p.tournament_id=$1 ORDER BY r.number`,
-        [tournamentId],
-      );
-      expect([...replayed.publishedRounds].sort()).toEqual(rounds.rows.map((row) => Number(row.number)).sort());
-      expect([...replayed.closedRounds].sort()).toEqual(
-        rounds.rows.filter((row) => row.status === "closed").map((row) => Number(row.number)).sort(),
-      );
+      [tournamentId],
+    );
+    expect([...replayed.publishedRounds].sort()).toEqual(rounds.rows.map((row) => Number(row.number)).sort());
+    expect([...replayed.closedRounds].sort()).toEqual(
+      rounds.rows
+        .filter((row) => row.status === "closed")
+        .map((row) => Number(row.number))
+        .sort(),
+    );
 
-      // Confrontations: EVERY resolved series in the database must be reconstructible, with the same
-      // official result. A missing `series_resolved` event fails here rather than passing quietly.
-      const resolvedInDatabase = (await accounts.pool.query<{ id: string; official_result: string | null }>(
+    // Confrontations: EVERY resolved series in the database must be reconstructible, with the same
+    // official result. A missing `series_resolved` event fails here rather than passing quietly.
+    const resolvedInDatabase = (
+      await accounts.pool.query<{ id: string; official_result: string | null }>(
         `SELECT s.id, s.official_result FROM match_series s
            JOIN tournament_matches m ON m.id = s.tournament_match_id
           WHERE m.tournament_id=$1 AND s.status='resolved'`,
         [tournamentId],
-      )).rows;
-      expect(resolvedInDatabase.length).toBeGreaterThan(0);
-      for (const row of resolvedInDatabase) {
-        expect(replayed.seriesResults.get(row.id)).toBe(row.official_result);
-      }
-      expect(replayed.seriesResults.size).toBe(resolvedInDatabase.length);
+      )
+    ).rows;
+    expect(resolvedInDatabase.length).toBeGreaterThan(0);
+    for (const row of resolvedInDatabase) {
+      expect(replayed.seriesResults.get(row.id)).toBe(row.official_result);
+    }
+    expect(replayed.seriesResults.size).toBe(resolvedInDatabase.length);
 
-      // The champion, from the trail alone.
-      expect(replayed.winnerAccountId).toBe(finished?.winnerAccountId);
-      expect(replayed.finished).toBe(true);
+    // The champion, from the trail alone.
+    expect(replayed.winnerAccountId).toBe(finished?.winnerAccountId);
+    expect(replayed.finished).toBe(true);
 
-      // No decklists and no tokens reached the ledger.
-      const serialized = JSON.stringify(trail);
-      expect(serialized).not.toContain(RED_DECK.mainDeck[0]);
-      expect(serialized).not.toContain("aegis_session");
-    },
-    120_000,
-  );
+    // No decklists and no tokens reached the ledger.
+    const serialized = JSON.stringify(trail);
+    expect(serialized).not.toContain(RED_DECK.mainDeck[0]);
+    expect(serialized).not.toContain("aegis_session");
+  }, 120_000);
 });
 
 describe("a full official Swiss event that cuts", () => {
-  it(
-    "freezes the Swiss phase, draws a Top 2 through real rooms, and crowns the bracket's champion",
-    async () => {
-      // Nine is the smallest field the official table cuts at all (9–16 → Top 2) and it plays four
-      // Swiss rounds, so this is the cheapest arrangement that exercises the real transition.
-      const created = await request("POST", "/tournaments", "organizer", {
-        name: "Regional Qualifier with a Cut",
-        structure: "swiss",
-        bestOf: 3,
-        topCut: true,
-        startsAt: Date.now() + 86_400_000,
-        maxPlayers: PLAYERS.length,
-        rulesetPreset: BANDAI_GENERAL_PRESET.id,
-        banlist: { mode: "current" },
+  it("freezes the Swiss phase, draws a Top 2 through real rooms, and crowns the bracket's champion", async () => {
+    // Nine is the smallest field the official table cuts at all (9–16 → Top 2) and it plays four
+    // Swiss rounds, so this is the cheapest arrangement that exercises the real transition.
+    const created = await request("POST", "/tournaments", "organizer", {
+      name: "Regional Qualifier with a Cut",
+      structure: "swiss",
+      bestOf: 3,
+      topCut: true,
+      startsAt: Date.now() + 86_400_000,
+      maxPlayers: PLAYERS.length,
+      rulesetPreset: BANDAI_GENERAL_PRESET.id,
+      banlist: { mode: "current" },
+    });
+    expect(created.status).toBe(201);
+    tournamentId = created.body.id;
+
+    for (const name of PLAYERS) {
+      const deck = await request("PUT", "/account/decks", name, {
+        name: "Competitive",
+        mainDeck: [...RED_DECK.mainDeck],
+        eggDeck: [...RED_DECK.eggDeck],
       });
-      expect(created.status).toBe(201);
-      tournamentId = created.body.id;
+      expect(deck.status).toBe(200);
+      expect(
+        (await request("POST", `/tournaments/${tournamentId}/participants`, name, { savedDeckId: deck.body.id }))
+          .status,
+      ).toBe(201);
+      expect((await request("POST", `/tournaments/${tournamentId}/check-in`, name)).status).toBe(200);
+    }
 
-      for (const name of PLAYERS) {
-        const deck = await request("PUT", "/account/decks", name, {
-          name: "Competitive",
-          mainDeck: [...RED_DECK.mainDeck],
-          eggDeck: [...RED_DECK.eggDeck],
-        });
-        expect(deck.status).toBe(200);
-        expect((await request("POST", `/tournaments/${tournamentId}/participants`, name, { savedDeckId: deck.body.id })).status).toBe(201);
-        expect((await request("POST", `/tournaments/${tournamentId}/check-in`, name)).status).toBe(200);
-      }
+    const closed = await request("POST", `/tournaments/${tournamentId}/close-check-in`, "organizer");
+    expect(closed.status).toBe(200);
+    expect(closed.body.phase.plannedRounds).toBe(4);
 
-      const closed = await request("POST", `/tournaments/${tournamentId}/close-check-in`, "organizer");
-      expect(closed.status).toBe(200);
-      expect(closed.body.phase.plannedRounds).toBe(4);
-
-      // ── Four Swiss rounds ───────────────────────────────────────────────────────────────────
-      // The first confrontation of round 1 goes through real rooms; an odd field means one bye per
-      // round, which the pairer awards and ledgers without anybody turning up for it.
-      for (let round = 1; round <= 4; round += 1) {
-        const pending = await openMatches();
-        expect(pending).toHaveLength(4);
-        for (const [index, match] of pending.entries()) {
-          if (round === 1 && index === 0) {
-            const seriesId = await bothPresent(match.matchId, match.seats);
-            await playGame(seriesId, match.seats, 0);
-            await playGame(seriesId, match.seats, 0);
-            continue;
-          }
-          const conceded = await request(
-            "POST",
-            `/tournaments/${tournamentId}/arbitration/matches/${match.matchId}/concede`,
-            match.seats[1],
-            { reason: "cannot continue the event" },
-          );
-          expect(conceded.status).toBe(200);
+    // ── Four Swiss rounds ───────────────────────────────────────────────────────────────────
+    // The first confrontation of round 1 goes through real rooms; an odd field means one bye per
+    // round, which the pairer awards and ledgers without anybody turning up for it.
+    for (let round = 1; round <= 4; round += 1) {
+      const pending = await openMatches();
+      expect(pending).toHaveLength(4);
+      for (const [index, match] of pending.entries()) {
+        if (round === 1 && index === 0) {
+          const seriesId = await bothPresent(match.matchId, match.seats);
+          await playGame(seriesId, match.seats, 0);
+          await playGame(seriesId, match.seats, 0);
+          continue;
         }
+        const conceded = await request(
+          "POST",
+          `/tournaments/${tournamentId}/arbitration/matches/${match.matchId}/concede`,
+          match.seats[1],
+          { reason: "cannot continue the event" },
+        );
+        expect(conceded.status).toBe(200);
       }
+    }
 
-      // ── The cut, drawn by the same listener production registers ────────────────────────────
-      const afterSwiss = await request("GET", `/tournaments/${tournamentId}`, "organizer");
-      expect(afterSwiss.body.topCutEnabled).toBe(true);
-      expect(afterSwiss.body.topCutSize).toBe(2);
-      const swissPhase = afterSwiss.body.phases.find((phase: Wire) => phase.kind === "swiss");
-      const cutPhase = afterSwiss.body.phases.find((phase: Wire) => phase.kind === "top_cut");
-      // The Swiss phase ended by being CUT, not by crowning anybody.
-      expect(swissPhase.status).toBe("finished");
-      expect(swissPhase.rounds).toHaveLength(4);
-      expect(cutPhase.status).toBe("running");
-      expect(cutPhase.rounds).toHaveLength(1);
-      expect(cutPhase.rounds[0].matches).toHaveLength(1);
-      // The published standings are the FROZEN ones now, and the two seeded players lead them.
-      const frozenStandings = afterSwiss.body.standings as { participantId: string }[];
-      expect(frozenStandings).toHaveLength(PLAYERS.length);
+    // ── The cut, drawn by the same listener production registers ────────────────────────────
+    const afterSwiss = await request("GET", `/tournaments/${tournamentId}`, "organizer");
+    expect(afterSwiss.body.topCutEnabled).toBe(true);
+    expect(afterSwiss.body.topCutSize).toBe(2);
+    const swissPhase = afterSwiss.body.phases.find((phase: Wire) => phase.kind === "swiss");
+    const cutPhase = afterSwiss.body.phases.find((phase: Wire) => phase.kind === "top_cut");
+    // The Swiss phase ended by being CUT, not by crowning anybody.
+    expect(swissPhase.status).toBe("finished");
+    expect(swissPhase.rounds).toHaveLength(4);
+    expect(cutPhase.status).toBe("running");
+    expect(cutPhase.rounds).toHaveLength(1);
+    expect(cutPhase.rounds[0].matches).toHaveLength(1);
+    // The published standings are the FROZEN ones now, and the two seeded players lead them.
+    const frozenStandings = afterSwiss.body.standings as { participantId: string }[];
+    expect(frozenStandings).toHaveLength(PLAYERS.length);
 
-      // ── The final, in a real room ────────────────────────────────────────────────────────────
-      const finals = await openMatches();
-      expect(finals).toHaveLength(1);
-      const final = finals[0]!;
-      const finalSeries = await bothPresent(final.matchId, final.seats);
-      await playGame(finalSeries, final.seats, 0);
-      await playGame(finalSeries, final.seats, 0);
+    // ── The final, in a real room ────────────────────────────────────────────────────────────
+    const finals = await openMatches();
+    expect(finals).toHaveLength(1);
+    const final = finals[0]!;
+    const finalSeries = await bothPresent(final.matchId, final.seats);
+    await playGame(finalSeries, final.seats, 0);
+    await playGame(finalSeries, final.seats, 0);
 
-      const finished = await accounts.tournament(tournamentId);
-      expect(finished?.status).toBe("finished");
-      expect(finished?.winnerAccountId).toBe(final.seats[0]);
-      const roster = await participants.participants(tournamentId);
-      const champion = roster.find((entry) => entry.accountId === finished!.winnerAccountId)!;
-      expect(champion.status).toBe("active");
-      expect((await elimination.bracket(tournamentId))?.championParticipantId).toBe(champion.id);
+    const finished = await accounts.tournament(tournamentId);
+    expect(finished?.status).toBe("finished");
+    expect(finished?.winnerAccountId).toBe(final.seats[0]);
+    const roster = await participants.participants(tournamentId);
+    const champion = roster.find((entry) => entry.accountId === finished!.winnerAccountId)!;
+    expect(champion.status).toBe("active");
+    expect((await elimination.bracket(tournamentId))?.championParticipantId).toBe(champion.id);
 
-      // ── The trail reconstructs THAT a cut was drawn, and with which seeds ────────────────────
-      const trail = await readTournamentEvents(accounts.pool, tournamentId);
-      expect(trail.map((event) => event.sequence)).toEqual(trail.map((_, index) => index + 1));
-      expect(trail.filter((event) => event.command === "top_cut_started")).toHaveLength(1);
+    // ── The trail reconstructs THAT a cut was drawn, and with which seeds ────────────────────
+    const trail = await readTournamentEvents(accounts.pool, tournamentId);
+    expect(trail.map((event) => event.sequence)).toEqual(trail.map((_, index) => index + 1));
+    expect(trail.filter((event) => event.command === "top_cut_started")).toHaveLength(1);
 
-      const replayed = replayTournament(trail);
-      expect(replayed.topCut).toEqual({
-        phaseId: cutPhase.id,
-        topCutSize: 2,
-        seededParticipantIds: [frozenStandings[0]!.participantId, frozenStandings[1]!.participantId],
-      });
-      // The seeds the trail names are exactly the two the bracket seated, and the champion is one
-      // of them — a cut whose winner was not seeded would be a bracket drawn from something else.
-      expect(replayed.topCut!.seededParticipantIds).toContain(champion.id);
-      expect(replayed.finished).toBe(true);
-      expect(replayed.winnerAccountId).toBe(finished?.winnerAccountId);
-      // No decklists and no tokens reached the ledger.
-      const serialized = JSON.stringify(trail);
-      expect(serialized).not.toContain(RED_DECK.mainDeck[0]);
-      expect(serialized).not.toContain("aegis_session");
-    },
-    120_000,
-  );
+    const replayed = replayTournament(trail);
+    expect(replayed.topCut).toEqual({
+      phaseId: cutPhase.id,
+      topCutSize: 2,
+      seededParticipantIds: [frozenStandings[0]!.participantId, frozenStandings[1]!.participantId],
+    });
+    // The seeds the trail names are exactly the two the bracket seated, and the champion is one
+    // of them — a cut whose winner was not seeded would be a bracket drawn from something else.
+    expect(replayed.topCut!.seededParticipantIds).toContain(champion.id);
+    expect(replayed.finished).toBe(true);
+    expect(replayed.winnerAccountId).toBe(finished?.winnerAccountId);
+    // No decklists and no tokens reached the ledger.
+    const serialized = JSON.stringify(trail);
+    expect(serialized).not.toContain(RED_DECK.mainDeck[0]);
+    expect(serialized).not.toContain("aegis_session");
+  }, 120_000);
 });
 
 type ReplayedTournament = {

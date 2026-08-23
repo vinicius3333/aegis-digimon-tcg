@@ -9,7 +9,19 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine", levels: [5], nameOrTrait: [{ tokens: ["Cyborg"], match: "trait" }] }, count: 1 }, raw: "By trashing 1 level 5 card with [Cyborg] in its traits in your hand" },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                levels: [5],
+                nameOrTrait: [{ tokens: ["Cyborg"], match: "trait" }],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 level 5 card with [Cyborg] in its traits in your hand",
+          },
           optional: true,
           abortOnDecline: true,
         },
@@ -25,8 +37,20 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "RedirectAttack",
-              target: { filter: { controller: "mine", kind: ["Digimon"], levels: [6], nameOrTrait: [{ tokens: ["Machine"], match: "trait" }] }, count: 1 },
-              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levels: [6],
+                  nameOrTrait: [{ tokens: ["Machine"], match: "trait" }],
+                },
+                count: 1,
+              },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
               condition: { kind: "attackTargetsPlayer" },
               optional: true,
               abortOnDecline: true,
@@ -37,7 +61,9 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

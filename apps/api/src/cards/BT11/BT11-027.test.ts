@@ -13,7 +13,9 @@ describe("BT11-027 Veedramon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
@@ -29,8 +31,12 @@ describe("BT11-027 Veedramon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("redTamer").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("redTamer").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("redTamer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("redTamer").instanceId),
+    );
     await Promise.resolve();
 
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("notDrawn").instanceId);
@@ -45,7 +51,9 @@ describe("BT11-027 Veedramon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 8);
 
     expect(s.state.memory).toBe(8);

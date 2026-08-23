@@ -25,15 +25,19 @@ describe("BT10-108 Death the Cannon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
-    expect(s.state.players[1]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.perm("target").topCard.instanceId,
-    )).toBe(!deleted);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.perm("target").topCard.instanceId,
+      ),
+    ).toBe(!deleted);
   });
 
   it("returns to hand when another effect directly trashes it from the deck", async () => {
@@ -50,17 +54,15 @@ describe("BT10-108 Death the Cannon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("immortalRuler").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("deathCannon").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("immortalRuler").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("deathCannon").instanceId));
 
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("deathCannon").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("deathCannon").instanceId)).toBe(true);
   });
 
   it("does not return to hand when it is only revealed from the deck (Q2038)", async () => {
@@ -69,14 +71,7 @@ describe("BT10-108 Death the Cannon", () => {
         0: {
           battleArea: ["BT10-017"],
           hand: [{ card: "BT10-097", as: "revealer" }],
-          deck: [
-            { card: "BT10-108", as: "deathCannon" },
-            "BT1-001",
-            "BT1-002",
-            "BT1-003",
-            "BT1-004",
-            "BT1-005",
-          ],
+          deck: [{ card: "BT10-108", as: "deathCannon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
         },
       },
       { autoDeclineOptional: true, autoOrderCards: true, autoOrderTriggers: true },
@@ -85,13 +80,13 @@ describe("BT10-108 Death the Cannon", () => {
     const revealerId = s.inst("revealer").instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("revealer").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) =>
-      topCard.instanceId === revealerId
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("revealer").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === revealerId));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === deathCannonId)).toBe(false);
     expect(s.state.players[0]!.deck.some(({ instanceId }) => instanceId === deathCannonId)).toBe(true);

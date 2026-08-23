@@ -15,101 +15,93 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    The original only checked (a).
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Blocker",
+              raw: "＜Blocker＞",
+            },
           },
-          "while": {
-            "kind": "anyOf",
-            "conditions": [
+          while: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "youHave",
-                "filter": {
-                  "zone": "battleArea",
-                  "controllerDefault": "mine",
-                  "excludeSelf": true,
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  excludeSelf: true,
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "X-Antibody"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["X-Antibody"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "you have another Digimon in play with [X-Antibody] in its traits"
+                raw: "you have another Digimon in play with [X-Antibody] in its traits",
               },
               {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "X-Antibody"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["X-Antibody"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "a card with [X-Antibody] in its traits is in this Digimon's digivolution cards"
-              }
+                raw: "a card with [X-Antibody] in its traits is in this Digimon's digivolution cards",
+              },
             ],
-            "raw": "you have another Digimon in play with [X-Antibody] in its traits, or a card with [X-Antibody] in its traits is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "you have another Digimon in play with [X-Antibody] in its traits, or a card with [X-Antibody] in its traits is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                { "tokens": ["X-Antibody"], "match": "trait" }
-              ]
+          while: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["X-Antibody"], match: "trait" }],
             },
-            "raw": "this Digimon has [X-Antibody] in its traits"
-          }
-        }
+            raw: "this Digimon has [X-Antibody] in its traits",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-062", compiled);

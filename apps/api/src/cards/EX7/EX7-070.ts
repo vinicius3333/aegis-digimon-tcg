@@ -12,7 +12,11 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDigivolutionCardDiscarded",
-          sourceFilter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }] },
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Option"],
+            nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }],
+          },
           triggerFilter: { isSelfRef: true },
           actions: [{ kind: "DeDigivolve", target: anyOpponentDigimon, amount: 1, stopAtLevel: 3 }],
           raw: "When an effect trashes this digivolution card, De-Digivolve 1 an opponent Digimon",
@@ -20,7 +24,15 @@ export const compiled: CompiledCard = {
         {
           kind: "WaiveColorRequirement",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }] }, raw: "you have a Three Musketeers Digimon" },
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }],
+            },
+            raw: "you have a Three Musketeers Digimon",
+          },
         },
       ],
     },
@@ -31,7 +43,11 @@ export const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          underFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }] },
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }],
+          },
           position: "bottom",
         },
       ],

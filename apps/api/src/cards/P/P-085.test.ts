@@ -24,13 +24,9 @@ describe("P-085 Dracmon", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-076"),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-076"));
 
-    const evolved = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard?.cardId === "BT10-076",
-    );
+    const evolved = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-076");
     expect(evolved).toBeDefined();
     expect(evolved?.topCard?.instanceId).toBe(troopmonId);
     expect(evolved?.stack.some((card) => card.cardId === "P-085")).toBe(true);
@@ -105,7 +101,9 @@ describe("P-085 Dracmon", () => {
     const trashDigimonId = s.inst("troopmon").instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "P-085")).toBe(true);

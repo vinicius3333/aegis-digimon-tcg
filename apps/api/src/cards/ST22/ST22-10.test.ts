@@ -74,9 +74,7 @@ describe("ST22-10 OnDiscardSecurity (effect trashes this card from security)", (
     await advance(s.engine).verb.deletePermanent([s.perm("taomon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("st22").instanceId));
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("taomon").permanentId)).toBe(
-      true,
-    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("taomon").permanentId)).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("st22").instanceId)).toBe(false);
     expect(s.perm("oppPerm").currentDP).toBe(3000);
   });

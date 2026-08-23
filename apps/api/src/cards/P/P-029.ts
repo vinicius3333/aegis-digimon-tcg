@@ -3,89 +3,83 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "AncientGreymon"
-                ],
-                "match": "nameExact"
-              }
-            ]
+                tokens: ["AncientGreymon"],
+                match: "nameExact",
+              },
+            ],
           },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 2,
-          "ignoreRequirements": true,
-          "optional": true
+          payCost: true,
+          from: ["hand"],
+          costOverride: 2,
+          ignoreRequirements: true,
+          optional: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Delete",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "ifThisEffectDigivolved",
-            "raw": "if it digivolved"
+          condition: {
+            kind: "ifThisEffectDigivolved",
+            raw: "if it digivolved",
           },
-          "at": "endOfTurn"
-        }
-      ]
+          at: "endOfTurn",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "CostModifier",
-          "mode": "reduce",
-          "costType": "digivolve",
-          "amount": 2,
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "digivolve",
+          amount: 2,
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "AncientGreymon"
-                ],
-                "match": "nameExact"
-              }
-            ]
+                tokens: ["AncientGreymon"],
+                match: "nameExact",
+              },
+            ],
           },
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "forTheTurn"
-        }
+          duration: "forTheTurn",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-029", compiled);

@@ -11,7 +11,11 @@ const compiled: CompiledCard = {
         {
           kind: "WaiveColorRequirement",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          condition: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"] }, raw: "you have a Digimon in play" },
+          condition: {
+            kind: "youHave",
+            filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"] },
+            raw: "you have a Digimon in play",
+          },
         },
       ],
     },
@@ -36,7 +40,14 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Restrict",
-          target: { filter: { zone: "digivolutionCards", isSelfRef: true, nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] }, count: "all" },
+          target: {
+            filter: {
+              zone: "digivolutionCards",
+              isSelfRef: true,
+              nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }],
+            },
+            count: "all",
+          },
           restriction: "beTrashed",
           duration: "forTheTurn",
         },

@@ -4,7 +4,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // Boot side-effect: self-register every compiled-IR card module (so EX10-073's real IR loads).
 import "../index.js";
 
-
 function primitivesOf(s: { engine: unknown }): Primitives {
   return (s.engine as unknown as { primitives: Primitives }).primitives;
 }
@@ -19,9 +18,7 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX10-073", dp: 12000, as: "deusmon", linked: [{ card: "BT1-009", as: "linkCard" }] },
-          ],
+          battleArea: [{ card: "EX10-073", dp: 12000, as: "deusmon", linked: [{ card: "BT1-009", as: "linkCard" }] }],
         },
         1: {
           battleArea: [
@@ -42,10 +39,7 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
 
     // Trash THIS Digimon's link card via the REAL production seam (fires whenLinkTrashed).
     await primitivesOf(s).trash([linkCard.instanceId]);
-    await settle(
-      () => s.state.players[1]!.battleArea.find((p) => p.permanentId === oppLowId) === undefined,
-      200,
-    );
+    await settle(() => s.state.players[1]!.battleArea.find((p) => p.permanentId === oppLowId) === undefined, 200);
 
     expect(deusmon.linked.length).toBe(0); // the link card genuinely left the linked list
     // The server narrowed the delete-target prompt to the lowest-cost pool: the cost-5 Digimon was

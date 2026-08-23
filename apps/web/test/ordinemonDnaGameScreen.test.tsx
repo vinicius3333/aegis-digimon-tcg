@@ -84,7 +84,9 @@ async function renderOrdinemonChoice() {
 it("dragging Ordinemon onto Ophanimon exposes DNA instead of silently choosing normal evolution", async () => {
   const { s, panel } = await renderOrdinemonChoice();
   expect(within(panel).getByRole("button", { name: /digivolve normally/i })).toBeTruthy();
-  within(panel).getByRole("button", { name: /^dna digivolve$/i }).click();
+  within(panel)
+    .getByRole("button", { name: /^dna digivolve$/i })
+    .click();
 
   expect(mocked.dnaDigivolve).toHaveBeenCalledWith(
     mocked.room,
@@ -96,7 +98,9 @@ it("dragging Ordinemon onto Ophanimon exposes DNA instead of silently choosing n
 
 it("keeps Ordinemon's legal normal evolution available beside DNA", async () => {
   const { s, panel } = await renderOrdinemonChoice();
-  within(panel).getByRole("button", { name: /digivolve normally/i }).click();
+  within(panel)
+    .getByRole("button", { name: /digivolve normally/i })
+    .click();
 
   expect(mocked.digivolve).toHaveBeenCalledWith(
     mocked.room,

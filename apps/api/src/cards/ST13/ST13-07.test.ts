@@ -12,7 +12,9 @@ describe("ST13-07 Kotemon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "ST13-07", as: "kotemon" }] } });
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kotemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kotemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
 
     expect(s.state.memory).toBe(0);

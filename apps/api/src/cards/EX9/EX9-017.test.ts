@@ -6,16 +6,30 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 
 describe("EX9-017", () => {
   it("has Training and trashes 1 opposing digivolution card by placing a card from hand face-down underneath on play and digivolving", () => {
-    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({ keyword: "Training", raw: "＜Training＞" });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 1, cost: { kind: "place", destination: "digivolutionStack", faceDown: true } });
+    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Training",
+      raw: "＜Training＞",
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
+      kind: "TrashDigivolution",
+      amount: 1,
+      cost: { kind: "place", destination: "digivolutionStack", faceDown: true },
+    });
   });
-  it("inherits Jamming", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "Jamming", raw: "＜Jamming＞" }));
+  it("inherits Jamming", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Jamming",
+      raw: "＜Jamming＞",
+    }));
 
   it("trashes an opposing digivolution card while placing a hand card face down underneath", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-017", as: "source" }], hand: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", under: ["BT1-001"] }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-017", as: "source" }], hand: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", under: ["BT1-001"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 

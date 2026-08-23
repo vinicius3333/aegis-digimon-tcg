@@ -39,10 +39,12 @@ describe("ST14-10 Beelzemon: Blast Mode", () => {
   });
 
   it("still unsuspends but does not gain memory below 20 trash", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "ST14-10", as: "blast", suspended: true }],
-      trash: Array.from({ length: 19 }, () => "BT1-009"),
-    } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST14-10", as: "blast", suspended: true }],
+        trash: Array.from({ length: 19 }, () => "BT1-009"),
+      },
+    });
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("blast"));
     expect(s.perm("blast").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);

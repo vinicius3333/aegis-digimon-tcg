@@ -34,15 +34,17 @@ describe("BT3 Mega Zoo / Omnimon Alter-S deck", () => {
     const tamerId = s.perm("tamer").permanentId;
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("megaZooBase").permanentId,
-      instanceId: s.inst("alterS").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("megaZooBase").permanentId,
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
-        !s.state.players[1]!.battleArea.some((permanent) =>
-          permanent.permanentId === becomesSmallId || permanent.permanentId === nakedSmallId,
+        !s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.permanentId === becomesSmallId || permanent.permanentId === nakedSmallId,
         ) && s.perm("staysLarge").topCard.cardId === "BT1-083",
       5000,
     );

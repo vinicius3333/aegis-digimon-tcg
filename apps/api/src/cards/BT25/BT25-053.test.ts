@@ -8,7 +8,10 @@ import "./BT25-053.js";
 describe("BT25-053 Aegiochusmon: Green", () => {
   it("suspends an opponent Digimon and grants the <=3-security bonus", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT25-053", as: "source" }], security: ["BT1-001", "BT1-002", "BT1-003"] }, 1: { battleArea: [{ card: "BT25-046", as: "target" }] } },
+      {
+        0: { battleArea: [{ card: "BT25-053", as: "source" }], security: ["BT1-001", "BT1-002", "BT1-003"] },
+        1: { battleArea: [{ card: "BT25-046", as: "target" }] },
+      },
       { autoSelectCards: true },
     );
     await s.ready();
@@ -20,7 +23,13 @@ describe("BT25-053 Aegiochusmon: Green", () => {
 
   it("keeps both entry timings and the inherited security-removal watcher", () => {
     const card = runtimeCompiledCard("BT25-053");
-    expect(card?.effects.filter((effect) => effect.trigger === "OnPlay" || effect.trigger === "WhenDigivolving")).toHaveLength(2);
-    expect(card?.effects.find((effect) => effect.isInherited)).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved" }] });
+    expect(
+      card?.effects.filter((effect) => effect.trigger === "OnPlay" || effect.trigger === "WhenDigivolving"),
+    ).toHaveLength(2);
+    expect(card?.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved" }],
+    });
   });
 });

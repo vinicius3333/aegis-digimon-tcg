@@ -12,78 +12,74 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you have a Tamer in play"
+            raw: "you have a Tamer in play",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1,
-            "bindAs": "returnTarget"
-          }
+            count: 1,
+            bindAs: "returnTarget",
+          },
         },
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "returnTarget"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "returnTarget",
           },
-          "amount": 99,
-          "raw": "Trash all of the digivolution cards of that Digimon."
+          amount: 99,
+          raw: "Trash all of the digivolution cards of that Digimon.",
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "returnTarget"
+          kind: "Return",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "returnTarget",
           },
-          "to": "deckBottom"
-        }
-      ]
-    }
+          to: "deckBottom",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-030", compiled);

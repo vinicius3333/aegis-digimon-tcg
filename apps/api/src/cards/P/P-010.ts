@@ -4,40 +4,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-maintained: Q4115 requires an exact [Agumon] digivolution card.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
-          },
-          "while": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [{ "tokens": ["Agumon"], "match": "nameExact" }]
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
             },
-            "raw": "this Digimon has an [Agumon] digivolution card"
-          }
-        }
-      ]
-    }
+          },
+          while: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["Agumon"], match: "nameExact" }],
+            },
+            raw: "this Digimon has an [Agumon] digivolution card",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-010", compiled);

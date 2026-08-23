@@ -40,35 +40,39 @@ describe("BT10/EX2 Justimon Arm-swap deck gauntlet", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("blitzArmBase").permanentId,
-      instanceId: s.inst("criticalArm").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === blitzArmId) &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deleteTargetId) &&
-      s.state.pendingDecision === undefined,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blitzArmBase").permanentId,
+        instanceId: s.inst("criticalArm").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === blitzArmId) &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deleteTargetId) &&
+        s.state.pendingDecision === undefined,
       5000,
     );
-    await settle(() => s.events.some((event) =>
-      event.kind === "effectResolved" && event.sourceCardId === "BT10-067"
-    ));
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT10-067"));
 
     expect(s.perm("blitzArmBase").topCard.cardId).toBe("BT10-067");
     expect(s.perm("blitzArmBase").stack).toHaveLength(0);
     expect(s.state.memory).toBe(3);
 
     const combatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("blitzArmBase").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("blitzArmBase").topCard.instanceId === blitzArmId &&
-      s.events.filter(({ kind }) => kind === "combatResolved").length > combatCount &&
-      !observe(s.engine).isAttacking(),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blitzArmBase").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("blitzArmBase").topCard.instanceId === blitzArmId &&
+        s.events.filter(({ kind }) => kind === "combatResolved").length > combatCount &&
+        !observe(s.engine).isAttacking(),
       5000,
     );
 
@@ -116,24 +120,27 @@ describe("BT10/EX2 Justimon Arm-swap deck gauntlet", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("blitzArmBase").permanentId,
-      instanceId: s.inst("criticalArm").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === blitzArmId) &&
-      s.state.pendingDecision === undefined,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blitzArmBase").permanentId,
+        instanceId: s.inst("criticalArm").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === blitzArmId) &&
+        s.state.pendingDecision === undefined,
     );
-    await settle(() => s.events.some((event) =>
-      event.kind === "effectResolved" && event.sourceCardId === "BT10-067"
-    ));
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT10-067"));
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("blitzArmBase").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blitzArmBase").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("blitzArmBase").topCard.cardId).toBe("BT10-067");

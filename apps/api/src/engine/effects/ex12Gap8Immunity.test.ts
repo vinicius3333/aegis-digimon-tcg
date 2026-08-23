@@ -197,15 +197,20 @@ describe("Interpreter Restrict with fromSourceKind — end-to-end", () => {
     const src = source("DIGI_SRC", target);
     const { ctx, ledger } = makeCtx({ source: src, own: [target] });
 
-    await runCard("TEST-DIGIMON", [
-      {
-        kind: "Restrict",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        restriction: "beAffected",
-        fromSourceKind: ["Digimon"],
-        duration: "untilOpponentTurnEnd",
-      },
-    ], ctx, src);
+    await runCard(
+      "TEST-DIGIMON",
+      [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "beAffected",
+          fromSourceKind: ["Digimon"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      ctx,
+      src,
+    );
 
     // The entry was installed.
     expect(ledger.hasRestriction("T1", "beAffected", "Digimon")).toBe(true);
@@ -218,14 +223,19 @@ describe("Interpreter Restrict with fromSourceKind — end-to-end", () => {
     const src = source("DIGI_SRC", target);
     const { ctx, ledger } = makeCtx({ source: src, own: [target] });
 
-    await runCard("TEST-PLAIN", [
-      {
-        kind: "Restrict",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        restriction: "beAffected",
-        duration: "untilOpponentTurnEnd",
-      },
-    ], ctx, src);
+    await runCard(
+      "TEST-PLAIN",
+      [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "beAffected",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      ctx,
+      src,
+    );
 
     // Blocks all sources.
     expect(ledger.hasRestriction("T2", "beAffected", "Digimon")).toBe(true);
@@ -261,7 +271,8 @@ describe("EX12-019 / EX12-052 registration — no RawUnparsed residual", () => {
   it("EX12-019 registers and has no RawUnparsed in any AllTurns actions", () => {
     const mod = getEffectModule("EX12-019");
     expect(mod, "EX12-019 must be registered").toBeTruthy();
-    const allActions = mod!.effectsForTiming(EffectTiming.None, fakeSrc("EX12-019"))
+    const allActions = mod!
+      .effectsForTiming(EffectTiming.None, fakeSrc("EX12-019"))
       .flatMap((e) => (e as never as { actions: unknown[] }).actions ?? []);
     const hasRawUnparsed = allActions.some((a) => (a as { kind: string }).kind === "RawUnparsed");
     expect(hasRawUnparsed).toBe(false);
@@ -272,9 +283,7 @@ describe("EX12-019 / EX12-052 registration — no RawUnparsed residual", () => {
     expect(mod, "EX12-052 must be registered").toBeTruthy();
     const digivolvingEffects = mod!.effectsForTiming(EffectTiming.WhenDigivolving, fakeSrc("EX12-052"));
     expect(digivolvingEffects.length).toBeGreaterThan(0);
-    const allActions = digivolvingEffects.flatMap(
-      (e) => (e as never as { actions: unknown[] }).actions ?? [],
-    );
+    const allActions = digivolvingEffects.flatMap((e) => (e as never as { actions: unknown[] }).actions ?? []);
     const hasRawUnparsed = allActions.some((a) => (a as { kind: string }).kind === "RawUnparsed");
     expect(hasRawUnparsed).toBe(false);
   });

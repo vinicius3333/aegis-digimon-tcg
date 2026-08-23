@@ -90,31 +90,46 @@ describe("BT8-043 ＜when played＞ cost reduction (delete 1 purple [Cherubimon]
         battleArea: [{ card: "BT8-042", as: "base" }, "BT1-085", "BT1-086"],
         hand: [{ card: BT8_043, as: "evolving" }],
       },
-      1: { battleArea: [{ card: "BT2-047", as: "first" }, { card: "BT2-047", as: "second" }] },
+      1: {
+        battleArea: [
+          { card: "BT2-047", as: "first" },
+          { card: "BT2-047", as: "second" },
+        ],
+      },
     });
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const firstDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: firstDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("first").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("first").permanentId] },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== firstDecision.decisionId);
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== firstDecision.decisionId,
+    );
     const secondDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: secondDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("second").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("second").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(-2);

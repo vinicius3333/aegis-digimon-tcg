@@ -22,10 +22,12 @@ describe("BT8-096 Top Gun", () => {
     const exactId = s.perm("exact").permanentId;
     const aboveId = s.perm("above").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === exactId));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === aboveId)).toBe(true);
@@ -43,10 +45,12 @@ describe("BT8-096 Top Gun", () => {
     s.state.memory = 3;
     const targetId = s.perm("target").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-096"));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
@@ -55,26 +59,31 @@ describe("BT8-096 Top Gun", () => {
   });
 
   it("raises the cap to exactly 7000 when one digivolution card is itself multicolor", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT8-007", under: ["BT8-039"] }, "BT8-013"],
-        hand: [{ card: "BT8-096", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-007", under: ["BT8-039"] }, "BT8-013"],
+          hand: [{ card: "BT8-096", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "exact", dp: 7_000 },
+            { card: "BT1-029", as: "above", dp: 7_001 },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "exact", dp: 7_000 },
-          { card: "BT1-029", as: "above", dp: 7_001 },
-        ],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
     const exactId = s.perm("exact").permanentId;
     const aboveId = s.perm("above").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === exactId));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === aboveId)).toBe(true);
@@ -91,10 +100,7 @@ describe("BT8-096 Top Gun", () => {
     });
     const targetId = s.perm("target").permanentId;
 
-    const resolution = advance(s.engine).fireForInstance(
-      EffectTiming.SecuritySkill,
-      s.inst("securityOption"),
-    );
+    const resolution = advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     await resolution;
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);

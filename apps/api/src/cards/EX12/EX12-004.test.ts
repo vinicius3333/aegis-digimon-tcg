@@ -11,7 +11,8 @@ describe("EX12-004 Onibimon", () => {
     await s.ready();
 
     const executorId = s.perm("executor").permanentId;
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(executorId, "Execute")).toBe(true);
   });
 
@@ -19,7 +20,8 @@ describe("EX12-004 Onibimon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX12-006", as: "host", under: ["EX12-004"] }] } });
     await s.ready();
 
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("host").permanentId, "Execute")).toBe(false);
   });
 
@@ -28,7 +30,8 @@ describe("EX12-004 Onibimon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("host").permanentId, "Execute")).toBe(false);
   });
 

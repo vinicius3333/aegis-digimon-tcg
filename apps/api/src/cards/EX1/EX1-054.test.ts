@@ -12,9 +12,21 @@ describe("EX1-054 Boltmon", () => {
   });
 
   it("de-digivolves an opponent by 1 when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-050", as: "base" }], hand: [{ card: "EX1-054", as: "evo" }] }, 1: { battleArea: [{ card: "EX1-053", as: "target", under: ["EX1-050"] }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-050", as: "base" }], hand: [{ card: "EX1-054", as: "evo" }] },
+        1: { battleArea: [{ card: "EX1-053", as: "target", under: ["EX1-050"] }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard.cardId === "EX1-050");
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX1-053")).toBe(true);
   });

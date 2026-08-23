@@ -7,86 +7,82 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "dnaDigivolveRequirement": [
+  dnaDigivolveRequirement: [
     {
-      "cost": 0,
-      "materials": [
+      cost: 0,
+      materials: [
         {
-          "color": "Yellow",
-          "level": 4
+          color: "Yellow",
+          level: 4,
         },
         {
-          "color": "Blue",
-          "level": 4
-        }
-      ]
-    }
+          color: "Blue",
+          level: 4,
+        },
+      ],
+    },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "security",
-            "op": "lte",
-            "value": 5,
-            "raw": "you have 5 or fewer security cards"
-          }
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 5,
+            raw: "you have 5 or fewer security cards",
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 0,
-                "scaling": { "unit": "security", "per": 1, "filter": { "controller": "mine" } }
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 0,
+                scaling: { unit: "security", per: 1, filter: { controller: "mine" } },
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "isDnaDigivolving"
-          }
-        }
-      ]
+          to: "hand",
+          condition: {
+            kind: "isDnaDigivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn"
-        }
+          amount: -3000,
+          duration: "forTheTurn",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-042", compiled);

@@ -13,146 +13,146 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    deleted at the same time as the opponent's Digimon.
 //    KB Q4364/Q4367 confirm: cannot activate if both are deleted at the same timing.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 2
-          }
+            count: 2,
+          },
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 2
-          }
+            count: 2,
+          },
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "textContains": ["[Dracomon]", "[Examon]"]
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            textContains: ["[Dracomon]", "[Examon]"],
           },
-          "fireCondition": {
-            "kind": "triggerSourceNotDeletedAtSameTiming",
-            "raw": "that Digimon is not deleted at the same timing"
+          fireCondition: {
+            kind: "triggerSourceNotDeletedAtSameTiming",
+            raw: "that Digimon is not deleted at the same timing",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controllerDefault": "opponent",
-                  "suspended": true,
-                  "kind": ["Digimon", "Tamer"]
+              kind: "Delete",
+              target: {
+                filter: {
+                  controllerDefault: "opponent",
+                  suspended: true,
+                  kind: ["Digimon", "Tamer"],
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "textContains": ["[Dracomon]", "[Examon]"]
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            textContains: ["[Dracomon]", "[Examon]"],
           },
-          "fireCondition": {
-            "kind": "triggerSourceNotDeletedAtSameTiming",
-            "raw": "that Digimon is not deleted at the same timing"
+          fireCondition: {
+            kind: "triggerSourceNotDeletedAtSameTiming",
+            raw: "that Digimon is not deleted at the same timing",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controllerDefault": "opponent",
-                  "suspended": true,
-                  "kind": ["Digimon", "Tamer"]
+              kind: "Delete",
+              target: {
+                filter: {
+                  controllerDefault: "opponent",
+                  suspended: true,
+                  kind: ["Digimon", "Tamer"],
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Groundramon", "Wingdramon"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      names: ["Groundramon", "Wingdramon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT20-044", compiled);

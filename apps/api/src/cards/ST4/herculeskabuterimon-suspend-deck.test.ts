@@ -26,50 +26,40 @@ describe("ST4 HerculesKabuterimon suspend deck gauntlet", () => {
         },
         1: {
           battleArea: [{ card: "ST4-13", as: "opponentMega" }],
-          security: [
-            { card: "BT1-001", as: "trashedSecurity" },
-            { card: "BT1-002", as: "checkedSecurity" },
-            "BT1-003",
-          ],
+          security: [{ card: "BT1-001", as: "trashedSecurity" }, { card: "BT1-002", as: "checkedSecurity" }, "BT1-003"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const hercules = s.perm("hercules");
-    const activation = (observe(s.engine)
-      .activatableEffects(hercules) as Array<{
+    const activation = (
+      observe(s.engine).activatableEffects(hercules) as Array<{
         effectKey: string;
         description: string;
-      }>)
-      .find((entry) => /digi.?burst/i.test(entry.description));
+      }>
+    ).find((entry) => /digi.?burst/i.test(entry.description));
 
     expect(activation).toBeDefined();
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: hercules.topCard.instanceId,
-      effectKey: activation!.effectKey,
-    })).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.perm("opponentMega").isSuspended &&
-        s.perm("izzy").isSuspended &&
-        s.state.memory === 1,
-      1500,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: hercules.topCard.instanceId,
+        effectKey: activation!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponentMega").isSuspended && s.perm("izzy").isSuspended && s.state.memory === 1, 1500);
 
     expect(s.state.memory).toBe(1);
-    expect(hercules.stack.map((card) => card.cardId)).toEqual([
-      "ST4-01",
-      "ST4-04",
-      "ST4-11",
-    ]);
+    expect(hercules.stack.map((card) => card.cardId)).toEqual(["ST4-01", "ST4-04", "ST4-11"]);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: hercules.permanentId,
-      target: { kind: "permanent", permanentId: s.perm("opponentMega").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hercules.permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponentMega").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !observe(s.engine).isAttacking() &&
@@ -80,16 +70,12 @@ describe("ST4 HerculesKabuterimon suspend deck gauntlet", () => {
     );
 
     expect(hercules.currentDP).toBe(getCardDefinition("ST4-13")!.dp + 3000);
-    expect(
-      s.state.players[1]!.trash.some(
-        (card) => card.instanceId === s.inst("trashedSecurity").instanceId,
-      ),
-    ).toBe(true);
-    expect(
-      s.state.players[1]!.trash.some(
-        (card) => card.instanceId === s.inst("checkedSecurity").instanceId,
-      ),
-    ).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("trashedSecurity").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("checkedSecurity").instanceId)).toBe(
+      true,
+    );
     expect(
       s.events.filter((event) => event.kind === "securityChecked"),
       "MegaKabuterimon trashes one security without activating it (Q652); only Piercing checks",

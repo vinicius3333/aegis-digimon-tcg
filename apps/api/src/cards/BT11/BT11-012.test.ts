@@ -7,15 +7,20 @@ import "./BT11-012.js";
 
 describe("BT11-012 Shoutmon X3", () => {
   it("reveals three and adds as many eligible cards as possible up to two (Q2056)", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT11-012", as: "source" }],
-        deck: ["BT1-009", "BT10-008", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-012", as: "source" }],
+          deck: ["BT1-009", "BT10-008", "BT1-010"],
+        },
       },
-    }, { autoSelectCards: true, autoOrderTriggers: true });
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 9;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand[0]?.cardId).toBe("BT10-008");

@@ -70,23 +70,50 @@ async function mountGame(s: EngineSetup, identityColor: "Red" | "Yellow" | "Blac
 }
 
 function placeDropZone(target: HTMLElement): void {
-  target.getBoundingClientRect = () => ({
-    left: 40, right: 180, top: 160, bottom: 360, width: 140, height: 200,
-    x: 40, y: 160, toJSON: () => {},
-  }) as DOMRect;
+  target.getBoundingClientRect = () =>
+    ({
+      left: 40,
+      right: 180,
+      top: 160,
+      bottom: 360,
+      width: 140,
+      height: 200,
+      x: 40,
+      y: 160,
+      toJSON: () => {},
+    }) as DOMRect;
 }
 
 async function touchDrag(source: Element, pointerId: number): Promise<void> {
   await act(async () => {
-    source.dispatchEvent(new PointerEvent("pointerdown", {
-      bubbles: true, clientX: 100, clientY: 650, pointerId, pointerType: "touch",
-    }));
-    window.dispatchEvent(new PointerEvent("pointermove", {
-      bubbles: true, cancelable: true, clientX: 100, clientY: 260, pointerId, pointerType: "touch",
-    }));
-    window.dispatchEvent(new PointerEvent("pointerup", {
-      bubbles: true, clientX: 100, clientY: 260, pointerId, pointerType: "touch",
-    }));
+    source.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        clientX: 100,
+        clientY: 650,
+        pointerId,
+        pointerType: "touch",
+      }),
+    );
+    window.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        cancelable: true,
+        clientX: 100,
+        clientY: 260,
+        pointerId,
+        pointerType: "touch",
+      }),
+    );
+    window.dispatchEvent(
+      new PointerEvent("pointerup", {
+        bubbles: true,
+        clientX: 100,
+        clientY: 260,
+        pointerId,
+        pointerType: "touch",
+      }),
+    );
   });
 }
 
@@ -126,7 +153,8 @@ it("mobile touch-drag evolves ST12-08 in breeding through the same confirmation 
     0: {
       breeding: { card: "ST12-06", as: "raisedBaoHuckmon" },
       hand: [{ card: "ST12-08", as: "raisedSaviorHuckmon" }],
-      deck: ["BT1-010"], security: 5,
+      deck: ["BT1-010"],
+      security: 5,
     },
     1: { deck: ["BT1-029"], security: 5 },
   });
@@ -155,7 +183,8 @@ it("mobile touch-drag exposes both normal and DNA evolution for Ordinemon", asyn
         { card: "BT8-082", as: "ophanimonB" },
       ],
       hand: [{ card: "BT9-082", as: "ordinemon" }],
-      deck: ["BT1-010"], security: 5,
+      deck: ["BT1-010"],
+      security: 5,
     },
     1: { deck: ["BT1-029"], security: 5 },
   });
@@ -182,7 +211,8 @@ it("mobile touch-drag offers both BT10-069 evolution costs instead of choosing s
     0: {
       battleArea: [{ card: "BT10-066", as: "darkKnightmon" }],
       hand: [{ card: "BT10-069", as: "darkKnightmonX" }],
-      deck: ["BT1-010"], security: 5,
+      deck: ["BT1-010"],
+      security: 5,
     },
     1: { deck: ["BT1-029"], security: 5 },
   });

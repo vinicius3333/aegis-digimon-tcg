@@ -44,11 +44,15 @@ function fakeCardInstance(cardId: string, instanceId: string): CardInstance {
 }
 
 function makeInsectoidStack(count: number): CardInstance[] {
-  return Array.from({ length: count }, (_, i) => ({
-    cardId: `insectoid-${i}`,
-    instanceId: `stack-insectoid-${i}`,
-    ownerSeat: 0 as Seat,
-  } as never));
+  return Array.from(
+    { length: count },
+    (_, i) =>
+      ({
+        cardId: `insectoid-${i}`,
+        instanceId: `stack-insectoid-${i}`,
+        ownerSeat: 0 as Seat,
+      }) as never,
+  );
 }
 
 function fakePermanent(permanentId: string, digivolutionCards: CardInstance[]): Permanent {

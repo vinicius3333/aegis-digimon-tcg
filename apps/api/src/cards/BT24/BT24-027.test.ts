@@ -102,9 +102,7 @@ describe("BT24-027 Lanamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(await advance(battle.engine).verb.deletePermanent([battle.perm("lanamon").permanentId], "byBattle")).toBe(
-      1,
-    );
+    expect(await advance(battle.engine).verb.deletePermanent([battle.perm("lanamon").permanentId], "byBattle")).toBe(1);
     expect(battle.state.players[0]!.battleArea).toHaveLength(0);
     expect(battle.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
       battle.inst("calmaramon").instanceId,

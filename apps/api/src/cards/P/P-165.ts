@@ -6,104 +6,104 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "timing": "endOfBattle",
-      "actions": [
+      trigger: "Security",
+      timing: "endOfBattle",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "from": ["security"],
-          "payCost": false
-        }
-      ]
+          from: ["security"],
+          payCost: false,
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": ["Familiar Token"],
-          "count": 1,
-          "payCost": false
+          kind: "PlayToken",
+          tokens: ["Familiar Token"],
+          count: 1,
+          payCost: false,
         },
         {
-          "kind": "DelayedDelete",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [{ "tokens": ["Familiar Token"], "match": "name" }]
+          kind: "DelayedDelete",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }],
             },
-            "count": 1,
-            "wasJustPlayed": true
+            count: 1,
+            wasJustPlayed: true,
           },
-          "timing": "endOfOpponentTurn"
-        }
-      ]
+          timing: "endOfOpponentTurn",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": ["Familiar Token"],
-          "count": 1,
-          "payCost": false
+          kind: "PlayToken",
+          tokens: ["Familiar Token"],
+          count: 1,
+          payCost: false,
         },
         {
-          "kind": "DelayedDelete",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [{ "tokens": ["Familiar Token"], "match": "name" }]
+          kind: "DelayedDelete",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }],
             },
-            "count": 1,
-            "wasJustPlayed": true
+            count: 1,
+            wasJustPlayed: true,
           },
-          "timing": "endOfOpponentTurn"
-        }
-      ]
+          timing: "endOfOpponentTurn",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [{ "tokens": ["Familiar Token"], "match": "name" }]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -3000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
-      ]
+              amount: -3000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }]
-    }
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 registerIrCard("P-165", compiled);

@@ -26,7 +26,9 @@ describe("BT7-081 Bokomon", () => {
     const tamerId = s.inst("tamer").instanceId;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => [hybridId, tamerId].every((id) => player.hand.some((card) => card.instanceId === id)));
 
     expect(player.hand.some((card) => card.instanceId === hybridId)).toBe(true);
@@ -60,15 +62,20 @@ describe("BT7-081 Bokomon", () => {
       s.inst("otherThree").instanceId,
     ];
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("bokomon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("bokomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
-        latest.kind === "selectCards" && latest.sourceCardId === "BT7-081";
+        latest.kind === "selectCards" &&
+        latest.sourceCardId === "BT7-081"
+      );
     });
 
     const hybridDecision = s.decisions.at(-1)!.req;
@@ -84,56 +91,59 @@ describe("BT7-081 Bokomon", () => {
       { instanceId: s.inst("otherTwo").instanceId, cardId: "BT7-009" },
       { instanceId: s.inst("otherThree").instanceId, cardId: "BT7-010" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: hybridDecision.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("hybrid").instanceId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: hybridDecision.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("hybrid").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest !== undefined &&
+      return (
+        latest !== undefined &&
         latest.decisionId === s.state.pendingDecision?.decisionId &&
         latest.kind === "selectCards" &&
-        latest.decisionId !== hybridDecision.decisionId;
+        latest.decisionId !== hybridDecision.decisionId
+      );
     });
 
     const tamerDecision = s.decisions.at(-1)!.req;
     expect(tamerDecision.sourceCardId).toBe("BT7-081");
-    expect(tamerDecision.options?.candidateInstanceIds).toEqual([
-      s.inst("tamer").instanceId,
-    ]);
+    expect(tamerDecision.options?.candidateInstanceIds).toEqual([s.inst("tamer").instanceId]);
     expect(tamerDecision.options?.visibleInstanceIds).toEqual(visibleIds);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: tamerDecision.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("tamer").instanceId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: tamerDecision.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("tamer").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;
-    const bottomOrder = [
-      s.inst("otherThree").instanceId,
-      s.inst("otherOne").instanceId,
-      s.inst("otherTwo").instanceId,
-    ];
+    const bottomOrder = [s.inst("otherThree").instanceId, s.inst("otherOne").instanceId, s.inst("otherTwo").instanceId];
     expect(ordering.options?.visibleCards).toEqual([
       { instanceId: s.inst("otherOne").instanceId, cardId: "BT7-008" },
       { instanceId: s.inst("otherTwo").instanceId, cardId: "BT7-009" },
       { instanceId: s.inst("otherThree").instanceId, cardId: "BT7-010" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: bottomOrder },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined &&
-      s.state.players[0]!.deck[0]?.instanceId === bottomOrder[0]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: bottomOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === bottomOrder[0],
+    );
 
     expect(s.decisions.every(({ req }) => req.kind !== "chooseTargets")).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
@@ -153,11 +163,13 @@ describe("BT7-081 Bokomon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("takuya").permanentId,
-      instanceId: s.inst("hybrid").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("hybrid").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("takuya").topCard.cardId === "BT7-011" && s.state.memory === 3);
 
     expect(s.state.memory).toBe(3);
@@ -182,25 +194,27 @@ describe("BT7-081 Bokomon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("firstTamer").permanentId,
-      instanceId: s.inst("firstHybrid").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("firstTamer").topCard.instanceId === s.inst("firstHybrid").instanceId &&
-      s.state.memory === 5,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstTamer").permanentId,
+        instanceId: s.inst("firstHybrid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("firstTamer").topCard.instanceId === s.inst("firstHybrid").instanceId && s.state.memory === 5,
     );
     expect(s.state.memory).toBe(5);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("secondTamer").permanentId,
-      instanceId: s.inst("secondHybrid").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("secondTamer").topCard.instanceId === s.inst("secondHybrid").instanceId &&
-      s.state.memory === 3,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondTamer").permanentId,
+        instanceId: s.inst("secondHybrid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("secondTamer").topCard.instanceId === s.inst("secondHybrid").instanceId && s.state.memory === 3,
     );
 
     expect(s.state.memory).toBe(3);

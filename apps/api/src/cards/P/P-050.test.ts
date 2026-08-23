@@ -36,7 +36,9 @@ describe("P-050 WarGreymon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("too-small").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("too-small").permanentId),
+    ).toBe(true);
   });
 
   it("does not delete the 13000-DP target without a Tamer", async () => {

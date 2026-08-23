@@ -14,11 +14,13 @@ describe("BT10-034 Dorulumon", () => {
     });
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
 
     expect(s.state.memory).toBe(0);
@@ -26,9 +28,17 @@ describe("BT10-034 Dorulumon", () => {
   });
 
   it("gives an opposing Digimon -3000 DP when another Xros Heart permanent is in play", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT10-034", as: "source" }], battleArea: ["BT10-087"] }, 1: { battleArea: [{ card: "BT10-020", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT10-034", as: "source" }], battleArea: ["BT10-087"] },
+        1: { battleArea: [{ card: "BT10-020", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 2000);
     expect(s.perm("target").currentDP).toBe(2000);
   });
@@ -43,10 +53,12 @@ describe("BT10-034 Dorulumon", () => {
     );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("target").currentDP).toBe(5000);

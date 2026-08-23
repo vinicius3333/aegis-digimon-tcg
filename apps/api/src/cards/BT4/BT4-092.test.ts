@@ -13,9 +13,26 @@ describe("BT4-092 Marcus Damon", () => {
   });
 
   it("suspends to gain 1 memory when an eligible Greymon attacks", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-092", as: "marcus" }, { card: "BT1-015", as: "greymon", dp: 20_000 }] }, 1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-092", as: "marcus" },
+            { card: "BT1-015", as: "greymon", dp: 20_000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 0;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("greymon").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("greymon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("marcus").isSuspended && s.state.memory === 1, 5000);
     expect(s.perm("marcus").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
@@ -45,11 +62,13 @@ describe("BT4-092 Marcus Damon", () => {
       );
       s.state.memory = 0;
 
-      expect(s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("excluded").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("excluded").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.state.players[1]!.battleArea.length === 0);
 
       expect(s.perm("marcus").isSuspended).toBe(false);
@@ -60,21 +79,25 @@ describe("BT4-092 Marcus Damon", () => {
   it("cannot pay the suspend cost while Marcus is already suspended", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [
-          { card: "BT4-092", as: "marcus", suspended: true },
-          { card: "BT1-015", as: "greymon", dp: 20_000 },
-        ] },
+        0: {
+          battleArea: [
+            { card: "BT4-092", as: "marcus", suspended: true },
+            { card: "BT1-015", as: "greymon", dp: 20_000 },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
       },
       { autoAcceptOptional: true },
     );
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("greymon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("greymon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.memory).toBe(0);

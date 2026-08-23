@@ -6,138 +6,125 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "endOfOpponentTurn"
+          duration: "endOfOpponentTurn",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "endOfOpponentTurn",
-          "condition": {
-            "kind": "digiXrosCount",
-            "minimum": 1,
-            "raw": "DigiXrosing"
-          }
-        }
-      ]
+          duration: "endOfOpponentTurn",
+          condition: {
+            kind: "digiXrosCount",
+            minimum: 1,
+            raw: "DigiXrosing",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 2,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 2,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Blue Flare",
-                      "Twilight"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Blue Flare", "Twilight"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
+          rest: "trash",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "isSelfRef": true,
-                  "nameOrTrait": [
+              condition: {
+                kind: "youHave",
+                filter: {
+                  isSelfRef: true,
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "GreyKnightsmon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["GreyKnightsmon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "raw": "this Digimon is [GreyKnightsmon]"
+                raw: "this Digimon is [GreyKnightsmon]",
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "names": [
-            "SkullKnightmon"
-          ]
+          names: ["SkullKnightmon"],
         },
         {
-          "names": [
-            "DeadlyAxemon"
-          ]
-        }
+          names: ["DeadlyAxemon"],
+        },
       ],
-      "count": 2
-    }
-  ]
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("EX4-047", compiled);

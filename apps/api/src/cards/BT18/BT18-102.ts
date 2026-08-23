@@ -13,134 +13,134 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 4. Second WhenAttacking: cost uses SecurityManipulation placeAsSecurity (bottom),
 //    then trashSecurityTop scaled by number of placed cards.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": { "op": "lte", "value": 10000 }
-            },
-            "count": 1
-          }
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
         },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dpDeletion",
-          "amount": 2000,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "digivolutionCards",
-              "controllerDefault": "mine"
-            },
-            "unit": "colors"
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": { "op": "lte", "value": 10000 }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: { op: "lte", value: 10000 },
             },
-            "count": 1
-          }
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dpDeletion",
-          "amount": 2000,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "digivolutionCards",
-              "controllerDefault": "mine"
-            },
-            "unit": "colors"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Tamer"],
-              "zone": "digivolutionCards"
-            },
-            "count": 5,
-            "upTo": true
+            count: 1,
           },
-          "toTop": false,
-          "optional": true,
-          "abortOnDecline": true,
-          "raw": "By placing up to 5 Tamer cards from this Digimon's digivolution cards as your bottom security cards"
         },
         {
-          "kind": "trashSecurityTop",
-          "controller": "opponent",
-          "scalingSource": "prevActionCount",
-          "raw": "trash opponent's top security cards for each card placed by this effect"
-        }
-      ]
+          kind: "CostModifier",
+          mode: "raiseCeiling",
+          costType: "dpDeletion",
+          amount: 2000,
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "digivolutionCards",
+              controllerDefault: "mine",
+            },
+            unit: "colors",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: { op: "lte", value: 10000 },
+            },
+            count: 1,
           },
-          "grant": "trait",
-          "tokens": ["Hybrid"]
-        }
-      ]
-    }
+        },
+        {
+          kind: "CostModifier",
+          mode: "raiseCeiling",
+          costType: "dpDeletion",
+          amount: 2000,
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "digivolutionCards",
+              controllerDefault: "mine",
+            },
+            unit: "colors",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              zone: "digivolutionCards",
+            },
+            count: 5,
+            upTo: true,
+          },
+          toTop: false,
+          optional: true,
+          abortOnDecline: true,
+          raw: "By placing up to 5 Tamer cards from this Digimon's digivolution cards as your bottom security cards",
+        },
+        {
+          kind: "trashSecurityTop",
+          controller: "opponent",
+          scalingSource: "prevActionCount",
+          raw: "trash opponent's top security cards for each card placed by this effect",
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Hybrid"],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Takuya Kanbara", "Koji Minamoto"],
-      "cost": 6,
-      "isAlternate": true,
-      "requiredDigivolutionCardCount": { "trait": "Hybrid", "min": 10 },
-      "incompatibleWithBlastDigivolve": true
-    }
-  ]
+      names: ["Takuya Kanbara", "Koji Minamoto"],
+      cost: 6,
+      isAlternate: true,
+      requiredDigivolutionCardCount: { trait: "Hybrid", min: 10 },
+      incompatibleWithBlastDigivolve: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-102", compiled);

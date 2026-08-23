@@ -42,7 +42,9 @@ describe("BT22-055 Recomon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("recomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("recomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-058")).toBe(true);
@@ -50,7 +52,9 @@ describe("BT22-055 Recomon", () => {
   });
 
   it("links to an Appmon for 2 and grants Blocker to the host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT22-055", as: "recomon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-009", as: "host" }], hand: [{ card: "BT22-055", as: "recomon" }] },
+    });
     s.state.memory = 2;
 
     expect(

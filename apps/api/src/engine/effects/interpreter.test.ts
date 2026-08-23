@@ -3896,10 +3896,14 @@ describe("v4 IR actions (runtime record-v2 schema additions)", () => {
 
     const trashes = recorder.calls.filter((call) => call.verb === "trashDigivolutionCards");
     expect(trashes).toHaveLength(1);
-    expect(trashes[0]!.args).toEqual(["OPP#PARTIAL", ["ONLY-SOURCE"], {
-      byEffectSeat: 0,
-      byEffectCardId: "Z-TDG-PARTIAL",
-    }]);
+    expect(trashes[0]!.args).toEqual([
+      "OPP#PARTIAL",
+      ["ONLY-SOURCE"],
+      {
+        byEffectSeat: 0,
+        byEffectCardId: "Z-TDG-PARTIAL",
+      },
+    ]);
   });
 
   it("TrashDigivolution: a redirect (BT10-084 Q2004) collapses the target onto the new host, re-clamping the count to ITS stack instead of the original's", async () => {

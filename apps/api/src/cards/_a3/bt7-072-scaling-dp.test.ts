@@ -66,20 +66,19 @@ function makeSource(cardId: string, permanentId: string): CardSource {
   };
 }
 
-function makeContext(opts: {
-  trashNames: string[];
-  recorder: Recorder;
-  isOwnersTurn?: boolean;
-}): EffectContext {
+function makeContext(opts: { trashNames: string[]; recorder: Recorder; isOwnersTurn?: boolean }): EffectContext {
   const isOwnersTurn = opts.isOwnersTurn ?? true;
   const selfPermanentId = "perm-bt7-072";
   const source = makeSource("BT7-072", selfPermanentId);
 
-  const trashInstances: CardInstance[] = opts.trashNames.map((name, i) => ({
-    cardId: `trash-card-${i}`,
-    instanceId: `trash-${i}`,
-    ownerSeat: 0 as Seat,
-  } as never));
+  const trashInstances: CardInstance[] = opts.trashNames.map(
+    (name, i) =>
+      ({
+        cardId: `trash-card-${i}`,
+        instanceId: `trash-${i}`,
+        ownerSeat: 0 as Seat,
+      }) as never,
+  );
 
   const players = [
     {

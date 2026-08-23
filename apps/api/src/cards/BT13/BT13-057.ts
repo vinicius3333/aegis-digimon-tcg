@@ -8,66 +8,60 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon",
-                  "Tamer"
-                ],
-                "unsuspended": true
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon", "Tamer"],
+                unsuspended: true,
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By suspending 1 of your opponent's Digimon or Tamers"
-          }
-        }
-      ]
+            raw: "By suspending 1 of your opponent's Digimon or Tamers",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ],
-                  "unsuspended": true
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon", "Tamer"],
+                  unsuspended: true,
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-057", compiled);

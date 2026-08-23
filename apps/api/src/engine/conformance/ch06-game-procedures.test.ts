@@ -356,10 +356,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
   });
 
   it("§10-1-3-1: linkCard is rejected when the chosen Digimon doesn't meet the link requirement", () => {
-    cite(
-      "comprehensive-0140",
-      "10-1-3-1 the player chooses 1 of their Digimon that meets the [Link] requirement.",
-    );
+    cite("comprehensive-0140", "10-1-3-1 the player chooses 1 of their Digimon that meets the [Link] requirement.");
 
     const s = setup();
     const p0 = s.state.players[0]!;

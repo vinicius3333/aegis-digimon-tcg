@@ -4,7 +4,16 @@ import "./BT5-008.js";
 
 describe("BT5-008 Gaossmon", () => {
   it("gives every other Gaossmon +3000 DP on its turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-008", as: "source" }, { card: "BT5-008", as: "other-a" }, { card: "BT5-008", as: "other-b" }, { card: "BT1-009", as: "unrelated" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT5-008", as: "source" },
+          { card: "BT5-008", as: "other-a" },
+          { card: "BT5-008", as: "other-b" },
+          { card: "BT1-009", as: "unrelated" },
+        ],
+      },
+    });
     await s.engine.recomputeContinuousEffects();
 
     expect(s.perm("source").currentDP).toBe(s.perm("source").baseDP + 6000);

@@ -1,20 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { ArraySchema } from "@colyseus/schema";
-import {
-  GameState,
-  PlayerState,
-  CardInstance,
-  Phase,
-  EffectTiming,
-  type Seat,
-  type ServerEvent,
-} from "@aegis/shared";
-import {
-  TurnStateMachine,
-  type TurnFlowHooks,
-  type MainPhaseEnd,
-  type DurationBoundary,
-} from "./TurnStateMachine.js";
+import { GameState, PlayerState, CardInstance, Phase, EffectTiming, type Seat, type ServerEvent } from "@aegis/shared";
+import { TurnStateMachine, type TurnFlowHooks, type MainPhaseEnd, type DurationBoundary } from "./TurnStateMachine.js";
 import { MemoryGauge, PASS_TURN_MEMORY } from "./MemoryGauge.js";
 
 function makeState(firstSeat: Seat = 0): GameState {
@@ -46,7 +33,10 @@ function fillDeck(state: GameState, seat: Seat, count: number): void {
 }
 
 /** A recording fake of TurnFlowHooks; tests override individual methods as needed. */
-function makeHooks(state: GameState, overrides: Partial<TurnFlowHooks> = {}): {
+function makeHooks(
+  state: GameState,
+  overrides: Partial<TurnFlowHooks> = {},
+): {
   hooks: TurnFlowHooks;
   timings: EffectTiming[];
   boundaries: DurationBoundary[];

@@ -8,97 +8,89 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you have a Tamer in play"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "bindAs": "P095Target"
-          }
+            raw: "you have a Tamer in play",
+          },
         },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "fromSelectionRef": "P095Target",
-            "count": 1
-          },
-          "amount": -6000,
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "DisableTimingEffect",
-          "target": {
-            "fromSelectionRef": "P095Target",
-            "count": 1
-          },
-          "timings": [
-            "whenDigivolving"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -6000,
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "AddToHandSelf"
-        }
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            bindAs: "P095Target",
+          },
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            fromSelectionRef: "P095Target",
+            count: 1,
+          },
+          amount: -6000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "DisableTimingEffect",
+          target: {
+            fromSelectionRef: "P095Target",
+            count: 1,
+          },
+          timings: ["whenDigivolving"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -6000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-095", compiled);

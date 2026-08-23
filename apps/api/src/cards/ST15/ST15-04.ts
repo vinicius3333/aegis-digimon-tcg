@@ -6,32 +6,30 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 1,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 1,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "colors": [
-                  "Black"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                colors: ["Black"],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
-    }
+          rest: "trash",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST15-04", compiled);

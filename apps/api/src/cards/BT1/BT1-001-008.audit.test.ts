@@ -18,11 +18,28 @@ describe("BT1-001 through BT1-008 IR coverage", () => {
   it("preserves inherited timing, once-per-turn identity, and exact gates", () => {
     expect(yokomon.effects[0]).toMatchObject({ trigger: "WhenAttacking", isInherited: true });
     expect(upamon.effects[0]).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn" });
-    expect(bebydomon.effects[0]?.actions[0]).toMatchObject({ amount: 2000, condition: { kind: "selfHasKeyword", keyword: "Piercing" } });
+    expect(bebydomon.effects[0]?.actions[0]).toMatchObject({
+      amount: 2000,
+      condition: { kind: "selfHasKeyword", keyword: "Piercing" },
+    });
     expect(wanyamon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "opponentHas", countMin: 2 });
-    expect(kyaromon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "zoneCount", zone: "security", op: "gte", value: 6 });
-    expect(cupimon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "zoneCount", zone: "security", op: "gte", value: 5 });
+    expect(kyaromon.effects[0]?.actions[0]?.condition).toMatchObject({
+      kind: "zoneCount",
+      zone: "security",
+      op: "gte",
+      value: 6,
+    });
+    expect(cupimon.effects[0]?.actions[0]?.condition).toMatchObject({
+      kind: "zoneCount",
+      zone: "security",
+      op: "gte",
+      value: 5,
+    });
     expect(tanemon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "youDigivolvedThisTurn" });
-    expect(frimon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "opponentHas", countMin: 2, filter: { suspended: true } });
+    expect(frimon.effects[0]?.actions[0]?.condition).toMatchObject({
+      kind: "opponentHas",
+      countMin: 2,
+      filter: { suspended: true },
+    });
   });
 });

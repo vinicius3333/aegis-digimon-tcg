@@ -7,34 +7,32 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Digimon by 1. The level-7 check is a prerequisite for the whole effect (not scoped to the
 // DeDigivolve action), so it sits on the effect block. No Trash action in printed text.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "condition": {
-        "kind": "selfLevelIs",
-            "value": 7,
-            "raw": "this Digimon is level 7"
+      trigger: "WhenAttacking",
+      condition: {
+        kind: "selfLevelIs",
+        value: 7,
+        raw: "this Digimon is level 7",
       },
-      "actions": [
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
-        }
+          amount: 1,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-069", compiled);

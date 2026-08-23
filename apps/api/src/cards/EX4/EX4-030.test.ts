@@ -23,7 +23,10 @@ describe("EX4-030 Kuzuhamon", () => {
 
   it("fires the once-per-turn cost-2 watcher and plays an eligible stack Digimon", () => {
     const effect = runtimeCompiledCard("EX4-030")?.effects?.find((entry) => entry.trigger === "YourTurn");
-    expect(effect).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOptionUsed" }] });
+    expect(effect).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenOptionUsed" }],
+    });
     expect(irNode(effect?.actions?.[0])?.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["digivolutionCards"],

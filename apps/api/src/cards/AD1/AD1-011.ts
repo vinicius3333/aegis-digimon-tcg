@@ -6,99 +6,93 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Partition",
-          "raw": "＜Partition (Blue Lv.4 & Green Lv.4)＞"
-        }
-      ]
+          keyword: "Partition",
+          raw: "＜Partition (Blue Lv.4 & Green Lv.4)＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "beDeletedInBattle",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "beDeletedInBattle",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "attackTargetChange",
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
+          restriction: "attackTargetChange",
+          duration: "forTheTurn",
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Imperialdramon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Imperialdramon"],
+                match: "name",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 2,
-          "payCost": true,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          reduceCost: 2,
+          payCost: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Partition",
-          "raw": "＜Partition (Blue Lv.4 & Green Lv.4)＞"
-        }
-      ]
-    }
+          keyword: "Partition",
+          raw: "＜Partition (Blue Lv.4 & Green Lv.4)＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("AD1-011", compiled);

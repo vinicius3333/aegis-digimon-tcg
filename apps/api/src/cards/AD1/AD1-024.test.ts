@@ -14,16 +14,23 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("suspends an opposing Digimon and unsuspends itself when a Digimon is played", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-024", as: "fighter", suspended: true }], hand: [{ card: "BT1-010", as: "played" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-024", as: "fighter", suspended: true }],
+          hand: [{ card: "BT1-010", as: "played" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("opponent").isSuspended && !s.perm("fighter").isSuspended);
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(s.perm("fighter").isSuspended).toBe(false);
@@ -31,12 +38,20 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
   });
 
   it("unsuspends even when there is no opposing Digimon to suspend (Q6916)", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-024", as: "fighter", suspended: true }], hand: [{ card: "BT1-010", as: "played" }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-024", as: "fighter", suspended: true }],
+          hand: [{ card: "BT1-010", as: "played" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("fighter").isSuspended === false);
     expect(s.perm("fighter").isSuspended).toBe(false);
   });
@@ -51,7 +66,13 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("paildramon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paildramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("paildramon").topCard.cardId === "AD1-024");
     await settle(() => s.state.players[1]!.battleArea.length === 0, 5000);
 
@@ -63,15 +84,33 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT12-030", as: "base" }], hand: [{ card: "AD1-024", as: "fighter" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "low", dp: 5000 }, { card: "BT1-010", as: "high", dp: 6000 }], security: ["BT1-001"] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "low", dp: 5000 },
+            { card: "BT1-010", as: "high", dp: 6000 },
+          ],
+          security: ["BT1-001"],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("fighter").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("fighter").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -79,20 +118,30 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
   });
 
   it("uses both alternate evolution routes and publishes its two keywords", async () => {
-    for (const [baseCard, expectedMemory] of [["BT12-030", 5], ["AD1-011", 1]] as const) {
+    for (const [baseCard, expectedMemory] of [
+      ["BT12-030", 5],
+      ["AD1-011", 1],
+    ] as const) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: "AD1-024", as: "fighter" }] },
       });
       s.state.memory = 6;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("fighter").instanceId })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("fighter").instanceId,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "AD1-024");
       expect(s.state.memory).toBe(expectedMemory);
     }
 
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-024", as: "fighter" }] } });
     await s.ready();
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("fighter").permanentId, "SecurityAttack")).toBe(true);
     expect(continuous.hasKeyword(s.perm("fighter").permanentId, "Blocker")).toBe(true);
   });

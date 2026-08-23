@@ -11,17 +11,20 @@ import "./BT9/BT9-016.js";
 
 describe("security removal watcher direction", () => {
   it("separates own-security Kari and Dynasmon effects from WarGreymon's opponent-security effect", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT4-097", as: "kari" },
-          { card: "BT6-044", as: "dynasmon" },
-          { card: "BT9-016", as: "warGreymonX" },
-        ],
-        security: ["BT1-001", "BT1-002", "BT1-003"],
-        deck: [{ card: "BT1-004", as: "recovered" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-097", as: "kari" },
+            { card: "BT6-044", as: "dynasmon" },
+            { card: "BT9-016", as: "warGreymonX" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: [{ card: "BT1-004", as: "recovered" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
     s.state.memory = 0;
     await s.ready();
 
@@ -42,17 +45,20 @@ describe("security removal watcher direction", () => {
   });
 
   it("fires Tapirmon, Wizardmon, and Mistymon only for their controller's security", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-081", under: ["BT6-032"], as: "tapirmonHost" },
-          { card: "BT1-081", under: ["BT6-034"], as: "wizardmonHost" },
-          { card: "BT1-081", under: ["BT6-040"], as: "mistymonHost" },
-        ],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-081", under: ["BT6-032"], as: "tapirmonHost" },
+            { card: "BT1-081", under: ["BT6-034"], as: "wizardmonHost" },
+            { card: "BT1-081", under: ["BT6-040"], as: "mistymonHost" },
+          ],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-081", as: "dpTarget" }] },
       },
-      1: { battleArea: [{ card: "BT1-081", as: "dpTarget" }] },
-    }, { autoSelectCards: true, autoOrderTriggers: true });
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 0;
     await s.ready();
     const targetBaseDP = s.perm("dpTarget").currentDP;

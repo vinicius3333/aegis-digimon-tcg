@@ -12,12 +12,29 @@ describe("EX11-050 Loudmon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect.actions[0]).toMatchObject({ kind: "Trash", target: { filter: { zone: "hand" }, count: 2 } });
-      expect(effect.actions[1]).toMatchObject({ kind: "Delete", target: { filter: { dp: { op: "lte", relativeToFilter: { nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }] } } } } });
+      expect(effect.actions[1]).toMatchObject({
+        kind: "Delete",
+        target: {
+          filter: {
+            dp: {
+              op: "lte",
+              relativeToFilter: { nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }] },
+            },
+          },
+        },
+      });
     }
     const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
-    expect(allTurns.actions[0]).toMatchObject({ kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Scapegoat" } }, while: { kind: "zoneCount", op: "lte", value: 4 } });
+    expect(allTurns.actions[0]).toMatchObject({
+      kind: "Aura",
+      effect: { kind: "keyword", keyword: { keyword: "Scapegoat" } },
+      while: { kind: "zoneCount", op: "lte", value: 4 },
+    });
     const inherited = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(inherited).toMatchObject({ isInherited: true });
-    expect(inherited.actions[0]).toMatchObject({ kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } } });
+    expect(inherited.actions[0]).toMatchObject({
+      kind: "Aura",
+      effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } },
+    });
   });
 });

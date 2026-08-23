@@ -6,46 +6,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
-          },
-          "while": {
-            "kind": "opponentHas",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
             },
-            "raw": "your opponent has an unsuspended Digimon in play"
-          }
-        }
+          },
+          while: {
+            kind: "opponentHas",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
+            },
+            raw: "your opponent has an unsuspended Digimon in play",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-062", compiled);

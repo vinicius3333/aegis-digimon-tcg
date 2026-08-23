@@ -10,23 +10,56 @@ describe("BT26-049 Rosemon", () => {
       { names: ["Lilamon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", frequency: "OncePerTurn", actions: [{ kind: "Suspend", target: { count: 2, upTo: true } }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Suspend", target: { count: 2, upTo: true } }],
+    });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenAttacking", sharedUseKey: "bt26-049-suspend" });
-    expect(compiled.effects?.[2]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [
-      { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "Modal", choose: 1, options: [[{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }], [{ kind: "UseOptionWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }]] }] },
-      { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "Modal", choose: 1 }] },
-    ] });
-    expect(irNode(compiled.effects?.[2]?.actions?.[0])?.actions?.[0]?.options?.[0]?.[0]?.target?.filter).not.toHaveProperty("playCostLte");
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [
+            {
+              kind: "Modal",
+              choose: 1,
+              options: [
+                [{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }],
+                [{ kind: "UseOptionWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }],
+              ],
+            },
+          ],
+        },
+        { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "Modal", choose: 1 }] },
+      ],
+    });
+    expect(
+      irNode(compiled.effects?.[2]?.actions?.[0])?.actions?.[0]?.options?.[0]?.[0]?.target?.filter,
+    ).not.toHaveProperty("playCostLte");
   });
 
   it("uses an Option after two opposing suspensions raise the DATA SQUAD ceiling to five", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-049", as: "rosemon" }], hand: [{ card: "BT26-098", as: "option" }] },
-      1: { battleArea: [{ card: "BT1-085", as: "suspendedOne", suspended: true }, { card: "BT1-086", as: "suspendedTwo", suspended: true }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-049", as: "rosemon" }], hand: [{ card: "BT26-098", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-085", as: "suspendedOne", suspended: true },
+            { card: "BT1-086", as: "suspendedTwo", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("suspendedOne").permanentId });
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      suspendedPermanentId: s.perm("suspendedOne").permanentId,
+    });
     await settle();
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);

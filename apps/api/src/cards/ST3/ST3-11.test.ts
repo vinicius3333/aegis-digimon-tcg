@@ -4,8 +4,20 @@ import "./ST3-11.js";
 
 describe("ST3-11 Seraphimon", () => {
   it("gives an opposing Digimon -4000 DP when attacking", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST3-11", as: "seraphimon" }] }, 1: { battleArea: [{ card: "ST3-07", as: "target" }], security: ["ST3-02"] } }, { autoSelectCards: true });
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("seraphimon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST3-11", as: "seraphimon" }] },
+        1: { battleArea: [{ card: "ST3-07", as: "target" }], security: ["ST3-02"] },
+      },
+      { autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("seraphimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 2000);
     expect(s.perm("target").currentDP).toBe(2000);
   });

@@ -8,11 +8,7 @@ import {
 } from "@aegis/shared";
 import type { GameStateAccess } from "../state/access.js";
 import type { CombatController } from "../combat/controller.js";
-import {
-  canAttackerDeclare,
-  canAttackTarget,
-  type ContinuousLegalityReader,
-} from "../combat/legality.js";
+import { canAttackerDeclare, canAttackTarget, type ContinuousLegalityReader } from "../combat/legality.js";
 
 /**
  * The `attack` player verb (subsystem: attack-and-block).

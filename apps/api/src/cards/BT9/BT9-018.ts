@@ -20,82 +20,74 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    Fix: SubTrigger on whenSuspended (the previously-dead "whenDigimonSuspended" name collapsed onto it), sourceFilter opponent Digimon DP≤6000, optional Delete.
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "battleArea",
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "battleArea",
+              controller: "opponent",
+              kind: ["Tamer"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ],
-            "dp": {
-              "op": "lte",
-              "value": 6000
-            }
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            dp: {
+              op: "lte",
+              value: 6000,
+            },
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 6000
-                  }
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  dp: {
+                    op: "lte",
+                    value: 6000,
+                  },
                 },
-                "count": 1,
-                "sourceRef": "triggerSubject"
+                count: 1,
+                sourceRef: "triggerSubject",
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-018", compiled);

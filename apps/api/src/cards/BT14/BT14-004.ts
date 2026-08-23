@@ -12,42 +12,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (only YOUR effect's suspend counts, per interpreter.ts effectSuspendsGate) + self-ref
 // ModifyDP target (the buff applies to THIS Digimon, not an arbitrary mine Digimon/Tamer).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "sourceFilter": {
-            "kind": [
-              "Tamer"
-            ]
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          sourceFilter: {
+            kind: ["Tamer"],
           },
-          "bySourceController": "mine",
-          "actions": [
+          bySourceController: "mine",
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "amount": 2000,
-              "duration": "forTheTurn"
-            }
+              amount: 2000,
+              duration: "forTheTurn",
+            },
           ],
-          "raw": "whenEffectSuspends"
-        }
+          raw: "whenEffectSuspends",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-004", compiled);

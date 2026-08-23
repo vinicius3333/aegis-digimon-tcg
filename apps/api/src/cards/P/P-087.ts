@@ -7,85 +7,83 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   if security >= 3, Draw 1; if security <= 3, gain 1 memory.
 // KB Q4179: both effects activate when security == exactly 3.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Pulsemon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+                tokens: ["Pulsemon"],
+                match: "name",
               },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "by suspending this tamer"
+            ],
           },
-          "actions": [
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this tamer",
+          },
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1,
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "gte",
-                "value": 3,
-                "raw": "you have 3 or more security cards"
-              }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "gte",
+                value: 3,
+                raw: "you have 3 or more security cards",
+              },
             },
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 3,
-                "raw": "you have 3 or fewer security cards"
-              }
-            }
-          ]
-        }
-      ]
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 3,
+                raw: "you have 3 or fewer security cards",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-087", compiled);

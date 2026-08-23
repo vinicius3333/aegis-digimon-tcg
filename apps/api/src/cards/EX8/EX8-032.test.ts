@@ -8,15 +8,30 @@ describe("EX8-032", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "ModifyDP", amount: -2000, duration: "forTheTurn", target: { count: 1, filter: { controller: "opponent" } } }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: -2000,
+          duration: "forTheTurn",
+          target: { count: 1, filter: { controller: "opponent" } },
+        },
+      ],
     }));
 
   it("applies the inherited effect to the exact opposing target and only once per turn", async () => {
     const preferInstanceIds: string[] = [];
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "attacker", under: ["EX8-032"] }] },
-      1: { battleArea: [{ card: "AD1-001", as: "target" }, { card: "AD1-001", as: "other" }] },
-    }, { autoSelectCards: true, preferInstanceIds });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "attacker", under: ["EX8-032"] }] },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "target" },
+            { card: "AD1-001", as: "other" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
     const attacker = s.perm("attacker");
     const target = s.perm("target");
     const other = s.perm("other");
@@ -25,7 +40,13 @@ describe("EX8-032", () => {
     const before = target.currentDP;
     const otherBefore = other.currentDP;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => target.currentDP === before - 2000);
 
     expect(target.topCard!.instanceId).toBe(targetInstanceId);

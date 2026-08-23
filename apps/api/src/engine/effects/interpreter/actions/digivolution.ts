@@ -89,7 +89,9 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         ...action,
         amount:
           action.amount === "all" || action.scaling?.unit === "targetColors"
-            ? action.amount === "all" ? "all" : (action.amount ?? 1)
+            ? action.amount === "all"
+              ? "all"
+              : (action.amount ?? 1)
             : (action.amount ?? 1) * (scale ?? 1),
       });
       return action.optional === true && action.abortOnDecline === true && !completed;

@@ -6,122 +6,120 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "controller": "opponent"
+          optional: true,
+          controller: "opponent",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "amount": 1,
-          "source": "deck",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          amount: 1,
+          source: "deck",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "controller": "opponent"
+          optional: true,
+          controller: "opponent",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "amount": 1,
-          "source": "deck",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          amount: 1,
+          source: "deck",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Prevent",
-              "mode": "leavePlay",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {"controller": "mine", "zone": "security", "position": "bottom"},
-              "count": 1
+              kind: "Prevent",
+              mode: "leavePlay",
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: { controller: "mine", zone: "security", position: "bottom" },
+                  count: 1,
+                },
+                raw: "by trashing the bottom card of your security stack",
+              },
+              optional: true,
+              abortOnDecline: true,
             },
-            "raw": "by trashing the bottom card of your security stack"
-          },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Lucemon"
-      ],
-      "cost": 6,
-      "isAlternate": true
-    }
-  ]
+      names: ["Lucemon"],
+      cost: 6,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-082", compiled);

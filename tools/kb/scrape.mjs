@@ -18,13 +18,7 @@ import { updateManifest, writeJson, readJson } from "./lib/manifest.mjs";
 import { parseErrata } from "./lib/parse-errata.mjs";
 import { parseBanlist } from "./lib/parse-banlist.mjs";
 import { parseQa, emptyQaPage } from "./lib/parse-qa.mjs";
-import {
-  RAW_DIR,
-  ERRATA_PATH,
-  BANLIST_PATH,
-  QA_PATH,
-  SOURCES,
-} from "./lib/paths.mjs";
+import { RAW_DIR, ERRATA_PATH, BANLIST_PATH, QA_PATH, SOURCES } from "./lib/paths.mjs";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -86,7 +80,7 @@ async function scrapeBanlist() {
 
 async function scrapeQa() {
   const cardIds = loadCardIds().slice(start, start + limit);
-  const qa = force ? {} : readJson(qaOutput, {}) ?? {};
+  const qa = force ? {} : (readJson(qaOutput, {}) ?? {});
   let withRulings = 0;
   let fetched = 0;
   let processed = 0;
@@ -165,7 +159,9 @@ async function main() {
       await scrapeQa();
       break;
     default:
-      log("usage: node tools/kb/scrape.mjs <errata|banlist|qa|all> [--start N] [--limit N] [--output FILE] [--no-manifest] [--force]");
+      log(
+        "usage: node tools/kb/scrape.mjs <errata|banlist|qa|all> [--start N] [--limit N] [--output FILE] [--no-manifest] [--force]",
+      );
       process.exit(command ? 1 : 0);
   }
 }

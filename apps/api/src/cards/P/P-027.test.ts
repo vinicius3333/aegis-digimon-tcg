@@ -25,17 +25,20 @@ describe("P-027 MetalGarurumon", () => {
     const recipientBase = s.perm("recipient").baseDP;
     const optionId = s.inst("option").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
-      effectKey: "P-027/digi-burst-use-option",
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("metalGarurumon").stack.length === 0 &&
-      s.perm("recipient").currentDP === recipientBase + 3000 &&
-      s.state.players[0]!.trash.some((card) => card.instanceId === optionId) &&
-      s.perm("mimi").isSuspended &&
-      s.state.memory === 1
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
+        effectKey: "P-027/digi-burst-use-option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("metalGarurumon").stack.length === 0 &&
+        s.perm("recipient").currentDP === recipientBase + 3000 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId) &&
+        s.perm("mimi").isSuspended &&
+        s.state.memory === 1,
     );
 
     expect(s.state.memory).toBe(1);
@@ -48,30 +51,37 @@ describe("P-027 MetalGarurumon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
-      effectKey: "P-027/digi-burst-use-option",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
+        effectKey: "P-027/digi-burst-use-option",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("metalGarurumon").stack.length === 0);
 
     expect(s.state.players[0]!.trash).toHaveLength(2);
   });
 
   it("doesn't use an Option when X Antibody leaves only 1 trashable Digi-Burst source", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "P-027", as: "metalGarurumon", under: ["BT9-109", "P-034"] }],
-        hand: [{ card: "BT2-107", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-027", as: "metalGarurumon", under: ["BT9-109", "P-034"] }],
+          hand: [{ card: "BT2-107", as: "option" }],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
-      effectKey: "P-027/digi-burst-use-option",
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
+        effectKey: "P-027/digi-burst-use-option",
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

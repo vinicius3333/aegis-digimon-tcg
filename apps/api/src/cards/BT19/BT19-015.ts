@@ -8,75 +8,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Delete action target is mandatory (not optional), the buff/keyword are conditioned on
 // the delete not occurring.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": { "op": "lte", "value": 8000 }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: { op: "lte", value: 8000 },
             },
-            "count": 1
+            count: 1,
           },
-          "mandatory": true
+          mandatory: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "GainKeyword",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
+          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this effect didn't delete",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "ModifyDP",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
-        }
-      ]
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": ["Digimon"]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 2
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 2,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-015", compiled);

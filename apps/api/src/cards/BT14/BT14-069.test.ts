@@ -5,7 +5,11 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT14-069", () => {
-  it("inherits one memory on deletion", () => expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "OnDeletion", actions: [{ kind: "GainMemory", amount: 1 }] }));
+  it("inherits one memory on deletion", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "OnDeletion",
+      actions: [{ kind: "GainMemory", amount: 1 }],
+    }));
   it("gains one memory when its host is deleted", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT14-058", as: "host", under: ["BT14-069"] }] } });
     s.state.memory = 3;

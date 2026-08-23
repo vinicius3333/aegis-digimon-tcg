@@ -64,7 +64,12 @@ const balanced = BOT_PROFILES.balanced;
 
 function scoreOf(state: BotView, key: string, profile = balanced): number {
   const candidate = enumerateMainPhaseCandidates(state).find((entry) => entry.key === key);
-  if (candidate === undefined) throw new Error(`no candidate ${key}; had ${enumerateMainPhaseCandidates(state).map((entry) => entry.key).join(", ")}`);
+  if (candidate === undefined)
+    throw new Error(
+      `no candidate ${key}; had ${enumerateMainPhaseCandidates(state)
+        .map((entry) => entry.key)
+        .join(", ")}`,
+    );
   return scoreCandidate(state, candidate, profile);
 }
 
@@ -169,7 +174,18 @@ describe("attack evaluation", () => {
 });
 
 describe("development evaluation", () => {
-  const greymon = { cardId: "BT1-015", set: "BT1", nameEn: "Greymon", kinds: ["Digimon"], colors: ["Red"], level: 4, playCost: 4, dp: 4_000, evoCosts: [], maxCountInDeck: 4 } as unknown as BotHandCard["definition"];
+  const greymon = {
+    cardId: "BT1-015",
+    set: "BT1",
+    nameEn: "Greymon",
+    kinds: ["Digimon"],
+    colors: ["Red"],
+    level: 4,
+    playCost: 4,
+    dp: 4_000,
+    evoCosts: [],
+    maxCountInDeck: 4,
+  } as unknown as BotHandCard["definition"];
 
   it("digivolves for a real gain in level and DP", () => {
     const base = unit({ permanentId: "p1", cardId: "BT1-010", dp: 2_000, level: 3 });
@@ -188,7 +204,18 @@ describe("development evaluation", () => {
   });
 
   it("plays an Option at a discount while the opponent has nothing to answer", () => {
-    const option = { cardId: "BT1-090", set: "BT1", nameEn: "Gravity Crush", kinds: ["Option"], colors: ["Red"], playCost: 2, dp: 0, evoCosts: [], maxCountInDeck: 1, optionColorRequirements: ["Red"] } as unknown as BotHandCard["definition"];
+    const option = {
+      cardId: "BT1-090",
+      set: "BT1",
+      nameEn: "Gravity Crush",
+      kinds: ["Option"],
+      colors: ["Red"],
+      playCost: 2,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 1,
+      optionColorRequirements: ["Red"],
+    } as unknown as BotHandCard["definition"];
     const supporter = unit({ permanentId: "p1", definition: { kinds: ["Digimon"], colors: ["Red"] } as never });
     const idle = view({ board: [supporter], hand: [handCard("BT1-090", option)] });
     const contested = view({

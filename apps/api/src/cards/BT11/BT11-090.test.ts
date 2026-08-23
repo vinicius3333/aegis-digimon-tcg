@@ -16,10 +16,7 @@ describe("BT11-090 Nicolai Petrov", () => {
   });
 
   it("suspends itself to gain 1 memory when an effect adds cards to the opponent's hand on its turn", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT11-090", as: "nicolai" }] } },
-      { autoAcceptOptional: true },
-    );
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-090", as: "nicolai" }] } }, { autoAcceptOptional: true });
     s.state.memory = 0;
     await s.ready();
 
@@ -30,10 +27,7 @@ describe("BT11-090 Nicolai Petrov", () => {
   });
 
   it("does not gain memory from the same event on the opponent's turn", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT11-090", as: "nicolai" }] } },
-      { autoAcceptOptional: true },
-    );
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-090", as: "nicolai" }] } }, { autoAcceptOptional: true });
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();

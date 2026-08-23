@@ -6,114 +6,103 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dark Animal",
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1,
-            "countModifier": {
-              "amount": 2,
-              "condition": {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Eiji Nagasumi"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                  tokens: ["Dark Animal", "SoC"],
+                  match: "trait",
                 },
-                "raw": "[Eiji Nagasumi] is in this Digimon's digivolution cards"
-              }
-            }
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "frequency": "OncePerTurn",
-      "actions": [
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              ],
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "cost": {
-            "kind": "delete",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 3,
-                  "scaling": {
-                    "per": 1,
-                    "filter": {
-                      "controller": "mine",
-                      "kind": [
-                        "Digimon"
-                      ]
+            count: 1,
+            countModifier: {
+              amount: 2,
+              condition: {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
+                    {
+                      tokens: ["Eiji Nagasumi"],
+                      match: "name",
                     },
-                    "unit": "cards"
-                  }
-                }
+                  ],
+                },
+                raw: "[Eiji Nagasumi] is in this Digimon's digivolution cards",
               },
-              "count": 1
             },
-            "raw": "By deleting 1 of your opponent's level 3 or lower Digimon"
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [
         {
-          "kind": "SetTurnEndMemory",
-          "minimum": 3,
-          "raw": "Your turn continues unless your opponent's memory is 3 or more"
-        }
-      ]
-    }
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          cost: {
+            kind: "delete",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+                levelComparison: {
+                  op: "lte",
+                  value: 3,
+                  scaling: {
+                    per: 1,
+                    filter: {
+                      controller: "mine",
+                      kind: ["Digimon"],
+                    },
+                    unit: "cards",
+                  },
+                },
+              },
+              count: 1,
+            },
+            raw: "By deleting 1 of your opponent's level 3 or lower Digimon",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SetTurnEndMemory",
+          minimum: 3,
+          raw: "Your turn continues unless your opponent's memory is 3 or more",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-081", compiled);

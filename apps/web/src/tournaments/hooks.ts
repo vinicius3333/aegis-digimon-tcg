@@ -118,7 +118,9 @@ export function usePolling(refresh: () => void | Promise<unknown>, intervalMs: n
       const result = refresh();
       if (!(result instanceof Promise)) return;
       inFlight = true;
-      void result.finally(() => { inFlight = false; });
+      void result.finally(() => {
+        inFlight = false;
+      });
     };
     tick();
     const timer = setInterval(tick, intervalMs);
@@ -167,12 +169,15 @@ export function usePolledRequest<T>(
 
   usePolling(refresh, intervalMs, enabled);
 
-  useEffect(() => () => {
-    // Invalidates any response still in flight as well as aborting it: a fetch that has already
-    // resolved cannot be aborted, and the bumped sequence is what stops it applying.
-    sequence.current += 1;
-    controller.current?.abort();
-  }, []);
+  useEffect(
+    () => () => {
+      // Invalidates any response still in flight as well as aborting it: a fetch that has already
+      // resolved cannot be aborted, and the bumped sequence is what stops it applying.
+      sequence.current += 1;
+      controller.current?.abort();
+    },
+    [],
+  );
 
   return { refresh };
 }

@@ -47,10 +47,17 @@ async function send<T>(path: string, init?: RequestInit): Promise<ApiResult<T>> 
     observeServerTime({ serverEpochMs: body.serverNow, sentAt, receivedAt: Date.now(), granularityMs: 0 });
   }
   if (!response.ok) {
-    const failure = body as { error?: string; reasons?: TournamentValidationError[]; violations?: DeckViolation[] } | undefined;
+    const failure = body as
+      | { error?: string; reasons?: TournamentValidationError[]; violations?: DeckViolation[] }
+      | undefined;
     return {
       ok: false,
-      error: { status: response.status, code: failure?.error ?? String(response.status), reasons: failure?.reasons, violations: failure?.violations },
+      error: {
+        status: response.status,
+        code: failure?.error ?? String(response.status),
+        reasons: failure?.reasons,
+        violations: failure?.violations,
+      },
     };
   }
   return { ok: true, value: body as T };
@@ -66,15 +73,23 @@ async function readJson(response: Response): Promise<unknown> {
 
 export const tournamentApi = {
   list: (signal?: AbortSignal) => send<TournamentListing[]>("/tournaments", { signal }),
-  detail: (id: string, signal?: AbortSignal) => send<TournamentDetail>(`/tournaments/${encodeURIComponent(id)}`, { signal }),
+  detail: (id: string, signal?: AbortSignal) =>
+    send<TournamentDetail>(`/tournaments/${encodeURIComponent(id)}`, { signal }),
   create: (input: CreateTournamentInput & { block?: string }) =>
     send<TournamentDetail>("/tournaments", { method: "POST", body: JSON.stringify(input) }),
   register: (id: string, savedDeckId: string) =>
-    send<unknown>(`/tournaments/${encodeURIComponent(id)}/participants`, { method: "POST", body: JSON.stringify({ savedDeckId }) }),
-  checkIn: (id: string) => send<unknown>(`/tournaments/${encodeURIComponent(id)}/check-in`, { method: "POST", body: "{}" }),
+    send<unknown>(`/tournaments/${encodeURIComponent(id)}/participants`, {
+      method: "POST",
+      body: JSON.stringify({ savedDeckId }),
+    }),
+  checkIn: (id: string) =>
+    send<unknown>(`/tournaments/${encodeURIComponent(id)}/check-in`, { method: "POST", body: "{}" }),
   drop: (id: string) => send<unknown>(`/tournaments/${encodeURIComponent(id)}/drop`, { method: "POST", body: "{}" }),
   setWindows: (id: string, windows: Partial<TournamentWindows>) =>
-    send<TournamentWindows>(`/tournaments/${encodeURIComponent(id)}/windows`, { method: "POST", body: JSON.stringify(windows) }),
+    send<TournamentWindows>(`/tournaments/${encodeURIComponent(id)}/windows`, {
+      method: "POST",
+      body: JSON.stringify(windows),
+    }),
   closeCheckIn: (id: string) =>
     send<unknown>(`/tournaments/${encodeURIComponent(id)}/close-check-in`, { method: "POST", body: "{}" }),
   remove: (id: string) => send<unknown>(`/tournaments/${encodeURIComponent(id)}`, { method: "DELETE" }),

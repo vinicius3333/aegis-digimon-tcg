@@ -109,13 +109,19 @@ describe("BT24-088 Asuna Shiroki", () => {
   });
 
   it("plays itself from security without paying the cost", async () => {
-    const s = setupEngine({
-      0: {
-        security: [{ card: "BT24-088", as: "asuna" }],
-        hand: [{ card: "BT21-054", as: "cost" }],
-        deck: [{ card: "BT1-002", as: "drawn1" }, { card: "BT1-003", as: "drawn2" }],
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-088", as: "asuna" }],
+          hand: [{ card: "BT21-054", as: "cost" }],
+          deck: [
+            { card: "BT1-002", as: "drawn1" },
+            { card: "BT1-003", as: "drawn2" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] });
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
+    );
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("asuna"));

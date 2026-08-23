@@ -12,7 +12,12 @@ describe("BT20-011 ExVeemon", () => {
       expect(effect?.actions[1]).toMatchObject({
         kind: "DnaDigivolve",
         materials: { count: 2, filter: { controller: "mine", kind: ["Digimon"] } },
-        into: { nameOrTrait: [{ tokens: ["Imperialdramon"], match: "name" }, { tokens: ["Free"], match: "trait" }] },
+        into: {
+          nameOrTrait: [
+            { tokens: ["Imperialdramon"], match: "name" },
+            { tokens: ["Free"], match: "trait" },
+          ],
+        },
         payCost: true,
         optional: true,
         condition: { kind: "isYourTurn" },

@@ -13,119 +13,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // LANE_H CAPABILITY: AddDPFromSuspendedCost (CAP-LANE-H-01) — see LANE_H.md
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "AddDPFromSuspendedCost",
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "battleArea",
-                "kind": [
-                  "Digimon"
-                ],
-                "excludeSelf": true
+          kind: "AddDPFromSuspendedCost",
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "battleArea",
+                kind: ["Digimon"],
+                excludeSelf: true,
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by suspending 1 of your other Digimon"
+            raw: "by suspending 1 of your other Digimon",
           },
-          "dpSource": {
-            "kind": "suspendedTarget"
+          dpSource: {
+            kind: "suspendedTarget",
           },
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "forThisAttack",
-          "alsoGainKeywords": [
+          duration: "forThisAttack",
+          alsoGainKeywords: [
             {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
-          ]
-        }
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
+          ],
+        },
       ],
-      "isInherited": true
+      isInherited: true,
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeFromDeck",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "security",
-              "controllerDefault": "mine"
+          kind: "SecurityManipulation",
+          op: "placeFromDeck",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "security",
+              controllerDefault: "mine",
             },
-            "count": 3,
-            "comparison": "lte",
-            "raw": "you have 3 or fewer security cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfAttack",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+            count: 3,
+            comparison: "lte",
+            raw: "you have 3 or fewer security cards",
           },
-          "amount": -2000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "raw": "you have another suspended Digimon in play"
-          }
-        }
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 4,
-      "multicolor": true,
-      "colors": [
-        "Green"
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -2000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              excludeSelf: true,
+              suspended: true,
+              kind: ["Digimon"],
+            },
+            raw: "you have another suspended Digimon in play",
+          },
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      multicolor: true,
+      colors: ["Green"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX4-029", compiled);

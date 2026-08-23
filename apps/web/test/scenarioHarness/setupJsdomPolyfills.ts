@@ -28,7 +28,10 @@ if (typeof window !== "undefined" && typeof window.PointerEvent !== "function") 
     public readonly pointerId: number;
     public readonly isPrimary: boolean;
     public readonly pointerType: string;
-    constructor(type: string, params: MouseEventInit & { pointerId?: number; isPrimary?: boolean; pointerType?: string } = {}) {
+    constructor(
+      type: string,
+      params: MouseEventInit & { pointerId?: number; isPrimary?: boolean; pointerType?: string } = {},
+    ) {
       super(type, params);
       this.pointerId = params.pointerId ?? 1;
       this.isPrimary = params.isPrimary ?? true;

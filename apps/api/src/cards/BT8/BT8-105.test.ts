@@ -9,13 +9,20 @@ describe("BT8-105 Dark Gaia Force", () => {
     const s = setupEngine(
       {
         0: { battleArea: ["BT8-011"], hand: [{ card: "BT8-105", as: "option" }] },
-        1: { battleArea: [{ card: "BT8-011", as: "fiveCost" }, { card: "BT8-017", as: "tenCost" }] },
+        1: {
+          battleArea: [
+            { card: "BT8-011", as: "fiveCost" },
+            { card: "BT8-017", as: "tenCost" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -25,7 +32,12 @@ describe("BT8-105 Dark Gaia Force", () => {
     const s = setupEngine(
       {
         0: { security: [{ card: "BT8-105", as: "option", faceUp: true }] },
-        1: { battleArea: [{ card: "BT8-032", as: "target" }, { card: "BT8-017", as: "other" }] },
+        1: {
+          battleArea: [
+            { card: "BT8-032", as: "target" },
+            { card: "BT8-017", as: "other" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

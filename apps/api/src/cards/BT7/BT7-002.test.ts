@@ -5,7 +5,9 @@ import "./BT7-002.js";
 
 describe("BT7-002 Bukamon", () => {
   it("gains 1 memory when a Digimon is played from digivolution cards", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-030", under: [{ card: "BT1-010", as: "played" }, "BT7-002"], as: "host" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT6-030", under: [{ card: "BT1-010", as: "played" }, "BT7-002"], as: "host" }] },
+    });
     s.state.memory = 0;
     await s.ready();
 

@@ -25,9 +25,7 @@ describe("ST15-11 MetalGreymon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(base, "Blocker")).toBe(true);
-    const inherited = registeredCompiledCards
-      .get("ST15-11")
-      ?.effects.find((effect) => effect.isInherited === true);
+    const inherited = registeredCompiledCards.get("ST15-11")?.effects.find((effect) => effect.isInherited === true);
     expect(inherited).toMatchObject({
       trigger: "Static",
       keywords: [{ keyword: "SecurityAttack", amount: 1 }],

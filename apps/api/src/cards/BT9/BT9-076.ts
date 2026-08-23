@@ -7,137 +7,125 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "bindResultAs": "discardedCard",
-          "optional": true
+          bindResultAs: "discardedCard",
+          optional: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "bindingContains",
-            "ref": "discardedCard",
-            "filter": { "colors": ["Purple"] }
-          }
+          condition: {
+            kind: "bindingContains",
+            ref: "discardedCard",
+            filter: { colors: ["Purple"] },
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "bindingContains",
-            "ref": "discardedCard",
-            "filter": { "colors": ["Yellow"] }
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
-            },
-            "count": 1
+          amount: -3000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "bindingContains",
+            ref: "discardedCard",
+            filter: { colors: ["Yellow"] },
           },
-          "bindResultAs": "discardedCard",
-          "optional": true
         },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "bindingContains",
-            "ref": "discardedCard",
-            "filter": { "colors": ["Purple"] }
-          }
-        },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "bindingContains",
-            "ref": "discardedCard",
-            "filter": { "colors": ["Yellow"] }
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "GainMemory",
-          "amount": 2,
-          "condition": {
-            "kind": "selfColorCount",
-            "op": "gte",
-            "value": 2
-          }
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+          bindResultAs: "discardedCard",
+          optional: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "bindingContains",
+            ref: "discardedCard",
+            filter: { colors: ["Purple"] },
+          },
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -3000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "bindingContains",
+            ref: "discardedCard",
+            filter: { colors: ["Yellow"] },
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "selfColorCount",
+            op: "gte",
+            value: 2,
+          },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-076", compiled);

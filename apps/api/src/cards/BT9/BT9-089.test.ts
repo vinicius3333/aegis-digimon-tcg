@@ -7,10 +7,13 @@ import "./BT9-089.js";
 
 describe("BT9-089 Daigo Nishijima", () => {
   it("does not gain memory when an opposing Digimon unsuspends outside a main phase", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT9-089", as: "daigo" }] },
-      1: { battleArea: [{ card: "BT1-028", as: "opponent", suspended: true }] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-089", as: "daigo" }] },
+        1: { battleArea: [{ card: "BT1-028", as: "opponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 0;
     s.state.phase = Phase.Active;
 
@@ -24,7 +27,12 @@ describe("BT9-089 Daigo Nishijima", () => {
 
   it("grants Blocker to the black level 6 Digimon that just digivolved", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT9-089", as: "daigo" }, { card: "BT9-068", as: "subject" }] },
+      0: {
+        battleArea: [
+          { card: "BT9-089", as: "daigo" },
+          { card: "BT9-068", as: "subject" },
+        ],
+      },
     });
 
     await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {

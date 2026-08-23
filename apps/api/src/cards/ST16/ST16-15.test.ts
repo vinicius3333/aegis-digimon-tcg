@@ -44,7 +44,10 @@ describe("ST16-15 Lament of Friendship", () => {
       {
         0: {
           battleArea: ["ST16-14", { card: "ST16-08", as: "garurumon" }],
-          hand: [{ card: "ST16-15", as: "option" }, { card: "BT10-079", as: "nextForm" }],
+          hand: [
+            { card: "ST16-15", as: "option" },
+            { card: "BT10-079", as: "nextForm" },
+          ],
           trash: [{ card: "ST16-02", as: "recover" }],
           deck: [{ card: "BT1-001" }],
         },
@@ -89,7 +92,9 @@ describe("ST16-15 Lament of Friendship", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recover").instanceId)).toBe(true);
     const grants = (
-      s.engine as unknown as { continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] } }
+      s.engine as unknown as {
+        continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
+      }
     ).continuous.listCustomEffectGrants();
     expect(grants).toContainEqual(
       expect.objectContaining({

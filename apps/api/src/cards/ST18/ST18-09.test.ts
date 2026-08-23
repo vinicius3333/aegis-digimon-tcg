@@ -10,7 +10,10 @@ describe("ST18-09 Deramon", () => {
       {
         0: {
           battleArea: [{ card: "ST18-09", as: "deramon" }],
-          hand: [{ card: "ST18-03", as: "eligible" }, { card: "ST18-08", as: "tooLarge" }],
+          hand: [
+            { card: "ST18-03", as: "eligible" },
+            { card: "ST18-08", as: "tooLarge" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

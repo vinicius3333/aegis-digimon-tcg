@@ -62,9 +62,15 @@ function makeRevealContext(
   deckCards: Array<{ instanceId: string; cardId: string; nameEn: string }>,
   deckLength = 3,
 ) {
-  const deckInstances = deckCards.map((c) => ({ instanceId: c.instanceId, cardId: c.cardId, ownerSeat: 0 as Seat, faceUp: false }));
+  const deckInstances = deckCards.map((c) => ({
+    instanceId: c.instanceId,
+    cardId: c.cardId,
+    ownerSeat: 0 as Seat,
+    faceUp: false,
+  }));
   const fx = new Proxy({} as Primitives, {
-    get: (_, verb: string) =>
+    get:
+      (_, verb: string) =>
       (...args: unknown[]) => {
         recorder.calls.push({ verb, args });
         // reveal returns the fake deck instances
@@ -95,7 +101,8 @@ function makeRevealContext(
 
 function makeSimpleContext(recorder: { calls: Call[] }, source: CardSource) {
   const fx = new Proxy({} as Primitives, {
-    get: (_, verb: string) =>
+    get:
+      (_, verb: string) =>
       (...args: unknown[]) => {
         recorder.calls.push({ verb, args });
         if (verb === "reveal") return Promise.resolve([]);
@@ -210,7 +217,11 @@ describe("BT15-083 Matt Ishida", () => {
       const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
       const emptyDeckCtx = {
         source,
-        game: { player: () => ({ deck: [] }), state: { turnSeat: 0 }, opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) } as never,
+        game: {
+          player: () => ({ deck: [] }),
+          state: { turnSeat: 0 },
+          opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+        } as never,
       };
       expect(effects[0]!.canActivate(emptyDeckCtx as never)).toBe(true);
     });

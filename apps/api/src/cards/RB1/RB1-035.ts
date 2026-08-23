@@ -13,95 +13,95 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4111: even if multiple Lv.3 are played at once, Draw 1 fires only once (once per trigger).
 //
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourTurn",
-      "actions": [
+      trigger: "StartOfYourTurn",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": ["Tamer"]
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Tamer"],
             },
-            "count": 3,
-            "raw": "your opponent has 3 or more Tamers"
-          }
-        }
-      ]
+            count: 3,
+            raw: "your opponent has 3 or more Tamers",
+          },
+        },
+      ],
     },
     {
       // [All Turns] When an opponent plays a Digimon, by suspending this Tamer,
       // gain 1 memory if that Digimon is level 4 or higher, and <Draw 1> if level 3.
       // Single suspend cost for both conditional actions (once per trigger event).
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": ["Digimon"]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter",
-                "filter": {
-                  "kind": ["Digimon"],
-                  "levelComparison": { "op": "gte", "value": 4 }
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  kind: ["Digimon"],
+                  levelComparison: { op: "gte", value: 4 },
                 },
-                "raw": "that Digimon is level 4 or higher"
-              }
+                raw: "that Digimon is level 4 or higher",
+              },
             },
             {
-              "kind": "Draw",
-              "amount": 1,
-              "controller": "mine",
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter",
-                "filter": {
-                  "kind": ["Digimon"],
-                  "levelComparison": { "op": "eq", "value": 3 }
+              kind: "Draw",
+              amount: 1,
+              controller: "mine",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  kind: ["Digimon"],
+                  levelComparison: { op: "eq", value: 3 },
                 },
-                "raw": "that Digimon is level 3"
-              }
-            }
+                raw: "that Digimon is level 3",
+              },
+            },
           ],
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": { "isSelfRef": true },
-              "count": 1,
-              "isSelf": true
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: { isSelfRef: true },
+              count: 1,
+              isSelf: true,
             },
-            "raw": "by suspending this Tamer"
-          }
-        }
-      ]
+            raw: "by suspending this Tamer",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("RB1-035", compiled);

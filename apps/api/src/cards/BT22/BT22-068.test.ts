@@ -53,7 +53,9 @@ describe("BT22-068 Agumon (X Antibody)", () => {
     const dinosaurId = s.inst("dinosaur").instanceId;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === dinosaurId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === dinosaurId)).toBe(true);

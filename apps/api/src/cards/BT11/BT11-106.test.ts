@@ -63,8 +63,7 @@ describe("A3 BT11-106 — granted '[On Deletion] Gain 3 memory.'", () => {
     expect(
       grants.some(
         (g: { instanceId: string; token: string }) =>
-          g.instanceId === recipient.topCard!.instanceId &&
-          g.token === "[On Deletion] Gain 3 memory.",
+          g.instanceId === recipient.topCard!.instanceId && g.token === "[On Deletion] Gain 3 memory.",
       ),
     ).toBe(true);
 

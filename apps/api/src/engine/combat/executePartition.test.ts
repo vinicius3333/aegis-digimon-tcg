@@ -1,11 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type GameState, type PlayerState, type Seat } from "@aegis/shared";
-import {
-  makeInstance as instance,
-  makeDigimon as digimon,
-  setupEngine as setup,
-  settle,
-} from "../testkit/harness.js";
+import { makeInstance as instance, makeDigimon as digimon, setupEngine as setup, settle } from "../testkit/harness.js";
 import { MemoryGauge } from "../MemoryGauge.js";
 import "../../cards/index.js";
 
@@ -211,10 +206,7 @@ describe("§16-29 <Partition> — replay the specified digivolution cards for fr
     ).primitives;
     s.state.turnSeat = 1; // an opponent's effect deletes both simultaneously
     const memoryBefore = memoryFor(s.state, 0);
-    const deletedCount = await primitives.deletePermanent(
-      [partitioned.permanentId, ace.permanentId],
-      "byEffect",
-    );
+    const deletedCount = await primitives.deletePermanent([partitioned.permanentId, ace.permanentId], "byEffect");
     await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === BLUE_LV4), 300);
 
     // Both permanents actually left the field — Partition never PREVENTS the deletion it

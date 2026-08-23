@@ -6,127 +6,123 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "or": [
-                {"colors": ["Green"], "kind": ["Digimon"]},
-                {"nameOrTrait": [{"tokens": ["Royal Knight"], "match": "trait"}], "kind": ["Digimon"]}
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              or: [
+                { colors: ["Green"], kind: ["Digimon"] },
+                { nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }], kind: ["Digimon"] },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["hand"],
-          "payCost": true,
-          "optional": true
+          from: ["hand"],
+          payCost: true,
+          optional: true,
         },
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4"
-            }
-          ]
-        }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "or": [
-                {"colors": ["Green"], "kind": ["Digimon"]},
-                {"nameOrTrait": [{"tokens": ["Royal Knight"], "match": "trait"}], "kind": ["Digimon"]}
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              or: [
+                { colors: ["Green"], kind: ["Digimon"] },
+                { nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }], kind: ["Digimon"] },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["hand"],
-          "payCost": true,
-          "optional": true
+          from: ["hand"],
+          payCost: true,
+          optional: true,
         },
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4"
-            }
-          ]
-        }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  or: [
+                    { colors: ["Green"], kind: ["Digimon"] },
+                    { nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }], kind: ["Digimon"] },
                   ],
-                  "or": [
-                    {"colors": ["Green"], "kind": ["Digimon"]},
-                    {"nameOrTrait": [{"tokens": ["Royal Knight"], "match": "trait"}], "kind": ["Digimon"]}
-                  ]
                 },
-                "count": "all"
+                count: "all",
               },
-              "keyword": {
-                "keyword": "Blocker",
-                "raw": "＜Blocker＞"
+              keyword: {
+                keyword: "Blocker",
+                raw: "＜Blocker＞",
               },
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
-      ]
-    }
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-056", compiled);

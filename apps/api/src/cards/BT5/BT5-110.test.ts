@@ -11,13 +11,37 @@ describe("BT5-110 All Delete", () => {
   });
 
   it("returns an Omnimon, trashes its sources, and deletes every remaining Digimon and Tamer", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-086", as: "omnimon", under: [{ card: "BT5-007", as: "bottom" }, { card: "BT5-019", as: "upper" }] }, "BT5-059", "BT5-091"], hand: [{ card: "BT5-110", as: "option" }] }, 1: { battleArea: ["BT5-059", "BT5-091"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT5-086",
+              as: "omnimon",
+              under: [
+                { card: "BT5-007", as: "bottom" },
+                { card: "BT5-019", as: "upper" },
+              ],
+            },
+            "BT5-059",
+            "BT5-091",
+          ],
+          hand: [{ card: "BT5-110", as: "option" }],
+        },
+        1: { battleArea: ["BT5-059", "BT5-091"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const omnimonTopId = s.perm("omnimon").topCard.instanceId;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(omnimonTopId);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("bottom").instanceId, s.inst("upper").instanceId]));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("bottom").instanceId, s.inst("upper").instanceId]),
+    );
   });
 
   it("adds itself to hand from security", async () => {

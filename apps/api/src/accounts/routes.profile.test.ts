@@ -96,7 +96,9 @@ describe("PUT /account/profile/display-name", () => {
     const response = await putDisplayName("  New   Tamer ");
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ displayName: "New Tamer" });
-    expect(await (await fetch(`${harness.url}/auth/me`, { headers: { Cookie: harness.cookie } })).json()).toMatchObject({ displayName: "New Tamer" });
+    expect(await (await fetch(`${harness.url}/auth/me`, { headers: { Cookie: harness.cookie } })).json()).toMatchObject(
+      { displayName: "New Tamer" },
+    );
   });
 
   it("returns stable validation and uniqueness errors while allowing repeated changes", async () => {

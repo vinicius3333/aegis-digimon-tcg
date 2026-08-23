@@ -6,58 +6,54 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Option"
-              ],
-              "colors": [
-                "Purple"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Option"],
+              colors: ["Purple"],
             },
-            "count": 2,
-            "upTo": true
+            count: 2,
+            upTo: true,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "you have 10 or more cards in your trash"
+          to: "hand",
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "you have 10 or more cards in your trash",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionUsed",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 2
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 2,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-091", compiled);

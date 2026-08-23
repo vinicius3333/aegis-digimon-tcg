@@ -21,11 +21,17 @@ describe("BT5-085 Armageddemon", () => {
     s.state.memory = 5;
     const diaboromonId = s.perm("diaboromon").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("armageddemon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("armageddemon").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("armageddemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("armageddemon").instanceId),
+    );
     await s.engine.recomputeContinuousEffects();
 
-    const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("armageddemon").instanceId)!;
+    const played = s.state.players[0]!.battleArea.find(
+      (p) => p.topCard.instanceId === s.inst("armageddemon").instanceId,
+    )!;
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === diaboromonId)).toBe(false);
     expect(

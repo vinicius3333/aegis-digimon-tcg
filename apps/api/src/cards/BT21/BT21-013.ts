@@ -9,124 +9,101 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   reads the hand and the trash only. With only the Tamer destination encoded, a controller
 //   with no red Tamer in play resolved the effect to nothing, with no card selection at all.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid",
-                    "Hero"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hybrid", "Hero"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "hand",
-              "trash"
-            ]
+            count: 1,
+            from: ["hand", "trash"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "or": [
+          underFilter: {
+            controller: "mine",
+            or: [
               {
-                "hasInheritedEffects": true,
-                "kind": [
-                  "Tamer"
-                ],
-                "colors": [
-                  "Red"
-                ]
+                hasInheritedEffects: true,
+                kind: ["Tamer"],
+                colors: ["Red"],
               },
               {
-                "isSelfRef": true
-              }
-            ]
+                isSelfRef: true,
+              },
+            ],
           },
-          "position": "bottom",
-          "optional": true
-        }
-      ]
+          position: "bottom",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Red"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Red"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Hybrid",
-                  "Hero"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Hybrid", "Hero"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 1,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          reduceCost: 1,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "BurningGreymon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["BurningGreymon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-013", compiled);

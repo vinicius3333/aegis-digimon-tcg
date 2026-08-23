@@ -17,140 +17,140 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - [All Turns] Aura was missing "can't be deleted by your opponent's effects" —
 //   added a second Aura for GrantStatic immuneToOpponentDeleteEffects while Tamer present.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "revealTop",
-          "controller": "opponent",
-          "source": "security"
+          kind: "SecurityManipulation",
+          op: "revealTop",
+          controller: "opponent",
+          source: "security",
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "triggerRevealedMatchesFilter",
-            "filter": { "kind": ["Digimon"] },
-            "raw": "that card is a Digimon card"
-          }
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "triggerRevealedMatchesFilter",
+            filter: { kind: ["Digimon"] },
+            raw: "that card is a Digimon card",
+          },
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "not",
-            "condition": { "kind": "triggerRevealedMatchesFilter", "filter": { "kind": ["Digimon"] } },
-            "raw": "it's a non-Digimon card"
-          }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "not",
+            condition: { kind: "triggerRevealedMatchesFilter", filter: { kind: ["Digimon"] } },
+            raw: "it's a non-Digimon card",
+          },
         },
         {
           // KB Q4102: the activating player chooses top or bottom; face down placement.
-          "kind": "SecurityManipulation",
-          "op": "addTopOrBottom",
-          "controller": "opponent",
-          "source": "revealed",
-          "faceDown": true
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "addTopOrBottom",
+          controller: "opponent",
+          source: "revealed",
+          faceDown: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "revealTop",
-          "controller": "opponent",
-          "source": "security"
+          kind: "SecurityManipulation",
+          op: "revealTop",
+          controller: "opponent",
+          source: "security",
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "triggerRevealedMatchesFilter",
-            "filter": { "kind": ["Digimon"] },
-            "raw": "that card is a Digimon card"
-          }
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "triggerRevealedMatchesFilter",
+            filter: { kind: ["Digimon"] },
+            raw: "that card is a Digimon card",
+          },
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "not",
-            "condition": { "kind": "triggerRevealedMatchesFilter", "filter": { "kind": ["Digimon"] } },
-            "raw": "it's a non-Digimon card"
-          }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "not",
+            condition: { kind: "triggerRevealedMatchesFilter", filter: { kind: ["Digimon"] } },
+            raw: "it's a non-Digimon card",
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTopOrBottom",
-          "controller": "opponent",
-          "source": "revealed",
-          "faceDown": true
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "addTopOrBottom",
+          controller: "opponent",
+          source: "revealed",
+          faceDown: true,
+        },
+      ],
     },
     {
       // [All Turns] While there's a Tamer: gain <Blocker> AND can't be deleted by opponent effects.
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Blocker",
+              raw: "＜Blocker＞",
+            },
           },
-          "while": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "battleArea",
-            "filter": { "kind": ["Tamer"] },
-            "op": "gte",
-            "value": 1,
-            "raw": "there's a Tamer"
-          }
+          while: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "battleArea",
+            filter: { kind: ["Tamer"] },
+            op: "gte",
+            value: 1,
+            raw: "there's a Tamer",
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "grant",
-            "grant": "immuneToOpponentDeleteEffects"
+          effect: {
+            kind: "grant",
+            grant: "immuneToOpponentDeleteEffects",
           },
-          "while": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "battleArea",
-            "filter": { "kind": ["Tamer"] },
-            "op": "gte",
-            "value": 1,
-            "raw": "there's a Tamer"
-          }
-        }
-      ]
-    }
+          while: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "battleArea",
+            filter: { kind: ["Tamer"] },
+            op: "gte",
+            value: 1,
+            raw: "there's a Tamer",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("RB1-027", compiled);

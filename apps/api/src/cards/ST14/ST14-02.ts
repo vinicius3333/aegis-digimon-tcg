@@ -3,85 +3,75 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Beelzemon"
-                ],
-                "match": "nameExact"
-              }
-            ]
+                tokens: ["Beelzemon"],
+                match: "nameExact",
+              },
+            ],
           },
-          "payCost": true,
-          "costOverride": 3,
-          "ignoreRequirements": true,
-          "optional": true,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "trash",
-            "op": "gte",
-            "value": 20,
-            "raw": "you have 20 or more cards in your trash"
+          payCost: true,
+          costOverride: 3,
+          ignoreRequirements: true,
+          optional: true,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "trash",
+            op: "gte",
+            value: 20,
+            raw: "you have 20 or more cards in your trash",
           },
-          "from": [
-            "trash"
-          ]
-        }
-      ]
+          from: ["trash"],
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDiscardLibrary",
-          "sourceFilter": {
-            "controller": "mine"
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          sourceFilter: {
+            controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ]
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levels: [3],
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST14-02", compiled);

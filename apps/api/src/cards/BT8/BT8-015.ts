@@ -8,75 +8,71 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix 1: second action is conditional on DNA digivolving.
 // Fix 2: DP threshold was encoded as 1 instead of 5000.
 const compiled: CompiledCard = {
-  "dnaDigivolveRequirement": [
+  dnaDigivolveRequirement: [
     {
-      "cost": 0,
-      "materials": [
-        { "color": "Red", "level": 4 },
-        { "color": "Yellow", "level": 4 }
-      ]
-    }
+      cost: 0,
+      materials: [
+        { color: "Red", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -5000,
-          "duration": "forTheTurn"
+          amount: -5000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": { "kind": "isDnaDigivolving" }
-        }
-      ]
+          condition: { kind: "isDnaDigivolving" },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-015", compiled);

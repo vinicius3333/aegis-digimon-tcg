@@ -6,180 +6,168 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          options: [
             [
               {
-                "kind": "PlaceUnder",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                kind: "PlaceUnder",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
+                  count: 1,
+                  isSelf: true,
                 },
-                "underFilter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "gte",
-                    "value": 5
-                  }
+                underFilter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "gte",
+                    value: 5,
+                  },
                 },
-                "bindHostAs": "parasitemonHost",
-                "raw": "Place this card as the bottom digivolution card of 1 of your level 5 or higher Digimon."
+                bindHostAs: "parasitemonHost",
+                raw: "Place this card as the bottom digivolution card of 1 of your level 5 or higher Digimon.",
               },
               {
-                "kind": "Suspend",
-                "target": {
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ]
+                kind: "Suspend",
+                target: {
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "optional": false
+                optional: false,
               },
               {
-                "kind": "Attack",
-                "attacker": {
-                  "filter": {
-                    "boundRef": "parasitemonHost"
+                kind: "Attack",
+                attacker: {
+                  filter: {
+                    boundRef: "parasitemonHost",
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "target": {
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ]
+                target: {
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "mandatory": true,
-                "raw": "Attack an opponent's Digimon with the Digimon this card was placed under."
-              }
+                mandatory: true,
+                raw: "Attack an opponent's Digimon with the Digimon this card was placed under.",
+              },
             ],
-            []
+            [],
           ],
-          "cost": {
-            "kind": "payMemory",
-            "memory": 4,
-            "raw": "By paying 4 cost"
+          cost: {
+            kind: "payMemory",
+            memory: 4,
+            raw: "By paying 4 cost",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isFromHand": true
+      isFromHand: true,
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "underFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          underFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "leaveCause": "byOpponentEffect",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          leaveCause: "byOpponentEffect",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Parasitemon"
-                      ],
-                      "match": "name"
-                    }
+                      tokens: ["Parasitemon"],
+                      match: "name",
+                    },
                   ],
-                  "zone": "digivolutionCards",
-                  "hostFilter": {
-                    "isSelfRef": true
-                  }
+                  zone: "digivolutionCards",
+                  hostFilter: {
+                    isSelfRef: true,
+                  },
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true
+      isInherited: true,
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 3000,
-          "duration": "permanent"
-        }
+          amount: 3000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-050", compiled);

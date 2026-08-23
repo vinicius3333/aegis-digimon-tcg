@@ -16,10 +16,12 @@ describe("P-171 Pukumon", () => {
     reduced.state.memory = 11;
     await reduced.ready();
 
-    expect(reduced.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: reduced.inst("pukumon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      reduced.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: reduced.inst("pukumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => reduced.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-171"));
 
     expect(reduced.state.memory).toBe(4);
@@ -34,10 +36,12 @@ describe("P-171 Pukumon", () => {
     faceDown.state.memory = 11;
     await faceDown.ready();
 
-    expect(faceDown.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: faceDown.inst("pukumon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      faceDown.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: faceDown.inst("pukumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => faceDown.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-171"));
 
     expect(faceDown.state.memory).toBe(0);

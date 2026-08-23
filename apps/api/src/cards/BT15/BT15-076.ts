@@ -6,89 +6,69 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "colors": [
-                "Purple"
-              ],
-              "orFilters": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              colors: ["Purple"],
+              orFilters: [
                 {
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ]
+                  kind: ["Digimon"],
+                  levels: [3],
                 },
                 {
-                  "kind": [
-                    "Tamer"
-                  ]
-                }
-              ]
+                  kind: ["Tamer"],
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "colors": [
-                "Purple"
-              ],
-              "orFilters": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              colors: ["Purple"],
+              orFilters: [
                 {
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ]
+                  kind: ["Digimon"],
+                  levels: [3],
                 },
                 {
-                  "kind": [
-                    "Tamer"
-                  ]
-                }
-              ]
+                  kind: ["Tamer"],
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-076", compiled);

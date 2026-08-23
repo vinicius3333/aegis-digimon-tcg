@@ -121,7 +121,12 @@ describe("EX12-002 Mococomon", () => {
     expect(effect.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
-      sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["SW"] }] },
+      sourceFilter: {
+        controller: "mine",
+        excludeSelf: true,
+        kind: ["Digimon"],
+        nameOrTrait: [{ match: "trait", tokens: ["SW"] }],
+      },
     });
     expect(irNode(effect.actions[0]!).actions[0]).toMatchObject({
       kind: "Digivolve",

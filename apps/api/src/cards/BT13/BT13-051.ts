@@ -6,66 +6,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "forTheTurn"
-        }
-      ]
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 2000
+          effect: {
+            kind: "modifyDP",
+            amount: 2000,
           },
-          "while": {
-            "kind": "anyOf",
-            "conditions": [
-              { "kind": "allOf", "conditions": [
-                { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }] } },
-                { "kind": "not", "condition": { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] } } }
-              ] },
-              { "kind": "allOf", "conditions": [
-                { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Royal Knight"], "match": "trait" }] } },
-                { "kind": "not", "condition": { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] } } }
-              ] }
+          while: {
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "allOf",
+                conditions: [
+                  {
+                    kind: "selfHasTrait",
+                    filter: { nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "trait" }] },
+                  },
+                  {
+                    kind: "not",
+                    condition: {
+                      kind: "selfHasTrait",
+                      filter: { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+                    },
+                  },
+                ],
+              },
+              {
+                kind: "allOf",
+                conditions: [
+                  { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }] } },
+                  {
+                    kind: "not",
+                    condition: {
+                      kind: "selfHasTrait",
+                      filter: { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+                    },
+                  },
+                ],
+              },
             ],
-            "raw": "this Digimon has [Beast], [Animal], or [Sovereign], other than [Sea Animal], in one of its traits or the [Royal Knight] trait"
-          }
-        }
+            raw: "this Digimon has [Beast], [Animal], or [Sovereign], other than [Sea Animal], in one of its traits or the [Royal Knight] trait",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-051", compiled);

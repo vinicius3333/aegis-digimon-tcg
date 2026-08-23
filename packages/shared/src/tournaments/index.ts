@@ -5,34 +5,13 @@
 export type TournamentStructure = "swiss" | "single_elimination";
 export type RulesetOrigin = "bandai_general" | "bandai_event" | "aegis_custom";
 
-export type TournamentStatus =
-  | "draft"
-  | "registration"
-  | "check_in"
-  | "running"
-  | "finished"
-  | "cancelled";
+export type TournamentStatus = "draft" | "registration" | "check_in" | "running" | "finished" | "cancelled";
 export type PhaseKind = "swiss" | "top_cut" | "single_elimination";
 export type PhaseStatus = "scheduled" | "running" | "frozen" | "finished";
 export type RoundStatus = "scheduled" | "published" | "resolving" | "closed";
-export type MatchStatus =
-  | "scheduled"
-  | "awaiting_players"
-  | "playing"
-  | "overtime"
-  | "resolved";
-export type GameStatus =
-  | "allocated"
-  | "room_claimed"
-  | "playing"
-  | "finished"
-  | "voided";
-export type RegistrationStatus =
-  | "registered"
-  | "checked_in"
-  | "active"
-  | "dropped"
-  | "disqualified";
+export type MatchStatus = "scheduled" | "awaiting_players" | "playing" | "overtime" | "resolved";
+export type GameStatus = "allocated" | "room_claimed" | "playing" | "finished" | "voided";
+export type RegistrationStatus = "registered" | "checked_in" | "active" | "dropped" | "disqualified";
 export type ParticipantKind = "human" | "bot";
 
 // Which banlist governs deck legality in this tournament. Resolved to a
@@ -41,10 +20,7 @@ export type ParticipantKind = "human" | "bot";
 // - none: no restrictions (casual / aegis_custom only)
 // - current: banlist in force on the creation date
 // - as_of_set: banlist in force on the given collection's release date
-export type BanlistPolicy =
-  | { mode: "none" }
-  | { mode: "current" }
-  | { mode: "as_of_set"; setId: string };
+export type BanlistPolicy = { mode: "none" } | { mode: "current" } | { mode: "as_of_set"; setId: string };
 
 export type TournamentBanlistCard = {
   cardId: string;
@@ -134,23 +110,11 @@ export function topCutSize(participants: number): number {
   return 32;
 }
 
-export type PairingReason =
-  | "same_score"
-  | "pair_down"
-  | "rematch_unavoidable"
-  | "bye_no_prior_bye"
-  | "bye_repeat";
+export type PairingReason = "same_score" | "pair_down" | "rematch_unavoidable" | "bye_no_prior_bye" | "bye_repeat";
 
 // Immutable ledger entry that standings project from. Every way a match can
 // resolve is explicit; standings never read mutable counters.
-export type MatchOutcome =
-  | "win"
-  | "loss"
-  | "draw"
-  | "bye"
-  | "double_loss"
-  | "no_show_loss"
-  | "concession";
+export type MatchOutcome = "win" | "loss" | "draw" | "bye" | "double_loss" | "no_show_loss" | "concession";
 
 export type LedgerEntry = {
   participantId: string;

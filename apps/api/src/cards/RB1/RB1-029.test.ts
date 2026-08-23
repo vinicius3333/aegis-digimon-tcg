@@ -19,7 +19,9 @@ describe("RB1-029 GulusGammamon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === gammamonInstanceId));
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === gammamonInstanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === gammamonInstanceId)?.isSuspended).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === gammamonInstanceId)?.isSuspended,
+    ).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gammamonInstanceId)).toBe(false);
   });

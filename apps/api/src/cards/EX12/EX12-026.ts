@@ -16,168 +16,156 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // to the SAME Digimon (the text says "1 of their Digimon").
 // digivolutionCardsAtMost:1 is enforced by the interpreter's permanent filter matching.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 2,
-          "fromTop": false
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
         },
-        {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsAtMost": 1
-            },
-            "count": 1,
-            "bindAs": "restrictTarget"
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "fromSelectionRef": "restrictTarget",
-            "filter": {}
-          },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "fromSelectionRef": "restrictTarget",
-            "filter": {}
-          },
-          "restriction": "block",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 2,
-          "fromTop": false
-        },
-        {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsAtMost": 1
-            },
-            "count": 1,
-            "bindAs": "restrictTarget"
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "fromSelectionRef": "restrictTarget",
-            "filter": {}
-          },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "fromSelectionRef": "restrictTarget",
-            "filter": {}
-          },
-          "restriction": "block",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Aquatic"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "handAtMost",
-            "value": 7,
-            "raw": "your hand has 7 or fewer cards"
-          }
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 2,
+          fromTop: false,
+        },
+        {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsAtMost: 1,
+            },
+            count: 1,
+            bindAs: "restrictTarget",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            fromSelectionRef: "restrictTarget",
+            filter: {},
+          },
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            fromSelectionRef: "restrictTarget",
+            filter: {},
+          },
+          restriction: "block",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 2,
+          fromTop: false,
+        },
+        {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsAtMost: 1,
+            },
+            count: 1,
+            bindAs: "restrictTarget",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            fromSelectionRef: "restrictTarget",
+            filter: {},
+          },
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            fromSelectionRef: "restrictTarget",
+            filter: {},
+          },
+          restriction: "block",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Aquatic"],
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "handAtMost",
+            value: 7,
+            raw: "your hand has 7 or fewer cards",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Shambala"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Shambala"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-026", compiled);

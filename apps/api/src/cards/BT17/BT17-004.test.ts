@@ -5,7 +5,13 @@ import { compiled } from "./BT17-004.js";
 
 describe("BT17-004", () => {
   it("grants inherited Blocker to Argomon during the opponent's turn", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "OpponentsTurn", isInherited: true, actions: [{ kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Blocker" } }, while: { kind: "selfHasName" } }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "OpponentsTurn",
+      isInherited: true,
+      actions: [
+        { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Blocker" } }, while: { kind: "selfHasName" } },
+      ],
+    });
   });
 
   it("makes an Argomon host a Blocker only while it is the opponent's turn", async () => {

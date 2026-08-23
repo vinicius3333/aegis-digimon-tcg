@@ -12,11 +12,13 @@ describe("P-014 Kurisarimon", () => {
     await s.ready();
 
     expect([...s.perm("kurisarimon").keywords]).toContain("Blocker");
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("kurisarimon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kurisarimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 3);
 
     expect(s.state.memory).toBe(3);

@@ -14,190 +14,166 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   trash your opponent's top security card.
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1,
-                "targetBreeding": true
+                count: 1,
+                targetBreeding: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 6
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                levelComparison: {
+                  op: "lte",
+                  value: 6,
                 },
-                "nameOrTrait": [
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Chronicle"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Chronicle"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": false,
-              "from": [
-                "hand",
-                "trash"
-              ],
-              "optional": true
-            }
-          ]
-        }
-      ]
+              payCost: false,
+              from: ["hand", "trash"],
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1,
-                "targetBreeding": true
+                count: 1,
+                targetBreeding: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 6
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                levelComparison: {
+                  op: "lte",
+                  value: 6,
                 },
-                "nameOrTrait": [
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Chronicle"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Chronicle"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": false,
-              "from": [
-                "hand",
-                "trash"
-              ],
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
-            {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "superlative": "lowestDP"
-                },
-                "count": 1
-              }
-            }
-          ]
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "security"
+              payCost: false,
+              from: ["hand", "trash"],
+              optional: true,
             },
-            "count": 1,
-            "fromTop": true
-          },
-          "condition": {
-            "kind": "selfHasName",
-            "names": ["Alphamon: Ouryuken"],
-            "raw": "this Digimon is [Alphamon: Ouryuken]"
-          }
-        }
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  superlative: "lowestDP",
+                },
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "security",
+            },
+            count: 1,
+            fromTop: true,
+          },
+          condition: {
+            kind: "selfHasName",
+            names: ["Alphamon: Ouryuken"],
+            raw: "this Digimon is [Alphamon: Ouryuken]",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-018", compiled);

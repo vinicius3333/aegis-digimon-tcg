@@ -2,12 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  getCitedIds,
-  getNotTestableIds,
-  getObservedFiles,
-  loadRuleIndex,
-} from "./_kb.js";
+import { getCitedIds, getNotTestableIds, getObservedFiles, loadRuleIndex } from "./_kb.js";
 // Side-effect import: registers the seeded not-testable manifest with `_kb.ts`.
 import "./not-testable.js";
 

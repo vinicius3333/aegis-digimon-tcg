@@ -66,7 +66,9 @@ describe("BT22-056 Guardromon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guardromon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guardromon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.perm("target").topCard?.cardId).toBe("BT22-071");

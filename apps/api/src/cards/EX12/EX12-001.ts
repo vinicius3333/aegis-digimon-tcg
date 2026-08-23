@@ -6,71 +6,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "includesSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              includesSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "VB"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["VB"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 2
+            count: 2,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "VB"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["VB"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": true,
-          "optional": true,
-          "bindResultAs": "dnaResult",
-          "condition": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [{ "tokens": ["VB"], "match": "trait" }]
-            }
-          }
+          payCost: true,
+          optional: true,
+          bindResultAs: "dnaResult",
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["VB"], match: "trait" }],
+            },
+          },
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "boundRef": "dnaResult"
+          kind: "Attack",
+          target: {
+            filter: {
+              boundRef: "dnaResult",
             },
-            "count": 1
+            count: 1,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
+          withoutSuspending: false,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX12-001", compiled);

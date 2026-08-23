@@ -29,11 +29,13 @@ describe("BT3-086 Arukenimon", () => {
 
     const activation = s.decisions.at(-1)!.req;
     expect(activation.sourceCardId).toBe("BT3-086");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: activation.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activation.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT3-092") &&

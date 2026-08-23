@@ -27,9 +27,14 @@ const CHECK_IN_OPEN: readonly TournamentStatus[] = ["registration", "check_in"];
  * The signed-in player's participant row, or undefined when it cannot be identified — either
  * because nothing matches or because more than one human shares the display name.
  */
-export function ownParticipant(participants: readonly ParticipantView[], displayName: string | undefined): ParticipantView | undefined {
+export function ownParticipant(
+  participants: readonly ParticipantView[],
+  displayName: string | undefined,
+): ParticipantView | undefined {
   if (!displayName) return undefined;
-  const matches = participants.filter((participant) => participant.kind === "human" && participant.displayName === displayName);
+  const matches = participants.filter(
+    (participant) => participant.kind === "human" && participant.displayName === displayName,
+  );
   return matches.length === 1 ? matches[0] : undefined;
 }
 

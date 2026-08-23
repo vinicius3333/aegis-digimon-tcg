@@ -95,7 +95,7 @@ markNotTestable(
 markNotTestable(
   "manual-0048",
   "'Unless specified otherwise, a card is placed face down when placed in a private area' and " +
-    "'a card moved between private areas via text like \"card with XX\" is revealed to the " +
+    '\'a card moved between private areas via text like "card with XX" is revealed to the ' +
     "opponent before placing' restate comprehensive-0201/0202/0203, already tested at " +
     "ch15-03-targeting-and-selection.test.ts §15-15-3 (Effects That Reveal Cards).",
 );
@@ -118,7 +118,7 @@ markNotTestable(
     "comprehensive-0187/0188, already tested at ch15-03-targeting-and-selection.test.ts §15-11-2: " +
     "this chunk's own worked example ('None of your opponent's Digimon with no digivolution cards " +
     "can attack') is the overall-processing shape BT1-100's printed text exercises, and its " +
-    "compiled IR carries `target.count: \"all\"`, which the interpreter resolves to EVERY " +
+    'compiled IR carries `target.count: "all"`, which the interpreter resolves to EVERY ' +
     "matching target with no chooseTargets prompt — driven end-to-end by comprehensive-0187's " +
     "test with this exact card.",
 );
@@ -164,10 +164,10 @@ markNotTestable(
 
 markNotTestable(
   "manual-0054",
-  "'A \"by\" condition can't be performed partly (e.g. \"by trashing 2 cards\" can't be done with " +
-    "only 1)' and 'performing a \"by\" condition counts toward [X Per Turn] even if the \"then\" " +
+  '\'A "by" condition can\'t be performed partly (e.g. "by trashing 2 cards" can\'t be done with ' +
+    'only 1)\' and \'performing a "by" condition counts toward [X Per Turn] even if the "then" ' +
     "processing can't happen' restate comprehensive-0168/0169/0170 (ch15-02 §15-6/§15-7) and " +
-    "comprehensive-0193 ([X Per Turn], ch15-04 §15-14-1), already tested. '\"With different XX\" " +
+    'comprehensive-0193 ([X Per Turn], ch15-04 §15-14-1), already tested. \'"With different XX" ' +
     "means each XX in the combination differs' restates comprehensive-0094, already tested at " +
     "ch15-03-targeting-and-selection.test.ts (picked up from ch04, §4-24).",
 );
@@ -175,7 +175,7 @@ markNotTestable(
 markNotTestable(
   "manual-0055",
   "'\"With different XX\", cont'd' (2 cards with colors red and blue both differing counts as a " +
-    "\"with different colors\" combination) restates comprehensive-0094/0095, already tested at " +
+    '"with different colors" combination) restates comprehensive-0094/0095, already tested at ' +
     "ch15-03-targeting-and-selection.test.ts / ch15-04-continuous-and-static.test.ts (picked up " +
     "from ch04, §4-24/§4-25). 'Effect Timings' / 'Effect Icons' is a bare section-heading " +
     "transition into the icon glossary covered by manual-0056 onward.",

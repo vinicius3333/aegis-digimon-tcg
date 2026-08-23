@@ -45,10 +45,11 @@ describe("BT4 Plutomon option-control deck gauntlet", () => {
         instanceId: s.inst("plutomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("hellsGate").instanceId) &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId) &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("hellsGate").instanceId) &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId) &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.memory).toBe(0);

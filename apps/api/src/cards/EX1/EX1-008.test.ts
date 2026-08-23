@@ -5,10 +5,28 @@ import "./EX1-008.js";
 
 describe("EX1-008 MetalGreymon", () => {
   it("deletes an opposing Digimon with 4000 DP or less when attacking a player", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-008", as: "attacker" }] }, 1: { battleArea: [{ card: "BT1-010", as: "small", dp: 4000 }, { card: "BT1-011", as: "large", dp: 5000 }], security: ["BT1-001", "BT1-001"] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-008", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "small", dp: 4000 },
+            { card: "BT1-011", as: "large", dp: 5000 },
+          ],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
     const smallId = s.perm("small").topCard.instanceId;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === smallId));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });

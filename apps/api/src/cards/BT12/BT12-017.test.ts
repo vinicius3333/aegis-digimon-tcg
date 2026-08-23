@@ -36,9 +36,7 @@ it("requires the red Tamer source card for the DP-based alternate deletion cap",
   const withoutRedTamer = setupEngine(
     {
       0: {
-        battleArea: [
-          { card: "BT12-017", as: "emperor", under: ["BT12-034", "BT12-090"] },
-        ],
+        battleArea: [{ card: "BT12-017", as: "emperor", under: ["BT12-034", "BT12-090"] }],
       },
       1: { battleArea: [{ card: "BT1-009", dp: 7000, as: "target" }] },
     },
@@ -51,9 +49,7 @@ it("requires the red Tamer source card for the DP-based alternate deletion cap",
   const withRedTamer = setupEngine(
     {
       0: {
-        battleArea: [
-          { card: "BT12-017", as: "emperor", under: ["BT12-034", "BT12-088"] },
-        ],
+        battleArea: [{ card: "BT12-017", as: "emperor", under: ["BT12-034", "BT12-088"] }],
       },
       1: { battleArea: [{ card: "BT1-009", dp: 7000, as: "target" }] },
     },

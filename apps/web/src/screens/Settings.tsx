@@ -13,7 +13,23 @@ import type { RemoteAccount } from "../account/client";
 import { SuccessToast } from "../design/SuccessToast";
 import "./settings.css";
 
-export function Settings({ player, account, dark, onToggleDark, onRename, onAccountChange, onSelectAvatar }: { player: PlayerIdentity; account: RemoteAccount | null | undefined; dark: boolean; onToggleDark: (v: boolean) => void; onRename?: (name: string) => void; onAccountChange?: (account: RemoteAccount) => void; onSelectAvatar?: (avatarId: DigimonWorldAvatarId) => void }) {
+export function Settings({
+  player,
+  account,
+  dark,
+  onToggleDark,
+  onRename,
+  onAccountChange,
+  onSelectAvatar,
+}: {
+  player: PlayerIdentity;
+  account: RemoteAccount | null | undefined;
+  dark: boolean;
+  onToggleDark: (v: boolean) => void;
+  onRename?: (name: string) => void;
+  onAccountChange?: (account: RemoteAccount) => void;
+  onSelectAvatar?: (avatarId: DigimonWorldAvatarId) => void;
+}) {
   const { t, locale, setLocale } = useTranslation();
   const [nameInput, setNameInput] = useState(player.name);
   const [renameToastKey, setRenameToastKey] = useState<number>();
@@ -56,7 +72,9 @@ export function Settings({ player, account, dark, onToggleDark, onRename, onAcco
                     value={nameInput}
                     onChange={(e) => setNameInput(e.target.value)}
                   />
-                  <Button variant="primary" size="sm" onClick={confirmRename}>{t("common.confirm")}</Button>
+                  <Button variant="primary" size="sm" onClick={confirmRename}>
+                    {t("common.confirm")}
+                  </Button>
                 </div>
               </div>
             ) : null}
@@ -112,7 +130,10 @@ export function Settings({ player, account, dark, onToggleDark, onRename, onAcco
                 checked={actionConfirmationsOn}
                 label={t("settings.actionConfirmations")}
                 description={t("settings.actionConfirmationsDesc")}
-                onChange={(next) => { setActionConfirmationsEnabled(next); setActionConfirmationsOn(next); }}
+                onChange={(next) => {
+                  setActionConfirmationsEnabled(next);
+                  setActionConfirmationsOn(next);
+                }}
               />
             </div>
           </div>
@@ -126,7 +147,11 @@ export function Settings({ player, account, dark, onToggleDark, onRename, onAcco
                 checked={soundOn}
                 label={t("settings.sound")}
                 description={t("settings.soundDesc")}
-                onChange={(next) => { setSoundEnabled(next); setSoundOn(next); if (next) playSound("confirm"); }}
+                onChange={(next) => {
+                  setSoundEnabled(next);
+                  setSoundOn(next);
+                  if (next) playSound("confirm");
+                }}
               />
             </div>
             <div className="settings-block settings-volume" data-disabled={!soundOn || undefined}>
@@ -142,7 +167,11 @@ export function Settings({ player, account, dark, onToggleDark, onRename, onAcco
                 max={100}
                 value={volume}
                 disabled={!soundOn}
-                onChange={(e) => { const next = Number(e.target.value); setVolume(next); setSoundVolume(next / 100); }}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setVolume(next);
+                  setSoundVolume(next / 100);
+                }}
                 onPointerUp={() => soundOn && playSound("select")}
                 className="settings-volume__control"
               />
@@ -162,7 +191,12 @@ export function Settings({ player, account, dark, onToggleDark, onRename, onAcco
                 {LOCALES.map((option) => {
                   const on = locale === option;
                   return (
-                    <button key={option} onClick={() => setLocale(option)} className="settings-language-option" aria-pressed={on}>
+                    <button
+                      key={option}
+                      onClick={() => setLocale(option)}
+                      className="settings-language-option"
+                      aria-pressed={on}
+                    >
                       {LOCALE_LABELS[option]}
                       {on ? <Icons.Check size={16} /> : null}
                     </button>
@@ -173,7 +207,13 @@ export function Settings({ player, account, dark, onToggleDark, onRename, onAcco
           </div>
         </section>
       </div>
-      {renameToastKey ? <SuccessToast key={renameToastKey} message={t("settings.usernameUpdated")} onDismiss={() => setRenameToastKey(undefined)} /> : null}
+      {renameToastKey ? (
+        <SuccessToast
+          key={renameToastKey}
+          message={t("settings.usernameUpdated")}
+          onDismiss={() => setRenameToastKey(undefined)}
+        />
+      ) : null}
     </main>
   );
 }

@@ -6,9 +6,23 @@ import "./EX1-069.js";
 
 describe("EX1-069 Ultimate Connection!", () => {
   it("trashes a level-5 Cyborg to gain 2 memory and draw 1", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "EX1-069", as: "option" }, { card: "EX1-008", as: "cost" }], battleArea: [{ card: "EX1-047", as: "blackSource" }], deck: ["BT1-009"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-069", as: "option" },
+            { card: "EX1-008", as: "cost" },
+          ],
+          battleArea: [{ card: "EX1-047", as: "blackSource" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 1;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 0);
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.memory).toBe(2);

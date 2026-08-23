@@ -6,7 +6,11 @@ import "./ST5-11.js";
 
 describe("ST5-11 Megadramon", () => {
   it("is fully represented as an inherited Blocker keyword", () => {
-    expect(runtimeCompiledCard("ST5-11")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "Static", isInherited: true, keywords: [{ keyword: "Blocker" }] }] });
+    expect(runtimeCompiledCard("ST5-11")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "Static", isInherited: true, keywords: [{ keyword: "Blocker" }] }],
+    });
   });
 
   it("gives its host Blocker", async () => {

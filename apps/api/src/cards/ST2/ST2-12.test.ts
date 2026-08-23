@@ -14,19 +14,23 @@ describe("ST2-12 Matt Ishida", () => {
     expect(compiled.effects).toEqual([
       {
         trigger: "StartOfYourTurn",
-        actions: [{
-          kind: "GainMemory",
-          amount: 1,
-          condition: {
-            kind: "opponentHas",
-            filter: { digivolutionCards: "none", controller: "opponent", zone: "battleArea", kind: ["Digimon"] },
-            raw: "your opponent has a Digimon with no digivolution cards",
+        actions: [
+          {
+            kind: "GainMemory",
+            amount: 1,
+            condition: {
+              kind: "opponentHas",
+              filter: { digivolutionCards: "none", controller: "opponent", zone: "battleArea", kind: ["Digimon"] },
+              raw: "your opponent has a Digimon with no digivolution cards",
+            },
           },
-        }],
+        ],
       },
       {
         trigger: "Security",
-        actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+        actions: [
+          { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+        ],
         isSecurity: true,
       },
     ]);
@@ -43,7 +47,12 @@ describe("ST2-12 Matt Ishida", () => {
 
   it("gains once for each copy, not once for each source-less opposing Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST2-12", as: "matt1" }, { card: "ST2-12", as: "matt2" }] },
+      0: {
+        battleArea: [
+          { card: "ST2-12", as: "matt1" },
+          { card: "ST2-12", as: "matt2" },
+        ],
+      },
       1: { battleArea: ["ST2-03", "ST1-03"] },
     });
     s.state.memory = 0;

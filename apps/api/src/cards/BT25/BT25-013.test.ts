@@ -10,7 +10,16 @@ describe("BT25-013 Firamon", () => {
         kind: "Return",
         optional: true,
         abortOnDecline: true,
-        target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"], colors: ["Red", "Blue"], nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] }, count: 1 },
+        target: {
+          filter: {
+            zone: "trash",
+            controller: "mine",
+            kind: ["Digimon"],
+            colors: ["Red", "Blue"],
+            nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+          },
+          count: 1,
+        },
         cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
       });
     }
@@ -20,13 +29,23 @@ describe("BT25-013 Firamon", () => {
     const effect = BT25_013.effects?.find((entry) => entry.trigger === "YourTurn" && !entry.isInherited);
     for (const event of ["whenPlayed", "whenOneOfYoursDigivolves"] as const) {
       const watcher = effect?.actions?.find((action) => action.kind === "SubTrigger" && action.event === event);
-      expect(watcher).toMatchObject({ fireCondition: { kind: "triggerSubjectHasColor", filter: { colors: ["Blue"] } } });
+      expect(watcher).toMatchObject({
+        fireCondition: { kind: "triggerSubjectHasColor", filter: { colors: ["Blue"] } },
+      });
       const subTrigger = watcher as { actions?: unknown[] } | undefined;
-      expect(subTrigger?.actions?.[0]).toMatchObject({ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true });
+      expect(subTrigger?.actions?.[0]).toMatchObject({
+        kind: "Digivolve",
+        from: ["hand"],
+        reduceCost: 1,
+        optional: true,
+      });
     }
   });
 
   it("keeps inherited +2000 DP during your turn", () => {
-    expect(BT25_013.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }] });
+    expect(BT25_013.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }],
+    });
   });
 });

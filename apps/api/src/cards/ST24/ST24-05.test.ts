@@ -12,10 +12,17 @@ describe("ST24-05 GeoGreymon", () => {
         from: ["hand"],
         payCost: false,
         optional: true,
-        target: { count: 1, filter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] } },
+        target: {
+          count: 1,
+          filter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] },
+        },
         condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] } },
       });
     }
-    expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({ kind: "ModifyDP", amount: 2000, duration: "permanent" });
+    expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
+      kind: "ModifyDP",
+      amount: 2000,
+      duration: "permanent",
+    });
   });
 });

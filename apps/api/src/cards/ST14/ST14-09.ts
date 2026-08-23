@@ -3,106 +3,102 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine"
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4"
-            }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+            },
           ],
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "mine"
+          scaling: {
+            per: 10,
+            filter: {
+              zone: "trash",
+              controller: "mine",
             },
-            "unit": "trash"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDiscardLibrary",
-          "sourceFilter": { "controller": "mine" },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Impmon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1
-              },
-              "from": [
-                "trash"
-              ],
-              "payCost": false,
-              "optional": true,
-              "bindResultAs": "playedImpmon"
-            },
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "boundRef": "playedImpmon",
-                  "kind": ["Digimon"]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Rush",
-                "raw": "＜Rush＞"
-              },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+            unit: "trash",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          sourceFilter: { controller: "mine" },
+          actions: [
             {
-              "kind": "TrashTopDeck",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
-      ]
-    }
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Impmon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              bindResultAs: "playedImpmon",
+            },
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  boundRef: "playedImpmon",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Rush",
+                raw: "＜Rush＞",
+              },
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "TrashTopDeck",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST14-09", compiled);

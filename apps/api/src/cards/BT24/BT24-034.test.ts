@@ -148,7 +148,9 @@ describe("BT24-034 Aegiomon", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.OnMove, s.perm("aegiomon"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+    );
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
   });

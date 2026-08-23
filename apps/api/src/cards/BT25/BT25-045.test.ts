@@ -149,7 +149,9 @@ async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
   const effects = module.effectsForTiming(EffectTiming.None, src);
 
   const before = state.memory;
-  if (compiled.effects?.some((e) => e.actions?.some((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction"))) {
+  if (
+    compiled.effects?.some((e) => e.actions?.some((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction"))
+  ) {
     for (const e of effects) {
       const ctx = createEffectContext({ source: src, trigger: {}, game, fx, ask: decisionApi });
       await e.resolve(ctx);
@@ -158,10 +160,14 @@ async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
 
   // A separate generic Link declaration targets the recipient carrying the grant.
   const genericLink: CompiledCard = {
-    effects: [{
-      trigger: "Main",
-      actions: [{ kind: "Link", target: { filter: { nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] }, count: 1 } }],
-    }],
+    effects: [
+      {
+        trigger: "Main",
+        actions: [
+          { kind: "Link", target: { filter: { nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] }, count: 1 } },
+        ],
+      },
+    ],
     coverage: "full",
     residual: [],
   };
@@ -189,7 +195,10 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
   it("authors a GrantLinkCostReduction action (amount 1, Social/Tool/Game)", () => {
     const links = (BT25_045.effects ?? [])
       .flatMap((e) => e.actions ?? [])
-      .filter((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction") as { amount?: number; whenLinkingTrait?: string[] }[];
+      .filter((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction") as {
+      amount?: number;
+      whenLinkingTrait?: string[];
+    }[];
     expect(links.length).toBeGreaterThan(0);
     expect(links.some((l) => l.amount === 1)).toBe(true);
     expect(links[0]?.whenLinkingTrait).toEqual(["Social", "Tool", "Game"]);

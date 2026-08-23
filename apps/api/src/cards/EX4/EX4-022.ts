@@ -6,95 +6,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 6
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 6,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "hand",
-            "op": "gte",
-            "value": 8,
-            "raw": "they have 8 or more cards in their hand"
-          }
-        }
-      ]
+          to: "hand",
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "hand",
+            op: "gte",
+            value: 8,
+            raw: "they have 8 or more cards in their hand",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectAddsToOpponentHand",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenEffectAddsToOpponentHand",
+          actions: [
             {
-              "kind": "Return",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ]
+              kind: "Return",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levels: [3],
                 },
-                "count": 1
+                count: 1,
               },
-              "to": "hand",
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
+              to: "hand",
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
                 },
-                "raw": "you have a Tamer"
-              }
-            }
-          ]
-        }
+                raw: "you have a Tamer",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-022", compiled);

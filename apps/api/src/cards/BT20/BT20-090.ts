@@ -10,27 +10,36 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfYourTurn",
-      actions: [{
-        kind: "Attack",
-        target: {
-          filter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            unsuspended: true,
-            nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }],
+      actions: [
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              unsuspended: true,
+              nameOrTrait: [{ tokens: ["Dark Dragon", "Evil Dragon"], match: "trait" }],
+            },
+            count: 1,
           },
-          count: 1,
+          attackPlayer: true,
+          optional: true,
+          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 }, raw: "by suspending this Tamer" },
+          condition: { kind: "handAtMost", value: 4 },
         },
-        attackPlayer: true,
-        optional: true,
-        cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 }, raw: "by suspending this Tamer" },
-        condition: { kind: "handAtMost", value: 4 },
-      }],
+      ],
     },
     {
       trigger: "Security",
       isSecurity: true,
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, from: ["security"], payCost: false }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          from: ["security"],
+          payCost: false,
+        },
+      ],
     },
   ],
   coverage: "full",

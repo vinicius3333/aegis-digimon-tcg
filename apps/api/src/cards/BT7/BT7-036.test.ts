@@ -14,7 +14,13 @@ describe("BT7-036 Zephyrmon", () => {
       1: { battleArea: [{ card: "BT1-014", as: "attacker" }] },
     });
     s.state.memory = 2;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).securityDp(0) === 3000);
     expect(observe(s.engine).securityDp(0)).toBe(3000);
   });

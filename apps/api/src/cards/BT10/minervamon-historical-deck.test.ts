@@ -75,9 +75,7 @@ describe("BT10 Minervamon historical deck gauntlet", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        ({ topCard }) => topCard?.instanceId === s.inst("labramon").instanceId,
-      ),
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("labramon").instanceId),
     );
 
     // Labramon's On Play draw/discard is suppressed by Minervamon.
@@ -93,9 +91,7 @@ describe("BT10 Minervamon historical deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.battleArea.some(
-          ({ topCard }) => topCard?.instanceId === s.inst("baalmon").instanceId,
-        ) &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("baalmon").instanceId) &&
         !observe(s.engine).isAttacking(),
     );
 

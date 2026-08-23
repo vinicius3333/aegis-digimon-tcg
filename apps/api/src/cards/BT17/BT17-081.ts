@@ -10,195 +10,171 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [End of Your Turn] Once per turn, you may have 1 of your unsuspended Digimon with
 //   [Omnimon] in its name attack your opponent directly.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Greymon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "raw": "you have a Digimon with [Greymon] in its name"
-              }
-            },
-            {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
+                      tokens: ["Greymon"],
+                      match: "name",
+                    },
                   ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Garurumon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
                 },
-                "raw": "you have a Digimon with [Garurumon] in its name"
-              }
-            }
-          ],
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+                raw: "you have a Digimon with [Greymon] in its name",
               },
-              "count": 1,
-              "isSelf": true
             },
-            "raw": "by suspending this Tamer"
-          }
+            {
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Garurumon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                raw: "you have a Digimon with [Garurumon] in its name",
+              },
+            },
+          ],
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer",
+          },
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Greymon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "raw": "you have a Digimon with [Greymon] in its name"
-              }
-            },
-            {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
+                      tokens: ["Greymon"],
+                      match: "name",
+                    },
                   ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Garurumon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
                 },
-                "raw": "you have a Digimon with [Garurumon] in its name"
-              }
-            }
-          ],
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+                raw: "you have a Digimon with [Greymon] in its name",
               },
-              "count": 1,
-              "isSelf": true
             },
-            "raw": "by suspending this Tamer"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Omnimon"
+            {
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Garurumon"],
+                      match: "name",
+                    },
                   ],
-                  "match": "name"
-                }
-              ],
-              "suspended": false
+                },
+                raw: "you have a Digimon with [Garurumon] in its name",
+              },
             },
-            "count": 1
+          ],
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer",
           },
-          "optional": true,
-          "attackPlayer": true
-        }
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Attack",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Omnimon"],
+                  match: "name",
+                },
+              ],
+              suspended: false,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
           },
-          "payCost": false
-        }
+          optional: true,
+          attackPlayer: true,
+        },
       ],
-      "isSecurity": true
-    }
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-081", compiled);

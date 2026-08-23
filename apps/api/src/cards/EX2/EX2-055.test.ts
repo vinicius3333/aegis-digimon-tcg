@@ -38,9 +38,7 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
     s.state.memory = 10; // far below the printed cost 20
     const memoryBefore = s.state.memory;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: reaper.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: reaper.instanceId })).toEqual({ ok: true });
 
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "EX2-055"));
 
@@ -63,10 +61,12 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("reaper").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("reaper").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "EX2-055"));
 
     expect(s.perm("mother").stack).toHaveLength(7);
@@ -90,10 +90,12 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("reaper").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("reaper").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "EX2-055"));
 
     expect(s.perm("mother").stack).toHaveLength(0);
@@ -124,19 +126,23 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
     const secondId = s.inst("secondSearcher").instanceId;
     const originalSourceId = s.perm("reaper").stack[0]!.instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("reaper").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reaper").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const optional = s.decisions.at(-1)!.req;
     expect(optional.sourceCardId).toBe("EX2-055");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const ordering = s.decisions.at(-1)!.req;
     const stackOrder = [secondId, firstId];
@@ -145,22 +151,19 @@ describe("EX2-055 BeforePayCost: trash 7+ from a Mother D-Reaper's bottom → se
       { instanceId: firstId, cardId: "EX2-046" },
       { instanceId: secondId, cardId: "EX2-046" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: stackOrder },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: stackOrder },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("reaper").stack.length === 3 && !s.perm("reaper").isSuspended);
 
-    expect(s.perm("reaper").stack.map((card) => card.instanceId)).toEqual([
-      ...stackOrder,
-      originalSourceId,
-    ]);
+    expect(s.perm("reaper").stack.map((card) => card.instanceId)).toEqual([...stackOrder, originalSourceId]);
     expect(s.perm("reaper").stack.at(-1)?.instanceId).toBe(originalSourceId);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("reaper").isSuspended).toBe(false);
-    expect(s.decisions.filter(({ req }) =>
-      req.kind === "optional" && req.sourceCardId === "EX2-055"
-    )).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX2-055")).toHaveLength(1);
   });
 });

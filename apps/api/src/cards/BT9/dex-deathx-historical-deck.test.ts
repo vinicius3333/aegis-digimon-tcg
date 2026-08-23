@@ -36,10 +36,7 @@ describe("BT9 Dex/DeathX historical deck gauntlet", () => {
     const selection = [...s.decisions].reverse().find(({ req }) => req.kind === "selectCards")!.req;
     expect(selection.options).toMatchObject({ min: 0, max: 1 });
     expect(selection.options?.candidateInstanceIds).toEqual(
-      expect.arrayContaining([
-        s.inst("gazimonX").instanceId,
-        s.inst("deathXmon").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("gazimonX").instanceId, s.inst("deathXmon").instanceId]),
     );
 
     expect(
@@ -54,13 +51,13 @@ describe("BT9 Dex/DeathX historical deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.battleArea.some(
-          ({ topCard }) => topCard?.instanceId === s.inst("gazimonX").instanceId,
-        ) &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("gazimonX").instanceId) &&
         !observe(s.engine).isAttacking(),
     );
 
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("deathXmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("deathXmon").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT9-112")).toBe(false);
   });
 });

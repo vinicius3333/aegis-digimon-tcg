@@ -2,10 +2,7 @@ import { describe, it, expect } from "vitest";
 import { GameState, PlayerState, Phase, Zone, requireCardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
-import {
-  setupEngine as setup,
-  makeInstance as instance,
-} from "../testkit/harness.js";
+import { setupEngine as setup, makeInstance as instance } from "../testkit/harness.js";
 import { applyMoveFromBreeding, applyHatchEgg } from "../actions/breeding.js";
 import "../../cards/index.js";
 
@@ -99,50 +96,51 @@ markNotTestable(
 );
 
 describe("manual-0006 — Token sub-rules: can a token digivolve?", () => {
-  it(
-    "NOW MET: a Digimon card should not be able to digivolve onto a token permanent",
-    async () => {
-      cite(
-        "manual-0006",
-        "'Cards can't be stacked with tokens.' / 'Tokens can't get linked. (They can't digivolve " +
-          "or have cards placed under them by an effect)' / 'A Token played as a Digimon will be " +
-          "treated the same as a normal Digimon.'",
-      );
+  it("NOW MET: a Digimon card should not be able to digivolve onto a token permanent", async () => {
+    cite(
+      "manual-0006",
+      "'Cards can't be stacked with tokens.' / 'Tokens can't get linked. (They can't digivolve " +
+        "or have cards placed under them by an effect)' / 'A Token played as a Digimon will be " +
+        "treated the same as a normal Digimon.'",
+    );
 
-      // DIVERGENCE (documented, not fixed — file ownership excludes engine code): neither
-      // `matchingEvoCost`/`matchingEvoCostIgnoringColor` (src/engine/cards/cardData.ts) nor
-      // `validateDigivolve` (src/engine/actions/digivolve.ts) ever reads `CardDefinition.isToken`
-      // — grep confirms `isToken` is consulted only by playCard/token-play code and targeting
-      // filters, nowhere in the digivolve path. A real token permanent (KoHagurumon Token: Lv.3
-      // Black) therefore satisfies an ordinary EvoCost the same as a printed Lv.3 Black Digimon
-      // would, and a legal-looking digivolve onto it succeeds — contradicting the manual's own
-      // "Tokens can't digivolve" rule.
-      const s = setup();
-      s.state.memory = 20;
+    // DIVERGENCE (documented, not fixed — file ownership excludes engine code): neither
+    // `matchingEvoCost`/`matchingEvoCostIgnoringColor` (src/engine/cards/cardData.ts) nor
+    // `validateDigivolve` (src/engine/actions/digivolve.ts) ever reads `CardDefinition.isToken`
+    // — grep confirms `isToken` is consulted only by playCard/token-play code and targeting
+    // filters, nowhere in the digivolve path. A real token permanent (KoHagurumon Token: Lv.3
+    // Black) therefore satisfies an ordinary EvoCost the same as a printed Lv.3 Black Digimon
+    // would, and a legal-looking digivolve onto it succeeds — contradicting the manual's own
+    // "Tokens can't digivolve" rule.
+    const s = setup();
+    s.state.memory = 20;
 
-      const permanent = await (s.engine as unknown as {
-        primitives: { playToken(seat: Seat, name: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined> };
-      }).primitives.playToken(0, "KoHagurumon Token", { payCost: false });
-      expect(permanent).toBeDefined();
-      const tokenDef = requireCardDefinition(permanent!.topCard!.cardId);
-      expect(tokenDef.isToken).toBe(true);
-      expect(tokenDef.level).toBe(3);
+    const permanent = await (
+      s.engine as unknown as {
+        primitives: {
+          playToken(seat: Seat, name: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined>;
+        };
+      }
+    ).primitives.playToken(0, "KoHagurumon Token", { payCost: false });
+    expect(permanent).toBeDefined();
+    const tokenDef = requireCardDefinition(permanent!.topCard!.cardId);
+    expect(tokenDef.isToken).toBe(true);
+    expect(tokenDef.level).toBe(3);
 
-      // Golemon (BT10-062): plain EvoCost {color: Black, level: 3}, no name gate — a clean probe.
-      const golemon = s.give(0, Zone.Hand, "BT10-062");
-      s.state.memory = 1; // Golemon's evoCost memoryCost
+    // Golemon (BT10-062): plain EvoCost {color: Black, level: 3}, no name gate — a clean probe.
+    const golemon = s.give(0, Zone.Hand, "BT10-062");
+    s.state.memory = 1; // Golemon's evoCost memoryCost
 
-      const result = s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: permanent!.permanentId,
-        instanceId: golemon.instanceId,
-      });
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: permanent!.permanentId,
+      instanceId: golemon.instanceId,
+    });
 
-      // EXPECTED (per manual-0006, "Tokens can't digivolve"): rejected. ACTUAL (engine bug): the
-      // digivolve is accepted and Golemon stacks onto the token permanent.
-      expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
-    },
-  );
+    // EXPECTED (per manual-0006, "Tokens can't digivolve"): rejected. ACTUAL (engine bug): the
+    // digivolve is accepted and Golemon stacks onto the token permanent.
+    expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
 
 // manual-0006 is CITED (not marked not-testable — the meta-test rejects an id that is both) by

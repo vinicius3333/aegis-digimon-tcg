@@ -6,8 +6,20 @@ import "./ST3-11.js";
 
 describe("ST3-01 Tokomon", () => {
   it("gives its host +1000 DP when an opponent is deleted at 0 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST3-11", under: ["ST3-01"], as: "host" }] }, 1: { battleArea: [{ card: "ST3-02", as: "victim" }], security: ["ST3-02"] } }, { autoSelectCards: true });
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST3-11", under: ["ST3-01"], as: "host" }] },
+        1: { battleArea: [{ card: "ST3-02", as: "victim" }], security: ["ST3-02"] },
+      },
+      { autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.perm("host").currentDP === 11000);
     expect(s.perm("host").currentDP).toBe(11000);
   });
@@ -45,13 +57,16 @@ describe("ST3-01 Tokomon", () => {
   });
 
   it("does not trigger on effect deletion and sees an opposing Digimon played after setup", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST3-11", under: ["ST3-01"], as: "host" }],
-        deck: ["BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST3-11", under: ["ST3-01"], as: "host" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: ["ST3-02"], hand: [{ card: "ST3-05", as: "late" }] },
       },
-      1: { battleArea: ["ST3-02"], hand: [{ card: "ST3-05", as: "late" }] },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
     const initiallyPresent = s.state.players[1]!.battleArea[0]!;
     // The effect-deletion negative path uses the public verb and must not grant the bonus.
@@ -61,12 +76,16 @@ describe("ST3-01 Tokomon", () => {
     await advance(s.engine).verb.playInstances([s.inst("late").instanceId]);
     const latePermanent = s.state.players[1]!.battleArea[0]!;
     await advance(s.engine).verb.suspend([latePermanent.permanentId]);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: latePermanent.permanentId },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.perm("host").currentDP === s.perm("host").baseDP + 1000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: latePermanent.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[1]!.battleArea.length === 0 && s.perm("host").currentDP === s.perm("host").baseDP + 1000,
+    );
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
 });

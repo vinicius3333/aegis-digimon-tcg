@@ -6,80 +6,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "opponent",
-          "amount": 3,
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "mine"
+          kind: "TrashTopDeck",
+          controller: "opponent",
+          amount: 3,
+          scaling: {
+            per: 10,
+            filter: {
+              zone: "trash",
+              controller: "mine",
             },
-            "unit": "trash"
-          }
-        }
+            unit: "trash",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "opponent",
-          "amount": 3,
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "mine"
+          kind: "TrashTopDeck",
+          controller: "opponent",
+          amount: 3,
+          scaling: {
+            per: 10,
+            filter: {
+              zone: "trash",
+              controller: "mine",
             },
-            "unit": "trash"
-          }
-        }
+            unit: "trash",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "your opponent has 10 or more cards in their trash"
-          }
-        }
+          duration: "forTheTurn",
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "your opponent has 10 or more cards in their trash",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-080", compiled);

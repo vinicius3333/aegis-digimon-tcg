@@ -18,7 +18,9 @@ describe("BT18-058 Kotemon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kotemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kotemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-011"));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("knightmonText").instanceId)).toBe(true);

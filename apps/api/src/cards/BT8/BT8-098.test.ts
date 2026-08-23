@@ -38,26 +38,27 @@ describe("BT8-098 Innocence Blizzard", () => {
     const stillStackedId = s.perm("stillStacked").permanentId;
     const unselectedBareId = s.perm("unselectedBare").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
 
     const choice = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
     expect(choice.sourceCardId).toBe("BT8-098");
     expect(choice.options?.min).toBe(0);
     expect(choice.options?.max).toBe(3);
-    expect(choice.options?.candidateInstanceIds).toEqual([
-      ...selectedIds,
-      unselectedBareId,
-    ]);
+    expect(choice.options?.candidateInstanceIds).toEqual([...selectedIds, unselectedBareId]);
     expect(choice.options?.candidateInstanceIds).not.toContain(stillStackedId);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: choice.decisionId,
-      response: { kind: "chooseTargets", instanceIds: selectedIds },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: selectedIds },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-098"));
 
     expect(s.perm("strippedOne").stack).toHaveLength(0);
@@ -74,21 +75,19 @@ describe("BT8-098 Innocence Blizzard", () => {
   });
 
   it("activates the same source trash and restriction flow from Security", async () => {
-    const s = setupEngine({
-      0: {
-        security: [{ card: "BT8-098", as: "securityOption", faceUp: true }],
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT8-098", as: "securityOption", faceUp: true }],
+        },
+        1: {
+          battleArea: [{ card: "BT8-023", as: "target", under: ["BT1-009"] }],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT8-023", as: "target", under: ["BT1-009"] },
-        ],
-      },
-    }, { autoSelectCards: true });
-
-    await advance(s.engine).fireForInstance(
-      EffectTiming.SecuritySkill,
-      s.inst("securityOption"),
+      { autoSelectCards: true },
     );
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
 
     expect(s.perm("target").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);

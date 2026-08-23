@@ -6,183 +6,164 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 2,
-              "raw": "reduce the play cost by 2",
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                    "zone": "hand",
-                    "controller": "mine",
-                    "nameOrTrait": [
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the play cost by 2",
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "hand",
+                    controller: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Cyborg",
-                          "Ver.1"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["Cyborg", "Ver.1"],
+                        match: "trait",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "raw": "by trashing 1 [Cyborg] or [Ver.1] trait card from your hand"
+                raw: "by trashing 1 [Cyborg] or [Ver.1] trait card from your hand",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all",
-            "upTo": true,
-            "totalDpCap": 5000
+            count: "all",
+            upTo: true,
+            totalDpCap: 5000,
           },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
+              count: 1,
+              from: ["trash"],
             },
-            "raw": "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
+            raw: "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "totalDpCapScaling": {
-            "per": 1,
-            "filter": {
-              "faceDown": true
+          optional: true,
+          abortOnDecline: true,
+          totalDpCapScaling: {
+            per: 1,
+            filter: {
+              faceDown: true,
             },
-            "unit": "selfFaceDownDigivolutionCards",
-            "amount": 2000
-          }
-        }
-      ]
+            unit: "selfFaceDownDigivolutionCards",
+            amount: 2000,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all",
-            "upTo": true,
-            "totalDpCap": 5000
+            count: "all",
+            upTo: true,
+            totalDpCap: 5000,
           },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
+              count: 1,
+              from: ["trash"],
             },
-            "raw": "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
+            raw: "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "totalDpCapScaling": {
-            "per": 1,
-            "filter": {
-              "faceDown": true
+          optional: true,
+          abortOnDecline: true,
+          totalDpCapScaling: {
+            per: 1,
+            filter: {
+              faceDown: true,
             },
-            "unit": "selfFaceDownDigivolutionCards",
-            "amount": 2000
-          }
-        }
-      ]
+            unit: "selfFaceDownDigivolutionCards",
+            amount: 2000,
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    }
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": [
-        "Greymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      level: 4,
+      names: ["Greymon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "DM"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 4
-    }
-  ]
+      traits: ["DM"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
+    },
+  ],
 };
 
 registerIrCard("EX9-011", compiled);

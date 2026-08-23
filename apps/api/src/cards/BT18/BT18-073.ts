@@ -5,221 +5,190 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Hand-authored IR correction: On Deletion DNA digivolves Kimeramon in play plus
 // Machinedramon in trash into a Millenniummon in hand that has DNA Digivolution.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine"
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4",
-              "cost": {
-                "kind": "deleteOwn",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "nameOrTrait": [
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+              cost: {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Composite"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["Composite"],
+                        match: "trait",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "raw": "by deleting 1 of your Digimon with the [Composite] trait"
+                raw: "by deleting 1 of your Digimon with the [Composite] trait",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
+              optional: true,
+              abortOnDecline: true,
+            },
           ],
-          "raw": "wouldBePlayed"
-        }
-      ]
+          raw: "wouldBePlayed",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1
-        }
-      ]
+          amount: 1,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1
-        }
-      ]
+          amount: 1,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "zone": "battleArea",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              zone: "battleArea",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Kimeramon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "looseMaterials": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Kimeramon"],
+                  match: "name",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Machinedramon"
-                  ],
-                  "match": "name"
-                }
-              ]
             },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
+            count: 1,
           },
-          "into": {
-            "zone": "hand",
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          looseMaterials: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Machinedramon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+            from: ["trash"],
+          },
+          into: {
+            zone: "hand",
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Millenniummon"
-                ],
-                "match": "name"
-              }
-            ],
-            "hasDnaDigivolutionRequirement": true
-          },
-          "payCost": true,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Composite"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
-            {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Composite",
-                        "Wicked God"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                },
-                "count": 1
+                tokens: ["Millenniummon"],
+                match: "name",
               },
-              "optional": true
-            }
-          ],
-          "raw": "whenOpponentAttacks"
-        }
+            ],
+            hasDnaDigivolutionRequirement: true,
+          },
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 5,
-      "traits": [
-        "Composite"
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Composite"],
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Composite", "Wicked God"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              optional: true,
+            },
+          ],
+          raw: "whenOpponentAttacks",
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      traits: ["Composite"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-073", compiled);

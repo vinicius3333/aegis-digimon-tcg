@@ -17,7 +17,13 @@ describe("BT13-007 King Drasil_7D6", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolver").instanceId })).toMatchObject({ ok: false });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
     expect(s.perm("base").topCard.cardId).toBe("BT1-045");
   });
 
@@ -26,7 +32,10 @@ describe("BT13-007 King Drasil_7D6", () => {
       {
         0: {
           breeding: { card: "BT13-007", as: "drasil", under: ["BT1-001", "BT1-002"] },
-          hand: [{ card: "BT13-040", as: "firstKnight" }, { card: "BT13-040", as: "secondKnight" }],
+          hand: [
+            { card: "BT13-040", as: "firstKnight" },
+            { card: "BT13-040", as: "secondKnight" },
+          ],
         },
       },
       { autoAcceptOptional: true },
@@ -34,24 +43,35 @@ describe("BT13-007 King Drasil_7D6", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstKnight").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstKnight").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(9);
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondKnight").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondKnight").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     expect(s.state.memory).toBe(2);
   });
 
   it("may decline the Royal Knight play-cost reduction", async () => {
     const s = setupEngine(
-      { 0: { breeding: { card: "BT13-007", as: "drasil", under: ["BT1-001", "BT1-002"] }, hand: [{ card: "BT13-040", as: "knight" }] } },
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT1-001", "BT1-002"] },
+          hand: [{ card: "BT13-040", as: "knight" }],
+        },
+      },
       { autoDeclineOptional: true },
     );
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("knight").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("knight").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(3);
   });
@@ -62,7 +82,10 @@ describe("BT13-007 King Drasil_7D6", () => {
         0: {
           breeding: { card: "BT13-007", as: "drasil" },
           eggDeck: [{ card: "BT1-001", as: "egg" }],
-          battleArea: [{ card: "AD1-008", as: "knight" }, { card: "BT1-015", as: "nonKnight" }],
+          battleArea: [
+            { card: "AD1-008", as: "knight" },
+            { card: "BT1-015", as: "nonKnight" },
+          ],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
@@ -75,7 +98,9 @@ describe("BT13-007 King Drasil_7D6", () => {
 
     expect(s.perm("drasil").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([eggId, knightId]));
     expect(s.perm("drasil").stack.find((card) => card.instanceId === eggId)?.faceUp).toBe(false);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([s.perm("nonKnight").permanentId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("nonKnight").permanentId,
+    ]);
   });
 
   it("gains memory only once when Royal Knight Options enter battle with King Drasil inherited", async () => {
@@ -83,7 +108,10 @@ describe("BT13-007 King Drasil_7D6", () => {
       {
         0: {
           breeding: { card: "BT13-007", as: "host", under: ["BT13-007"] },
-          hand: [{ card: "BT13-110", as: "firstOption" }, { card: "BT13-110", as: "secondOption" }],
+          hand: [
+            { card: "BT13-110", as: "firstOption" },
+            { card: "BT13-110", as: "secondOption" },
+          ],
           deck: ["BT1-001", "BT1-002"],
         },
       },
@@ -92,13 +120,19 @@ describe("BT13-007 King Drasil_7D6", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstOption").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstOption").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-110"));
     await settle();
     expect(s.state.memory).toBe(5);
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondOption").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT13-110").length === 2);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT13-110").length === 2,
+    );
     expect(s.state.memory).toBe(-1);
   });
 });

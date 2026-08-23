@@ -56,10 +56,13 @@ describe("BT17-073 DexDorugoramon", () => {
   });
 
   it("unsuspends when an opponent's Digimon is deleted", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-073", suspended: true, as: "dexDorugoramon" }] },
-      1: { battleArea: [{ card: "BT17-063", as: "opposingDigimon" }] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-073", suspended: true, as: "dexDorugoramon" }] },
+        1: { battleArea: [{ card: "BT17-063", as: "opposingDigimon" }] },
+      },
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).verb.deletePermanent([s.perm("opposingDigimon").permanentId], "byEffect");
     await settle(() => !s.perm("dexDorugoramon").isSuspended);

@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  PlayerState,
-  Permanent,
-  CardInstance,
-  type Seat,
-  type ServerEvent,
-} from "@aegis/shared";
+import { GameState, PlayerState, Permanent, CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import type { Filter, Target } from "@aegis/shared/effects/ir/filters/filter.js";
 import { MemoryGauge } from "../../engine/MemoryGauge.js";
 import { ModifierLedger } from "../../engine/effects/modifiers.js";
@@ -107,11 +100,13 @@ function harness(): Harness {
 
   const stateLookup: CardStateLookup = {
     permanentOf: (instanceId) => {
-      for (const p of state.players) for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return perm;
+      for (const p of state.players)
+        for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return perm;
       return undefined;
     },
     isOnBattleArea: (instanceId) => {
-      for (const p of state.players) for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return true;
+      for (const p of state.players)
+        for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return true;
       return false;
     },
     isSeatsTurn: (seat) => state.turnSeat === seat,
@@ -121,7 +116,8 @@ function harness(): Harness {
   const decisionApi = {
     selectPermanents: async () => [],
     optional: async () => true,
-    chooseTargets: async (_c: unknown, opts: { candidates: string[]; max: number }) => opts.candidates.slice(0, opts.max),
+    chooseTargets: async (_c: unknown, opts: { candidates: string[]; max: number }) =>
+      opts.candidates.slice(0, opts.max),
     selectCards: async (_c: unknown, opts: { candidates: string[]; max: number }) => opts.candidates.slice(0, opts.max),
     chooseOption: async () => 0,
   };

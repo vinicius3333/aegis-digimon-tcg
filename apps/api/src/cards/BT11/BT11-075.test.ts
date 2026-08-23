@@ -18,11 +18,13 @@ describe("BT11-075 DoKunemon", () => {
     });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("egg").permanentId,
-      instanceId: s.inst("dokunemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("dokunemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.cardId === "BT11-075");
 
     expect(s.state.memory).toBe(3);

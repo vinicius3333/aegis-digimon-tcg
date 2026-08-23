@@ -27,26 +27,28 @@ describe("Diaboromon promo line deck", () => {
     await s.ready();
 
     expect(observe(s.engine).keywordAmount(s.perm("promoDiaboromon"), "SecurityAttack")).toBe(2);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("tokenMaker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.cardId === "TOKEN-Diaboromon"
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tokenMaker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon"),
     );
+    await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
     await settle();
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).keywordAmount(s.perm("promoDiaboromon"), "SecurityAttack")).toBe(3);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("promoDiaboromon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("promoDiaboromon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
@@ -69,15 +71,14 @@ describe("Diaboromon promo line deck", () => {
     await s.ready();
     await s.engine.recomputeContinuousEffects();
 
-    expect(observe(s.engine).keywordAmount(
-      s.perm("attackingDiaboromon"),
-      "SecurityAttack",
-    )).toBe(2);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attackingDiaboromon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(observe(s.engine).keywordAmount(s.perm("attackingDiaboromon"), "SecurityAttack")).toBe(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackingDiaboromon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[1]!.security).toHaveLength(1);

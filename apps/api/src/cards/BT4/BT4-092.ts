@@ -10,27 +10,38 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenAttacking",
-        sourceFilter: {
-          controller: "mine",
-          kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
-          excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
+            excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+          },
+          condition: { kind: "isYourTurn" },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+              optional: true,
+            },
+          ],
         },
-        condition: { kind: "isYourTurn" },
-        actions: [{
-          kind: "GainMemory",
-          amount: 1,
-          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-          optional: true,
-        }],
-      }],
+      ],
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1 }, from: ["security"], payCost: false }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1 },
+          from: ["security"],
+          payCost: false,
+        },
+      ],
       isSecurity: true,
     },
   ],

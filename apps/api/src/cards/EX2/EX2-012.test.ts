@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-012.js";
@@ -177,9 +172,7 @@ describe("EX2-012 Megidramon", () => {
     expect(compiled?.coverage).toBe("full");
     expect(compiled?.residual).toEqual([]);
     expect(compiled?.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] })]),
     );
   });
   const module = getEffectModule("EX2-012");
@@ -193,9 +186,7 @@ describe("EX2-012 Megidramon", () => {
     expect(compiled?.coverage).toBe("full");
     expect(compiled?.residual).toEqual([]);
     expect(compiled?.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] })]),
     );
   });
 

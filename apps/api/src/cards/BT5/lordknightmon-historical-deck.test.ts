@@ -24,17 +24,20 @@ describe("BT5 LordKnightmon historical deck", () => {
     const lordBaseDP = s.perm("lordKnightmon").baseDP;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("lordKnightmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard.instanceId === s.inst("knightmon").instanceId
-      ) &&
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId) &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("lordKnightmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("knightmon").instanceId,
+        ) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId) &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
       5000,
     );
     await settle();
@@ -42,9 +45,7 @@ describe("BT5 LordKnightmon historical deck", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("lordKnightmon").currentDP).toBe(lordBaseDP + 1000);
-    expect(s.state.players[1]!.trash.some((card) =>
-      card.instanceId === targetInstanceId
-    )).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

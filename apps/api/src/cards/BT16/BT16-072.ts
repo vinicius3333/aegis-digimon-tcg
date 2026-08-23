@@ -7,59 +7,59 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [On Deletion] You may play 1 Tamer with [Myotismon] in its text from trash
 //   without paying cost, without the same name as any of your battle-area Tamers.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 5,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 5,
+          add: [
             {
-              "filter": {
-                "colors": ["Purple"]
+              filter: {
+                colors: ["Purple"],
               },
-              "count": 2,
-              "to": "trash"
-            }
+              count: 2,
+              to: "trash",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Tamer"],
-              "textContains": "[Myotismon]"
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              textContains: "[Myotismon]",
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["trash"],
-          "payCost": false,
-          "optional": true,
-          "notSameNameAs": ["battleArea"]
-        }
-      ]
-    }
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          notSameNameAs: ["battleArea"],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT16-072", compiled);

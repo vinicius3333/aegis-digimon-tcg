@@ -7,13 +7,37 @@ export const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] },
     {
       trigger: "OnPlay",
-      actions: [{ kind: "Restrict", target: { filter: { digivolutionCards: "none", controller: "opponent", kind: ["Digimon"] }, count: 1 }, restriction: "suspend", duration: "untilOpponentTurnEnd" }],
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { digivolutionCards: "none", controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
       trigger: "WhenDigivolving",
-      actions: [{ kind: "Restrict", target: { filter: { digivolutionCards: "none", controller: "opponent", kind: ["Digimon"] }, count: 1 }, restriction: "suspend", duration: "untilOpponentTurnEnd" }],
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { digivolutionCards: "none", controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
-    { trigger: "Rule", actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Ice-Snow"] }] },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "trait",
+          tokens: ["Ice-Snow"],
+        },
+      ],
+    },
     { trigger: "Static", actions: [], isInherited: true, keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] },
   ],
   coverage: "full",

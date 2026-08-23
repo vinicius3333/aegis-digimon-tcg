@@ -26,9 +26,22 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
   it("compiles the hand cost, Tamer-stack trigger, and inherited Option suppression", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([{ kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } }, { kind: "ModifyDP", amount: 3000 }, { kind: "GainKeyword", keyword: { keyword: "Raid" } }]);
-    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { kind: ["Tamer"] }, triggerFilter: { isSelfRef: true }, addedDigivolutionCardFilter: { kind: ["Tamer"] } });
-    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "DisableSecurityEffect", sourceKind: "option", condition: { kind: "selfHasTrait" } }] });
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([
+      { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } },
+      { kind: "ModifyDP", amount: 3000 },
+      { kind: "GainKeyword", keyword: { keyword: "Raid" } },
+    ]);
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "onAddDigivolutionCards",
+      sourceFilter: { kind: ["Tamer"] },
+      triggerFilter: { isSelfRef: true },
+      addedDigivolutionCardFilter: { kind: ["Tamer"] },
+    });
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "DisableSecurityEffect", sourceKind: "option", condition: { kind: "selfHasTrait" } }],
+    });
   });
 
   it("[When Digivolving] by trashing 1 hand card, a Digimon gets +3000 DP for the turn", async () => {
@@ -78,14 +91,10 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     // Then the auto-respond hook picks the first Digimon candidate for the +3000 DP grant.
     // The effect targets whichever Digimon appears first in battleArea; either Koromon or
     // the evolved permanent (now Soloogarmon) gets the buff.
-    await settle(
-      () => bulkmonPerm.currentDP !== initialBulkmonDP || koromonPerm.currentDP !== initialKoromonDP,
-      600,
-    );
+    await settle(() => bulkmonPerm.currentDP !== initialBulkmonDP || koromonPerm.currentDP !== initialKoromonDP, 600);
 
     // One of the two Digimon should have received the +3000 DP grant.
-    const anyBoosted =
-      bulkmonPerm.currentDP > initialBulkmonDP || koromonPerm.currentDP > initialKoromonDP;
+    const anyBoosted = bulkmonPerm.currentDP > initialBulkmonDP || koromonPerm.currentDP > initialKoromonDP;
     expect(anyBoosted).toBe(true);
   });
 });

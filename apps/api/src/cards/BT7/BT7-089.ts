@@ -6,30 +6,36 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
-      actions: [{
-        kind: "CostModifier",
-        costType: "digivolve",
-        mode: "reduce",
-        amount: 1,
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        into: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Green"] },
-        duration: "forTheTurn",
-      }],
+      actions: [
+        {
+          kind: "CostModifier",
+          costType: "digivolve",
+          mode: "reduce",
+          amount: 1,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          into: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Green"] },
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
       trigger: "AllTurns",
       isInherited: true,
-      actions: [{
-        kind: "GainKeyword",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        keyword: { keyword: "Piercing" },
-        duration: "permanent",
-      }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Piercing" },
+          duration: "permanent",
+        },
+      ],
     },
     {
       trigger: "Security",
       isSecurity: true,
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
     },
   ],
   coverage: "full",

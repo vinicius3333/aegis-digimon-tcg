@@ -13,7 +13,12 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["NSp"], match: "trait" }] },
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
+              nameOrTrait: [{ tokens: ["NSp"], match: "trait" }],
+            },
             count: 1,
           },
           from: ["hand"],

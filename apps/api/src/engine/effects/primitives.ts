@@ -1005,12 +1005,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // `virtualBase` replaces the base used for requirement matching. Retaining the
         // original card's Tamer/name/trait identity here would incorrectly admit alternate
         // paths in addition to the stated virtual level and colors.
-        const baseGranted = opts.virtualBase === undefined
-          ? engine.baseGrantedDigivolve?.(seat, permanent, definition)
-          : undefined;
-        const alternate = opts.virtualBase === undefined
-          ? matchingAlternateDigivolutionRequirement(definition, baseDef)
-          : undefined;
+        const baseGranted =
+          opts.virtualBase === undefined ? engine.baseGrantedDigivolve?.(seat, permanent, definition) : undefined;
+        const alternate =
+          opts.virtualBase === undefined ? matchingAlternateDigivolutionRequirement(definition, baseDef) : undefined;
         const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
         if (useAlternate && alternate.minNameStackNames !== undefined) {
           const required = alternate.minNameStackCount ?? 1;

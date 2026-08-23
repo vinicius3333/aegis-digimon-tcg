@@ -4,12 +4,7 @@ import { GameState, PlayerState, CardInstance, Phase, PendingDecision, type Seat
 import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
-import {
-  validatePlayCard,
-  applyPlayCard,
-  defaultPlayCardDeps,
-  type PlayCardDeps,
-} from "../actions/playCard.js";
+import { validatePlayCard, applyPlayCard, defaultPlayCardDeps, type PlayCardDeps } from "../actions/playCard.js";
 import "../../cards/index.js";
 
 /**
@@ -53,8 +48,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
   it("9-1-1: using an Option is gated by its color requirement, exactly like playing a Digimon", () => {
     cite(
       "comprehensive-0137",
-      "9-1-1 using a card refers to activating an Option card's [Main] effect; its color " +
-        "requirements must be met",
+      "9-1-1 using a card refers to activating an Option card's [Main] effect; its color " + "requirements must be met",
     );
 
     const { state, card } = optionState("BT1-090"); // playCost 0, so cost never blocks the play
@@ -142,10 +136,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
 
 describe("§9-1-6 Using Cards (comprehensive-0138)", () => {
   it("9-1-7: cards are used 1 at a time — a second use is rejected while one is mid-resolution", () => {
-    cite(
-      "comprehensive-0138",
-      "9-1-7 cards are used 1 at a time; multiple cards can't be used at the same time",
-    );
+    cite("comprehensive-0138", "9-1-7 cards are used 1 at a time; multiple cards can't be used at the same time");
 
     const { state, card } = optionState("BT1-090");
     const pd = new PendingDecision();

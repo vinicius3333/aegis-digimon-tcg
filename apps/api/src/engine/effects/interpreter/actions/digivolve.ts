@@ -56,9 +56,10 @@ function legalIntoCandidates(
 ): LooseCandidate[] {
   const base = ctx.game.permanentById(basePermanentId);
   const actualBaseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
-  const baseDef = actualBaseDef === undefined || virtualBase === undefined
-    ? actualBaseDef
-    : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
+  const baseDef =
+    actualBaseDef === undefined || virtualBase === undefined
+      ? actualBaseDef
+      : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
   // Only filter when the base carries a level: a level-less base satisfies no level-gated
   // requirement (Q4242), and the requirement match is meaningless without it.
   //
@@ -74,16 +75,14 @@ function legalIntoCandidates(
     // A virtual base is the complete requirement described by the resolving effect (for
     // example, "as if this Tamer is a level 5 blue Digimon"). Its original Tamer name,
     // traits and card kind must not also unlock an alternate or base-granted path.
-    const alternate = virtualBase === undefined
-      ? matchingAlternateDigivolutionRequirement(
-          intoDef,
-          baseDef,
-          ignoreLevel ? { ignoreLevel: true } : undefined,
-        )
-      : undefined;
-    const baseGranted = virtualBase === undefined && base
-      ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef)
-      : undefined;
+    const alternate =
+      virtualBase === undefined
+        ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, ignoreLevel ? { ignoreLevel: true } : undefined)
+        : undefined;
+    const baseGranted =
+      virtualBase === undefined && base
+        ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef)
+        : undefined;
     if (enforceRequirements && ordinary === undefined && alternate === undefined && baseGranted === undefined)
       return false;
     if (digivolutionCostMax === undefined) return true;
@@ -150,8 +149,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
         intoTarget.filter.digivolutionCostMax,
         ignoreLevel,
         action.virtualBase,
-      )
-        .length > 0
+      ).length > 0
     );
   };
 

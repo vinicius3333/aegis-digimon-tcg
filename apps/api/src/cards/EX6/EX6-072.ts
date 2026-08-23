@@ -6,108 +6,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Uses the W7-E-2 array form of DnaDigivolveAction.materials (CAPABILITIES-BACKLOG.md),
 // each entry resolving independently in its own zone (field, then hand).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 6
-              }
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 6,
+              },
             },
-            "raw": "your opponent has a level 6 or higher Digimon"
-          }
-        }
-      ]
+            raw: "your opponent has a level 6 or higher Digimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": [
+          kind: "DnaDigivolve",
+          materials: [
             {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levels": [
-                  6
-                ]
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                levels: [6],
               },
-              "zone": "battleArea",
-              "count": 1
+              zone: "battleArea",
+              count: 1,
             },
             {
-              "filter": {
-                "controller": "mine"
+              filter: {
+                controller: "mine",
               },
-              "zone": "hand",
-              "count": 1
-            }
+              zone: "hand",
+              count: 1,
+            },
           ],
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levels": [
-              7
-            ],
-            "zone": "hand"
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levels: [7],
+            zone: "hand",
           },
-          "payCost": true,
-          "optional": true
-        }
-      ]
+          payCost: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 6
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 6,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-072", compiled);

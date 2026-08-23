@@ -10,84 +10,77 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Recovery uses GainKeyword action (not SecurityManipulation): the engine calls
 // recoverToSecurity when a Recovery keyword is granted.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Recovery",
-            "amount": 1,
-            "raw": "＜Recovery +1 (Deck)＞"
+          keyword: {
+            keyword: "Recovery",
+            amount: 1,
+            raw: "＜Recovery +1 (Deck)＞",
           },
-          "condition": {
-            "kind": "allOf",
-            "conditions": [
+          condition: {
+            kind: "allOf",
+            conditions: [
               {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Angewomon",
-                        "X Antibody"
-                      ],
-                      "match": "nameExact"
-                    }
-                  ]
-                }
+                      tokens: ["Angewomon", "X Antibody"],
+                      match: "nameExact",
+                    },
+                  ],
+                },
               },
               {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 5,
-                "raw": "you have 5 or fewer security cards"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Angewomon"
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 5,
+                raw: "you have 5 or fewer security cards",
+              },
+            ],
+          },
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Angewomon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-040", compiled);

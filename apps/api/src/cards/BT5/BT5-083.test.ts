@@ -46,9 +46,13 @@ describe("BT5-083 Megidramon", () => {
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gallantmon").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gallantmon").instanceId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gallantmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("gallantmon").instanceId)).toBe(
+      true,
+    );
   });
 
   it("does not offer the Gallantmon play without a Tamer", async () => {

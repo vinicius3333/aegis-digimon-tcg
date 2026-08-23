@@ -48,7 +48,11 @@ function memoryFor(s: EngineSetup, seat: 0 | 1): number {
 }
 
 /** Push `count` bare digivolution cards onto `permanent`'s stack. */
-function stackCards(permanent: { stack: { push: (c: ReturnType<typeof instance>) => void } }, seat: 0 | 1, count: number): void {
+function stackCards(
+  permanent: { stack: { push: (c: ReturnType<typeof instance>) => void } },
+  seat: 0 | 1,
+  count: number,
+): void {
   for (let i = 0; i < count; i++) {
     permanent.stack.push(instance(NON_KEYWORD_CARD, seat, true));
   }
@@ -189,9 +193,9 @@ describe("<Iceclad> (Comprehensive Rules §16-35) — compare digivolution-card 
     ).toEqual({ ok: true });
     await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
 
-    expect(
-      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => false, 300);
 
     // No <Alliance>-style ally-suspend decision under the ＜IceClad＞ name, and the ally is
@@ -202,7 +206,7 @@ describe("<Iceclad> (Comprehensive Rules §16-35) — compare digivolution-card 
   });
 });
 
-describe("beDeletedInBattle restriction — a granted \"can't be deleted in battle\" spares the loser", () => {
+describe('beDeletedInBattle restriction — a granted "can\'t be deleted in battle" spares the loser', () => {
   it("BT3-099's Main effect spares a Digimon that would otherwise lose the battle", async () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
@@ -331,9 +335,7 @@ describe("<Collision> (Comprehensive Rules §16-30) — grants Blocker and force
       await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
       return s.events.find((e) => e.kind === "blockWindowOpened");
     })();
-    expect(opened && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : []).toContain(
-      nonBlocker.permanentId,
-    );
+    expect(opened && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : []).toContain(nonBlocker.permanentId);
 
     // Declaring the block with the Collision-granted blocker is legal.
     const block = s.engine.applyIntent(1, {
@@ -423,9 +425,9 @@ describe("<Collision> (Comprehensive Rules §16-30) — grants Blocker and force
     ).toEqual({ ok: true });
     await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"));
 
-    expect(
-      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => false, 300);
 
     // No hidden DP modifier: the 6000 DP blocker wins the battle as printed stats dictate.

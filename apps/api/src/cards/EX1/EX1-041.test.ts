@@ -5,9 +5,21 @@ import "./EX1-041.js";
 
 describe("EX1-041 Dinobeemon", () => {
   it("suspends a 5000 DP-or-less opponent when digivolving over Free", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-038", as: "base" }], hand: [{ card: "EX1-041", as: "evo" }] }, 1: { battleArea: [{ card: "BT1-070", as: "target", dp: 5000 }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-038", as: "base" }], hand: [{ card: "EX1-041", as: "evo" }] },
+        1: { battleArea: [{ card: "BT1-070", as: "target", dp: 5000 }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
   });

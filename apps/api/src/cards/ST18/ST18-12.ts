@@ -17,99 +17,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Note: "beAffected" restriction covers all opponent effects; text specifies only
 //   "Digimon's effects" — this is an engine approximation (see LANE_E.md).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Vortex",
-          "raw": "＜Vortex＞"
-        }
-      ]
+          keyword: "Vortex",
+          raw: "＜Vortex＞",
+        },
+      ],
     },
     {
       // [When Digivolving] Suspend 1 Digimon. Then, unsuspend 1 Digimon.
       // KB Q848: either player's Digimon can be targeted for both actions.
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": ["Digimon"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": ["Digimon"]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
       // [All Turns][Once Per Turn] When a Digimon is unsuspended, this Digimon is
       // unaffected by your opponent's Digimon's effects, and gets +3000 DP for the turn.
       // KB Q849: fires for EITHER player's Digimon being unsuspended.
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenUnsuspended",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenUnsuspended",
+          actions: [
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "Restrict",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "restriction": "beAffected",
-              "byOpponentEffectsOnly": true,
-              "fromSourceKind": ["Digimon"],
-              "duration": "forTheTurn"
+              restriction: "beAffected",
+              byOpponentEffectsOnly: true,
+              fromSourceKind: ["Digimon"],
+              duration: "forTheTurn",
             },
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "ModifyDP",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "amount": 3000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              amount: 3000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "GrantStatic",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "grant": "trait",
-          "tokens": ["Bird Dragon"]
-        }
-      ]
-    }
+          grant: "trait",
+          tokens: ["Bird Dragon"],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST18-12", compiled);

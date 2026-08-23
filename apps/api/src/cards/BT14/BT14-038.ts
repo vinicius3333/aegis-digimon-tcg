@@ -6,117 +6,101 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [6],
+              nameOrTrait: [
+                {
+                  tokens: ["Etemon"],
+                  match: "name",
+                },
               ],
-              "levels": [
-                6
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Sukamon"],
+                  match: "name",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Etemon"
-                  ],
-                  "match": "name"
-                }
-              ]
             },
-            "count": 1
+            count: 3,
+            raw: "you have 3 or more cards with [Sukamon] in their names in your trash",
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Sukamon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 3,
-            "raw": "you have 3 or more cards with [Sukamon] in their names in your trash"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "toTop": false
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Etemon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "toTop": false
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          toTop: false,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Etemon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          toTop: false,
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": [
-        "Sukamon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      names: ["Sukamon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT14-038", compiled);

@@ -8,7 +8,10 @@ describe("BT13-009 Huckmon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-009", as: "huckmon" }],
-          hand: [{ card: "BT6-082", as: "sistermon" }, { card: "BT13-013", as: "bao" }],
+          hand: [
+            { card: "BT6-082", as: "sistermon" },
+            { card: "BT13-013", as: "bao" },
+          ],
           deck: ["BT1-001", "BT1-002"],
         },
       },
@@ -17,7 +20,9 @@ describe("BT13-009 Huckmon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("huckmon").topCard.cardId === "BT13-013");
 
     expect(s.state.memory).toBe(7);
@@ -26,13 +31,23 @@ describe("BT13-009 Huckmon", () => {
 
   it("may decline the free BaoHuckmon digivolution", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-009", as: "huckmon" }], hand: [{ card: "BT6-082", as: "sistermon" }, { card: "BT13-013", as: "bao" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-009", as: "huckmon" }],
+          hand: [
+            { card: "BT6-082", as: "sistermon" },
+            { card: "BT13-013", as: "bao" },
+          ],
+        },
+      },
       { autoDeclineOptional: true },
     );
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await settle();
     expect(s.perm("huckmon").topCard.cardId).toBe("BT13-009");
@@ -43,7 +58,10 @@ describe("BT13-009 Huckmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-009"] }],
-        hand: [{ card: "BT6-082", as: "first" }, { card: "BT6-082", as: "second" }],
+        hand: [
+          { card: "BT6-082", as: "first" },
+          { card: "BT6-082", as: "second" },
+        ],
       },
     });
     s.state.memory = 10;
@@ -54,18 +72,27 @@ describe("BT13-009 Huckmon", () => {
     await settle();
     expect(s.state.memory).toBe(8);
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
     await settle();
     expect(s.state.memory).toBe(5);
   });
 
   it("does not trigger for a Digimon without Sistermon in its name", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-009"] }], hand: [{ card: "BT1-012", as: "biyomon" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-009"] }],
+        hand: [{ card: "BT1-012", as: "biyomon" }],
+      },
+    });
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biyomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biyomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     await settle();
     expect(s.state.memory).toBe(7);

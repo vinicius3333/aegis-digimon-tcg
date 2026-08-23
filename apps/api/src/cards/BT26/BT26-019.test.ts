@@ -15,7 +15,17 @@ describe("BT26-019 Mailmon", () => {
     expect(compiled.keywords).toContainEqual(expect.objectContaining({ keyword: "Detach" }));
     expect(compiled.effects).toMatchObject([
       { trigger: "WhenAttacking", actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }] },
-      { trigger: "Static", isLinked: true, actions: [{ kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" }] }] },
+      {
+        trigger: "Static",
+        isLinked: true,
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenLinked",
+            actions: [{ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" }],
+          },
+        ],
+      },
     ]);
   });
 
@@ -297,11 +307,13 @@ describe("BT26-019 Mailmon", () => {
     );
     const defenderId = s.perm("defender").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: defenderId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

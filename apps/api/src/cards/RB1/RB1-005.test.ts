@@ -17,11 +17,15 @@ describe("RB1-005 Gammamon", () => {
   });
 
   it("grants inherited DP only when the top card has Gammamon in its text", async () => {
-    const positive = setupEngine({ 0: { battleArea: [{ card: "RB1-008", as: "host", under: [{ card: "RB1-005" }] }] } });
+    const positive = setupEngine({
+      0: { battleArea: [{ card: "RB1-008", as: "host", under: [{ card: "RB1-005" }] }] },
+    });
     await positive.ready();
     expect(positive.perm("host").currentDP).toBe(8000);
 
-    const negative = setupEngine({ 0: { battleArea: [{ card: "RB1-024", as: "host", under: [{ card: "RB1-005" }] }] } });
+    const negative = setupEngine({
+      0: { battleArea: [{ card: "RB1-024", as: "host", under: [{ card: "RB1-005" }] }] },
+    });
     await negative.ready();
     expect(negative.perm("host").currentDP).toBe(8000);
   });

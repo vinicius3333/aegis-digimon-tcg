@@ -9,18 +9,27 @@ describe("EX10-007 Greymon", () => {
 
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [{
-          kind: "ModifyDP",
-          amount: 3000,
-          duration: "untilOpponentTurnEnd",
-          target: { filter: { kind: ["Digimon"] }, count: 1 },
-        }],
+        actions: [
+          {
+            kind: "ModifyDP",
+            amount: 3000,
+            duration: "untilOpponentTurnEnd",
+            target: { filter: { kind: ["Digimon"] }, count: 1 },
+          },
+        ],
       });
     }
 
     expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "AllTurns",
-      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent", target: { filter: { isSelfRef: true }, isSelf: true } }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 1000,
+          duration: "permanent",
+          target: { filter: { isSelfRef: true }, isSelf: true },
+        },
+      ],
     });
     expect(compiled.effects?.find((effect) => effect.trigger === "Static")?.keywords).toEqual([
       { keyword: "Raid", raw: "＜Raid＞" },

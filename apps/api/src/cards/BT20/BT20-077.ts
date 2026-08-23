@@ -14,164 +14,164 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    Using mode:"lowerCeiling", costType:"dpThreshold", scaling per trash count.
 // 3. AllTurns: adds Rush and Blocker keywords in addition to +2000 DP.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": "untilHandHas",
-            "untilHandSize": 4
+            count: "untilHandHas",
+            untilHandSize: 4,
           },
-          "trackCount": "trashedThisEffect"
+          trackCount: "trashedThisEffect",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "dp": { "op": "lte", "value": 8000 }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              dp: { op: "lte", value: 8000 },
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["trash"],
-          "payCost": false,
-          "dpCeilingModifier": {
-            "mode": "lowerCeiling",
-            "amount": 2000,
-            "scalingSource": "trashedThisEffect"
-          }
-        }
-      ]
+          from: ["trash"],
+          payCost: false,
+          dpCeilingModifier: {
+            mode: "lowerCeiling",
+            amount: 2000,
+            scalingSource: "trashedThisEffect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": "untilHandHas",
-            "untilHandSize": 4
+            count: "untilHandHas",
+            untilHandSize: 4,
           },
-          "trackCount": "trashedThisEffect"
+          trackCount: "trashedThisEffect",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "dp": { "op": "lte", "value": 8000 }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              dp: { op: "lte", value: 8000 },
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["trash"],
-          "payCost": false,
-          "dpCeilingModifier": {
-            "mode": "lowerCeiling",
-            "amount": 2000,
-            "scalingSource": "trashedThisEffect"
-          }
-        }
-      ]
+          from: ["trash"],
+          payCost: false,
+          dpCeilingModifier: {
+            mode: "lowerCeiling",
+            amount: 2000,
+            scalingSource: "trashedThisEffect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Dark Dragon", "Evil Dragon"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Dark Dragon", "Evil Dragon"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 2000,
-          "duration": "permanent"
+          amount: 2000,
+          duration: "permanent",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Dark Dragon", "Evil Dragon"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Dark Dragon", "Evil Dragon"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "permanent"
+          duration: "permanent",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Dark Dragon", "Evil Dragon"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Dark Dragon", "Evil Dragon"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "permanent"
-        }
-      ]
-    }
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": ["Dark Dragon", "Evil Dragon"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Dark Dragon", "Evil Dragon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT20-077", compiled);

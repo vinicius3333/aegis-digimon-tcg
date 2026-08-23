@@ -48,11 +48,10 @@ describe("BT1 HerculesKabuterimon historical deck gauntlet", () => {
         instanceId: s.inst("dimensionScissor").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.some(({ instanceId }) =>
-        instanceId === s.inst("dimensionScissor").instanceId
-      ) &&
-      observe(s.engine).subscriptions("whenDeletesInBattle", s.perm("herculesKabuterimon").permanentId).length === 1
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("dimensionScissor").instanceId) &&
+        observe(s.engine).subscriptions("whenDeletesInBattle", s.perm("herculesKabuterimon").permanentId).length === 1,
     );
     expect(s.state.memory).toBe(1);
 
@@ -63,11 +62,12 @@ describe("BT1 HerculesKabuterimon historical deck gauntlet", () => {
         target: { kind: "permanent", permanentId: firstTargetId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstTargetId) &&
-      s.state.players[1]!.security.length === 2 &&
-      !s.perm("herculesKabuterimon").isSuspended &&
-      !observe(s.engine).isAttacking()
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstTargetId) &&
+        s.state.players[1]!.security.length === 2 &&
+        !s.perm("herculesKabuterimon").isSuspended &&
+        !observe(s.engine).isAttacking(),
     );
     expect(s.state.memory).toBe(2);
 
@@ -78,11 +78,12 @@ describe("BT1 HerculesKabuterimon historical deck gauntlet", () => {
         target: { kind: "permanent", permanentId: secondTargetId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondTargetId) &&
-      s.state.players[1]!.security.length === 1 &&
-      !s.perm("herculesKabuterimon").isSuspended &&
-      !observe(s.engine).isAttacking()
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondTargetId) &&
+        s.state.players[1]!.security.length === 1 &&
+        !s.perm("herculesKabuterimon").isSuspended &&
+        !observe(s.engine).isAttacking(),
     );
 
     // Q984: the granted effect is not once per turn and can restand after both deletions.

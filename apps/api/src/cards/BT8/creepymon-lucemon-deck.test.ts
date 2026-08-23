@@ -15,25 +15,11 @@ describe("BT8 Creepymon Lucemon toolbox", () => {
             { card: "BT4-115", as: "lucemon" },
             { card: "BT8-111", as: "creepymon" },
           ],
-          trash: [
-            { card: "BT7-111", as: "chaosMode" },
-            ...Array.from({ length: 16 }, () => "BT4-033"),
-          ],
-          deck: [
-            { card: "BT4-041", as: "recovered" },
-            "BT1-001",
-            "BT1-009",
-            "BT1-010",
-            "BT1-011",
-            "BT1-012",
-          ],
+          trash: [{ card: "BT7-111", as: "chaosMode" }, ...Array.from({ length: 16 }, () => "BT4-033")],
+          deck: [{ card: "BT4-041", as: "recovered" }, "BT1-001", "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
         1: {
-          battleArea: [
-            { card: "BT7-085", as: "deletedTamer" },
-            "BT1-015",
-            "BT1-016",
-          ],
+          battleArea: [{ card: "BT7-085", as: "deletedTamer" }, "BT1-015", "BT1-016"],
           deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007"],
           security: ["BT1-011"],
         },
@@ -70,10 +56,8 @@ describe("BT8 Creepymon Lucemon toolbox", () => {
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT7-111") &&
-        !s.state.players[1]!.battleArea.some(
-          (permanent) => permanent.permanentId === deletedTamerId,
-        ) &&
-        s.events.some(event => event.kind === "effectResolved" && event.sourceCardId === "BT8-111"),
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === deletedTamerId) &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-111"),
       5000,
     );
 
@@ -132,31 +116,32 @@ describe("BT8 Creepymon Lucemon toolbox", () => {
     preferred.push(s.inst("chosenLevelFive").instanceId);
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("creepymon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.inst("chosenLevelFive").instanceId
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("creepymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("chosenLevelFive").instanceId,
+      ),
+    );
 
     const revivedLevelFives = s.state.players[0]!.battleArea.filter((permanent) =>
       [s.inst("chosenLevelFive").instanceId, s.inst("otherLevelFive").instanceId].includes(
         permanent.topCard.instanceId,
-      )
+      ),
     );
     expect(revivedLevelFives).toHaveLength(1);
     const revivedId = revivedLevelFives[0]!.topCard.instanceId;
-    const unrevivedId = [
-      s.inst("chosenLevelFive").instanceId,
-      s.inst("otherLevelFive").instanceId,
-    ].find((instanceId) => instanceId !== revivedId)!;
+    const unrevivedId = [s.inst("chosenLevelFive").instanceId, s.inst("otherLevelFive").instanceId].find(
+      (instanceId) => instanceId !== revivedId,
+    )!;
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === unrevivedId)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(7);
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("digivolveDraw").instanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digivolveDraw").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });

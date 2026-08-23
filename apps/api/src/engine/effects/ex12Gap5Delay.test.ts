@@ -1,18 +1,7 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type CompiledCard,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CompiledCard, type Permanent, type Seat } from "@aegis/shared";
 import { irCardModule } from "./interpreter.js";
-import {
-  type DecisionApi,
-  type EffectContext,
-  type GameAccess,
-  type Primitives,
-} from "./EffectContext.js";
+import { type DecisionApi, type EffectContext, type GameAccess, type Primitives } from "./EffectContext.js";
 import type { CardSource } from "./CardSource.js";
 
 /**
@@ -131,7 +120,8 @@ function makeCtx(opts: {
 
   const ask: DecisionApi = {
     optional: async () => true,
-    selectPermanents: async () => [], chooseTargets: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
+    selectPermanents: async () => [],
+    chooseTargets: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
       o.candidates.slice(0, o.max),
     selectCards: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
       o.candidates.slice(0, o.max),
@@ -223,10 +213,7 @@ const delayReplacementIr: CompiledCard = {
           kind: "Replacement",
           event: "wouldBeDeleted",
           requiresDelayArmed: true,
-          actions: [
-            { kind: "GainMemory", amount: 1 },
-            { kind: "Prevent" },
-          ],
+          actions: [{ kind: "GainMemory", amount: 1 }, { kind: "Prevent" }],
         },
       ],
     },
@@ -234,10 +221,7 @@ const delayReplacementIr: CompiledCard = {
 } as never as CompiledCard;
 
 async function runStartOfTurn(ctx: EffectContext, src: CardSource): Promise<void> {
-  const effects = irCardModule("GAP5-TEST", delayGatedPlayIr).effectsForTiming(
-    EffectTiming.OnStartTurn,
-    src,
-  );
+  const effects = irCardModule("GAP5-TEST", delayGatedPlayIr).effectsForTiming(EffectTiming.OnStartTurn, src);
   expect(effects.length, "StartOfYourTurn effect registered").toBeGreaterThan(0);
   await effects[0]!.resolve(ctx);
 }
@@ -251,22 +235,22 @@ async function runDelayActivation(ctx: EffectContext, src: CardSource): Promise<
   await effects[0]!.resolve(ctx);
 }
 
-async function registerDelayReplacement(ctx: EffectContext, src: CardSource): Promise<{
+async function registerDelayReplacement(
+  ctx: EffectContext,
+  src: CardSource,
+): Promise<{
   preventCheck?: (ctx: EffectContext, leavingPermanentId: string) => Promise<boolean>;
 }> {
-  let replacement: {
-    preventCheck?: (ctx: EffectContext, leavingPermanentId: string) => Promise<boolean>;
-  } | undefined;
-  (ctx.fx as unknown as { subscribeReplacement: (sub: typeof replacement) => number }).subscribeReplacement = (
-    sub,
-  ) => {
+  let replacement:
+    | {
+        preventCheck?: (ctx: EffectContext, leavingPermanentId: string) => Promise<boolean>;
+      }
+    | undefined;
+  (ctx.fx as unknown as { subscribeReplacement: (sub: typeof replacement) => number }).subscribeReplacement = (sub) => {
     replacement = sub;
     return 1;
   };
-  const effects = irCardModule("GAP5-DELAY-REPLACEMENT", delayReplacementIr).effectsForTiming(
-    EffectTiming.None,
-    src,
-  );
+  const effects = irCardModule("GAP5-DELAY-REPLACEMENT", delayReplacementIr).effectsForTiming(EffectTiming.None, src);
   expect(effects.length, "Delay Replacement static effect registered").toBeGreaterThan(0);
   await effects[0]!.resolve(ctx);
   expect(replacement?.preventCheck, "preventCheck installed").toBeDefined();
@@ -349,7 +333,8 @@ describe("Gap #5 — requiresDelayArmed PlayWithoutCost (P-243 ＜Delay＞ gatin
 
     const ask: DecisionApi = {
       optional: async () => true,
-      selectPermanents: async () => [], chooseTargets: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
       selectCards: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
@@ -396,9 +381,7 @@ describe("Gap #5 — requiresDelayArmed PlayWithoutCost (P-243 ＜Delay＞ gatin
       keywordStore: store,
     });
     const deleteCalls: string[][] = [];
-    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (
-      ids,
-    ) => {
+    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (ids) => {
       deleteCalls.push(ids);
       return ids.length;
     };
@@ -417,9 +400,7 @@ describe("Gap #5 — requiresDelayArmed PlayWithoutCost (P-243 ＜Delay＞ gatin
       keywordStore: store,
     });
     const deleteCalls: string[][] = [];
-    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (
-      ids,
-    ) => {
+    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (ids) => {
       deleteCalls.push(ids);
       return ids.length;
     };
@@ -437,9 +418,7 @@ describe("Gap #5 — requiresDelayArmed PlayWithoutCost (P-243 ＜Delay＞ gatin
     (ctx.source.permanent() as unknown as { enterFieldTurnCount: number }).enterFieldTurnCount = 1;
     const deleteCalls: string[][] = [];
     let gained = 0;
-    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (
-      ids,
-    ) => {
+    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (ids) => {
       deleteCalls.push(ids);
       return ids.length;
     };
@@ -462,9 +441,7 @@ describe("Gap #5 — requiresDelayArmed PlayWithoutCost (P-243 ＜Delay＞ gatin
     (ctx.game.state as unknown as { turnCount: number }).turnCount = 2;
     (ctx.source.permanent() as unknown as { enterFieldTurnCount: number }).enterFieldTurnCount = 1;
     const deleteCalls: string[][] = [];
-    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (
-      ids,
-    ) => {
+    (ctx.fx as unknown as { deletePermanent: (ids: string[]) => Promise<number> }).deletePermanent = async (ids) => {
       deleteCalls.push(ids);
       return ids.length;
     };

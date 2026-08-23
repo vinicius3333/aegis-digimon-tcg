@@ -6,101 +6,89 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q4201: cannot burst digivolve or DNA digivolve.
 // Q4203: may choose not to digivolve (optional:true).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 2,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 2,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "colors": [
-                  "Green"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                colors: ["Green"],
               },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottomAnyOrder"
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "zone": "battleArea",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              count: 1,
+              to: "hand",
             },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Green"
-            ]
-          },
-          "from": [
-            "hand"
           ],
-          "payCost": true,
-          "optional": true
+          rest: "deckBottomAnyOrder",
         },
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 2,
-              "raw": "reduce the cost by 2"
-            }
-          ]
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "Digivolve",
+          target: {
+            filter: {
+              zone: "battleArea",
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Green"],
+          },
+          from: ["hand"],
+          payCost: true,
+          optional: true,
+        },
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the cost by 2",
+            },
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-106", compiled);

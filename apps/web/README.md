@@ -1,7 +1,7 @@
 # @aegis/web
 
 The Aegis client: **React + Vite**. It is a pure function of the synchronized
-Colyseus state and sends only *intents* — it contains no game rules (see
+Colyseus state and sends only _intents_ — it contains no game rules (see
 [`../../docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) and
 [`../../docs/API-CONTRACT.md`](../../docs/API-CONTRACT.md)). The board and every
 screen are rendered as plain React DOM over the Aegis design system; there is no

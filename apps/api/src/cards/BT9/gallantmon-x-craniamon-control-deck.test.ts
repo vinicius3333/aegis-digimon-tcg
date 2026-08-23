@@ -27,31 +27,34 @@ describe("BT9 Gallantmon X versus Craniamon control gauntlet", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("gallantmon").permanentId,
-      instanceId: s.inst("gallantmonX").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gallantmon").permanentId,
+        instanceId: s.inst("gallantmonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const deletionDecision = s.state.pendingDecision;
     expect(deletionDecision?.kind).toBe("chooseTargets");
-    const deletionRequest = s.decisions.find(
-      ({ req }) => req.decisionId === deletionDecision?.decisionId,
-    )?.req;
+    const deletionRequest = s.decisions.find(({ req }) => req.decisionId === deletionDecision?.decisionId)?.req;
     expect(deletionRequest?.sourceCardId).toBe("BT9-017");
     expect(new Set(deletionRequest?.options?.candidateInstanceIds ?? [])).toEqual(
       new Set([protectedId, unprotectedId]),
     );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: deletionDecision!.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [protectedId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      !s.perm("gallantmon").isSuspended &&
-      s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT9-017"),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deletionDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [protectedId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        !s.perm("gallantmon").isSuspended &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT9-017"),
     );
 
     // Q1814: a tied lowest-DP Digimon that can't be deleted remains a legal choice. The failed
@@ -61,11 +64,13 @@ describe("BT9 Gallantmon X versus Craniamon control gauntlet", () => {
     );
     expect(s.state.players[1]!.security).toHaveLength(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gallantmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gallantmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).blockingSeat() === 1);
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking(), 5000);

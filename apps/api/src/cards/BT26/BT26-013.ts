@@ -14,7 +14,18 @@ export const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
     { trigger: "OnPlay", actions: [trashThenDelete] },
     { trigger: "OnDeletion", actions: [trashThenDelete] },
-    { trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifyDP", amount: 2000, duration: "forTheTurn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }] },
+    {
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 2000,
+          duration: "forTheTurn",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

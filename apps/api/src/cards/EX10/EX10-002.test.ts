@@ -15,11 +15,15 @@ describe("EX10-002 Koromon inherited attack-target switch", () => {
     await s.engine.recomputeContinuousEffects();
     const handBefore = p0.hand.length;
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { subjectPermanentId: s.perm("host").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      subjectPermanentId: s.perm("host").permanentId,
+    });
     await settle(() => p0.hand.length === handBefore + 1);
     expect(p0.hand.length).toBe(handBefore + 1);
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { subjectPermanentId: s.perm("host").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      subjectPermanentId: s.perm("host").permanentId,
+    });
     await settle(() => false, 30);
     expect(p0.hand.length).toBe(handBefore + 1);
   });

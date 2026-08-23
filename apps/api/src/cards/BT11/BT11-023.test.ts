@@ -4,19 +4,24 @@ import "./BT11-023.js";
 
 describe("BT11-023 Veemon", () => {
   it("adds both a Veedramon Digimon and blue Tamer when both are revealed", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT11-023", as: "veemon" }],
-        deck: [
-          { card: "BT11-027", as: "veedramon" },
-          { card: "BT11-090", as: "tamer" },
-          { card: "BT1-009", as: "rest" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-023", as: "veemon" }],
+          deck: [
+            { card: "BT11-027", as: "veedramon" },
+            { card: "BT11-090", as: "tamer" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 1);
 
     const handIds = s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
@@ -26,19 +31,24 @@ describe("BT11-023 Veemon", () => {
   });
 
   it("adds the one available category when only a blue Tamer is revealed", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT11-023", as: "veemon" }],
-        deck: [
-          { card: "BT11-090", as: "tamer" },
-          { card: "BT1-001", as: "rest1" },
-          { card: "BT1-001", as: "rest2" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-023", as: "veemon" }],
+          deck: [
+            { card: "BT11-090", as: "tamer" },
+            { card: "BT1-001", as: "rest1" },
+            { card: "BT1-001", as: "rest2" },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("tamer").instanceId);
@@ -53,7 +63,9 @@ describe("BT11-023 Veemon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 8);
 
     expect(s.state.memory).toBe(8);

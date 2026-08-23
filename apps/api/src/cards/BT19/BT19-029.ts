@@ -3,82 +3,74 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "position": "top"
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing your top security card"
+            raw: "By trashing your top security card",
           },
-          "optional": false,
-          "abortOnDecline": false
-        }
-      ]
+          optional: false,
+          abortOnDecline: false,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "opponentEffect",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Yellow"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "opponentEffect",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Yellow"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Data"
-                ],
-                "match": "trait"
+                tokens: ["Data"],
+                match: "trait",
               },
               {
-                "tokens": [
-                  "Witchelny"
-                ],
-                "match": "trait",
-                "orPrevious": true
-              }
-            ]
+                tokens: ["Witchelny"],
+                match: "trait",
+                orPrevious: true,
+              },
+            ],
           },
-          "actions": [],
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "position": "top"
+          actions: [],
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing your top security card, it doesn't leave"
-          }
-        }
+            raw: "by trashing your top security card, it doesn't leave",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-029", compiled);

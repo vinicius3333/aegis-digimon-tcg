@@ -8,8 +8,16 @@ describe("BT25-022 Lunamon", () => {
     expect(effect?.actions?.[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
     const revealAdd = effect?.actions?.[0] as { add?: unknown } | undefined;
     expect(revealAdd?.add).toEqual([
-      expect.objectContaining({ count: 1, to: "hand", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] } }),
-      expect.objectContaining({ count: 1, to: "hand", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } }),
+      expect.objectContaining({
+        count: 1,
+        to: "hand",
+        filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] },
+      }),
+      expect.objectContaining({
+        count: 1,
+        to: "hand",
+        filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+      }),
     ]);
   });
 

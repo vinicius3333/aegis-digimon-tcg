@@ -21,7 +21,10 @@ async function placeUnderFromHandOrTrash(
   if (selfPerm === undefined || selfPerm.isSuspended) return;
   // "by suspending this Tamer" is a cost, and paying a cost is the controller's
   // choice: ask before suspending, and leave the Tamer untouched on a decline.
-  const willSuspend = await ctx.ask.optional(ctx, "Suspend Close to place 1 [Mineral] or [Rock] trait card as a bottom digivolution card?");
+  const willSuspend = await ctx.ask.optional(
+    ctx,
+    "Suspend Close to place 1 [Mineral] or [Rock] trait card as a bottom digivolution card?",
+  );
   if (!willSuspend) return;
   const paid = ctx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
   if (!paid) return;

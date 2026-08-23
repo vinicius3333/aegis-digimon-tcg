@@ -7,62 +7,56 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The parenthetical "(you can't trash more cards if target has no digivolution cards
 // or becomes lv3)" is a built-in constraint of DeDigivolve, not a separate action.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "Diaboromon"
-          ],
-          "count": 1,
-          "payCost": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          kind: "PlayToken",
+          tokens: ["Diaboromon"],
+          count: 1,
+          payCost: false,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Diaboromon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Diaboromon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a [Diaboromon] in play"
+            raw: "you have a [Diaboromon] in play",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-104", compiled);

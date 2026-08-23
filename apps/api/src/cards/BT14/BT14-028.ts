@@ -3,48 +3,48 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "frequency": "OncePerTurn",
-      "actions": [
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDigivolutionTrashed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": ["Digimon"]
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Restrict",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "restriction": "beDeletedInBattle",
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
-      ]
-    }
+              restriction: "beDeletedInBattle",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-028", compiled);

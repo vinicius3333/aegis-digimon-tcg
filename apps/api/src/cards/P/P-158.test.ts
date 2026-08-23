@@ -21,17 +21,15 @@ describe("P-158 Jeri (Fake)", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("jeri").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("searcher").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("jeri").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("searcher").instanceId));
 
-    expect(s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("searcher").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("searcher").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("nonMatch1").instanceId,
       s.inst("nonMatch2").instanceId,

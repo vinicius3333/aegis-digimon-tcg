@@ -9,12 +9,23 @@ describe("BT17-052 Agumon", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns");
     expect(effect).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ event: "whenPlayed", sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] }, actions: [{ kind: "GainMemory", amount: 1 }, { kind: "Draw", controller: "mine", amount: 1 }] }],
+      actions: [
+        {
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] },
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            { kind: "Draw", controller: "mine", amount: 1 },
+          ],
+        },
+      ],
     });
   });
 
   it("has Reboot as its inherited keyword", () => {
-    expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([{ keyword: "Reboot", raw: "＜Reboot＞" }]);
+    expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([
+      { keyword: "Reboot", raw: "＜Reboot＞" },
+    ]);
   });
 
   it("gains memory and draws when Kosuke Kisakata is played", async () => {
@@ -28,7 +39,9 @@ describe("BT17-052 Agumon", () => {
     s.state.memory = 4;
     const drawnId = s.inst("drawn").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kosuke").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kosuke").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.state.memory).toBe(1);

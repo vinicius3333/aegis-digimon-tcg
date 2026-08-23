@@ -7,10 +7,12 @@ import "./design/layout.css";
 import "./design/primitives.css";
 
 async function start(): Promise<void> {
-  if (usesSlotDeploymentRouter({
-    production: import.meta.env.PROD,
-    deploymentMode: import.meta.env.VITE_AEGIS_DEPLOYMENT_MODE,
-  })) {
+  if (
+    usesSlotDeploymentRouter({
+      production: import.meta.env.PROD,
+      deploymentMode: import.meta.env.VITE_AEGIS_DEPLOYMENT_MODE,
+    })
+  ) {
     try {
       const current = await synchronizeDeploymentRevision({
         bundleRevision: import.meta.env.VITE_AEGIS_REVISION,

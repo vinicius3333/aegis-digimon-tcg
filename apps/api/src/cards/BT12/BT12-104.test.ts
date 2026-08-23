@@ -23,24 +23,34 @@ describe("BT12-104 handwritten module", () => {
 });
 
 it("plays Marcus Damon and gives up to three opposing Digimon -2000 DP per yellow/red Tamer", async () => {
-  const s = setupEngine({
-    0: {
-      hand: [{ card: "BT12-104", as: "option" }, { card: "BT12-092", as: "marcus" }],
-      battleArea: [{ card: "BT12-092", as: "tamer" }],
+  const s = setupEngine(
+    {
+      0: {
+        hand: [
+          { card: "BT12-104", as: "option" },
+          { card: "BT12-092", as: "marcus" },
+        ],
+        battleArea: [{ card: "BT12-092", as: "tamer" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "target1", dp: 5000 },
+          { card: "BT1-009", as: "target2", dp: 5000 },
+          { card: "BT1-009", as: "target3", dp: 5000 },
+        ],
+        security: ["BT1-009"],
+      },
     },
-    1: {
-      battleArea: [
-        { card: "BT1-009", as: "target1", dp: 5000 },
-        { card: "BT1-009", as: "target2", dp: 5000 },
-        { card: "BT1-009", as: "target3", dp: 5000 },
-      ],
-      security: ["BT1-009"],
-    },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   s.state.memory = 5;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-  await settle(() => s.perm("target1").currentDP === 1000 && s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT12-092"));
+  await settle(
+    () =>
+      s.perm("target1").currentDP === 1000 &&
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT12-092"),
+  );
   expect(s.perm("target1").currentDP).toBe(1000);
   expect(s.perm("target2").currentDP).toBe(1000);
   expect(s.perm("target3").currentDP).toBe(1000);

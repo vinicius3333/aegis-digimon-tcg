@@ -8,13 +8,27 @@ import "./BT10-112.js";
 
 describe("BT10-110 Seiken Meppa", () => {
   it("unsuspends Jesmon GX and activates one of that Digimon's When Digivolving effects", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-112", as: "jesmon", suspended: true }, "BT9-109"], hand: [{ card: "BT10-110", as: "option" }, { card: "BT10-068", as: "royalKnight" }, { card: "BT6-082", as: "sister" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-112", as: "jesmon", suspended: true }, "BT9-109"],
+          hand: [
+            { card: "BT10-110", as: "option" },
+            { card: "BT10-068", as: "royalKnight" },
+            { card: "BT6-082", as: "sister" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 8;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("jesmon").stack.some(card => card.instanceId === s.inst("royalKnight").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("jesmon").stack.some((card) => card.instanceId === s.inst("royalKnight").instanceId));
     expect(s.perm("jesmon").isSuspended).toBe(false);
-    expect(s.perm("jesmon").stack.some(card => card.instanceId === s.inst("royalKnight").instanceId)).toBe(true);
+    expect(s.perm("jesmon").stack.some((card) => card.instanceId === s.inst("royalKnight").instanceId)).toBe(true);
   });
 
   it("does not waive its white color requirement without a Royal Knight", async () => {
@@ -27,10 +41,12 @@ describe("BT10-110 Seiken Meppa", () => {
     s.state.memory = 8;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
   it("still unsuspends Jesmon GX but cannot activate its effect while Venusmon suppresses it", async () => {
@@ -56,24 +72,28 @@ describe("BT10-110 Seiken Meppa", () => {
     expect(observe(s.engine).isRestricted(s.perm("jesmon"), "attack")).toBe(false);
     expect(observe(s.engine).timingEffectDisabled(s.perm("jesmon"), "whenDigivolving")).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.perm("jesmon").isSuspended).toBe(false);
     expect(observe(s.engine).timingEffectDisabled(s.perm("jesmon"), "whenDigivolving")).toBe(true);
     expect(s.perm("jesmon").stack.some((card) => card.instanceId === s.inst("royalKnight").instanceId)).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.inst("sister").instanceId,
-    )).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("sister").instanceId),
+    ).toBe(false);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("jesmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("jesmon").isSuspended).toBe(true);
   });

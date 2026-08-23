@@ -6,101 +6,95 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "colors": [
-                "Yellow"
-              ],
-              "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              colors: ["Yellow"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Vaccine"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "toTop": false,
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "controller": "mine"
-              },
-              "count": 1
-            },
-            "raw": "By returning the top card of your security stack to the hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAddSecurity",
-          "fireCondition": {
-            "kind": "triggerSecurityIsYours"
-          },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
-                  },
-                  "count": 1,
-                  "isSelf": true
+                  tokens: ["Vaccine"],
+                  match: "trait",
                 },
-                "raw": "by suspending this Tamer"
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          toTop: false,
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                controller: "mine",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
+              count: 1,
+            },
+            raw: "By returning the top card of your security stack to the hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "SubTrigger",
+          event: "whenAddSecurity",
+          fireCondition: {
+            kind: "triggerSecurityIsYours",
           },
-          "payCost": false
-        }
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-084", compiled);

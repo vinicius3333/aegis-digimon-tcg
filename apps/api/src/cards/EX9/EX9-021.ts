@@ -81,7 +81,13 @@ const compiled: CompiledCard = {
     },
   ],
   dnaDigivolveRequirement: [
-    { cost: 0, materials: [{ color: "Red", level: 6 }, { color: "Blue", level: 6 }] },
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 6 },
+        { color: "Blue", level: 6 },
+      ],
+    },
   ],
 };
 

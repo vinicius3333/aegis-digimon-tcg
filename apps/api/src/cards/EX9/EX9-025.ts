@@ -6,85 +6,81 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Training",
-          "raw": "＜Training＞"
-        }
-      ]
+          keyword: "Training",
+          raw: "＜Training＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -2000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine"
+          amount: -2000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
               },
-              "count": 1,
-              "from": ["deck"]
+              count: 1,
+              from: ["deck"],
             },
-            "raw": "By placing your deck's top card face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
+            raw: "By placing your deck's top card face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
+          optional: true,
+          abortOnDecline: true,
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
             },
-            "unit": "selfFaceDownDigivolutionCards"
-          }
-        }
+            unit: "selfFaceDownDigivolutionCards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "traits": [
-        "DM"
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      traits: ["DM"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-025", compiled);

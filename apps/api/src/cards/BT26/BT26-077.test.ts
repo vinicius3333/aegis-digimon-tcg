@@ -20,21 +20,48 @@ describe("BT26-077 compiled behavior", () => {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         frequency: "OncePerTurn",
         sharedUseKey: "bt26-077-play-ver3",
-        actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { playCostLte: 6, nameOrTrait: [{ tokens: ["Ver.3"], match: "trait" }] } } }],
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            from: ["trash"],
+            payCost: false,
+            optional: true,
+            target: { filter: { playCostLte: 6, nameOrTrait: [{ tokens: ["Ver.3"], match: "trait" }] } },
+          },
+        ],
       });
     }
-    expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({ actions: [{ kind: "Delete", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon", "Tamer"], superlative: "highestPlayCost" } } }] });
+    expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            count: 1,
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"], superlative: "highestPlayCost" },
+          },
+        },
+      ],
+    });
   });
 
   it("raises the printed play-cost ceiling only for each face-down card in this stack", () => {
     const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")!.actions[0];
-    expect(irNode(action).playCostCeiling).toEqual({ base: 6, raise: 1, per: 1, filter: {}, unit: "selfFaceDownDigivolutionCards" });
+    expect(irNode(action).playCostCeiling).toEqual({
+      base: 6,
+      raise: 1,
+      per: 1,
+      filter: {},
+      unit: "selfFaceDownDigivolutionCards",
+    });
   });
 
   it("publicly plays an eligible Ver.3 Digimon from trash on play", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-077", as: "reapermon" }], trash: [{ card: "BT26-040", as: "ver3" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-077", as: "reapermon" }], trash: [{ card: "BT26-040", as: "ver3" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reapermon"));

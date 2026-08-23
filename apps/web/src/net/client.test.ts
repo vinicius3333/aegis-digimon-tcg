@@ -1,11 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Room } from "colyseus.js";
 import type { GameState } from "@aegis/shared";
-import {
-  AegisConnectionRouter,
-  connectionSlot,
-  type ColyseusClientPort,
-} from "./client";
+import { AegisConnectionRouter, connectionSlot, type ColyseusClientPort } from "./client";
 import type { DeploymentManifest, DeploymentSlot } from "./deployment";
 
 const OPTIONS = { displayName: "Tamer", deck: { mainDeck: [], eggDeck: [] } };
@@ -15,7 +11,9 @@ function room(roomId: string): Room<GameState> {
 }
 
 function clientPort(overrides: Partial<ColyseusClientPort> = {}): ColyseusClientPort {
-  const unavailable = async () => { throw new Error("no room"); };
+  const unavailable = async () => {
+    throw new Error("no room");
+  };
   return {
     join: unavailable,
     joinOrCreate: unavailable,
@@ -38,7 +36,10 @@ function router({
   const clients: Record<DeploymentSlot, ColyseusClientPort> = { blue, green };
   return new AegisConnectionRouter({
     loadManifest: async () => manifest,
-    endpointForSlot: (slot) => ({ http: `https://example.test/api/${slot}`, websocket: `wss://example.test/api/${slot}` }),
+    endpointForSlot: (slot) => ({
+      http: `https://example.test/api/${slot}`,
+      websocket: `wss://example.test/api/${slot}`,
+    }),
     createClient: (_endpoint, slot) => clients[slot],
     fetcher: vi.fn(async () => new Response("{}", { status: 404 })),
   });
@@ -110,7 +111,10 @@ describe("room-scoped deployment affinity", () => {
     };
     const client = new AegisConnectionRouter({
       loadManifest,
-      endpointForSlot: (slot) => ({ http: `https://example.test/api/${slot}`, websocket: `wss://example.test/api/${slot}` }),
+      endpointForSlot: (slot) => ({
+        http: `https://example.test/api/${slot}`,
+        websocket: `wss://example.test/api/${slot}`,
+      }),
       createClient: (_endpoint, slot) => clients[slot],
       fetcher: vi.fn(async () => new Response("{}", { status: 404 })),
     });
@@ -196,7 +200,10 @@ describe("room-scoped deployment affinity", () => {
     };
     const client = new AegisConnectionRouter({
       loadManifest,
-      endpointForSlot: (slot) => ({ http: `https://example.test/api/${slot}`, websocket: `wss://example.test/api/${slot}` }),
+      endpointForSlot: (slot) => ({
+        http: `https://example.test/api/${slot}`,
+        websocket: `wss://example.test/api/${slot}`,
+      }),
       createClient: (_endpoint, slot) => clients[slot],
       fetcher: vi.fn(async () => new Response("{}", { status: 404 })),
     });

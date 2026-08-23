@@ -7,7 +7,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 import type { CompiledCard } from "@aegis/shared";
 import { staticModifier } from "../../engine/effects/builders.js";
 
-
 const cardId = "EX2-043";
 
 const module: EffectModule = {
@@ -57,40 +56,42 @@ const module: EffectModule = {
 
     // ----- [Your Turn][Once Per Turn] own effect trashes own hand -----------
     if (timing === EffectTiming.None) {
-      out.push(staticModifier({
-        source,
-        effectKey: `${cardId}/watch-own-hand-trash`,
-        description:
-          "[Your Turn][Once Per Turn] When one of your effects trashes a card in your hand, you may unsuspend 1 of your Digimon (documented behavior)",
-        resolve: async (ctx) => {
-          const self = ctx.source.permanent();
-          if (self === undefined || !ctx.source.isOwnersTurn()) return;
-          ctx.fx.subscribeSubTrigger({
-            event: "whenHandTrashed",
-            sourcePermanentId: self.permanentId,
-            once: true,
-            description: `${cardId}: unsuspend after own effect trashes own hand`,
-            matches: (subCtx) =>
-              subCtx.source.isOwnersTurn() &&
-              subCtx.trigger?.handTrashedSeat === source.ownerSeat &&
-              subCtx.trigger?.byEffectSeat === source.ownerSeat,
-            run: async (subCtx) => {
-              const suspended = subCtx.game.player(source.ownerSeat).battleArea.filter((permanent) => {
-                if (!permanent.isSuspended) return false;
-                return subCtx.game.definitionOf(permanent.topCard).kinds.includes("Digimon" as never);
-              });
-              if (suspended.length === 0) return;
-              if (!(await subCtx.ask.optional(subCtx, "Unsuspend 1 of your Digimon?"))) return;
-              const chosen = await subCtx.ask.chooseTargets(subCtx, {
-                candidates: suspended.map((permanent) => permanent.permanentId),
-                min: 1,
-                max: 1,
-              });
-              if (chosen.length > 0) subCtx.fx.unsuspend(chosen);
-            },
-          });
-        },
-      }));
+      out.push(
+        staticModifier({
+          source,
+          effectKey: `${cardId}/watch-own-hand-trash`,
+          description:
+            "[Your Turn][Once Per Turn] When one of your effects trashes a card in your hand, you may unsuspend 1 of your Digimon (documented behavior)",
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined || !ctx.source.isOwnersTurn()) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenHandTrashed",
+              sourcePermanentId: self.permanentId,
+              once: true,
+              description: `${cardId}: unsuspend after own effect trashes own hand`,
+              matches: (subCtx) =>
+                subCtx.source.isOwnersTurn() &&
+                subCtx.trigger?.handTrashedSeat === source.ownerSeat &&
+                subCtx.trigger?.byEffectSeat === source.ownerSeat,
+              run: async (subCtx) => {
+                const suspended = subCtx.game.player(source.ownerSeat).battleArea.filter((permanent) => {
+                  if (!permanent.isSuspended) return false;
+                  return subCtx.game.definitionOf(permanent.topCard).kinds.includes("Digimon" as never);
+                });
+                if (suspended.length === 0) return;
+                if (!(await subCtx.ask.optional(subCtx, "Unsuspend 1 of your Digimon?"))) return;
+                const chosen = await subCtx.ask.chooseTargets(subCtx, {
+                  candidates: suspended.map((permanent) => permanent.permanentId),
+                  min: 1,
+                  max: 1,
+                });
+                if (chosen.length > 0) subCtx.fx.unsuspend(chosen);
+              },
+            });
+          },
+        }),
+      );
     }
 
     return out;
@@ -106,9 +107,20 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenHandTrashed", sourceFilter: { controller: "mine" }, actions: [
-        { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 }, optional: true },
-      ] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenHandTrashed",
+          sourceFilter: { controller: "mine" },
+          actions: [
+            {
+              kind: "Unsuspend",
+              target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 },
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
   ],
   coverage: "full",

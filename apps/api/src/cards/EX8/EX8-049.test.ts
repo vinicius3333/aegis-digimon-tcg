@@ -7,7 +7,10 @@ import { compiled } from "./EX8-049.js";
 
 describe("EX8-049", () => {
   it("inherits Blocker", () =>
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "Blocker", raw: "＜Blocker＞" }));
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Blocker",
+      raw: "＜Blocker＞",
+    }));
   it("de-digivolves an opposing Digimon by 1 on play and deletion", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "DeDigivolve",
@@ -38,10 +41,13 @@ describe("EX8-049", () => {
     expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(1);
   });
   it("removes one evolution card when deleted", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-049", as: "source" }] },
-      1: { battleArea: [{ card: "EX8-048", as: "opponent", under: ["BT1-009", "BT1-009"] }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-049", as: "source" }] },
+        1: { battleArea: [{ card: "EX8-048", as: "opponent", under: ["BT1-009", "BT1-009"] }] },
+      },
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle(() => s.state.players[1]!.battleArea[0]!.stack.length === 1);

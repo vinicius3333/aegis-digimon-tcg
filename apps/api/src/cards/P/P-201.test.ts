@@ -8,7 +8,21 @@ describe("P-201 Phascomon", () => {
     for (const trigger of ["OnPlay", "OnDeletion"] as const) {
       expect(card.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
-          { kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ count: 1, to: "hand", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Belphemon", "Gizmon"], match: "text" }] } }] },
+          {
+            kind: "RevealAdd",
+            revealCount: 3,
+            rest: "deckBottom",
+            add: [
+              {
+                count: 1,
+                to: "hand",
+                filter: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [{ tokens: ["Belphemon", "Gizmon"], match: "text" }],
+                },
+              },
+            ],
+          },
           { kind: "Trash", target: { count: 1, filter: { controller: "mine", zone: "hand" } } },
         ],
       });
@@ -21,7 +35,13 @@ describe("P-201 Phascomon", () => {
     expect(card.effects.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "EndOfOpponentsTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Suspend", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } }, cost: { kind: "trash", target: { count: 1, filter: { zone: "hand", controller: "mine" } } } }],
+      actions: [
+        {
+          kind: "Suspend",
+          target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
+          cost: { kind: "trash", target: { count: 1, filter: { zone: "hand", controller: "mine" } } },
+        },
+      ],
     });
   });
 });

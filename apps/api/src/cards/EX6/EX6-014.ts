@@ -6,123 +6,95 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "levels": [
-                3
-              ],
-              "hostFilter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Blue"
-                ]
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "levels": [
-                3
-              ],
-              "hostFilter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Blue"
-                ]
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Blue"
-                ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
+              levels: [3],
+              hostFilter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Blue"],
               },
-              "count": 1
             },
-            "raw": "By placing 1 of your other blue Digimon as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
+              levels: [3],
+              hostFilter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Blue"],
+              },
+            },
+            count: 1,
+          },
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                colors: ["Blue"],
+              },
+              count: 1,
+            },
+            raw: "By placing 1 of your other blue Digimon as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-014", compiled);

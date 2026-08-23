@@ -60,7 +60,11 @@ describe("EX10-074 Beelzemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelzemon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.trash.length === 20 && !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId));
+    await settle(
+      () =>
+        s.state.players[0]!.trash.length === 20 &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId),
+    );
 
     expect(s.state.players[0]!.trash).toHaveLength(20);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

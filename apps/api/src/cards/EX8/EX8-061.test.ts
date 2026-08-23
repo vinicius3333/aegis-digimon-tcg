@@ -27,16 +27,33 @@ describe("EX8-061", () => {
   it("inherits an optional On Deletion play from trash with the same level and trait limits", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "OnDeletion",
-      actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { levelComparison: { op: "lte", value: 4 } } } }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          target: { filter: { levelComparison: { op: "lte", value: 4 } } },
+        },
+      ],
     }));
   it("plays the exact eligible DS card from trash during an attack when memory is at least 1", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX8-061", as: "source" }], trash: ["EX8-058", "BT1-010"] }, 1: { security: ["BT1-016"] } },
+      {
+        0: { battleArea: [{ card: "EX8-061", as: "source" }], trash: ["EX8-058", "BT1-010"] },
+        1: { security: ["BT1-016"] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 1;
     const player = s.state.players[0] as PlayerState;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-058"));
     expect(player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-058")).toBe(true);
     expect(player.trash.some((card) => card.cardId === "EX8-058")).toBe(false);

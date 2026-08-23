@@ -53,12 +53,14 @@ describe("P-169 [All Turns] digivolution-trash reaction", () => {
         kind: ["Digimon"],
         nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
       },
-      actions: [{
-        kind: "PlaceUnder",
-        target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["Mineral", "Rock"] }] } },
-        underFilter: { controller: "mine", kind: ["Digimon"] },
-        cost: { kind: "suspend", target: { isSelf: true } },
-      }],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["Mineral", "Rock"] }] } },
+          underFilter: { controller: "mine", kind: ["Digimon"] },
+          cost: { kind: "suspend", target: { isSelf: true } },
+        },
+      ],
     });
   });
 });

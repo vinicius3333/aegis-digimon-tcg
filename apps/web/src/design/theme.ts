@@ -3,12 +3,7 @@
    card components render real CardDefinitions through here — there is no fictional
    card data on the client; only the *look* (colors + sigils) is design-authored. */
 
-import {
-  CardColor,
-  CardKind,
-  getCardDefinition,
-  type CardDefinition,
-} from "@aegis/shared";
+import { CardColor, CardKind, getCardDefinition, type CardDefinition } from "@aegis/shared";
 
 export interface GameColor {
   base: string;

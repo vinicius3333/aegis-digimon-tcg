@@ -17,149 +17,139 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    The old IR used AND logic (both conditions).
 // 2. The cost filter must allow any Digimon (not just mine): controller restriction removed.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "kind": [
-                  "Digimon"
-                ],
-                "orFilters": [
+          duration: "forTheTurn",
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                kind: ["Digimon"],
+                orFilters: [
                   {
-                    "nameOrTrait": [
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Deva"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["Deva"],
+                        match: "trait",
+                      },
+                    ],
                   },
                   {
-                    "dp": {
-                      "op": "lte",
-                      "value": 6000
-                    }
-                  }
-                ]
+                    dp: {
+                      op: "lte",
+                      value: 6000,
+                    },
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 Digimon with the [Deva] trait or 6000 DP or less"
+            raw: "By deleting 1 Digimon with the [Deva] trait or 6000 DP or less",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "kind": [
-                  "Digimon"
-                ],
-                "orFilters": [
+          duration: "forTheTurn",
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                kind: ["Digimon"],
+                orFilters: [
                   {
-                    "nameOrTrait": [
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Deva"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["Deva"],
+                        match: "trait",
+                      },
+                    ],
                   },
                   {
-                    "dp": {
-                      "op": "lte",
-                      "value": 6000
-                    }
-                  }
-                ]
+                    dp: {
+                      op: "lte",
+                      value: 6000,
+                    },
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 Digimon with the [Deva] trait or 6000 DP or less"
+            raw: "By deleting 1 Digimon with the [Deva] trait or 6000 DP or less",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestDP",
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-013", compiled);

@@ -47,9 +47,7 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     // replays Marcus; his On Play suspension gains 1 memory while a Greymon is present.
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === marcusId)).toBe(false);
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marcusId),
-    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marcusId)).toBe(true);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
 
     await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);

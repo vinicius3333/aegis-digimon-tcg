@@ -1,25 +1,12 @@
 import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  PlayerState,
-  Permanent,
-  CardInstance,
-  type Seat,
-  type ServerEvent,
-} from "@aegis/shared";
+import { GameState, PlayerState, Permanent, CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
 import { MemoryGauge } from "../MemoryGauge.js";
 import { ModifierLedger } from "./modifiers.js";
 import { SubTriggerRegistry } from "./subtriggers.js";
 import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "./primitives.js";
-import {
-  createCardSource,
-  type CardStateLookup,
-} from "../cards/CardSource.js";
-import {
-  createGameAccess,
-  createEffectContext,
-} from "./context.js";
+import { createCardSource, type CardStateLookup } from "../cards/CardSource.js";
+import { createGameAccess, createEffectContext } from "./context.js";
 import { consultLeavePrevention, type LeavePreventionHost } from "./leavePrevention.js";
 import { irCardModule } from "./interpreter.js";
 import type { EffectContext, RemovalCause } from "./EffectContext.js";
@@ -171,12 +158,7 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
   };
 }
 
-function putPermanent(
-  state: GameState,
-  seat: Seat,
-  permanentId: string,
-  opts?: { sources?: number },
-): Permanent {
+function putPermanent(state: GameState, seat: Seat, permanentId: string, opts?: { sources?: number }): Permanent {
   const p = new Permanent();
   p.permanentId = permanentId;
   p.controllerSeat = seat;

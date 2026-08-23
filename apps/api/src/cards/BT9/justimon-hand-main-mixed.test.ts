@@ -36,33 +36,37 @@ describe("BT9 Justimon support — mixed [Hand][Main] activations", () => {
     const suijinEffect = projectedEffect(suijin);
     const fujinEffect = projectedEffect(fujin);
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: suijin.instanceId,
-      effectKey: suijinEffect.effectKey,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("justimon").stack.some((card) => card.instanceId === suijin.instanceId) &&
-      suijin.activatableEffectsJson === "",
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: suijin.instanceId,
+        effectKey: suijinEffect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("justimon").stack.some((card) => card.instanceId === suijin.instanceId) &&
+        suijin.activatableEffectsJson === "",
     );
 
     expect(s.state.memory).toBe(1);
     expect(suijin.activatableEffectsJson).toBe("");
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: fujin.instanceId,
-      effectKey: fujinEffect.effectKey,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("justimon").stack.some((card) => card.instanceId === fujin.instanceId) &&
-      fujin.activatableEffectsJson === "",
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: fujin.instanceId,
+        effectKey: fujinEffect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("justimon").stack.some((card) => card.instanceId === fujin.instanceId) &&
+        fujin.activatableEffectsJson === "",
     );
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.perm("justimon").stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT9-029", "BT9-054"]),
-    );
+    expect(s.perm("justimon").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT9-029", "BT9-054"]));
     expect(fujin.activatableEffectsJson).toBe("");
   });
 

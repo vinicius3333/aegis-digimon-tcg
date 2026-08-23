@@ -40,9 +40,9 @@ describe("A3 Link — BT22-035 Entermon [On Play] gates link targets to <Link> c
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 10; // afford the cost-8 hard play
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
 
     await settle(() => {
       const perm = player.battleArea.find((p) => p.topCard?.cardId === "BT22-035");
@@ -65,7 +65,16 @@ describe("A3 Link — BT22-035 Entermon [On Play] gates link targets to <Link> c
 
 describe("linkEligible(def) predicate", () => {
   it("returns true for a card carrying <Link> in linkRequirement", () => {
-    const def = { cardId: "X", kinds: [], colors: [], evoCosts: [], dp: 0, level: 3, maxCountInDeck: 4, linkRequirement: "[Link] [Appmon] trait: Cost 1" };
+    const def = {
+      cardId: "X",
+      kinds: [],
+      colors: [],
+      evoCosts: [],
+      dp: 0,
+      level: 3,
+      maxCountInDeck: 4,
+      linkRequirement: "[Link] [Appmon] trait: Cost 1",
+    };
     expect(linkEligible(def as never)).toBe(true);
   });
   it("returns false for a card with no link prerequisite", () => {

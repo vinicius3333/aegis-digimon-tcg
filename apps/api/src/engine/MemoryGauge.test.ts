@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GameState, PlayerState, type ServerEvent, type Seat } from "@aegis/shared";
-import {
-  MemoryGauge,
-  MEMORY_MAX,
-  MEMORY_MIN,
-  PASS_TURN_MEMORY,
-  DEFAULT_TURN_END_MIN_MEMORY,
-} from "./MemoryGauge.js";
+import { MemoryGauge, MEMORY_MAX, MEMORY_MIN, PASS_TURN_MEMORY, DEFAULT_TURN_END_MIN_MEMORY } from "./MemoryGauge.js";
 
 /** Minimal GameState with both seats present and a chosen turn player. */
 function makeState(turnSeat: Seat = 0, memory = 0): GameState {

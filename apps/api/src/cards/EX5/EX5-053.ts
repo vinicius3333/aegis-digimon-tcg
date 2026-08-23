@@ -8,20 +8,22 @@ export const compiled: CompiledCard = structuredClone(generated);
 const securityReaction = compiled.effects.find((effect) => effect.trigger === "OpponentsTurn");
 if (securityReaction) {
   securityReaction.trigger = "OnSecurityCheck";
-  securityReaction.actions = [{
-    kind: "PlayWithoutCost",
-    target: {
-      filter: {
-        controllerDefault: "mine",
-        kind: ["Digimon"],
-        nameOrTrait: [{ tokens: ["Deva"], match: "trait" }],
-        isRevealedSecurityCard: true,
+  securityReaction.actions = [
+    {
+      kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          controllerDefault: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Deva"], match: "trait" }],
+          isRevealedSecurityCard: true,
+        },
+        count: 1,
       },
-      count: 1,
+      from: ["security"],
+      payCost: false,
     },
-    from: ["security"],
-    payCost: false,
-  }];
+  ];
 }
 compiled.coverage = "full";
 compiled.residual = [];

@@ -11,49 +11,47 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // place rest at deckBottom. The prior IR used a separate Trash action with no zone
 // restriction (would trash any Tamer in play anywhere) — fixed to use RevealAdd.trashFilter.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 5,
-          "add": [],
-          "trashFilter": {
-            "kind": ["Tamer"]
+          kind: "RevealAdd",
+          revealCount: 5,
+          add: [],
+          trashFilter: {
+            kind: ["Tamer"],
           },
-          "rest": "deckBottom",
-          "optional": true
-        }
-      ]
+          rest: "deckBottom",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Tamer"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Tamer"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-070", compiled);

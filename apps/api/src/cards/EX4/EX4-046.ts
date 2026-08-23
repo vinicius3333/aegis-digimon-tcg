@@ -19,82 +19,74 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    force the opponent's attack to target this Digimon instead" — this is the Blocker
 //    keyword semantics but as a cost-based redirect. Encoded as a keyword grant.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
+          into: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Greymon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Greymon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCost": 2,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: true,
+          reduceCost: 2,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenOpponentAttacks",
-      "actions": [
+      trigger: "WhenOpponentAttacks",
+      actions: [
         {
-          "kind": "RedirectAttack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "RedirectAttack",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "duringAttack",
-            "raw": "an opponent's Digimon is attacking"
+          condition: {
+            kind: "duringAttack",
+            raw: "an opponent's Digimon is attacking",
           },
-          "cost": {
-            "kind": "suspend",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "raw": "suspend this Digimon"
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "suspend this Digimon",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-046", compiled);

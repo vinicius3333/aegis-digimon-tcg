@@ -11,11 +11,13 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenDigivolving",
-      actions: [{
-        kind: "Delete",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-        raw: "Delete 1 of your opponent's Digimon.",
-      }],
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          raw: "Delete 1 of your opponent's Digimon.",
+        },
+      ],
     },
   ],
   coverage: "full",

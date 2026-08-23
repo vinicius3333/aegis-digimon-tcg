@@ -7,145 +7,131 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Rush",
-          "raw": "＜Rush＞"
-        }
-      ]
+          keyword: "Rush",
+          raw: "＜Rush＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestLevel",
+            },
+            count: "all",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          restriction: "attacks without suspending",
+          duration: "forTheTurn",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["Belphemon"],
+                  match: "name",
+                },
               ],
-              "superlative": "highestLevel"
             },
-            "count": "all"
-          }
+            raw: "a card with [Belphemon] in its name is in this Digimon's digivolution cards",
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Attack",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "attacks without suspending",
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          withoutSuspending: true,
+          mandatory: true,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Belphemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Belphemon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a card with [Belphemon] in its name is in this Digimon's digivolution cards"
-          }
+            raw: "a card with [Belphemon] in its name is in this Digimon's digivolution cards",
+          },
         },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "withoutSuspending": true,
-          "mandatory": true,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Belphemon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "a card with [Belphemon] in its name is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Belphemon: Sleep Mode"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Belphemon: Sleep Mode"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "trash"
-          ],
-          "ignoreRequirements": true,
-          "optional": true
-        }
-      ]
-    }
+          payCost: false,
+          from: ["trash"],
+          ignoreRequirements: true,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 6,
-      "names": [
-        "Belphemon"
-      ],
-      "excludeTraits": [
-        "X Antibody"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 6,
+      names: ["Belphemon"],
+      excludeTraits: ["X Antibody"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-070", compiled);

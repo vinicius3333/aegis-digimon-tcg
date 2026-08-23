@@ -10,63 +10,54 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q1826: this card itself (in the digivolution cards) can be one of the 2 trashed.
 // Encoded as a Replacement "prevent" with a sameLevelPair cost from digivolutionCards.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "mode": "prevent",
-          "leaveCause": "byBattle",
-          "optional": true,
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          mode: "prevent",
+          leaveCause: "byBattle",
+          optional: true,
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Garurumon",
-                  "Omnimon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "digivolutionCards",
-                "isSelfRef": true,
-                "sameLevelPair": true
+                tokens: ["Garurumon", "Omnimon"],
+                match: "name",
               },
-              "count": 2,
-              "from": [
-                "digivolutionCards"
-              ]
-            },
-            "raw": "by trashing 2 cards of the same level from this Digimon's digivolution cards"
+            ],
           },
-          "raw": "you may trash 2 cards of the same level in this Digimon's digivolution cards to prevent that deletion"
-        }
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                isSelfRef: true,
+                sameLevelPair: true,
+              },
+              count: 2,
+              from: ["digivolutionCards"],
+            },
+            raw: "by trashing 2 cards of the same level from this Digimon's digivolution cards",
+          },
+          raw: "you may trash 2 cards of the same level in this Digimon's digivolution cards to prevent that deletion",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Garurumon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Garurumon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-024", compiled);

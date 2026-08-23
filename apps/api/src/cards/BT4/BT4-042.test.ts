@@ -10,7 +10,13 @@ describe("BT4-042 Piddomon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("piddo"), "Blocker")).toBe(true);
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("piddo").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("piddo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);
   });

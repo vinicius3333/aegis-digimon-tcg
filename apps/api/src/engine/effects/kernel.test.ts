@@ -3,13 +3,7 @@ import { CardKind, type Seat } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { EffectContext, GameAccess } from "./EffectContext.js";
 import type { Effect } from "./Effect.js";
-import {
-  UseTracker,
-  isOverMaxPerTurn,
-  passesPlacementGuard,
-  canTrigger,
-  canActivate,
-} from "./kernel.js";
+import { UseTracker, isOverMaxPerTurn, passesPlacementGuard, canTrigger, canActivate } from "./kernel.js";
 import { breeding, onPlay, security, staticModifier, whenAttacking } from "./builders.js";
 
 // --- Lightweight fakes (the kernel and builders are pure; no real schema needed) ---
@@ -19,7 +13,17 @@ function fakeSource(over: Partial<CardSource> = {}): CardSource {
     instanceId: "BT0-001#1",
     cardId: "BT0-001",
     ownerSeat: 0 as Seat,
-    definition: { cardId: "BT0-001", set: "BT0", nameEn: "Fake", kinds: [], colors: [], playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4 },
+    definition: {
+      cardId: "BT0-001",
+      set: "BT0",
+      nameEn: "Fake",
+      kinds: [],
+      colors: [],
+      playCost: 0,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    },
     permanent: () => undefined,
     isOnBattleArea: () => true,
     isOwnersTurn: () => true,
@@ -34,7 +38,17 @@ function fakeContext(source: CardSource, gameOver: Partial<GameAccess> = {}): Ef
     player: () => ({}) as never,
     opponentOf: (s) => (s === 0 ? 1 : 0),
     permanentById: () => undefined,
-    definitionOf: () => ({ cardId: "x", set: "x", nameEn: "x", kinds: [], colors: [], playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4 }),
+    definitionOf: () => ({
+      cardId: "x",
+      set: "x",
+      nameEn: "x",
+      kinds: [],
+      colors: [],
+      playCost: 0,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    }),
     ...gameOver,
   };
   return { source, trigger: {}, game, fx: {} as never, ask: {} as never };
@@ -43,7 +57,13 @@ function fakeContext(source: CardSource, gameOver: Partial<GameAccess> = {}): Ef
 describe("UseTracker / isOverMaxPerTurn", () => {
   it("treats maxPerTurn <= 0 as unlimited", () => {
     const tracker = new UseTracker();
-    const eff = onPlay({ source: fakeSource(), effectKey: "k", description: "", maxPerTurn: -1, resolve: async () => {} });
+    const eff = onPlay({
+      source: fakeSource(),
+      effectKey: "k",
+      description: "",
+      maxPerTurn: -1,
+      resolve: async () => {},
+    });
     tracker.register("BT0-001#1", "k");
     tracker.register("BT0-001#1", "k");
     expect(isOverMaxPerTurn(eff, tracker, "BT0-001#1")).toBe(false);
@@ -51,7 +71,13 @@ describe("UseTracker / isOverMaxPerTurn", () => {
 
   it("is over the limit only once recorded uses reach maxPerTurn (>=, like the source)", () => {
     const tracker = new UseTracker();
-    const eff = onPlay({ source: fakeSource(), effectKey: "k", description: "", maxPerTurn: 1, resolve: async () => {} });
+    const eff = onPlay({
+      source: fakeSource(),
+      effectKey: "k",
+      description: "",
+      maxPerTurn: 1,
+      resolve: async () => {},
+    });
     expect(isOverMaxPerTurn(eff, tracker, "BT0-001#1")).toBe(false);
     tracker.register("BT0-001#1", "k");
     expect(isOverMaxPerTurn(eff, tracker, "BT0-001#1")).toBe(true); // 1 >= 1
@@ -80,7 +106,14 @@ describe("canTrigger / canActivate gating", () => {
   it("canTrigger fails when over the per-turn limit even if the predicate passes", () => {
     const tracker = new UseTracker();
     const source = fakeSource();
-    const eff = onPlay({ source, effectKey: "k", description: "", maxPerTurn: 1, when: () => true, resolve: async () => {} });
+    const eff = onPlay({
+      source,
+      effectKey: "k",
+      description: "",
+      maxPerTurn: 1,
+      when: () => true,
+      resolve: async () => {},
+    });
     const ctx = fakeContext(source);
     expect(canTrigger(eff, ctx, tracker)).toBe(true);
     tracker.register(source.instanceId, "k");
@@ -118,16 +151,42 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
   } as never;
 
   const digimonTop: Partial<GameAccess> = {
-    definitionOf: () => ({ cardId: "TOP", set: "x", nameEn: "x", kinds: ["Digimon"] as never, colors: [], playCost: 0, dp: 1000, evoCosts: [], maxCountInDeck: 4 }),
+    definitionOf: () => ({
+      cardId: "TOP",
+      set: "x",
+      nameEn: "x",
+      kinds: ["Digimon"] as never,
+      colors: [],
+      playCost: 0,
+      dp: 1000,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    }),
   };
 
   const digiEggTop: Partial<GameAccess> = {
-    definitionOf: () => ({ cardId: "EGG", set: "x", nameEn: "x", kinds: [CardKind.DigiEgg], colors: [], playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4 }),
+    definitionOf: () => ({
+      cardId: "EGG",
+      set: "x",
+      nameEn: "x",
+      kinds: [CardKind.DigiEgg],
+      colors: [],
+      playCost: 0,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    }),
   };
 
   it("inherited effect activates only when its source is a STACK card (not the top)", () => {
     const essSource = fakeSource({ instanceId: "ess#1", permanent: () => permanent });
-    const eff: Effect = whenAttacking({ source: essSource, effectKey: "k", description: "", isInherited: true, resolve: async () => {} });
+    const eff: Effect = whenAttacking({
+      source: essSource,
+      effectKey: "k",
+      description: "",
+      isInherited: true,
+      resolve: async () => {},
+    });
     expect(passesPlacementGuard(eff, fakeContext(essSource, digimonTop))).toBe(true);
 
     // If the same effect's source were the top card, the inherited effect is gone.
@@ -147,7 +206,13 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
 
   it("does not gate a source that is not on any permanent (e.g. in hand)", () => {
     const inHand = fakeSource({ instanceId: "h#1", permanent: () => undefined });
-    const eff: Effect = onPlay({ source: inHand, effectKey: "k", description: "", isInherited: true, resolve: async () => {} });
+    const eff: Effect = onPlay({
+      source: inHand,
+      effectKey: "k",
+      description: "",
+      isInherited: true,
+      resolve: async () => {},
+    });
     expect(passesPlacementGuard(eff, fakeContext(inHand))).toBe(true);
   });
 
@@ -156,7 +221,13 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     // The placement guard MUST NOT allow inherited effects to fire from a
     // card that was the TOP card of the deleted permanent.
     const inTrash = fakeSource({ instanceId: "top#1", permanent: () => undefined });
-    const eff: Effect = onPlay({ source: inTrash, effectKey: "k", description: "", isInherited: true, resolve: async () => {} });
+    const eff: Effect = onPlay({
+      source: inTrash,
+      effectKey: "k",
+      description: "",
+      isInherited: true,
+      resolve: async () => {},
+    });
 
     // Source was a TOP card (NOT in deletedWasStackInstanceIds) → gate FAILS.
     const ctxTop = fakeContext(inTrash);
@@ -166,7 +237,13 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     // Source was a STACK card (IN deletedWasStackInstanceIds) → gate PASSES.
     const ctxStack = fakeContext(inTrash);
     ctxStack.trigger = { deletedWasStackInstanceIds: ["top#1", "ess#1"], deletedInstanceIds: ["top#1", "ess#1"] };
-    const effStack: Effect = onPlay({ source: fakeSource({ instanceId: "top#1", permanent: () => undefined }), effectKey: "k2", description: "", isInherited: true, resolve: async () => {} });
+    const effStack: Effect = onPlay({
+      source: fakeSource({ instanceId: "top#1", permanent: () => undefined }),
+      effectKey: "k2",
+      description: "",
+      isInherited: true,
+      resolve: async () => {},
+    });
     expect(passesPlacementGuard(effStack, ctxStack)).toBe(true);
 
     // No deletedWasStackInstanceIds in trigger → backward compatible (returns true).
@@ -264,7 +341,15 @@ describe("builders carry flags through to the Effect", () => {
     expect(evo.isSecurity).toBe(false);
     expect(evo.maxPerTurn).toBe(-1);
 
-    const opt = onPlay({ source, effectKey: "o", description: "d", optional: true, isInherited: true, maxPerTurn: 1, resolve: async () => {} });
+    const opt = onPlay({
+      source,
+      effectKey: "o",
+      description: "d",
+      optional: true,
+      isInherited: true,
+      maxPerTurn: 1,
+      resolve: async () => {},
+    });
     expect(opt.optional).toBe(true);
     expect(opt.isInherited).toBe(true);
     expect(opt.maxPerTurn).toBe(1);

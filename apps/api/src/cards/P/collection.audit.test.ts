@@ -17,7 +17,9 @@ describe("P collection audit ledger guards", () => {
   });
 
   it("has a registered direct module and compiled IR record for every catalog card", () => {
-    const missingModules = pCards.filter((card) => getEffectModule(card.cardId) === undefined).map((card) => card.cardId);
+    const missingModules = pCards
+      .filter((card) => getEffectModule(card.cardId) === undefined)
+      .map((card) => card.cardId);
     const missingIr = pCards
       .filter((card) => getCompiledCard(card.cardId) === undefined || runtimeCompiledCard(card.cardId) === undefined)
       .map((card) => card.cardId);

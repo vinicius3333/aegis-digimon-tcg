@@ -70,12 +70,7 @@ function securityRiskFactor(view: BotView, attacker: BotUnit): number {
  * `exclude` drops a Digimon this very attack is about to delete: counting the target as a
  * future threat charges the attack twice for the same body.
  */
-function retaliationExposure(
-  view: BotView,
-  attacker: BotUnit,
-  profile: BotProfile,
-  exclude?: BotUnit,
-): number {
+function retaliationExposure(view: BotView, attacker: BotUnit, profile: BotProfile, exclude?: BotUnit): number {
   let threats = 0;
   for (const unit of view.opponentBoard) {
     if (unit.permanentId === exclude?.permanentId) continue;
@@ -115,9 +110,7 @@ function interception(view: BotView, attacker: BotUnit, profile: BotProfile): In
   const likelihood = profile.weights.blockerRisk * (holds ? 1 : CHUMP_BLOCK_LIKELIHOOD);
   return {
     chance: Math.min(1, Math.max(0, likelihood)),
-    outcome: holds
-      ? -profile.weights.loss * bodyValue(attacker)
-      : profile.weights.removal * bodyValue(blocker),
+    outcome: holds ? -profile.weights.loss * bodyValue(attacker) : profile.weights.removal * bodyValue(blocker),
   };
 }
 
@@ -138,8 +131,7 @@ export function memoryPenalty(view: BotView, cost: number, profile: BotProfile):
     // Capped because the marginal attack is worth less than the first: a wide board is not
     // proportionally more reason to refuse to develop, and without a cap the bot would
     // stop developing entirely once it had a few bodies out.
-    penalty +=
-      weights.crossZero + weights.crossZeroPerReadyAttacker * Math.min(forfeitable, MAX_FORFEITED_ATTACKS);
+    penalty += weights.crossZero + weights.crossZeroPerReadyAttacker * Math.min(forfeitable, MAX_FORFEITED_ATTACKS);
   }
   return penalty;
 }
@@ -157,13 +149,10 @@ function scoreAttackPlayer(view: BotView, attacker: BotUnit, profile: BotProfile
   if (view.opponentSecurityCount <= 0) return scoreLethalAttempt(view, attacker, profile);
 
   const unblocked =
-    weights.securityAttack -
-    weights.securityRisk * securityRiskFactor(view, attacker) * bodyValue(attacker);
+    weights.securityAttack - weights.securityRisk * securityRiskFactor(view, attacker) * bodyValue(attacker);
   const { chance, outcome } = interception(view, attacker, profile);
 
-  return (
-    (1 - chance) * unblocked + chance * outcome - retaliationExposure(view, attacker, profile)
-  );
+  return (1 - chance) * unblocked + chance * outcome - retaliationExposure(view, attacker, profile);
 }
 
 /** Score an attack against an opponent who has no security left to check. */
@@ -178,9 +167,7 @@ function scoreLethalAttempt(view: BotView, attacker: BotUnit, profile: BotProfil
   // Clearing a blocker costs us the attacker unless we out-DP the biggest of them.
   const biggest = blockers.reduce((left, right) => (right.dp > left.dp ? right : left));
   const exchange =
-    attacker.dp > biggest.dp
-      ? weights.removal * bodyValue(biggest)
-      : -weights.loss * bodyValue(attacker);
+    attacker.dp > biggest.dp ? weights.removal * bodyValue(biggest) : -weights.loss * bodyValue(attacker);
 
   // Enough bodies to exhaust every blocker and still swing: this attack is part of the
   // winning sequence, and `exchange` ranks WHICH body to spend on the clearing attacks.
@@ -191,12 +178,7 @@ function scoreLethalAttempt(view: BotView, attacker: BotUnit, profile: BotProfil
   return exchange;
 }
 
-function scoreAttackDigimon(
-  view: BotView,
-  attacker: BotUnit,
-  target: BotUnit,
-  profile: BotProfile,
-): number {
+function scoreAttackDigimon(view: BotView, attacker: BotUnit, target: BotUnit, profile: BotProfile): number {
   const { weights } = profile;
   let score: number;
   if (attacker.dp > target.dp) {
@@ -239,10 +221,7 @@ function scoreDigivolve(view: BotView, candidate: Candidate, profile: BotProfile
 function scorePlayDigimon(view: BotView, candidate: Candidate, profile: BotProfile): number {
   const definition = candidate.definition;
   if (definition === undefined) return Number.NEGATIVE_INFINITY;
-  return (
-    profile.weights.playBody * definitionBodyValue(definition) -
-    memoryPenalty(view, candidate.cost, profile)
-  );
+  return profile.weights.playBody * definitionBodyValue(definition) - memoryPenalty(view, candidate.cost, profile);
 }
 
 function scorePlayTamer(view: BotView, candidate: Candidate, profile: BotProfile): number {

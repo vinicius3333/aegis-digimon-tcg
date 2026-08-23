@@ -6,7 +6,6 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { staticModifier } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-
 const cardId = "EX2-007";
 const D_REAPER = "D-Reaper";
 const ADR_02_NAME = "ADR-02 Searcher";
@@ -80,21 +79,21 @@ const module: EffectModule = {
         },
         canActivate: (ctx) => {
           const player = ctx.game.player(ctx.source.ownerSeat);
-          return player.hand.some((card) => ctx.game.definitionOf(card).nameEn === ADR_02_NAME) ||
-            player.battleArea.some((permanent) =>
-              permanent.topCard !== undefined &&
-              ctx.game.definitionOf(permanent.topCard).nameEn === ADR_02_NAME,
-            );
+          return (
+            player.hand.some((card) => ctx.game.definitionOf(card).nameEn === ADR_02_NAME) ||
+            player.battleArea.some(
+              (permanent) =>
+                permanent.topCard !== undefined && ctx.game.definitionOf(permanent.topCard).nameEn === ADR_02_NAME,
+            )
+          );
         },
         resolve: async (ctx) => {
           const player = ctx.game.player(ctx.source.ownerSeat);
           const hand = player.hand;
-          const adr02 = hand.filter(
-            (c) => ctx.game.definitionOf(c).nameEn === ADR_02_NAME,
-          );
-          const field = player.battleArea.filter((permanent) =>
-            permanent.topCard !== undefined &&
-            ctx.game.definitionOf(permanent.topCard).nameEn === ADR_02_NAME,
+          const adr02 = hand.filter((c) => ctx.game.definitionOf(c).nameEn === ADR_02_NAME);
+          const field = player.battleArea.filter(
+            (permanent) =>
+              permanent.topCard !== undefined && ctx.game.definitionOf(permanent.topCard).nameEn === ADR_02_NAME,
           );
           if (adr02.length === 0 && field.length === 0) return;
           const self = ctx.source.permanent();
@@ -151,9 +150,7 @@ const module: EffectModule = {
             if (self === undefined) return;
             const n = self.stack.length;
             ctx.fx.changePlayCost(
-              (facts) =>
-                facts.controllerSeat === ctx.source.ownerSeat &&
-                hasDReaperTrait(facts.def),
+              (facts) => facts.controllerSeat === ctx.source.ownerSeat && hasDReaperTrait(facts.def),
               -n,
             );
           },

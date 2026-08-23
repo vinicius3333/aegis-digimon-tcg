@@ -92,9 +92,7 @@ describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
     expect(result).toBe("DONE");
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.memory).toBe(8);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) =>
-      instanceId === recipientInstanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === recipientInstanceId)).toBe(true);
   }, 10_000);
 
   it("resolves the production order decision without leaving a stale prompt", async () => {

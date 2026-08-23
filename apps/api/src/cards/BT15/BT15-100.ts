@@ -6,129 +6,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Leviamon (X Antibody)"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Delete",
-              "target": {
-                "count": 1,
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    4
-                  ]
-                }
+                tokens: ["Leviamon (X Antibody)"],
+                match: "name",
               },
-              "cost": {
-                "kind": "return",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
-                  },
-                  "count": 1,
-                  "isSelf": true
+            ],
+          },
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                count: 1,
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levels: [4],
                 },
-                "raw": "by returning this card to the bottom of the deck"
-              }
+              },
+              cost: {
+                kind: "return",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by returning this card to the bottom of the deck",
+              },
             },
             {
-              "kind": "Delete",
-              "target": {
-                "count": 1,
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    6
-                  ]
-                }
-              }
-            }
-          ]
-        }
+              kind: "Delete",
+              target: {
+                count: 1,
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levels: [6],
+                },
+              },
+            },
+          ],
+        },
       ],
-      "isFromTrash": true
+      isFromTrash: true,
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "count": 1,
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                4
-              ]
-            }
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
-              },
-              "count": 1
+          kind: "Delete",
+          target: {
+            count: 1,
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [4],
             },
-            "raw": "By trashing 1 card in your hand"
-          }
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card in your hand",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "count": 1,
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                6
-              ]
-            }
-          }
-        }
-      ]
+          kind: "Delete",
+          target: {
+            count: 1,
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [6],
+            },
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-100", compiled);

@@ -31,4 +31,6 @@ updateManifest("qa", {
   lastFetched: Object.keys(merged).length,
   failed,
 });
-process.stdout.write(`qa: merged ${files.length} shards, ${Object.keys(merged).length} cards with rulings, ${failed.length} cards not fetched -> ${QA_PATH}\n`);
+process.stdout.write(
+  `qa: merged ${files.length} shards, ${Object.keys(merged).length} cards with rulings, ${failed.length} cards not fetched -> ${QA_PATH}\n`,
+);

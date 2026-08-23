@@ -60,9 +60,7 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
     const grants = engine.continuous.listCustomEffectGrants();
     expect(
       grants.some(
-        (g) =>
-          g.instanceId === attacker.topCard!.instanceId &&
-          g.token === "[End of Attack] Delete this Digimon.",
+        (g) => g.instanceId === attacker.topCard!.instanceId && g.token === "[End of Attack] Delete this Digimon.",
       ),
     ).toBe(true);
 

@@ -61,23 +61,25 @@ describe("BT6 Titamon historical deck gauntlet", () => {
         instanceId: s.inst("titamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("rebellimon").topCard.instanceId === s.inst("titamon").instanceId &&
-      s.perm("rebellimon").stack.some(({ instanceId }) =>
-        instanceId === s.inst("discardedSkullGreymon").instanceId
-      ) &&
-      s.state.players[0]!.battleArea.some(({ topCard, stack }) =>
-        topCard.instanceId === s.inst("promote").instanceId && stack.length === 2
-      ) &&
-      s.state.players[0]!.hand.length === 3 &&
-      s.state.memory === 2 &&
-      s.state.pendingDecision === undefined,
-    5000);
+    await settle(
+      () =>
+        s.perm("rebellimon").topCard.instanceId === s.inst("titamon").instanceId &&
+        s
+          .perm("rebellimon")
+          .stack.some(({ instanceId }) => instanceId === s.inst("discardedSkullGreymon").instanceId) &&
+        s.state.players[0]!.battleArea.some(
+          ({ topCard, stack }) => topCard.instanceId === s.inst("promote").instanceId && stack.length === 2,
+        ) &&
+        s.state.players[0]!.hand.length === 3 &&
+        s.state.memory === 2 &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
     await settle(() => false, 1000);
     await s.engine.recomputeContinuousEffects();
 
-    const promote = s.state.players[0]!.battleArea.find(({ topCard }) =>
-      topCard.instanceId === s.inst("promote").instanceId
+    const promote = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("promote").instanceId,
     )!;
     expect(s.perm("rebellimon").currentDP).toBe(14_000);
     expect(observe(s.engine).keywordAmount(s.perm("rebellimon"), "SecurityAttack")).toBe(1);

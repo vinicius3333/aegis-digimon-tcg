@@ -103,11 +103,9 @@ describe("§17-1-2-2 rule checks aren't performed during effect processing (comp
 
       // The keyword clause DID resolve against the (momentarily 0-DP but not-yet-deleted)
       // target before it was trashed — the rule check waited for the whole effect.
-      expect(
-        grantSpy.mock.calls.some(
-          (call) => call[0] === target.permanentId && call[1] === "SecurityAttack",
-        ),
-      ).toBe(true);
+      expect(grantSpy.mock.calls.some((call) => call[0] === target.permanentId && call[1] === "SecurityAttack")).toBe(
+        true,
+      );
 
       // AFTER the full effect (both clauses) resolved, the rule check then deleted the
       // now-0-DP target — proving the check ran, just not until the effect finished.
@@ -120,85 +118,79 @@ describe("§17-1-2-2 rule checks aren't performed during effect processing (comp
 });
 
 describe("§17-1-3-2-2 Option cards in the battle area, except effect-placed ones — NOT IMPLEMENTED (comprehensive-0265)", () => {
-  it(
-    "NOW MET: an Option-kind permanent sitting in the battle area (not placed there by an effect) should be trashed by the rule-check sweep",
-    async () => {
-      cite(
-        "comprehensive-0265",
-        "DIVERGENCE (cross-referenced, not re-derived): §17-1-3-2-2 'Option cards in the battle " +
-          "area (except Option cards placed in the battle area by an effect)' are a trash target. " +
-          "GameEngine.ts's own ruleProcess() doc comment already names this gap: `Permanent` " +
-          "carries no field distinguishing 'placed by an effect' from any other origin, so this " +
-          "condition is omitted entirely from doRuleProcess()'s predicate list (no anyOptionInBattleArea " +
-          "check exists at all) — not narrowed-but-buggy, simply absent.",
-      );
+  it("NOW MET: an Option-kind permanent sitting in the battle area (not placed there by an effect) should be trashed by the rule-check sweep", async () => {
+    cite(
+      "comprehensive-0265",
+      "DIVERGENCE (cross-referenced, not re-derived): §17-1-3-2-2 'Option cards in the battle " +
+        "area (except Option cards placed in the battle area by an effect)' are a trash target. " +
+        "GameEngine.ts's own ruleProcess() doc comment already names this gap: `Permanent` " +
+        "carries no field distinguishing 'placed by an effect' from any other origin, so this " +
+        "condition is omitted entirely from doRuleProcess()'s predicate list (no anyOptionInBattleArea " +
+        "check exists at all) — not narrowed-but-buggy, simply absent.",
+    );
 
-      const s = setup();
-      const p1 = s.state.players[1] as PlayerState;
-      // A real Option card (BT3-101) seeded directly onto the battle area — a state that
-      // cannot arise through any legal play path (a normal Option play never reaches
-      // `placePermanent`; see GameEngine.ts's own comment), used here purely to exercise the
-      // rule-check sweep against an illegally-placed Option permanent.
-      const illegalOption = digimon(1, 0, "BT3-101");
-      p1.battleArea.push(illegalOption);
+    const s = setup();
+    const p1 = s.state.players[1] as PlayerState;
+    // A real Option card (BT3-101) seeded directly onto the battle area — a state that
+    // cannot arise through any legal play path (a normal Option play never reaches
+    // `placePermanent`; see GameEngine.ts's own comment), used here purely to exercise the
+    // rule-check sweep against an illegally-placed Option permanent.
+    const illegalOption = digimon(1, 0, "BT3-101");
+    p1.battleArea.push(illegalOption);
 
-      const trigger = instance("BT1-009", 0, false); // vanilla, effect-free — pure timing-window opener
-      const s0 = s.state.players[0] as PlayerState;
-      s0.hand.push(trigger);
-      s.state.memory = 2;
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId })).toEqual({ ok: true });
-      await settle();
+    const trigger = instance("BT1-009", 0, false); // vanilla, effect-free — pure timing-window opener
+    const s0 = s.state.players[0] as PlayerState;
+    s0.hand.push(trigger);
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId })).toEqual({ ok: true });
+    await settle();
 
-      // EXPECTED (per §17-1-3-2-2): trashed, since it wasn't placed there by an effect.
-      expect(p1.battleArea.some((p) => p.permanentId === illegalOption.permanentId)).toBe(false);
-      expect(p1.trash.some((c) => c.instanceId === illegalOption.topCard?.instanceId)).toBe(true);
-    },
-  );
+    // EXPECTED (per §17-1-3-2-2): trashed, since it wasn't placed there by an effect.
+    expect(p1.battleArea.some((p) => p.permanentId === illegalOption.permanentId)).toBe(false);
+    expect(p1.trash.some((c) => c.instanceId === illegalOption.topCard?.instanceId)).toBe(true);
+  });
 });
 
 describe("§17-1-3-2-6 / §17-1-3-2-7 link requirement / link category mismatch — NOT IMPLEMENTED (comprehensive-0265)", () => {
-  it(
-    "NOW MET: a linked card whose printed <Link> requirement the host no longer (or never did) satisfy should be trashed by the rule-check sweep",
-    async () => {
-      cite(
-        "comprehensive-0265",
-        "DIVERGENCE (cross-referenced, not re-derived): §17-1-3-2-6 'Link cards that don't meet " +
-          "the link requirements' and §17-1-3-2-7 'Linked cards in a card category other than " +
-          "those specified in the notes for <Link>' are both trash targets. GameEngine.ts's own " +
-          "ruleProcess() doc comment already names this gap: the compiled `linkRequirement` string " +
-          "exists on CardDefinition, but nothing at runtime re-evaluates a linked card's live host " +
-          "against it after the link is made — `canLinkToTargetPermanent` only gates a NEW link at " +
-          "declaration time. `anyExcessLinkCards` (§17-1-3-2-5, already implemented) checks only the " +
-          "COUNT of linked cards, never whether each one's own requirement still holds.",
-      );
+  it("NOW MET: a linked card whose printed <Link> requirement the host no longer (or never did) satisfy should be trashed by the rule-check sweep", async () => {
+    cite(
+      "comprehensive-0265",
+      "DIVERGENCE (cross-referenced, not re-derived): §17-1-3-2-6 'Link cards that don't meet " +
+        "the link requirements' and §17-1-3-2-7 'Linked cards in a card category other than " +
+        "those specified in the notes for <Link>' are both trash targets. GameEngine.ts's own " +
+        "ruleProcess() doc comment already names this gap: the compiled `linkRequirement` string " +
+        "exists on CardDefinition, but nothing at runtime re-evaluates a linked card's live host " +
+        "against it after the link is made — `canLinkToTargetPermanent` only gates a NEW link at " +
+        "declaration time. `anyExcessLinkCards` (§17-1-3-2-5, already implemented) checks only the " +
+        "COUNT of linked cards, never whether each one's own requirement still holds.",
+    );
 
-      // BT21-009 (Gatchmon): printed `linkRequirement: "[Link] [Appmon] trait: Cost 1"` — legal
-      // only on a host carrying the [Appmon] trait.
-      const linkDef = requireCardDefinition("BT21-009");
-      expect(linkDef.linkRequirement).toContain("Appmon");
+    // BT21-009 (Gatchmon): printed `linkRequirement: "[Link] [Appmon] trait: Cost 1"` — legal
+    // only on a host carrying the [Appmon] trait.
+    const linkDef = requireCardDefinition("BT21-009");
+    expect(linkDef.linkRequirement).toContain("Appmon");
 
-      const s = setup();
-      const p0 = s.state.players[0] as PlayerState;
-      // AD1-001 (Greymon): traits are [Dinosaur, ADVENTURE] — no [Appmon] trait anywhere. A
-      // real host that categorically fails BT21-009's own printed link requirement.
-      const hostDef = requireCardDefinition("AD1-001");
-      expect(hostDef.types ?? []).not.toContain("Appmon");
-      const host = digimon(0, 5000, "AD1-001");
-      const mismatchedLink = instance("BT21-009", 0, true);
-      host.linked.push(mismatchedLink);
-      p0.battleArea.push(host);
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    // AD1-001 (Greymon): traits are [Dinosaur, ADVENTURE] — no [Appmon] trait anywhere. A
+    // real host that categorically fails BT21-009's own printed link requirement.
+    const hostDef = requireCardDefinition("AD1-001");
+    expect(hostDef.types ?? []).not.toContain("Appmon");
+    const host = digimon(0, 5000, "AD1-001");
+    const mismatchedLink = instance("BT21-009", 0, true);
+    host.linked.push(mismatchedLink);
+    p0.battleArea.push(host);
 
-      const trigger = instance("BT1-009", 0, false);
-      p0.hand.push(trigger);
-      s.state.memory = 2;
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId })).toEqual({ ok: true });
-      await settle();
+    const trigger = instance("BT1-009", 0, false);
+    p0.hand.push(trigger);
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId })).toEqual({ ok: true });
+    await settle();
 
-      // EXPECTED (per §17-1-3-2-6/2-7): trashed — the host never carried [Appmon].
-      expect(host.linked.some((c) => c.instanceId === mismatchedLink.instanceId)).toBe(false);
-      expect(p0.trash.some((c) => c.instanceId === mismatchedLink.instanceId)).toBe(true);
-    },
-  );
+    // EXPECTED (per §17-1-3-2-6/2-7): trashed — the host never carried [Appmon].
+    expect(host.linked.some((c) => c.instanceId === mismatchedLink.instanceId)).toBe(false);
+    expect(p0.trash.some((c) => c.instanceId === mismatchedLink.instanceId)).toBe(true);
+  });
 });
 
 // §17-1-1 (comprehensive-0264, shared chunk): the definitional preamble ("a rule check is a

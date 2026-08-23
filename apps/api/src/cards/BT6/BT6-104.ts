@@ -8,41 +8,37 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // anchored on the controller's Digimon with duration untilOpponentTurnEnd (matching
 // the RB1-030 pattern for duration-scoped [On Deletion] effect grants).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "grant": "effects",
-          "tokens": [
-            "OnDeletionGain2Memory"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          grant: "effects",
+          tokens: ["OnDeletionGain2Memory"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-104", compiled);

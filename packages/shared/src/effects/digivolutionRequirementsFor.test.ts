@@ -56,7 +56,12 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     const reqs = digivolutionRequirementsFor("BT26-050");
     expect(reqs).toEqual([
       { level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true },
-      { cost: 0, isAlternate: true, names: ["Rosemon"], burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] } },
+      {
+        cost: 0,
+        isAlternate: true,
+        names: ["Rosemon"],
+        burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
+      },
     ]);
   });
 });

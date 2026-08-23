@@ -10,7 +10,23 @@ describe("BT17-059 Diaboromon", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OpponentsTurn");
     expect(effect).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ event: "whenOpponentAttacks", actions: [{ kind: "RedirectAttack", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }] } } }] }],
+      actions: [
+        {
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }],
+                },
+              },
+            },
+          ],
+        },
+      ],
     });
   });
 

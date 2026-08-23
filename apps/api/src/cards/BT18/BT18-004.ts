@@ -6,50 +6,46 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "hand",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Royal Base"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Royal Base"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By placing 1 Digimon card with the [Royal Base] trait in your hand face up as the bottom security card",
-            "destination": "security",
-            "position": "bottom",
-            "faceDown": false
+            raw: "By placing 1 Digimon card with the [Royal Base] trait in your hand face up as the bottom security card",
+            destination: "security",
+            position: "bottom",
+            faceDown: false,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT18-004", compiled);

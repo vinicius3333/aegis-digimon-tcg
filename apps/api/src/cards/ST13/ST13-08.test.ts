@@ -12,23 +12,32 @@ describe("ST13-08 Chikurimon", () => {
     });
     s.state.memory = 4;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blackWarGreymon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blackWarGreymon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT2-112"));
     expect(s.state.memory).toBe(-9);
   });
 
   it("does not prevent an effect from playing a card without paying its cost", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: ["ST13-08", "BT1-009"],
-      hand: [
-        { card: "ST13-16", as: "option" },
-        { card: "ST13-02", as: "zubamon" },
-      ],
-    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST13-08", "BT1-009"],
+          hand: [
+            { card: "ST13-16", as: "option" },
+            { card: "ST13-02", as: "zubamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST13-02"));
 
     expect(s.state.memory).toBe(0);

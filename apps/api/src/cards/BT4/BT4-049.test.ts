@@ -6,9 +6,29 @@ import "./BT4-049.js";
 
 describe("BT4-049 Varodurumon", () => {
   it("Digi-Bursts 3 to give all opposing Digimon -4000 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-049", as: "varo", under: ["BT1-001", "BT4-039", "BT4-046"] }] }, 1: { battleArea: [{ card: "BT2-083", dp: 12000, as: "a" }, { card: "BT4-060", dp: 12000, as: "b" }] } }, { autoSelectCards: true });
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(s.perm("varo").topCard!)).find((effect) => effect.effectKey.startsWith("BT4-049/"))!.effectKey;
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("varo").topCard!.instanceId, effectKey })).toEqual({ ok: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-049", as: "varo", under: ["BT1-001", "BT4-039", "BT4-046"] }] },
+        1: {
+          battleArea: [
+            { card: "BT2-083", dp: 12000, as: "a" },
+            { card: "BT4-060", dp: 12000, as: "b" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const effectKey = effectsOf(
+      EffectTiming.OnDeclaration,
+      (s.engine as any).cardSourceOf(s.perm("varo").topCard!),
+    ).find((effect) => effect.effectKey.startsWith("BT4-049/"))!.effectKey;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("varo").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("a").currentDP === 8000 && s.perm("b").currentDP === 8000);
 
     expect(s.perm("varo").stack).toHaveLength(0);

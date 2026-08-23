@@ -4,8 +4,17 @@ import { setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
 const BT26_ASSEMBLY = [
-  "BT26-014", "BT26-017", "BT26-028", "BT26-037", "BT26-047", "BT26-073",
-  "BT26-079", "BT26-081", "BT26-083", "BT26-085", "BT26-086",
+  "BT26-014",
+  "BT26-017",
+  "BT26-028",
+  "BT26-037",
+  "BT26-047",
+  "BT26-073",
+  "BT26-079",
+  "BT26-081",
+  "BT26-083",
+  "BT26-085",
+  "BT26-086",
 ] as const;
 
 describe("BT26 Assembly requirements", () => {

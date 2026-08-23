@@ -4,9 +4,20 @@ import "./EX2-072.js";
 
 describe("EX2-072 Blue Card", () => {
   it("reveals five and adds a Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: ["EX2-060", "EX2-046"], hand: [{ card: "EX2-072", as: "option" }], deck: [{ card: "EX2-019", as: "digimon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004"] } }, { autoSelectCards: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["EX2-060", "EX2-046"],
+          hand: [{ card: "EX2-072", as: "option" }],
+          deck: [{ card: "EX2-019", as: "digimon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digimon").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digimon").instanceId)).toBe(true);
   });
@@ -41,16 +52,16 @@ describe("EX2-072 Blue Card", () => {
     s.state.memory = 10;
     const memoryBefore = s.state.memory;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("blueCard").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("blueCard").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("renamon").topCard.instanceId === s.inst("kyubimon").instanceId);
 
     expect(s.perm("renamon").topCard.cardId).toBe("EX2-021");
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
-      s.inst("bonusDraw").instanceId,
-    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
     // Blue Card pays 3, the revealed digivolution is free, and Renamon's
     // inherited effect refunds 1 memory for using a 2+-cost Option.
     expect(s.state.memory).toBe(memoryBefore - 2);

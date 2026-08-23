@@ -114,8 +114,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       }
     };
     const seed = options.seed + seat * 7919;
-    const policy =
-      config.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(config.profile), seed });
+    const policy = config.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(config.profile), seed });
     bots[seat] = new BotPlayer(seat, state, send, {
       policy: timed(policy, stats[seat].decisionLatenciesMs),
       seed,
@@ -315,7 +314,10 @@ export async function runBotSeries(options: SeriesOptions): Promise<SeriesResult
 
 function aggregate(label: string, samples: readonly SeatStats[]): AggregateStats {
   const games = Math.max(1, samples.length);
-  const totalTurns = Math.max(1, samples.reduce((sum, sample) => sum + sample.turnsTaken, 0));
+  const totalTurns = Math.max(
+    1,
+    samples.reduce((sum, sample) => sum + sample.turnsTaken, 0),
+  );
   const latencies = samples.flatMap((sample) => sample.decisionLatenciesMs).sort((a, b) => a - b);
   const quantile = (fraction: number): number =>
     latencies.length === 0 ? 0 : latencies[Math.min(latencies.length - 1, Math.floor(latencies.length * fraction))]!;

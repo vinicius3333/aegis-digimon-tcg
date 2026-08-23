@@ -26,14 +26,18 @@ describe("BT11-067 Gigadramon", () => {
     });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gigadramon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gigadramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("gigadramon").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("gigadramon").permanentId),
+    ).toBe(true);
   });
 
   it("unsuspends its host with inherited Reboot during the opponent's phase", async () => {

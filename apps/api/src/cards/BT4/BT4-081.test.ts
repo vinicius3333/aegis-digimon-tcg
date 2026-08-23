@@ -6,11 +6,25 @@ import "./BT4-081.js";
 
 describe("BT4-081 Devimon", () => {
   it("Digi-Bursts 2 to delete an opposing level 3 Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] }, 1: { battleArea: [{ card: "BT4-076", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] },
+        1: { battleArea: [{ card: "BT4-076", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     const targetId = s.perm("target").permanentId;
     const source = (s.engine as any).cardSourceOf(s.perm("devimon").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT4-081/"))!.effectKey;
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("devimon").topCard!.instanceId, effectKey })).toEqual({ ok: true });
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT4-081/"),
+    )!.effectKey;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("devimon").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
 
     expect(s.perm("devimon").stack).toHaveLength(0);
@@ -18,18 +32,25 @@ describe("BT4-081 Devimon", () => {
   });
 
   it("pays Digi-Burst 2 but does not delete an opposing level 4 Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] },
-      1: { battleArea: [{ card: "BT4-083", as: "target" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] },
+        1: { battleArea: [{ card: "BT4-083", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     const source = (s.engine as any).cardSourceOf(s.perm("devimon").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT4-081/"))!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT4-081/"),
+    )!.effectKey;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("devimon").topCard!.instanceId,
-      effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("devimon").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("devimon").stack.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

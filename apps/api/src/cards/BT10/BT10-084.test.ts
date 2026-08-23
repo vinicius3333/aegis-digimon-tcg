@@ -269,16 +269,24 @@ describe("BT10-084 (Tactimon)", () => {
 
     // grantKeyword called for each played Digimon with Blocker + UntilOpponentTurnEnd.
     const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
-    expect(onPlay?.actions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: "PlayWithoutCost" }),
-      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }),
-    ]));
+    expect(onPlay?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "PlayWithoutCost" }),
+        expect.objectContaining({
+          kind: "GainKeyword",
+          keyword: { keyword: "Blocker" },
+          duration: "untilOpponentTurnEnd",
+        }),
+      ]),
+    );
   });
 
   it("[On Play] targets only Bagra Army Digimon at level 4 or lower from trash", async () => {
     const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], optional: true });
-    expect(onPlay?.actions[0]).toMatchObject({ target: { filter: { levelMax: 4, nameOrTrait: [{ tokens: ["Bagra Army"] }] } } });
+    expect(onPlay?.actions[0]).toMatchObject({
+      target: { filter: { levelMax: 4, nameOrTrait: [{ tokens: ["Bagra Army"] }] } },
+    });
   });
 });
 

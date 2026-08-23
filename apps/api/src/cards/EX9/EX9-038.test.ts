@@ -8,13 +8,32 @@ import "../index.js";
 
 describe("EX9-038", () => {
   it("has Training and suspends an opposing Digimon with an unsuspend restriction on play and attack", () => {
-    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({ keyword: "Training", raw: "＜Training＞" });
-    for (const trigger of ["OnPlay", "WhenAttacking"]) expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({ actions: [{ kind: "Suspend", cost: { kind: "place", target: { filter: { zone: "hand" } } } }, { kind: "Restrict", restriction: "unsuspend", target: { sameTarget: true } }] });
+    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Training",
+      raw: "＜Training＞",
+    });
+    for (const trigger of ["OnPlay", "WhenAttacking"])
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
+        actions: [
+          { kind: "Suspend", cost: { kind: "place", target: { filter: { zone: "hand" } } } },
+          { kind: "Restrict", restriction: "unsuspend", target: { sameTarget: true } },
+        ],
+      });
   });
-  it("inherits Piercing", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "Piercing", raw: "＜Piercing＞" }));
+  it("inherits Piercing", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Piercing",
+      raw: "＜Piercing＞",
+    }));
 
   it("places a hand card face-down and restricts the suspended target on attack", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX9-038", as: "source" }], hand: ["BT1-001"] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } }, { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-038", as: "source" }], hand: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
     s.state.turnSeat = 0;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
     await settle(() => s.perm("opponent").isSuspended);

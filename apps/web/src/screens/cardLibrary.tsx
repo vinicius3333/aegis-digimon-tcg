@@ -3,7 +3,13 @@
    registry through these (one filter rail, one detail drawer, two screens). */
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { effectiveCopyLimit, getCardDefinition, restrictionLabel, type CardColor, type CardDefinition } from "@aegis/shared";
+import {
+  effectiveCopyLimit,
+  getCardDefinition,
+  restrictionLabel,
+  type CardColor,
+  type CardDefinition,
+} from "@aegis/shared";
 import { Button, ColorDot, Eyebrow } from "../design/primitives";
 import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
@@ -33,7 +39,8 @@ export function matchesColorFilter({
   mode: ColorFilterMode;
 }): boolean {
   if (selectedColors.length === 0) return true;
-  const hasColor = (selectedColor: ColorName): boolean => cardColors.some((cardColor) => colorKey(cardColor) === selectedColor);
+  const hasColor = (selectedColor: ColorName): boolean =>
+    cardColors.some((cardColor) => colorKey(cardColor) === selectedColor);
   return mode === "all" ? selectedColors.every(hasColor) : selectedColors.some(hasColor);
 }
 
@@ -43,10 +50,15 @@ export function matchesLevelFilter(cardLevel: number | undefined, selectedLevels
 
 /** The final cost chip is a 7-or-more bucket, so high-cost cards remain discoverable. */
 export function matchesCostFilter(playCost: number, selectedCosts: readonly CostFilter[]): boolean {
-  return selectedCosts.length === 0 || selectedCosts.some((cost) => cost === 7 ? playCost >= cost : playCost === cost);
+  return (
+    selectedCosts.length === 0 || selectedCosts.some((cost) => (cost === 7 ? playCost >= cost : playCost === cost))
+  );
 }
 
-export function matchesRarityFilter(cardRarity: string | undefined, selectedRarities: readonly RarityFilter[]): boolean {
+export function matchesRarityFilter(
+  cardRarity: string | undefined,
+  selectedRarities: readonly RarityFilter[],
+): boolean {
   return selectedRarities.length === 0 || selectedRarities.some((rarity) => rarity === cardRarity);
 }
 
@@ -56,29 +68,37 @@ export function matchesTraitOrAttributeFilter(
 ): boolean {
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) return true;
-  return [...(card.types ?? []), ...(card.attributes ?? [])]
-    .some((value) => value.toLowerCase().includes(normalizedQuery));
+  return [...(card.types ?? []), ...(card.attributes ?? [])].some((value) =>
+    value.toLowerCase().includes(normalizedQuery),
+  );
 }
 
 // Chronological EN release order — higher index = more recent.
 // Source: world.digimoncard.com / en.digimoncard.com official release events.
 const SET_RELEASE_ORDER: Record<string, number> = {
-  ST1: 1,  ST2: 2,  ST3: 3,
+  ST1: 1,
+  ST2: 2,
+  ST3: 3,
   BT1: 4,
   BT2: 5,
   BT3: 6,
-  ST4: 7,  ST5: 8,  ST6: 9,
+  ST4: 7,
+  ST5: 8,
+  ST6: 9,
   BT4: 10,
   BT5: 11,
-  ST7: 12, ST8: 13,
+  ST7: 12,
+  ST8: 13,
   BT6: 14,
   EX1: 15,
   BT7: 16,
-  ST9: 17, ST10: 18,
+  ST9: 17,
+  ST10: 18,
   BT8: 19,
   EX2: 20,
   BT9: 21,
-  ST12: 22, ST13: 23,
+  ST12: 22,
+  ST13: 23,
   BT10: 24,
   EX3: 25,
   BT11: 26,
@@ -87,7 +107,8 @@ const SET_RELEASE_ORDER: Record<string, number> = {
   EX4: 29,
   RB1: 30,
   BT13: 31,
-  ST15: 32, ST16: 33,
+  ST15: 32,
+  ST16: 33,
   BT14: 34,
   EX5: 35,
   BT15: 36,
@@ -95,12 +116,15 @@ const SET_RELEASE_ORDER: Record<string, number> = {
   BT16: 38,
   EX6: 39,
   BT17: 40,
-  ST18: 41, ST19: 42,
+  ST18: 41,
+  ST19: 42,
   EX7: 43,
   BT18: 44,
   EX8: 45,
-  BT19: 46, BT20: 47,
-  ST20: 48, ST21: 49,
+  BT19: 46,
+  BT20: 47,
+  ST20: 48,
+  ST21: 49,
   BT21: 50,
   EX9: 51,
   BT22: 52,
@@ -109,7 +133,8 @@ const SET_RELEASE_ORDER: Record<string, number> = {
   ST22: 55,
   BT24: 56,
   EX11: 57,
-  ST23: 58, ST24: 59,
+  ST23: 58,
+  ST24: 59,
   AD1: 60,
   BT25: 61,
   EX12: 62,
@@ -285,12 +310,33 @@ export function useCardFilter(
     toggleCost: (v) => setCosts((cs) => (cs.includes(v) ? cs.filter((x) => x !== v) : [...cs, v])),
     toggleRarity: (v) => setRarities((rs) => (rs.includes(v) ? rs.filter((x) => x !== v) : [...rs, v])),
     setSort,
-    clear: () => { setQuery(""); setColors([]); setKinds([]); setLevels([]); setCosts([]); setRarities([]); setTraitQuery(""); setSet(""); },
+    clear: () => {
+      setQuery("");
+      setColors([]);
+      setKinds([]);
+      setLevels([]);
+      setCosts([]);
+      setRarities([]);
+      setTraitQuery("");
+      setSet("");
+    },
   };
 }
 
 /* ---------- the shared left filter rail ---------- */
-export function FilterRail({ filter, extra, showCostFilter = false, showRarityFilter = false, showSort = false }: { filter: CardFilter; extra?: ReactNode; showCostFilter?: boolean; showRarityFilter?: boolean; showSort?: boolean }) {
+export function FilterRail({
+  filter,
+  extra,
+  showCostFilter = false,
+  showRarityFilter = false,
+  showSort = false,
+}: {
+  filter: CardFilter;
+  extra?: ReactNode;
+  showCostFilter?: boolean;
+  showRarityFilter?: boolean;
+  showSort?: boolean;
+}) {
   const { t } = useTranslation();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const sheetId = useId();
@@ -312,10 +358,24 @@ export function FilterRail({ filter, extra, showCostFilter = false, showRarityFi
 
   return (
     <>
-      <Button className="card-filter-trigger" variant="secondary" icon={Icons.Filter} aria-controls={sheetId} aria-expanded={mobileFiltersOpen} onClick={() => setMobileFiltersOpen(true)}>
+      <Button
+        className="card-filter-trigger"
+        variant="secondary"
+        icon={Icons.Filter}
+        aria-controls={sheetId}
+        aria-expanded={mobileFiltersOpen}
+        onClick={() => setMobileFiltersOpen(true)}
+      >
         {t("mobile.filters")}
       </Button>
-      {mobileFiltersOpen ? <button type="button" className="card-filter-sheet-backdrop" aria-label={t("common.close")} onClick={() => setMobileFiltersOpen(false)} /> : null}
+      {mobileFiltersOpen ? (
+        <button
+          type="button"
+          className="card-filter-sheet-backdrop"
+          aria-label={t("common.close")}
+          onClick={() => setMobileFiltersOpen(false)}
+        />
+      ) : null}
       <aside
         ref={sheetRef}
         id={sheetId}
@@ -324,177 +384,330 @@ export function FilterRail({ filter, extra, showCostFilter = false, showRarityFi
         aria-modal={mobileFiltersOpen || undefined}
         aria-labelledby={mobileFiltersOpen ? `${sheetId}-title` : undefined}
         tabIndex={mobileFiltersOpen ? -1 : undefined}
-        style={{ width: 236, flexShrink: 0, borderRight: "1px solid var(--ds-border)", background: "var(--ds-surface)", padding: 20, overflowY: "auto", display: "flex", flexDirection: "column", gap: 22 }}
+        style={{
+          width: 236,
+          flexShrink: 0,
+          borderRight: "1px solid var(--ds-border)",
+          background: "var(--ds-surface)",
+          padding: 20,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 22,
+        }}
       >
-      <div className="card-filter-sheet-header">
-        <h2 id={`${sheetId}-title`}>{t("mobile.filters")}</h2>
-        <button type="button" aria-label={t("common.close")} onClick={() => setMobileFiltersOpen(false)}>×</button>
-      </div>
-      <div style={{ position: "relative" }}>
-        <Icons.Search size={15} style={{ position: "absolute", left: 11, top: 10, color: "var(--ds-foreground-muted)" }} />
-        <input
-          aria-label={t("library.searchPlaceholder")}
-          name="cardSearch"
-          autoComplete="off"
-          value={filter.query}
-          onChange={(e) => filter.setQuery(e.target.value)}
-          placeholder={t("library.searchPlaceholder")}
-          style={{ width: "100%", padding: "8px 10px 8px 32px", borderRadius: 10, border: "1px solid var(--ds-border-strong)", background: "var(--ds-background)", color: "var(--ds-foreground)", fontSize: 13.5, fontFamily: "var(--ds-font-sans)", outline: "none" }}
-        />
-      </div>
-
-      <div>
-        <div style={railLabel}>{t("library.color")}</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {COLOR_KEYS.map((col) => {
-            const on = filter.colors.includes(col);
-            const c = COLORS[col];
-            return (
-              <button
-                key={col}
-                onClick={() => filter.toggleColor(col)}
-                style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 9, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "var(--ds-font-sans)", background: on ? c.soft : "var(--ds-surface-muted)", border: `1px solid ${on ? c.base : "var(--ds-border)"}`, color: on ? "var(--ds-foreground)" : "var(--ds-foreground-muted)" }}
-              >
-                <ColorDot color={col} size={10} />{col}
-              </button>
-            );
-          })}
+        <div className="card-filter-sheet-header">
+          <h2 id={`${sheetId}-title`}>{t("mobile.filters")}</h2>
+          <button type="button" aria-label={t("common.close")} onClick={() => setMobileFiltersOpen(false)}>
+            ×
+          </button>
         </div>
-      </div>
-
-      <div>
-        <div style={railLabel}>{t("library.cardType")}</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {KIND_FILTERS.map((k) => {
-            const on = filter.kinds.includes(k);
-            return (
-              <button
-                key={k}
-                onClick={() => filter.toggleKind(k)}
-                style={{ padding: "5px 11px", borderRadius: 9, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "var(--ds-font-sans)", background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)", border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`, color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)" }}
-              >
-                {t(`library.kind.${k}` as const)}
-              </button>
-            );
-          })}
+        <div style={{ position: "relative" }}>
+          <Icons.Search
+            size={15}
+            style={{ position: "absolute", left: 11, top: 10, color: "var(--ds-foreground-muted)" }}
+          />
+          <input
+            aria-label={t("library.searchPlaceholder")}
+            name="cardSearch"
+            autoComplete="off"
+            value={filter.query}
+            onChange={(e) => filter.setQuery(e.target.value)}
+            placeholder={t("library.searchPlaceholder")}
+            style={{
+              width: "100%",
+              padding: "8px 10px 8px 32px",
+              borderRadius: 10,
+              border: "1px solid var(--ds-border-strong)",
+              background: "var(--ds-background)",
+              color: "var(--ds-foreground)",
+              fontSize: 13.5,
+              fontFamily: "var(--ds-font-sans)",
+              outline: "none",
+            }}
+          />
         </div>
-      </div>
 
-      <div>
-        <div style={railLabel}>{t("library.level")}</div>
-        <div role="group" aria-label={t("library.level")} style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {LEVEL_FILTERS.map((level) => {
-            const on = filter.levels.includes(level);
-            return (
-              <button
-                key={level}
-                onClick={() => filter.toggleLevel(level)}
-                aria-pressed={on}
-                style={{ padding: "5px 11px", borderRadius: 9, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "var(--ds-font-sans)", background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)", border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`, color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)" }}
-              >
-                Lv. {level}
-              </button>
-            );
-          })}
+        <div>
+          <div style={railLabel}>{t("library.color")}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+            {COLOR_KEYS.map((col) => {
+              const on = filter.colors.includes(col);
+              const c = COLORS[col];
+              return (
+                <button
+                  key={col}
+                  onClick={() => filter.toggleColor(col)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "5px 10px",
+                    borderRadius: 9,
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: "var(--ds-font-sans)",
+                    background: on ? c.soft : "var(--ds-surface-muted)",
+                    border: `1px solid ${on ? c.base : "var(--ds-border)"}`,
+                    color: on ? "var(--ds-foreground)" : "var(--ds-foreground-muted)",
+                  }}
+                >
+                  <ColorDot color={col} size={10} />
+                  {col}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {showCostFilter ? <div>
-        <div style={railLabel}>{t("library.playCost")}</div>
-        <div role="group" aria-label={t("library.playCost")} style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {COST_FILTERS.map((cost) => {
-            const on = filter.costs.includes(cost);
-            return (
-              <button
-                key={cost}
-                onClick={() => filter.toggleCost(cost)}
-                aria-pressed={on}
-                style={{ padding: "5px 11px", borderRadius: 9, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "var(--ds-font-sans)", background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)", border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`, color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)" }}
-              >
-                {cost === 7 ? "7+" : cost}
-              </button>
-            );
-          })}
+        <div>
+          <div style={railLabel}>{t("library.cardType")}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+            {KIND_FILTERS.map((k) => {
+              const on = filter.kinds.includes(k);
+              return (
+                <button
+                  key={k}
+                  onClick={() => filter.toggleKind(k)}
+                  style={{
+                    padding: "5px 11px",
+                    borderRadius: 9,
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: "var(--ds-font-sans)",
+                    background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
+                    border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
+                    color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
+                  }}
+                >
+                  {t(`library.kind.${k}` as const)}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div> : null}
 
-      {showRarityFilter ? <div>
-        <div style={railLabel}>{t("library.rarity")}</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {RARITY_FILTERS.map((rarity) => {
-            const on = filter.rarities.includes(rarity);
-            return (
-              <button
-                key={rarity}
-                onClick={() => filter.toggleRarity(rarity)}
-                aria-pressed={on}
-                style={{ padding: "5px 11px", borderRadius: 9, cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "var(--ds-font-sans)", background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)", border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`, color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)" }}
-              >
-                {rarity}
-              </button>
-            );
-          })}
+        <div>
+          <div style={railLabel}>{t("library.level")}</div>
+          <div role="group" aria-label={t("library.level")} style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+            {LEVEL_FILTERS.map((level) => {
+              const on = filter.levels.includes(level);
+              return (
+                <button
+                  key={level}
+                  onClick={() => filter.toggleLevel(level)}
+                  aria-pressed={on}
+                  style={{
+                    padding: "5px 11px",
+                    borderRadius: 9,
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: "var(--ds-font-sans)",
+                    background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
+                    border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
+                    color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
+                  }}
+                >
+                  Lv. {level}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div> : null}
 
-      {showSort ? <div>
-        <div style={railLabel}>{t("library.sort")}</div>
-        <select
-          value={filter.sort}
-          onChange={(e) => filter.setSort(e.target.value as CardSort)}
-          aria-label={t("library.sort")}
-          style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1px solid var(--ds-border-strong)", background: "var(--ds-background)", color: "var(--ds-foreground)", fontSize: 13, fontFamily: "var(--ds-font-sans)", outline: "none", cursor: "pointer" }}
+        {showCostFilter ? (
+          <div>
+            <div style={railLabel}>{t("library.playCost")}</div>
+            <div role="group" aria-label={t("library.playCost")} style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+              {COST_FILTERS.map((cost) => {
+                const on = filter.costs.includes(cost);
+                return (
+                  <button
+                    key={cost}
+                    onClick={() => filter.toggleCost(cost)}
+                    aria-pressed={on}
+                    style={{
+                      padding: "5px 11px",
+                      borderRadius: 9,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: "var(--ds-font-sans)",
+                      background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
+                      border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
+                      color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
+                    }}
+                  >
+                    {cost === 7 ? "7+" : cost}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {showRarityFilter ? (
+          <div>
+            <div style={railLabel}>{t("library.rarity")}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+              {RARITY_FILTERS.map((rarity) => {
+                const on = filter.rarities.includes(rarity);
+                return (
+                  <button
+                    key={rarity}
+                    onClick={() => filter.toggleRarity(rarity)}
+                    aria-pressed={on}
+                    style={{
+                      padding: "5px 11px",
+                      borderRadius: 9,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: "var(--ds-font-sans)",
+                      background: on ? "var(--ds-primary-light)" : "var(--ds-surface-muted)",
+                      border: `1px solid ${on ? "var(--ds-primary)" : "var(--ds-border)"}`,
+                      color: on ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
+                    }}
+                  >
+                    {rarity}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {showSort ? (
+          <div>
+            <div style={railLabel}>{t("library.sort")}</div>
+            <select
+              value={filter.sort}
+              onChange={(e) => filter.setSort(e.target.value as CardSort)}
+              aria-label={t("library.sort")}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: 10,
+                border: "1px solid var(--ds-border-strong)",
+                background: "var(--ds-background)",
+                color: "var(--ds-foreground)",
+                fontSize: 13,
+                fontFamily: "var(--ds-font-sans)",
+                outline: "none",
+                cursor: "pointer",
+              }}
+            >
+              {CARD_SORTS.map((sort) => (
+                <option key={sort} value={sort}>
+                  {t(`library.sort.${sort}` as const)}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+
+        <div>
+          <div style={railLabel}>{t("library.traitAttribute")}</div>
+          <input
+            name="traitSearch"
+            autoComplete="off"
+            value={filter.traitQuery}
+            onChange={(e) => filter.setTraitQuery(e.target.value)}
+            aria-label={t("library.traitAttribute")}
+            placeholder={t("library.traitAttributePlaceholder")}
+            style={{
+              width: "100%",
+              padding: "8px 10px",
+              borderRadius: 10,
+              border: "1px solid var(--ds-border-strong)",
+              background: "var(--ds-background)",
+              color: "var(--ds-foreground)",
+              fontSize: 13.5,
+              fontFamily: "var(--ds-font-sans)",
+              outline: "none",
+            }}
+          />
+        </div>
+
+        <div>
+          <div style={railLabel}>{t("library.set")}</div>
+          <select
+            aria-label={t("library.set")}
+            name="cardSet"
+            value={filter.set}
+            onChange={(e) => filter.setSet(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "8px 10px",
+              borderRadius: 10,
+              border: "1px solid var(--ds-border-strong)",
+              background: "var(--ds-background)",
+              color: "var(--ds-foreground)",
+              fontSize: 13,
+              fontFamily: "var(--ds-font-sans)",
+              outline: "none",
+              cursor: "pointer",
+            }}
+          >
+            <option value="">{t("library.allSets")}</option>
+            {filter.availableSets.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {extra}
+
+        <button
+          onClick={filter.clear}
+          style={{
+            marginTop: "auto",
+            padding: 8,
+            borderRadius: 9,
+            border: "1px solid var(--ds-border)",
+            background: "transparent",
+            color: "var(--ds-foreground-muted)",
+            cursor: "pointer",
+            fontSize: 12.5,
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+          }}
         >
-          {CARD_SORTS.map((sort) => <option key={sort} value={sort}>{t(`library.sort.${sort}` as const)}</option>)}
-        </select>
-      </div> : null}
-
-      <div>
-        <div style={railLabel}>{t("library.traitAttribute")}</div>
-        <input
-          name="traitSearch"
-          autoComplete="off"
-          value={filter.traitQuery}
-          onChange={(e) => filter.setTraitQuery(e.target.value)}
-          aria-label={t("library.traitAttribute")}
-          placeholder={t("library.traitAttributePlaceholder")}
-          style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1px solid var(--ds-border-strong)", background: "var(--ds-background)", color: "var(--ds-foreground)", fontSize: 13.5, fontFamily: "var(--ds-font-sans)", outline: "none" }}
-        />
-      </div>
-
-      <div>
-        <div style={railLabel}>{t("library.set")}</div>
-        <select
-          aria-label={t("library.set")}
-          name="cardSet"
-          value={filter.set}
-          onChange={(e) => filter.setSet(e.target.value)}
-          style={{ width: "100%", padding: "8px 10px", borderRadius: 10, border: "1px solid var(--ds-border-strong)", background: "var(--ds-background)", color: "var(--ds-foreground)", fontSize: 13, fontFamily: "var(--ds-font-sans)", outline: "none", cursor: "pointer" }}
-        >
-          <option value="">{t("library.allSets")}</option>
-          {filter.availableSets.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
-
-      {extra}
-
-      <button
-        onClick={filter.clear}
-        style={{ marginTop: "auto", padding: 8, borderRadius: 9, border: "1px solid var(--ds-border)", background: "transparent", color: "var(--ds-foreground-muted)", cursor: "pointer", fontSize: 12.5, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-      >
-        <Icons.Filter size={14} />{t("library.clearFilters")}
-      </button>
+          <Icons.Filter size={14} />
+          {t("library.clearFilters")}
+        </button>
       </aside>
     </>
   );
 }
 
-const railLabel = { fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "var(--ds-foreground-muted)", marginBottom: 11 };
+const railLabel = {
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: "0.12em",
+  textTransform: "uppercase" as const,
+  color: "var(--ds-foreground-muted)",
+  marginBottom: 11,
+};
 
 /* ---------- the shared right detail drawer ---------- */
-export function CardDetailDrawer({ cardId, onClose, footer }: { cardId: string; onClose: () => void; footer?: ReactNode }) {
+export function CardDetailDrawer({
+  cardId,
+  onClose,
+  footer,
+}: {
+  cardId: string;
+  onClose: () => void;
+  footer?: ReactNode;
+}) {
   const { t } = useTranslation();
   const def = getCardDefinition(cardId);
   if (!def) return null;
@@ -507,11 +720,26 @@ export function CardDetailDrawer({ cardId, onClose, footer }: { cardId: string; 
       aria-modal="true"
       className="card-detail-drawer"
       role="dialog"
-      style={{ width: 372, flexShrink: 0, borderLeft: "1px solid var(--ds-border)", background: "var(--ds-surface)", padding: 22, overflowY: "auto", animation: "aegis-rise 200ms ease-out" }}
+      style={{
+        width: 372,
+        flexShrink: 0,
+        borderLeft: "1px solid var(--ds-border)",
+        background: "var(--ds-surface)",
+        padding: 22,
+        overflowY: "auto",
+        animation: "aegis-rise 200ms ease-out",
+      }}
     >
-      <div className="card-detail-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-        <div id="card-detail-title"><Eyebrow color="var(--ds-foreground-muted)">{t("library.cardDetail")}</Eyebrow></div>
-        <button aria-label={t("common.close")} className="card-detail-close" onClick={onClose}>×</button>
+      <div
+        className="card-detail-header"
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}
+      >
+        <div id="card-detail-title">
+          <Eyebrow color="var(--ds-foreground-muted)">{t("library.cardDetail")}</Eyebrow>
+        </div>
+        <button aria-label={t("common.close")} className="card-detail-close" onClick={onClose}>
+          ×
+        </button>
       </div>
       <div className="card-detail-overview">
         <div className="card-detail-preview">
@@ -519,8 +747,24 @@ export function CardDetailDrawer({ cardId, onClose, footer }: { cardId: string; 
         </div>
         <div className="card-detail-summary">
           <div className="card-detail-limit">
-            {banLabel ? <span style={{ padding: "2px 6px", borderRadius: 4, background: "#f59e0b", color: "#fff", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.04em" }}>{banLabel}</span> : null}
-            <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 12, color: "var(--ds-foreground-muted)" }}>{t("library.maxPerDeck", { count: copyLimit })}</span>
+            {banLabel ? (
+              <span
+                style={{
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  background: "#f59e0b",
+                  color: "#fff",
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                {banLabel}
+              </span>
+            ) : null}
+            <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 12, color: "var(--ds-foreground-muted)" }}>
+              {t("library.maxPerDeck", { count: copyLimit })}
+            </span>
           </div>
           <div className="card-detail-metadata">
             <DetailRow label={t("library.rowSet")} value={def.set} mono />
@@ -528,7 +772,9 @@ export function CardDetailDrawer({ cardId, onClose, footer }: { cardId: string; 
             <DetailRow label={t("library.rowType")} value={formLabel(def)} />
             <DetailRow label={t("library.rowPlayCost")} value={def.playCost < 0 ? "—" : String(def.playCost)} mono />
             {isDigi ? <DetailRow label={t("library.rowDp")} value={def.dp.toLocaleString()} mono /> : null}
-            {def.types && def.types.length ? <DetailRow label={t("library.rowTraits")} value={def.types.join(", ")} /> : null}
+            {def.types && def.types.length ? (
+              <DetailRow label={t("library.rowTraits")} value={def.types.join(", ")} />
+            ) : null}
             {def.rarity ? <DetailRow label={t("library.rowRarity")} value={def.rarity} mono /> : null}
           </div>
         </div>
@@ -546,9 +792,26 @@ export function CardDetailDrawer({ cardId, onClose, footer }: { cardId: string; 
 function DetailRow({ label, value, mono }: { label: string; value?: string; mono?: boolean }) {
   if (!value) return null;
   return (
-    <div className="card-detail-row" style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--ds-border)" }}>
+    <div
+      className="card-detail-row"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "7px 0",
+        borderBottom: "1px solid var(--ds-border)",
+      }}
+    >
       <span style={{ fontSize: 12.5, color: "var(--ds-foreground-muted)" }}>{label}</span>
-      <span style={{ fontSize: 12.5, color: "var(--ds-foreground)", fontWeight: 500, fontFamily: mono ? "var(--ds-font-mono)" : "inherit" }}>{value}</span>
+      <span
+        style={{
+          fontSize: 12.5,
+          color: "var(--ds-foreground)",
+          fontWeight: 500,
+          fontFamily: mono ? "var(--ds-font-mono)" : "inherit",
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -557,8 +820,29 @@ function DetailEffect({ title, text, tone }: { title: string; text?: string; ton
   if (!text) return null;
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: tone ?? "var(--ds-primary)", marginBottom: 5 }}>{title}</div>
-      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--ds-foreground-secondary)", whiteSpace: "pre-line" }}>{readableEffectText(text)}</p>
+      <div
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: tone ?? "var(--ds-primary)",
+          marginBottom: 5,
+        }}
+      >
+        {title}
+      </div>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 13,
+          lineHeight: 1.5,
+          color: "var(--ds-foreground-secondary)",
+          whiteSpace: "pre-line",
+        }}
+      >
+        {readableEffectText(text)}
+      </p>
     </div>
   );
 }
@@ -572,8 +856,5 @@ export function readableEffectText(text: string): string {
   return text
     .replace(/([.\]])(?=＜)/g, "$1\n")
     .replace(/([.!?])(?=\[[^\]]+\])/g, "$1\n")
-    .replace(
-      /([^\]\s])(?=\[(?:All Turns|Your Turn|Opponent's Turn|When |On |Main\]|Security\]|Start |End ))/g,
-      "$1\n",
-    );
+    .replace(/([^\]\s])(?=\[(?:All Turns|Your Turn|Opponent's Turn|When |On |Main\]|Security\]|Start |End ))/g, "$1\n");
 }

@@ -11,12 +11,7 @@ import {
 import { getEffectModule } from "../effects/registry.js";
 import { irCardModule } from "../effects/interpreter.js";
 import type { CardSource } from "../effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../effects/EffectContext.js";
 // Side-effect imports: register the hand-written + IR card modules these A3s drive.
 import "../../cards/BT3/BT3-014.js";
 import "../../cards/BT19/BT19-007.js";
@@ -66,12 +61,7 @@ interface MakePermanentOpts {
   cardId?: string;
 }
 
-function makePermanent(
-  permanentId: string,
-  seat: Seat,
-  cardId: string,
-  opts: MakePermanentOpts = {},
-): Permanent {
+function makePermanent(permanentId: string, seat: Seat, cardId: string, opts: MakePermanentOpts = {}): Permanent {
   const { dp = 5000 } = opts;
   return {
     permanentId,
@@ -134,8 +124,7 @@ function makeContext(opts: {
     state,
     player: (seat: Seat) => players[seat] as never,
     opponentOf: (s: Seat) => (s === 0 ? 1 : 0),
-    permanentById: (id: string) =>
-      [...ownerBattleArea, ...opponentBattleArea].find((p) => p.permanentId === id),
+    permanentById: (id: string) => [...ownerBattleArea, ...opponentBattleArea].find((p) => p.permanentId === id),
     definitionOf: (card: { cardId: string }) => {
       const over = definitionOverrides?.get(card.cardId) ?? {};
       return fakeDefinition({ cardId: card.cardId, nameEn: card.cardId, kinds: ["Digimon"] as never, ...over });
@@ -168,10 +157,8 @@ function makeContext(opts: {
 
   const ask: DecisionApi = {
     optional: async () => true,
-    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
-    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
+    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
+    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
     chooseOption: async () => 0,
   } as unknown as DecisionApi;
 

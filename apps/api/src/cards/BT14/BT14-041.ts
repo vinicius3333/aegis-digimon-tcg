@@ -6,61 +6,59 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "frequency": "OncePerTurn",
-      "keywords": [
+      trigger: "WhenDigivolving",
+      frequency: "OncePerTurn",
+      keywords: [
         {
-          "keyword": "Recovery",
-          "amount": 1,
-          "raw": "＜Recovery +1 (Deck)＞"
-        }
+          keyword: "Recovery",
+          amount: 1,
+          raw: "＜Recovery +1 (Deck)＞",
+        },
       ],
-      "actions": [
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAddSecurity",
-          "fireCondition": {
-            "kind": "triggerSecurityIsYours"
+          kind: "SubTrigger",
+          event: "whenAddSecurity",
+          fireCondition: {
+            kind: "triggerSecurityIsYours",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -7000,
-              "duration": "forTheTurn"
+              amount: -7000,
+              duration: "forTheTurn",
             },
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                }
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": 1,
-                "raw": "＜Security Attack +1＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: 1,
+                raw: "＜Security Attack +1＞",
               },
-              "count": 1,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
-      ]
-    }
+              count: 1,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-041", compiled);

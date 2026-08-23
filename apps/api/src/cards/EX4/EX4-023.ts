@@ -3,54 +3,52 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "from": ["hand"],
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "hand",
-                  "level": "same"
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              from: ["hand"],
+              controller: "mine",
+              source: {
+                filter: {
+                  controller: "mine",
+                  zone: "hand",
+                  level: "same",
                 },
-                "count": 1
+                count: 1,
               },
-              "toTop": true,
-              "cost": {
-              "kind": "reveal",
-              "target": {
-                "filter": { "zone": "hand", "controller": "mine", "level": "same" },
-                "count": 1,
-                "from": ["hand"]
+              toTop: true,
+              cost: {
+                kind: "reveal",
+                target: {
+                  filter: { zone: "hand", controller: "mine", level: "same" },
+                  count: 1,
+                  from: ["hand"],
+                },
+                raw: "by revealing 1 card of the same level in your hand",
               },
-              "raw": "by revealing 1 card of the same level in your hand"
-              },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-023", compiled);

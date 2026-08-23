@@ -3,92 +3,82 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "playCostLte": 5,
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                playCostLte: 5,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "D-Brigade"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["D-Brigade"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
+              count: 1,
+              to: "play",
+              optional: true,
+            },
           ],
-          "rest": "trash"
-        }
-      ]
+          rest: "trash",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "D-Brigade"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["D-Brigade"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "RevealAdd",
-              "revealCount": 2,
-              "add": [
+              kind: "RevealAdd",
+              revealCount: 2,
+              add: [
                 {
-                  "filter": {
-                    "controllerDefault": "mine",
-                    "nameOrTrait": [
+                  filter: {
+                    controllerDefault: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Commandramon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["Commandramon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "count": 1,
-                  "to": "play",
-                  "optional": true
-                }
+                  count: 1,
+                  to: "play",
+                  optional: true,
+                },
               ],
-              "rest": "trash"
-            }
-          ]
-        }
+              rest: "trash",
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX3-051", compiled);

@@ -3,163 +3,137 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [],
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          actions: [],
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Myotismon"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Myotismon"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by deleting 1 of your Digimon with [Myotismon] in its text, reduce the play cost by 4",
-            "reduceCostBy": 4
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ]
-            },
-            "count": 1
+            raw: "by deleting 1 of your Digimon with [Myotismon] in its text, reduce the play cost by 4",
+            reduceCostBy: 4,
           },
-          "duration": "untilOpponentTurnEnd",
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          }
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "duration": "untilOpponentTurnEnd",
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ]
-            },
-            "count": 1
-          },
-          "duration": "untilOpponentTurnEnd",
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          }
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "duration": "untilOpponentTurnEnd",
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Purple"
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "suspended": true,
-          "optional": true
-        }
       ],
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+            },
+            count: 1,
+          },
+          duration: "untilOpponentTurnEnd",
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          duration: "untilOpponentTurnEnd",
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+            },
+            count: 1,
+          },
+          duration: "untilOpponentTurnEnd",
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          duration: "untilOpponentTurnEnd",
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Purple"],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          suspended: true,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX10-048", compiled);

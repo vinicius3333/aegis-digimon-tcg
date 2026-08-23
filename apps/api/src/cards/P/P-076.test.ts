@@ -25,23 +25,29 @@ describe("P-076 Deltamon", () => {
     await s.ready();
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("deltamon").permanentId,
-      instanceId: s.inst("metalGreymon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("deltamon").topCard.cardId === "BT8-067" &&
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.state.pendingDecision === undefined,
-    5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("deltamon").permanentId,
+        instanceId: s.inst("metalGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("deltamon").topCard.cardId === "BT8-067" &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
     expect(s.state.memory).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("deltamon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("deltamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 5000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -61,11 +67,13 @@ describe("P-076 Deltamon", () => {
     s.state.memory = 2;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("deltamon").permanentId,
-      instanceId: s.inst("kimeramon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("deltamon").permanentId,
+        instanceId: s.inst("kimeramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("deltamon").topCard.cardId === "BT8-084");
 
     expect(s.state.memory).toBe(0);

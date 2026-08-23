@@ -5,9 +5,18 @@ import "./EX1-029.js";
 
 describe("EX1-029 MagnaAngemon", () => {
   it("gets +4000 DP when attacking with 3 or more security", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-029", as: "magna", dp: 7000 }], security: ["BT1-001", "BT1-001", "BT1-001"] }, 1: { security: ["BT1-001", "BT1-001"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-029", as: "magna", dp: 7000 }], security: ["BT1-001", "BT1-001", "BT1-001"] },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magna").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("magna").currentDP === 11000);
     expect(s.perm("magna").currentDP).toBe(11000);
   });

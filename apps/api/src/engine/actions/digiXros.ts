@@ -18,7 +18,11 @@ import {
 import { cardHasTrait, definitionOf, dpOf, isDigimon } from "../cards/cardData.js";
 import { extractCardAt, placePermanent as appendPermanent } from "../state/access.js";
 import { digiXrosZoneExpanderFor } from "../digiXros/zoneExpanders.js";
-import { allowsDigiXrosMaterialsFromTrash, allowsExtraDigiXrosMaterials, matchNameOrTrait } from "../effects/interpreter.js";
+import {
+  allowsDigiXrosMaterialsFromTrash,
+  allowsExtraDigiXrosMaterials,
+  matchNameOrTrait,
+} from "../effects/interpreter.js";
 
 /**
  * cost block ~670-700).

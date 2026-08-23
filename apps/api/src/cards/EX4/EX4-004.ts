@@ -6,24 +6,25 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "not", "condition": {"kind": "triggerRemovalCause", "removalCause": "byBattle"},
-            "raw": "deleted outside of a battle"
-          }
-        }
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "not",
+            condition: { kind: "triggerRemovalCause", removalCause: "byBattle" },
+            raw: "deleted outside of a battle",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-004", compiled);

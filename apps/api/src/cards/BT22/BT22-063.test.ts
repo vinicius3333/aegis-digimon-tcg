@@ -66,7 +66,9 @@ describe("BT22-063 Alphamon", () => {
   });
 
   it("exposes the same three-security Kyoko gate to shared legality consumers", () => {
-    expect(digivolutionRequirementsFor("BT22-063")?.find((entry) => entry.names?.includes("Kyoko Kuremi"))).toMatchObject({
+    expect(
+      digivolutionRequirementsFor("BT22-063")?.find((entry) => entry.names?.includes("Kyoko Kuremi")),
+    ).toMatchObject({
       cost: 5,
       whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
     });
@@ -79,7 +81,13 @@ describe("BT22-063 Alphamon", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("alphamon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alphamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("alphamon").isSuspended === false);
 
     expect(s.perm("alphamon").isSuspended).toBe(false);

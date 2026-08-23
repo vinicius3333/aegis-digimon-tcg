@@ -19,7 +19,9 @@ describe("EX12-026 Shellmon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle();
     expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-011"]);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-010"]),
+    );
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
 
@@ -31,10 +33,13 @@ describe("EX12-026 Shellmon", () => {
   });
 
   it("applies the same trash-and-restrict sequence from When Digivolving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX12-026", as: "source", under: ["BT1-009"] }] },
-      1: { battleArea: [{ card: "EX12-024", as: "target", under: ["BT1-010", "BT1-011", "BT1-012"] }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-026", as: "source", under: ["BT1-009"] }] },
+        1: { battleArea: [{ card: "EX12-024", as: "target", under: ["BT1-010", "BT1-011", "BT1-012"] }] },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
@@ -67,16 +72,32 @@ describe("EX12-026 Shellmon", () => {
 
   it("encodes the Shambala evolution, both trigger clauses, Rule trait, restrictions, and full coverage", () => {
     const compiled = registeredCompiledCards.get("EX12-026")!;
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 3, traits: ["Shambala"], cost: 2, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Shambala"], cost: 2, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
-          { kind: "TrashDigivolution", amount: 2, fromTop: false, target: { count: 1, filter: { controller: "opponent", kind: [CardKind.Digimon] } } },
-          { kind: "SelectBind", target: { bindAs: "restrictTarget", count: 1, filter: { digivolutionCardsAtMost: 1 } } },
-          { kind: "Restrict", restriction: "attack", duration: "untilOpponentTurnEnd", target: { fromSelectionRef: "restrictTarget" } },
-          { kind: "Restrict", restriction: "block", duration: "untilOpponentTurnEnd", target: { fromSelectionRef: "restrictTarget" } },
+          {
+            kind: "TrashDigivolution",
+            amount: 2,
+            fromTop: false,
+            target: { count: 1, filter: { controller: "opponent", kind: [CardKind.Digimon] } },
+          },
+          {
+            kind: "SelectBind",
+            target: { bindAs: "restrictTarget", count: 1, filter: { digivolutionCardsAtMost: 1 } },
+          },
+          {
+            kind: "Restrict",
+            restriction: "attack",
+            duration: "untilOpponentTurnEnd",
+            target: { fromSelectionRef: "restrictTarget" },
+          },
+          {
+            kind: "Restrict",
+            restriction: "block",
+            duration: "untilOpponentTurnEnd",
+            target: { fromSelectionRef: "restrictTarget" },
+          },
         ],
       });
     }

@@ -3,16 +3,47 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const iliad = { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
-const eligibleSecurityCard = { controllerDefault: "mine", kind: ["Digimon", "Tamer"], nameOrTrait: [
-  { tokens: ["Angel"], match: "trait" }, { tokens: ["TS"], match: "trait" },
-] };
+const eligibleSecurityCard = {
+  controllerDefault: "mine",
+  kind: ["Digimon", "Tamer"],
+  nameOrTrait: [
+    { tokens: ["Angel"], match: "trait" },
+    { tokens: ["TS"], match: "trait" },
+  ],
+};
 const handTrash = { controller: "mine", zone: "hand" };
-const grantExecute = { kind: "GainKeyword", target: { filter: iliad, count: 1 }, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd", cost: { kind: "trash", target: { filter: handTrash, count: 1 } }, optional: false, abortOnDecline: true };
-const grantAscension = { kind: "GainKeyword", target: { filter: iliad, count: 1 }, keyword: { keyword: "Ascension" }, duration: "untilEachTurnEnd" };
+const grantExecute = {
+  kind: "GainKeyword",
+  target: { filter: iliad, count: 1 },
+  keyword: { keyword: "Execute" },
+  duration: "untilEachTurnEnd",
+  cost: { kind: "trash", target: { filter: handTrash, count: 1 } },
+  optional: false,
+  abortOnDecline: true,
+};
+const grantAscension = {
+  kind: "GainKeyword",
+  target: { filter: iliad, count: 1 },
+  keyword: { keyword: "Ascension" },
+  duration: "untilEachTurnEnd",
+};
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: eligibleSecurityCard, count: 1 }, from: ["hand", "trash"], payCost: false, playCostCeiling: { base: 4 }, optional: true }] },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: eligibleSecurityCard, count: 1 },
+          from: ["hand", "trash"],
+          payCost: false,
+          playCostCeiling: { base: 4 },
+          optional: true,
+        },
+      ],
+    },
     { trigger: "OnPlay", actions: [grantExecute, grantAscension] },
     { trigger: "WhenDigivolving", actions: [grantExecute, grantAscension] },
   ],

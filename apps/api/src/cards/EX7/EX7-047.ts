@@ -6,129 +6,113 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // totalPlayCostBudget:7 (not a card count). New capability — see LANE_E.md.
 // [End of Your Turn]: DnaDigivolve into [NSp] card must be from hand per text.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "NSp"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": "all",
-              "totalPlayCostBudget": 7,
-              "to": "play",
-              "optional": true
-            }
-          ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
+                    tokens: ["NSp"],
+                    match: "trait",
+                  },
                 ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "NSp"
-                    ],
-                    "match": "trait"
-                  }
-                ]
               },
-              "count": "all",
-              "totalPlayCostBudget": 7,
-              "to": "play",
-              "optional": true
-            }
-          ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              count: "all",
+              totalPlayCostBudget: 7,
+              to: "play",
+              optional: true,
             },
-            "count": 2
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "NSp"
-                ],
-                "match": "trait"
-              }
-            ],
-            "zone": "hand"
-          },
-          "payCost": true,
-          "optional": true
-        }
+          ],
+          rest: "deckBottom",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 5,
-      "traits": [
-        "NSp"
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["NSp"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: "all",
+              totalPlayCostBudget: 7,
+              to: "play",
+              optional: true,
+            },
+          ],
+          rest: "deckBottom",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "EndOfYourTurn",
+      actions: [
+        {
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["NSp"],
+                match: "trait",
+              },
+            ],
+            zone: "hand",
+          },
+          payCost: true,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      traits: ["NSp"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX7-047", compiled);

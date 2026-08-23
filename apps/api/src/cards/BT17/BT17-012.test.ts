@@ -9,11 +9,18 @@ describe("BT17-012", () => {
   });
 
   it("may digivolve while attacking into a Hybrid for 1 less", () => {
-    expect(compiled.effects?.[2]).toMatchObject({ trigger: "WhenAttacking", actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true }] });
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "WhenAttacking",
+      actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true }],
+    });
   });
 
   it("has inherited permanent DP", () => {
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }] });
+    expect(compiled.effects?.[3]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }],
+    });
   });
 
   it("applies inherited DP only during its controller's turn", async () => {

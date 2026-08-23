@@ -6,71 +6,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2,
-          "cost": {
-            "kind": "place",
-            "faceDown": true,
-            "target": {
-              "filter": {
-                "controller": "mine"
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: {
+            kind: "place",
+            faceDown: true,
+            target: {
+              filter: {
+                controller: "mine",
               },
-              "count": 1,
-              "from": [
-                "hand"
-              ]
+              count: 1,
+              from: ["hand"],
             },
-            "raw": "By placing 1 card from your hand face down under any of your Tamers with the [Glowing Dawn] trait",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+            raw: "By placing 1 card from your hand face down under any of your Tamers with the [Glowing Dawn] trait",
+            underFilter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Glowing Dawn"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            }
+                  tokens: ["Glowing Dawn"],
+                  match: "trait",
+                },
+              ],
+            },
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 2,
-      "traits": [
-        "Glowing Dawn"
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["Glowing Dawn"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST23-10", compiled);

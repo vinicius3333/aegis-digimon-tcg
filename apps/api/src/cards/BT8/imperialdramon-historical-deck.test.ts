@@ -48,27 +48,29 @@ describe("BT3/ST9/BT8 Imperialdramon historical deck", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("paildramon").permanentId,
-      instanceId: s.inst("dragonMode").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("paildramon").permanentId,
+        instanceId: s.inst("dragonMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.perm("paildramon").topCard.cardId === "BT3-111" &&
         s.state.memory === 7 &&
-        s.state.players[0]!.hand.some((card) =>
-          card.instanceId === s.inst("dragonModeDraw").instanceId,
-        ),
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("dragonModeDraw").instanceId),
       5000,
     );
     expect(observe(s.engine).hasPierce(s.perm("paildramon"))).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("paildramon").permanentId,
-      target: { kind: "permanent", permanentId: battleTargetId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paildramon").permanentId,
+        target: { kind: "permanent", permanentId: battleTargetId },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetId) &&
@@ -78,15 +80,15 @@ describe("BT3/ST9/BT8 Imperialdramon historical deck", () => {
     );
     expect(s.state.memory).toBe(7);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("paildramon").permanentId,
-      instanceId: s.inst("paladinMode").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("paildramon").permanentId,
+        instanceId: s.inst("paladinMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
-      () =>
-        s.perm("paildramon").topCard.cardId === "BT8-112" &&
-        s.state.players[1]!.battleArea.length === 0,
+      () => s.perm("paildramon").topCard.cardId === "BT8-112" && s.state.players[1]!.battleArea.length === 0,
       5000,
     );
 
@@ -102,14 +104,16 @@ describe("BT3/ST9/BT8 Imperialdramon historical deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT3-111",
-            as: "dragonMode",
-            under: [
-              { card: "ST9-05", as: "paildramonSource" },
-              { card: "ST9-11", as: "dinobeemonSource" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "BT3-111",
+              as: "dragonMode",
+              under: [
+                { card: "ST9-05", as: "paildramonSource" },
+                { card: "ST9-11", as: "dinobeemonSource" },
+              ],
+            },
+          ],
           hand: [{ card: "BT8-112", as: "paladinMode" }],
           trash: [{ card: "BT5-112", as: "whiteLevelSeven" }],
           deck: ["BT1-001", "BT1-002"],
@@ -142,35 +146,35 @@ describe("BT3/ST9/BT8 Imperialdramon historical deck", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("dragonMode").permanentId,
-      instanceId: s.inst("paladinMode").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dragonMode").permanentId,
+        instanceId: s.inst("paladinMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
-        !s.state.players[1]!.battleArea.some((permanent) =>
-          permanent.permanentId === firstTargetId
-        ) &&
-        s.state.players[1]!.battleArea.some((permanent) =>
-          permanent.permanentId === secondTargetId
-        ),
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstTargetId) &&
+        s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondTargetId),
       5000,
     );
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.deck.some((card) =>
-      card.instanceId === s.inst("whiteLevelSeven").instanceId
-    )).toBe(true);
-    expect(s.state.players[0]!.deck.some((card) =>
-      card.instanceId === s.inst("paildramonSource").instanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("whiteLevelSeven").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("paildramonSource").instanceId)).toBe(
+      true,
+    );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("dragonMode").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dragonMode").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[1]!.battleArea.length === 0 &&
@@ -178,9 +182,9 @@ describe("BT3/ST9/BT8 Imperialdramon historical deck", () => {
       5000,
     );
 
-    expect(s.state.players[0]!.deck.some((card) =>
-      card.instanceId === s.inst("dinobeemonSource").instanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("dinobeemonSource").instanceId)).toBe(
+      true,
+    );
     expect(s.state.players[1]!.security).toHaveLength(0);
     assertNoLoudGap(s);
   });

@@ -41,17 +41,24 @@ function source(): CardSource {
 
 describe("BT26-070 bottom face-down Tamer cost", () => {
   it("encodes the full two-card Tamer cost and reduced Glowing Dawn Option play", () => {
-    expect(compiled.digivolutionRequirement).toContainEqual({ level: 3, traits: ["Glowing Dawn"], cost: 2, isAlternate: true });
+    expect(compiled.digivolutionRequirement).toContainEqual({
+      level: 3,
+      traits: ["Glowing Dawn"],
+      cost: 2,
+      isAlternate: true,
+    });
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "Main",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "UseOptionWithoutCost",
-        from: ["trash"],
-        payCost: true,
-        reduceCostBy: 2,
-        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
-      }],
+      actions: [
+        {
+          kind: "UseOptionWithoutCost",
+          from: ["trash"],
+          payCost: true,
+          reduceCostBy: 2,
+          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
+        },
+      ],
     });
     expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, keywords: [{ keyword: "Retaliation" }] });
   });
@@ -275,6 +282,11 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
     expect(gainMemoryForSeat).toHaveBeenCalledWith(0, -1);
-    expect(useOptionFromHand).toHaveBeenCalledWith(expect.any(Object), "new-option", 3, expect.objectContaining({ payCost: true, costDelta: 2, paymentHandled: true }));
+    expect(useOptionFromHand).toHaveBeenCalledWith(
+      expect.any(Object),
+      "new-option",
+      3,
+      expect.objectContaining({ payCost: true, costDelta: 2, paymentHandled: true }),
+    );
   });
 });

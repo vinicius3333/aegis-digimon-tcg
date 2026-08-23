@@ -6,7 +6,15 @@ import "./BT5-090.js";
 
 describe("BT5-090 Arata Sanada", () => {
   it("gains 1 memory at turn start with an Unidentified Digimon in trash", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-090", as: "arata" }], trash: ["BT5-059"], deck: ["BT1-009", "BT1-010"], hand: ["BT5-071"] }, 1: { deck: ["BT1-009"] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT5-090", as: "arata" }],
+        trash: ["BT5-059"],
+        deck: ["BT1-009", "BT1-010"],
+        hand: ["BT5-071"],
+      },
+      1: { deck: ["BT1-009"] },
+    });
     s.state.memory = 3;
     s.state.turnSeat = 0;
     s.state.isFirstPlayersFirstTurn = true;
@@ -20,27 +28,64 @@ describe("BT5-090 Arata Sanada", () => {
   });
 
   it("suspends when a Diaboromon digivolves to play a Diaboromon token", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT5-090", as: "arata" }, { card: "BT5-066", as: "base" }],
-        hand: [{ card: "BT5-084", as: "evolving" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-090", as: "arata" },
+            { card: "BT5-066", as: "base" },
+          ],
+          hand: [{ card: "BT5-084", as: "evolving" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("arata").isSuspended && s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon") === true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("arata").isSuspended &&
+        s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon") === true,
+    );
 
-    expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toBe(true);
+    expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toBe(
+      true,
+    );
   });
 
   it("does not trigger when a different Digimon digivolves", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-090", as: "arata" }, { card: "BT5-063", as: "base" }], hand: [{ card: "BT5-067", as: "evolving" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-090", as: "arata" },
+            { card: "BT5-063", as: "base" },
+          ],
+          hand: [{ card: "BT5-067", as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT5-067");
     expect(s.perm("arata").isSuspended).toBe(false);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon"),
+    ).toHaveLength(0);
   });
 
   it("plays itself from security without paying its cost", async () => {

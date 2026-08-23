@@ -5,55 +5,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "selfHasInDigivolutionCards",
-            "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
               {
-                "tokens": ["Gabumon"],
-                "match": "nameExact"
-              }
-            ]
-          }
-        }
-      ]
+                tokens: ["Gabumon"],
+                match: "nameExact",
+              },
+            ],
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "selfHasNameContaining",
-            "names": [
-              "Garurumon",
-              "Omnimon"
-            ]
-          }
-        }
+          while: {
+            kind: "selfHasNameContaining",
+            names: ["Garurumon", "Omnimon"],
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-024", compiled);

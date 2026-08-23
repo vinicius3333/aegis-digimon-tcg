@@ -12,8 +12,12 @@ describe("ST3 vanilla cards", () => {
     s.state.memory = cost + 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vanilla").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("vanilla").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vanilla").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("vanilla").instanceId),
+    );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === cardId)).toBe(true);
   });
 });

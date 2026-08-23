@@ -25,7 +25,9 @@ describe("ST2-13 Hammer Spark", () => {
   it("gains 1 memory from Main", async () => {
     const s = setupEngine({ 0: { battleArea: ["ST2-03"], hand: [{ card: "ST2-13", as: "option" }] } });
     s.state.memory = 0;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);
   });

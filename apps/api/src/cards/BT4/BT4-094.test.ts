@@ -25,7 +25,10 @@ describe("BT4-094 Tai Kamiya", () => {
   it("does not grant the DP aura at 4 security", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT4-094", as: "tai" }, { card: "BT1-009", as: "digimon" }],
+        battleArea: [
+          { card: "BT4-094", as: "tai" },
+          { card: "BT1-009", as: "digimon" },
+        ],
         security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
     });

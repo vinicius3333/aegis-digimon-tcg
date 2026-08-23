@@ -34,7 +34,11 @@ describe("BT13-006 Kapurimon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 2 && s.state.players[0]!.trash.length === 2);
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("level4NonTarget").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.permanentId === s.perm("level4NonTarget").permanentId,
+      ),
+    ).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(false);
   });
 
@@ -60,7 +64,9 @@ describe("BT13-006 Kapurimon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("kept").instanceId);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("level3Target").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("level3Target").permanentId),
+    ).toBe(true);
   });
 
   it("may trash the hand cost even when there is no opposing level 3 (Q2258)", async () => {

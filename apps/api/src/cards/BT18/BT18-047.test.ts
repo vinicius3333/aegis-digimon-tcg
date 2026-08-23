@@ -15,7 +15,9 @@ describe("BT18-047 Arbormon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
     preferredInstanceIds.push(s.perm("greenCost").topCard!.instanceId, s.perm("opponentTarget").topCard!.instanceId);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arbormon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arbormon").instanceId })).toEqual({
+      ok: true,
+    });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.state.players[0]!.battleArea[1]!);
 

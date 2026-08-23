@@ -13,82 +13,76 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   my own Digimon.
 // - Condition: requires BOTH 8+ cards in hand AND a Tamer in play (was hand-count only).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "scaling": {
-            "per": 4,
-            "filter": {
-              "zone": "hand",
-              "controller": "mine"
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 4,
+            filter: {
+              zone: "hand",
+              controller: "mine",
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "On Deletion"
-                  ],
-                  "match": "text"
-                }
-              ]
+                  tokens: ["On Deletion"],
+                  match: "text",
+                },
+              ],
             },
-            "count": 1,
-            "bindAs": "returned"
+            count: 1,
+            bindAs: "returned",
           },
-          "to": "deckBottom",
-          "condition": {
-            "kind": "allOf",
-            "conditions": [
+          to: "deckBottom",
+          condition: {
+            kind: "allOf",
+            conditions: [
               {
-                "kind": "handAtLeast",
-                "value": 8
+                kind: "handAtLeast",
+                value: 8,
               },
               {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
-                }
-              }
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                },
+              },
             ],
-            "raw": "you have 8 or more cards in your hand and a Tamer in play"
-          }
+            raw: "you have 8 or more cards in your hand and a Tamer in play",
+          },
         },
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "fromSelectionRef": "returned",
-            "filter": {},
-            "count": 1
+          kind: "TrashDigivolution",
+          target: {
+            fromSelectionRef: "returned",
+            filter: {},
+            count: 1,
           },
-          "amount": 99
-        }
-      ]
-    }
+          amount: 99,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-021", compiled);

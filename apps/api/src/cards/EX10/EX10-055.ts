@@ -10,148 +10,136 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (2) AllTurns Replacement: count changed from 1 to "all" — KB Q5139 says the effect
 //     prevents ALL matching Digimon from leaving without the player having to choose them.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "optional": true,
-      "actions": [
+      trigger: "OnPlay",
+      optional: true,
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "A"
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "A"
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "relativeTo": {
-                "attr": "level",
-                "op": "lte",
-                "selectionRef": "A"
-              }
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "optional": true,
-      "actions": [
-        {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "bindAs": "A"
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "A"
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "relativeTo": {
-                "attr": "level",
-                "op": "lte",
-                "selectionRef": "A"
-              }
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "frequency": "OncePerTurn",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "mode": "prevent",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Bagra Army"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": "all"
+            count: 1,
+            bindAs: "A",
           },
-          "raw": "[All Turns] [Once Per Turn] When any of your [Bagra Army] trait Digimon would leave the battle area by effects, by trashing any 2 of this Digimon's digivolution cards, they don't leave.",
-          "affectsAll": true,
-          "leaveCause": "byEffect",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
-              },
-              "count": 2
-            }
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
-    {
-      "materials": [
+        },
         {
-          "desc": "[Bagra Army] Digimon"
-        }
+          kind: "Delete",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "A",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: {
+                attr: "level",
+                op: "lte",
+                selectionRef: "A",
+              },
+            },
+            count: 1,
+          },
+        },
       ],
-      "count": 2
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      optional: true,
+      actions: [
+        {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            bindAs: "A",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "A",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: {
+                attr: "level",
+                op: "lte",
+                selectionRef: "A",
+              },
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Bagra Army"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          raw: "[All Turns] [Once Per Turn] When any of your [Bagra Army] trait Digimon would leave the battle area by effects, by trashing any 2 of this Digimon's digivolution cards, they don't leave.",
+          affectsAll: true,
+          leaveCause: "byEffect",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+              },
+              count: 2,
+            },
+          },
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          desc: "[Bagra Army] Digimon",
+        },
+      ],
+      count: 2,
+    },
   ],
 };
 

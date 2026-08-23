@@ -51,7 +51,9 @@ describe("BT22-066 Raidenmon", () => {
     const target = s.perm("target");
     s.state.memory = 7;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("raidenmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("raidenmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => target.topCard?.cardId === "BT22-068");
 
     expect(s.state.players[0]!.battleArea[0]!.isSuspended).toBe(true);

@@ -51,6 +51,8 @@ describe("BT21-102 Tai Kamiya", () => {
     );
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects.flatMap((entry) => entry.actions).some((action: any) => action.ignoreRequirements === true)).toBe(false);
+    expect(
+      compiled.effects.flatMap((entry) => entry.actions).some((action: any) => action.ignoreRequirements === true),
+    ).toBe(false);
   });
 });

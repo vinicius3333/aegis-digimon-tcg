@@ -5,17 +5,22 @@ import "./index.js";
 
 describe("BT17-095 Miraculous Mega Knight", () => {
   it("keeps the Main play clause separate from the Omnimon Delay DNA effect", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", actions: [{ kind: "PlayWithoutCost" }, { kind: "PlaceInBattleAreaSelf" }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "Main",
+      actions: [{ kind: "PlayWithoutCost" }, { kind: "PlaceInBattleAreaSelf" }],
+    });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "Main",
       keywords: [{ keyword: "Delay" }],
-      actions: [{
-        kind: "DnaDigivolve",
-        payCost: false,
-        materials: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } },
-        looseMaterials: { count: 1, from: ["hand"], filter: { zone: "hand", controller: "mine", kind: ["Digimon"] } },
-        into: { nameOrTrait: [{ tokens: ["Omnimon"], match: "name" }] },
-      }],
+      actions: [
+        {
+          kind: "DnaDigivolve",
+          payCost: false,
+          materials: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } },
+          looseMaterials: { count: 1, from: ["hand"], filter: { zone: "hand", controller: "mine", kind: ["Digimon"] } },
+          into: { nameOrTrait: [{ tokens: ["Omnimon"], match: "name" }] },
+        },
+      ],
     });
     expect(compiled.effects?.[0]?.actions?.[1]).not.toHaveProperty("optional");
   });
@@ -25,17 +30,29 @@ describe("BT17-095 Miraculous Mega Knight", () => {
       kind: "Replacement",
       event: "wouldLeavePlay",
       leaveCause: "otherThanBattle",
-      sourceFilter: { controller: "mine", kind: ["Digimon"], levels: [6], nameOrTrait: [{ tokens: ["Greymon", "Garurumon"], match: "name" }] },
+      sourceFilter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        levels: [6],
+        nameOrTrait: [{ tokens: ["Greymon", "Garurumon"], match: "name" }],
+      },
       actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" } }],
     });
   });
 
   it("adds itself to hand after the Security Tamer play option", () => {
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }, { kind: "AddToHandSelf" }] });
+    expect(compiled.effects?.[3]).toMatchObject({
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost" }, { kind: "AddToHandSelf" }],
+    });
   });
 
   it("places itself in the battle area when the optional Digimon play is declined", async () => {
-    const s = setupEngine({ 0: { battleArea: ["BT17-007", "BT17-019"], hand: [{ card: "BT17-095", as: "option" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: ["BT17-007", "BT17-019"], hand: [{ card: "BT17-095", as: "option" }] } },
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 2;
     const optionId = s.inst("option").instanceId;
 

@@ -9,55 +9,55 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // trash (Sistermon) and breeding-area digivolution cards (Royal Knight).
 const playFromTrashOrBreeding = () => [
   {
-    "kind": "PlayWithoutCost",
-    "target": {
-      "filter": {
-        "excludeNames": ["Omnimon", "Gankoomon"],
-        "or": [
+    kind: "PlayWithoutCost",
+    target: {
+      filter: {
+        excludeNames: ["Omnimon", "Gankoomon"],
+        or: [
           {
-            "nameOrTrait": [{ "tokens": ["Sistermon"], "match": "name" }]
+            nameOrTrait: [{ tokens: ["Sistermon"], match: "name" }],
           },
           {
-            "trait": "Royal Knight",
-            "hostFilter": {
-              "zone": "breeding"
-            }
-          }
-        ]
+            trait: "Royal Knight",
+            hostFilter: {
+              zone: "breeding",
+            },
+          },
+        ],
       },
-      "count": 1,
-      "upTo": true,
-      "optional": true
+      count: 1,
+      upTo: true,
+      optional: true,
     },
-    "from": ["trash", "digivolutionCards"],
-    "payCost": false
-  }
+    from: ["trash", "digivolutionCards"],
+    payCost: false,
+  },
 ];
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": playFromTrashOrBreeding(),
-      "keywords": [
+      trigger: "OnPlay",
+      actions: playFromTrashOrBreeding(),
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": playFromTrashOrBreeding(),
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: playFromTrashOrBreeding(),
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    }
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-019", compiled);

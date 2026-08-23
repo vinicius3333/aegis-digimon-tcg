@@ -15,10 +15,7 @@ export class DeploymentServer extends Server {
     super(options);
   }
 
-  protected override async handleMatchMakeRequest(
-    request: IncomingMessage,
-    response: ServerResponse,
-  ): Promise<void> {
+  protected override async handleMatchMakeRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
     const method = matchmakingMethod(request.url);
     if (request.method === "POST" && method && !this.deploymentRuntime.allowMatchmaking(method)) {
       response.writeHead(503, {
@@ -27,10 +24,12 @@ export class DeploymentServer extends Server {
         "Access-Control-Allow-Origin": request.headers.origin ?? "*",
         "Content-Type": "application/json",
       });
-      response.end(JSON.stringify({
-        code: "AEGIS_DEPLOYMENT_DRAINING",
-        error: "This game server is draining; retry on the active slot.",
-      }));
+      response.end(
+        JSON.stringify({
+          code: "AEGIS_DEPLOYMENT_DRAINING",
+          error: "This game server is draining; retry on the active slot.",
+        }),
+      );
       return;
     }
     await super.handleMatchMakeRequest(request, response);

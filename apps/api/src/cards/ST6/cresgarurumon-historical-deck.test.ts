@@ -10,14 +10,16 @@ describe("ST6 CresGarurumon historical deck gauntlet", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "ST6-13",
-            as: "cresgarurumon",
-            under: [
-              { card: "ST6-11", as: "levelFiveSource" },
-              { card: "ST6-03", as: "levelThreeSource" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "ST6-13",
+              as: "cresgarurumon",
+              under: [
+                { card: "ST6-11", as: "levelFiveSource" },
+                { card: "ST6-03", as: "levelThreeSource" },
+              ],
+            },
+          ],
         },
         1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
       },
@@ -31,33 +33,34 @@ describe("ST6 CresGarurumon historical deck gauntlet", () => {
     }>;
 
     expect(observe(s.engine).keywordAmount(cresgarurumon, "SecurityAttack")).toBe(1);
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: effects[0]!.instanceId,
-      effectKey: effects[0]!.effectKey,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      cresgarurumon.stack.length === 0 &&
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard?.instanceId === s.inst("levelThreeSource").instanceId
-      ) &&
-      !s.state.players[0]!.trash.some((card) =>
-        card.instanceId === s.inst("levelThreeSource").instanceId
-      )
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: effects[0]!.instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        cresgarurumon.stack.length === 0 &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("levelThreeSource").instanceId,
+        ) &&
+        !s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("levelThreeSource").instanceId),
     );
 
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
-      s.inst("levelFiveSource").instanceId,
-    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("levelFiveSource").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(
       s.inst("levelThreeSource").instanceId,
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: cresgarurumon.permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: cresgarurumon.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[1]!.security).toHaveLength(1);

@@ -34,12 +34,15 @@ describe("ST14-07 Baalmon", () => {
   });
 
   it("does not play Beelzemon on deletion with fewer than 10 cards in trash", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST14-07", as: "baalmon" }],
-        trash: [{ card: "ST14-08", as: "beelzemon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST14-07", as: "baalmon" }],
+          trash: [{ card: "ST14-08", as: "beelzemon" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalmon"));
     await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

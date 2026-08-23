@@ -6,128 +6,115 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "BEATBREAK"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a card w/[BEATBREAK] trait"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 4,
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "BEATBREAK"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true,
-              "from": [
-                "field"
-              ]
-            },
-            "raw": "By placing this card from the battle area face down under any of your [BEATBREAK] trait Tamers",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
+                  tokens: ["BEATBREAK"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "BEATBREAK"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            }
+            },
+            raw: "you have a card w/[BEATBREAK] trait",
           },
-          "optional": true,
-          "abortOnDecline": true
         },
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 4,
+              nameOrTrait: [
+                {
+                  tokens: ["BEATBREAK"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+              from: ["field"],
+            },
+            raw: "By placing this card from the battle area face down under any of your [BEATBREAK] trait Tamers",
+            underFilter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
+                {
+                  tokens: ["BEATBREAK"],
+                  match: "trait",
+                },
+              ],
+            },
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST23-15", compiled);

@@ -10,7 +10,10 @@ describe("BT18-066 Sephirothmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-030", as: "target" }, { card: "BT18-064", as: "base" }],
+          battleArea: [
+            { card: "BT1-030", as: "target" },
+            { card: "BT18-064", as: "base" },
+          ],
           hand: [{ card: "BT18-066", as: "sephirothmon" }],
           trash: [{ card: "BT18-049", as: "hybrid", faceUp: true }],
         },
@@ -21,13 +24,21 @@ describe("BT18-066 Sephirothmon", () => {
     const targetInitialDP = s.perm("target").currentDP;
     preferredInstanceIds.push(s.perm("target").topCard!.instanceId);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("sephirothmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sephirothmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await s.ready();
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-066" && permanent.stack.some((card) => card.instanceId === s.inst("hybrid").instanceId)));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) =>
+          permanent.topCard?.cardId === "BT18-066" &&
+          permanent.stack.some((card) => card.instanceId === s.inst("hybrid").instanceId),
+      ),
+    );
     const sephirothmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT18-066")!;
 
     expect(sephirothmon.topCard?.cardId).toBe("BT18-066");

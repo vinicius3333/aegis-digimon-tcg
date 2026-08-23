@@ -21,10 +21,14 @@ describe("BT9-096 Startling Thunder", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.length === 2);
 
-    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT9-020", "BT10-088"]));
+    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT9-020", "BT10-088"]),
+    );
   });
 
   it("does not treat an unrelated top-card name as Jellymon in the sources", async () => {
@@ -45,7 +49,9 @@ describe("BT9-096 Startling Thunder", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some(({ cardId }) => cardId === "BT9-020"));
 
     expect(s.state.players[1]!.hand.some(({ cardId }) => cardId === "BT10-088")).toBe(false);

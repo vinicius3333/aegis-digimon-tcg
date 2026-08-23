@@ -10,13 +10,28 @@ describe("BT25-012 Grizzlymon", () => {
         kind: "GainKeyword",
         keyword: { keyword: "Raid" },
         duration: "forTheTurn",
-        target: { filter: { controller: "mine", kind: ["Digimon"], excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] }, count: 1 },
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
+          },
+          count: 1,
+        },
       });
-      expect(effect?.actions?.[1]).toMatchObject({ kind: "ModifyDP", amount: 3000, duration: "forTheTurn", target: { count: 1 } });
+      expect(effect?.actions?.[1]).toMatchObject({
+        kind: "ModifyDP",
+        amount: 3000,
+        duration: "forTheTurn",
+        target: { count: 1 },
+      });
     }
   });
 
   it("preserves the inherited +1000 DP", () => {
-    expect(BT25_012.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "AllTurns", actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }] });
+    expect(BT25_012.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
+    });
   });
 });

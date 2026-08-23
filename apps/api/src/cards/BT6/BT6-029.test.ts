@@ -5,13 +5,27 @@ import "./BT6-029.js";
 
 describe("BT6-029 Azulongmon", () => {
   it("trashes each bottom source and gains memory for every opponent Digimon left without sources", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-011", as: "base" }], hand: [{ card: "BT6-029", as: "evolving" }] },
-      1: { battleArea: [{ card: "BT2-020", under: ["BT1-010"], as: "a" }, { card: "BT2-017", as: "b" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-011", as: "base" }], hand: [{ card: "BT6-029", as: "evolving" }] },
+        1: {
+          battleArea: [
+            { card: "BT2-020", under: ["BT1-010"], as: "a" },
+            { card: "BT2-017", as: "b" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 2);
 
     expect(s.perm("a").stack).toHaveLength(0);

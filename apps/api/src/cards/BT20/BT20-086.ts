@@ -6,58 +6,48 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
       trigger: "StartOfYourTurn",
       actions: [
         {
-          "kind": "SetMemory",
-          "value": 3,
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 2,
-            "controller": "mine"
-          }
-        }
-      ]
+          kind: "SetMemory",
+          value: 3,
+          condition: {
+            kind: "memoryAtMost",
+            value: 2,
+            controller: "mine",
+          },
+        },
+      ],
     },
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "flipFaceUp",
-          "controller": "opponent",
-          "cost": {
-            "kind": "place",
-            "position": "bottom",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Black"
-                ],
-                "playCostLte": 4,
-                "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "flipFaceUp",
+          controller: "opponent",
+          cost: {
+            kind: "place",
+            position: "bottom",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                colors: ["Black"],
+                playCostLte: 4,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Cyborg",
-                      "Machine"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Cyborg", "Machine"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash"
-              ]
+              count: 1,
+              from: ["hand", "trash"],
             },
-            "raw": "By placing 1 black Digimon card with the [Cyborg]/[Machine] trait with a play cost of 4 or less from your hand or trash at the bottom of your Digimon with such trait"
+            raw: "By placing 1 black Digimon card with the [Cyborg]/[Machine] trait with a play cost of 4 or less from your hand or trash at the bottom of your Digimon with such trait",
           },
         },
       ],

@@ -79,8 +79,12 @@ export async function runReplacement(
       description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
       appliesTo: (subCtx, originalHostId) => {
         const original = subCtx.game.permanentById(originalHostId);
-        return original !== undefined && original.controllerSeat === ctx.source.ownerSeat &&
-          originalHostId !== self.permanentId && subCtx.game.state.turnSeat !== ctx.source.ownerSeat;
+        return (
+          original !== undefined &&
+          original.controllerSeat === ctx.source.ownerSeat &&
+          originalHostId !== self.permanentId &&
+          subCtx.game.state.turnSeat !== ctx.source.ownerSeat
+        );
       },
       redirectTo: async (subCtx) =>
         (await subCtx.ask.optional(subCtx, action.raw ?? ctx.activeEffectText ?? event)) ? self.permanentId : undefined,
@@ -124,7 +128,12 @@ export async function runReplacement(
     );
   const costScaling = action.scaling ?? action.reduceCostScaling;
   const scalesIntoColors = event === "wouldDigivolve" && costScaling?.unit === "colors";
-  if ((mode === "reduceCost" || mode === "increaseCost") && costScaling !== undefined && amount !== undefined && !scalesIntoColors) {
+  if (
+    (mode === "reduceCost" || mode === "increaseCost") &&
+    costScaling !== undefined &&
+    amount !== undefined &&
+    !scalesIntoColors
+  ) {
     amount *= scaleFactor(ctx, costScaling);
   }
   // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
@@ -197,7 +206,10 @@ export async function runReplacement(
         if (protectsSelf) {
           const leaving = subCtx.game.permanentById(leavingId);
           if (leaving === undefined || subCtx.source.permanent()?.permanentId !== leavingId) return false;
-          return action.sourceFilter === undefined || permanentMatchesFilter(subCtx, leaving, action.sourceFilter, subCtx.source);
+          return (
+            action.sourceFilter === undefined ||
+            permanentMatchesFilter(subCtx, leaving, action.sourceFilter, subCtx.source)
+          );
         }
         const leaving = subCtx.game.permanentById(leavingId);
         if (leaving === undefined || protectsFilter === undefined) return false;
@@ -217,7 +229,10 @@ export async function runReplacement(
         if (action.digivolveFromTrash === true) {
           const targetId = subCtx.trigger.deletedPermanentId;
           if (targetId === undefined) return false;
-          return (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !== undefined;
+          return (
+            (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !==
+            undefined
+          );
         }
         if (action.playAndRelocateSourceUnder !== undefined) {
           const host = subCtx.source.permanent();
@@ -226,7 +241,9 @@ export async function runReplacement(
           const candidates = [
             ...(action.playAndRelocateSourceUnder.from.includes("digivolutionCards") ? host.stack : []),
             ...(action.playAndRelocateSourceUnder.from.includes("trash") ? owner.trash : []),
-          ].filter((card) => definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)));
+          ].filter((card) =>
+            definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)),
+          );
           if (candidates.length === 0) return false;
           const selected = await subCtx.ask.selectCards(subCtx, {
             candidates: candidates.map((card) => card.instanceId),
@@ -300,7 +317,8 @@ export async function runReplacement(
     // when hoisting that inner reducer; otherwise the reducer is installed as a free reduction
     // and the printed payment (for example, suspending ST20-12) is silently lost.
     const interactiveCost = action.cost ?? nestedCostModifier?.cost;
-    const interactiveOptional = action.optional === true || nestedCostModifiers?.some((modifier) => modifier.optional) === true;
+    const interactiveOptional =
+      action.optional === true || nestedCostModifiers?.some((modifier) => modifier.optional) === true;
     const ownerSeat = ctx.source.ownerSeat;
     ctx.fx.subscribeReplacement({
       ...replacementBudget,
@@ -311,7 +329,9 @@ export async function runReplacement(
       ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
-      ...(scalesIntoColors ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length } : {}),
+      ...(scalesIntoColors
+        ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length }
+        : {}),
       description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
       ...(action.consumeOnActivate === true ? { consumeOnActivate: true } : {}),
       digisorptionRedirect: action.digisorptionRedirect,
@@ -334,7 +354,7 @@ export async function runReplacement(
               appliesTo: (target: Permanent) =>
                 permanentMatchesFilter(ctx, target, replacementSourceFilter, ctx.source),
             }
-        : {}),
+          : {}),
       ...(interactiveCost !== undefined || interactiveOptional
         ? {
             controllerSeat: ownerSeat,
@@ -385,10 +405,10 @@ export async function runReplacement(
   // (not instead of, despite the name — see ReplacementInstallInstead's doc comment) the
   // event; it never itself blocks the removal.
   ctx.fx.subscribeReplacement({
-      ...replacementBudget,
-      event,
-      sourcePermanentId: self?.permanentId,
-      sourceInstanceId: ctx.source.instanceId,
+    ...replacementBudget,
+    event,
+    sourcePermanentId: self?.permanentId,
+    sourceInstanceId: ctx.source.instanceId,
     mode: "instead",
     description: action.raw ?? ctx.activeEffectText ?? event,
     digisorptionRedirect: action.digisorptionRedirect,

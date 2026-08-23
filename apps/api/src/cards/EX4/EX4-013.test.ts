@@ -15,13 +15,26 @@ describe("EX4-013 MedievalGallantmon", () => {
   it("falls back to suspending an opponent Digimon when the 6000 DP deletion fails", () => {
     for (const trigger of ["OnPlay", "WhenAttacking"]) {
       const actions = compiled.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
-      expect(actions[0]).toMatchObject({ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 } });
-      expect(actions[1]).toMatchObject({ kind: "Suspend", preventUnsuspend: "opponentNextUnsuspendPhase", condition: { kind: "ifThisEffectDidNotDelete" } });
+      expect(actions[0]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 },
+      });
+      expect(actions[1]).toMatchObject({
+        kind: "Suspend",
+        preventUnsuspend: "opponentNextUnsuspendPhase",
+        condition: { kind: "ifThisEffectDidNotDelete" },
+      });
     }
   });
 
   it("deletes an opposing Digimon at or below 6000 DP on play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-013", as: "medieval" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-013", as: "medieval" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("medieval"));
@@ -30,7 +43,13 @@ describe("EX4-013 MedievalGallantmon", () => {
   });
 
   it("suspends and prevents unsuspension when no eligible Digimon is deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-013", as: "medieval" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target", dp: 7000 }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-013", as: "medieval" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 7000 }] },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("medieval"));

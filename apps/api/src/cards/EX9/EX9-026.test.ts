@@ -7,21 +7,45 @@ import "../index.js";
 
 describe("EX9-026", () => {
   it("has Training and its play/digivolve effects give an opposing Digimon -3000 DP for the opponent's turn", () => {
-    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({ keyword: "Training", raw: "＜Training＞" });
+    expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Training",
+      raw: "＜Training＞",
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({ actions: [{ kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd", cost: { kind: "place", faceDown: true, destination: "digivolutionStack" } }] });
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
+        actions: [
+          {
+            kind: "ModifyDP",
+            amount: -3000,
+            duration: "untilOpponentTurnEnd",
+            cost: { kind: "place", faceDown: true, destination: "digivolutionStack" },
+          },
+        ],
+      });
     }
   });
   it("adds the top deck card to security on deletion at three or fewer security", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")).toMatchObject({ actions: [{ kind: "SecurityManipulation", op: "addTop", amount: 1, condition: { kind: "zoneCount", value: 3 } }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")).toMatchObject({
+      actions: [{ kind: "SecurityManipulation", op: "addTop", amount: 1, condition: { kind: "zoneCount", value: 3 } }],
+    });
   });
-  it("inherits the same security recovery effect", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.actions).toContainEqual(expect.objectContaining({ kind: "SecurityManipulation", op: "addTop" })));
+  it("inherits the same security recovery effect", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.actions).toContainEqual(
+      expect.objectContaining({ kind: "SecurityManipulation", op: "addTop" }),
+    ));
 
   it("places a hand card face down on play before reducing one opposing Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-026", as: "source" }], hand: ["BT1-001"], security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"] },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-026", as: "source" }],
+          hand: ["BT1-001"],
+          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.perm("target").currentDP !== 5000);
 
@@ -32,12 +56,30 @@ describe("EX9-026", () => {
   });
 
   it("recovers the top deck card only at three or fewer security", async () => {
-    const atMostThree = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }], deck: ["BT1-001"], security: ["BT1-090", "BT1-090", "BT1-090"] } }, { autoOrderTriggers: true });
+    const atMostThree = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }],
+          deck: ["BT1-001"],
+          security: ["BT1-090", "BT1-090", "BT1-090"],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
     await advance(atMostThree.engine).verb.deletePermanent([atMostThree.perm("host").permanentId]);
     expect(atMostThree.state.players[0]!.security).toHaveLength(4);
     expect(atMostThree.state.players[0]!.deck).toHaveLength(0);
 
-    const four = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }], deck: ["BT1-001"], security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"] } }, { autoOrderTriggers: true });
+    const four = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }],
+          deck: ["BT1-001"],
+          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
     await advance(four.engine).verb.deletePermanent([four.perm("host").permanentId]);
     expect(four.state.players[0]!.security).toHaveLength(4);
     expect(four.state.players[0]!.deck).toHaveLength(1);

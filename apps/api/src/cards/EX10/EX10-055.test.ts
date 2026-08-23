@@ -12,13 +12,33 @@ describe("EX10-055 Tactimon", () => {
         actions: [
           { kind: "SelectBind", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "A" } },
           { kind: "Delete", target: { fromSelectionRef: "A" } },
-          { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], relativeTo: { attr: "level", op: "lte", selectionRef: "A" } }, count: 1 } },
+          {
+            kind: "Delete",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+                relativeTo: { attr: "level", op: "lte", selectionRef: "A" },
+              },
+              count: 1,
+            },
+          },
         ],
       });
     }
     expect(compiled.effects?.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "prevent", affectsAll: true, leaveCause: "byEffect", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" }, cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 } } }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          affectsAll: true,
+          leaveCause: "byEffect",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+          cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 } },
+        },
+      ],
     });
   });
 });

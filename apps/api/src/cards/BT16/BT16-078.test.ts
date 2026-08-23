@@ -64,9 +64,7 @@ describe("BT16-078", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-073"));
 
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === victimId),
-    ).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-073")).toBe(true);
   });
 });

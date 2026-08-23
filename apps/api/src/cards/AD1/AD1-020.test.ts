@@ -18,7 +18,19 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
   });
 
   it("places two differently colored Hybrid cards under itself and draws", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "AD1-020", as: "tamer" }, { card: "AD1-002", as: "redHybrid" }, { card: "BT12-024", as: "blueHybrid" }], deck: ["BT1-010"] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "AD1-020", as: "tamer" },
+            { card: "AD1-002", as: "redHybrid" },
+            { card: "BT12-024", as: "blueHybrid" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     const tamer = () => s.state.players[0]!.battleArea.find((perm) => perm.topCard.cardId === "AD1-020");
@@ -29,16 +41,19 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
   });
 
   it("can assign different colors to two identical multicolor Hybrid cards (Q6099)", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [
-          { card: "AD1-020", as: "tamer" },
-          { card: "BT18-022", as: "hybrid-a" },
-          { card: "BT18-022", as: "hybrid-b" },
-        ],
-        deck: ["BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "AD1-020", as: "tamer" },
+            { card: "BT18-022", as: "hybrid-a" },
+            { card: "BT18-022", as: "hybrid-b" },
+          ],
+          deck: ["BT1-010"],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 5;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
@@ -48,9 +63,12 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
   });
 
   it("gains 2 memory at four Hybrid sources even when it places nothing (Q6100)", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-020", as: "tamer", under: ["BT12-009", "BT12-012", "BT12-024", "BT12-025"] }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-020", as: "tamer", under: ["BT12-009", "BT12-012", "BT12-024", "BT12-025"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
@@ -76,5 +94,4 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tamer"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-020")).toBe(true);
   });
-
 });

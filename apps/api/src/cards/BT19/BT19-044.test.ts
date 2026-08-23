@@ -9,26 +9,30 @@ describe("BT19-044 Terriermon", () => {
     expect(card?.effects).toMatchObject([
       {
         trigger: "StartOfYourMainPhase",
-        actions: [{
-          kind: "GainMemory",
-          amount: 1,
-          condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [{ tokens: ["Henry Wong", "Calumon"], match: "name" }],
+        actions: [
+          {
+            kind: "GainMemory",
+            amount: 1,
+            condition: {
+              kind: "youHave",
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Henry Wong", "Calumon"], match: "name" }],
+              },
             },
           },
-        }],
+        ],
       },
       {
         trigger: "WhenAttacking",
         isInherited: true,
         frequency: "OncePerTurn",
-        actions: [{
-          kind: "Suspend",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-        }],
+        actions: [
+          {
+            kind: "Suspend",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          },
+        ],
       },
     ]);
   });

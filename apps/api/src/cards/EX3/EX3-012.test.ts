@@ -84,7 +84,9 @@ describe("EX3-012 Volcanicdramon", () => {
     await settle(
       () =>
         s.state.pendingDecision === undefined &&
-        s.state.players[1]!.battleArea.some(({ permanentId, isSuspended }) => permanentId === evaderId && isSuspended) &&
+        s.state.players[1]!.battleArea.some(
+          ({ permanentId, isSuspended }) => permanentId === evaderId && isSuspended,
+        ) &&
         s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-012") &&
         s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-012"),
     );

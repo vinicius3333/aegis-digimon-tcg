@@ -6,7 +6,10 @@ describe("BT25-015 Garudamon", () => {
   it("deletes one opposing Digimon at 6000 DP or less on play and digivolving", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = BT25_015.effects?.find((entry) => entry.trigger === trigger);
-      expect(effect?.actions?.[0]).toMatchObject({ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 } });
+      expect(effect?.actions?.[0]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 },
+      });
     }
   });
 

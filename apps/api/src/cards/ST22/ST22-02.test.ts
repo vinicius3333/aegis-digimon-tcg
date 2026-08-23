@@ -7,7 +7,13 @@ import "../index.js";
 describe("ST22-02 Renamon", () => {
   it("trashes a hand card and returns an Onmyōjutsu card from trash", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "ST22-02", as: "renamon" }], hand: [{ card: "BT1-090", as: "cost" }], trash: [{ card: "ST22-10", as: "option" }] } },
+      {
+        0: {
+          battleArea: [{ card: "ST22-02", as: "renamon" }],
+          hand: [{ card: "BT1-090", as: "cost" }],
+          trash: [{ card: "ST22-10", as: "option" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

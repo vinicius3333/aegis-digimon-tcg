@@ -3,109 +3,94 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hunter"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a Tamer with the [Hunter] trait in play"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "fromSelectionRef": "P096Recipient",
-            "count": 1
-          },
-          "amount": 1000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "keywords": [
-                  "Save"
-                ]
-              },
-              "count": 2,
-              "upTo": true,
-              "from": [
-                "trash",
-                "underTamers"
-              ]
-            },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target",
-            "raw": "By placing up to 2 Digimon cards with ＜Save＞ in their text from under your Tamers or your trash under 1 of your Digimon with ＜Save＞ in its text as its bottom digivolution cards",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Hunter"],
+                  match: "trait",
+                },
               ],
-              "keywords": [
-                "Save"
-              ]
             },
-            "bindHostAs": "P096Recipient",
-            "trackCount": "P096CardsPlaced"
+            raw: "you have a Tamer with the [Hunter] trait in play",
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "scaling": {
-            "per": 1,
-            "unit": "namedCount",
-            "countSource": "P096CardsPlaced"
-          }
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "ModifyDP",
+          target: {
+            fromSelectionRef: "P096Recipient",
+            count: 1,
+          },
+          amount: 1000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                keywords: ["Save"],
+              },
+              count: 2,
+              upTo: true,
+              from: ["trash", "underTamers"],
+            },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+            raw: "By placing up to 2 Digimon cards with ＜Save＞ in their text from under your Tamers or your trash under 1 of your Digimon with ＜Save＞ in its text as its bottom digivolution cards",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              keywords: ["Save"],
+            },
+            bindHostAs: "P096Recipient",
+            trackCount: "P096CardsPlaced",
+          },
+          optional: true,
+          abortOnDecline: true,
+          scaling: {
+            per: 1,
+            unit: "namedCount",
+            countSource: "P096CardsPlaced",
+          },
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-096", compiled);

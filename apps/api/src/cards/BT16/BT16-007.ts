@@ -6,94 +6,92 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "anyOf",
-                "conditions": [
-                  { "kind": "triggerSubjectMatchesFilter", "filter": { "nameOrTrait": [{ "tokens": ["Free"], "match": "trait" }] } },
-                  { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Yellow"] } }
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "anyOf",
+                conditions: [
+                  {
+                    kind: "triggerSubjectMatchesFilter",
+                    filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] },
+                  },
+                  { kind: "triggerSubjectHasColor", filter: { colors: ["Yellow"] } },
                 ],
-                "raw": "it has the [Free] trait or is yellow"
-              }
-            }
-          ]
+                raw: "it has the [Free] trait or is yellow",
+              },
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "anyOf",
-                "conditions": [
-                  { "kind": "triggerSubjectMatchesFilter", "filter": { "nameOrTrait": [{ "tokens": ["Free"], "match": "trait" }] } },
-                  { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Yellow"] } }
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "anyOf",
+                conditions: [
+                  {
+                    kind: "triggerSubjectMatchesFilter",
+                    filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] },
+                  },
+                  { kind: "triggerSubjectHasColor", filter: { colors: ["Yellow"] } },
                 ],
-                "raw": "it has the [Free] trait or is yellow"
-              }
-            }
-          ]
-        }
+                raw: "it has the [Free] trait or is yellow",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Poromon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Poromon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-007", compiled);

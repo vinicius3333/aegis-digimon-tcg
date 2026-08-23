@@ -6,72 +6,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "mode": "reduceCost",
-          "amount": 3,
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "reduceCost",
+          amount: 3,
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "optional": true
+            optional: true,
           },
-          "raw": "＜Digisorption -3＞"
-        }
+          raw: "＜Digisorption -3＞",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Digisorption",
-          "amount": -3,
-          "raw": "＜Digisorption -3＞"
-        }
-      ]
+          keyword: "Digisorption",
+          amount: -3,
+          raw: "＜Digisorption -3＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Green"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Green"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "suspended": true,
-          "optional": true
-        }
+          from: ["hand"],
+          payCost: false,
+          suspended: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-047", compiled);

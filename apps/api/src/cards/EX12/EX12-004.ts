@@ -4,42 +4,42 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [Your Turn] inherited: "This Digimon with the [TB] trait gains <Execute>".
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Execute",
-            "raw": "＜Execute＞"
+          keyword: {
+            keyword: "Execute",
+            raw: "＜Execute＞",
           },
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          duration: "permanent",
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": ["TB"],
-                  "match": "trait"
-                }
-              ]
-            }
-          }
-        }
+                  tokens: ["TB"],
+                  match: "trait",
+                },
+              ],
+            },
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX12-004", compiled);

@@ -128,11 +128,7 @@ describe("combat-restriction / redirect cluster A3 — cantBeAttacked (P-086)", 
     const otherDef = s.perm("otherDef");
 
     // P-086's authored effect records this restriction on the chosen Digimon.
-    ledger(s).addRestriction(
-      protectedDef.permanentId,
-      "cantBeAttacked",
-      EffectDuration.UntilOpponentTurnEnd,
-    );
+    ledger(s).addRestriction(protectedDef.permanentId, "cantBeAttacked", EffectDuration.UntilOpponentTurnEnd);
 
     // Attacking the protected Digimon is rejected (server-authoritative legality).
     expect(
@@ -174,12 +170,11 @@ describe("combat-restriction / redirect cluster A3 — cantBeBlocked (BT6-028)",
     const attacker = withGrant.perm("attacker");
     const blocker = withGrant.perm("blocker");
 
-    withGrant
-      .engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: attacker.permanentId,
-        target: { kind: "player" },
-      });
+    withGrant.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: attacker.permanentId,
+      target: { kind: "player" },
+    });
     await settle(() => withGrant.events.some((e) => e.kind === "blockWindowOpened"));
     const openedBaseline = withGrant.events.find((e) => e.kind === "blockWindowOpened") as
       | (ServerEvent & { eligibleBlockerIds: string[] })

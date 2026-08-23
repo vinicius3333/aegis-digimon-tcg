@@ -8,9 +8,21 @@ type EngineInternals = {
 
 describe("P-043 Kudamon", () => {
   it("returns Kentaurosmon and recovers the deck top", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "P-043", as: "source" }], trash: [{ card: "BT3-043", as: "kent" }], deck: [{ card: "BT1-009", as: "top" }], security: ["BT1-028"] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-043", as: "source" }],
+          trash: [{ card: "BT3-043", as: "kent" }],
+          deck: [{ card: "BT1-009", as: "top" }],
+          security: ["BT1-028"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.some((c) => c.instanceId === s.inst("top").instanceId));
     expect(s.state.players[0]!.security.some((c) => c.instanceId === s.inst("top").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("kent").instanceId);
@@ -30,16 +42,20 @@ describe("P-043 Kudamon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.decisions.at(-1)!.req;
     expect(decision.kind).toBe("optional");
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -60,7 +76,9 @@ describe("P-043 Kudamon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.security).toHaveLength(1);

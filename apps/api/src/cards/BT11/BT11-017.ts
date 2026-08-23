@@ -14,7 +14,15 @@ export const compiled: CompiledCard = {
           event: "whenAttackTargetSwitched",
           actions: [
             { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-            { kind: "GainMemory", amount: 1, scaling: { per: 1, filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Red"] }, unit: "cards" } },
+            {
+              kind: "GainMemory",
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Red"] },
+                unit: "cards",
+              },
+            },
           ],
         },
       ],

@@ -70,9 +70,11 @@ describe("AegisRoom ready-gated match start", () => {
   it("starts the match once both seats send ready", () => {
     const room = makeRoom();
     const [a, b] = joinBothSeats(room);
-    const handleIntent = (room as unknown as {
-      handleIntent: (c: Client, i: { type: string }) => void;
-    }).handleIntent.bind(room);
+    const handleIntent = (
+      room as unknown as {
+        handleIntent: (c: Client, i: { type: string }) => void;
+      }
+    ).handleIntent.bind(room);
 
     handleIntent(a, { type: "ready" });
     expect(broadcastedEvents(room).some((e) => e.kind === "matchStarted")).toBe(false);
@@ -84,10 +86,7 @@ describe("AegisRoom ready-gated match start", () => {
   it("the ready-timeout fallback and the ready gate are idempotent together", () => {
     const room = makeRoom();
     joinBothSeats(room);
-    const startMatchSpy = vi.spyOn(
-      (room as unknown as { engine: { startMatch: () => void } }).engine,
-      "startMatch",
-    );
+    const startMatchSpy = vi.spyOn((room as unknown as { engine: { startMatch: () => void } }).engine, "startMatch");
 
     (room as unknown as { startMatchNow: () => void }).startMatchNow();
     (room as unknown as { startMatchNow: () => void }).startMatchNow();
@@ -121,9 +120,11 @@ describe("AegisRoom ready-gated match start", () => {
     room.addBot();
 
     expect(room.state.pendingDecision).toMatchObject({ seat: 0, kind: "mulligan" });
-    const handleIntent = (room as unknown as {
-      handleIntent: (client: Client, intent: { type: "mulligan"; keep: boolean }) => void;
-    }).handleIntent.bind(room);
+    const handleIntent = (
+      room as unknown as {
+        handleIntent: (client: Client, intent: { type: "mulligan"; keep: boolean }) => void;
+      }
+    ).handleIntent.bind(room);
     handleIntent(human, { type: "mulligan", keep: true });
     await Promise.resolve();
     expect(room.state.pendingDecision).toMatchObject({ seat: 1, kind: "mulligan" });
@@ -169,7 +170,9 @@ describe("AegisRoom ready-gated match start", () => {
   it("requires a replacement player to send their own ready intent", async () => {
     const room = makeRoom();
     const [departed, opponent] = joinBothSeats(room);
-    const handleIntent = (room as unknown as { handleIntent: (client: Client, intent: { type: string }) => void }).handleIntent.bind(room);
+    const handleIntent = (
+      room as unknown as { handleIntent: (client: Client, intent: { type: string }) => void }
+    ).handleIntent.bind(room);
     handleIntent(departed, { type: "ready" });
     room.clients.splice(0, 1);
     await room.onLeave(departed, true);

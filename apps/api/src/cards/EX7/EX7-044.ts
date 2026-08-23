@@ -6,127 +6,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Option"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Option"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Three Musketeers"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Three Musketeers"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "placeUnder"
-            }
+              count: 1,
+              to: "placeUnder",
+            },
           ],
-          "rest": "deckTopOrBottom"
+          rest: "deckTopOrBottom",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "playCostLte": 3
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              playCostLte: 3,
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect placed"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Option"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Three Musketeers"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "placeUnder"
-            }
-          ],
-          "rest": "deckTopOrBottom"
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect placed",
+          },
         },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "playCostLte": 3
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect placed"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
-        {
-          "keyword": "Collision",
-          "raw": "＜Collision＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "texts": [
-        "Three Musketeers"
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Option"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Three Musketeers"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "placeUnder",
+            },
+          ],
+          rest: "deckTopOrBottom",
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              playCostLte: 3,
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect placed",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Collision",
+          raw: "＜Collision＞",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      texts: ["Three Musketeers"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX7-044", compiled);

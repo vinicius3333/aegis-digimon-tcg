@@ -6,7 +6,10 @@ import "./BT6-090.js";
 
 describe("BT6-090 Izzy Izumi & Joe Kido", () => {
   it("gains 2 memory at turn start when the opponent has 2 Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-090", as: "tamer" }] }, 1: { battleArea: ["BT1-010", "BT1-011"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT6-090", as: "tamer" }] },
+      1: { battleArea: ["BT1-010", "BT1-011"] },
+    });
     s.state.memory = 0;
 
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tamer"));
@@ -15,12 +18,18 @@ describe("BT6-090 Izzy Izumi & Joe Kido", () => {
   });
 
   it("may suspend on the opponent's turn to draw when an own black Digimon is deleted", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT6-090", as: "tamer" }, { card: "BT6-066", as: "black" }],
-        deck: [{ card: "BT6-001", as: "drawn" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-090", as: "tamer" },
+            { card: "BT6-066", as: "black" },
+          ],
+          deck: [{ card: "BT6-001", as: "drawn" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
 

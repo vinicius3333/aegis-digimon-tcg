@@ -12,7 +12,14 @@ describe("BT5-068 BlackMachGaogamon", () => {
   });
 
   it("has Reboot without immediately unsuspending and gives its host +2000 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-068", as: "mach", suspended: true }, { card: "BT5-069", as: "host", under: ["BT5-068"] }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT5-068", as: "mach", suspended: true },
+          { card: "BT5-069", as: "host", under: ["BT5-068"] },
+        ],
+      },
+    });
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(s.perm("mach"), "Reboot")).toBe(true);
@@ -32,15 +39,14 @@ describe("BT5-068 BlackMachGaogamon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("blackWarGreymon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("base").topCard.cardId === "BT5-069"
-      && s.perm("base").currentDP === 14_000,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("blackWarGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT5-069" && s.perm("base").currentDP === 14_000);
 
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT5-068");
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(true);
@@ -67,11 +73,13 @@ describe("BT5-068 BlackMachGaogamon", () => {
   it("gets +2000 DP when Reboot is granted by another inherited source later in the stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{
-          card: "BT2-064",
-          as: "host",
-          under: ["BT5-068", "BT2-055"],
-        }],
+        battleArea: [
+          {
+            card: "BT2-064",
+            as: "host",
+            under: ["BT5-068", "BT2-055"],
+          },
+        ],
       },
     });
     await s.ready();

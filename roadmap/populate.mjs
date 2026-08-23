@@ -55,7 +55,9 @@ const pending = cards.filter((card) => !createdCardIds.has(card.cardId)).slice(0
 
 for (const card of pending) {
   const totalInSet = cards.filter((candidate) => candidate.set === card.set).length;
-  const position = cards.filter((candidate) => candidate.set === card.set).findIndex((candidate) => candidate.cardId === card.cardId);
+  const position = cards
+    .filter((candidate) => candidate.set === card.set)
+    .findIndex((candidate) => candidate.cardId === card.cardId);
   const part = Math.floor(position / 100) + 1;
   const parentTitle = totalInSet > 100 ? `${card.set} — Part ${part}` : card.set;
   const parent = issueByTitle.get(parentTitle);

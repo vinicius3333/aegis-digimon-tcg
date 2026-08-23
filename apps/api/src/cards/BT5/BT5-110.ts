@@ -3,69 +3,62 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Omnimon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Omnimon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1,
-            "bindAs": "omnimonSelected"
+            count: 1,
+            bindAs: "omnimonSelected",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Return",
-          "target": {
-            "fromSelectionRef": "omnimonSelected",
-            "filter": {},
-            "count": 1
+          kind: "Return",
+          target: {
+            fromSelectionRef: "omnimonSelected",
+            filter: {},
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": "all"
-          }
-        }
-      ]
+            count: "all",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-110", compiled);

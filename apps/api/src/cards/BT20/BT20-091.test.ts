@@ -22,20 +22,24 @@ const NON_ROYAL_KNIGHT_CARD = "BT3-073"; // WereGarurumon — no Royal Knight
 const COOL_BOY = "BT20-091";
 const OMEKAMON = "BT20-083"; // Omekamon printing
 
-function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
-function fireSubTrigger(s: EngineSetup, event: "whenPlayed" | "whenOneOfYoursDigivolves", subjectPermanentId: string): Promise<void> {
-  return (s.engine as unknown as {
-    fireSubTrigger(e: string, trigger: Record<string, unknown>): Promise<void>;
-  }).fireSubTrigger(event, { subjectPermanentId });
+function fireSubTrigger(
+  s: EngineSetup,
+  event: "whenPlayed" | "whenOneOfYoursDigivolves",
+  subjectPermanentId: string,
+): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireSubTrigger(e: string, trigger: Record<string, unknown>): Promise<void>;
+    }
+  ).fireSubTrigger(event, { subjectPermanentId });
 }
 
 describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to draw+memory", () => {
@@ -44,13 +48,19 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "SubTrigger", event: "whenPlayed" }, { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }],
+      actions: [
+        { kind: "SubTrigger", event: "whenPlayed" },
+        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" },
+      ],
     });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "OpponentsTurn",
       actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead" }],
     });
-    expect(compiled.effects[2]).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
+    expect(compiled.effects[2]).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false }],
+    });
   });
 
   it("draws 1 and gains 1 memory when a [Royal Knight] Digimon enters the field", async () => {

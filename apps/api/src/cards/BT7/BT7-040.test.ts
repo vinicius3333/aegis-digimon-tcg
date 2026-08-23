@@ -19,15 +19,22 @@ describe("BT7-040 Rasenmon — Main Digi-Burst", () => {
       { autoSelectCards: true },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("rasenmon").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT7-040/"))!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT7-040/"),
+    )!.effectKey;
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("rasenmon").topCard!.instanceId, effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("rasenmon").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("rasenmon").stack.length === 0 && s.perm("target").currentDP === 3000);
 
     expect(s.perm("target").currentDP).toBe(3000);
   });
 });
-
 
 /**
  * Drive the REAL digivolve intent into BT7-040 and return the memory actually paid

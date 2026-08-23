@@ -21,11 +21,7 @@ describe("BT23-013 Jesmon", () => {
           name: "Atho, René & Por",
           dp: 6000,
           color: "White",
-          keywords: [
-            { keyword: "Reboot" },
-            { keyword: "Blocker" },
-            { keyword: "Decoy", colors: ["Red", "Black"] },
-          ],
+          keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", colors: ["Red", "Black"] }],
         },
       });
       expect(actions[1].options[1][0]).toMatchObject({

@@ -28,9 +28,7 @@ export const compiled: CompiledCard = {
           kind: "Link",
           target: {
             filter: { isSelfRef: true },
-            orFilters: [
-              { controller: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] },
-            ],
+            orFilters: [{ controller: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] }],
             count: 1,
           },
           recipient: {

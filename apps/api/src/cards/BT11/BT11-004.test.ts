@@ -14,10 +14,12 @@ describe("BT11-004 Tanemon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("izzy").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("izzy").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-009"));
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");

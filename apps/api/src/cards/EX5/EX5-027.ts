@@ -30,7 +30,14 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
-      actions: [{ kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -2000, duration: "untilOpponentTurnEnd" }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -2000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
       isInherited: true,
     },
   ],

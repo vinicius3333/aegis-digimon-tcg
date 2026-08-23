@@ -31,14 +31,36 @@ const compiled: CompiledCard = {
                 kind: "GainTriggeredEffect" as const,
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
                 gainedTrigger: "onDeletionOf",
-                gainedActions: [{ kind: "PlayWithoutCost" as const, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false, optional: true }],
+                gainedActions: [
+                  {
+                    kind: "PlayWithoutCost" as const,
+                    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                    payCost: false,
+                    optional: true,
+                  },
+                ],
                 duration: "untilOpponentTurnEnd" as const,
               },
               {
                 kind: "GainTriggeredEffect" as const,
-                target: { filter: { controllerDefault: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 }, excludeSelf: true }, count: 1 },
+                target: {
+                  filter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "lte", value: 5 },
+                    excludeSelf: true,
+                  },
+                  count: 1,
+                },
                 gainedTrigger: "onDeletionOf",
-                gainedActions: [{ kind: "PlayWithoutCost" as const, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false, optional: true }],
+                gainedActions: [
+                  {
+                    kind: "PlayWithoutCost" as const,
+                    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                    payCost: false,
+                    optional: true,
+                  },
+                ],
                 duration: "untilOpponentTurnEnd" as const,
               },
             ],
@@ -51,7 +73,10 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "AddDPFromSuspendedCost" as const,
-          cost: { kind: "suspend" as const, target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 } },
+          cost: {
+            kind: "suspend" as const,
+            target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 },
+          },
           dpSource: { kind: "suspendedTarget" as const },
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           duration: "forThisAttack" as const,

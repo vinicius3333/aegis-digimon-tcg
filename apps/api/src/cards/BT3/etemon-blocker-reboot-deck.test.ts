@@ -29,7 +29,9 @@ describe("BT3 Etemon Blocker/Reboot deck", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyclone").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyclone").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         observe(s.engine).keywordAmount(s.perm("etemon"), "SecurityAttack") === 1 &&
@@ -37,14 +39,17 @@ describe("BT3 Etemon Blocker/Reboot deck", () => {
     );
     await settle();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("metalMamemon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 1 &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("metalMamemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
     expect(s.state.players[1]!.security).toHaveLength(1);

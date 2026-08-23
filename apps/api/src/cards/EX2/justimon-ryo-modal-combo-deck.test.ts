@@ -34,75 +34,87 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
     await s.ready();
 
     const initialDecisionCount = s.decisions.length;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("justimonBase").permanentId,
-      instanceId: s.inst("justimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("justimonBase").permanentId,
+        instanceId: s.inst("justimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return s.decisions.length > initialDecisionCount &&
-        req?.sourceCardId === "EX2-038" &&
-        req.kind === "chooseOption";
+      return (
+        s.decisions.length > initialDecisionCount && req?.sourceCardId === "EX2-038" && req.kind === "chooseOption"
+      );
     }, 5000);
 
     const evolutionMode = s.decisions.at(-1)!.req;
     expect(evolutionMode.options?.choices).toHaveLength(3);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: evolutionMode.decisionId,
-      response: { kind: "chooseOption", optionIndex: 0 },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("justimonBase").topCard.instanceId === s.inst("justimon").instanceId &&
-      s.perm("justimonBase").currentDP === 13_000 &&
-      s.state.memory === 7 &&
-      s.state.pendingDecision === undefined,
-    5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: evolutionMode.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("justimonBase").topCard.instanceId === s.inst("justimon").instanceId &&
+        s.perm("justimonBase").currentDP === 13_000 &&
+        s.state.memory === 7 &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
     await settle();
 
     const deleteTargetPermanentId = s.perm("deleteTarget").permanentId;
     const firstCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("justimonBase").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("justimonBase").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return req?.decisionId !== evolutionMode.decisionId &&
-        req?.sourceCardId === "EX2-038" &&
-        req.kind === "chooseOption";
+      return (
+        req?.decisionId !== evolutionMode.decisionId && req?.sourceCardId === "EX2-038" && req.kind === "chooseOption"
+      );
     }, 5000);
     const firstAttackMode = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: firstAttackMode.decisionId,
-      response: { kind: "chooseOption", optionIndex: 1 },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstAttackMode.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return req?.decisionId !== firstAttackMode.decisionId &&
-        req?.sourceCardId === "EX2-038" &&
-        req.kind === "chooseOption";
+      return (
+        req?.decisionId !== firstAttackMode.decisionId && req?.sourceCardId === "EX2-038" && req.kind === "chooseOption"
+      );
     }, 5000);
     const secondAttackMode = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: secondAttackMode.decisionId,
-      response: { kind: "chooseOption", optionIndex: 2 },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondAttackMode.decisionId,
+        response: { kind: "chooseOption", optionIndex: 2 },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some(
-        ({ permanentId }) => permanentId === deleteTargetPermanentId,
-      ) &&
-      s.state.players[1]!.security.length === 1 &&
-      s.events.filter(({ kind }) => kind === "combatResolved").length > firstCombatCount &&
-      s.state.pendingDecision === undefined,
-    5000);
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deleteTargetPermanentId) &&
+        s.state.players[1]!.security.length === 1 &&
+        s.events.filter(({ kind }) => kind === "combatResolved").length > firstCombatCount &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
 
     expect(s.perm("firstRyo").isSuspended).toBe(true);
     expect(s.perm("secondRyo").isSuspended).toBe(true);
@@ -115,15 +127,19 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
 
     const decisionCountBeforeSecondAttack = s.decisions.length;
     const secondCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("justimonBase").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 0 &&
-      s.events.filter(({ kind }) => kind === "combatResolved").length > secondCombatCount,
-    5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("justimonBase").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 0 &&
+        s.events.filter(({ kind }) => kind === "combatResolved").length > secondCombatCount,
+      5000,
+    );
 
     expect(s.decisions).toHaveLength(decisionCountBeforeSecondAttack);
     expect(s.perm("justimonBase").isSuspended).toBe(true);

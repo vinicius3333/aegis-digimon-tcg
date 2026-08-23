@@ -6,139 +6,131 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [{
-        "kind": "SubTrigger",
-        "event": "whenSuspended",
-        "sourceFilter": { "controller": "opponent", "kind": ["Digimon"] },
-        "actions": [{
-          "kind": "trashSecurityTop", "controller": "opponent", "count": 1,
-          "cost": { "kind": "trash", "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "linked" }, "count": 1 }, "raw": "By trashing 1 of this Digimon's link cards" },
-          "optional": true, "abortOnDecline": true
-        }]
-      }]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "trash",
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "trash",
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ]
-                },
-                "count": 1
+              kind: "trashSecurityTop",
+              controller: "opponent",
+              count: 1,
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+                raw: "By trashing 1 of this Digimon's link cards",
               },
-              "optional": true
+              optional: true,
+              abortOnDecline: true,
             },
-            {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ],
-                  "suspended": true
-                },
-                "count": 1,
-                "sameTarget": true
-              },
-              "restriction": "unsuspend",
-              "duration": "untilOpponentNextUnsuspendPhase"
-            }
-          ]
-        }
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+            },
+            count: 1,
+          },
+          from: ["trash", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+            },
+            count: 1,
+          },
+          from: ["trash", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon", "Tamer"],
+                },
+                count: 1,
+              },
+              optional: true,
+            },
+            {
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon", "Tamer"],
+                  suspended: true,
+                },
+                count: 1,
+                sameTarget: true,
+              },
+              restriction: "unsuspend",
+              duration: "untilOpponentNextUnsuspendPhase",
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Mienumon",
-        "Sakusimon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Mienumon", "Sakusimon"],
+      cost: 0,
+    },
+  ],
 };
 
 export { compiled };

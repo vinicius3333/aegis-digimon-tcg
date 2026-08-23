@@ -10,20 +10,29 @@ describe("EX11-029 Turbomon", () => {
       { names: ["Maquinamon"], cost: 2, isAlternate: true },
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      expect(compiled.effects).toContainEqual(expect.objectContaining({
-        trigger,
-        actions: [expect.objectContaining({
-          kind: "Link",
-          from: ["hand", "digivolutionCards"],
-          payCost: false,
-          optional: true,
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] }, count: 1 },
-          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-        })],
-      }));
+      expect(compiled.effects).toContainEqual(
+        expect.objectContaining({
+          trigger,
+          actions: [
+            expect.objectContaining({
+              kind: "Link",
+              from: ["hand", "digivolutionCards"],
+              payCost: false,
+              optional: true,
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "name" }] },
+                count: 1,
+              },
+              recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            }),
+          ],
+        }),
+      );
     }
     const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(linked).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked" }] });
-    expect(linked.actions[0]).toMatchObject({ actions: [{ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false }] });
+    expect(linked.actions[0]).toMatchObject({
+      actions: [{ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false }],
+    });
   });
 });

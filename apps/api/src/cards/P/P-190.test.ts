@@ -12,10 +12,31 @@ describe("P-190 Tweetmon", () => {
   it("links from trash or a digivolution stack and draws when linked", () => {
     const card = runtimeCompiledCard("P-190")!;
     expect(card.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
-      actions: [{ kind: "Link", from: ["trash", "digivolutionCards"], optional: true, target: { count: 1, filter: { controller: "mine", kind: ["Digimon"], hasLinkRequirement: true, hostFilter: { isSelfRef: true } } } }],
+      actions: [
+        {
+          kind: "Link",
+          from: ["trash", "digivolutionCards"],
+          optional: true,
+          target: {
+            count: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
+            },
+          },
+        },
+      ],
     });
     expect(card.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
-      actions: [{ event: "whenLinked", on: { filter: { isSelfRef: true } }, actions: [{ kind: "Draw", controller: "mine", amount: 1 }] }],
+      actions: [
+        {
+          event: "whenLinked",
+          on: { filter: { isSelfRef: true } },
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+        },
+      ],
     });
   });
 

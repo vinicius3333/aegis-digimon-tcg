@@ -103,9 +103,7 @@ describe("BT11-094 Mirei Mikagura", () => {
     expect(mireiPerm.isSuspended).toBe(true);
 
     // LadyDevimon should now be on the battle area (played from hand for free).
-    await settle(() =>
-      p0.battleArea.some((p) => p.topCard?.cardId === "BT11-083"),
-    );
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT11-083"));
 
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT11-083")).toBe(true);
     // LadyDevimon no longer in hand.
@@ -130,11 +128,13 @@ describe("BT11-094 Mirei Mikagura", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT11-042");
 
     expect(s.perm("mirei").isSuspended).toBe(false);

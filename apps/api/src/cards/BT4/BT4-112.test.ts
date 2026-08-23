@@ -6,9 +6,17 @@ import "./BT4-112.js";
 
 describe("BT4-112 Hell's Gate", () => {
   it("deletes an opposing level 6 or higher Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: ["BT4-076"], hand: [{ card: "BT4-112", as: "option" }] }, 1: { battleArea: [{ card: "BT3-019", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT4-076"], hand: [{ card: "BT4-112", as: "option" }] },
+        1: { battleArea: [{ card: "BT3-019", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

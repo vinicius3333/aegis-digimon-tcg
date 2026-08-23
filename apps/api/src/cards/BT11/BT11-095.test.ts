@@ -47,14 +47,16 @@ describe("BT11-095 Taiki, Kiriha, & Nene", () => {
     });
     s.state.memory = 7;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("xros").instanceId,
-      digiXros: {
-        materialInstanceIds: [s.inst("shoutmon").instanceId],
-        expanderPermanentIds: [s.perm("expander").permanentId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("xros").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("shoutmon").instanceId],
+          expanderPermanentIds: [s.perm("expander").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT10-009"));
 
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT10-009")!;
@@ -76,14 +78,16 @@ describe("BT11-095 Taiki, Kiriha, & Nene", () => {
     });
     s.state.memory = 9;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("xros").instanceId,
-      digiXros: {
-        materialInstanceIds: [s.inst("shoutmon").instanceId],
-        expanderPermanentIds: [s.perm("expander").permanentId],
-      },
-    })).toEqual({ ok: false, reason: "invalid-material" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("xros").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("shoutmon").instanceId],
+          expanderPermanentIds: [s.perm("expander").permanentId],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
     expect(s.perm("expander").isSuspended).toBe(false);
   });
 });

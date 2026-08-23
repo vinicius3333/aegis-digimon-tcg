@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  PlayerState,
-  Permanent,
-  CardInstance,
-  Phase,
-  type Seat,
-} from "@aegis/shared";
+import { GameState, PlayerState, Permanent, CardInstance, Phase, type Seat } from "@aegis/shared";
 import { validateDigivolve, type DigivolveDeps } from "../engine/actions/digivolve.js";
 
 // Integration coverage for the conditional Tamer-base digivolution paths whose documented behavior `condition:`
@@ -86,10 +79,7 @@ describe("BT22-042 — digivolve from Chaperomon gated on controlling a [Arisa K
   });
 
   it("is legal when an Arisa Kinosaki Tamer is in play", () => {
-    const { state, base, evolver } = setup(
-      [permanent(CHAPEROMON), permanent(ARISA_KINOSAKI)],
-      "BT22-042",
-    );
+    const { state, base, evolver } = setup([permanent(CHAPEROMON), permanent(ARISA_KINOSAKI)], "BT22-042");
     const check = validate(state, base, evolver);
     expect(check.ok).toBe(true);
     if (check.ok) expect(check.cost).toBe(6);
@@ -122,18 +112,12 @@ describe("BT23-101 — Erika Mishima path gated on 4+ [Hudie] Tamers, plus the L
 
 describe("P-185 — digivolve from a [Takuya Kanbara] Tamer with 5+ [Hybrid] cards under it", () => {
   it("is illegal with only 4 [Hybrid] cards under the Tamer", () => {
-    const { state, base, evolver } = setup(
-      [permanent(TAKUYA, { stack: Array(4).fill(HYBRID) })],
-      "P-185",
-    );
+    const { state, base, evolver } = setup([permanent(TAKUYA, { stack: Array(4).fill(HYBRID) })], "P-185");
     expect(validate(state, base, evolver).ok).toBe(false);
   });
 
   it("is legal with 5 [Hybrid] cards under the Tamer (cost 4)", () => {
-    const { state, base, evolver } = setup(
-      [permanent(TAKUYA, { stack: Array(5).fill(HYBRID) })],
-      "P-185",
-    );
+    const { state, base, evolver } = setup([permanent(TAKUYA, { stack: Array(5).fill(HYBRID) })], "P-185");
     const check = validate(state, base, evolver);
     expect(check.ok).toBe(true);
     if (check.ok) expect(check.cost).toBe(4);

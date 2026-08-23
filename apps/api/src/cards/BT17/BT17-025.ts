@@ -6,119 +6,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue",
-                "Purple"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue", "Purple"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash",
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true,
-          "bindResultAs": "playedLevel3"
+          from: ["trash", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+          bindResultAs: "playedLevel3",
         },
         {
-          "kind": "SubTrigger",
-          "event": "endOfOpponentTurn",
-          "actions": [
+          kind: "SubTrigger",
+          event: "endOfOpponentTurn",
+          actions: [
             {
-              "kind": "Return",
-              "target": {
-                "filter": { "boundRef": "playedLevel3" },
-                "count": 1,
-                "isSelf": true
+              kind: "Return",
+              target: {
+                filter: { boundRef: "playedLevel3" },
+                count: 1,
+                isSelf: true,
               },
-              "to": "hand"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              to: "hand",
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Dark Animal"
-          ]
-        }
-      ]
+          ],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
           },
-          "actions": [
-            {
-              "kind": "Return",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ]
-                },
-                "count": 1
-              },
-              "to": "hand"
-            }
-          ]
-        }
+          grant: "trait",
+          tokens: ["Dark Animal"],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "names": [
-        "Cerberusmon"
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levels: [3],
+                },
+                count: 1,
+              },
+              to: "hand",
+            },
+          ],
+        },
       ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Cerberusmon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-025", compiled);

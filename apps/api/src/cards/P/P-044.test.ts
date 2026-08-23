@@ -115,11 +115,13 @@ describe("P-044 HerculesKabuterimon", () => {
     const decision = s.decisions.filter(({ req }) => req.kind === "chooseTargets").at(-1)!.req;
     expect(decision.options?.candidateInstanceIds).toHaveLength(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("low-a").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("low-a").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("low-a").isSuspended);
 
     expect(s.perm("low-a").isSuspended).toBe(true);

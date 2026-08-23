@@ -5,10 +5,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-086.js";
 describe("BT11-086 Mervamon", () => {
   it("DigiXroses with a Xros Heart card from trash and plays 2 eligible Digimon", async () => {
-    expect(digiXrosRequirementFor("BT11-086")).toEqual([{
-      materials: [{ traits: ["Xros Heart"] }],
-      count: 3,
-    }]);
+    expect(digiXrosRequirementFor("BT11-086")).toEqual([
+      {
+        materials: [{ traits: ["Xros Heart"] }],
+        count: 3,
+      },
+    ]);
     const s = setupEngine(
       {
         0: {
@@ -24,11 +26,13 @@ describe("BT11-086 Mervamon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("merva").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("merva").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
 
     expect(s.state.memory).toBe(2);

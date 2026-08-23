@@ -18,121 +18,109 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The flag conflated "play a Digimon without cost" with the use-option gap. This card is faithful
 // and complete; 08-06 records it as a use-option SIGN-OFF (no phantom clause to author).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDiscardSecurity",
-      "actions": [
+      trigger: "OnDiscardSecurity",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": { "controller": "opponent", "kind": ["Digimon"] },
-            "count": "all"
+          kind: "ModifyDP",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: "all",
           },
-          "amount": -5000,
-          "duration": "untilYourTurnEnd"
+          amount: -5000,
+          duration: "untilYourTurnEnd",
         },
         {
-          "kind": "ModifySecurityDP",
-          "controller": "opponent",
-          "amount": -5000,
-          "duration": "untilYourTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "security"
-          ],
-          "payCost": false,
-          "optional": true
+          kind: "ModifySecurityDP",
+          controller: "opponent",
+          amount: -5000,
+          duration: "untilYourTurnEnd",
         },
-        {
-          "kind": "SecurityManipulation",
-          "op": "shuffle",
-          "controller": "mine"
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "toTop": true,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Kari Kamiya"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have a Tamer with [Kari Kamiya] in its name"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "amount": -5000,
-          "duration": "untilYourTurnEnd"
-        },
-        {
-          "kind": "ModifySecurityDP",
-          "controller": "opponent",
-          "amount": -5000,
-          "duration": "untilYourTurnEnd"
-        }
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+            },
+            count: 1,
+          },
+          from: ["security"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "mine",
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          toTop: true,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
+                {
+                  tokens: ["Kari Kamiya"],
+                  match: "name",
+                },
+              ],
+            },
+            raw: "you have a Tamer with [Kari Kamiya] in its name",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          amount: -5000,
+          duration: "untilYourTurnEnd",
+        },
+        {
+          kind: "ModifySecurityDP",
+          controller: "opponent",
+          amount: -5000,
+          duration: "untilYourTurnEnd",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-092", compiled);

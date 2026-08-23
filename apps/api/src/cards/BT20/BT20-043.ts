@@ -6,200 +6,178 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 5,
-              "raw": "reduce the play cost by 5",
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 5,
+              raw: "reduce the play cost by 5",
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "ACCEL"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["ACCEL"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "you have a Digimon with the [ACCEL] trait"
-              }
-            }
-          ]
-        }
-      ]
+                raw: "you have a Digimon with the [ACCEL] trait",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
-          }
-        },
-        {
-          "kind": "ModifyDP",
-          "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-          "amount": 3000,
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+            count: "all",
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          amount: 3000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
-          }
-        },
-        {
-          "kind": "ModifyDP",
-          "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-          "amount": 3000,
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+            count: "all",
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          amount: 3000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "isSelfRef": true
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 2,
-            "includeRef": "self"
+            count: 2,
+            includeRef: "self",
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Chaosmon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Chaosmon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": true,
-          "optional": true
+          payCost: true,
+          optional: true,
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Attack",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "withoutSuspending": false,
-          "optional": true,
-          "condition": { "kind": "ifThisEffectActed" }
-        }
-      ]
+          withoutSuspending: false,
+          optional: true,
+          condition: { kind: "ifThisEffectActed" },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
+          amount: -4000,
+          duration: "forTheTurn",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "ACCEL"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["ACCEL"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT20-043", compiled);

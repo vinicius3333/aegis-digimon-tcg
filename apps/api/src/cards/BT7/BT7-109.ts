@@ -9,80 +9,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q1676 confirms the alternative play is optional and requires 10+ cards in trash.
 // The second action is "instead" of the first — conditional on 10+ trash cards.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "levels": [
-                5
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              levels: [5],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false
+          from: ["trash"],
+          payCost: false,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Lucemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Lucemon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "there are 10 or more cards in your trash"
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "there are 10 or more cards in your trash",
           },
-          "instead": true,
-          "optional": true
-        }
-      ]
+          instead: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-109", compiled);

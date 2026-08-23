@@ -60,17 +60,25 @@ describe("BT22-039 Ouranosmon", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ouranosmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouranosmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-009"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-009")));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-009")),
+    );
     await settle();
 
     expect(s.perm("ouranosmon").stack.some((card) => card.cardId === "BT22-016")).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-016"))).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-009"))).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT22-016")),
+    ).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-009")),
+    ).toBe(true);
   });
 });

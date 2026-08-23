@@ -1,10 +1,4 @@
-import {
-  EffectTiming,
-  type CardInstance,
-  type Permanent,
-  type Seat,
-  type RejectReason,
-} from "@aegis/shared";
+import { EffectTiming, type CardInstance, type Permanent, type Seat, type RejectReason } from "@aegis/shared";
 import type { CardSource } from "../effects/CardSource.js";
 import type { Effect } from "../effects/Effect.js";
 import type { EffectContext } from "../effects/EffectContext.js";

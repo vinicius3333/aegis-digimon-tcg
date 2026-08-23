@@ -53,10 +53,12 @@ describe("BT1-027 Armadillomon", () => {
       0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "BT1-027", as: "armadillomon" }] },
     });
     s.state.memory = 1;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("armadillomon").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("armadillomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

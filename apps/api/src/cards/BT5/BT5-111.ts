@@ -17,69 +17,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (no optional:true). The SubTrigger fires on opponent attack; the cost (trash 2 self
 // digivolution cards) gates the EndAttack action.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
+              },
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "oncePerTiming": true,
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          oncePerTiming: true,
+          actions: [
             {
-              "kind": "EndAttack",
-              "optional": true,
-              "abortOnDecline": true,
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true,
-                    "zone": "digivolutionCards"
+              kind: "EndAttack",
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                    zone: "digivolutionCards",
                   },
-                  "count": 2,
-                  "isSelf": true
+                  count: 2,
+                  isSelf: true,
                 },
-                "raw": "by trashing 2 of this Digimon's digivolution cards"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Omnimon"
+                raw: "by trashing 2 of this Digimon's digivolution cards",
+              },
+            },
+          ],
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Omnimon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT5-111", compiled);

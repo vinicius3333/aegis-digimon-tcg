@@ -31,7 +31,9 @@ describe("design primitives", () => {
     render(
       <>
         <Badge tone="success">Legal</Badge>
-        <Alert tone="danger" title="Invalid deck">Fix the restricted cards.</Alert>
+        <Alert tone="danger" title="Invalid deck">
+          Fix the restricted cards.
+        </Alert>
       </>,
     );
 
@@ -41,7 +43,11 @@ describe("design primitives", () => {
 
   it("moves focus into dialogs and closes them with Escape", () => {
     const onClose = vi.fn<() => void>();
-    render(<Dialog labelledBy="test-dialog-title" onClose={onClose}><h2 id="test-dialog-title">Choose a card</h2></Dialog>);
+    render(
+      <Dialog labelledBy="test-dialog-title" onClose={onClose}>
+        <h2 id="test-dialog-title">Choose a card</h2>
+      </Dialog>,
+    );
 
     const dialog = screen.getByRole("dialog", { name: "Choose a card" });
     expect(document.activeElement).toBe(dialog);
@@ -71,7 +77,11 @@ describe("design primitives", () => {
     const onNav = vi.fn<(screen: Screen) => void>();
     render(
       <I18nProvider>
-        <TopNav screen="home" onNav={onNav} player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }} />
+        <TopNav
+          screen="home"
+          onNav={onNav}
+          player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }}
+        />
       </I18nProvider>,
     );
 

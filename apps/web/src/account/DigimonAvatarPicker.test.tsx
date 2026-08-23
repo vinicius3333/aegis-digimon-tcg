@@ -24,7 +24,11 @@ describe("DigimonAvatarPicker", () => {
       );
     }
 
-    render(<I18nProvider><Harness /></I18nProvider>);
+    render(
+      <I18nProvider>
+        <Harness />
+      </I18nProvider>,
+    );
     expect(screen.getAllByRole("button")).toHaveLength(65);
 
     fireEvent.change(screen.getByRole("searchbox", { name: "Search Digimon" }), {
@@ -42,13 +46,19 @@ describe("DigimonAvatarPicker", () => {
 
   it("keeps the picker usable after a save failure", async () => {
     const save = vi.fn<(avatarId: DigimonWorldAvatarId) => Promise<void>>().mockRejectedValue(new Error("offline"));
-    render(<I18nProvider><DigimonAvatarPicker selectedAvatarId={null} onSelect={save} /></I18nProvider>);
+    render(
+      <I18nProvider>
+        <DigimonAvatarPicker selectedAvatarId={null} onSelect={save} />
+      </I18nProvider>,
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Use Numemon as your avatar" }));
 
     expect(await screen.findByText("Could not save your avatar. Try again.")).toBeTruthy();
     await waitFor(() =>
-      expect(screen.getByRole<HTMLButtonElement>("button", { name: "Use Numemon as your avatar" }).disabled).toBe(false),
+      expect(screen.getByRole<HTMLButtonElement>("button", { name: "Use Numemon as your avatar" }).disabled).toBe(
+        false,
+      ),
     );
   });
 });

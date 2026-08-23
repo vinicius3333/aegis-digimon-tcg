@@ -10,11 +10,39 @@ describe("EX10-053 Regulusmon", () => {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
           { kind: "PlaceUnder", target: { count: 5, upTo: true, distinctNames: true, from: ["trash"] } },
-          { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } }, count: 1 }, optional: true },
+          {
+            kind: "Delete",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
+              count: 1,
+            },
+            optional: true,
+          },
         ],
       });
     }
-    expect(compiled.effects?.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "Attack", withoutSuspending: true, optional: true, condition: { kind: "selfDigivolutionCountAtLeast", value: 5 } }] });
-    expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onDeletionOf", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: [{ kind: "GainMemory", amount: 1 }] }] });
+    expect(compiled.effects?.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Attack",
+          withoutSuspending: true,
+          optional: true,
+          condition: { kind: "selfDigivolutionCountAtLeast", value: 5 },
+        },
+      ],
+    });
+    expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
+    });
   });
 });

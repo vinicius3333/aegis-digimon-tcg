@@ -189,10 +189,7 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     expect(result).toEqual({ ok: true });
 
     // Wait until the effect resolves: the source opponent Digimon leaves the battle area.
-    await settle(
-      () =>
-        p1.battleArea.length < 2,
-    );
+    await settle(() => p1.battleArea.length < 2);
 
     // The placed Digimon leaves the battle area and becomes a card under the opponent's other Digimon.
     const opponentLostDigimon = p1.battleArea.length < 2;

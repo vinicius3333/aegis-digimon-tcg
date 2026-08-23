@@ -55,11 +55,18 @@ describe("ST7-12 Atomic Blaster", () => {
   it("does not reinterpret an over-8000 selection as a smaller subset", async () => {
     const s = setupEngine({
       0: { battleArea: ["ST7-02"], hand: [{ card: "ST7-12", as: "option" }] },
-      1: { battleArea: [{ card: "ST7-02", as: "small" }, { card: "ST7-07", as: "large" }] },
+      1: {
+        battleArea: [
+          { card: "ST7-02", as: "small" },
+          { card: "ST7-07", as: "large" },
+        ],
+      },
     });
     s.state.memory = 6;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.at(-1)!.req;
     expect(

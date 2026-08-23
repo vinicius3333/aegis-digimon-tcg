@@ -7,7 +7,12 @@ const SECURITY_DIGIMON = "AD1-001"; // attacker with enough DP to force a securi
 
 describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
   it("installs the Your Turn Tamer-stack watcher", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", addedDigivolutionCardFilter: { kind: ["Tamer"] } }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "YourTurn",
+      actions: [
+        { kind: "SubTrigger", event: "onAddDigivolutionCards", addedDigivolutionCardFilter: { kind: ["Tamer"] } },
+      ],
+    });
   });
 
   it("[Security] plays this Tamer to the battle area when hit as a security card", async () => {

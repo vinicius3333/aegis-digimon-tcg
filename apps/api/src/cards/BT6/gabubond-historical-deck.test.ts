@@ -42,60 +42,64 @@ describe("BT6 Gabumon Bond of Friendship historical deck", () => {
     s.state.phase = Phase.Breeding;
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "moveFromBreeding",
-      permanentId: s.perm("gabumon").permanentId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 1 &&
-      s.state.players[0]!.hand.some((card) =>
-        card.instanceId === s.inst("mattDraw").instanceId
-      )
+    expect(
+      s.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: s.perm("gabumon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === 1 &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("mattDraw").instanceId),
     );
 
     preferred.push(s.perm("gabumon").topCard.instanceId);
     s.state.phase = Phase.Main;
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("matt").topCard.instanceId,
-      effectKey: "BT6-088/main-digivolve-bond-of-friendship",
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("gabumon").topCard.instanceId === s.inst("bond").instanceId &&
-      s.state.players[0]!.security.length === 1
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("matt").topCard.instanceId,
+        effectKey: "BT6-088/main-digivolve-bond-of-friendship",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("gabumon").topCard.instanceId === s.inst("bond").instanceId && s.state.players[0]!.security.length === 1,
     );
 
     preferred.splice(0, preferred.length, s.perm("firstBounce").permanentId);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gabumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.deck.at(-1)?.instanceId === firstBounceInstanceId &&
-      !s.perm("gabumon").isSuspended
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gabumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[1]!.deck.at(-1)?.instanceId === firstBounceInstanceId && !s.perm("gabumon").isSuspended,
     );
     await settle();
 
     preferred.splice(0, preferred.length, s.perm("secondBounce").permanentId);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gabumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.deck.at(-1)?.instanceId === secondBounceInstanceId &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gabumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.deck.at(-1)?.instanceId === secondBounceInstanceId &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("gabumon").isSuspended).toBe(true);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("firstSource").instanceId,
-        s.inst("secondSource").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("firstSource").instanceId, s.inst("secondSource").instanceId]),
     );
 
     const bondId = s.inst("bond").instanceId;

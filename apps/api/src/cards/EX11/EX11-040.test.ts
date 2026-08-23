@@ -11,11 +11,24 @@ describe("EX11-040 Mulemon", () => {
       { names: ["Maquinamon"], cost: 2, isAlternate: true },
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger, actions: [expect.objectContaining({ kind: "Link", from: ["hand", "digivolutionCards"], payCost: false })] }));
+      expect(compiled.effects).toContainEqual(
+        expect.objectContaining({
+          trigger,
+          actions: [expect.objectContaining({ kind: "Link", from: ["hand", "digivolutionCards"], payCost: false })],
+        }),
+      );
     }
     const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(linked.actions).toHaveLength(1);
-    expect(linked.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } });
-    expect(irNode(linked.actions[0]!).actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], condition: { kind: "permanentCount", op: "lte", value: 1 } });
+    expect(linked.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenLinked",
+      sourceFilter: { isSelfRef: true },
+    });
+    expect(irNode(linked.actions[0]!).actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["hand", "trash"],
+      condition: { kind: "permanentCount", op: "lte", value: 1 },
+    });
   });
 });

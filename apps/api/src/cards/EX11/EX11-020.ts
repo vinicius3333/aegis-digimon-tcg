@@ -10,80 +10,73 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     if cost cannot be paid (no other Digimon), the EndAttack does not happen
 //     (cost-gating is standard interpreter behavior).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Shoemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Shoemon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "not", "condition": {"kind": "triggerRemovalCause", "removalCause": "byBattle"},
-            "raw": "deleted other than in battle"
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "not",
+            condition: { kind: "triggerRemovalCause", removalCause: "byBattle" },
+            raw: "deleted other than in battle",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "EndAttack"
-            }
-          ],
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1
+              kind: "EndAttack",
             },
-            "raw": "by deleting 1 of your other Digimon, end that attack"
-          }
-        }
+          ],
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+              },
+              count: 1,
+            },
+            raw: "by deleting 1 of your other Digimon, end that attack",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Kyaromon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Kyaromon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX11-020", compiled);

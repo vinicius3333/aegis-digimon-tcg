@@ -7,7 +7,10 @@ import "../index.js";
 
 describe("BT26-009 Hyokomon", () => {
   it("compiles both printed clauses with complete coverage", () => {
-    expect(compiled).toMatchObject({ coverage: "full", effects: [{ trigger: "StartOfYourMainPhase" }, { trigger: "WhenAttacking", isInherited: true }] });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      effects: [{ trigger: "StartOfYourMainPhase" }, { trigger: "WhenAttacking", isInherited: true }],
+    });
   });
   it("uses the exact off-color Lv.2 [TS] cost-0 evolution path and rejects a near-match", () => {
     expect(digivolutionRequirementsFor("BT26-009")).toContainEqual({
@@ -78,16 +81,19 @@ describe("BT26-009 Hyokomon", () => {
 
   it("accepts the alternative Shaman-trait cost while rejecting an unrelated hand card", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-009", as: "hyokomon" }],
-        hand: [
-          { card: "BT26-032", as: "shaman" },
-          { card: "BT1-009", as: "unrelated" },
-        ],
-        deck: [{ card: "BT1-010", as: "drawn" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-009", as: "hyokomon" }],
+          hand: [
+            { card: "BT26-032", as: "shaman" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
       },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.inst("shaman").instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hyokomon"));
@@ -162,5 +168,4 @@ describe("BT26-009 Hyokomon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
-
 });

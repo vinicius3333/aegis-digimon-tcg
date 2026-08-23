@@ -7,8 +7,18 @@ describe("BT18-075 Liollmon", () => {
     expect(compiled.residual).toEqual([]);
     const replacements = compiled.effects[0]!.actions;
     expect(replacements).toHaveLength(2);
-    expect(replacements[0]).toMatchObject({ event: "wouldDigivolve", sourceFilter: { isSelfRef: true, zone: "battleArea" }, into: { multicolor: true, colors: ["Purple", "Yellow"] }, actions: [{ mode: "reduceCost", amount: 1 }] });
-    expect(replacements[1]).toMatchObject({ event: "wouldDigivolve", sourceFilter: { controller: "mine", kind: ["Tamer"] }, into: { multicolor: true, colors: ["Purple", "Yellow"] }, actions: [{ mode: "reduceCost", amount: 1 }] });
+    expect(replacements[0]).toMatchObject({
+      event: "wouldDigivolve",
+      sourceFilter: { isSelfRef: true, zone: "battleArea" },
+      into: { multicolor: true, colors: ["Purple", "Yellow"] },
+      actions: [{ mode: "reduceCost", amount: 1 }],
+    });
+    expect(replacements[1]).toMatchObject({
+      event: "wouldDigivolve",
+      sourceFilter: { controller: "mine", kind: ["Tamer"] },
+      into: { multicolor: true, colors: ["Purple", "Yellow"] },
+      actions: [{ mode: "reduceCost", amount: 1 }],
+    });
     expect(compiled.effects[0]!.frequency).toBe("OncePerTurn");
     expect(compiled.effects[1]).toMatchObject({ isInherited: true, keywords: [{ keyword: "Retaliation" }] });
   });

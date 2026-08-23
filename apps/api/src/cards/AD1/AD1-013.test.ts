@@ -14,14 +14,21 @@ describe("AD1-013 ZeigGreymon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("deletes the opponent's Digimon with the fewest digivolution cards on play", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "AD1-013", as: "zeig" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "no-sources" }, { card: "AD1-001", as: "with-source", under: ["BT1-010"] }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "AD1-013", as: "zeig" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "no-sources" },
+            { card: "AD1-001", as: "with-source", under: ["BT1-010"] },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 11;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zeig").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
@@ -29,13 +36,27 @@ describe("AD1-013 ZeigGreymon", () => {
   });
 
   it("uses the Blue Flare alternate level-5 evolution route for cost 3 and deletes on evolution", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-024", as: "base" }], hand: [{ card: "AD1-013", as: "zeig" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "no-sources" }, { card: "AD1-001", as: "with-source", under: ["BT1-010"] }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT10-024", as: "base" }], hand: [{ card: "AD1-013", as: "zeig" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "no-sources" },
+            { card: "AD1-001", as: "with-source", under: ["BT1-010"] },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("zeig").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zeig").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.memory).toBe(2);
@@ -54,8 +75,13 @@ describe("AD1-013 ZeigGreymon", () => {
     s.state.memory = 8;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia-force").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024"), 5000);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia-force").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024"),
+      5000,
+    );
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-013")).toBe(false);
@@ -79,7 +105,8 @@ describe("AD1-013 ZeigGreymon", () => {
   it("publishes Reboot and Blocker on itself", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-013", as: "zeig" }] } });
     await s.ready();
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("zeig").permanentId, "Reboot")).toBe(true);
     expect(continuous.hasKeyword(s.perm("zeig").permanentId, "Blocker")).toBe(true);
   });

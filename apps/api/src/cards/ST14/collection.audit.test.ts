@@ -35,7 +35,9 @@ describe("ST14 collection audit ledger", () => {
 
   it("preserves exact ST14 targeting, source, and requirement boundaries", () => {
     const impmon = runtimeCompiledCard("ST14-02")!;
-    const digivolve = nodesWithKey(impmon, "kind").find((node) => node.kind === "Digivolve" && node.into !== undefined)!;
+    const digivolve = nodesWithKey(impmon, "kind").find(
+      (node) => node.kind === "Digivolve" && node.into !== undefined,
+    )!;
     expect((digivolve.into as { nameOrTrait?: unknown }).nameOrTrait).toEqual([
       { tokens: ["Beelzemon"], match: "nameExact" },
     ]);

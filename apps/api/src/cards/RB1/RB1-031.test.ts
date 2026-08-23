@@ -24,6 +24,8 @@ describe("RB1-031 Arcturusmon", () => {
 
     expect(s.perm("arcturus").stack.some((card) => card.instanceId === gammamonInstanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gammamonInstanceId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentPermanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentPermanentId)).toBe(
+      false,
+    );
   });
 });

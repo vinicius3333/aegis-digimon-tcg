@@ -6,196 +6,163 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Matt Ishida"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Matt Ishida"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a Tamer with [Matt Ishida] in its name"
-          }
-        }
-      ]
+            raw: "you have a Tamer with [Matt Ishida] in its name",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gabumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gabumon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "MetalGarurumon"
+                tokens: ["MetalGarurumon"],
+                match: "name",
+              },
+            ],
+          },
+          payCost: false,
+          from: ["hand"],
+          ignoreRequirements: true,
+          optional: true,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Garurumon"],
+                    match: "name",
+                  },
                 ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "ignoreRequirements": true,
-          "optional": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Garurumon"
-                    ],
-                    "match": "name"
-                  }
-                ]
               },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
+              count: 1,
+              from: ["trash"],
             },
-            "raw": "By placing 1 [Garurumon] and 1 [WereGarurumon] from your trash as 1 of your [Gabumon]'s bottom digivolution cards",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+            raw: "By placing 1 [Garurumon] and 1 [WereGarurumon] from your trash as 1 of your [Gabumon]'s bottom digivolution cards",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gabumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gabumon"],
+                  match: "name",
+                },
+              ],
             },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target"
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
           },
-          "additionalCost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
+          additionalCost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "WereGarurumon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["WereGarurumon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
+              count: 1,
+              from: ["trash"],
             },
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gabumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gabumon"],
+                  match: "name",
+                },
+              ],
             },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target"
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
           },
-          "abortOnDecline": true,
-          "raw": "By placing 1 [Garurumon] and 1 [WereGarurumon] from your trash as 1 of your [Gabumon]ʼs bottom digivolution cards, that Digimon may digivolve into [MetalGarurumon] in your hand, ignoring its digivolution requirements and without paying the cost."
-        }
-      ]
+          abortOnDecline: true,
+          raw: "By placing 1 [Garurumon] and 1 [WereGarurumon] from your trash as 1 of your [Gabumon]ʼs bottom digivolution cards, that Digimon may digivolve into [MetalGarurumon] in your hand, ignoring its digivolution requirements and without paying the cost.",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gabumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gabumon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-091", compiled);

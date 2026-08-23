@@ -15,7 +15,9 @@ describe("BT8-102 Samadhi Shanti", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("mine").isSuspended && s.perm("target").isSuspended);
 
     expect(s.perm("mine").isSuspended).toBe(true);
@@ -23,10 +25,13 @@ describe("BT8-102 Samadhi Shanti", () => {
   });
 
   it("suspends an opposing Tamer from Security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT8-102", as: "option", faceUp: true }] },
-      1: { battleArea: [{ card: "BT8-038", as: "tamer" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT8-102", as: "option", faceUp: true }] },
+        1: { battleArea: [{ card: "BT8-038", as: "tamer" }] },
+      },
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     await settle(() => s.perm("tamer").isSuspended);

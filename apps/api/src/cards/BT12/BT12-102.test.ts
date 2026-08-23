@@ -32,10 +32,13 @@ it("keeps the compiled security effect activating the Main effect", async () => 
 });
 
 it("returns an opposing Digimon to its owner's deck", async () => {
-  const s = setupEngine({
-    0: { hand: [{ card: "BT12-102", as: "option" }], battleArea: [{ card: "BT1-029", as: "blue" }] },
-    1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009"] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-102", as: "option" }], battleArea: [{ card: "BT1-029", as: "blue" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   s.state.memory = 9;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
@@ -45,16 +48,19 @@ it("returns an opposing Digimon to its owner's deck", async () => {
 });
 
 it("reduces its play cost by 3 by placing one blue Digimon under another", async () => {
-  const s = setupEngine({
-    0: {
-      hand: [{ card: "BT12-102", as: "option" }],
-      battleArea: [
-        { card: "BT1-029", as: "moved" },
-        { card: "BT1-029", as: "destination" },
-      ],
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: "BT12-102", as: "option" }],
+        battleArea: [
+          { card: "BT1-029", as: "moved" },
+          { card: "BT1-029", as: "destination" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     },
-    1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   const movedPermanentId = s.perm("moved").permanentId;
   s.state.memory = 6;

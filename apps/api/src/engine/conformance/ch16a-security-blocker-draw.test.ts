@@ -5,12 +5,7 @@ import "./not-testable.js";
 import { securityStrikeCount } from "../GameEngine.js";
 import { canBlock } from "../combat/legality.js";
 import { GameStateAccess } from "../state/access.js";
-import {
-  setupEngine as setup,
-  makeInstance as instance,
-  makeDigimon as digimon,
-  settle,
-} from "../testkit/harness.js";
+import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
 /**
@@ -36,10 +31,10 @@ const NON_KEYWORD_CARD = "AD1-001";
 
 // comprehensive-0016 (TOC dot-leader)
 markNotTestable(
-    "comprehensive-0016",
-    "A table-of-contents line ('16. Keyword Effects....33') carrying only a page " +
-      "number, no normative content — the same class as ch04's comprehensive-0004.",
-  );
+  "comprehensive-0016",
+  "A table-of-contents line ('16. Keyword Effects....33') carrying only a page " +
+    "number, no normative content — the same class as ch04's comprehensive-0004.",
+);
 describe("§16-1..16-4-3 <Security A.> (comprehensive-0221)", () => {
   it("16-4-3: 2 stacked <Security A. +1> grants check 2 cards total, NOT a combined <Security A. +2>", () => {
     cite(
@@ -82,7 +77,9 @@ describe("§16-4-4 <Security A.> floor (comprehensive-0222)", () => {
       "16-4-4 even if the modified number of security checks is negative, the actual number is 0",
     );
     // 1 (base) + 5 inverted +1 grants (each flipped to -1) = 1 - 5 = -4, floored to 0.
-    expect(securityStrikeCount([{ amount: 1 }, { amount: 1 }, { amount: 1 }, { amount: 1 }, { amount: 1 }], true)).toBe(0);
+    expect(securityStrikeCount([{ amount: 1 }, { amount: 1 }, { amount: 1 }, { amount: 1 }, { amount: 1 }], true)).toBe(
+      0,
+    );
   });
 });
 

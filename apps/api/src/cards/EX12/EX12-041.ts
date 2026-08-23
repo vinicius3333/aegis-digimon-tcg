@@ -6,117 +6,103 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "labels": ["Play a matching card", "Use a matching Option"],
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          labels: ["Play a matching card", "Use a matching Option"],
+          options: [
             [
               {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer",
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Mutant",
-                    "ME"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-              }
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon", "Tamer"],
+                    nameOrTrait: [
+                      {
+                        tokens: ["Mutant", "ME"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                  count: 1,
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
             ],
             [
               {
-                "kind": "UseOptionWithoutCost",
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Option"],
-                  "nameOrTrait": [{ "tokens": ["Mutant", "ME"], "match": "trait" }]
+                kind: "UseOptionWithoutCost",
+                filter: {
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Mutant", "ME"], match: "trait" }],
                 },
-                "from": ["hand"],
-                "payCost": true,
-                "reduceCostBy": 2,
-                "optional": true
-              }
-            ]
-          ]
-        }
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
+            ],
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "Mamemon"
-          ]
-        }
-      ]
+          grant: "name",
+          tokens: ["Mamemon"],
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -2000,
-          "duration": "forTheTurn"
-        }
+          amount: -2000,
+          duration: "forTheTurn",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "ME"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["ME"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-041", compiled);

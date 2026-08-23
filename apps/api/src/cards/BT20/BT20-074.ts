@@ -9,112 +9,108 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // effectively replaced (or the DNA digivolve happens in response).
 // The "in the hand" specifies where the target card is sourced from for the DNA digivolve.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
-                { "tokens": ["Imperialdramon"], "match": "name" },
-                { "tokens": ["Free"], "match": "trait" }
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                { tokens: ["Imperialdramon"], match: "name" },
+                { tokens: ["Free"], match: "trait" },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
-                { "tokens": ["Imperialdramon"], "match": "name" },
-                { "tokens": ["Free"], "match": "trait" }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "wouldBeReturned",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
-              { "tokens": ["Dinobeemon", "Paildramon"], "match": "name" }
-            ],
-            "returnDestination": ["hand", "deck"]
-          },
-          "actions": [
-            {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"]
-                },
-                "count": 2
-              },
-              "into": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "zone": "hand",
-                "nameOrTrait": [
-                  { "tokens": ["Imperialdramon: Dragon Mode"], "match": "name" }
-                ]
-              },
-              "payCost": true,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": {
-            "kind": "PreventSecurityActivation",
-            "cardType": "Option"
-          },
-          "duration": "forTheTurn"
-        }
+          to: "hand",
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                { tokens: ["Imperialdramon"], match: "name" },
+                { tokens: ["Free"], match: "trait" },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "wouldBeReturned",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "name" }],
+            returnDestination: ["hand", "deck"],
+          },
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 2,
+              },
+              into: {
+                controller: "mine",
+                kind: ["Digimon"],
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
+              },
+              payCost: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          grant: {
+            kind: "PreventSecurityActivation",
+            cardType: "Option",
+          },
+          duration: "forTheTurn",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-074", compiled);

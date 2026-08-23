@@ -3,96 +3,96 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RestrictPlay",
-          "seat": "opponent",
-          "filter": {
-            "kind": ["Digimon", "Tamer"]
+          kind: "RestrictPlay",
+          seat: "opponent",
+          filter: {
+            kind: ["Digimon", "Tamer"],
           },
-          "mode": "play",
-          "byEffectOnly": true,
-          "duration": "untilOpponentTurnEnd"
+          mode: "play",
+          byEffectOnly: true,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": ["Imperialdramon: Dragon Mode"],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Imperialdramon: Dragon Mode"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "[Imperialdramon: Dragon Mode] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[Imperialdramon: Dragon Mode] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"],
-                  "dp": {
-                    "op": "lte",
-                    "relativeToSource": true
-                  }
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  dp: {
+                    op: "lte",
+                    relativeToSource: true,
+                  },
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Imperialdramon: Dragon Mode"],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Imperialdramon: Dragon Mode"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT20-020", compiled);

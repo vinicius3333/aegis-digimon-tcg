@@ -4,10 +4,19 @@ import "./EX1-006.js";
 
 describe("EX1-006 Garudamon", () => {
   it("gains 1 memory only when its Digimon attacks a player", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-008", as: "attacker", under: ["EX1-006"] }] }, 1: { security: ["BT1-001", "BT1-001"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-008", as: "attacker", under: ["EX1-006"] }] },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 6, 3000);
     expect(s.state.memory).toBe(6);
   });

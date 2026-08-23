@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-100.js";
@@ -58,12 +53,7 @@ function makeCtx(
     inHand?: boolean;
   } = {},
 ): { ctx: EffectContext; recorder: { calls: { verb: string; args: unknown[] }[] } } {
-  const {
-    securityCount = 3,
-    rasenmonPermanentId,
-    opponentDigimonPermanentId,
-    inHand = true,
-  } = opts;
+  const { securityCount = 3, rasenmonPermanentId, opponentDigimonPermanentId, inHand = true } = opts;
 
   const recorder: { calls: { verb: string; args: unknown[] }[] } = { calls: [] };
 
@@ -101,9 +91,7 @@ function makeCtx(
     {
       seat: 0 as Seat,
       hand: inHand ? [selfCard] : [],
-      security: Array.from({ length: securityCount }, (_, i) =>
-        card(`sec-${i}`, "BT7-OTHER-SEC", 0),
-      ),
+      security: Array.from({ length: securityCount }, (_, i) => card(`sec-${i}`, "BT7-OTHER-SEC", 0)),
       battleArea: ownerBattleArea,
       deck: [],
       trash: [],
@@ -275,18 +263,16 @@ describe("BT7-100 [Security] — real combat", () => {
     s.state.memory = 3;
     const securityInstanceId = s.inst("qualialiseBlast").instanceId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
-    expect(s.state.players[0]!.hand.some(
-      ({ instanceId }) => instanceId === securityInstanceId,
-    )).toBe(true);
-    expect(s.state.players[0]!.trash.some(
-      ({ instanceId }) => instanceId === securityInstanceId,
-    )).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === securityInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === securityInstanceId)).toBe(false);
   });
 });

@@ -13,9 +13,7 @@ import "../cards/index.js";
  * and EX11-055 effects[2].actions[0].actions => RED.
  */
 
-function findOnDeletionSubTrigger(
-  cardId: string,
-): Record<string, unknown> | undefined {
+function findOnDeletionSubTrigger(cardId: string): Record<string, unknown> | undefined {
   const compiled = getCompiledCard(cardId);
   if (compiled === undefined) return undefined;
   let found: Record<string, unknown> | undefined;
@@ -24,11 +22,7 @@ function findOnDeletionSubTrigger(
       for (const x of a) visit(x);
     } else if (a !== null && typeof a === "object") {
       const obj = a as Record<string, unknown>;
-      if (
-        obj.kind === "SubTrigger" &&
-        obj.event === "onDeletionOf" &&
-        found === undefined
-      ) {
+      if (obj.kind === "SubTrigger" && obj.event === "onDeletionOf" && found === undefined) {
         found = obj;
       }
       for (const v of Object.values(obj)) visit(v);
@@ -44,9 +38,7 @@ describe("SubTrigger onDeletionOf has non-empty actions array", () => {
     expect(st).toBeDefined();
     const actions = st!.actions as unknown[];
     expect(actions.length).toBeGreaterThan(0);
-    const draw = actions.find(
-      (a) => (a as Record<string, unknown>).kind === "Draw",
-    );
+    const draw = actions.find((a) => (a as Record<string, unknown>).kind === "Draw");
     expect(draw).toBeDefined();
     expect((draw as Record<string, unknown>).amount).toBe(1);
   });
@@ -55,9 +47,7 @@ describe("SubTrigger onDeletionOf has non-empty actions array", () => {
     const st = findOnDeletionSubTrigger("EX4-064");
     expect(st).toBeDefined();
     const actions = st!.actions as unknown[];
-    const mem = actions.find(
-      (a) => (a as Record<string, unknown>).kind === "GainMemory",
-    );
+    const mem = actions.find((a) => (a as Record<string, unknown>).kind === "GainMemory");
     expect(mem).toBeDefined();
   });
 
@@ -66,9 +56,7 @@ describe("SubTrigger onDeletionOf has non-empty actions array", () => {
     expect(st).toBeDefined();
     const actions = st!.actions as unknown[];
     expect(actions.length).toBeGreaterThan(0);
-    const play = actions.find(
-      (a) => (a as Record<string, unknown>).kind === "PlayWithoutCost",
-    );
+    const play = actions.find((a) => (a as Record<string, unknown>).kind === "PlayWithoutCost");
     expect(play).toBeDefined();
     expect((play as Record<string, unknown>).payCost).toBe(false);
     expect((play as Record<string, unknown>).optional).toBe(true);

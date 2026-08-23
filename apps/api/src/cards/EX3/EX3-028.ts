@@ -6,68 +6,55 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "excludeNameOrTrait": [
+              filter: {
+                excludeNameOrTrait: [
                   {
-                    "tokens": [
-                      "Three Great Angels"
-                    ],
-                    "match": "trait"
-                  }
+                    tokens: ["Three Great Angels"],
+                    match: "trait",
+                  },
                 ],
-                "controllerDefault": "mine",
-                "colors": [
-                  "Yellow"
-                ],
-                "nameOrTrait": [
+                controllerDefault: "mine",
+                colors: ["Yellow"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Angel",
-                      "Cherub",
-                      "Throne",
-                      "Authority",
-                      "Seraph",
-                      "Virtue"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Four Great Dragons"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Four Great Dragons"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
-    }
+          rest: "deckBottom",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX3-028", compiled);

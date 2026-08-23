@@ -45,16 +45,24 @@ describe("useCountdown", () => {
     const { result } = renderHook(() => useCountdown(deadline));
     expect(result.current.level).toBe("normal");
 
-    act(() => { vi.advanceTimersByTime(90_000); });
+    act(() => {
+      vi.advanceTimersByTime(90_000);
+    });
     expect(result.current.level).toBe("warning_5m");
 
-    act(() => { vi.advanceTimersByTime(3 * 60_000); });
+    act(() => {
+      vi.advanceTimersByTime(3 * 60_000);
+    });
     expect(result.current.level).toBe("warning_2m");
 
-    act(() => { vi.advanceTimersByTime(60_000); });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
     expect(result.current.level).toBe("warning_1m");
 
-    act(() => { vi.advanceTimersByTime(60_000); });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
     expect(result.current.level).toBe("expired");
     expect(result.current.text).toBe("0:00");
   });
@@ -101,43 +109,66 @@ describe("usePolling", () => {
     const { unmount } = renderHook(() => usePolling(refresh, 5_000));
     expect(refresh).toHaveBeenCalledTimes(1);
 
-    act(() => { vi.advanceTimersByTime(10_000); });
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
     expect(refresh).toHaveBeenCalledTimes(3);
 
-    act(() => { setVisibility("hidden"); });
+    act(() => {
+      setVisibility("hidden");
+    });
     refresh.mockClear();
-    act(() => { vi.advanceTimersByTime(60_000); });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
     expect(refresh).not.toHaveBeenCalled();
 
     // Returning to the tab refreshes immediately rather than waiting out the interval.
-    act(() => { setVisibility("visible"); });
+    act(() => {
+      setVisibility("visible");
+    });
     expect(refresh).toHaveBeenCalledTimes(1);
 
     unmount();
     refresh.mockClear();
-    act(() => { vi.advanceTimersByTime(60_000); });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
     expect(refresh).not.toHaveBeenCalled();
   });
 
   it("runs no timer while disabled", () => {
     const refresh = vi.fn<() => void>();
     renderHook(() => usePolling(refresh, 5_000, false));
-    act(() => { vi.advanceTimersByTime(60_000); });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
     expect(refresh).not.toHaveBeenCalled();
   });
 
   it("skips a tick while the previous request is still in flight", async () => {
     let settle: (() => void) | undefined;
-    const refresh = vi.fn<() => Promise<void>>(() => new Promise<void>((resolve) => { settle = resolve; }));
+    const refresh = vi.fn<() => Promise<void>>(
+      () =>
+        new Promise<void>((resolve) => {
+          settle = resolve;
+        }),
+    );
     renderHook(() => usePolling(refresh, 5_000));
     expect(refresh).toHaveBeenCalledTimes(1);
 
     // Three intervals elapse without the first request resolving: no request stacks behind it.
-    act(() => { vi.advanceTimersByTime(15_000); });
+    act(() => {
+      vi.advanceTimersByTime(15_000);
+    });
     expect(refresh).toHaveBeenCalledTimes(1);
 
-    await act(async () => { settle?.(); });
-    act(() => { vi.advanceTimersByTime(5_000); });
+    await act(async () => {
+      settle?.();
+    });
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
     expect(refresh).toHaveBeenCalledTimes(2);
   });
 });
@@ -153,12 +184,18 @@ describe("usePolledRequest", () => {
 
     const { result } = renderHook(() => usePolledRequest(load, apply, 5_000));
     // The mount tick is in flight; force a second request past the in-flight guard.
-    await act(async () => { void result.current.refresh(); });
+    await act(async () => {
+      void result.current.refresh();
+    });
     expect(pending).toHaveLength(2);
 
     // The NEWER request answers first, then the stale one lands.
-    await act(async () => { pending[1]?.("fresh"); });
-    await act(async () => { pending[0]?.("stale"); });
+    await act(async () => {
+      pending[1]?.("fresh");
+    });
+    await act(async () => {
+      pending[0]?.("stale");
+    });
 
     expect(apply).toHaveBeenCalledTimes(1);
     expect(apply).toHaveBeenCalledWith("fresh");
@@ -170,7 +207,9 @@ describe("usePolledRequest", () => {
     const first = vi.fn<() => Promise<string>>(() => new Promise<string>((resolve) => pending.push(resolve)));
     const second = vi.fn<() => Promise<string>>(() => new Promise<string>((resolve) => pending.push(resolve)));
 
-    const { rerender } = renderHook(({ load }) => usePolledRequest(load, apply, 5_000), { initialProps: { load: first } });
+    const { rerender } = renderHook(({ load }) => usePolledRequest(load, apply, 5_000), {
+      initialProps: { load: first },
+    });
     expect(first).toHaveBeenCalledTimes(1);
 
     // Navigating to another tournament must not wait out the interval.
@@ -178,10 +217,14 @@ describe("usePolledRequest", () => {
     expect(second).toHaveBeenCalledTimes(1);
 
     // The first tournament's answer arrives late and must not be shown on the second.
-    await act(async () => { pending[0]?.("old tournament"); });
+    await act(async () => {
+      pending[0]?.("old tournament");
+    });
     expect(apply).not.toHaveBeenCalled();
 
-    await act(async () => { pending[1]?.("new tournament"); });
+    await act(async () => {
+      pending[1]?.("new tournament");
+    });
     expect(apply).toHaveBeenCalledTimes(1);
     expect(apply).toHaveBeenCalledWith("new tournament");
   });
@@ -201,7 +244,9 @@ describe("usePolledRequest", () => {
     unmount();
     expect(signals[0]?.aborted).toBe(true);
 
-    await act(async () => { pending[0]?.("after navigation"); });
+    await act(async () => {
+      pending[0]?.("after navigation");
+    });
     expect(apply).not.toHaveBeenCalled();
   });
 });

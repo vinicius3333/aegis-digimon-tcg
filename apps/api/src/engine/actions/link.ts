@@ -1,4 +1,11 @@
-import { Phase, type CardDefinition, type CardInstance, type GameState, type Permanent, type Seat } from "@aegis/shared";
+import {
+  Phase,
+  type CardDefinition,
+  type CardInstance,
+  type GameState,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import { definitionOf } from "../cards/cardData.js";
 import { linkEligible } from "../effects/mindLink.js";
 import { linkCostOf } from "../effects/interpreter.js";

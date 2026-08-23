@@ -4,110 +4,102 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 3000
+          effect: {
+            kind: "modifyDP",
+            amount: 3000,
           },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          while: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              excludeSelf: true,
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Xros Heart",
-                    "Twilight"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Xros Heart", "Twilight"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have another Digimon or Tamer with [Xros Heart] or [Twilight] in its traits in play"
-          }
-        }
-      ]
+            raw: "you have another Digimon or Tamer with [Xros Heart] or [Twilight] in its traits in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Save",
-          "raw": "＜Save＞"
-        }
-      ]
+          keyword: "Save",
+          raw: "＜Save＞",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Reboot",
-              "raw": "＜Reboot＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Reboot",
+              raw: "＜Reboot＞",
+            },
           },
-          "while": {
-            "kind": "selfHasNameContaining",
-            "names": ["Shoutmon", "Mervamon"],
-            "raw": "this Digimon has [Shoutmon] or [Mervamon] in its name"
-          }
-        }
+          while: {
+            kind: "selfHasNameContaining",
+            names: ["Shoutmon", "Mervamon"],
+            raw: "this Digimon has [Shoutmon] or [Mervamon] in its name",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "Xros Heart"
-      ],
-      "cost": 0,
-      "isAlternate": false
-    }
-  ]
+      level: 2,
+      traits: ["Xros Heart"],
+      cost: 0,
+      isAlternate: false,
+    },
+  ],
 };
 
 registerIrCard("BT10-060", compiled);

@@ -39,10 +39,7 @@ describe("digivolution-card placement watcher scope", () => {
       "durandamon",
       "bryweludramon",
     ]) {
-      const subscriptions = observe(s.engine).subscriptions(
-        "onAddDigivolutionCards",
-        s.perm(alias).permanentId,
-      );
+      const subscriptions = observe(s.engine).subscriptions("onAddDigivolutionCards", s.perm(alias).permanentId);
       expect(subscriptions, alias).toHaveLength(1);
       expect(subscriptions[0]?.matches, alias).toBeTypeOf("function");
     }
@@ -70,31 +67,23 @@ describe("digivolution-card placement watcher scope", () => {
     await s.ready();
     const kyokyomonBaseDP = s.perm("kyokyomonHost").currentDP;
 
-    await advance(s.engine).verb.placeUnder(
-      s.perm("unrelatedHost").permanentId,
-      [s.inst("unrelatedSource").instanceId],
-    );
+    await advance(s.engine).verb.placeUnder(s.perm("unrelatedHost").permanentId, [
+      s.inst("unrelatedSource").instanceId,
+    ]);
     expect(s.state.players[0]!.hand).not.toContainEqual(s.inst("drawn"));
     expect(s.state.memory).toBe(0);
     expect(s.perm("kyokyomonHost").currentDP).toBe(kyokyomonBaseDP);
 
-    await advance(s.engine).verb.placeUnder(
-      s.perm("dorimonHost").permanentId,
-      [s.inst("dorimonSource").instanceId],
-    );
+    await advance(s.engine).verb.placeUnder(s.perm("dorimonHost").permanentId, [s.inst("dorimonSource").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.memory).toBe(0);
 
-    await advance(s.engine).verb.placeUnder(
-      s.perm("dorumonHost").permanentId,
-      [s.inst("dorumonSource").instanceId],
-    );
+    await advance(s.engine).verb.placeUnder(s.perm("dorumonHost").permanentId, [s.inst("dorumonSource").instanceId]);
     expect(s.state.memory).toBe(1);
 
-    await advance(s.engine).verb.placeUnder(
-      s.perm("kyokyomonHost").permanentId,
-      [s.inst("kyokyomonSource").instanceId],
-    );
+    await advance(s.engine).verb.placeUnder(s.perm("kyokyomonHost").permanentId, [
+      s.inst("kyokyomonSource").instanceId,
+    ]);
     expect(s.perm("kyokyomonHost").currentDP).toBe(kyokyomonBaseDP + 1_000);
   });
 
@@ -115,16 +104,10 @@ describe("digivolution-card placement watcher scope", () => {
     await s.ready();
     const baseDP = s.perm("ouryumon").currentDP;
 
-    await advance(s.engine).verb.placeUnder(
-      s.perm("opposingHost").permanentId,
-      [s.inst("opponentSource").instanceId],
-    );
+    await advance(s.engine).verb.placeUnder(s.perm("opposingHost").permanentId, [s.inst("opponentSource").instanceId]);
     expect(s.perm("ouryumon").currentDP).toBe(baseDP);
 
-    await advance(s.engine).verb.placeUnder(
-      s.perm("alliedHost").permanentId,
-      [s.inst("alliedSource").instanceId],
-    );
+    await advance(s.engine).verb.placeUnder(s.perm("alliedHost").permanentId, [s.inst("alliedSource").instanceId]);
     expect(s.perm("ouryumon").currentDP).toBe(baseDP + 2_000);
   });
 });

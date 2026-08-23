@@ -5,7 +5,9 @@ import "./BT6-007.js";
 
 describe("BT6-007 Agumon", () => {
   it("gains 1 memory when you play a Tai Kamiya Tamer", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-007", as: "agumon" }], hand: [{ card: "BT1-085", as: "tai" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT6-007", as: "agumon" }], hand: [{ card: "BT1-085", as: "tai" }] },
+    });
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tai").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);

@@ -15,13 +15,18 @@ describe("BT6-097 Howling Memory Boost!", () => {
   });
 
   it("trashes 2 bottom sources, restricts a source-less Digimon, and places itself", async () => {
-    const s = setupEngine({
-      0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
-      1: { battleArea: [
-        { card: "BT1-009", as: "restricted" },
-        { card: "BT6-020", as: "stripped", under: ["BT6-021", "BT6-022"] },
-      ] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "restricted" },
+            { card: "BT6-020", as: "stripped", under: ["BT6-021", "BT6-022"] },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     const stripped = s.perm("stripped");
     const restricted = s.perm("restricted");
     const optionId = s.inst("option").instanceId;
@@ -36,23 +41,30 @@ describe("BT6-097 Howling Memory Boost!", () => {
   });
 
   it("Delay trashes the placed Option and gains 2 memory on a later turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
-      1: { battleArea: [{ card: "BT1-009", under: ["BT1-001", "BT1-002"] }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT6-019"], hand: [{ card: "BT6-097", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-009", under: ["BT1-001", "BT1-002"] }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     const optionId = s.inst("option").instanceId;
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
-    const optionPermanent = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === optionId)!;
+    const optionPermanent = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === optionId,
+    )!;
     s.state.turnCount += 1;
     s.state.memory = 3;
     await s.ready();
     const effects = observe(s.engine).activatableEffects(optionPermanent) as Array<{ effectKey: string }>;
 
     expect(effects).toHaveLength(1);
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: effects[0]!.effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: effects[0]!.effectKey }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 5);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);

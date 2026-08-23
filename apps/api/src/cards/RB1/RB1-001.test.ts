@@ -6,13 +6,19 @@ import "../index.js";
 
 describe("RB1-001 Gammamon", () => {
   it("draws when an effect places a digivolution card under its host", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "RB1-005", as: "host", under: [{ card: "RB1-001" }] }, { card: "RB1-032", as: "hiro" }],
-        hand: [{ card: "RB1-005", as: "gammamon" }],
-        deck: ["RB1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-005", as: "host", under: [{ card: "RB1-001" }] },
+            { card: "RB1-032", as: "hiro" },
+          ],
+          hand: [{ card: "RB1-005", as: "gammamon" }],
+          deck: ["RB1-011"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const drawnInstanceId = s.state.players[0]!.deck[0]!.instanceId;
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hiro"));

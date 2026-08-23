@@ -9,36 +9,34 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // prevent re-installation. Engine must honor once:true on subscribeSubTrigger
 // (see LANE_G.md CAP-G5).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDigivolutionTrashed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "once": true,
-          "actions": [
+          once: true,
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": { "kind": "triggerByYourEffect" }
-            }
+              kind: "GainMemory",
+              amount: 1,
+              condition: { kind: "triggerByYourEffect" },
+            },
           ],
-          "raw": "[Your Turn][Once Per Turn] When you trash a digivolution card of 1 of your opponent's Digimon, gain 1 memory"
-        }
+          raw: "[Your Turn][Once Per Turn] When you trash a digivolution card of 1 of your opponent's Digimon, gain 1 memory",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-022", compiled);

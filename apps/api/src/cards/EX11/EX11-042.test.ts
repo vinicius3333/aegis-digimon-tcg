@@ -10,8 +10,26 @@ describe("EX11-042 MockingBirdmon", () => {
       { level: 4, texts: ["Maquinamon"], cost: 3, isAlternate: true },
     ]);
     const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
-    expect(linked).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 5 }, count: 1 } }] }] });
+    expect(linked).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
+            {
+              kind: "Delete",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 5 }, count: 1 },
+            },
+          ],
+        },
+      ],
+    });
     const inherited = compiled.effects.find((effect) => effect.isInherited)!;
-    expect(inherited).toMatchObject({ trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", actions: [{ kind: "RedirectAttack" }] }] });
+    expect(inherited).toMatchObject({
+      trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", actions: [{ kind: "RedirectAttack" }] }],
+    });
   });
 });

@@ -15,7 +15,12 @@ export const compiled: CompiledCard = {
           event: "onDigivolutionCardsDiscardedBatch",
           sourceFilter: { isSelfRef: true },
           hostFilter: { nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] },
-          actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 4 }, count: 1 } }],
+          actions: [
+            {
+              kind: "Delete",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 4 }, count: 1 },
+            },
+          ],
           raw: "When this card is trashed from the digivolution cards of a Digimon with the [Mineral]/[Rock] trait, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
         },
       ],

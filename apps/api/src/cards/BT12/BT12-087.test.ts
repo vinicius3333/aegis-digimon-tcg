@@ -22,13 +22,16 @@ describe("BT12-087 handwritten module", () => {
   });
 
   it("places a Save Digimon from hand under Taiki and draws 1 at the start of main phase", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT12-087", as: "taiki" }],
-        hand: [{ card: "BT12-008", as: "save" }],
-        deck: ["BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-087", as: "taiki" }],
+          hand: [{ card: "BT12-008", as: "save" }],
+          deck: ["BT1-009"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("taiki"));
     await settle(() => s.perm("taiki").stack.some(({ cardId }) => cardId === "BT12-008"));

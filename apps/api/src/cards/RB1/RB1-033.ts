@@ -3,7 +3,14 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const suspendToDraw = {
-  condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7, raw: "you have 7 or fewer cards in your hand" },
+  condition: {
+    kind: "zoneCount",
+    seat: "mine",
+    zone: "hand",
+    op: "lte",
+    value: 7,
+    raw: "you have 7 or fewer cards in your hand",
+  },
   cost: {
     kind: "suspend",
     target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -18,11 +25,31 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{ kind: "SubTrigger", event: "whenAttacking", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Jellymon"], match: "text" }] }, raw: "when one of your Digimon with [Jellymon] in its text attacks", ...suspendToDraw }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Jellymon"], match: "text" }],
+          },
+          raw: "when one of your Digimon with [Jellymon] in its text attacks",
+          ...suspendToDraw,
+        },
+      ],
     },
     {
       trigger: "Static",
-      actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", sourceFilter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } }, raw: "when an opponent's level 5 or higher Digimon attacks", ...suspendToDraw }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } },
+          raw: "when an opponent's level 5 or higher Digimon attacks",
+          ...suspendToDraw,
+        },
+      ],
     },
     {
       trigger: "YourTurn",

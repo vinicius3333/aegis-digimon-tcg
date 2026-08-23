@@ -6,10 +6,18 @@ import "./ST13-11.js";
 describe("ST13-11 TiaLudomon", () => {
   it("places itself under a red host and grants Reboot to a chosen Digimon", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "ST13-05", as: "host" }, { card: "ST13-07", as: "recipient" }],
-      hand: [{ card: "ST13-11", as: "tia" }],
-    } }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-05", as: "host" },
+            { card: "ST13-07", as: "recipient" },
+          ],
+          hand: [{ card: "ST13-11", as: "tia" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("host").permanentId, s.perm("recipient").permanentId);
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tia").instanceId })).toEqual({ ok: true });
@@ -18,10 +26,18 @@ describe("ST13-11 TiaLudomon", () => {
   });
 
   it("may decline the placement cost and grants no Reboot", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "ST13-05", as: "host" }, { card: "ST13-07", as: "recipient" }],
-      hand: [{ card: "ST13-11", as: "tia" }],
-    } }, { autoAcceptOptional: false, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-05", as: "host" },
+            { card: "ST13-07", as: "recipient" },
+          ],
+          hand: [{ card: "ST13-11", as: "tia" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tia").instanceId })).toEqual({ ok: true });
@@ -46,16 +62,20 @@ describe("ST13-11 TiaLudomon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("blocker"), "Blocker")).toBe(true);
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, {
-      type: "declareBlock",
-      blockerPermanentId: s.perm("blocker").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("blocker").isSuspended);
 
     expect(s.state.players[0]!.security).toHaveLength(1);

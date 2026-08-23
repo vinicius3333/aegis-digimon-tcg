@@ -12,29 +12,35 @@ describe("BT12-109 Overflowing Power", () => {
   });
 
   it("waives its color requirement with a Hunter Tamer and digivolves from under that Tamer", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT12-074", as: "base" },
-          { card: "BT12-091", as: "hunter", under: [{ card: "BT12-077", as: "saved" }] },
-        ],
-        hand: [{ card: "BT12-109", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-074", as: "base" },
+            { card: "BT12-091", as: "hunter", under: [{ card: "BT12-077", as: "saved" }] },
+          ],
+          hand: [{ card: "BT12-109", as: "option" }],
+        },
       },
-    }, {
-      autoSelectCards: true,
-      autoOrderTriggers: true,
-    });
+      {
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+      },
+    );
     s.state.memory = 2;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.perm("base").topCard.instanceId === s.inst("saved").instanceId &&
-      s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT12-109")
+    await settle(
+      () =>
+        s.perm("base").topCard.instanceId === s.inst("saved").instanceId &&
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT12-109"),
     );
 
     expect(s.perm("base").topCard.cardId).toBe("BT12-077");
@@ -59,10 +65,12 @@ describe("BT12-109 Overflowing Power", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
     expect(s.perm("base").topCard.cardId).toBe("BT12-008");
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(["BT12-011"]);
   });

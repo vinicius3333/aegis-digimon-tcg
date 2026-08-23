@@ -6,52 +6,42 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Pulsemon"
-                  ],
-                  "match": "text"
+                  tokens: ["Pulsemon"],
+                  match: "text",
                 },
                 {
-                  "tokens": [
-                    "SoC",
-                    "SEEKERS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["SoC", "SEEKERS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon",
-              "Tamer"
-            ]
+          underFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon", "Tamer"],
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-003", compiled);

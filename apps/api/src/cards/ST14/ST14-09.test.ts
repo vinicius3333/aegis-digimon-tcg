@@ -22,13 +22,17 @@ describe("ST14-09 BeelStarmon", () => {
   });
 
   it("reduces its play cost by 8 with 20 cards in trash", async () => {
-    const s = setupEngine({ 0: {
-      hand: [{ card: "ST14-09", as: "beelstar" }],
-      trash: Array.from({ length: 20 }, () => "BT1-009"),
-    } });
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "ST14-09", as: "beelstar" }],
+        trash: Array.from({ length: 20 }, () => "BT1-009"),
+      },
+    });
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstar").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstar").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(5);
   });
@@ -59,11 +63,13 @@ describe("ST14-09 BeelStarmon", () => {
     });
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 1);
     expect(s.state.players[0]!.trash[0]!.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

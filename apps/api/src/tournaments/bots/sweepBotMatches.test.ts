@@ -114,8 +114,7 @@ describe("what it nudges with", () => {
       winsRequired: 2,
       // Round clock plus overtime: the deadline this drives is when the confrontation is decided,
       // which the manual puts after the extra turns, not when the main clock stops.
-      seriesDurationMs:
-        AEGIS_LIGHTNING_PRESET.clocks[3].finalDurationMs! + AEGIS_LIGHTNING_PRESET.clocks[3].overtimeMs,
+      seriesDurationMs: AEGIS_LIGHTNING_PRESET.clocks[3].finalDurationMs! + AEGIS_LIGHTNING_PRESET.clocks[3].overtimeMs,
     });
   });
 });

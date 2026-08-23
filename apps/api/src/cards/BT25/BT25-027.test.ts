@@ -11,7 +11,10 @@ describe("BT25-027 MachGaogamon", () => {
         kind: "Return",
         optional: true,
         to: "hand",
-        target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
+        target: {
+          filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+          count: 1,
+        },
       });
       expect(effect?.actions?.[1]).toMatchObject({
         kind: "Unsuspend",

@@ -12,157 +12,134 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q5415: used Option card is temporarily treated as not in any area → UseOptionWithoutCost
 // Q5410–Q5414: DisableTimingEffect blocks [When Digivolving] at all activation paths
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "onPlayTarget"
+            count: 1,
+            bindAs: "onPlayTarget",
           },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "DisableTimingEffect",
-          "target": {
-            "fromSelectionRef": "onPlayTarget"
+          kind: "DisableTimingEffect",
+          target: {
+            fromSelectionRef: "onPlayTarget",
           },
-          "timings": [
-            "whenDigivolving"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          timings: ["whenDigivolving"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "whenDigivolvingTarget"
+            count: 1,
+            bindAs: "whenDigivolvingTarget",
           },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "DisableTimingEffect",
-          "target": {
-            "fromSelectionRef": "whenDigivolvingTarget"
+          kind: "DisableTimingEffect",
+          target: {
+            fromSelectionRef: "whenDigivolvingTarget",
           },
-          "timings": [
-            "whenDigivolving"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          timings: ["whenDigivolving"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "UseOptionWithoutCost",
-          "target": {
-            "filter": {
-              "kind": [
-                "Option"
-              ],
-              "nameOrTrait": [
+          kind: "UseOptionWithoutCost",
+          target: {
+            filter: {
+              kind: ["Option"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Onmyōjutsu"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Onmyōjutsu"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "hand",
-              "digivolutionCards"
-            ],
-            "orFilters": [
+            count: 1,
+            from: ["hand", "digivolutionCards"],
+            orFilters: [
               {
-                "kind": [
-                  "Option"
-                ],
-                "nameOrTrait": [
+                kind: ["Option"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Plug-In"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              }
-            ]
+                    tokens: ["Plug-In"],
+                    match: "trait",
+                  },
+                ],
+              },
+            ],
           },
-          "payCost": false,
-          "optional": true
-        }
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Sakuyamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Sakuyamon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "position": "top"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing your top security card"
+            raw: "By trashing your top security card",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST22-04", compiled);

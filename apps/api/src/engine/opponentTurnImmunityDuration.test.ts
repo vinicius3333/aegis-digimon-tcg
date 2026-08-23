@@ -46,9 +46,7 @@ describe("'until the end of your opponent's turn' immunity duration (BT13-077 [O
     await settle(
       () =>
         p0.battleArea.some((perm) => perm.topCard?.cardId === IMMUNITY_CARD) &&
-        p0.battleArea.some((perm) =>
-          ledger.hasRestriction(perm.permanentId, "beAffected", "Digimon"),
-        ),
+        p0.battleArea.some((perm) => ledger.hasRestriction(perm.permanentId, "beAffected", "Digimon")),
     );
 
     const permanentId = findPermanent(s, 0, IMMUNITY_CARD).permanentId;
@@ -80,8 +78,7 @@ describe("'until the end of your opponent's turn' immunity duration (BT13-077 [O
     await settle(() =>
       p0.battleArea.some(
         (perm) =>
-          perm.topCard?.cardId === IMMUNITY_CARD &&
-          ledger.hasRestriction(perm.permanentId, "beAffected", "Digimon"),
+          perm.topCard?.cardId === IMMUNITY_CARD && ledger.hasRestriction(perm.permanentId, "beAffected", "Digimon"),
       ),
     );
 

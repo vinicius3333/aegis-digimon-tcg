@@ -6,113 +6,107 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": "all"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
-            },
-            "count": "all"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+            count: "all",
           },
-          "actions": [
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: "all",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
             {
-              "kind": "Modal",
-              "choose": 1,
-              "optional": true,
-              "options": [
+              kind: "Modal",
+              choose: 1,
+              optional: true,
+              options: [
                 [
                   {
-                    "kind": "Return",
-                    "target": {
-                      "filter": {
-                        "controller": "mine",
-                        "zone": "digivolutionCards",
-                        "hostFilter": {"isSelfRef": true},
-                        "kind": ["Digimon"],
-                        "levelComparison": {"op": "lte", "value": 4},
-                        "colors": ["Red"]
+                    kind: "Return",
+                    target: {
+                      filter: {
+                        controller: "mine",
+                        zone: "digivolutionCards",
+                        hostFilter: { isSelfRef: true },
+                        kind: ["Digimon"],
+                        levelComparison: { op: "lte", value: 4 },
+                        colors: ["Red"],
                       },
-                      "count": 1
+                      count: 1,
                     },
-                    "to": "hand",
-                    "optional": true
-                  }
+                    to: "hand",
+                    optional: true,
+                  },
                 ],
                 [
                   {
-                    "kind": "PlayWithoutCost",
-                    "target": {
-                      "filter": {
-                        "levelComparison": {"op": "lte", "value": 4},
-                        "colors": ["Red"],
-                        "kind": ["Digimon"]
+                    kind: "PlayWithoutCost",
+                    target: {
+                      filter: {
+                        levelComparison: { op: "lte", value: 4 },
+                        colors: ["Red"],
+                        kind: ["Digimon"],
                       },
-                      "count": 1
+                      count: 1,
                     },
-                    "fromOwnDigivolutionStack": true,
-                    "payCost": false,
-                    "optional": true
-                  }
-                ]
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
-    {
-      "materials": [
-        {
-          "names": [
-            "Grumblemon"
-          ]
-        }
+                    fromOwnDigivolutionStack: true,
+                    payCost: false,
+                    optional: true,
+                  },
+                ],
+              ],
+            },
+          ],
+        },
       ],
-      "count": 2
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          names: ["Grumblemon"],
+        },
+      ],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT18-017", compiled);

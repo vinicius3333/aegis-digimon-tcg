@@ -4,7 +4,13 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-030.js";
 
 describe("EX8-030", () => {
-  it("prevents the opponent from gaining memory except through Tamer effects", () => expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "RestrictMemoryGain", seat: "opponent", exceptTamerEffects: true, duration: "permanent" }));
+  it("prevents the opponent from gaining memory except through Tamer effects", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
+      kind: "RestrictMemoryGain",
+      seat: "opponent",
+      exceptTamerEffects: true,
+      duration: "permanent",
+    }));
 
   it("enforces the live memory-gain restriction by source kind and seat", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX8-030", as: "tapirmon" }] } });

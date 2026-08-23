@@ -609,8 +609,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     (action.additionalCosts?.length ?? 0) > 0 ||
     (action.costOptions?.length ?? 0) > 0;
   const costsPayable = (action: ParsedAction): boolean => {
-    const primaryPayable =
-      action.cost === undefined || typeof action.cost === "number" || canPayCost(ctx, action.cost);
+    const primaryPayable = action.cost === undefined || typeof action.cost === "number" || canPayCost(ctx, action.cost);
     if (!primaryPayable) return false;
     if (action.additionalCost !== undefined && !canPayCost(ctx, action.additionalCost)) return false;
     if ((action.additionalCosts ?? []).some((cost) => !canPayCost(ctx, cost))) return false;

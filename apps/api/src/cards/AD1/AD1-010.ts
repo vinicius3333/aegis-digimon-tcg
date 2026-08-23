@@ -29,8 +29,14 @@ export const compiled: CompiledCard = {
               condition: {
                 kind: "anyOf",
                 conditions: [
-                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] } },
-                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Matt Ishida"], match: "name" }] } },
+                  {
+                    kind: "triggerSubjectMatchesFilter",
+                    filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] },
+                  },
+                  {
+                    kind: "triggerSubjectMatchesFilter",
+                    filter: { nameOrTrait: [{ tokens: ["Matt Ishida"], match: "name" }] },
+                  },
                 ],
                 raw: "any of them have [Greymon] or [Matt Ishida] in their names",
               },
@@ -57,8 +63,14 @@ export const compiled: CompiledCard = {
               condition: {
                 kind: "anyOf",
                 conditions: [
-                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] } },
-                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Matt Ishida"], match: "name" }] } },
+                  {
+                    kind: "triggerSubjectMatchesFilter",
+                    filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] },
+                  },
+                  {
+                    kind: "triggerSubjectMatchesFilter",
+                    filter: { nameOrTrait: [{ tokens: ["Matt Ishida"], match: "name" }] },
+                  },
                 ],
                 raw: "any of them have [Greymon] or [Matt Ishida] in their names",
               },

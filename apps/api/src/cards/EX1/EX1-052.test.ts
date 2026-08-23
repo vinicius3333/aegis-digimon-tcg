@@ -14,7 +14,13 @@ describe("EX1-052 Etemon", () => {
     });
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-053" && s.state.memory === 3);
     expect(s.state.memory).toBe(3);
   });
@@ -29,7 +35,13 @@ describe("EX1-052 Etemon", () => {
     });
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-052" && s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });
@@ -44,11 +56,13 @@ describe("EX1-052 Etemon", () => {
     });
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("breedingBase").permanentId,
-      instanceId: s.inst("evo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("breedingBase").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-053");
     expect(s.state.memory).toBe(2);
   });

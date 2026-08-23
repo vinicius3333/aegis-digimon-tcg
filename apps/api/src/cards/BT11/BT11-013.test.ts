@@ -10,20 +10,19 @@ describe("BT11-013 Garudamon", () => {
     await top.ready();
     expect(observe(top.engine).hasKeyword(top.perm("garudamon"), "Blocker")).toBe(true);
 
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-013"] }],
-        hand: [{ card: "BT1-085", as: "tai" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-013"] }],
+          hand: [{ card: "BT1-085", as: "tai" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some(
-      ({ topCard }) => topCard?.cardId === "BT1-085",
-    ));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-085"));
 
-    expect(s.state.players[0]!.battleArea.some(
-      ({ topCard }) => topCard?.cardId === "BT1-085",
-    )).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-085")).toBe(true);
   });
 });

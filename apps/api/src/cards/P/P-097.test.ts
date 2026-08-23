@@ -57,21 +57,25 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
     expect(result).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const activation = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: activation.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activation.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.options?.choices?.includes("Top of deck") === true), 2_000);
 
     const destination = s.decisions.findLast(({ req }) => req.options?.choices?.includes("Top of deck"))!.req;
     expect(destination.sourceCardId).toBe("P-097");
     expect(destination.options?.choices).toEqual(["Top of deck", "Bottom of deck"]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: destination.decisionId,
-      response: { kind: "chooseOption", optionIndex: 0 },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: destination.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.findLast(({ req }) => req.kind === "orderCards")!.req;
@@ -84,16 +88,19 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
       { instanceId: top3[1]!, cardId: "BT1-010" },
       { instanceId: top3[2]!, cardId: "BT1-011" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: chosenOrder },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: chosenOrder },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.perm("host").stack.some((card) => card.instanceId === zubamonId) &&
-      p0.deck[0]?.instanceId === chosenOrder[0] &&
-      s.state.memory === 9
+    await settle(
+      () =>
+        s.perm("host").stack.some((card) => card.instanceId === zubamonId) &&
+        p0.deck[0]?.instanceId === chosenOrder[0] &&
+        s.state.memory === 9,
     );
 
     // P-097 is now under the host Digimon as a digivolution card.
@@ -112,11 +119,7 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
         0: {
           battleArea: [{ card: LEGEND_ARMS_HOST, as: "host" }],
           hand: [{ card: ZUBAMON, as: "zubamon" }],
-          deck: [
-            { card: "BT1-009", as: "deckTop" },
-            "BT1-010",
-            "BT1-011",
-          ],
+          deck: [{ card: "BT1-009", as: "deckTop" }, "BT1-010", "BT1-011"],
         },
       },
       { autoDeclineOptional: true },
@@ -125,13 +128,13 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
     const zubamonId = s.inst("zubamon").instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: zubamonId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === zubamonId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: zubamonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === zubamonId));
     await settle(() => false, 30);
 
     expect(s.perm("host").stack.some((card) => card.instanceId === zubamonId)).toBe(false);

@@ -66,9 +66,7 @@ describe("A3 Link cluster — BT22-039 links an [Appmon] <Link> card on play, ga
     // Install BT22-039's continuous `whenPlayed` watcher before the trigger fires.
     await s.engine.recomputeContinuousEffects();
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId })).toEqual({ ok: true });
 
     const linkedCardIdsNow = (): string[] => {
       const ids: string[] = [];

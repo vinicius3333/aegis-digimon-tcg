@@ -65,9 +65,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    { level: 3, traits: ["Ice-Snow", "Mineral", "Rock"], cost: 2, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 3, traits: ["Ice-Snow", "Mineral", "Rock"], cost: 2, isAlternate: true }],
 };
 
 registerIrCard("P-215", compiled);

@@ -8,22 +8,30 @@ function playCounterpart({ name }: { name: "Angewomon" | "LadyDevimon" }): Actio
     nameOrTrait: [{ tokens: [name], match: "name" as const }],
   };
   return {
-  kind: "PlayWithoutCost",
-  target: { filter: counterpartFilter, count: 1 },
-  from: ["hand"],
-  payCost: false,
-  condition: {
-    kind: "allOf",
-    conditions: [
-      { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], countMax: 1 }, raw: "you have 1 or fewer Digimon in play" },
-      { kind: "youHave", filter: { ...counterpartFilter, zone: "hand" }, raw: `you have [${name}] in your hand` },
-    ],
-  },
-  cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
-  optional: true,
-  abortOnDecline: true,
+    kind: "PlayWithoutCost",
+    target: { filter: counterpartFilter, count: 1 },
+    from: ["hand"],
+    payCost: false,
+    condition: {
+      kind: "allOf",
+      conditions: [
+        {
+          kind: "youHave",
+          filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], countMax: 1 },
+          raw: "you have 1 or fewer Digimon in play",
+        },
+        { kind: "youHave", filter: { ...counterpartFilter, zone: "hand" }, raw: `you have [${name}] in your hand` },
+      ],
+    },
+    cost: {
+      kind: "suspend",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      raw: "by suspending this Tamer",
+    },
+    optional: true,
+    abortOnDecline: true,
   };
-};
+}
 
 const compiled: CompiledCard = {
   effects: [
@@ -47,7 +55,9 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

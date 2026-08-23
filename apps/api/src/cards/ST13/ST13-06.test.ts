@@ -35,10 +35,12 @@ describe("ST13-06 RagnaLoardmon", () => {
     ).toEqual({ ok: true });
     await settle(() => {
       const ragna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST13-06");
-      return Boolean(ragna)
-        && observe(s.engine).hasKeyword(ragna!, "Blitz")
-        && s.state.players[1]!.battleArea.length === 0
-        && s.state.players[1]!.security.length === 1;
+      return (
+        Boolean(ragna) &&
+        observe(s.engine).hasKeyword(ragna!, "Blitz") &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[1]!.security.length === 1
+      );
     });
 
     const ragna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST13-06")!;
@@ -67,9 +69,9 @@ describe("ST13-06 RagnaLoardmon", () => {
         instanceId: s.inst("ragnaLoardmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("red").topCard.cardId === "ST13-06"
-      && observe(s.engine).hasKeyword(s.perm("red"), "Blitz"));
+    await settle(
+      () => s.perm("red").topCard.cardId === "ST13-06" && observe(s.engine).hasKeyword(s.perm("red"), "Blitz"),
+    );
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);

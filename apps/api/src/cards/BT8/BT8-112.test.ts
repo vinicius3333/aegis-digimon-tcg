@@ -5,12 +5,14 @@ describe("BT8-112 Imperialdramon: Paladin Mode", () => {
   it("reduces its evolution cost by 4 by returning a white level 7 from trash", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "BeforePayCost",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldDigivolve",
-        into: { cardId: "BT8-112" },
-        actions: [{ kind: "Replacement", mode: "reduceCost", amount: 4, cost: { kind: "return", to: "deckBottom" } }],
-      }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          into: { cardId: "BT8-112" },
+          actions: [{ kind: "Replacement", mode: "reduceCost", amount: 4, cost: { kind: "return", to: "deckBottom" } }],
+        },
+      ],
     });
   });
 

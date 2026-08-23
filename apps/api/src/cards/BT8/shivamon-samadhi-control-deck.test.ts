@@ -11,16 +11,20 @@ import "../P/P-036.js";
 
 function delayEffectKey(s: EngineSetup): string {
   const boost = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "P-036")!;
-  const source = (s.engine as unknown as {
-    cardSourceOf(card: typeof boost.topCard): unknown;
-  }).cardSourceOf(boost.topCard);
+  const source = (
+    s.engine as unknown as {
+      cardSourceOf(card: typeof boost.topCard): unknown;
+    }
+  ).cardSourceOf(boost.topCard);
   return effectsOf(EffectTiming.OnDeclaration, source as never)[0]!.effectKey;
 }
 
 async function unsuspendForActivePhase(s: EngineSetup): Promise<string[]> {
-  return (s.engine as unknown as {
-    unsuspendForActivePhase(seat: 0): Promise<string[]>;
-  }).unsuspendForActivePhase(0);
+  return (
+    s.engine as unknown as {
+      unsuspendForActivePhase(seat: 0): Promise<string[]>;
+    }
+  ).unsuspendForActivePhase(0);
 }
 
 describe("BT8 Shivamon Samādhi Śānti control deck", () => {
@@ -51,70 +55,79 @@ describe("BT8 Shivamon Samādhi Śānti control deck", () => {
     s.state.turnSeat = 1;
     s.state.phase = Phase.Main;
     s.state.memory = 3;
-    expect(s.engine.applyIntent(1, {
-      type: "playCard",
-      instanceId: armedDelayInstanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some(
-      ({ topCard }) => topCard.instanceId === armedDelayInstanceId,
-    ));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: armedDelayInstanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === armedDelayInstanceId),
+    );
     s.state.turnSeat = 0;
     s.state.phase = Phase.Main;
     const ownPermanentId = s.perm("climbmon").permanentId;
     const opponentDigimonId = s.perm("opponentDigimon").permanentId;
     const opponentTamerId = s.perm("opponentTamer").permanentId;
     const armedDelayEffectKey = delayEffectKey(s);
-    const delayIsOnBoard = () => s.state.players[1]!.battleArea.some(
-      ({ topCard }) => topCard.instanceId === armedDelayInstanceId,
-    );
+    const delayIsOnBoard = () =>
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === armedDelayInstanceId);
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("samadhi").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("samadhi").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
 
     const optional = s.decisions.at(-1)!.req;
     expect(optional.sourceCardId).toBe("BT8-102");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const firstTargetDecision = s.decisions.at(-1)!.req;
-    const isOwnCostDecision = firstTargetDecision.options?.candidateInstanceIds?.includes(
-      ownPermanentId,
-    ) === true;
+    const isOwnCostDecision = firstTargetDecision.options?.candidateInstanceIds?.includes(ownPermanentId) === true;
     if (isOwnCostDecision) {
-      expect(s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: firstTargetDecision.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [ownPermanentId] },
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: firstTargetDecision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [ownPermanentId] },
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision?.decisionId !== firstTargetDecision.decisionId);
     }
 
-    const targetDecision = s.decisions.filter(({ req }) =>
-      req.kind === "chooseTargets" &&
-      req.options?.candidateInstanceIds?.includes(opponentTamerId)
-    ).at(-1)?.req ?? s.decisions.at(-1)!.req;
-    expect(new Set(targetDecision.options?.candidateInstanceIds)).toEqual(new Set([
-      opponentDigimonId,
-      opponentTamerId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: targetDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [opponentTamerId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("climbmon").isSuspended &&
-      s.perm("opponentTamer").isSuspended &&
-      observe(s.engine).isRestricted(opponentTamerId, "unsuspend") &&
-      s.state.pendingDecision === undefined
+    const targetDecision =
+      s.decisions
+        .filter(
+          ({ req }) => req.kind === "chooseTargets" && req.options?.candidateInstanceIds?.includes(opponentTamerId),
+        )
+        .at(-1)?.req ?? s.decisions.at(-1)!.req;
+    expect(new Set(targetDecision.options?.candidateInstanceIds)).toEqual(
+      new Set([opponentDigimonId, opponentTamerId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [opponentTamerId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("climbmon").isSuspended &&
+        s.perm("opponentTamer").isSuspended &&
+        observe(s.engine).isRestricted(opponentTamerId, "unsuspend") &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.perm("opponentDigimon").isSuspended).toBe(false);
@@ -122,11 +135,13 @@ describe("BT8 Shivamon Samādhi Śānti control deck", () => {
     expect(s.state.memory).toBe(4);
     expect(delayIsOnBoard()).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: ownPermanentId,
-      instanceId: s.inst("shivamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ownPermanentId,
+        instanceId: s.inst("shivamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("climbmon").topCard.cardId === "BT8-057");
     await settle();
     expect(s.state.memory).toBe(0);
@@ -135,10 +150,11 @@ describe("BT8 Shivamon Samādhi Śānti control deck", () => {
     s.state.phase = Phase.Active;
     await unsuspendForActivePhase(s);
     expect(delayIsOnBoard()).toBe(true);
-    await settle(() =>
-      !s.perm("climbmon").isSuspended &&
-      s.perm("opponentDigimon").isSuspended &&
-      s.state.players[1]!.security.length === 1
+    await settle(
+      () =>
+        !s.perm("climbmon").isSuspended &&
+        s.perm("opponentDigimon").isSuspended &&
+        s.state.players[1]!.security.length === 1,
     );
     expect(delayIsOnBoard()).toBe(true);
 
@@ -152,27 +168,31 @@ describe("BT8 Shivamon Samādhi Śānti control deck", () => {
     expect(observe(s.engine).isRestricted(opponentTamerId, "unsuspend")).toBe(true);
     expect(delayIsOnBoard()).toBe(true);
 
-    expect(s.engine.applyIntent(1, {
-      type: "playCard",
-      instanceId: s.inst("blockedOption").instanceId,
-    }).ok).toBe(false);
-    expect(s.state.players[1]!.hand.some(({ instanceId }) =>
-      instanceId === s.inst("blockedOption").instanceId
-    )).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("blockedOption").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("blockedOption").instanceId)).toBe(
+      true,
+    );
     expect(delayIsOnBoard()).toBe(true);
 
     await advance(s.engine).verb.unsuspend([opponentTamerId]);
     expect(s.perm("opponentTamer").isSuspended).toBe(true);
     expect(delayIsOnBoard()).toBe(true);
 
-    expect(s.engine.applyIntent(1, {
-      type: "activateEffect",
-      sourceInstanceId: armedDelayInstanceId,
-      effectKey: armedDelayEffectKey,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === armedDelayInstanceId) &&
-      s.state.memory === 5
+    expect(
+      s.engine.applyIntent(1, {
+        type: "activateEffect",
+        sourceInstanceId: armedDelayInstanceId,
+        effectKey: armedDelayEffectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === armedDelayInstanceId) && s.state.memory === 5,
     );
 
     expect(s.state.memory).toBe(5);

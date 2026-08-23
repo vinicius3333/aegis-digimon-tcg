@@ -12,29 +12,30 @@ import "./P-085.js";
 
 describe("Purple trash promo decks", () => {
   it("turns Dracmon into Troopmon from trash, then pays Troopmon's opponent-turn source cost", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "P-085", as: "dracmon" }],
-        trash: [{ card: "BT10-076", as: "troopmon" }],
-        battleArea: [{ card: "BT4-097", as: "purple-tamer" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-085", as: "dracmon" }],
+          trash: [{ card: "BT10-076", as: "troopmon" }],
+          battleArea: [{ card: "BT4-097", as: "purple-tamer" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent-rookie" }] },
       },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent-rookie" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("dracmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dracmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
-      const evolved = s.state.players[0]!.battleArea.find(
-        (permanent) => permanent.topCard?.cardId === "BT10-076",
-      );
+      const evolved = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-076");
       return evolved?.stack.some((card) => card.instanceId === s.inst("dracmon").instanceId) === true;
     });
-    const troopmon = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.topCard?.cardId === "BT10-076",
-    )!;
+    const troopmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-076")!;
     const troopmonId = troopmon.permanentId;
     const liveTroopmon = () =>
       s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === troopmonId)!;
@@ -53,10 +54,11 @@ describe("Purple trash promo decks", () => {
     // Auto-decisions are drained by the engine's queued continuation. Yield one event-loop turn
     // before polling microtasks so this remains deterministic under collection-wide parallel load.
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    await settle(() =>
-      liveTroopmon().stack.every((card) => card.instanceId !== dracmonId) &&
-      s.state.players[0]!.trash.some((card) => card.instanceId === dracmonId) &&
-      s.state.memory === -1,
+    await settle(
+      () =>
+        liveTroopmon().stack.every((card) => card.instanceId !== dracmonId) &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === dracmonId) &&
+        s.state.memory === -1,
       2_000,
     );
 
@@ -101,23 +103,28 @@ describe("Purple trash promo decks", () => {
     s.state.memory = 0;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("wizardHost").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wizardHost").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck[0]?.instanceId === topDeckOptionId);
     await settle();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
-      effectKey: "P-027/digi-burst-use-option",
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 2 &&
-      s.state.players[0]!.trash.some((card) => card.instanceId === milledWizardmonId) &&
-      s.state.players[0]!.trash.some((card) => card.instanceId === darknessWaveId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
+        effectKey: "P-027/digi-burst-use-option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === 2 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === milledWizardmonId) &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === darknessWaveId),
     );
 
     expect(s.perm("metalGarurumon").stack.map((card) => card.cardId)).toEqual(["P-046"]);
@@ -130,14 +137,7 @@ describe("Purple trash promo decks", () => {
       {
         0: {
           battleArea: [{ card: "BT2-069", as: "attacker", under: ["P-019", "P-034"], dp: 1000 }],
-          trash: [
-            { card: "BT4-088", as: "danDevimon" },
-            "BT2-074",
-            "BT3-088",
-            "BT4-081",
-            "BT4-084",
-            "BT5-027",
-          ],
+          trash: [{ card: "BT4-088", as: "danDevimon" }, "BT2-074", "BT3-088", "BT4-081", "BT4-084", "BT5-027"],
         },
         1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true, dp: 5000 }] },
       },
@@ -148,17 +148,22 @@ describe("Purple trash promo decks", () => {
     const danDevimonId = s.inst("danDevimon").instanceId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attackerId,
-      target: { kind: "permanent", permanentId: defenderId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId) &&
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === danDevimonId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === danDevimonId),
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === danDevimonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === danDevimonId)).toBe(
+      true,
+    );
   });
 });

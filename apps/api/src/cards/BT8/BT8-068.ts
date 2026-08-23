@@ -5,98 +5,88 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Mamemon"
-                    ],
-                    "match": "name"
-                  }
-                ],
-                "playCostLte": 10
-              },
-              "count": 0,
-              "countModifier": {
-                "amount": 1,
-                "scaling": {
-                  "per": 1,
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ]
+                    tokens: ["Mamemon"],
+                    match: "name",
                   },
-                  "unit": "cards"
-                }
+                ],
+                playCostLte: 10,
               },
-              "to": "play",
-              "optional": true
-            }
+              count: 0,
+              countModifier: {
+                amount: 1,
+                scaling: {
+                  per: 1,
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
+                  },
+                  unit: "cards",
+                },
+              },
+              to: "play",
+              optional: true,
+            },
           ],
-          "rest": "trash",
-          "optional": true
-        }
-      ]
+          rest: "trash",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
           },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          while: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Mamemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Mamemon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have another Digimon with [Mamemon] in its name in play"
-          }
-        }
-      ]
-    }
+            raw: "you have another Digimon with [Mamemon] in its name in play",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-068", compiled);

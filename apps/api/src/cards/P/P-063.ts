@@ -13,9 +13,7 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            digivolutionStackNameOrTrait: [
-              { tokens: ["Angoramon"], match: "nameExact" },
-            ],
+            digivolutionStackNameOrTrait: [{ tokens: ["Angoramon"], match: "nameExact" }],
           },
           raw: "when you attack with a Digimon that has [Angoramon] in its digivolution cards",
           actions: [

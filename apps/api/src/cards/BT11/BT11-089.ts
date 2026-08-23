@@ -9,7 +9,18 @@ const compiled: CompiledCard = {
         {
           kind: "RevealAdd",
           revealCount: 4,
-          add: [{ filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Red"], nameOrTrait: [{ tokens: ["Vaccine"], match: "trait" }] }, count: 1, to: "hand" }],
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Red"],
+                nameOrTrait: [{ tokens: ["Vaccine"], match: "trait" }],
+              },
+              count: 1,
+              to: "hand",
+            },
+          ],
           rest: "deckBottom",
         },
       ],
@@ -47,7 +58,9 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

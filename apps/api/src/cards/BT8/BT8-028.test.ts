@@ -12,7 +12,9 @@ describe("BT8-028 CaptainHookmon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.memory).toBe(3);
@@ -30,11 +32,17 @@ describe("BT8-028 CaptainHookmon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck.some(card => card.instanceId === s.inst("wouldDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("wouldDraw").instanceId)).toBe(true);
     expect(s.state.memory).toBe(2);
   });
 
@@ -48,11 +56,13 @@ describe("BT8-028 CaptainHookmon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck.some(card => card.instanceId === s.inst("wouldDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("wouldDraw").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);
   });
 });

@@ -65,9 +65,7 @@ describe("BT7-112 alternate digivolve — interactive placement payment (KB Q169
     expect(p0.deck.slice(-10).map((c) => c.instanceId)).toEqual(placementChoice);
 
     // The 2 unchosen matching cards stayed behind in hand/trash.
-    const remaining = [...p0.hand, ...p0.trash].filter(
-      (c) => c.cardId === HYBRID || c.cardId === TAMER,
-    );
+    const remaining = [...p0.hand, ...p0.trash].filter((c) => c.cardId === HYBRID || c.cardId === TAMER);
     expect(remaining).toHaveLength(2);
     expect(remaining.every((c) => !placementChoice.includes(c.instanceId))).toBe(true);
   });

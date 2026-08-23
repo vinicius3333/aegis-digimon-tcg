@@ -21,16 +21,18 @@ describe("P-088 Siriusmon", () => {
     const gammamonId = s.inst("gammamon").instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("siriusmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     // AD1-002 slides under as a digivolution card and its own inherited "[Your Turn] +4000 DP"
     // applies too, so the placement's +2000 is read on top of that.
     const expectedDP = () => s.perm("base").baseDP + 2000 + 4000;
-    await settle(() =>
-      s.perm("base").stack[0]?.instanceId === gammamonId && s.perm("base").currentDP === expectedDP(),
+    await settle(
+      () => s.perm("base").stack[0]?.instanceId === gammamonId && s.perm("base").currentDP === expectedDP(),
       5000,
     );
 
@@ -54,11 +56,13 @@ describe("P-088 Siriusmon", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -82,15 +86,15 @@ describe("P-088 Siriusmon", () => {
     const tooLargeId = s.perm("tooLarge").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
-      tooLargeId,
-    ]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([tooLargeId]);
   });
 });

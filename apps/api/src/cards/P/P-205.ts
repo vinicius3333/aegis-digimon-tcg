@@ -83,9 +83,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [
-                { tokens: ["Kimeramon", "Millenniummon"], match: "name" },
-              ],
+              nameOrTrait: [{ tokens: ["Kimeramon", "Millenniummon"], match: "name" }],
             },
             count: 1,
             upTo: true,

@@ -10,18 +10,32 @@ describe("EX10-042 GulusGammamon", () => {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
           { kind: "TrashTopDeck", controller: "mine", amount: 2 },
-          { kind: "PlaceUnder", target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 1, from: ["trash"] }, optional: true },
+          {
+            kind: "PlaceUnder",
+            target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 1, from: ["trash"] },
+            optional: true,
+          },
         ],
       });
     }
     expect(compiled.effects?.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "onAddDigivolutionCards",
-        sourceFilter: { isSelfRef: true },
-        actions: [{ kind: "Digivolve", into: { nameOrTrait: [{ tokens: ["Regulusmon"], match: "name" }] }, from: ["hand", "trash"], reduceCost: 1, optional: true }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Digivolve",
+              into: { nameOrTrait: [{ tokens: ["Regulusmon"], match: "name" }] },
+              from: ["hand", "trash"],
+              reduceCost: 1,
+              optional: true,
+            },
+          ],
+        },
+      ],
     });
     expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({ keywords: [{ keyword: "Raid" }] });
   });

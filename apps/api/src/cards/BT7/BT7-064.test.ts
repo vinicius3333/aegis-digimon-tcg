@@ -7,7 +7,15 @@ import "./BT7-064.js";
 
 describe("BT7-064 DoruGreymon", () => {
   it("places a black X-Antibody card from hand to protect its host and grant Security Attack +1", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT7-065", under: ["BT7-064"], as: "host" }], hand: [{ card: "BT7-062", as: "placed" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-065", under: ["BT7-064"], as: "host" }],
+          hand: [{ card: "BT7-062", as: "placed" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
 

@@ -6,60 +6,53 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Dark Dragon",
-                  "Evil Dragon"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Dark Dragon", "Evil Dragon"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "trash"
-          ],
-          "reduceCost": 1,
-          "optional": true
+          from: ["trash"],
+          reduceCost: 1,
+          optional: true,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 2
+            count: 2,
           },
-          "condition": {
-            "kind": "ifThisEffectDigivolved",
-            "raw": "this effect digivolved"
-          }
-        }
+          condition: {
+            kind: "ifThisEffectDigivolved",
+            raw: "this effect digivolved",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-005", compiled);

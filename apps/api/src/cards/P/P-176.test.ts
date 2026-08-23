@@ -8,13 +8,19 @@ describe("P-176 Dorimon", () => {
     expect(effect).toMatchObject({
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "Digivolve",
-        optional: true,
-        from: ["hand"],
-        target: { isSelf: true, count: 1, filter: { isSelfRef: true } },
-        into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }] },
-      }],
+      actions: [
+        {
+          kind: "Digivolve",
+          optional: true,
+          from: ["hand"],
+          target: { isSelf: true, count: 1, filter: { isSelfRef: true } },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+          },
+        },
+      ],
     });
   });
 });

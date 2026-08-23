@@ -50,78 +50,85 @@ describe("EmperorGreymon and MagnaGarurumon dual Hybrid deck", () => {
     const returnedAllyInstanceId = s.perm("returnedAlly").topCard.instanceId;
     const takuyaSource = (s.engine as any).cardSourceOf(s.perm("takuya").topCard);
     const kojiSource = (s.engine as any).cardSourceOf(s.perm("koji").topCard);
-    const takuyaEffect = effectsOf(EffectTiming.OnDeclaration, takuyaSource)
-      .find((effect) => effect.effectKey === "BT7-085/main-digivolve")!.effectKey;
-    const kojiEffect = effectsOf(EffectTiming.OnDeclaration, kojiSource)
-      .find((effect) => effect.effectKey === "BT7-087/main-digivolve")!.effectKey;
+    const takuyaEffect = effectsOf(EffectTiming.OnDeclaration, takuyaSource).find(
+      (effect) => effect.effectKey === "BT7-085/main-digivolve",
+    )!.effectKey;
+    const kojiEffect = effectsOf(EffectTiming.OnDeclaration, kojiSource).find(
+      (effect) => effect.effectKey === "BT7-087/main-digivolve",
+    )!.effectKey;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: takuyaInstanceId,
-      effectKey: takuyaEffect,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: takuyaInstanceId,
+        effectKey: takuyaEffect,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const redOrdering = s.decisions.at(-1)!.req;
     const redOrder = (redOrdering.options?.candidateInstanceIds ?? []).slice().reverse();
     expect(redOrdering.options?.orderDestination).toBe("stackBottom");
     expect(redOrdering.options?.visibleCards).toHaveLength(5);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: redOrdering.decisionId,
-      response: { kind: "orderCards", order: redOrder },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId &&
-      s.state.pendingDecision === undefined &&
-      s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT7-085")
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: redOrdering.decisionId,
+        response: { kind: "orderCards", order: redOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId &&
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT7-085"),
     );
     await s.engine.recomputeContinuousEffects();
     await settle(() => observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack") === 1);
 
-    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual([
-      ...redOrder,
-      takuyaInstanceId,
-    ]);
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual([...redOrder, takuyaInstanceId]);
     expect(s.state.memory).toBe(4);
     expect(s.perm("takuya").currentDP).toBeGreaterThanOrEqual(10_000);
     expect(observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: kojiInstanceId,
-      effectKey: kojiEffect,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: kojiInstanceId,
+        effectKey: kojiEffect,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "orderCards" && latest.decisionId !== redOrdering.decisionId &&
-        latest.decisionId === s.state.pendingDecision?.decisionId;
+      return (
+        latest?.kind === "orderCards" &&
+        latest.decisionId !== redOrdering.decisionId &&
+        latest.decisionId === s.state.pendingDecision?.decisionId
+      );
     });
     const blueOrdering = s.decisions.at(-1)!.req;
     const blueOrder = (blueOrdering.options?.candidateInstanceIds ?? []).slice().reverse();
     expect(blueOrdering.options?.visibleCards).toHaveLength(5);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: blueOrdering.decisionId,
-      response: { kind: "orderCards", order: blueOrder },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("koji").topCard.instanceId === s.inst("magna").instanceId &&
-      s.state.pendingDecision === undefined &&
-      s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT7-087")
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: blueOrdering.decisionId,
+        response: { kind: "orderCards", order: blueOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("koji").topCard.instanceId === s.inst("magna").instanceId &&
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT7-087"),
     );
 
-    expect(s.perm("koji").stack.map((card) => card.instanceId)).toEqual([
-      ...blueOrder.slice(1),
-      kojiInstanceId,
-    ]);
+    expect(s.perm("koji").stack.map((card) => card.instanceId)).toEqual([...blueOrder.slice(1), kojiInstanceId]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === blueOrder[0])).toBe(true);
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).isRestricted(s.perm("koji"), "cantBeBlocked")).toBe(true);
 
     await advance(s.engine).verb.returnToHand([s.perm("returnedAlly").topCard.instanceId]);
-    await settle(() => s.state.players[0]!.hand.some((card) =>
-      card.instanceId === returnedAllyInstanceId
-    ));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === returnedAllyInstanceId));
 
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).isRestricted(s.perm("koji"), "cantBeBlocked")).toBe(true);

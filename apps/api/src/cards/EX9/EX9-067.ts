@@ -6,138 +6,121 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Puppet",
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Puppet", "LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "frequency": "OncePerTurn",
-      "actions": [
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
           },
-          "resultFilter": {
-            "nameOrTrait": [
+          resultFilter: {
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Puppet"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Puppet"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "orFilters": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  orFilters: [
                     {
-                      "kind": [
-                        "Tamer"
-                      ],
-                      "nameOrTrait": [
+                      kind: ["Tamer"],
+                      nameOrTrait: [
                         {
-                          "tokens": [
-                            "Arisa Kinosaki"
-                          ],
-                          "match": "name"
-                        }
-                      ]
+                          tokens: ["Arisa Kinosaki"],
+                          match: "name",
+                        },
+                      ],
                     },
                     {
-                      "kind": [
-                        "Digimon"
-                      ],
-                      "nameOrTrait": [
+                      kind: ["Digimon"],
+                      nameOrTrait: [
                         {
-                          "tokens": [
-                            "Puppet"
-                          ],
-                          "match": "trait"
-                        }
-                      ]
-                    }
-                  ]
+                          tokens: ["Puppet"],
+                          match: "trait",
+                        },
+                      ],
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": true,
-              "reduceCostBy": 3,
-              "optional": true
-            }
-          ],
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
+              from: ["hand"],
+              payCost: true,
+              reduceCostBy: 3,
+              optional: true,
             },
-            "to": "deckBottom",
-            "raw": "by returning this Tamer to the bottom of the deck"
-          }
-        }
-      ]
+          ],
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            to: "deckBottom",
+            raw: "by returning this Tamer to the bottom of the deck",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX9-067", compiled);

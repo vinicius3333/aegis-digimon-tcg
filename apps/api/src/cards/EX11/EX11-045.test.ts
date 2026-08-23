@@ -12,10 +12,24 @@ describe("EX11-045 Metatromon", () => {
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
-      expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0", actions: [{ kind: "DeDigivolve", amount: 2 }, { kind: "Restrict", restriction: "digivolve", duration: "untilOpponentTurnEnd" }] });
+      expect(effect).toMatchObject({
+        frequency: "OncePerTurn",
+        sharedUseKey: "ir-shared-0",
+        actions: [
+          { kind: "DeDigivolve", amount: 2 },
+          { kind: "Restrict", restriction: "digivolve", duration: "untilOpponentTurnEnd" },
+        ],
+      });
     }
     const inherited = compiled.effects.find((effect) => effect.isInherited)!;
-    expect(inherited).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { isSelfRef: true } }] });
-    expect(irNode(inherited.actions[0]!).actions[0]).toMatchObject({ kind: "Delete", target: { filter: { superlative: "lowestPlayCost" } } });
+    expect(inherited).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { isSelfRef: true } }],
+    });
+    expect(irNode(inherited.actions[0]!).actions[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { superlative: "lowestPlayCost" } },
+    });
   });
 });

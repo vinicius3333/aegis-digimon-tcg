@@ -5,16 +5,52 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 
 describe("EX9-058", () => {
-  it("reveals three and adds a DM card and places a Ver.5 card under a DM Digimon", () => expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ to: "hand" }, { to: "placeUnder" }] }));
-  it("adds the DM card before choosing a remaining Ver.5 card and a DM host", () => expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ add: [{ count: 1, to: "hand", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["DM"], match: "trait" }] } }, { count: 1, to: "placeUnder", faceDown: true, filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Ver.5"], match: "trait" }] }, underFilter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"], match: "trait" }] } }] }));
-  it("inherits Retaliation", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "Retaliation", raw: "＜Retaliation＞" }));
+  it("reveals three and adds a DM card and places a Ver.5 card under a DM Digimon", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 3,
+      rest: "deckBottom",
+      add: [{ to: "hand" }, { to: "placeUnder" }],
+    }));
+  it("adds the DM card before choosing a remaining Ver.5 card and a DM host", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
+      add: [
+        {
+          count: 1,
+          to: "hand",
+          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["DM"], match: "trait" }] },
+        },
+        {
+          count: 1,
+          to: "placeUnder",
+          faceDown: true,
+          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Ver.5"], match: "trait" }] },
+          underFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["DM"], match: "trait" }],
+          },
+        },
+      ],
+    }));
+  it("inherits Retaliation", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Retaliation",
+      raw: "＜Retaliation＞",
+    }));
   it("adds a DM reveal, places the Ver.5 reveal face-down under a DM host, and bottoms the rest", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX9-050", as: "host" }, { card: "EX9-058", as: "source" }],
-        deck: ["EX9-049", "EX9-010", "BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-050", as: "host" },
+            { card: "EX9-058", as: "source" },
+          ],
+          deck: ["EX9-049", "EX9-010", "BT1-009"],
+        },
       },
-    }, { autoSelectCards: true, autoOrderCards: true });
+      { autoSelectCards: true, autoOrderCards: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 

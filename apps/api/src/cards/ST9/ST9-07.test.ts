@@ -17,7 +17,10 @@ describe("ST9-07 KoKabuterimon", () => {
       {
         0: { battleArea: [{ card: "BT3-017", as: "attacker" }] },
         1: {
-          battleArea: [{ card: "ST9-02", as: "blue" }, { card: "ST9-07", as: "kokabu" }],
+          battleArea: [
+            { card: "ST9-02", as: "blue" },
+            { card: "ST9-07", as: "kokabu" },
+          ],
           security: ["ST9-02"],
         },
       },

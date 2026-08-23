@@ -31,11 +31,13 @@ describe("BT7-039 Stefilmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT7-039",
-            under: [{ card: "BT1-048", as: "existingSource" }],
-            as: "stefilmon",
-          }],
+          battleArea: [
+            {
+              card: "BT7-039",
+              under: [{ card: "BT1-048", as: "existingSource" }],
+              as: "stefilmon",
+            },
+          ],
           hand: [
             { card: "BT1-048", as: "firstYellow" },
             { card: "BT1-049", as: "secondYellow" },
@@ -54,21 +56,25 @@ describe("BT7-039 Stefilmon", () => {
       { instanceId: selected[0]!, cardId: "BT1-048" },
       { instanceId: selected[1]!, cardId: "BT1-049" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: selection.decisionId,
-      response: { kind: "selectCards", instanceIds: selected },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: selected },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;
     const stackOrder = [selected[1]!, selected[0]!];
     expect(ordering.options?.orderDestination).toBe("stackBottom");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: stackOrder },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: stackOrder },
+      }),
+    ).toEqual({ ok: true });
     await resolving;
 
     expect(s.perm("stefilmon").stack.map((card) => card.instanceId)).toEqual([
@@ -80,21 +86,41 @@ describe("BT7-039 Stefilmon", () => {
 
   it("gives one own Digimon Security Attack +1 after being trashed for Digi-Burst", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-026", under: [{ card: "BT7-039", as: "stefilmon" }, "BT1-001"], as: "host" }, { card: "BT1-010", as: "ally" }], deck: ["BT1-011"] } }, { autoSelectCards: true, preferInstanceIds: preferred });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-026", under: [{ card: "BT7-039", as: "stefilmon" }, "BT1-001"], as: "host" },
+            { card: "BT1-010", as: "ally" },
+          ],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.inst("stefilmon").instanceId);
     const source = (s.engine as any).cardSourceOf(s.perm("host").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT4-026/"))!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT4-026/"),
+    )!.effectKey;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("host").topCard!.instanceId, effectKey })).toEqual({ ok: true });
-    await settle(() =>
-      observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack") === 1 ||
-      observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack") === 1,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack") === 1 ||
+        observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack") === 1,
     );
 
     expect(
       observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack") +
-      observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack"),
+        observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack"),
     ).toBe(1);
   });
 });

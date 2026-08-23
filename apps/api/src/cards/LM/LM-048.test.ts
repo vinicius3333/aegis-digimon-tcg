@@ -24,7 +24,15 @@ function makeSource(instanceId = "INST#1", cardId = "LM-048") {
     instanceId,
     cardId,
     ownerSeat: 0 as Seat,
-    definition: { cardId, kinds: ["Option"], colors: ["Green"], playCost: 3, dp: 0, evoCosts: [], maxCountInDeck: 4 } as never,
+    definition: {
+      cardId,
+      kinds: ["Option"],
+      colors: ["Green"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    } as never,
     permanent: () => undefined as never,
     isOnBattleArea: () => false,
     isOwnersTurn: () => true,
@@ -42,8 +50,25 @@ function makeContext(
 ) {
   const placed: string[] = [];
   const battleArea = opts.battleArea ?? [];
-  const playerState = { seat: 0 as Seat, battleArea, security: [] as unknown[], hand: [] as unknown[], deck: [] as unknown[], trash: [] as unknown[] };
-  const definitionOf = opts.definitionOf ?? ((card: { cardId: string }) => ({ cardId: card.cardId, kinds: ["Digimon"], colors: [], playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4 }));
+  const playerState = {
+    seat: 0 as Seat,
+    battleArea,
+    security: [] as unknown[],
+    hand: [] as unknown[],
+    deck: [] as unknown[],
+    trash: [] as unknown[],
+  };
+  const definitionOf =
+    opts.definitionOf ??
+    ((card: { cardId: string }) => ({
+      cardId: card.cardId,
+      kinds: ["Digimon"],
+      colors: [],
+      playCost: 0,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    }));
   return {
     source,
     trigger: {},
@@ -68,34 +93,93 @@ function makeContext(
       setMemory: recorder.record("setMemory"),
       modifyDP: recorder.record("modifyDP"),
       setBaseDP: recorder.record("setBaseDP"),
-      playFromHand: async (...a: unknown[]) => { recorder.calls.push({ verb: "playFromHand", args: a }); return []; },
-      playFromSecurity: async (...a: unknown[]) => { recorder.calls.push({ verb: "playFromSecurity", args: a }); return undefined; },
-      playInstances: async (...a: unknown[]) => { recorder.calls.push({ verb: "playInstances", args: a }); return []; },
-      digivolveFromInstance: async (...a: unknown[]) => { recorder.calls.push({ verb: "digivolveFromInstance", args: a }); return undefined; },
-      dnaDigivolveInto: async (...a: unknown[]) => { recorder.calls.push({ verb: "dnaDigivolveInto", args: a }); return undefined; },
-      appFuseInto: async (...a: unknown[]) => { recorder.calls.push({ verb: "appFuseInto", args: a }); return undefined; },
+      playFromHand: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "playFromHand", args: a });
+        return [];
+      },
+      playFromSecurity: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "playFromSecurity", args: a });
+        return undefined;
+      },
+      playInstances: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "playInstances", args: a });
+        return [];
+      },
+      digivolveFromInstance: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "digivolveFromInstance", args: a });
+        return undefined;
+      },
+      dnaDigivolveInto: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "dnaDigivolveInto", args: a });
+        return undefined;
+      },
+      appFuseInto: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "appFuseInto", args: a });
+        return undefined;
+      },
       deDigivolve: recorder.record("deDigivolve"),
       placeOwnTopAtStackBottom: recorder.record("placeOwnTopAtStackBottom"),
-      placeUnder: async (...a: unknown[]) => { recorder.calls.push({ verb: "placeUnder", args: a }); return []; },
+      placeUnder: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "placeUnder", args: a });
+        return [];
+      },
       hatch: recorder.record("hatch"),
-      placeUnderFromEggDeck: async (...a: unknown[]) => { recorder.calls.push({ verb: "placeUnderFromEggDeck", args: a }); return undefined; },
-      placeAsTopFromEggDeck: async (...a: unknown[]) => { recorder.calls.push({ verb: "placeAsTopFromEggDeck", args: a }); return undefined; },
-      link: async (...a: unknown[]) => { recorder.calls.push({ verb: "link", args: a }); return []; },
-      trash: async (...a: unknown[]) => { recorder.calls.push({ verb: "trash", args: a }); return []; },
-      trashDigivolutionCards: async (...a: unknown[]) => { recorder.calls.push({ verb: "trashDigivolutionCards", args: a }); return []; },
-      fireOptionUsed: async (...a: unknown[]) => { recorder.calls.push({ verb: "fireOptionUsed", args: a }); },
-      useOptionFromHand: async (...a: unknown[]) => { recorder.calls.push({ verb: "useOptionFromHand", args: a }); return []; },
-      trashFromSecurity: async (...a: unknown[]) => { recorder.calls.push({ verb: "trashFromSecurity", args: a }); return []; },
-      deletePermanent: async (...a: unknown[]) => { recorder.calls.push({ verb: "deletePermanent", args: a }); return 0; },
+      placeUnderFromEggDeck: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "placeUnderFromEggDeck", args: a });
+        return undefined;
+      },
+      placeAsTopFromEggDeck: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "placeAsTopFromEggDeck", args: a });
+        return undefined;
+      },
+      link: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "link", args: a });
+        return [];
+      },
+      trash: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "trash", args: a });
+        return [];
+      },
+      trashDigivolutionCards: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "trashDigivolutionCards", args: a });
+        return [];
+      },
+      fireOptionUsed: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "fireOptionUsed", args: a });
+      },
+      useOptionFromHand: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "useOptionFromHand", args: a });
+        return [];
+      },
+      trashFromSecurity: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "trashFromSecurity", args: a });
+        return [];
+      },
+      deletePermanent: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "deletePermanent", args: a });
+        return 0;
+      },
       suspend: async (...a: unknown[]) => {
         recorder.calls.push({ verb: "suspend", args: a });
         return a[0] as string[];
       },
       unsuspend: recorder.record("unsuspend"),
-      returnToHand: async (...a: unknown[]) => { recorder.calls.push({ verb: "returnToHand", args: a }); return []; },
-      returnToDeck: async (...a: unknown[]) => { recorder.calls.push({ verb: "returnToDeck", args: a }); return []; },
-      reveal: async (...a: unknown[]) => { recorder.calls.push({ verb: "reveal", args: a }); return []; },
-      searchDeck: async (...a: unknown[]) => { recorder.calls.push({ verb: "searchDeck", args: a }); return []; },
+      returnToHand: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "returnToHand", args: a });
+        return [];
+      },
+      returnToDeck: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "returnToDeck", args: a });
+        return [];
+      },
+      reveal: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "reveal", args: a });
+        return [];
+      },
+      searchDeck: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "searchDeck", args: a });
+        return [];
+      },
       addSecurity: recorder.record("addSecurity"),
       grantPierce: recorder.record("grantPierce"),
       changeEvoCost: recorder.record("changeEvoCost"),
@@ -110,23 +194,55 @@ function makeContext(
       addColorGrant: recorder.record("addColorGrant"),
       waiveColorRequirement: recorder.record("waiveColorRequirement"),
       shuffleSecurity: recorder.record("shuffleSecurity"),
-      securityToHand: (...a: unknown[]) => { recorder.calls.push({ verb: "securityToHand", args: a }); return []; },
-      recoverToSecurity: async (...a: unknown[]) => { recorder.calls.push({ verb: "recoverToSecurity", args: a }); return []; },
-      flipTopSecurity: (...a: unknown[]) => { recorder.calls.push({ verb: "flipTopSecurity", args: a }); return true; },
-      flipSecurityFaceUp: (...a: unknown[]) => { recorder.calls.push({ verb: "flipSecurityFaceUp", args: a }); return true; },
-      forceAttack: async (...a: unknown[]) => { recorder.calls.push({ verb: "forceAttack", args: a }); },
-      redirectAttack: async (...a: unknown[]) => { recorder.calls.push({ verb: "redirectAttack", args: a }); },
+      securityToHand: (...a: unknown[]) => {
+        recorder.calls.push({ verb: "securityToHand", args: a });
+        return [];
+      },
+      recoverToSecurity: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "recoverToSecurity", args: a });
+        return [];
+      },
+      flipTopSecurity: (...a: unknown[]) => {
+        recorder.calls.push({ verb: "flipTopSecurity", args: a });
+        return true;
+      },
+      flipSecurityFaceUp: (...a: unknown[]) => {
+        recorder.calls.push({ verb: "flipSecurityFaceUp", args: a });
+        return true;
+      },
+      forceAttack: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "forceAttack", args: a });
+      },
+      redirectAttack: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "redirectAttack", args: a });
+      },
       grantCanAttackUnsuspended: recorder.record("grantCanAttackUnsuspended"),
       endAttack: recorder.record("endAttack"),
-      subscribeSubTrigger: (sub: unknown) => { recorder.calls.push({ verb: "subscribeSubTrigger", args: [sub] }); return 0; },
-      subscribeReplacement: (sub: unknown) => { recorder.calls.push({ verb: "subscribeReplacement", args: [sub] }); return 0; },
+      subscribeSubTrigger: (sub: unknown) => {
+        recorder.calls.push({ verb: "subscribeSubTrigger", args: [sub] });
+        return 0;
+      },
+      subscribeReplacement: (sub: unknown) => {
+        recorder.calls.push({ verb: "subscribeReplacement", args: [sub] });
+        return 0;
+      },
       relocatePermanent: recorder.record("relocatePermanent"),
-      movePermanentZone: async (...a: unknown[]) => { recorder.calls.push({ verb: "movePermanentZone", args: a }); return true; },
+      movePermanentZone: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "movePermanentZone", args: a });
+        return true;
+      },
       conferStackEffects: recorder.record("conferStackEffects"),
-      playToken: async (...a: unknown[]) => { recorder.calls.push({ verb: "playToken", args: a }); return undefined; },
+      playToken: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "playToken", args: a });
+        return undefined;
+      },
       modifySecurityDp: recorder.record("modifySecurityDp"),
-      fireOnDiscardLibrary: async (...a: unknown[]) => { recorder.calls.push({ verb: "fireOnDiscardLibrary", args: a }); },
-      fireWhenTrashedFromDeck: async (...a: unknown[]) => { recorder.calls.push({ verb: "fireWhenTrashedFromDeck", args: a }); },
+      fireOnDiscardLibrary: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "fireOnDiscardLibrary", args: a });
+      },
+      fireWhenTrashedFromDeck: async (...a: unknown[]) => {
+        recorder.calls.push({ verb: "fireWhenTrashedFromDeck", args: a });
+      },
       // PlaceInBattleAreaSelf dispatches here for Options.
       placeOptionAsPermanent: async (id: string) => {
         placed.push(id);
@@ -155,16 +271,37 @@ const COMPILED: CompiledCard = {
         filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon", "Tamer"], colors: ["Black"] },
         raw: "you have a Black Digimon or Tamer in the battle area",
       },
-      actions: [{ kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, color: "black" }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          color: "black",
+        },
+      ],
     },
     {
       trigger: "Main",
       actions: [
-        { kind: "RevealAdd", revealCount: 3, add: [{ filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Green", "Black"] }, count: 1, to: "hand" }], rest: "deckBottom" },
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Green", "Black"] },
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
         { kind: "PlaceInBattleAreaSelf" },
       ],
     },
-    { trigger: "Main", actions: [{ kind: "GainMemory", amount: 2 }], keywords: [{ keyword: "Delay", raw: "＜Delay＞" }] },
+    {
+      trigger: "Main",
+      actions: [{ kind: "GainMemory", amount: 2 }],
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+    },
     { trigger: "Security", actions: [{ kind: "PlaceInBattleAreaSelf" }], isSecurity: true },
   ],
   coverage: "full",
@@ -207,17 +344,27 @@ describe("LM-048 Chrome Memory Boost! — hand-corrected IR", () => {
     // --- No Black Digimon in play: waiveColorRequirement must NOT be called ---
     // The old declarative effect had no condition, so it ALWAYS called the waiver.
     const greenDigi = {
-      permanentId: "green-digi", controllerSeat: 0,
+      permanentId: "green-digi",
+      controllerSeat: 0,
       topCard: { instanceId: "gd1", cardId: "BT1-064", ownerSeat: 0, faceUp: true },
-      stack: [], linked: [], baseDP: 0, currentDP: 0, isSuspended: false, inBreeding: false,
+      stack: [],
+      linked: [],
+      baseDP: 0,
+      currentDP: 0,
+      isSuspended: false,
+      inBreeding: false,
     };
     const recorderNoBlack = makeRecorder();
     const ctxNoBlack = makeContext(recorderNoBlack, source, {
       battleArea: [greenDigi],
       definitionOf: (card) => ({
-        cardId: card.cardId, kinds: ["Digimon"],
+        cardId: card.cardId,
+        kinds: ["Digimon"],
         colors: card.cardId === "BT1-064" ? ["Green"] : [],
-        playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4,
+        playCost: 0,
+        dp: 0,
+        evoCosts: [],
+        maxCountInDeck: 4,
       }),
     });
 
@@ -226,17 +373,27 @@ describe("LM-048 Chrome Memory Boost! — hand-corrected IR", () => {
 
     // --- With a Black Digimon: waiveColorRequirement MUST be called ---
     const blackDigi = {
-      permanentId: "black-digi", controllerSeat: 0,
+      permanentId: "black-digi",
+      controllerSeat: 0,
       topCard: { instanceId: "bd1", cardId: "BT1-009", ownerSeat: 0, faceUp: true },
-      stack: [], linked: [], baseDP: 0, currentDP: 0, isSuspended: false, inBreeding: false,
+      stack: [],
+      linked: [],
+      baseDP: 0,
+      currentDP: 0,
+      isSuspended: false,
+      inBreeding: false,
     };
     const recorderWithBlack = makeRecorder();
     const ctxWithBlack = makeContext(recorderWithBlack, source, {
       battleArea: [blackDigi],
       definitionOf: (card) => ({
-        cardId: card.cardId, kinds: ["Digimon"],
+        cardId: card.cardId,
+        kinds: ["Digimon"],
         colors: card.cardId === "BT1-009" ? ["Black"] : [],
-        playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4,
+        playCost: 0,
+        dp: 0,
+        evoCosts: [],
+        maxCountInDeck: 4,
       }),
     });
 
@@ -252,7 +409,9 @@ describe("LM-048 Chrome Memory Boost! — hand-corrected IR", () => {
     // Here we verify via OnUseOption (the interpreter exposes the gain-memory body when triggered directly).
     const allMain = module.effectsForTiming(EffectTiming.OnDeclaration, source);
     // Not every timing maps — just assert the compiled IR has the GainMemory action in its payload.
-    const gainMemoryAction = COMPILED.effects.find((e) => e.trigger === "Main" && e.keywords?.some((k) => k.keyword === "Delay"));
+    const gainMemoryAction = COMPILED.effects.find(
+      (e) => e.trigger === "Main" && e.keywords?.some((k) => k.keyword === "Delay"),
+    );
     expect(gainMemoryAction).toBeDefined();
     expect((gainMemoryAction?.actions[0] as { kind: string; amount: number }).amount).toBe(2);
     // Suppress unused variable lint for allMain
@@ -271,7 +430,9 @@ describe("LM-048 Chrome Memory Boost! — hand-corrected IR", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-048"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-064")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-048")).toBe(true);

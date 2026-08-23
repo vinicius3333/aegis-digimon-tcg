@@ -10,7 +10,11 @@ const watcherActions = [
     kind: "trashSecurityTop",
     controller: "opponent",
     count: 1,
-    cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 }, raw: "By trashing any 2 of this Digimon's digivolution cards" },
+    cost: {
+      kind: "trash",
+      target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 },
+      raw: "By trashing any 2 of this Digimon's digivolution cards",
+    },
   },
 ];
 
@@ -18,21 +22,39 @@ const compiled: CompiledCard = {
   effects: [
     ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
       trigger,
-      actions: [{
-        kind: "PlaceUnder",
-        target: { filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" }, from: ["battleArea"], count: 1 },
-        underFilter: { controller: "opponent", kind: ["Digimon", "Tamer"], excludeSelf: true },
-        targetIsPermanent: true,
-        position: "bottom",
-        optional: true,
-      }],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" },
+            from: ["battleArea"],
+            count: 1,
+          },
+          underFilter: { controller: "opponent", kind: ["Digimon", "Tamer"], excludeSelf: true },
+          targetIsPermanent: true,
+          position: "bottom",
+          optional: true,
+        },
+      ],
     })),
     {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
       actions: [
-        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: watcherActions, oncePerTurnKey: "EX10-056/all-turns" },
-        { kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, actions: watcherActions, oncePerTurnKey: "EX10-056/all-turns" },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          actions: watcherActions,
+          oncePerTurnKey: "EX10-056/all-turns",
+        },
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+          actions: watcherActions,
+          oncePerTurnKey: "EX10-056/all-turns",
+        },
       ],
     },
   ],

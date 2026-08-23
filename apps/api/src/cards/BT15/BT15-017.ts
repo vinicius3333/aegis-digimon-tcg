@@ -6,113 +6,107 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "security",
-            "op": "lte",
-            "value": 3,
-            "raw": "your opponent has 3 or fewer security cards"
-          }
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "security",
+            op: "lte",
+            value: 3,
+            raw: "your opponent has 3 or fewer security cards",
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "security",
-            "op": "gte",
-            "value": 4,
-            "raw": "they have 4 or more"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "security",
+            op: "gte",
+            value: 4,
+            raw: "they have 4 or more",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "security",
-            "op": "lte",
-            "value": 3,
-            "raw": "your opponent has 3 or fewer security cards"
-          }
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "security",
+            op: "lte",
+            value: 3,
+            raw: "your opponent has 3 or fewer security cards",
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "security",
-            "op": "gte",
-            "value": 4,
-            "raw": "they have 4 or more"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "security",
+            op: "gte",
+            value: 4,
+            raw: "they have 4 or more",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "or": [
-                { "kind": ["Digimon"], "colors": ["Red"], "dp": { "op": "lte", "value": 5000 } },
-                { "kind": ["Tamer"], "colors": ["Red"] }
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              or: [
+                { kind: ["Digimon"], colors: ["Red"], dp: { op: "lte", value: 5000 } },
+                { kind: ["Tamer"], colors: ["Red"] },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-017", compiled);

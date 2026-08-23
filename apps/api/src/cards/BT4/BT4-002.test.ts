@@ -23,10 +23,7 @@ describe("BT4-002 Bukamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.state.players[1]!.trash.some((card) => card.instanceId === bottomId),
-      5000,
-    );
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === bottomId), 5000);
 
     expect(s.perm("target").stack).toHaveLength(0);
   });

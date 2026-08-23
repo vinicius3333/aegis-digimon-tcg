@@ -6,36 +6,36 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // the Tamer is a level 3 black Digimon." — alternate digivolution onto a Tamer;
 // captured entirely by digivolutionRequirement; no separate active effect.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Tamer"],
-              "colors": ["Black"]
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Black"],
             },
-            "count": 1
+            count: 1,
           },
-          "asLevel": 3,
-          "from": "hand"
-        }
-      ]
-    }
+          asLevel: 3,
+          from: "hand",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 0,
-      "isAlternate": true,
-      "baseIsTamer": true,
-      "baseColors": ["Black"]
-    }
-  ]
+      cost: 0,
+      isAlternate: true,
+      baseIsTamer: true,
+      baseColors: ["Black"],
+    },
+  ],
 };
 
 registerIrCard("BT7-060", compiled);

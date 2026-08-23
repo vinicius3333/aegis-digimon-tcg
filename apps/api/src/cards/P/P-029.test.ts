@@ -16,21 +16,25 @@ describe("P-029 Agunimon", () => {
     s.state.memory = 3;
     const permanentId = s.perm("promoAgunimon").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.decisions.at(-1)!.req;
     expect(decision.sourceCardId).toBe("P-029");
     expect(decision.kind).toBe("optional");
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
 
     expect(s.perm("promoAgunimon").topCard.cardId).toBe("P-029");
@@ -49,11 +53,13 @@ describe("P-029 Agunimon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("ancientGreymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("ancientGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT4-113");
 
     expect(s.state.memory).toBe(7); // Printed cost 5, reduced by 2.
@@ -70,11 +76,13 @@ describe("P-029 Agunimon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("omnimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT5-086");
 
     expect(s.state.memory).toBe(6); // Printed cost 4; AncientGreymon-only reduction must not apply.
@@ -102,15 +110,18 @@ describe("P-029 Agunimon", () => {
     s.state.memory = 3;
     const permanentId = s.perm("promoAgunimon").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.permanentId === permanentId && permanent.topCard?.cardId === "BT4-113") &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.permanentId === permanentId && permanent.topCard?.cardId === "BT4-113",
+        ) && !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
       5000,
     );
 
@@ -148,22 +159,27 @@ describe("P-029 Agunimon", () => {
     s.state.memory = 10;
     const permanentId = s.perm("promoAgunimon").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("promoAgunimon").topCard.cardId === "BT4-113" &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("promoAgunimon").topCard.cardId === "BT4-113" &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
     await settle();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId,
-      instanceId: s.inst("omnimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("promoAgunimon").topCard.cardId === "BT5-086");
     await advance(s.engine).fireSubTrigger("endOfTurn");
 

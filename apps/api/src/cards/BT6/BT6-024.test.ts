@@ -12,15 +12,33 @@ describe("BT6-024 AncientGarurumon", () => {
   });
 
   it("trashes the bottom source of an opposing Digimon when attacking", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-010", under: ["BT6-024"], as: "host" }] },
-      1: {
-        battleArea: [{ card: "BT6-016", under: [{ card: "BT1-001", as: "bottom" }, { card: "BT1-002", as: "top" }], as: "target" }],
-        security: ["BT1-010"],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-010", under: ["BT6-024"], as: "host" }] },
+        1: {
+          battleArea: [
+            {
+              card: "BT6-016",
+              under: [
+                { card: "BT1-001", as: "bottom" },
+                { card: "BT1-002", as: "top" },
+              ],
+              as: "target",
+            },
+          ],
+          security: ["BT1-010"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId));
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId)).toBe(true);

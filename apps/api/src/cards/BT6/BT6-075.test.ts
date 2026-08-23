@@ -12,16 +12,20 @@ describe("BT6-075 Ginkakumon Promote", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("promote").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("promote").instanceId })).toEqual({
+      ok: true,
+    });
     const played = s.state.players[0]!.battleArea[0]!;
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: played.permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: played.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
   });
 
   it("places one card of each required name, then draws 1 and gains 1 memory", async () => {
@@ -72,24 +76,30 @@ describe("BT6-075 Ginkakumon Promote", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
     );
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("promote").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("promote").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const decision = s.decisions.at(-1)!.req;
     const order = [s.inst("ginkakumon").instanceId, s.inst("kinkakumon").instanceId];
     expect(decision.sourceCardId).toBe("BT6-075");
-    expect(decision.options?.visibleCards).toEqual(expect.arrayContaining([
-      { instanceId: s.inst("kinkakumon").instanceId, cardId: "BT6-071" },
-      { instanceId: s.inst("ginkakumon").instanceId, cardId: "BT6-073" },
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "orderCards", order },
-    })).toEqual({ ok: true });
+    expect(decision.options?.visibleCards).toEqual(
+      expect.arrayContaining([
+        { instanceId: s.inst("kinkakumon").instanceId, cardId: "BT6-071" },
+        { instanceId: s.inst("ginkakumon").instanceId, cardId: "BT6-073" },
+      ]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderCards", order },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.instanceId)).toEqual(order);
@@ -107,15 +117,15 @@ describe("BT6-075 Ginkakumon Promote", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("promote").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("promote").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea[0]!.stack.length === 1);
 
-    expect(s.state.players[0]!.battleArea[0]!.stack[0]!.instanceId).toBe(
-      s.inst("onlyKinkakumon").instanceId,
-    );
+    expect(s.state.players[0]!.battleArea[0]!.stack[0]!.instanceId).toBe(s.inst("onlyKinkakumon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.memory).toBe(0);
   });

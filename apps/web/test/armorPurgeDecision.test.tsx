@@ -29,7 +29,7 @@ function renderArmorPurge() {
           sourceCardId="BT8-012"
           candidates={[{ instanceId: "armor-top", cardId: "BT8-012" }]}
           picks={picks}
-          onTogglePick={(instanceId) => setPicks((current) => current.includes(instanceId) ? [] : [instanceId])}
+          onTogglePick={(instanceId) => setPicks((current) => (current.includes(instanceId) ? [] : [instanceId]))}
           onRespond={onRespond}
         />
       </I18nProvider>

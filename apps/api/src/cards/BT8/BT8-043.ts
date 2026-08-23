@@ -16,117 +16,109 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix: use RepeatPerCount with countSource counting owned Tamers, so each activation
 //   chooses a separate target Digimon (count:1).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "colors": [
-                    "Purple"
-                  ],
-                  "nameOrTrait": [
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "mine",
+                  colors: ["Purple"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Cherubimon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Cherubimon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
+              optional: true,
             },
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 8,
-              "raw": "reduce this card's play cost by 8"
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 8,
+              raw: "reduce this card's play cost by 8",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RepeatPerCount",
-          "countSource": "youHave",
-          "countFilter": {
-            "zone": "battleArea",
-            "controller": "mine",
-            "kind": ["Tamer"]
+          kind: "RepeatPerCount",
+          countSource: "youHave",
+          countFilter: {
+            zone: "battleArea",
+            controller: "mine",
+            kind: ["Tamer"],
           },
-          "action": {
-            "kind": "GainKeyword",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
+          action: {
+            kind: "GainKeyword",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": -2
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: -2,
             },
-            "duration": "untilOpponentTurnEnd"
+            duration: "untilOpponentTurnEnd",
           },
-          "raw": "For each Tamer you have in play, 1 of your opponent's Digimon gets <Security Attack -2> until the end of your opponent's next turn"
-        }
-      ]
+          raw: "For each Tamer you have in play, 1 of your opponent's Digimon gets <Security Attack -2> until the end of your opponent's next turn",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RepeatPerCount",
-          "countSource": "youHave",
-          "countFilter": {
-            "zone": "battleArea",
-            "controller": "mine",
-            "kind": ["Tamer"]
+          kind: "RepeatPerCount",
+          countSource: "youHave",
+          countFilter: {
+            zone: "battleArea",
+            controller: "mine",
+            kind: ["Tamer"],
           },
-          "action": {
-            "kind": "GainKeyword",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
+          action: {
+            kind: "GainKeyword",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": -2
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: -2,
             },
-            "duration": "untilOpponentTurnEnd"
+            duration: "untilOpponentTurnEnd",
           },
-          "raw": "For each Tamer you have in play, 1 of your opponent's Digimon gets <Security Attack -2> until the end of your opponent's next turn"
-        }
-      ]
-    }
+          raw: "For each Tamer you have in play, 1 of your opponent's Digimon gets <Security Attack -2> until the end of your opponent's next turn",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-043", compiled);

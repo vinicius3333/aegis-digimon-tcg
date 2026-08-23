@@ -15,58 +15,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q&A Q1222: if 2 copies are deleted simultaneously, both effects fire but
 // can't activate since the cards are already in trash — engine-level ruling.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "D-Brigade"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["D-Brigade"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "RevealAdd",
-              "revealCount": 2,
-              "add": [
+              kind: "RevealAdd",
+              revealCount: 2,
+              add: [
                 {
-                  "filter": {
-                    "nameOrTrait": [
+                  filter: {
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Commandramon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["Commandramon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "count": 1,
-                  "to": "play",
-                  "optional": true
-                }
+                  count: 1,
+                  to: "play",
+                  optional: true,
+                },
               ],
-              "rest": "deckBottom"
-            }
-          ]
-        }
-      ]
-    }
+              rest: "deckBottom",
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-071", compiled);

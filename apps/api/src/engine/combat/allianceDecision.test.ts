@@ -13,19 +13,19 @@ describe("＜Alliance＞ decision resolution", () => {
     const s = setupEngine(
       {
         0: {
-        battleArea: [
-          { card: ALLIANCE_CARD, dp: 9000, as: "attacker" },
-          { card: PLAIN, dp: 4000, as: "ally" },
-        ],
+          battleArea: [
+            { card: ALLIANCE_CARD, dp: 9000, as: "attacker" },
+            { card: PLAIN, dp: 4000, as: "ally" },
+          ],
         },
         1: {
-        battleArea: [
-          // EX11-024's When Attacking effect applies -6000 DP with these two allied
-          // Digimon in play. Keep both candidates alive so the attack reaches the
-          // Alliance and blocker decision windows this test exercises.
-          { card: PLAIN, dp: 7000, suspended: true, as: "defender" },
-          { card: "ST18-07", dp: 7000, as: "blocker" },
-        ],
+          battleArea: [
+            // EX11-024's When Attacking effect applies -6000 DP with these two allied
+            // Digimon in play. Keep both candidates alive so the attack reaches the
+            // Alliance and blocker decision windows this test exercises.
+            { card: PLAIN, dp: 7000, suspended: true, as: "defender" },
+            { card: "ST18-07", dp: 7000, as: "blocker" },
+          ],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferredTargets },

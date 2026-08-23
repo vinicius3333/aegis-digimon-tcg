@@ -19,7 +19,13 @@ describe("EX8-056", () => {
     }));
   it("draws then trashes exactly one hand card when deleted", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX8-056", as: "source" }], hand: [{ card: "BT1-010", as: "filler" }], deck: ["BT1-001"] } },
+      {
+        0: {
+          battleArea: [{ card: "EX8-056", as: "source" }],
+          hand: [{ card: "BT1-010", as: "filler" }],
+          deck: ["BT1-001"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const player = s.state.players[0] as PlayerState;
@@ -40,11 +46,13 @@ describe("EX8-056", () => {
     s.state.turnSeat = 0;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

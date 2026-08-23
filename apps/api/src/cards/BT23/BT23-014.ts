@@ -7,21 +7,62 @@ const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [
-        { kind: "RestrictPlay", seat: "opponent", filter: { kind: ["Digimon", "Tamer"], zone: "trash" }, mode: "play", duration: "untilOpponentTurnEnd", byEffectOnly: true },
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 }, dpCeilingScaling: { per: 1, amount: 2000, unit: "cards", filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } } },
+        {
+          kind: "RestrictPlay",
+          seat: "opponent",
+          filter: { kind: ["Digimon", "Tamer"], zone: "trash" },
+          mode: "play",
+          duration: "untilOpponentTurnEnd",
+          byEffectOnly: true,
+        },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+          dpCeilingScaling: {
+            per: 1,
+            amount: 2000,
+            unit: "cards",
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+          },
+        },
       ],
     },
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "RestrictPlay", seat: "opponent", filter: { kind: ["Digimon", "Tamer"], zone: "trash" }, mode: "play", duration: "untilOpponentTurnEnd", byEffectOnly: true },
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 }, dpCeilingScaling: { per: 1, amount: 2000, unit: "cards", filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } } },
+        {
+          kind: "RestrictPlay",
+          seat: "opponent",
+          filter: { kind: ["Digimon", "Tamer"], zone: "trash" },
+          mode: "play",
+          duration: "untilOpponentTurnEnd",
+          byEffectOnly: true,
+        },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+          dpCeilingScaling: {
+            per: 1,
+            amount: 2000,
+            unit: "cards",
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+          },
+        },
       ],
     },
     {
       trigger: "WhenAttacking",
       actions: [
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 }, dpCeilingScaling: { per: 1, amount: 2000, unit: "cards", filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } } },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+          dpCeilingScaling: {
+            per: 1,
+            amount: 2000,
+            unit: "cards",
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+          },
+        },
       ],
     },
   ],

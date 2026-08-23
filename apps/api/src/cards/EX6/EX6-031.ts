@@ -6,263 +6,215 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Sanzomon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Sanzomon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
             },
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Gokuumon",
-                        "Sagomon",
-                        "Cho-Hakkaimon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Gokuumon", "Sagomon", "Cho-Hakkaimon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
-            }
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
           ],
-          "raw": "onDeletionOf"
+          raw: "onDeletionOf",
         },
         {
-          "kind": "SubTrigger",
-          "event": "wouldBeReturned",
-          "sourceFilter": {
-            "isSelfRef": true,
-            "returnDestination": [
-              "hand",
-              "deck"
-            ]
+          kind: "SubTrigger",
+          event: "wouldBeReturned",
+          sourceFilter: {
+            isSelfRef: true,
+            returnDestination: ["hand", "deck"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Sanzomon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Sanzomon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
             },
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Gokuumon",
-                        "Sagomon",
-                        "Cho-Hakkaimon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Gokuumon", "Sagomon", "Cho-Hakkaimon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ],
-          "raw": "wouldBeReturned"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SecurityAttackInvert",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
             },
-            "count": "all"
-          },
-          "duration": "forTheTurn",
-          "raw": "Change ＜Security Attack -＞ to ＜Security Attack +＞ on all of your Digimon"
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "SecurityAttack"
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "battleArea"
           ],
-          "toTop": true,
-          "optional": true
-        }
+          raw: "wouldBeReturned",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SecurityAttackInvert",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          duration: "forTheTurn",
+          raw: "Change ＜Security Attack -＞ to ＜Security Attack +＞ on all of your Digimon",
+        },
+      ],
+    },
+    {
+      trigger: "EndOfOpponentsTurn",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              keywords: ["SecurityAttack"],
+            },
+            count: 1,
+          },
+          from: ["battleArea"],
+          toTop: true,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Sanzomon",
-        "Gokuumon",
-        "Sagomon",
-        "Cho-Hakkaimon"
-      ],
-      "cost": 6,
-      "isAlternate": true
-    }
+      names: ["Sanzomon", "Gokuumon", "Sagomon", "Cho-Hakkaimon"],
+      cost: 6,
+      isAlternate: true,
+    },
   ],
-  "digiXrosRequirement": [
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "names": [
-            "Sanzomon"
-          ]
+          names: ["Sanzomon"],
         },
         {
-          "names": [
-            "Gokuumon"
-          ]
+          names: ["Gokuumon"],
         },
         {
-          "names": [
-            "Sagomon"
-          ]
+          names: ["Sagomon"],
         },
         {
-          "names": [
-            "Cho-Hakkaimon"
-          ]
-        }
+          names: ["Cho-Hakkaimon"],
+        },
       ],
-      "count": 2
-    }
-  ]
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("EX6-031", compiled);

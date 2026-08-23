@@ -24,7 +24,10 @@ describe("RB1-013 TeslaJellymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "RB1-013", as: "tesla" }, { card: "RB1-032", as: "existing" }],
+          battleArea: [
+            { card: "RB1-013", as: "tesla" },
+            { card: "RB1-032", as: "existing" },
+          ],
           hand: [{ card: "RB1-032", as: "kiyo" }],
         },
       },

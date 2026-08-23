@@ -6,120 +6,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Dorugoramon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Prevent",
-              "cost": {
-          "kind": "digivolveSelf",
-                "raw": "by digivolving it into this card without paying the cost"
+                tokens: ["Dorugoramon"],
+                match: "name",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+            ],
+          },
+          actions: [
+            {
+              kind: "Prevent",
+              cost: {
+                kind: "digivolveSelf",
+                raw: "by digivolving it into this card without paying the cost",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "isFromTrash": true
+      isFromTrash: true,
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3,
-          "stopAtLevel": 3
+          amount: 3,
+          stopAtLevel: 3,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": "all"
+            count: "all",
           },
-          "condition": {
-          "kind": "anyOf",
-          "conditions": [
-            { "kind": "selfHasInDigivolutionCards", "nameOrTrait": [{ "tokens": ["Dorugoramon"], "match": "name" }] },
-            { "kind": "digivolvedFromZone", "zone": "trash" }
-          ],
-            "raw": "[Dorugoramon] is in this Digimon's digivolution cards or this card is digivolving from the trash"
-          }
-        }
-      ]
+          condition: {
+            kind: "anyOf",
+            conditions: [
+              { kind: "selfHasInDigivolutionCards", nameOrTrait: [{ tokens: ["Dorugoramon"], match: "name" }] },
+              { kind: "digivolvedFromZone", zone: "trash" },
+            ],
+            raw: "[Dorugoramon] is in this Digimon's digivolution cards or this card is digivolving from the trash",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Dorugoramon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Dorugoramon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-073", compiled);

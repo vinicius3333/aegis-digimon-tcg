@@ -7,52 +7,46 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Glowing Dawn"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Glowing Dawn"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 2,
-          "optional": true,
-          "cost": {
-            "kind": "trashBottomFaceDownUnderTamer",
-            "controller": "mine",
-            "raw": "By trashing the bottom face-down card from under any of your Tamers"
+          from: ["hand"],
+          reduceCost: 2,
+          optional: true,
+          cost: {
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            raw: "By trashing the bottom face-down card from under any of your Tamers",
           },
-          "abortOnDecline": true
-        }
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST23-01", compiled);

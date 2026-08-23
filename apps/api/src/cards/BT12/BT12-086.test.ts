@@ -24,12 +24,15 @@ describe("BT12-086 handwritten module", () => {
 });
 
 it("adds up to two differently colored Save Digimon from the reveal", async () => {
-  const s = setupEngine({
-    0: {
-      hand: [{ card: "BT12-086", as: "clock" }],
-      deck: ["BT12-008", "BT12-058", "BT1-009"],
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: "BT12-086", as: "clock" }],
+        deck: ["BT12-008", "BT12-058", "BT1-009"],
+      },
     },
-  }, { autoSelectCards: true, autoOrderCards: true });
+    { autoSelectCards: true, autoOrderCards: true },
+  );
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
   await settle(() => s.state.players[0]!.hand.length >= 2);
@@ -62,7 +65,14 @@ it("grants Jamming to a Save-text host", async () => {
 
 it("saves itself under a Tamer on deletion", async () => {
   const s = setupEngine(
-    { 0: { battleArea: [{ card: "BT12-086", as: "clock" }, { card: "BT12-094", as: "tamer" }] } },
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-086", as: "clock" },
+          { card: "BT12-094", as: "tamer" },
+        ],
+      },
+    },
     { autoAcceptOptional: true, autoSelectCards: true },
   );
   const sourceId = s.perm("clock").topCard!.instanceId;

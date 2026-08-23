@@ -6,116 +6,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 2,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "trash",
-            "op": "lte",
-            "value": 10,
-            "raw": "your opponent has 10 or fewer cards in their trash"
-          }
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 2,
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "lte",
+            value: 10,
+            raw: "your opponent has 10 or fewer cards in their trash",
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Fallen Angel",
-                    "Undead"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Fallen Angel", "Undead"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "they have 10 or more cards in their trash"
+          to: "hand",
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "they have 10 or more cards in their trash",
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 2,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "trash",
-            "op": "lte",
-            "value": 10,
-            "raw": "your opponent has 10 or fewer cards in their trash"
-          }
+          optional: true,
         },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Fallen Angel",
-                    "Undead"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "they have 10 or more cards in their trash"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 1
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 2,
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "lte",
+            value: 10,
+            raw: "your opponent has 10 or fewer cards in their trash",
+          },
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Fallen Angel", "Undead"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "they have 10 or more cards in their trash",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 1,
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX10-046", compiled);

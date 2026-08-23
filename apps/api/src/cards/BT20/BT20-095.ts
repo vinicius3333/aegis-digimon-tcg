@@ -8,111 +8,113 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The [Chronicle] trait restriction on the MOVING Digimon is removed; only the destination
 // card (digivolve into) must still be a [Chronicle] trait Digimon card.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  { "tokens": ["Chronicle"], "match": "trait" }
-                ]
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
               },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckTopOrBottom"
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
-              { "tokens": ["Chronicle"], "match": "trait" }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
-              },
-              "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-              "duration": "permanent"
-            }
-          ]
-        },
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": { "zone": "breedingArea", "controller": "mine", "kind": ["Digimon"], "levelComparison": { "op": "gte", "value": 3 } },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [{ "tokens": ["Chronicle"], "match": "trait" }]
-          },
-          "payCost": false,
-          "from": ["hand", "trash"],
-          "optional": true,
-          "cost": { "kind": "moveToBattleArea", "raw": "By moving your level 3 or higher Digimon from the breeding area to the battle area" },
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 5,
-              "nameOrTrait": [
-                { "tokens": ["Chronicle"], "match": "trait" }
-              ]
+              count: 1,
+              to: "hand",
             },
-            "count": 1
-          },
-          "from": ["hand", "trash"],
-          "payCost": false,
-          "optional": true
+          ],
+          rest: "deckTopOrBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: { keyword: "Delay", raw: "＜Delay＞" },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              zone: "breedingArea",
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "gte", value: 3 },
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+          },
+          payCost: false,
+          from: ["hand", "trash"],
+          optional: true,
+          cost: {
+            kind: "moveToBattleArea",
+            raw: "By moving your level 3 or higher Digimon from the breeding area to the battle area",
+          },
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 5,
+              nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-095", compiled);

@@ -53,10 +53,7 @@ describe("BT9 MetalGarurumon X historical deck gauntlet", () => {
     );
     const hostId = s.perm("wereGarurumon").permanentId;
     const firstBounceCardId = s.perm("firstBounce").topCard!.instanceId;
-    const lowestCardIds = [
-      s.perm("lowestA").topCard!.instanceId,
-      s.perm("lowestB").topCard!.instanceId,
-    ];
+    const lowestCardIds = [s.perm("lowestA").topCard!.instanceId, s.perm("lowestB").topCard!.instanceId];
     const garurumonXSourceId = s.inst("garurumonXSource").instanceId;
     const garurumonSourceId = s.inst("garurumonSource").instanceId;
     const wereGarurumonId = s.perm("wereGarurumon").topCard!.instanceId;
@@ -64,44 +61,55 @@ describe("BT9 MetalGarurumon X historical deck gauntlet", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: wereGarurumonXId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.perm("wereGarurumon").isSuspended &&
-      s.state.players[1]!.hand.some(({ instanceId }) => instanceId === firstBounceCardId) &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: wereGarurumonXId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.perm("wereGarurumon").isSuspended &&
+        s.state.players[1]!.hand.some(({ instanceId }) => instanceId === firstBounceCardId) &&
+        s.state.pendingDecision === undefined,
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: hostId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("wereGarurumon").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("metalGarurumon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("metalGarurumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("wereGarurumon").topCard?.instanceId === s.inst("metalGarurumon").instanceId);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("metalGarurumonX").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.perm("wereGarurumon").isSuspended &&
-      lowestCardIds.every((id) => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === id)) &&
-      observe(s.engine).hasKeyword(s.perm("wereGarurumon"), "Blocker") &&
-      s.state.pendingDecision === undefined
-    , 5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("metalGarurumonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.perm("wereGarurumon").isSuspended &&
+        lowestCardIds.every((id) => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === id)) &&
+        observe(s.engine).hasKeyword(s.perm("wereGarurumon"), "Blocker") &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
 
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("wereGarurumon"), "Blocker")).toBe(true);
@@ -111,25 +119,29 @@ describe("BT9 MetalGarurumon X historical deck gauntlet", () => {
 
     s.state.turnSeat = 1;
     s.state.memory = 3;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("battleAttacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("battleAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).blockingSeat() === 0);
-    expect(s.engine.applyIntent(0, {
-      type: "declareBlock",
-      blockerPermanentId: hostId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === garurumonXSourceId) &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === garurumonSourceId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === garurumonXSourceId) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === garurumonSourceId),
     );
 
-    const protectionChoice = s.decisions.find(({ req }) =>
-      req.kind === "selectCards" &&
-      req.options?.candidateInstanceIds?.includes(garurumonXSourceId)
+    const protectionChoice = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(garurumonXSourceId),
     )?.req;
     expect(new Set(protectionChoice?.options?.candidateInstanceIds ?? [])).toEqual(
       new Set([garurumonXSourceId, garurumonSourceId, wereGarurumonId, wereGarurumonXId]),

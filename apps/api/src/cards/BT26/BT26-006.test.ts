@@ -186,15 +186,17 @@ describe("BT26-006 Monimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT10-073",
-            as: "host",
-            under: [
-              { card: CARD_ID, as: "monimon" },
-              { card: "BT10-073", as: "costA" },
-              { card: "BT14-057", as: "costB" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "BT10-073",
+              as: "host",
+              under: [
+                { card: CARD_ID, as: "monimon" },
+                { card: "BT10-073", as: "costA" },
+                { card: "BT14-057", as: "costB" },
+              ],
+            },
+          ],
           hand: [{ card: "BT14-057", as: "candidate" }],
         },
       },
@@ -218,18 +220,22 @@ describe("BT26-006 Monimon", () => {
   });
 
   it("encodes the exact two-card Bagra Army cost and both play/use branches", () => {
-    expect(compiled.effects).toMatchObject([{
-      trigger: "WhenAttacking",
-      isInherited: true,
-      frequency: "OncePerTurn",
-      actions: [{
-        kind: "Modal",
-        choose: 1,
-        options: [
-          [{ kind: "PlayWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
-          [{ kind: "UseOptionWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
+    expect(compiled.effects).toMatchObject([
+      {
+        trigger: "WhenAttacking",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "Modal",
+            choose: 1,
+            options: [
+              [{ kind: "PlayWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
+              [{ kind: "UseOptionWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
+            ],
+          },
         ],
-      }],
-    }]);
+      },
+    ]);
   });
 });

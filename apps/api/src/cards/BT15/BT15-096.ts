@@ -6,143 +6,124 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 5,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 5,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Machine",
-                      "Cyborg"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Machine", "Cyborg"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Machine",
-                      "Cyborg"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Machine", "Cyborg"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "trash",
-              "requiresMinRevealed": 2
-            }
+              count: 1,
+              to: "trash",
+              requiresMinRevealed: 2,
+            },
           ],
-          "rest": "deckTop"
+          rest: "deckTop",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 5
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Machine",
-                    "Cyborg"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 3,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 5,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Machine",
-                      "Cyborg"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "hand"
-            },
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Machine",
-                      "Cyborg"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "trash",
-              "requiresMinRevealed": 2
-            }
-          ],
-          "rest": "deckTop"
+          kind: "PlaceInBattleAreaSelf",
         },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 5,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["Machine", "Cyborg"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 3,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 5,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Machine", "Cyborg"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
+            },
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Machine", "Cyborg"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "trash",
+              requiresMinRevealed: 2,
+            },
+          ],
+          rest: "deckTop",
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-096", compiled);

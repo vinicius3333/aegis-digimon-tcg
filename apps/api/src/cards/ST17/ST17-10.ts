@@ -21,145 +21,163 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - Digivolve into [MegaGargomon] at cost 4, ignoring requirements (already correct).
 // - GainKeyword Rush conditioned on this effect digivolving (already encoded, kept).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has a Digimon"
-          }
-        }
-      ]
+            raw: "your opponent has a Digimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
           // KB Q836: all 3 cards placed under one [Terriermon]; choice of the Terriermon is
           // made first, then all 3 go under it as bottom digivolution cards.
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Terriermon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Terriermon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1,
-            "bindAs": "terriermon"
+            count: 1,
+            bindAs: "terriermon",
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "MegaGargomon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 4,
-          "ignoreRequirements": true,
-          "optional": true,
-          "cost": {
-            "kind": "compound",
-            "costs": [
-              {
-                "kind": "place",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "from": ["battleArea"] },
-                "targetIsPermanent": true,
-                "destination": "digivolutionStack",
-                "host": "target",
-                "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }] },
-                "position": "bottom"
+                tokens: ["MegaGargomon"],
+                match: "name",
               },
-              {
-                "kind": "place",
-                "target": { "filter": { "controller": "mine", "zone": "trash", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Gargomon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
-                "destination": "digivolutionStack",
-                "host": "target",
-                "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }] },
-                "position": "bottom"
-              },
-              {
-                "kind": "place",
-                "target": { "filter": { "controller": "mine", "zone": "trash", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Rapidmon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
-                "destination": "digivolutionStack",
-                "host": "target",
-                "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }] },
-                "position": "bottom"
-              }
             ],
-            "raw": "By placing this Tamer and 1 [Gargomon] and 1 [Rapidmon] from your trash in any order as one of your [Terriermon]'s bottom digivolution cards"
           },
-          "abortOnDecline": true
+          payCost: true,
+          from: ["hand"],
+          costOverride: 4,
+          ignoreRequirements: true,
+          optional: true,
+          cost: {
+            kind: "compound",
+            costs: [
+              {
+                kind: "place",
+                target: { filter: { isSelfRef: true }, count: 1, from: ["battleArea"] },
+                targetIsPermanent: true,
+                destination: "digivolutionStack",
+                host: "target",
+                underFilter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }],
+                },
+                position: "bottom",
+              },
+              {
+                kind: "place",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "trash",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Gargomon"], match: "name" }],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                destination: "digivolutionStack",
+                host: "target",
+                underFilter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }],
+                },
+                position: "bottom",
+              },
+              {
+                kind: "place",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "trash",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Rapidmon"], match: "name" }],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                destination: "digivolutionStack",
+                host: "target",
+                underFilter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Terriermon"], match: "name" }],
+                },
+                position: "bottom",
+              },
+            ],
+            raw: "By placing this Tamer and 1 [Gargomon] and 1 [Rapidmon] from your trash in any order as one of your [Terriermon]'s bottom digivolution cards",
+          },
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "ifThisEffectDigivolved",
-            "raw": "this effect digivolved"
-          }
-        }
-      ]
+          duration: "forTheTurn",
+          condition: {
+            kind: "ifThisEffectDigivolved",
+            raw: "this effect digivolved",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST17-10", compiled);

@@ -40,20 +40,25 @@ describe("ST7-08 WarGrowlmon", () => {
   });
 
   it("does not grant Security Attack again on a second deletion that turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST7-09", as: "host", under: ["ST7-08"] }] },
-      1: {
-        battleArea: [{ card: "ST7-02", as: "first" }],
-        security: ["ST7-01"],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST7-09", as: "host", under: ["ST7-08"] }] },
+        1: {
+          battleArea: [{ card: "ST7-02", as: "first" }],
+          security: ["ST7-01"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
     expect(advance(s.engine).ledgers.subTriggers.subscriptionsFor("onDeletionOf")).not.toHaveLength(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[1]!.battleArea.length === 0 &&

@@ -12,132 +12,115 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   the cost by 2.
 // [Security] (same as [Main] reveal effect + place in battle area)
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Image Training"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Image Training"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you don't have [Image Training] in the battle area"
-          }
-        }
-      ]
+            raw: "you don't have [Image Training] in the battle area",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 2,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 2,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "colors": [
-                  "Blue",
-                  "Purple"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                colors: ["Blue", "Purple"],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Blue",
-              "Purple"
-            ]
-          },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 2,
-          "optional": true
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      keywords: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 2,
-          "add": [
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Blue", "Purple"],
+          },
+          from: ["hand"],
+          reduceCost: 2,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 2,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "colors": [
-                  "Blue",
-                  "Purple"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                colors: ["Blue", "Purple"],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-056", compiled);

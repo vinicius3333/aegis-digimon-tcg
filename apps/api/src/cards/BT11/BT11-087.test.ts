@@ -41,10 +41,10 @@ describe("BT11-087 Lilithmon [On Play]", () => {
           // Owner has a Tamer on the battle area (Yuu Amano, Bagra Army Tamer).
           battleArea: [{ card: "BT12-094", dp: 0, as: "tamer" }],
           deck: [
-          { card: "BT10-076" }, // Bagra Army Digimon — one copy added to hand
-          { card: "BT10-073" }, // Bagra Army Digimon — one copy placed under tamer
-          { card: "BT10-076", as: "troopmon" }, // Bagra Army Digimon — one copy added to hand
-          { card: "BT10-073", as: "chuumon" }, // Bagra Army Digimon — one copy placed under tamer
+            { card: "BT10-076" }, // Bagra Army Digimon — one copy added to hand
+            { card: "BT10-073" }, // Bagra Army Digimon — one copy placed under tamer
+            { card: "BT10-076", as: "troopmon" }, // Bagra Army Digimon — one copy added to hand
+            { card: "BT10-073", as: "chuumon" }, // Bagra Army Digimon — one copy placed under tamer
           ],
           hand: [{ card: "BT11-087", as: "lilithmon" }],
         },

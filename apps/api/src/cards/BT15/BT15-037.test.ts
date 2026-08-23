@@ -6,7 +6,9 @@ import "../index.js";
 describe("BT15-037 Gatomon", () => {
   it("registers both printed Barrier clauses and scopes memory gain to own security", async () => {
     const { compiled } = await import("./BT15-037.js");
-    expect(compiled.effects?.filter((effect) => effect.keywords?.some((keyword) => keyword.keyword === "Barrier"))).toHaveLength(2);
+    expect(
+      compiled.effects?.filter((effect) => effect.keywords?.some((keyword) => keyword.keyword === "Barrier")),
+    ).toHaveLength(2);
     expect(compiled.effects?.[1]).toMatchObject({ actions: [{ sourceFilter: { controller: "mine" } }] });
   });
   it("plays itself when an effect directly trashes it from security", async () => {

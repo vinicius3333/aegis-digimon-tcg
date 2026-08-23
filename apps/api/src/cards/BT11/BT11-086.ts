@@ -26,28 +26,60 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldBePlayed",
-        mode: "reduceCost",
-        amount: 0,
-        additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" }],
-        raw: "cards from your trash can also be placed as DigiXros materials",
-      }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 0,
+          additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" }],
+          raw: "cards from your trash can also be placed as DigiXros materials",
+        },
+      ],
     },
     {
       trigger: "OnPlay",
-      actions: [{ kind: "PlayWithoutCost", target: trashTarget, from: ["trash"], payCost: false, optional: true, allOrNone: true, mustPlayExactCountIfPossible: true }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: trashTarget,
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          allOrNone: true,
+          mustPlayExactCountIfPossible: true,
+        },
+      ],
     },
     {
       trigger: "WhenDigivolving",
-      actions: [{ kind: "PlayWithoutCost", target: trashTarget, from: ["trash"], payCost: false, optional: true, allOrNone: true, mustPlayExactCountIfPossible: true }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: trashTarget,
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          allOrNone: true,
+          mustPlayExactCountIfPossible: true,
+        },
+      ],
     },
     {
       trigger: "AllTurns",
       actions: [
-        { kind: "GainKeyword", target: gainTarget, keyword: { keyword: "Rush", raw: "＜Rush＞" }, duration: "permanent" },
-        { kind: "GainKeyword", target: gainTarget, keyword: { keyword: "Blocker", raw: "＜Blocker＞" }, duration: "permanent" },
+        {
+          kind: "GainKeyword",
+          target: gainTarget,
+          keyword: { keyword: "Rush", raw: "＜Rush＞" },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: gainTarget,
+          keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+          duration: "permanent",
+        },
       ],
     },
   ],

@@ -76,8 +76,14 @@ describe("ST16-13 SkullMammothmon — whenHandTrashed plays Lv.4-or-lower purple
       {
         0: {
           battleArea: [{ card: "ST16-13", as: "skull" }],
-          trash: [{ card: "BT10-074", as: "firstTarget" }, { card: "ST16-09", as: "secondTarget" }],
-          hand: [{ card: "BT1-001", as: "firstHand" }, { card: "BT1-002", as: "secondHand" }],
+          trash: [
+            { card: "BT10-074", as: "firstTarget" },
+            { card: "ST16-09", as: "secondTarget" },
+          ],
+          hand: [
+            { card: "BT1-001", as: "firstHand" },
+            { card: "BT1-002", as: "secondHand" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

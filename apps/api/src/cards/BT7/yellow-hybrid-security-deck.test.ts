@@ -33,10 +33,12 @@ describe("BT7 Yellow Hybrid security deck gauntlet", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("zoe").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("zoe").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const securityChoice = s.decisions.at(-1)!.req;
@@ -45,14 +47,17 @@ describe("BT7 Yellow Hybrid security deck gauntlet", () => {
       expect.arrayContaining([nonHybridSecurityId, searchedKazemonId]),
     );
     expect(securityChoice.options?.candidateInstanceIds).toEqual([searchedKazemonId]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: securityChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [searchedKazemonId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === searchedKazemonId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: securityChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [searchedKazemonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === searchedKazemonId),
     );
     await settle();
 
@@ -60,20 +65,24 @@ describe("BT7 Yellow Hybrid security deck gauntlet", () => {
       ({ topCard }) => topCard.instanceId === s.inst("zoe").instanceId,
     )!;
     const hybridLineId = hybridLine.permanentId;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hybridLineId,
-      instanceId: searchedKazemonId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hybridLineId,
+        instanceId: searchedKazemonId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => hybridLine.topCard.instanceId === searchedKazemonId);
     await settle();
     expect(s.state.memory).toBe(5);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hybridLineId,
-      instanceId: s.inst("jetSilphymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hybridLineId,
+        instanceId: s.inst("jetSilphymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => hybridLine.topCard.instanceId === s.inst("jetSilphymon").instanceId);
     await settle();
     expect(s.state.pendingDecision).toBeUndefined();
@@ -82,15 +91,14 @@ describe("BT7 Yellow Hybrid security deck gauntlet", () => {
     expect(s.state.memory).toBe(4);
 
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hybridLineId,
-      instanceId: s.inst("ancientKazemon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      hybridLine.topCard.instanceId === s.inst("ancientKazemon").instanceId &&
-      s.state.memory === 5
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hybridLineId,
+        instanceId: s.inst("ancientKazemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => hybridLine.topCard.instanceId === s.inst("ancientKazemon").instanceId && s.state.memory === 5);
     await settle();
     expect(s.state.memory).toBe(5);
     s.state.turnSeat = 1;
@@ -104,31 +112,32 @@ describe("BT7 Yellow Hybrid security deck gauntlet", () => {
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const replacementChoice = s.decisions.at(-1)!.req;
     expect(replacementChoice.sourceCardId).toBe("BT7-042");
-    expect(new Set(replacementChoice.options?.candidateInstanceIds ?? [])).toEqual(new Set([
-      s.inst("spareKazemon").instanceId,
-      s.inst("zephyrmon").instanceId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: replacementChoice.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("zephyrmon").instanceId],
-      },
-    })).toEqual({ ok: true });
+    expect(new Set(replacementChoice.options?.candidateInstanceIds ?? [])).toEqual(
+      new Set([s.inst("spareKazemon").instanceId, s.inst("zephyrmon").instanceId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: replacementChoice.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("zephyrmon").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await deletion;
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        ({ topCard }) => topCard.instanceId === s.inst("zephyrmon").instanceId,
-      ) && observe(s.engine).securityDp(0) === 0
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("zephyrmon").instanceId) &&
+        observe(s.engine).securityDp(0) === 0,
     );
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT7-088", "BT7-035", "BT7-038", "BT7-042"]),
     );
-    expect(s.state.players[0]!.hand.some(
-      ({ instanceId }) => instanceId === s.inst("spareKazemon").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("spareKazemon").instanceId)).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 });

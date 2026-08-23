@@ -17,7 +17,14 @@ describe("EX8-042", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", sourceFilter: { isSelfRef: true }, actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
+        },
+      ],
     });
   });
   it("applies the suspended +3000 DP aura in a live game", async () => {
@@ -31,15 +38,20 @@ describe("EX8-042", () => {
       0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 10000, under: ["EX8-042"] }] },
       1: {
         battleArea: [{ card: "BT1-016", as: "defender", dp: 1000, suspended: true }],
-        security: [{ card: "BT1-010", as: "top" }, { card: "BT1-011", as: "bottom" }],
+        security: [
+          { card: "BT1-010", as: "top" },
+          { card: "BT1-011", as: "bottom" },
+        ],
       },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);

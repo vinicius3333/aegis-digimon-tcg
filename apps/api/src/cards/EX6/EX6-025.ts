@@ -6,217 +6,203 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "optional": true
+          duration: "untilOpponentTurnEnd",
+          optional: true,
         },
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "name": "Gokuumon"
+              filter: {
+                name: "Gokuumon",
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "name": "Sagomon"
+              filter: {
+                name: "Sagomon",
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "name": "Cho-Hakkaimon"
+              filter: {
+                name: "Cho-Hakkaimon",
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "name": "Shakamon"
+              filter: {
+                name: "Shakamon",
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom",
-          "condition": {
-            "kind": "digiXrosCount",
-            "minimum": 1,
-            "raw": "DigiXrosing"
-          }
-        }
+          rest: "deckBottom",
+          condition: {
+            kind: "digiXrosCount",
+            minimum: 1,
+            raw: "DigiXrosing",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "optional": true
+          duration: "untilOpponentTurnEnd",
+          optional: true,
         },
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "name": "Gokuumon"
+              filter: {
+                name: "Gokuumon",
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "name": "Sagomon"
+              filter: {
+                name: "Sagomon",
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "name": "Cho-Hakkaimon"
+              filter: {
+                name: "Cho-Hakkaimon",
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "name": "Shakamon"
+              filter: {
+                name: "Shakamon",
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom",
-          "condition": {
-            "kind": "digiXrosCount",
-            "minimum": 1,
-            "raw": "DigiXrosing"
-          }
-        }
+          rest: "deckBottom",
+          condition: {
+            kind: "digiXrosCount",
+            minimum: 1,
+            raw: "DigiXrosing",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Return",
-              "target": {
-                "filter": {
-                  "zone": "digivolutionCards",
-                  "hostFilter": {
-                    "isSelfRef": true
+              kind: "Return",
+              target: {
+                filter: {
+                  zone: "digivolutionCards",
+                  hostFilter: {
+                    isSelfRef: true,
                   },
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Yellow"
-                  ]
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Yellow"],
                 },
-                "count": 1
+                count: 1,
               },
-              "to": "hand"
-            }
-          ]
-        }
-      ]
+              to: "hand",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "optional": true
-        }
+          duration: "untilOpponentTurnEnd",
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "names": [
-            "Gokuumon",
-            "Sagomon",
-            "Cho-Hakkaimon"
-          ]
-        }
+          names: ["Gokuumon", "Sagomon", "Cho-Hakkaimon"],
+        },
       ],
-      "count": 2,
-      "maxMaterials": 1
-    }
-  ]
+      count: 2,
+      maxMaterials: 1,
+    },
+  ],
 };
 
 registerIrCard("EX6-025", compiled);

@@ -1,11 +1,4 @@
-import {
-  CardKind,
-  Phase,
-  getCardDefinition,
-  type CardDefinition,
-  type GameState,
-  type Seat,
-} from "@aegis/shared";
+import { CardKind, Phase, getCardDefinition, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
 
 /**
  * A flat, allocation-cheap snapshot of everything the bot's policy is allowed to see,
@@ -190,13 +183,13 @@ export function buildBotView(state: GameState, seat: Seat): BotView | undefined 
     // and reporting that as "no security left" would score every attack as lethal. Report a
     // full stack instead: the safe reading of an unknown board is the least urgent one.
     opponentSecurityCount:
-      opponent === undefined
-        ? FULL_SECURITY_STACK
-        : zoneSize(opponent.security, opponent.securityCount),
+      opponent === undefined ? FULL_SECURITY_STACK : zoneSize(opponent.security, opponent.securityCount),
     deckCount: zoneSize(me.deck, me.deckCount),
     eggDeckCount: zoneSize(me.eggDeck, me.eggDeckCount),
     trashCount: toArray(me.trash).length,
-    readyAttackers: board.filter((unit) => !unit.suspended && (unit.canAttackPlayer || unit.attackablePermanentIds.length > 0)),
+    readyAttackers: board.filter(
+      (unit) => !unit.suspended && (unit.canAttackPlayer || unit.attackablePermanentIds.length > 0),
+    ),
     ownFieldColors,
   };
 }
@@ -249,4 +242,3 @@ interface PlayerLike {
   securityCount?: number;
   deckCount?: number;
 }
-

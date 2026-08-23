@@ -52,15 +52,18 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
       const duration = toDuration(action.duration);
       const continuous = action.while !== undefined ? true : undefined;
-      const dynamicTargetFilter = (action as typeof action & { whileMatchesTargetFilter?: boolean }).whileMatchesTargetFilter === true;
+      const dynamicTargetFilter =
+        (action as typeof action & { whileMatchesTargetFilter?: boolean }).whileMatchesTargetFilter === true;
       const scaledTarget =
         scope.scale !== undefined && typeof action.target.count === "number"
           ? { ...action.target, count: action.target.count * scope.scale }
           : action.target;
       const filter = scaledTarget.filter;
-      const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
-        ? "beReturned"
-        : action.restriction) as Restriction;
+      const restriction = (
+        action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
+          ? "beReturned"
+          : action.restriction
+      ) as Restriction;
       // Card IR spells this immunity using the printed-action vocabulary, while the engine's
       // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
       // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
@@ -73,7 +76,12 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
         for (const card of cards) ctx.fx.stackCardTrashLock?.(card.instanceId, card.ownerSeat, duration);
         return false;
       }
-      if (dynamicTargetFilter && scaledTarget.count === "all" && ctx.fx.restrictPlayer !== undefined && filter !== undefined) {
+      if (
+        dynamicTargetFilter &&
+        scaledTarget.count === "all" &&
+        ctx.fx.restrictPlayer !== undefined &&
+        filter !== undefined
+      ) {
         for (const seat of seatsForController(ctx, filter)) {
           ctx.fx.restrictPlayer(seat, restriction, duration, (permanentId) => {
             const permanent = ctx.game.permanentById(permanentId);
@@ -102,7 +110,8 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       }
       const fromSourceKind = action.fromSourceKind as string[] | undefined;
       const byOpponentEffectsOnly = action.byOpponentEffectsOnly === true ? true : undefined;
-      for (const id of ids) ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
+      for (const id of ids)
+        ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
       return false;
     }
     case "RestrictUnsuspendedDigivolve": {

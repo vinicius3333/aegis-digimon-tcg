@@ -15,11 +15,17 @@ describe("RB1-027 HoverEspimon", () => {
     const securityInstanceId = s.state.players[1]!.security[0]!.instanceId;
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: hoverInstanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === true);
-    await settle(() => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === false);
+    await settle(
+      () => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === true,
+    );
+    await settle(
+      () => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === false,
+    );
 
     expect(s.state.memory).toBe(6);
-    expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === hoverInstanceId)?.topCard.cardId).toBe("RB1-027");
+    expect(
+      s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === hoverInstanceId)?.topCard.cardId,
+    ).toBe("RB1-027");
     expect(s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp).toBe(false);
   });
 
@@ -36,11 +42,17 @@ describe("RB1-027 HoverEspimon", () => {
     s.state.memory = 10;
     const handBefore = s.state.players[0]!.hand.length;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: hoverInstanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === true);
-    await settle(() => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === false);
+    await settle(
+      () => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === true,
+    );
+    await settle(
+      () => s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp === false,
+    );
 
     expect(s.state.players[0]!.hand.length).toBe(handBefore);
-    expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === hoverInstanceId)?.topCard.cardId).toBe("RB1-027");
+    expect(
+      s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === hoverInstanceId)?.topCard.cardId,
+    ).toBe("RB1-027");
     expect(s.state.players[1]!.security.find((card) => card.instanceId === securityInstanceId)?.faceUp).toBe(false);
   });
 });

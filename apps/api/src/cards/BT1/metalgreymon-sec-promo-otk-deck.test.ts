@@ -30,15 +30,18 @@ describe("BT1 MetalGreymon SEC promo OTK deck", () => {
     // Promo Agumon, starter Agumon, and Tai all apply before combat.
     expect(s.perm("metalGreymon").currentDP).toBe(13_000);
     expect(observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack")).toBe(2);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("metalGreymon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === -3 &&
-      s.state.players[1]!.security.length === 1 &&
-      s.events.some(({ kind }) => kind === "combatResolved"),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("metalGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === -3 &&
+        s.state.players[1]!.security.length === 1 &&
+        s.events.some(({ kind }) => kind === "combatResolved"),
       5000,
     );
 

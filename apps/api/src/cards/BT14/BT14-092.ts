@@ -3,72 +3,69 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "chosenDigimon"
-          }
+            count: 1,
+            bindAs: "chosenDigimon",
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "relativeTo": {
-                "attr": "digivolutionCount",
-                "op": "lte",
-                "selectionRef": "chosenDigimon"
-              }
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: {
+                attr: "digivolutionCount",
+                op: "lte",
+                selectionRef: "chosenDigimon",
+              },
             },
-            "count": 3
+            count: 3,
           },
-          "restriction": "attackOrBlock",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "digivolutionCountCompare", "op": "lte",
-            "raw": "opponent Digimon has as many or fewer digivolution cards as the chosen Digimon"
-          }
-        }
-      ]
+          restriction: "attackOrBlock",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "digivolutionCountCompare",
+            op: "lte",
+            raw: "opponent Digimon has as many or fewer digivolution cards as the chosen Digimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-092", compiled);

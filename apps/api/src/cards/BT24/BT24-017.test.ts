@@ -44,9 +44,7 @@ describe("BT24-017 Medusamon", () => {
 
     const lowestId = s.perm("lowest").permanentId;
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(
-      () => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId),
-    );
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId)).toBe(false);
     expect(

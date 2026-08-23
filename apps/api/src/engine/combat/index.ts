@@ -7,23 +7,8 @@
  * predicates. The attack ACTION flow (block window, timings, suspend, hand-off to
  * security-and-win-check) lives in engine/actions (attack-and-block).
  */
-export {
-  compareDP,
-  resolvePermanentBattle,
-  resolveSecurityBattle,
-} from "./resolve.js";
-export type {
-  CombatComparison,
-  Combatants,
-  CombatOutcome,
-  SecurityBattle,
-  SecurityBattleOutcome,
-} from "./resolve.js";
-export {
-  canAttackerDeclare,
-  canAttackTarget,
-  canBlock,
-  eligibleBlockers,
-} from "./legality.js";
+export { compareDP, resolvePermanentBattle, resolveSecurityBattle } from "./resolve.js";
+export type { CombatComparison, Combatants, CombatOutcome, SecurityBattle, SecurityBattleOutcome } from "./resolve.js";
+export { canAttackerDeclare, canAttackTarget, canBlock, eligibleBlockers } from "./legality.js";
 export { CombatController } from "./controller.js";
 export type { CombatHooks, CombatTrigger } from "./controller.js";

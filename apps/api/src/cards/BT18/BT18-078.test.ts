@@ -55,11 +55,13 @@ describe("BT18-078 Duskmon", () => {
     await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
     const decision = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
     const targetCard = s.state.players[0]!.trash.find((card) => card.cardId === "BT18-077")!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "selectCards", instanceIds: [targetCard.instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [targetCard.instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await firing;
     await s.ready();
 

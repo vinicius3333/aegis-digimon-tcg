@@ -9,59 +9,57 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
+              },
             },
-            "count": 1,
-            "bindAs": "returnTarget"
-          }
+            count: 1,
+            bindAs: "returnTarget",
+          },
         },
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "fromSelectionRef": "returnTarget",
-            "filter": {},
-            "count": 1
+          kind: "TrashDigivolution",
+          target: {
+            fromSelectionRef: "returnTarget",
+            filter: {},
+            count: 1,
           },
-          "amount": 99
+          amount: 99,
         },
         {
-          "kind": "Return",
-          "target": {
-            "fromSelectionRef": "returnTarget",
-            "filter": {},
-            "count": 1
+          kind: "Return",
+          target: {
+            fromSelectionRef: "returnTarget",
+            filter: {},
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
+          to: "hand",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST8-12", compiled);

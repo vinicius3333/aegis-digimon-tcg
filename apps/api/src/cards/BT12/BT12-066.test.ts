@@ -21,7 +21,14 @@ describe("BT12-066 Mercurymon", () => {
 
   it("gives one of your Digimon Blocker when digivolving", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT1-009", as: "ally" }, { card: "BT12-066", as: "mercury" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "ally" },
+            { card: "BT12-066", as: "mercury" },
+          ],
+        },
+      },
       { autoSelectCards: true },
     );
     await s.ready();

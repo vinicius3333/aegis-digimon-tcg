@@ -15,13 +15,17 @@ describe("BT2/BT8 BlackWarGreymon deck", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("blackwar").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.inst("blackwar").instanceId
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("blackwar").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("blackwar").instanceId,
+      ),
+    );
 
     expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
@@ -50,11 +54,13 @@ describe("BT2/BT8 BlackWarGreymon deck", () => {
     const combat = s.engine as unknown as { combat: { isAttacking: boolean } };
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("blackwar").permanentId,
-      target: { kind: "permanent", permanentId: highestId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blackwar").permanentId,
+        target: { kind: "permanent", permanentId: highestId },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !combat.combat.isAttacking &&

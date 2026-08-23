@@ -18,11 +18,13 @@ describe("P-077 Wizardmon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wizardmon").instanceId));
     await settle(() => s.state.memory === 1);
 
@@ -34,7 +36,10 @@ describe("P-077 Wizardmon", () => {
       {
         0: {
           battleArea: [{ card: "BT2-081", as: "attacker", under: ["P-077"] }],
-          hand: [{ card: "BT2-107", as: "purple" }, { card: "BT1-009", as: "red" }],
+          hand: [
+            { card: "BT2-107", as: "purple" },
+            { card: "BT1-009", as: "red" },
+          ],
           deck: ["BT1-001"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true, dp: 1000 }] },
@@ -44,11 +49,13 @@ describe("P-077 Wizardmon", () => {
     const purpleId = s.inst("purple").instanceId;
     const redId = s.inst("red").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck[0]?.instanceId === purpleId);
 
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(purpleId);

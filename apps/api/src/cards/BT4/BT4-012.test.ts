@@ -6,12 +6,26 @@ import "./BT4-012.js";
 
 describe("BT4-012 GeoGreymon", () => {
   it("trashes 2 of its sources to delete an opposing Digimon with 4000 DP or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-012", as: "geo", under: ["BT1-001", "BT4-008"] }] }, 1: { battleArea: [{ card: "BT1-009", dp: 4000, as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-012", as: "geo", under: ["BT1-001", "BT4-008"] }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 4000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     const geo = s.perm("geo");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(geo.topCard!)).find((e) => e.effectKey.startsWith("BT4-012/"))?.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(geo.topCard!)).find((e) =>
+      e.effectKey.startsWith("BT4-012/"),
+    )?.effectKey;
     expect(effectKey).toBeDefined();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: geo.topCard!.instanceId, effectKey: effectKey! })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: geo.topCard!.instanceId,
+        effectKey: effectKey!,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
 
     expect(geo.stack).toHaveLength(0);

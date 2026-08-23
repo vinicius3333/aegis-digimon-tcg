@@ -19,7 +19,8 @@ describe("BT24 remaining complex clauses", () => {
     await settle(() => source.stack.some((card) => card.cardId === "BT24-029"));
 
     expect(source.stack.some((card) => card.cardId === "BT24-029")).toBe(true);
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(source.permanentId, "Blocker")).toBe(true);
     expect(observe(s.engine).isRestricted(source, "beDeletedInBattle")).toBe(true);
     expect(divermon.coverage).toBe("full");

@@ -10,6 +10,8 @@ describe("BT4-038 BushiAgumon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT4-038"));
     const bushi = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT4-038")!;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: bushi.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: bushi.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
   });
 });

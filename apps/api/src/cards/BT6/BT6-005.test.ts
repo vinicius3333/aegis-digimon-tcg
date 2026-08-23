@@ -6,7 +6,12 @@ import "./BT6-005.js";
 describe("BT6-005 Pagumon", () => {
   it("adds a revealed black Digimon to hand when its host is deleted", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT6-067", under: ["BT6-005"], as: "host" }], deck: [{ card: "BT5-059", as: "revealed" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT6-067", under: ["BT6-005"], as: "host" }],
+          deck: [{ card: "BT5-059", as: "revealed" }],
+        },
+      },
       { autoOrderTriggers: true, autoSelectCards: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);

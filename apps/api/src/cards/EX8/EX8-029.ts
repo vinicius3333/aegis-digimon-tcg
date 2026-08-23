@@ -10,118 +10,104 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // while condition: memoryAtMost:1 per KB Q3899.
 // GrantStatic: immuneToOpponentDigimonEffects is already correct per KB.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "totalPlayCostBudget": 14,
-            "upTo": true
+            totalPlayCostBudget: 14,
+            upTo: true,
           },
-          "to": "deckBottom"
+          to: "deckBottom",
         },
         {
-          "kind": "PlayMultiple",
-          "totalCost": 12,
-          "filter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "PlayMultiple",
+          totalCost: 12,
+          filter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "DS"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["DS"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
+          from: ["digivolutionCards"],
+          payCost: false,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "trait": [
-                "DS"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              trait: ["DS"],
             },
-            "count": "all"
+            count: "all",
           },
-          "grant": "immuneToOpponentDigimonEffects",
-          "tokens": [],
-          "condition": {
-            "kind": "memoryAtLeast",
-            "value": 1
-          }
+          grant: "immuneToOpponentDigimonEffects",
+          tokens: [],
+          condition: {
+            kind: "memoryAtLeast",
+            value: 1,
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Aura",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "effect": {
-            "kind": "restriction",
-            "restriction": "activateOnPlay"
+          effect: {
+            kind: "restriction",
+            restriction: "activateOnPlay",
           },
-          "while": {
-            "kind": "memoryAtMost",
-            "value": 1
-          }
-        }
-      ]
+          while: {
+            kind: "memoryAtMost",
+            value: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "trait",
-          "tokens": [
-            "Aquatic"
-          ]
-        }
-      ]
-    }
+          grant: "trait",
+          tokens: ["Aquatic"],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX8-029", compiled);
