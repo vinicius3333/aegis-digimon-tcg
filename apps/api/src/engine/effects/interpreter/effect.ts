@@ -30,8 +30,9 @@ import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
+import { candidatePermanents } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { Action, CardEffect } from "@aegis/shared";
+import type { Action, CardEffect, Target } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // IR -> EffectModule factory
@@ -542,6 +543,23 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
  * payable" default, exist as resolve-time no-op safety nets, not as license to gate
  * activation on a guess).
  */
+/**
+ * Action kinds whose `target` can only ever name a live battle-area (or breeding) permanent.
+ * Kinds that also reach cards in hand/deck/trash/security are deliberately absent: their empty
+ * board scan says nothing about whether the action can do something.
+ */
+const BOARD_TARGETED_ACTION_KINDS = new Set<Action["kind"]>(["SetBaseDP"]);
+
+/**
+ * Whether any of `actions` consumes the named selection as its own source — a
+ * `fromSelectionRef`/`boundRef`/`underSelectionRef`/`selectionRef` reference. An
+ * `excludeSelectionRef` is not a dependency: the action still resolves without the binding.
+ */
+function dependsOnSelection(actions: readonly Action[], name: string): boolean {
+  const referenced = new RegExp(`"(fromSelectionRef|boundRef|underSelectionRef|selectionRef)":"${name}"`);
+  return referenced.test(JSON.stringify(actions));
+}
+
 export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
   // An unparsed condition is not evidence that the effect is activatable. Treat it as
   // restrictive here, matching runAction's resolution behavior; otherwise the UI offers an
@@ -565,6 +583,55 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
       ? canAttemptDnaDigivolve(ctx, action)
       : action.kind !== "Link" || canAttemptLink(ctx, action);
   };
+  // Board-targeted actions gate activation: an action that names live battle-area (or
+  // breeding) permanents resolves to nothing when the board holds no candidate. An effect
+  // whose every action is board-targeted and finds nothing must not be offered (BT3-014's
+  // "1 of your opponent's Lv.4 or lower Digimon" against a Lv.5-only board). Targets that
+  // resolve out of a hand/deck/trash zone, a prior binding, or the trigger source are not
+  // board scans and are left to their own action's gate.
+  const boardTargetOf = (action: Action): Target | undefined => {
+    if (!BOARD_TARGETED_ACTION_KINDS.has(action.kind)) return undefined;
+    const target = (action as { target?: Target }).target;
+    if (target === undefined || target.fromSelectionRef !== undefined) return undefined;
+    const filter = target.filter;
+    if (filter === undefined || filter.boundRef !== undefined || filter.useTriggerSource === true) return undefined;
+    if (target.isSelf === true || filter.isSelfRef === true) return undefined;
+    return filter.zone === undefined || filter.zone === "battleArea" || filter.zone === "breeding" ? target : undefined;
+  };
+  const isBoardEmptyFor = (action: Action): boolean => {
+    const target = boardTargetOf(action);
+    if (target === undefined) return false;
+    try {
+      return candidatePermanents(ctx, target).length === 0;
+    } catch {
+      // A partially built context (dispatch seams that omit `fx`) cannot answer the board
+      // scan; treat it as "target may exist" rather than gating the effect off.
+      return false;
+    }
+  };
+  const boardTargeted = relevantActions.filter((action) => boardTargetOf(action) !== undefined);
+  if (
+    boardTargeted.length > 0 &&
+    boardTargeted.length === relevantActions.length &&
+    boardTargeted.every(isBoardEmptyFor)
+  ) {
+    return false;
+  }
+  // A leading SelectBind is the clause's target gate: every following action consumes the
+  // binding it produces, so with no candidate the whole clause resolves to nothing and must
+  // not be offered (BT7-104 "choose 1 of your [X Antibody] Digimon, then draw per its sources").
+  const leadingBind = relevantActions[0]?.kind === "SelectBind" ? relevantActions[0] : undefined;
+  const bindAs = leadingBind?.target.bindAs;
+  if (
+    leadingBind !== undefined &&
+    bindAs !== undefined &&
+    leadingBind.target.upTo !== true &&
+    ctx.selections?.get(bindAs) === undefined &&
+    dependsOnSelection(relevantActions.slice(1), bindAs) &&
+    candidatePermanents(ctx, leadingBind.target).length === 0
+  ) {
+    return false;
+  }
   // A leading abort-on-decline action is the activation gate for the complete clause:
   // "If ..., by paying ..., do X. Then, do Y." The dependent `Then` action is often
   // mechanically ungated because it consumes a binding produced by X; treating Y as an

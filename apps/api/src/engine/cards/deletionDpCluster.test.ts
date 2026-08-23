@@ -144,6 +144,7 @@ function makeContext(opts: {
   const fx: Primitives = {
     modifyDP: record("modifyDP"),
     setBaseDP: record("setBaseDP"),
+    restrictPlay: record("restrictPlay"),
     deletePermanent: async (...args: unknown[]) => {
       recorder.calls.push({ verb: "deletePermanent", args });
       return (args[0] as string[]).length;
