@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_063 } from "./BT24-063.js";
@@ -25,7 +23,7 @@ describe("BT24-063 Locomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-063", as: "locomon" }],
+          hand: [{ card: "BT24-063", as: "locomon" }],
           deck: [
             { card: "BT24-083", as: "tamer" },
             { card: "BT1-001", as: "miss1" },
@@ -35,33 +33,53 @@ describe("BT24-063 Locomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
     );
+    s.state.memory = 7;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("locomon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
     );
 
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
-  it("digivolves from a level-4 TS Digimon for cost 3", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-046", as: "ts" }],
-        hand: [{ card: "BT24-063", as: "locomon" }],
+  it.each([
+    ["normal black level-4 requirement", "BT10-062", false],
+    ["alternate TS level-4 requirement", "BT24-046", true],
+  ])("uses the %s for cost 3 and resolves the reveal", async (_label, baseCard, useAlternateCost) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [{ card: "BT24-063", as: "locomon" }],
+          deck: [
+            { card: "BT24-083", as: "tamer" },
+            { card: "BT1-001", as: "miss1" },
+            { card: "BT1-002", as: "miss2" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+    );
     s.state.memory = 5;
     await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("ts").permanentId,
+        permanentId: s.perm("base").permanentId,
         instanceId: s.inst("locomon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("ts").topCard.instanceId === s.inst("locomon").instanceId);
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("locomon").instanceId);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+    );
 
     expect(s.state.memory).toBe(2);
   });
