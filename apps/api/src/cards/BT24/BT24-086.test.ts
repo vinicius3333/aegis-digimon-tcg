@@ -31,7 +31,9 @@ describe("BT24-086 The Crossroad Witch", () => {
     expect(inherited?.actions?.[0]).toMatchObject({
       from: ["digivolutionCards"],
       fromOwnDigivolutionStack: true,
-      target: { filter: { namesExact: ["Shuu Yulin", "The Crossroad Witch"] } },
+      target: {
+        filter: { nameOrTrait: [{ tokens: ["Shuu Yulin", "The Crossroad Witch"], match: "nameExact" }] },
+      },
     });
   });
 
@@ -42,13 +44,13 @@ describe("BT24-086 The Crossroad Witch", () => {
         kind: "Aura",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         effect: { kind: "keyword", keyword: expect.objectContaining({ keyword: "Alliance" }) },
-        while: { kind: "selfHasTrait" },
+        while: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["X Antibody", "DigiPolice", "SEEKERS"], match: "trait" }] } },
       }),
       expect.objectContaining({
         kind: "Aura",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         effect: { kind: "keyword", keyword: expect.objectContaining({ keyword: "Reboot" }) },
-        while: { kind: "selfHasTrait" },
+        while: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["X Antibody", "DigiPolice", "SEEKERS"], match: "trait" }] } },
       }),
     ]);
   });

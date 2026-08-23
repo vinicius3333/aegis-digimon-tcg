@@ -149,7 +149,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              namesExact: ["Shuu Yulin", "The Crossroad Witch"],
+              nameOrTrait: [{ tokens: ["Shuu Yulin", "The Crossroad Witch"], match: "nameExact" }],
             },
             count: 1,
           },
