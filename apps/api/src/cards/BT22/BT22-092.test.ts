@@ -120,6 +120,30 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
     expect(s.perm("jimmy").isSuspended).toBe(true);
   });
 
+  it("leaves Jimmy KEN unsuspended and reactivates nothing when the suspend cost is declined", async () => {
+    original = unregisterCard(FLAME_DIGIMON);
+    registerCard(stub);
+
+    const s = setup(
+      { 0: { battleArea: [{ card: JIMMY, dp: 0, as: "jimmy" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const flameDigi = s.putOnBoard(0, { card: FLAME_DIGIMON, dp: 3000 });
+    s.state.memory = 5;
+
+    await (
+      s.engine as unknown as {
+        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: flameDigi.permanentId });
+    await settle(() => false, 60);
+
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+    expect(fired).toBe(0);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("jimmy").isSuspended).toBe(false);
+  });
+
   it("does NOT reactivate for a Digimon without [Flame]/[CS] trait", async () => {
     const s = setup(
       { 0: { battleArea: [{ card: JIMMY, dp: 0, as: "jimmy" }] } },

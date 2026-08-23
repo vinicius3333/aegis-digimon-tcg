@@ -6,50 +6,46 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
+  digivolutionRequirement: [
     {
-      "namesExact": [
-        "Veemon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
+      namesExact: ["Veemon"],
+      cost: 2,
+      isAlternate: true,
+    },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-053", compiled);

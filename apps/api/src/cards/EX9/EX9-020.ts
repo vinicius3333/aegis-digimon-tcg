@@ -6,167 +6,151 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom"
-        }
-      ]
+          to: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom"
-        }
-      ]
+          to: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levels": [
-              6
-            ]
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            levels: [6],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 2
+                count: 2,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Omnimon Alter-S"
-                    ],
-                    "match": "name"
-                  }
+                    tokens: ["Omnimon Alter-S"],
+                    match: "name",
+                  },
                 ],
-                "zone": "hand"
+                zone: "hand",
               },
-              "payCost": true,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              payCost: true,
+              optional: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "restriction": "attackTargetChange",
-          "duration": "permanent"
-        }
+          ],
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "names": [
-        "Garurumon"
-      ],
-      "cost": 3,
-      "isAlternate": true
     },
     {
-      "traits": [
-        "DM"
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          restriction: "attackTargetChange",
+          duration: "permanent",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 5
-    }
-  ]
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      names: ["Garurumon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      traits: ["DM"],
+      cost: 3,
+      isAlternate: true,
+      level: 5,
+    },
+  ],
 };
 
 registerIrCard("EX9-020", compiled);

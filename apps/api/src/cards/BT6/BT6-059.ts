@@ -7,20 +7,20 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Decoy",
-          "raw": "＜Decoy (Black)＞"
-        }
-      ]
-    }
+          keyword: "Decoy",
+          raw: "＜Decoy (Black)＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-059", compiled);

@@ -6,103 +6,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "security",
-            "op": "lte",
-            "value": 5,
-            "raw": "you have 5 or fewer security cards"
-          }
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 5,
+            raw: "you have 5 or fewer security cards",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -1000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine"
+          amount: -1000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
             },
-            "unit": "security"
-          }
-        }
-      ]
+            unit: "security",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "security",
-            "op": "lte",
-            "value": 5,
-            "raw": "you have 5 or fewer security cards"
-          }
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 5,
+            raw: "you have 5 or fewer security cards",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -1000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine"
+          amount: -1000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
             },
-            "unit": "security"
-          }
-        }
-      ]
-    }
+            unit: "security",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-037", compiled);

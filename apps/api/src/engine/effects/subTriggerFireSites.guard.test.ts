@@ -98,9 +98,7 @@ function hasRealReplacementSite(event: string, sources: { path: string; text: st
   const generic = new RegExp(`(?:consultReplacement|replacementsFor)\\([^)]*"${event}"`, "s");
   const costReduction = new RegExp(`costReductionFor\\(\\s*"${event}"`);
   const selfReducer = event === "wouldBePlayed" ? /wouldBePlayedSelfReducersFor\(/ : /$^/;
-  return sources.some(
-    ({ text }) => generic.test(text) || costReduction.test(text) || selfReducer.test(text),
-  );
+  return sources.some(({ text }) => generic.test(text) || costReduction.test(text) || selfReducer.test(text));
 }
 
 describe("SubTriggerEventName fire-site coverage", () => {
@@ -129,7 +127,10 @@ describe("SubTriggerEventName fire-site coverage", () => {
 
   it("ALLOWLIST contains no name that actually has a real fire site (shrink it, don't let it drift stale)", () => {
     const stale = Object.keys(ALLOWLIST).filter((event) => hasRealFireSite(event, sources));
-    expect(stale, `these allowlisted names now have real fire sites — remove them from ALLOWLIST: ${stale.join(", ")}`).toEqual([]);
+    expect(
+      stale,
+      `these allowlisted names now have real fire sites — remove them from ALLOWLIST: ${stale.join(", ")}`,
+    ).toEqual([]);
   });
 
   it("a SUBTRIGGER_EVENT_MAP self-mapping entry alone does NOT satisfy this guard (regression probe)", () => {

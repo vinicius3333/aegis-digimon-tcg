@@ -14,16 +14,24 @@ describe("AD1-015 Beowolfmon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("reduces an opposing Digimon by exactly 4000 DP when digivolving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-051", as: "base" }], hand: [{ card: "AD1-015", as: "beowolf" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-051", as: "base" }], hand: [{ card: "AD1-015", as: "beowolf" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("beowolf").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("beowolf").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
   });
@@ -37,7 +45,13 @@ describe("AD1-015 Beowolfmon", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("koji").permanentId, instanceId: s.inst("beowolf").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("koji").permanentId,
+        instanceId: s.inst("beowolf").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard.cardId === "AD1-015");
 
     expect(s.state.memory).toBe(2);
@@ -48,7 +62,10 @@ describe("AD1-015 Beowolfmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-015", as: "beowolf" }, { card: "BT17-083", as: "koji" }],
+          battleArea: [
+            { card: "AD1-015", as: "beowolf" },
+            { card: "BT17-083", as: "koji" },
+          ],
           hand: [{ card: "BT12-009", as: "hybrid" }],
           deck: ["BT1-001", "BT1-002"],
         },
@@ -60,7 +77,9 @@ describe("AD1-015 Beowolfmon", () => {
     s.state.memory = 8;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia-force").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia-force").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("koji").stack.some((card) => card.cardId === "BT12-009"));
     await settle(() => s.state.players[0]!.hand.length === 2);
 
@@ -77,7 +96,13 @@ describe("AD1-015 Beowolfmon", () => {
       { autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
   });
@@ -85,7 +110,8 @@ describe("AD1-015 Beowolfmon", () => {
   it("publishes Jamming only as its direct keyword", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-015", as: "beowolf" }] } });
     await s.ready();
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("beowolf").permanentId, "Jamming")).toBe(true);
   });
 });

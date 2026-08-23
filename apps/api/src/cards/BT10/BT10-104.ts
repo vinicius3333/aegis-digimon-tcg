@@ -7,11 +7,20 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{
-        kind: "WaiveColorRequirement",
-        target: self,
-        condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Nene Amano"], match: "nameExact" }] } },
-      }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: self,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [{ tokens: ["Nene Amano"], match: "nameExact" }],
+            },
+          },
+        },
+      ],
     },
     {
       trigger: "Main",
@@ -19,7 +28,14 @@ const compiled: CompiledCard = {
         { kind: "TrashTopDeck", controller: "mine", amount: 3 },
         {
           kind: "PlayFromZone",
-          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DarkKnightmon"], match: "nameExact" }] }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["DarkKnightmon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
           from: ["trash"],
           payCost: true,
           optional: true,

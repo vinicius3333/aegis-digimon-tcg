@@ -6,10 +6,13 @@ import "./BT6-056.js";
 
 describe("BT6-056 Chikurimon", () => {
   it("De-Digivolves an opposing Digimon from security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT6-056", as: "security", faceUp: true }] },
-      1: { battleArea: [{ card: "BT6-016", under: [{ card: "BT1-010", as: "source" }], as: "target" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT6-056", as: "security", faceUp: true }] },
+        1: { battleArea: [{ card: "BT6-016", under: [{ card: "BT1-010", as: "source" }], as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
 

@@ -95,15 +95,15 @@ describe("BT25-058 Callismon", () => {
       isAlternate: true,
     });
 
-    const triggered = compiled.effects.filter((effect) => ["OnPlay", "WhenDigivolving", "WhenAttacking"].includes(effect.trigger));
+    const triggered = compiled.effects.filter((effect) =>
+      ["OnPlay", "WhenDigivolving", "WhenAttacking"].includes(effect.trigger),
+    );
     expect(triggered).toHaveLength(3);
     expect(triggered.every((effect) => effect.frequency === "OncePerTurn")).toBe(true);
     expect(triggered.map((effect) => effect.sharedUseKey)).toEqual(["ir-shared-0", "ir-shared-0", "ir-shared-0"]);
-    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords?.map((keyword) => keyword.keyword)).toEqual([
-      "Reboot",
-      "Blocker",
-      "Fortitude",
-    ]);
+    expect(
+      compiled.effects.find((effect) => effect.trigger === "Static")?.keywords?.map((keyword) => keyword.keyword),
+    ).toEqual(["Reboot", "Blocker", "Fortitude"]);
     expect(EffectDuration.UntilOpponentTurnEnd).toBeDefined();
   });
 
@@ -126,11 +126,9 @@ describe("BT25-058 Callismon", () => {
     await settle(() => s.perm("tsBase").topCard?.cardId === "BT25-058");
     await s.ready();
     expect(s.state.memory).toBe(0);
-    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords?.map((keyword) => keyword.keyword)).toEqual([
-      "Reboot",
-      "Blocker",
-      "Fortitude",
-    ]);
+    expect(
+      compiled.effects.find((effect) => effect.trigger === "Static")?.keywords?.map((keyword) => keyword.keyword),
+    ).toEqual(["Reboot", "Blocker", "Fortitude"]);
   });
 
   it("rejects the alternate evolution cost for a level-5 near-match without the TS trait", () => {
@@ -188,9 +186,10 @@ describe("BT25-058 Callismon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision?.kind === "chooseTargets" &&
-      s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
     );
     const restrictDecision = s.state.pendingDecision!;
     expect(
@@ -200,9 +199,10 @@ describe("BT25-058 Callismon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("restrictTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend") &&
-      s.state.pendingDecision === undefined,
+    await settle(
+      () =>
+        observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend") &&
+        s.state.pendingDecision === undefined,
     );
     expect(s.perm("suspendTarget").isSuspended).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend")).toBe(true);
@@ -246,9 +246,10 @@ describe("BT25-058 Callismon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision?.kind === "chooseTargets" &&
-      s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
     );
     const restrictDecision = s.state.pendingDecision!;
     expect(

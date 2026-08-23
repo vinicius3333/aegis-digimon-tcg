@@ -6,47 +6,51 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
-      actions: [{
-        kind: "RevealAdd",
-        revealCount: 3,
-        add: [
-          {
-            filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                { tokens: ["Snatchmon", "Destromon", "Galacticmon"], match: "name" },
-                { tokens: ["Fusionize"], match: "name" },
-              ],
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  { tokens: ["Snatchmon", "Destromon", "Galacticmon"], match: "name" },
+                  { tokens: ["Fusionize"], match: "name" },
+                ],
+              },
+              count: 1,
+              to: "hand",
             },
-            count: 1,
-            to: "hand",
+            {
+              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+              count: 1,
+              to: "placeUnder",
+            },
+          ],
+          rest: "deckBottom",
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "By suspending this Digimon",
           },
-          {
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
-            count: 1,
-            to: "placeUnder",
-          },
-        ],
-        rest: "deckBottom",
-        cost: {
-          kind: "suspend",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          raw: "By suspending this Digimon",
         },
-      }],
+      ],
     },
     {
       trigger: "YourTurn",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldDigivolve",
-        sourceFilter: { isSelfRef: true },
-        into: {
-          controllerDefault: "mine",
-          nameOrTrait: [{ tokens: ["Destromon", "Galacticmon"], match: "name" }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { isSelfRef: true },
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [{ tokens: ["Destromon", "Galacticmon"], match: "name" }],
+          },
+          actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
         },
-        actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
-      }],
+      ],
       isInherited: true,
       frequency: "OncePerTurn",
     },

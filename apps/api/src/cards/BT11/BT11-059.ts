@@ -6,32 +6,38 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldDigivolve",
-        sourceFilter: { controller: "mine", kind: ["Digimon"] },
-        into: { nameOrTrait: [{ tokens: ["RustTyrannomon"], match: "name" }] },
-        actions: [{
+      actions: [
+        {
           kind: "Replacement",
           event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 1,
-          scaling: {
-          per: 1,
-          filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Green", "Black"] },
-          unit: "cards",
-          },
-        }],
-      }],
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          into: { nameOrTrait: [{ tokens: ["RustTyrannomon"], match: "name" }] },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Green", "Black"] },
+                unit: "cards",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenDeletesInBattle",
-        sourceFilter: { isSelfRef: true },
-        actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
+        },
+      ],
       frequency: "OncePerTurn",
     },
   ],

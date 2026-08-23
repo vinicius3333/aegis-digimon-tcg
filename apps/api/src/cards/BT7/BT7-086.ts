@@ -7,69 +7,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3,
-          "fromTop": false
-        }
-      ]
+          amount: 3,
+          fromTop: false,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "attackOrBlock",
-          "duration": "untilOpponentTurnEnd"
-        }
+          restriction: "attackOrBlock",
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
+      isInherited: true,
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-086", compiled);

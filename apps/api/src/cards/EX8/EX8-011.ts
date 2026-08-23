@@ -6,88 +6,86 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
-    },
-    {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          payCost: false,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Reptile"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Reptile"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-011", compiled);

@@ -569,7 +569,13 @@ export class EliminationStore {
       subjectId: winner.participantId,
       phaseId: phase.id,
       participantId: winner.participantId,
-      after: { fromRound: round, fromPosition: position, toRound: next.round, toPosition: next.position, seat: next.seat },
+      after: {
+        fromRound: round,
+        fromPosition: position,
+        toRound: next.round,
+        toPosition: next.position,
+        seat: next.seat,
+      },
     });
   }
 

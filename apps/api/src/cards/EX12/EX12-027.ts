@@ -13,128 +13,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // UseOptionWithoutCost(payCost:true, reduceCostBy:2) covers the Option use path — now that
 // UseOptionWithoutCost honors reduceCostBy, this is fully encodable (EX12-050 pattern).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "labels": ["Play a matching card", "Use a matching Option"],
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          labels: ["Play a matching card", "Use a matching Option"],
+          options: [
             [
               {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Jellymon"
-                  ],
-                  "match": "text"
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [
+                      {
+                        tokens: ["Jellymon"],
+                        match: "text",
+                      },
+                      {
+                        tokens: ["DS"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                  count: 1,
                 },
-                {
-                  "tokens": [
-                    "DS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-              }
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
             ],
             [
               {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "controller": "mine",
-            "kind": [
-              "Option"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Jellymon"
-                ],
-                "match": "text"
+                kind: "UseOptionWithoutCost",
+                filter: {
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Jellymon"],
+                      match: "text",
+                    },
+                    {
+                      tokens: ["DS"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
               },
-              {
-                "tokens": [
-                  "DS"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand"
+            ],
           ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-              }
-            ]
-          ]
-        }
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "handAtLeast", "value": 7,
-            "raw": "your hand has 7 or more cards"
-          }
-        }
+          condition: {
+            kind: "handAtLeast",
+            value: 7,
+            raw: "your hand has 7 or more cards",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Jellymon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Jellymon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "traits": [
-        "DS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["DS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-027", compiled);

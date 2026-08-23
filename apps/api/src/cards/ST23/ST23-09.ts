@@ -6,177 +6,165 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "BEATBREAK"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a card w/[BEATBREAK] trait"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "immuneToOpponentDigimonEffects",
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+                  tokens: ["BEATBREAK"],
+                  match: "trait",
+                },
               ],
-              "superlative": "lowestDP"
             },
-            "count": 1
-          }
-        }
+            raw: "you have a card w/[BEATBREAK] trait",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "immuneToOpponentDigimonEffects",
-          "duration": "untilOpponentTurnEnd"
+          grant: "immuneToOpponentDigimonEffects",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1
-          }
+            count: 1,
+            isSelf: true,
+          },
+          grant: "immuneToOpponentDigimonEffects",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom"
-        }
-      ]
-    }
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
+              superlative: "highestDP",
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "Glowing Dawn"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Glowing Dawn"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST23-09", compiled);

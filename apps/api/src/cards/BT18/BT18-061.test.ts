@@ -15,8 +15,12 @@ describe("BT18-061 Trailmon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trailmon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.cardId === "BT11-040")));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trailmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.cardId === "BT11-040")),
+    );
 
     const trailmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT18-061")!;
     expect(trailmon.stack.some((card) => card.cardId === "BT11-040")).toBe(true);

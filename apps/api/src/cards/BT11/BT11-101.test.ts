@@ -25,7 +25,9 @@ describe("BT11-101 Holy Sunshine", () => {
       ok: true,
     });
     await settle(() => ["a", "b", "c"].every((alias) => s.perm(alias).currentDP === 5000));
-    await settle(() => ["a", "b", "c"].every((alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -1));
+    await settle(() =>
+      ["a", "b", "c"].every((alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -1),
+    );
     expect(s.state.memory).toBe(3);
     for (const alias of ["a", "b", "c"]) {
       expect(observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack")).toBe(-1);

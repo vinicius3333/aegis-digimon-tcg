@@ -6,93 +6,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "optional": true
-        }
-      ]
+          to: "deckBottom",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "optional": true
-        }
-      ]
-    }
+          to: "deckBottom",
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-049", compiled);

@@ -48,10 +48,11 @@ describe("BT6 Dynasmon and Pulsemon security deck gauntlet", () => {
         instanceId: s.inst("dynasmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("recoveredCard").instanceId) &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("firstRevealPick").instanceId) &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () =>
+        s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("recoveredCard").instanceId) &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("firstRevealPick").instanceId) &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.memory).toBe(6);
@@ -78,10 +79,8 @@ describe("BT6 Dynasmon and Pulsemon security deck gauntlet", () => {
         instanceId: s.inst("pulsemon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.security.length === 3 &&
-      s.state.memory === 4 &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () => s.state.players[0]!.security.length === 3 && s.state.memory === 4 && s.state.pendingDecision === undefined,
     );
 
     // Dynasmon already recovered from its own digivolution cost this turn. Pulsemon's

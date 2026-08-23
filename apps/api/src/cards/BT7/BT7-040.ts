@@ -6,16 +6,18 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{
-        kind: "CostModifier",
-        costType: "digivolve",
-        mode: "set",
-        amount: 0,
-        handResident: true,
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        duration: "permanent",
-        scaling: { per: 1, unit: "security", floor: 1, filter: { controller: "mine" } },
-      }],
+      actions: [
+        {
+          kind: "CostModifier",
+          costType: "digivolve",
+          mode: "set",
+          amount: 0,
+          handResident: true,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "permanent",
+          scaling: { per: 1, unit: "security", floor: 1, filter: { controller: "mine" } },
+        },
+      ],
     },
     {
       trigger: "Main",

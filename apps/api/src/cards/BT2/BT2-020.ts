@@ -6,64 +6,58 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Red"
-              ]
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              colors: ["Red"],
             },
-            "raw": "you have a red Tamer in play"
-          }
-        }
-      ]
+            raw: "you have a red Tamer in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "opponent"
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          scaling: {
+            per: 10,
+            filter: {
+              zone: "trash",
+              controller: "opponent",
             },
-            "unit": "trash"
-          }
-        }
-      ]
-    }
+            unit: "trash",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-020", compiled);

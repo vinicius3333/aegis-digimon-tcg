@@ -13,106 +13,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   timing scope per card text; the engine represents it as the Digimon having Blitz
 //   for the turn (the keyword becomes usable in the WhenDigivolving window).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
+                  count: 1,
+                  isSelf: true,
                 },
-                "raw": "by suspending this Tamer"
+                raw: "by suspending this Tamer",
               },
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Gallantmon",
-                  "Growlmon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {},
-                "sourceRef": "triggerSubject",
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Blitz",
-                "raw": "＜Blitz＞"
-              },
-              "duration": "forTheTurn",
-              "raw": "gains [When Digivolving] <Blitz> for the turn"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              optional: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Gallantmon", "Growlmon"],
+                match: "name",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {},
+                sourceRef: "triggerSubject",
+                count: 1,
+              },
+              keyword: {
+                keyword: "Blitz",
+                raw: "＜Blitz＞",
+              },
+              duration: "forTheTurn",
+              raw: "gains [When Digivolving] <Blitz> for the turn",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-056", compiled);

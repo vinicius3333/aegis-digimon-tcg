@@ -6,60 +6,55 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Red",
-                "Purple"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Red", "Purple"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
+          to: "hand",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-091", compiled);

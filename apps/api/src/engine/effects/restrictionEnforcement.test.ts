@@ -50,10 +50,7 @@ describe("beDeleted", () => {
       EffectDuration.Permanent,
     );
 
-    const removed = await advance(s.engine).verb.deletePermanent(
-      [s.perm("theirs").permanentId],
-      "byRule",
-    );
+    const removed = await advance(s.engine).verb.deletePermanent([s.perm("theirs").permanentId], "byRule");
 
     expect(removed).toBe(0);
   });
@@ -105,10 +102,7 @@ describe("beDeleted", () => {
         { byOpponentEffectsOnly: true },
       );
 
-      const removed = await advance(s.engine).verb.deletePermanent(
-        [s.perm("theirs").permanentId],
-        "byRule",
-      );
+      const removed = await advance(s.engine).verb.deletePermanent([s.perm("theirs").permanentId], "byRule");
 
       expect(removed).toBe(1);
     });
@@ -119,11 +113,7 @@ describe("beReturned", () => {
   it("stops a return to hand", async () => {
     const s = twoDigimon();
     const target = s.perm("theirs");
-    advance(s.engine).ledgers.continuous.addRestriction(
-      target.permanentId,
-      "beReturned",
-      EffectDuration.Permanent,
-    );
+    advance(s.engine).ledgers.continuous.addRestriction(target.permanentId, "beReturned", EffectDuration.Permanent);
 
     await advance(s.engine).verb.returnToHand([target.topCard!.instanceId]);
 
@@ -135,11 +125,7 @@ describe("beReturned", () => {
     const s = twoDigimon();
     const target = s.perm("theirs");
     const deckBefore = player(s, 1).deck.length;
-    advance(s.engine).ledgers.continuous.addRestriction(
-      target.permanentId,
-      "beReturned",
-      EffectDuration.Permanent,
-    );
+    advance(s.engine).ledgers.continuous.addRestriction(target.permanentId, "beReturned", EffectDuration.Permanent);
 
     await advance(s.engine).verb.returnToDeck([target.topCard!.instanceId]);
 
@@ -159,12 +145,9 @@ describe("beReturned", () => {
   it("leaves the controller's own effect free when scoped to the opponent's", async () => {
     const s = twoDigimon();
     const target = s.perm("mine");
-    advance(s.engine).ledgers.continuous.addRestriction(
-      target.permanentId,
-      "beReturned",
-      EffectDuration.Permanent,
-      { byOpponentEffectsOnly: true },
-    );
+    advance(s.engine).ledgers.continuous.addRestriction(target.permanentId, "beReturned", EffectDuration.Permanent, {
+      byOpponentEffectsOnly: true,
+    });
 
     await advance(s.engine).verb.returnToHand([target.topCard!.instanceId]);
 
@@ -178,11 +161,7 @@ describe("beTrashed", () => {
       0: { battleArea: [{ card: "BT1-019", as: "host", under: ["ST1-03", "BT9-109"] }] },
     });
     const [trashable, protectedCard] = s.perm("host").stack;
-    advance(s.engine).ledgers.continuous.addStackCardTrashLock(
-      protectedCard!.instanceId,
-      0,
-      EffectDuration.Permanent,
-    );
+    advance(s.engine).ledgers.continuous.addStackCardTrashLock(protectedCard!.instanceId, 0, EffectDuration.Permanent);
 
     await advance(s.engine).verb.trashDigivolutionCards(
       s.perm("host").permanentId,
@@ -249,11 +228,7 @@ describe("dpImmune", () => {
       EffectDuration.Permanent,
     );
 
-    await advance(s.engine).verb.modifyDP(
-      s.perm("theirs").permanentId,
-      -3000,
-      EffectDuration.UntilOpponentTurnEnd,
-    );
+    await advance(s.engine).verb.modifyDP(s.perm("theirs").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
 
     expect(s.perm("theirs").currentDP).toBe(before);
   });
@@ -267,11 +242,7 @@ describe("dpImmune", () => {
       EffectDuration.Permanent,
     );
 
-    await advance(s.engine).verb.modifyDP(
-      s.perm("theirs").permanentId,
-      3000,
-      EffectDuration.UntilOpponentTurnEnd,
-    );
+    await advance(s.engine).verb.modifyDP(s.perm("theirs").permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
 
     expect(s.perm("theirs").currentDP).toBe(before + 3000);
   });
@@ -280,11 +251,7 @@ describe("dpImmune", () => {
     const s = twoDigimon();
     const before = s.perm("theirs").currentDP;
 
-    await advance(s.engine).verb.modifyDP(
-      s.perm("theirs").permanentId,
-      -3000,
-      EffectDuration.UntilOpponentTurnEnd,
-    );
+    await advance(s.engine).verb.modifyDP(s.perm("theirs").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
 
     expect(s.perm("theirs").currentDP).toBe(before - 3000);
   });

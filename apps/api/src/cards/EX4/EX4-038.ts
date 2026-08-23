@@ -8,78 +8,68 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    single OR-match entry as they are a single target clause.
 // Q&A Q3487: must add as many applicable cards as possible (both if both present).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Greymon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Greymon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Gabumon",
-                      "Garurumon",
-                      "Omnimon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Gabumon", "Garurumon", "Omnimon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckTop"
-        }
-      ]
+          rest: "deckTop",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true },
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], excludeSelf: true },
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-038", compiled);

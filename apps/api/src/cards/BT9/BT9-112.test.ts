@@ -30,13 +30,13 @@ describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tame
     });
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("card").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.cardId === BT9_112,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("card").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === BT9_112));
 
     expect(s.state.memory).toBe(0);
   });
@@ -95,9 +95,9 @@ describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tame
     );
     s.state.memory = 11;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deathX").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deathX").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT9-078");

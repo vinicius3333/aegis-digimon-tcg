@@ -4,21 +4,37 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const blueFlare = { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] };
-const metalGreymon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["MetalGreymon"], match: "nameExact" }] };
+const metalGreymon = {
+  controller: "mine",
+  zone: "trash",
+  nameOrTrait: [{ tokens: ["MetalGreymon"], match: "nameExact" }],
+};
 const kiriha = { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Kiriha Aonuma"], match: "nameExact" }] };
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
-      actions: [{
-        kind: "ConditionalBranch",
-        condition: { kind: "allOf", conditions: [
-          { kind: "youHave", filter: kiriha },
-          { kind: "selfHasMinTrash", count: 1, filter: metalGreymon },
-        ] },
-        ifTrue: [{ kind: "Return", target: { filter: metalGreymon, count: 1 }, from: ["trash"], to: "hand" }],
-        ifFalse: [{ kind: "RevealAdd", revealCount: 4, add: [{ filter: blueFlare, count: 2, to: "hand" }], rest: "deckBottom" }],
-      }],
+      actions: [
+        {
+          kind: "ConditionalBranch",
+          condition: {
+            kind: "allOf",
+            conditions: [
+              { kind: "youHave", filter: kiriha },
+              { kind: "selfHasMinTrash", count: 1, filter: metalGreymon },
+            ],
+          },
+          ifTrue: [{ kind: "Return", target: { filter: metalGreymon, count: 1 }, from: ["trash"], to: "hand" }],
+          ifFalse: [
+            {
+              kind: "RevealAdd",
+              revealCount: 4,
+              add: [{ filter: blueFlare, count: 2, to: "hand" }],
+              rest: "deckBottom",
+            },
+          ],
+        },
+      ],
     },
     {
       trigger: "OnDeletion",
@@ -28,17 +44,23 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "Unsuspend",
-        target: self,
-        condition: {
-          kind: "allOf",
-          conditions: [
-            { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] } },
-            { kind: "opponentHas", filter: { zone: "battleArea", controllerDefault: "opponent", kind: ["Digimon"] }, count: 2 },
-          ],
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: self,
+          condition: {
+            kind: "allOf",
+            conditions: [
+              { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] } },
+              {
+                kind: "opponentHas",
+                filter: { zone: "battleArea", controllerDefault: "opponent", kind: ["Digimon"] },
+                count: 2,
+              },
+            ],
+          },
         },
-      }],
+      ],
       isInherited: true,
     },
   ],

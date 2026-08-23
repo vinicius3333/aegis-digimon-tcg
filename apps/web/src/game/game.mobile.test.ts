@@ -17,10 +17,14 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.game-board \{[^}]*min-height:\s*0/);
     expect(portraitRules).toMatch(/\.game-field \{[^}]*min-height:\s*0[^}]*overflow:\s*hidden/);
     expect(portraitRules).toMatch(/\.game-battle-zones \{[^}]*overflow:\s*hidden/);
-    expect(portraitRules).toMatch(/\.game-battle-zones > div:last-child \{[^}]*overflow-x:\s*auto[^}]*scroll-snap-type/);
+    expect(portraitRules).toMatch(
+      /\.game-battle-zones > div:last-child \{[^}]*overflow-x:\s*auto[^}]*scroll-snap-type/,
+    );
     expect(portraitRules).toMatch(/\[data-testid="hand"\] \{[^}]*overflow-x:\s*auto[^}]*scroll-snap-type/);
     expect(portraitRules).toMatch(/\.game-sidebar \{[^}]*overflow:\s*hidden/);
-    expect(portraitRules).toMatch(/\.game-action-bar--contextual \{[^}]*position:\s*fixed[^}]*flex-wrap:\s*wrap[^}]*overflow:\s*auto/);
+    expect(portraitRules).toMatch(
+      /\.game-action-bar--contextual \{[^}]*position:\s*fixed[^}]*flex-wrap:\s*wrap[^}]*overflow:\s*auto/,
+    );
     expect(portraitRules).not.toMatch(/\.game-field \{[^}]*height:\s*660px/);
     expect(portraitRules).not.toMatch(/min-height:\s*250px/);
   });
@@ -31,7 +35,9 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.game-board \{[^}]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
     expect(portraitRules).toMatch(/\.game-field \{[^}]*grid-template-columns:[^}]*minmax\(0, 1fr\)/);
     expect(portraitRules).toMatch(/\.game-player-dock \{[^}]*grid-template-rows:\s*auto auto[^}]*overflow:\s*hidden/);
-    expect(portraitRules).toMatch(/\.game-battle-zones \{[^}]*grid-template-rows:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
+    expect(portraitRules).toMatch(
+      /\.game-battle-zones \{[^}]*grid-template-rows:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/,
+    );
   });
 
   it("hides the sidebar panels that do not belong on a phone", () => {
@@ -95,7 +101,9 @@ describe("mobile portrait match layout", () => {
     );
     // A bottom control can sit underneath iOS browser chrome. The document-body
     // portal is anchored below the opponent row and explicitly clears bottom.
-    expect(portraitRules).toMatch(/\.decision-board-return \{[^}]*top:\s*calc\(env\(safe-area-inset-top,[^}]*bottom:\s*auto/);
+    expect(portraitRules).toMatch(
+      /\.decision-board-return \{[^}]*top:\s*calc\(env\(safe-area-inset-top,[^}]*bottom:\s*auto/,
+    );
     expect(portraitRules).toMatch(/\.decision-board-return > button \{[^}]*min-height:\s*44px/);
   });
 });

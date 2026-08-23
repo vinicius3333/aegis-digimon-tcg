@@ -12,7 +12,18 @@ export const compiled: CompiledCard = {
           event: "onDeletionOf",
           notSimultaneous: true,
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-          actions: [{ kind: "Draw", controller: "mine", amount: 1, condition: { kind: "selfHasNameContaining", names: ["Greymon"], raw: "this Digimon has [Greymon] in its name" } }],
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              condition: {
+                kind: "selfHasNameContaining",
+                names: ["Greymon"],
+                raw: "this Digimon has [Greymon] in its name",
+              },
+            },
+          ],
         },
       ],
       isInherited: true,

@@ -10,10 +10,14 @@ describe("ST15-01 Koromon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "otherAttacker" }] },
     });
     const baseDP = s.perm("host").baseDP;
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: s.perm("otherAttacker").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("otherAttacker").permanentId,
+    });
     expect(s.perm("host").currentDP).toBe(baseDP + 1000);
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: s.perm("otherAttacker").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("otherAttacker").permanentId,
+    });
     expect(s.perm("host").currentDP).toBe(baseDP + 1000);
   });
 

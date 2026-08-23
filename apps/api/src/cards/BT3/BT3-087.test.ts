@@ -50,20 +50,24 @@ describe("BT3-087 Mummymon", () => {
     s.state.memory = 5;
     const sourceId = s.perm("mummymon").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: sourceId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: sourceId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
 
     const activation = s.decisions.at(-1)!.req;
     expect(activation.sourceCardId).toBe("BT3-087");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: activation.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activation.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sourceId)).toBe(true);

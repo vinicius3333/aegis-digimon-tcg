@@ -24,12 +24,15 @@ describe("P-045 Kurisarimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("decoy"), "Decoy")).toBe(true);
     await advance(s.engine).verb.deletePermanent([s.perm("protected").permanentId], "byEffect");
 
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.permanentId === s.perm("protected").permanentId
-    )).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.cardId === "P-016" && permanent.permanentId !== s.perm("protected").permanentId
-    )).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("protected").permanentId),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) =>
+          permanent.topCard.cardId === "P-016" && permanent.permanentId !== s.perm("protected").permanentId,
+      ),
+    ).toBe(false);
   });
 
   it("does not spend the granted Decoy on a battle deletion", async () => {

@@ -32,9 +32,11 @@ describe("ST22-08 [Security] delete the opponent's lowest-DP Digimon, then add t
     const highDpPermanentId = s.perm("highDp").permanentId;
     const p1 = s.state.players[1]!;
 
-    await (s.engine as unknown as {
-      fireTimingForInstance: (t: EffectTiming, id: string) => Promise<void>;
-    }).fireTimingForInstance(EffectTiming.SecuritySkill, optionId);
+    await (
+      s.engine as unknown as {
+        fireTimingForInstance: (t: EffectTiming, id: string) => Promise<void>;
+      }
+    ).fireTimingForInstance(EffectTiming.SecuritySkill, optionId);
     await settle(() => p0.hand.some((c) => c.instanceId === optionId));
 
     // The lowest-DP opponent Digimon was deleted; the higher-DP one survives.

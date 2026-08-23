@@ -6,12 +6,24 @@ import "./BT10-075.js";
 
 describe("BT10-075 Damemon", () => {
   it("plays Yuu Amano from hand when none is in play", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT10-075", as: "source" }, { card: "BT10-093", as: "yuu" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT10-075", as: "source" },
+            { card: "BT10-093", as: "yuu" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => player.battleArea.some(p => p.topCard.instanceId === s.inst("yuu").instanceId));
-    expect(player.hand.some(c => c.instanceId === s.inst("yuu").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.battleArea.some((p) => p.topCard.instanceId === s.inst("yuu").instanceId));
+    expect(player.hand.some((c) => c.instanceId === s.inst("yuu").instanceId)).toBe(false);
   });
 
   it("plays Yuu Amano after digivolving when none is in play", async () => {
@@ -19,7 +31,10 @@ describe("BT10-075 Damemon", () => {
       {
         0: {
           battleArea: [{ card: "BT10-071", as: "base" }],
-          hand: [{ card: "BT10-075", as: "damemon" }, { card: "BT10-093", as: "yuu" }],
+          hand: [
+            { card: "BT10-075", as: "damemon" },
+            { card: "BT10-093", as: "yuu" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -43,14 +58,19 @@ describe("BT10-075 Damemon", () => {
       {
         0: {
           battleArea: [{ card: "BT10-093", as: "existingYuu" }],
-          hand: [{ card: "BT10-075", as: "source" }, { card: "BT10-093", as: "handYuu" }],
+          hand: [
+            { card: "BT10-075", as: "source" },
+            { card: "BT10-093", as: "handYuu" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handYuu").instanceId)).toBe(true);
@@ -59,7 +79,14 @@ describe("BT10-075 Damemon", () => {
 
   it("uses Save to place itself under one of its Tamers on deletion", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT10-075", as: "damemon" }, { card: "BT1-085", as: "tamer" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-075", as: "damemon" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const damemonId = s.perm("damemon").topCard.instanceId;
@@ -72,18 +99,17 @@ describe("BT10-075 Damemon", () => {
   });
 
   it("gains owner memory when its inherited source is trashed on the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-081", as: "host", under: [{ card: "BT10-075", as: "source" }] }] },
-    }, { autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT10-081", as: "host", under: [{ card: "BT10-075", as: "source" }] }] },
+      },
+      { autoOrderTriggers: true },
+    );
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("source").instanceId],
-      1,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("source").instanceId], 1);
     await settle(() => s.state.memory === -1);
 
     expect(s.state.memory).toBe(-1);

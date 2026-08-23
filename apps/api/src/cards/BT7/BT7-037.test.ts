@@ -7,22 +7,33 @@ import "./BT7-037.js";
 describe("BT7-037 Boutmon", () => {
   it("unsuspends before the block window so its Blocker host can block (Q1566)", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-062", under: ["BT7-037"], suspended: true, as: "host" }], security: ["BT1-101", "BT1-101", "BT1-101"] },
+      0: {
+        battleArea: [{ card: "BT5-062", under: ["BT7-037"], suspended: true, as: "host" }],
+        security: ["BT1-101", "BT1-101", "BT1-101"],
+      },
       1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
     });
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
 
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
       eligibleBlockerIds: [s.perm("host").permanentId],
     });
-    expect(s.engine.applyIntent(0, {
-      type: "declareBlock",
-      blockerPermanentId: s.perm("host").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.security).toHaveLength(3);
@@ -43,14 +54,16 @@ describe("BT7-037 Boutmon", () => {
     await s.ready();
     const targetInstanceId = s.perm("target").topCard.instanceId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === targetInstanceId,
-    ));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === targetInstanceId),
+    );
 
     expect(s.perm("host").isSuspended).toBe(true);
   });

@@ -8,66 +8,56 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // the player chooses 1 additional Digimon from the field. The engine hardcodes
 // zone:"hand" for DnaDigivolve into.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanYourEffect",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "ME"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["ME"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 2,
-                "includeRef": "triggerSubject"
+                count: 2,
+                includeRef: "triggerSubject",
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "ME"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["ME"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": true,
-              "optional": true
-            }
-          ]
-        }
+              payCost: true,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX12-003", compiled);

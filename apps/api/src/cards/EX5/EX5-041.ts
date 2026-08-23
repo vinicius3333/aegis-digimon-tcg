@@ -17,139 +17,119 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    unsuspend phase (duration: opponentNextUnsuspendPhase).
 // 2. Target for the restriction must be opponent's Digimon (not mine).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "scaling"
+            count: "scaling",
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Deva",
-                    "Four Sovereigns"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Deva", "Four Sovereigns"],
+                  match: "trait",
+                },
+              ],
             },
-            "unit": "cards"
-          }
+            unit: "cards",
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentNextUnsuspendPhase"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentNextUnsuspendPhase",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "scaling"
+            count: "scaling",
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Deva",
-                    "Four Sovereigns"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Deva", "Four Sovereigns"],
+                  match: "trait",
+                },
+              ],
             },
-            "unit": "cards"
-          }
+            unit: "cards",
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentNextUnsuspendPhase"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentNextUnsuspendPhase",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-041", compiled);

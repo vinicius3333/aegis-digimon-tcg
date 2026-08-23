@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
@@ -92,8 +93,7 @@ scenario("digi-xros", () => {
     // first for any DigiXros-eligible card and opens the DigiXrosMaterialOverlay
     // instead of sending the intent immediately.
     const [xrosCardImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^shoutmon \+ starsword$/i });
-    fireEvent.pointerDown(xrosCardImg!, { clientX: 100, clientY: 100 });
-    fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+    tap(xrosCardImg!);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
     // The overlay lists the Shoutmon material candidate (from hand); select it and

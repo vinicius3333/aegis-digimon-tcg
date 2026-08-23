@@ -10,99 +10,93 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Digi-Burst 2 cost) → Return (same target to hand via usePreviousTarget).
 // TrashDigivolution must precede Return so the digivolution stack is still accessible.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "amount": "all",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "count": 2
             },
-            "raw": "＜Digi-Burst 2＞"
-          }
+            count: 1,
+          },
+          amount: "all",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+              },
+              count: 2,
+            },
+            raw: "＜Digi-Burst 2＞",
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "to": "hand"
-        }
+          to: "hand",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 2,
-          "raw": "＜Digi-Burst 2＞"
-        }
-      ]
+          keyword: "DigiBurst",
+          amount: 2,
+          raw: "＜Digi-Burst 2＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 2000
+          effect: {
+            kind: "modifyDP",
+            amount: 2000,
           },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          while: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you have a Tamer in play"
-          }
-        }
+            raw: "you have a Tamer in play",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-032", compiled);

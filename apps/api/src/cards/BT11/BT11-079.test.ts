@@ -22,9 +22,10 @@ describe("BT11-079 DarkLizardmon", () => {
         target: { kind: "permanent", permanentId: opponentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== darkLizardmonId) &&
-      s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== opponentId),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== darkLizardmonId) &&
+        s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== opponentId),
     );
 
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT11-079")).toBe(true);

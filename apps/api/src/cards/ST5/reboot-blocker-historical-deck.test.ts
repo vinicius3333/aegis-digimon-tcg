@@ -23,10 +23,7 @@ describe("ST5 Reboot/Blocker historical deck gauntlet", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    preferInstanceIds.push(
-      s.perm("restTarget").permanentId,
-      s.perm("restTarget").topCard!.instanceId,
-    );
+    preferInstanceIds.push(s.perm("restTarget").permanentId, s.perm("restTarget").topCard!.instanceId);
     await s.ready();
     const blocker = s.perm("rebootBlocker");
     const printedDp = getCardDefinition("BT2-065")!.dp;
@@ -39,21 +36,26 @@ describe("ST5 Reboot/Blocker historical deck gauntlet", () => {
     await s.engine.recomputeContinuousEffects();
     expect(blocker.currentDP).toBe(printedDp);
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).blockingSeat() === 0);
-    expect(s.engine.applyIntent(0, {
-      type: "declareBlock",
-      blockerPermanentId: blocker.permanentId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      blocker.isSuspended &&
-      s.perm("tai").isSuspended &&
-      !s.perm("restTarget").isSuspended
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: blocker.permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        blocker.isSuspended &&
+        s.perm("tai").isSuspended &&
+        !s.perm("restTarget").isSuspended,
     );
 
     expect(s.state.players[0]!.battleArea).toContain(blocker);

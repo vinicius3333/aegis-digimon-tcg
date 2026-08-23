@@ -47,14 +47,7 @@ describe("ST22-14 Barbamon", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST22-14", as: "barbamon" }] },
       1: {
-        hand: [
-          { card: "BT1-009", as: "chosenDiscard" },
-          "BT1-010",
-          "BT1-011",
-          "BT1-012",
-          "BT1-013",
-          "BT1-014",
-        ],
+        hand: [{ card: "BT1-009", as: "chosenDiscard" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         battleArea: [{ card: "BT1-009", as: "lowest" }],
       },
     });
@@ -73,9 +66,7 @@ describe("ST22-14 Barbamon", () => {
     ).toEqual({ ok: true });
     await resolution;
 
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("chosenDiscard").instanceId)).toBe(
-      true,
-    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("chosenDiscard").instanceId)).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(5);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

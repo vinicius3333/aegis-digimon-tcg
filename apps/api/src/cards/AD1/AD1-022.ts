@@ -6,107 +6,92 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has a Digimon"
-          }
-        }
-      ]
+            raw: "your opponent has a Digimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon",
-              "Tamer"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon", "Tamer"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "ADVENTURE"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["ADVENTURE"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "ADVENTURE"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "from": [
-                "hand"
-              ],
-              "payCost": true,
-              "reduceCostScaling": {
-                "per": 2,
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Tamer"]
-                },
-                "unit": "colors"
-              },
-              "optional": true,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                    tokens: ["ADVENTURE"],
+                    match: "trait",
                   },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer"
+                ],
               },
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
-    }
+              from: ["hand"],
+              payCost: true,
+              reduceCostScaling: {
+                per: 2,
+                filter: {
+                  controller: "mine",
+                  kind: ["Tamer"],
+                },
+                unit: "colors",
+              },
+              optional: true,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("AD1-022", compiled);

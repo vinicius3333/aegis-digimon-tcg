@@ -17,9 +17,7 @@ describe("EX5–EX8 card-by-card implementation registration", () => {
     const cards = allCards().filter((card) => /^(EX5|EX6|EX7|EX8)-\d+$/.test(card.cardId));
     expect(cards).toHaveLength(296);
 
-    const missing = cards
-      .filter((card) => getEffectModule(card.cardId) === undefined)
-      .map((card) => card.cardId);
+    const missing = cards.filter((card) => getEffectModule(card.cardId) === undefined).map((card) => card.cardId);
     expect(missing).toEqual([]);
 
     expect(cards.every((card) => card.nameEn.trim().length > 0)).toBe(true);

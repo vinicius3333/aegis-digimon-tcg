@@ -12,7 +12,9 @@ describe("ST18-06 Kiwimon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kiwimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kiwimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("victim").isSuspended);
 
     expect(s.perm("victim").isSuspended).toBe(true);
@@ -23,7 +25,10 @@ describe("ST18-06 Kiwimon", () => {
 
   it("suspends an opponent Digimon again when deleted", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "ST18-06", as: "kiwimon" }] }, 1: { battleArea: [{ card: "ST18-03", as: "victim" }] } },
+      {
+        0: { battleArea: [{ card: "ST18-06", as: "kiwimon" }] },
+        1: { battleArea: [{ card: "ST18-03", as: "victim" }] },
+      },
       { autoSelectCards: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("kiwimon").permanentId], "byEffect");

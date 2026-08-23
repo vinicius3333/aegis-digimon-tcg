@@ -117,9 +117,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    { names: ["Betamon", "ModokiBetamon"], cost: 2, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ names: ["Betamon", "ModokiBetamon"], cost: 2, isAlternate: true }],
 };
 
 registerIrCard("P-214", compiled);

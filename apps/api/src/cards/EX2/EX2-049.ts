@@ -75,7 +75,10 @@ const module: EffectModule = {
             }
 
             if (searcherIds.length === 0) {
-              await ctx.fx.returnToDeck(revealed.map((c) => c.instanceId), { toTop: false });
+              await ctx.fx.returnToDeck(
+                revealed.map((c) => c.instanceId),
+                { toTop: false },
+              );
               return;
             }
 
@@ -90,7 +93,10 @@ const module: EffectModule = {
               })),
             });
             if (chosenSearcher.length === 0) {
-              await ctx.fx.returnToDeck(revealed.map((c) => c.instanceId), { toTop: false });
+              await ctx.fx.returnToDeck(
+                revealed.map((c) => c.instanceId),
+                { toTop: false },
+              );
               return;
             }
 
@@ -115,9 +121,7 @@ const module: EffectModule = {
               ctx.fx.placeUnder(targetPermId, [chosenId], { belowTop: false });
             }
 
-            let remaining = revealed
-              .filter((c) => c.instanceId !== chosenId)
-              .map((c) => c.instanceId);
+            let remaining = revealed.filter((c) => c.instanceId !== chosenId).map((c) => c.instanceId);
             if (remaining.length > 1 && ctx.ask.orderCards !== undefined) {
               remaining = await ctx.ask.orderCards(ctx, {
                 candidates: remaining,

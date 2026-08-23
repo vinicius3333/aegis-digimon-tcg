@@ -9,7 +9,12 @@ const CARD_ID = "BT26-039";
 
 describe("BT26-039 Sunflowmon", () => {
   it("exposes the printed level-3 DATA SQUAD evolution", () => {
-    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ level: 3, traits: ["DATA SQUAD"], cost: 2, isAlternate: true });
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+      level: 3,
+      traits: ["DATA SQUAD"],
+      cost: 2,
+      isAlternate: true,
+    });
   });
   it("uses the exact level-3 DATA SQUAD alternate evolution for cost 2", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({

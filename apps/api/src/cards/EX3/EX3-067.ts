@@ -6,54 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 4,
-          "fromTop": true
+          amount: 4,
+          fromTop: true,
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX3-067", compiled);

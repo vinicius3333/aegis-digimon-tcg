@@ -26,12 +26,14 @@ describe("BT12-058 Zenimon", () => {
     });
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("saveBase").permanentId,
-      instanceId: s.inst("zenimon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("saveBase").permanentId,
+        instanceId: s.inst("zenimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("saveBase").topCard.cardId === "BT12-058");
     expect(s.state.memory).toBe(0);
   });
@@ -45,11 +47,13 @@ describe("BT12-058 Zenimon", () => {
     });
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("plainBase").permanentId,
-      instanceId: s.inst("zenimon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("plainBase").permanentId,
+        instanceId: s.inst("zenimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

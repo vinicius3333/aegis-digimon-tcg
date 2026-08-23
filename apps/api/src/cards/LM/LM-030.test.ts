@@ -9,7 +9,8 @@ async function start(s: ReturnType<typeof setupEngine>) {
   const original = e.fireTiming.bind(s.engine);
   e.fireTiming = async (timing, trigger) => {
     const result = await original(timing, trigger);
-    if (timing === EffectTiming.OnStartTurn) (s as ReturnType<typeof setupEngine> & { top?: string }).top = s.state.players[0]!.deck[0]?.cardId;
+    if (timing === EffectTiming.OnStartTurn)
+      (s as ReturnType<typeof setupEngine> & { top?: string }).top = s.state.players[0]!.deck[0]?.cardId;
     return result;
   };
   const turn = s.engine.runOneTurn();
@@ -19,24 +20,54 @@ async function start(s: ReturnType<typeof setupEngine>) {
   return { turn };
 }
 
-async function finish(s: ReturnType<typeof setupEngine>, turn: Promise<void>) { if ((s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase.isOpen) s.engine.applyIntent(0, { type: "endPhase" }); await turn; }
-function arm(s: ReturnType<typeof setupEngine>) { s.state.players[0]!.battleArea[0]!.placedByEffect = true; s.state.isFirstPlayersFirstTurn = true; }
+async function finish(s: ReturnType<typeof setupEngine>, turn: Promise<void>) {
+  if ((s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase.isOpen)
+    s.engine.applyIntent(0, { type: "endPhase" });
+  await turn;
+}
+function arm(s: ReturnType<typeof setupEngine>) {
+  s.state.players[0]!.battleArea[0]!.placedByEffect = true;
+  s.state.isFirstPlayersFirstTurn = true;
+}
 
 describe("LM-030 Green Scramble", () => {
   it("returns green trash to deck top and plays a small green Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "LM-030", as: "option" }], trash: ["BT1-064", "BT1-067"] }, 1: { battleArea: ["BT1-067"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
-    await s.ready(); arm(s); const { turn } = await start(s); await settle(() => (s as ReturnType<typeof setupEngine> & { top?: string }).top === "BT1-064");
-    expect((s as ReturnType<typeof setupEngine> & { top?: string }).top).toBe("BT1-064"); expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-067")).toBe(true); await finish(s, turn);
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "LM-030", as: "option" }], trash: ["BT1-064", "BT1-067"] },
+        1: { battleArea: ["BT1-067"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    arm(s);
+    const { turn } = await start(s);
+    await settle(() => (s as ReturnType<typeof setupEngine> & { top?: string }).top === "BT1-064");
+    expect((s as ReturnType<typeof setupEngine> & { top?: string }).top).toBe("BT1-064");
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-067")).toBe(true);
+    await finish(s, turn);
   });
 
   it("does not activate when the opponent has no Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "LM-030", as: "option" }], trash: ["BT1-067"] } }, { autoAcceptOptional: true, autoSelectCards: true });
-    await s.ready(); arm(s); const { turn } = await start(s); expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-030")).toBe(true); await finish(s, turn);
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "LM-030", as: "option" }], trash: ["BT1-067"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    arm(s);
+    const { turn } = await start(s);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-030")).toBe(true);
+    await finish(s, turn);
   });
 
   it("plays a qualifying green Digimon from security and returns itself to hand", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "LM-030", as: "securityOption", faceUp: true }], trash: ["BT1-067"] } }, { autoAcceptOptional: true, autoSelectCards: true });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption")); await settle(() => s.state.players[0]!.hand.some((c) => c.cardId === "LM-030"));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-067")).toBe(true); expect(s.state.players[0]!.hand.some((c) => c.cardId === "LM-030")).toBe(true);
+    const s = setupEngine(
+      { 0: { security: [{ card: "LM-030", as: "securityOption", faceUp: true }], trash: ["BT1-067"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    await settle(() => s.state.players[0]!.hand.some((c) => c.cardId === "LM-030"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-067")).toBe(true);
+    expect(s.state.players[0]!.hand.some((c) => c.cardId === "LM-030")).toBe(true);
   });
 });

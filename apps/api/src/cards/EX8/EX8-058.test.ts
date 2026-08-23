@@ -27,10 +27,21 @@ describe("EX8-058", () => {
   it("deletes an exact opposing level 3 target but not a level 4 target", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-058"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "level3" }, { card: "EX8-058", as: "level4" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "level3" },
+          { card: "EX8-058", as: "level4" },
+        ],
+      },
     });
     const level3InstanceId = s.perm("level3").topCard!.instanceId;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === level3InstanceId));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === level3InstanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-058")).toBe(true);

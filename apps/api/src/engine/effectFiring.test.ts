@@ -131,9 +131,7 @@ describe("compiled card effects fire in a live match (effect-stack-resolution wi
 
     expect(defender.security).toHaveLength(0);
     // A securityChecked event with resolution "effect" proves the [Security] branch ran.
-    const checked = s.events.find(
-      (e) => e.kind === "securityChecked" && e.revealedCardId === "BT2-107",
-    );
+    const checked = s.events.find((e) => e.kind === "securityChecked" && e.revealedCardId === "BT2-107");
     expect(checked, "securityChecked event for the flipped card").toBeDefined();
     expect(checked && "resolution" in checked ? checked.resolution : undefined).toBe("effect");
     // The security effect changed the shared memory gauge (the observable game change).
@@ -172,22 +170,15 @@ describe("compiled card effects fire in a live match (effect-stack-resolution wi
     ).toBe(true);
 
     // The attacker should still be alive (Option doesn't battle)
-    expect(
-      s.state.players[0]?.battleArea ?? [],
-    ).toHaveLength(1);
+    expect(s.state.players[0]?.battleArea ?? []).toHaveLength(1);
 
     // Resolution should be "effect"
-    const checked = s.events.find(
-      (e) => e.kind === "securityChecked" && e.revealedCardId === "P-035",
-    );
+    const checked = s.events.find((e) => e.kind === "securityChecked" && e.revealedCardId === "P-035");
     expect(checked, "securityChecked event").toBeDefined();
     expect(checked && "resolution" in checked ? checked.resolution : undefined).toBe("effect");
 
     // No optional decision should have been requested for the security effect
     const optionalDecisions = s.decisions.filter((d) => d.req.kind === "optional");
-    expect(
-      optionalDecisions,
-      "should not prompt for optional; [Security] is not optional",
-    ).toHaveLength(0);
+    expect(optionalDecisions, "should not prompt for optional; [Security] is not optional").toHaveLength(0);
   });
 });

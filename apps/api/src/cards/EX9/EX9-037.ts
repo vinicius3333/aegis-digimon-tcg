@@ -8,131 +8,123 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Training",
-          "raw": "＜Training＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "place",
-            "faceDown": true,
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "hand"
-              },
-              "count": 1
-            },
-            "raw": "By placing 1 card in your hand face down as this Digimon's bottom digivolution card"
-          }
+          keyword: "Training",
+          raw: "＜Training＞",
         },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent"
-            },
-            "sameTarget": true,
-            "count": 1
-          },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "place",
-            "faceDown": true,
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "hand"
-              },
-              "count": 1
-            },
-            "raw": "By placing 1 card in your hand face down as this Digimon's bottom digivolution card"
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent"
-            },
-            "sameTarget": true,
-            "count": 1
-          },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "place",
+            faceDown: true,
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+              },
+              count: 1,
+            },
+            raw: "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+            },
+            sameTarget: true,
+            count: 1,
+          },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "place",
+            faceDown: true,
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+              },
+              count: 1,
+            },
+            raw: "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+            },
+            sameTarget: true,
+            count: 1,
+          },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "DM"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["DM"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-037", compiled);

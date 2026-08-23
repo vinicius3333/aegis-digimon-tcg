@@ -39,10 +39,7 @@ export const DEFAULT_TURN_END_MIN_MEMORY = 1;
  * injects `memoryGainPolicy` from `ContinuousEffectLedger.canGainMemoryFromEffect`,
  * and `effects/interpreter.ts` calls `setTurnEndMinMemory`.
  */
-export type MemoryGainPolicyCheck = (
-  seat: Seat,
-  opts: { isTamerEffect: boolean },
-) => boolean;
+export type MemoryGainPolicyCheck = (seat: Seat, opts: { isTamerEffect: boolean }) => boolean;
 
 export class MemoryGauge {
   private readonly turnEndMinMemoryOverrides = new Map<Seat, number>();
@@ -123,12 +120,7 @@ export class MemoryGauge {
    * plus `ICannotAddMemoryEffect` vetoes). The ceiling is enforced by the clamp;
    * the effect-driven veto is `canGainMemory`'s injected `memoryGainPolicy` check.
    */
-  addMemoryForSeat(
-    seat: Seat,
-    amount: number,
-    reason = "addMemory",
-    opts?: { isTamerEffect?: boolean },
-  ): void {
+  addMemoryForSeat(seat: Seat, amount: number, reason = "addMemory", opts?: { isTamerEffect?: boolean }): void {
     if (amount === 0) {
       return;
     }

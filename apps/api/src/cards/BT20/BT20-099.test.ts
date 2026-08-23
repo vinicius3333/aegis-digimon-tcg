@@ -15,7 +15,20 @@ describe("BT20-099 Singularity of Chaos", () => {
 
   it("keeps the color waiver scoped to Chaosmon or ACCEL", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Static")).toMatchObject({
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["Chaosmon"], match: "name" }, { tokens: ["ACCEL"], match: "trait" }] } } }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: {
+            kind: "youHave",
+            filter: {
+              nameOrTrait: [
+                { tokens: ["Chaosmon"], match: "name" },
+                { tokens: ["ACCEL"], match: "trait" },
+              ],
+            },
+          },
+        },
+      ],
     });
   });
 });

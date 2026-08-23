@@ -25,12 +25,14 @@ describe("BT11-031 ZeigGreymon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("zeig").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zeig").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("base").isSuspended && s.state.memory === 10);
 
     expect(s.perm("base").isSuspended).toBe(false);
@@ -38,28 +40,29 @@ describe("BT11-031 ZeigGreymon", () => {
   });
 
   it("saves itself under any Tamer, then places blue Greymon and MailBirdramon under a General", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT11-031", as: "zeig" },
-          { card: "BT11-095", as: "general" },
-        ],
-        trash: [
-          { card: "BT10-019", as: "greymon" },
-          { card: "BT10-021", as: "mailBirdramon" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-031", as: "zeig" },
+            { card: "BT11-095", as: "general" },
+          ],
+          trash: [
+            { card: "BT10-019", as: "greymon" },
+            { card: "BT10-021", as: "mailBirdramon" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     const zeigInstanceId = s.perm("zeig").topCard!.instanceId;
     expect(await advance(s.engine).verb.deletePermanent([s.perm("zeig").permanentId], "byEffect")).toBe(1);
     await settle(() => s.perm("general").stack.length === 3);
 
-    expect(s.perm("general").stack.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining([
-      zeigInstanceId,
-      s.inst("greymon").instanceId,
-      s.inst("mailBirdramon").instanceId,
-    ]));
+    expect(s.perm("general").stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([zeigInstanceId, s.inst("greymon").instanceId, s.inst("mailBirdramon").instanceId]),
+    );
   });
 
   it("inherited effect grants Blocker to a Blue Flare host on the opponent's turn", async () => {

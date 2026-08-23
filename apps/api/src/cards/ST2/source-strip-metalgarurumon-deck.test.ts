@@ -36,19 +36,18 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
     const attackerId = attacker.permanentId;
 
     expect(observe(s.engine).keywordAmount(attacker, "SecurityAttack")).toBe(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attackerId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
 
     // KB Q612: ST2-06 strips the last source during [When Attacking], immediately turning
     // ST2-08 on for this same attack. ST2-11 has already unsuspended before the checks (Q618).
     await settle(
-      () =>
-        !observe(s.engine).isAttacking() &&
-        s.state.players[1]!.security.length === 3 &&
-        !attacker.isSuspended,
+      () => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 3 && !attacker.isSuspended,
       3000,
     );
 
@@ -58,15 +57,14 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
     );
     expect(observe(s.engine).keywordAmount(attacker, "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attackerId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(
-      () => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1,
-      3000,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1, 3000);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(attacker.isSuspended).toBe(true);
@@ -83,20 +81,10 @@ describe("ST2 source-strip MetalGarurumon deck gauntlet", () => {
 
     // KB Q613/Q614: breeding does not count, and an empty opposing battle area does not
     // satisfy the condition merely because every Digimon there vacuously has no sources.
-    expect(
-      observe(breedingOnly.engine).keywordAmount(
-        breedingOnly.perm("host"),
-        "SecurityAttack",
-      ),
-    ).toBe(0);
+    expect(observe(breedingOnly.engine).keywordAmount(breedingOnly.perm("host"), "SecurityAttack")).toBe(0);
 
     breedingOnly.putOnBoard(1, { card: "ST1-03", as: "battleDigimon" });
     await breedingOnly.ready();
-    expect(
-      observe(breedingOnly.engine).keywordAmount(
-        breedingOnly.perm("host"),
-        "SecurityAttack",
-      ),
-    ).toBe(1);
+    expect(observe(breedingOnly.engine).keywordAmount(breedingOnly.perm("host"), "SecurityAttack")).toBe(1);
   });
 });

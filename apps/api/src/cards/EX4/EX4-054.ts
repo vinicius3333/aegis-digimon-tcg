@@ -14,107 +14,95 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Add the missing WhenAttacking inherited AddDPFromSuspendedCost effect (main finding)
 //   - Preserve the existing EndOfAttack inherited effect (it was correct)
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "AddDPFromSuspendedCost",
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "battleArea",
-                "kind": [
-                  "Digimon"
-                ],
-                "excludeSelf": true
+          kind: "AddDPFromSuspendedCost",
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "battleArea",
+                kind: ["Digimon"],
+                excludeSelf: true,
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by suspending 1 of your other Digimon"
+            raw: "by suspending 1 of your other Digimon",
           },
-          "dpSource": {
-            "kind": "suspendedTarget"
+          dpSource: {
+            kind: "suspendedTarget",
           },
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "forThisAttack",
-          "alsoGainKeywords": [
+          duration: "forThisAttack",
+          alsoGainKeywords: [
             {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
-          ]
-        }
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
+          ],
+        },
       ],
-      "isInherited": true
+      isInherited: true,
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Green"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Green"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          to: "hand",
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              excludeSelf: true,
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "raw": "you have another suspended Digimon in play"
-          }
-        }
+            raw: "you have another suspended Digimon in play",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Terriermon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      level: 3,
+      names: ["Terriermon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "names": [
-        "Lopmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      names: ["Lopmon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX4-054", compiled);

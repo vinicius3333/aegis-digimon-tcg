@@ -6,175 +6,144 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Blue",
-                "Red"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Blue", "Red"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "filter": {
-              "isSelfRef": true
-            }
+          into: {
+            filter: {
+              isSelfRef: true,
+            },
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "costOverride": 3,
-          "ignoreRequirements": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
+          from: ["hand"],
+          payCost: true,
+          costOverride: 3,
+          ignoreRequirements: true,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Kumamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
-            },
-            "raw": "By placing 1 [Kumamon] and 1 [Korikakumon] from your trash under 1 of your blue or red Tamers, digivolve that Tamer into this card from your hand.",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Blue",
-                "Red"
-              ]
-            },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target"
-          },
-          "additionalCosts": [
-            {
-              "kind": "place",
-              "target": {
-                "filter": {
-                  "zone": "trash",
-                  "controller": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Korikakumon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1,
-                "from": [
-                  "trash"
-                ]
-              },
-              "raw": "By placing 1 [Kumamon] and 1 [Korikakumon] from your trash under 1 of your blue or red Tamers, digivolve that Tamer into this card from your hand.",
-              "underFilter": {
-                "controller": "mine",
-                "kind": [
-                  "Tamer"
+                    tokens: ["Kumamon"],
+                    match: "name",
+                  },
                 ],
-                "colors": [
-                  "Blue",
-                  "Red"
-                ]
               },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target"
-            }
-          ],
-          "raw": "By placing 1 [Kumamon] and 1 [Korikakumon] from your trash under 1 of your blue or red Tamers, digivolve that Tamer into this card from your hand."
-        }
-      ],
-      "isFromHand": true
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "IceClad",
-          "raw": "＜Ice Clad＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+              count: 1,
+              from: ["trash"],
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+            raw: "By placing 1 [Kumamon] and 1 [Korikakumon] from your trash under 1 of your blue or red Tamers, digivolve that Tamer into this card from your hand.",
+            underFilter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Blue", "Red"],
             },
-            "count": 1,
-            "isSelf": true
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          additionalCosts: [
+            {
+              kind: "place",
+              target: {
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Korikakumon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+                from: ["trash"],
+              },
+              raw: "By placing 1 [Kumamon] and 1 [Korikakumon] from your trash under 1 of your blue or red Tamers, digivolve that Tamer into this card from your hand.",
+              underFilter: {
+                controller: "mine",
+                kind: ["Tamer"],
+                colors: ["Blue", "Red"],
+              },
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "target",
+            },
+          ],
+          raw: "By placing 1 [Kumamon] and 1 [Korikakumon] from your trash under 1 of your blue or red Tamers, digivolve that Tamer into this card from your hand.",
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+      isFromHand: true,
+    },
     {
-      "level": 4,
-      "traits": [
-        "Hybrid"
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "IceClad",
+          raw: "＜Ice Clad＞",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "ruleText": [
-    "Trait: Has [Ice-Snow] type."
-  ]
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      traits: ["Hybrid"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
+  ruleText: ["Trait: Has [Ice-Snow] type."],
 };
 
 registerIrCard("BT18-026", compiled);

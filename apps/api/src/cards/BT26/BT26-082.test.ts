@@ -14,35 +14,64 @@ describe("BT26-082 compiled behavior", () => {
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
     expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
-    expect(compiled.effects.find((effect) => effect.trigger === "EndOfOpponentsTurn")).toMatchObject({ isSecurity: true });
+    expect(compiled.effects.find((effect) => effect.trigger === "EndOfOpponentsTurn")).toMatchObject({
+      isSecurity: true,
+    });
     expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
-      kind: "GrantStatic", grant: "trait", tokens: ["Birdkin"],
+      kind: "GrantStatic",
+      grant: "trait",
+      tokens: ["Birdkin"],
     });
     for (const trigger of ["WhenDigivolving", "EndOfAttack"]) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({ kind: "Modal", choose: 1, options: [
-        [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "deleteOwn" } }],
-        [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 } }],
-      ] });
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "Modal",
+        choose: 1,
+        options: [
+          [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "deleteOwn" } }],
+          [
+            {
+              kind: "Delete",
+              target: { filter: { superlative: "highestDP" } },
+              cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
+            },
+          ],
+        ],
+      });
     }
   });
 
   it("trashes from the opponent's hand before the optional face-up bottom-security placement", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual([
-      expect.objectContaining({ kind: "Trash", chooser: "opponent", target: { filter: { controller: "opponent", zone: "hand" }, count: 1 } }),
-      expect.objectContaining({ kind: "SecurityManipulation", op: "placeAsSecurity", from: ["trash"], toTop: false, faceUp: true, optional: true, condition: { kind: "handAtMost", controller: "opponent", value: 7 } }),
+      expect.objectContaining({
+        kind: "Trash",
+        chooser: "opponent",
+        target: { filter: { controller: "opponent", zone: "hand" }, count: 1 },
+      }),
+      expect.objectContaining({
+        kind: "SecurityManipulation",
+        op: "placeAsSecurity",
+        from: ["trash"],
+        toTop: false,
+        faceUp: true,
+        optional: true,
+        condition: { kind: "handAtMost", controller: "opponent", value: 7 },
+      }),
     ]);
   });
 
   it("resolves the printed delete-self cost against the opponent's highest-DP Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-084", as: "highest" },
-          { card: "BT1-010", as: "lower" },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-084", as: "highest" },
+            { card: "BT1-010", as: "lower" },
+          ],
+        },
       },
-    }, { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true });
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
 
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ravemon"));
 
@@ -61,6 +90,8 @@ describe("BT26-082 compiled behavior", () => {
     await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("securityRavemon"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-082"));
 
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("securityRavemon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("securityRavemon").instanceId)).toBe(
+      false,
+    );
   });
 });

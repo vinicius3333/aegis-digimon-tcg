@@ -102,12 +102,14 @@ describe("BT26-027 Petermon", () => {
       },
     });
     legal.state.memory = 2;
-    expect(legal.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: legal.perm("base").permanentId,
-      instanceId: legal.inst("petermon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("petermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard.cardId === "BT26-027");
     expect(legal.state.memory).toBe(0);
 
@@ -118,11 +120,13 @@ describe("BT26-027 Petermon", () => {
       },
     });
     invalid.state.memory = 2;
-    expect(invalid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: invalid.perm("base").permanentId,
-      instanceId: invalid.inst("petermon").instanceId,
-      useAlternateCost: true,
-    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("petermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

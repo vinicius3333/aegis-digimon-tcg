@@ -3,51 +3,47 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "Diaboromon"
-          ],
-          "count": 1,
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          kind: "PlayToken",
+          tokens: ["Diaboromon"],
+          count: 1,
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Diaboromon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Diaboromon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "forTheTurn"
-        }
-      ]
-    }
+          duration: "forTheTurn",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-065", compiled);

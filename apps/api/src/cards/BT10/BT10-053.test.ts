@@ -81,9 +81,7 @@ describe("BT10-053 Ajatarmon", () => {
         (permanent) => permanent.topCard.instanceId === s.inst("chosenPalmon").instanceId,
       ),
     );
-    await settle(() =>
-      s.events.some((event) => event.kind === "effectActivated" && event.sourceCardId === "BT10-053"),
-    );
+    await settle(() => s.events.some((event) => event.kind === "effectActivated" && event.sourceCardId === "BT10-053"));
 
     expect(s.perm("ajatarmon").isSuspended).toBe(true);
     expect(s.perm("otherCost").isSuspended).toBe(false);
@@ -155,9 +153,10 @@ describe("BT10-053 Ajatarmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !((s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking) &&
-      s.state.players[1]!.security.length === 1
+    await settle(
+      () =>
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
+        s.state.players[1]!.security.length === 1,
     );
     // Attacking alone never feeds Ajatarmon's inherited "gain 1 memory" clause: the gauge did
     // not move toward the controller. (It moved the other way, from the board's own effects,

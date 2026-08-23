@@ -77,10 +77,7 @@ function makePermanent(id: string, cardId: string, seat: Seat, isSuspended: bool
   };
 }
 
-function makeCtx(opts: {
-  recorder: Recorder;
-  oppPerms: ReturnType<typeof makePermanent>[];
-}): EffectContext {
+function makeCtx(opts: { recorder: Recorder; oppPerms: ReturnType<typeof makePermanent>[] }): EffectContext {
   const { recorder, oppPerms } = opts;
 
   const defMap = new Map<string, CardDefinition>();
@@ -90,7 +87,14 @@ function makeCtx(opts: {
   }
 
   const players = [
-    { seat: 0 as Seat, battleArea: [], hand: [], deck: [], trash: [{ ...inst("EX7-072"), instanceId: "EX7-072-INST" }], security: [] },
+    {
+      seat: 0 as Seat,
+      battleArea: [],
+      hand: [],
+      deck: [],
+      trash: [{ ...inst("EX7-072"), instanceId: "EX7-072-INST" }],
+      security: [],
+    },
     { seat: 1 as Seat, battleArea: oppPerms, hand: [], deck: [], trash: [], security: [] },
   ];
 
@@ -152,7 +156,7 @@ describe("EX7-072 Seventh Fascination", () => {
 
     const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
     expect(deleteCalls.length).toBe(1);
-    expect((deleteCalls[0]!.args[0] as string[])).toContain("OPP-1");
+    expect(deleteCalls[0]!.args[0] as string[]).toContain("OPP-1");
   });
 
   it("[Security] does NOT delete a suspended opponent Digimon", async () => {
@@ -180,8 +184,8 @@ describe("EX7-072 Seventh Fascination", () => {
 
     const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
     expect(deleteCalls.length).toBe(1);
-    expect((deleteCalls[0]!.args[0] as string[])).toContain("OPP-ACTIVE");
-    expect((deleteCalls[0]!.args[0] as string[])).not.toContain("OPP-SUSP");
+    expect(deleteCalls[0]!.args[0] as string[]).toContain("OPP-ACTIVE");
+    expect(deleteCalls[0]!.args[0] as string[]).not.toContain("OPP-SUSP");
   });
 });
 
@@ -221,9 +225,7 @@ describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent D
     const recorder: Recorder = { calls: [] };
     let capturedRun: ((ctx: EffectContext) => Promise<void>) | undefined;
     const ctx = makeCtx({ recorder, oppPerms });
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: {
-      run: (c: EffectContext) => Promise<void>;
-    }) => {
+    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: { run: (c: EffectContext) => Promise<void> }) => {
       capturedRun = sub.run;
       return 0;
     }) as never;
@@ -300,9 +302,7 @@ describe("EX7-072 [Trash][Your Turn] watches for a digivolve into [Lilithmon (X 
     const recorder: Recorder = { calls: [] };
     const ctx = makeCtx({ recorder, oppPerms: [] });
     let capturedMatches: ((c: EffectContext) => boolean) | undefined;
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: {
-      matches: (c: EffectContext) => boolean;
-    }) => {
+    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: { matches: (c: EffectContext) => boolean }) => {
       capturedMatches = sub.matches;
       return 0;
     }) as never;
@@ -313,10 +313,7 @@ describe("EX7-072 [Trash][Your Turn] watches for a digivolve into [Lilithmon (X 
 
     const lilithmonXaPerm = makePermanent("HOST", "EX7-061", 0 as Seat, false);
     const defMap = new Map<string, CardDefinition>([
-      [
-        "EX7-061",
-        { ...digimonDef("EX7-061"), nameEn: "Lilithmon (X Antibody)" },
-      ],
+      ["EX7-061", { ...digimonDef("EX7-061"), nameEn: "Lilithmon (X Antibody)" }],
     ]);
     const opponentsPerm = makePermanent("OPP-HOST", "EX7-061", 1 as Seat, false);
     const otherDigimonPerm = makePermanent("OTHER", "SOME-OTHER", 0 as Seat, false);
@@ -345,9 +342,7 @@ describe("EX7-072 [Trash][Your Turn] watches for a digivolve into [Lilithmon (X 
     const ctx = makeCtx({ recorder, oppPerms });
     let capturedRun: ((c: EffectContext) => Promise<void>) | undefined;
     const outerSubCalls: unknown[] = [];
-    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: {
-      run: (c: EffectContext) => Promise<void>;
-    }) => {
+    (ctx.fx as unknown as Primitives).subscribeSubTrigger = ((sub: { run: (c: EffectContext) => Promise<void> }) => {
       if (capturedRun === undefined) capturedRun = sub.run;
       outerSubCalls.push(sub);
       return 0;

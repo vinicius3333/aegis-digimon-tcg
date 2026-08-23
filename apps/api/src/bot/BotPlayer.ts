@@ -65,9 +65,7 @@ export class BotPlayer {
     this.minThinkMs = options.minThinkMs ?? DEFAULT_ACTION_DELAY_MS;
     this.maxThinkMs = Math.max(options.maxThinkMs ?? DEFAULT_ACTION_DELAY_MS, this.minThinkMs);
     const seed = options.seed ?? 0x5eed;
-    this.policy =
-      options.policy ??
-      createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
+    this.policy = options.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
     const random = createBotRandom(seed ^ 0x9e37);
     this.delay =
       options.thinkDelay ??
@@ -116,42 +114,35 @@ export class BotPlayer {
             eligibleBlockerIds: event.eligibleBlockerIds,
             targetsPlayer: this.pendingAttackTargetsPlayer,
           };
-          this.respondWithView(
-            (view) => this.policy.chooseBlockResponse(view, context),
-            { type: "declineBlock" },
-          );
+          this.respondWithView((view) => this.policy.chooseBlockResponse(view, context), { type: "declineBlock" });
         }
         break;
       case "counterWindowOpened":
         if (event.defendingSeat === this.seat) {
-          this.respondWithView(
-            (view) => this.policy.chooseCounterResponse(view, event),
-            { type: "respondCounter" },
-          );
+          this.respondWithView((view) => this.policy.chooseCounterResponse(view, event), { type: "respondCounter" });
         }
         break;
       case "alliancePrompt":
         if (this.controls(event.permanentId)) {
-          this.respondWithView(
-            (view) => this.policy.chooseAllianceResponse(view, event),
-            { type: "respondAlliance" },
-          );
+          this.respondWithView((view) => this.policy.chooseAllianceResponse(view, event), { type: "respondAlliance" });
         }
         break;
       case "evadePrompt":
         if (this.controls(event.permanentId)) {
-          this.respondWithView(
-            (view) => this.policy.chooseEvadeResponse(view, event.permanentId),
-            { type: "respondEvade", permanentId: event.permanentId, accept: false },
-          );
+          this.respondWithView((view) => this.policy.chooseEvadeResponse(view, event.permanentId), {
+            type: "respondEvade",
+            permanentId: event.permanentId,
+            accept: false,
+          });
         }
         break;
       case "barrierPrompt":
         if (this.controls(event.permanentId)) {
-          this.respondWithView(
-            (view) => this.policy.chooseBarrierResponse(view, event.permanentId),
-            { type: "respondBarrier", permanentId: event.permanentId, accept: false },
-          );
+          this.respondWithView((view) => this.policy.chooseBarrierResponse(view, event.permanentId), {
+            type: "respondBarrier",
+            permanentId: event.permanentId,
+            accept: false,
+          });
         }
         break;
     }
@@ -279,11 +270,7 @@ export class BotPlayer {
   }
 
   private isMyMainPhase(): boolean {
-    return (
-      !this.state.gameOver &&
-      this.state.turnSeat === this.seat &&
-      this.state.phase === Phase.Main
-    );
+    return !this.state.gameOver && this.state.turnSeat === this.seat && this.state.phase === Phase.Main;
   }
 
   /** Run `action` after a short think-delay. */

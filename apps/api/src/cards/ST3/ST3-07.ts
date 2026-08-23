@@ -6,7 +6,14 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{ kind: "GainKeyword", target: { filter: {}, count: 1, isSelf: true }, keyword: { keyword: "Blocker" }, duration: "permanent" }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: {}, count: 1, isSelf: true },
+          keyword: { keyword: "Blocker" },
+          duration: "permanent",
+        },
+      ],
     },
     { trigger: "WhenAttacking", actions: [{ kind: "GainMemory", amount: -2 }] },
   ],

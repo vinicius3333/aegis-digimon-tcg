@@ -6,105 +6,93 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Decode",
-          "raw": "＜Decode (Blue Lv.5)＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ],
-                "levelLte": "returnedDigimonLevel"
-            },
-            "count": 1
-          },
-          "to": "deckBottom",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By returning 1 of your Digimon to the bottom of the deck",
-            "to": "deckBottom",
-            "storeAs": "returnedDigimonLevel"
-          },
-          "optional": false,
-          "abortOnDecline": false
-        }
+          keyword: "Decode",
+          raw: "＜Decode (Blue Lv.5)＞",
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
           },
-          "grant": "trait",
-          "tokens": [
-            "Aquatic"
-          ]
-        }
-      ]
-    }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "EndOfYourTurn",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelLte: "returnedDigimonLevel",
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+              },
+              count: 1,
+            },
+            raw: "By returning 1 of your Digimon to the bottom of the deck",
+            to: "deckBottom",
+            storeAs: "returnedDigimonLevel",
+          },
+          optional: false,
+          abortOnDecline: false,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Aquatic"],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-027", compiled);

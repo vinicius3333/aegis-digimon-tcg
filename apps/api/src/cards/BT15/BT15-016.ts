@@ -6,135 +6,125 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "gte",
-                "value": 8000
-              }
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "gte",
+                value: 8000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "memoryAtMost",
-            "controller": "opponent",
-            "value": 4,
-            "raw": "your opponent has 4 or less memory"
-          }
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "memoryAtMost",
+            controller: "opponent",
+            value: 4,
+            raw: "your opponent has 4 or less memory",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "memoryAtLeast",
-            "controller": "opponent",
-            "value": 4,
-            "raw": "they have 4 or more"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "gte",
-                "value": 8000
-              }
-            },
-            "count": 1
+          condition: {
+            kind: "memoryAtLeast",
+            controller: "opponent",
+            value: 4,
+            raw: "they have 4 or more",
           },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "memoryAtMost",
-            "controller": "opponent",
-            "value": 4,
-            "raw": "your opponent has 4 or less memory"
-          }
         },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "memoryAtLeast",
-            "controller": "opponent",
-            "value": 4,
-            "raw": "they have 4 or more"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 7000
-              }
-            },
-            "count": 1
-          },
-          "to": "hand"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "gte",
+                value: 8000,
+              },
+            },
+            count: 1,
+          },
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "memoryAtMost",
+            controller: "opponent",
+            value: 4,
+            raw: "your opponent has 4 or less memory",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "memoryAtLeast",
+            controller: "opponent",
+            value: 4,
+            raw: "they have 4 or more",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 7000,
+              },
+            },
+            count: 1,
+          },
+          to: "hand",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-016", compiled);

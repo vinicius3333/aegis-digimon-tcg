@@ -7,38 +7,38 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   unsuspend this Digimon.
 // The cost targets any card from hand (no kind filter), Unsuspend is the action.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 2
+              count: 2,
             },
-            "raw": "by trashing 2 cards in your hand"
+            raw: "by trashing 2 cards in your hand",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-025", compiled);

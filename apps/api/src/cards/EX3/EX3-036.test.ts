@@ -279,7 +279,9 @@ describe("EX3-036 Magnadramon", () => {
     );
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-036" && req.kind === "optional")).toHaveLength(1);
-    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-036" && req.kind === "selectCards")).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-036" && req.kind === "selectCards")).toHaveLength(
+      0,
+    );
     const trial = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-069")!;
     expect(observe(s.engine).activatableEffects(trial)).toEqual([]);
   });

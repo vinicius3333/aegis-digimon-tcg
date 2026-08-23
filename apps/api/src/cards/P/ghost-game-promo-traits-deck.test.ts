@@ -40,33 +40,40 @@ describe("Ghost Game promo trait decks", () => {
     await s.ready();
 
     expect(s.perm("gammamonHost").currentDP).toBe(gammamonBaseDP + 2000);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gammamonHost").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("targetOne").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gammamonHost").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("targetOne").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("hiro").isSuspended);
     await settle();
     expect(observe(s.engine).keywordAmount(s.perm("gammamonHost"), "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("angoramonHost").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("targetTwo").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("angoramonHost").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("targetTwo").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("ruli").isSuspended && s.state.memory === 4);
     await settle();
     expect(s.perm("angoramonHost").currentDP).toBe(angoramonBaseDP + 3000);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("jellymonHost").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("targetThree").permanentId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("kiyoshiro").isSuspended &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === drawnId) &&
-      observe(s.engine).hasKeyword(s.perm("jellymonHost"), "Jamming"),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jellymonHost").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("targetThree").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("kiyoshiro").isSuspended &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === drawnId) &&
+        observe(s.engine).hasKeyword(s.perm("jellymonHost"), "Jamming"),
     );
 
     expect(observe(s.engine).hasKeyword(s.perm("jellymonHost"), "Jamming")).toBe(true);

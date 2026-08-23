@@ -4,9 +4,17 @@ import "./P-078.js";
 
 describe("P-078 Espimon", () => {
   it("draws for a revealed Digimon and returns it face down", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "P-078", as: "source" }], deck: [{ card: "BT1-009", as: "drawn" }] }, 1: { security: ["BT1-009"] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-078", as: "source" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     const securityId = s.state.players[1]!.security[0]!.instanceId;
     await settle(
       () =>
@@ -33,7 +41,9 @@ describe("P-078 Espimon", () => {
     s.state.memory = 10;
     const optionId = s.inst("option").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.security[0]?.faceUp === false);
 
     expect(s.state.players[0]!.deck).toHaveLength(1);

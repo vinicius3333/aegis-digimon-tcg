@@ -6,86 +6,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // digivolution cards" gate was an inert raw condition; expressed via the
 // digivolution-stack name match.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": ["Togemon"],
-                  "match": "name"
+                  tokens: ["Togemon"],
+                  match: "name",
                 },
                 {
-                  "tokens": ["X Antibody"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "[Togemon]/[X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[Togemon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          amount: 1000,
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
+            unit: "cards",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-048", compiled);

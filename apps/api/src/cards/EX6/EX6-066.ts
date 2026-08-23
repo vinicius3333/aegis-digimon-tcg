@@ -12,89 +12,74 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-                "levelEq": "placedCardLevel"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelEq: "placedCardLevel",
             },
-            "count": "all"
+            count: "all",
           },
-          "to": "hand",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          to: "hand",
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Aqua",
-                      "Sea Animal"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Aqua", "Sea Animal"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "hand"
-              ]
+              count: 1,
+              from: ["hand"],
             },
-            "raw": "By placing 1 Digimon card with [Aqua]/[Sea Animal] in one of its traits from your hand as the bottom digivolution card of 1 of your blue Digimon",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ]
+            raw: "By placing 1 Digimon card with [Aqua]/[Sea Animal] in one of its traits from your hand as the bottom digivolution card of 1 of your blue Digimon",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
             },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target",
-            "storeAs": "placedCardLevel"
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+            storeAs: "placedCardLevel",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": "all"
+            count: "all",
           },
-          "to": "hand"
-        }
+          to: "hand",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-066", compiled);

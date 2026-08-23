@@ -6,90 +6,78 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dark Animal"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Dark Animal"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dark Animal"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Dark Animal"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-072", compiled);

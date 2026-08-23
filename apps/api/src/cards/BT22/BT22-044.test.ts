@@ -42,10 +42,14 @@ describe("BT22-044 Palmon", () => {
     const host = s.perm("host");
     const palmon = host.stack.find((card) => card.cardId === "BT22-044")!;
     const source = (s.engine as any).cardSourceOf(palmon);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT22-044/"))!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-044/"),
+    )!.effectKey;
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: palmon.instanceId, effectKey })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: palmon.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => host.topCard?.cardId === "BT22-044");
     await settle();
 

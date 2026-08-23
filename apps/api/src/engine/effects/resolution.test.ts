@@ -81,8 +81,7 @@ afterAll(() => {
  * which is true once the card is a non-breeding permanent's top card — the realistic On
  * Play setup. The Board Spec alias names that permanent; its top card is the effect source.
  */
-const topCardOf = (s: EngineSetup, alias: string): CardInstance =>
-  s.perm(alias).topCard as CardInstance;
+const topCardOf = (s: EngineSetup, alias: string): CardInstance => s.perm(alias).topCard as CardInstance;
 
 function frameworkEnv(state: GameState): EffectEnvironment {
   return {
@@ -198,7 +197,11 @@ describe("runTiming (composition root end-to-end)", () => {
     const { state } = s;
     const fenv = frameworkEnv(state);
 
-    await runTiming(EffectTiming.OnPlay, fenv, deps(state, [topCardOf(s, "over")], () => true));
+    await runTiming(
+      EffectTiming.OnPlay,
+      fenv,
+      deps(state, [topCardOf(s, "over")], () => true),
+    );
 
     expect(resolvedCount).toBe(before);
   });

@@ -7,6 +7,10 @@ describe("BT17-010", () => {
   });
 
   it("registers the inherited DP deletion maximum effect", () => {
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "CostModifier", costType: "dpDeletion" }] });
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [{ kind: "CostModifier", costType: "dpDeletion" }],
+    });
   });
 });

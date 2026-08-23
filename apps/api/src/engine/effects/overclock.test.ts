@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  CardKind,
-  EffectTiming,
-  getCompiledCard,
-  getCardDefinition,
-  type PlayerState,
-  type Seat,
-} from "@aegis/shared";
+import { CardKind, EffectTiming, getCompiledCard, getCardDefinition, type PlayerState, type Seat } from "@aegis/shared";
 import { setupEngine, settle } from "../testkit/harness.js";
 import { irCardModule, definitionMatches } from "./interpreter.js";
 import type { CardSource } from "./CardSource.js";
@@ -84,7 +77,17 @@ describe("＜Overclock＞ end-of-turn attack synthesis", () => {
 
   it("synthesizes exactly one EndOfYourTurn attack for keyword-only cards", () => {
     // Before the fix each of these had zero OnEndTurn effects (the keyword was inert).
-    for (const id of ["EX11-024", "ST19-08", "ST19-12", "EX7-027", "BT19-101", "BT24-079", "BT24-065", "BT22-040", "BT22-042"]) {
+    for (const id of [
+      "EX11-024",
+      "ST19-08",
+      "ST19-12",
+      "EX7-027",
+      "BT19-101",
+      "BT24-079",
+      "BT24-065",
+      "BT22-040",
+      "BT22-042",
+    ]) {
       expect(endOfTurn(id), id).toHaveLength(1);
     }
   });
@@ -144,7 +147,8 @@ describe("＜Overclock＞ activates at end of turn (EX11-024, Token-paid)", () =
 
     // The overclocker declared an attack (without suspending — it is still unsuspended).
     const declared = s.events.filter(
-      (e) => (e as { kind?: string }).kind === "attackDeclared" &&
+      (e) =>
+        (e as { kind?: string }).kind === "attackDeclared" &&
         (e as { attackerPermanentId?: string }).attackerPermanentId === overclockerPermanentId,
     );
     expect(declared.length, "Overclock attack declared").toBeGreaterThanOrEqual(1);

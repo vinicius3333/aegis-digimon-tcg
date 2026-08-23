@@ -52,7 +52,8 @@ describe("EX12-008 ToyAgumon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX12-008", as: "host", under: ["EX12-008"] }] } });
     await s.ready();
 
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("host").permanentId, "Raid")).toBe(true);
   });
 

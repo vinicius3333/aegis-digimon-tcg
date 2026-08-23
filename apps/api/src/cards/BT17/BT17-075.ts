@@ -25,194 +25,162 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // a target count:1 and should repeat based on scaling. Use count:"scaling" with
 // the per:2 Tamer filter.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true,
-          "controller": "opponent"
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          controller: "opponent",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "White"
-              ],
-              "playCostLte": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["White"],
+              playCostLte: 4,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "ifThisEffectDidNotAct",
-            "raw": "they don't"
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "ifThisEffectDidNotAct",
+            raw: "they don't",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "kind": [
-                "Tamer"
-              ]
+          amount: 1,
+          scaling: {
+            per: 2,
+            filter: {
+              kind: ["Tamer"],
             },
-            "unit": "cards",
-            "scalesCount": true
-          }
-        }
-      ]
+            unit: "cards",
+            scalesCount: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true,
-          "controller": "opponent"
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          controller: "opponent",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "White"
-              ],
-              "playCostLte": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["White"],
+              playCostLte: 4,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "ifThisEffectDidNotAct",
-            "raw": "they don't"
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "ifThisEffectDidNotAct",
+            raw: "they don't",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "kind": [
-                "Tamer"
-              ]
+          amount: 1,
+          scaling: {
+            per: 2,
+            filter: {
+              kind: ["Tamer"],
             },
-            "unit": "cards",
-            "scalesCount": true
-          }
-        }
-      ]
+            unit: "cards",
+            scalesCount: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "unsuspended": true,
-                  "nameOrTrait": [
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  unsuspended: true,
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Eosmon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Eosmon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": [
-        "Eosmon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      names: ["Eosmon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-075", compiled);

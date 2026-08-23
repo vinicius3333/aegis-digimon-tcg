@@ -6,64 +6,60 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Jamming",
-              "raw": "＜Jamming＞"
-            }
-          },
-          "while": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "digivolutionCards": "hasAny",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Jamming",
+              raw: "＜Jamming＞",
             },
-            "raw": "your opponent has no Digimon with digivolution cards in play"
-          }
-        }
-      ]
+          },
+          while: {
+            kind: "opponentHasNone",
+            filter: {
+              digivolutionCards: "hasAny",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            raw: "your opponent has no Digimon with digivolution cards in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "fromTop": false
-        }
+          amount: 1,
+          fromTop: false,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-024", compiled);

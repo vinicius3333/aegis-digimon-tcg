@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type CompiledCard,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CompiledCard, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "./effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "./effects/EffectContext.js";
 import { irCardModule } from "./effects/interpreter.js";

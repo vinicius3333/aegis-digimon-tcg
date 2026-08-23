@@ -6,21 +6,44 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-016.js";
 describe("BT10-016 Jesmon (X Antibody)", () => {
   it("plays a Sistermon and gives all of its Digimon +2000 DP when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-016", as: "base" }], hand: [{ card: "BT10-016", as: "evolving" }, { card: "BT6-082", as: "sister" }] } }, { autoAcceptOptional: true, autoSelectCards: true }); s.state.memory = 0;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-016", as: "base" }],
+          hand: [
+            { card: "BT10-016", as: "evolving" },
+            { card: "BT6-082", as: "sister" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").currentDP === 13000 && observe(s.engine).canAttackUnsuspended(s.perm("base")));
     expect(s.perm("base").currentDP).toBe(13000);
-    expect(s.state.players[0]!.battleArea.find(p => p.topCard?.instanceId === s.inst("sister").instanceId)?.currentDP).toBe(5000);
+    expect(
+      s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === s.inst("sister").instanceId)?.currentDP,
+    ).toBe(5000);
     expect(observe(s.engine).canAttackUnsuspended(s.perm("base"))).toBe(true);
   });
 
   it("does not digivolve onto another Jesmon (X Antibody) through its exact [Jesmon] requirement", () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT10-016", as: "base" }],
-        hand: [{ card: "BT10-016", as: "evolving" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-016", as: "base" }],
+          hand: [{ card: "BT10-016", as: "evolving" }],
+        },
       },
-    }, { autoDeclineOptional: true });
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 1;
 
     const result = s.engine.applyIntent(0, {
@@ -48,31 +71,37 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
   });
 
   it("grants DP and unsuspended targets to current and later Digimon without bypassing summoning sickness (Q1945)", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT6-016", as: "base" },
-          { card: "BT10-008", as: "currentAlly" },
-        ],
-        hand: [
-          { card: "BT10-016", as: "evolving" },
-          { card: "BT10-008", as: "laterAlly" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-016", as: "base" },
+            { card: "BT10-008", as: "currentAlly" },
+          ],
+          hand: [
+            { card: "BT10-016", as: "evolving" },
+            { card: "BT10-008", as: "laterAlly" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT10-008", as: "unsuspendedOpponent" }] },
       },
-      1: { battleArea: [{ card: "BT10-008", as: "unsuspendedOpponent" }] },
-    }, { autoDeclineOptional: true });
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 3;
     // Board-spec permanents are from a prior turn; the later effect-play remains fresh.
     s.state.turnCount += 1;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      observe(s.engine).canAttackUnsuspended(s.perm("currentAlly")) &&
-      s.perm("currentAlly").attackablePermanentIds.includes(s.perm("unsuspendedOpponent").permanentId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        observe(s.engine).canAttackUnsuspended(s.perm("currentAlly")) &&
+        s.perm("currentAlly").attackablePermanentIds.includes(s.perm("unsuspendedOpponent").permanentId),
     );
 
     expect(s.perm("currentAlly").currentDP).toBe(4000);

@@ -171,7 +171,12 @@ describe("§15-4-3 Simultaneous Triggering (comprehensive-0164)", () => {
   it("orderTurnPlayerFirst is stable within each side (doesn't reorder same-seat effects)", () => {
     cite("comprehensive-0164", "15-4-3-1 simultaneous triggering: multiple effects trigger at the same timing");
 
-    const seed = [collected(1, "opp1", fakeEffect("opp1")), collected(0, "mineA", fakeEffect("mineA")), collected(0, "mineB", fakeEffect("mineB")), collected(1, "opp2", fakeEffect("opp2"))];
+    const seed = [
+      collected(1, "opp1", fakeEffect("opp1")),
+      collected(0, "mineA", fakeEffect("mineA")),
+      collected(0, "mineB", fakeEffect("mineB")),
+      collected(1, "opp2", fakeEffect("opp2")),
+    ];
     const ordered = orderTurnPlayerFirst(seed, 0);
     expect(ordered.map((c) => c.source.instanceId)).toEqual(["mineA", "mineB", "opp1", "opp2"]);
   });
@@ -189,7 +194,12 @@ describe("§15-4-4 Pending Activation (comprehensive-0165)", () => {
     let bStillLegal = true;
     // Resolving "a" flips bStillLegal false (simulating "the target left the field" /
     // "the condition stopped being met" mid pending-activation window).
-    const a = fakeEffect("a", { onResolve: () => { bStillLegal = false; log.push("a"); } });
+    const a = fakeEffect("a", {
+      onResolve: () => {
+        bStillLegal = false;
+        log.push("a");
+      },
+    });
     const b = fakeEffect("b", { canActivate: () => bStillLegal, onResolve: () => log.push("b") });
     const seed = [collected(0, "a", a), collected(0, "b", b)];
     const tracker = new UseTracker();
@@ -210,55 +220,52 @@ describe("§15-4-4 Pending Activation (comprehensive-0165)", () => {
 });
 
 describe("§15-4-5 Derived Triggering (comprehensive-0166)", () => {
-  it(
-    "NOW MET: a derived trigger for the non-turn player should activate BEFORE the turn player's still-pending effects",
-    async () => {
-      cite(
-        "comprehensive-0166",
-        "DIVERGENCE: 15-4-5-2/3 'A derived triggering effect will activate before " +
-          "previously triggered effects that are pending activation. If a derived triggering " +
-          "effect occurs for the non-turn player when there are pending activation effects for " +
-          "the turn player, the derived triggering effect will activate first.' " +
-          "orderTurnPlayerFirst (effects/stack.ts) buckets EVERY pass by seat unconditionally — " +
-          "turn player's bucket always resolves to exhaustion before the opponent's bucket is " +
-          "even considered, with no notion of 'this opponent effect just newly (derived-)" +
-          "triggered while turn-player effects are still pending, so it cuts the line.' A newly " +
-          "collected opponent effect is appended to the SAME non-turn-player bucket and waits " +
-          "behind every remaining turn-player pending effect, contradicting 15-4-5-3.",
-      );
+  it("NOW MET: a derived trigger for the non-turn player should activate BEFORE the turn player's still-pending effects", async () => {
+    cite(
+      "comprehensive-0166",
+      "DIVERGENCE: 15-4-5-2/3 'A derived triggering effect will activate before " +
+        "previously triggered effects that are pending activation. If a derived triggering " +
+        "effect occurs for the non-turn player when there are pending activation effects for " +
+        "the turn player, the derived triggering effect will activate first.' " +
+        "orderTurnPlayerFirst (effects/stack.ts) buckets EVERY pass by seat unconditionally — " +
+        "turn player's bucket always resolves to exhaustion before the opponent's bucket is " +
+        "even considered, with no notion of 'this opponent effect just newly (derived-)" +
+        "triggered while turn-player effects are still pending, so it cuts the line.' A newly " +
+        "collected opponent effect is appended to the SAME non-turn-player bucket and waits " +
+        "behind every remaining turn-player pending effect, contradicting 15-4-5-3.",
+    );
 
-      const log: string[] = [];
-      let derivedArmed = false;
-      // "a" resolves first (turn player, seat 0) and arms a DERIVED trigger for the
-      // opponent (seat 1) — the "d" effect only canActivate once armed, simulating a
-      // brand-new trigger appearing mid-resolution.
-      const a = fakeEffect("a", {
-        onResolve: () => {
-          derivedArmed = true;
-          log.push("a");
-        },
-      });
-      const c = fakeEffect("c", { onResolve: () => log.push("c") }); // still-pending turn-player effect
-      const d = fakeEffect("d", { canActivate: () => derivedArmed, onResolve: () => log.push("d") });
-      const seed = [collected(0, "a", a), collected(0, "c", c), collected(1, "d", d)];
-      const tracker = new UseTracker();
-      const env: ResolutionEnv = {
-        turnSeat: 0,
-        tracker,
-        collect: () => seed,
-        makeContext: (cEff) => ({ source: cEff.source, trigger: {}, game: {}, fx: {}, ask: {} }) as never,
-        ruleProcess: async () => {},
-        isGameOver: () => false,
-        chooseOrder: async () => 0,
-        askOptional: async () => true,
-      };
-      await resolveTiming(EffectTiming.OnPlay, env);
+    const log: string[] = [];
+    let derivedArmed = false;
+    // "a" resolves first (turn player, seat 0) and arms a DERIVED trigger for the
+    // opponent (seat 1) — the "d" effect only canActivate once armed, simulating a
+    // brand-new trigger appearing mid-resolution.
+    const a = fakeEffect("a", {
+      onResolve: () => {
+        derivedArmed = true;
+        log.push("a");
+      },
+    });
+    const c = fakeEffect("c", { onResolve: () => log.push("c") }); // still-pending turn-player effect
+    const d = fakeEffect("d", { canActivate: () => derivedArmed, onResolve: () => log.push("d") });
+    const seed = [collected(0, "a", a), collected(0, "c", c), collected(1, "d", d)];
+    const tracker = new UseTracker();
+    const env: ResolutionEnv = {
+      turnSeat: 0,
+      tracker,
+      collect: () => seed,
+      makeContext: (cEff) => ({ source: cEff.source, trigger: {}, game: {}, fx: {}, ask: {} }) as never,
+      ruleProcess: async () => {},
+      isGameOver: () => false,
+      chooseOrder: async () => 0,
+      askOptional: async () => true,
+    };
+    await resolveTiming(EffectTiming.OnPlay, env);
 
-      // EXPECTED (per §15-4-5-3): "d" (the opponent's derived trigger) cuts in front of
-      // "c" (the turn player's still-pending effect) — order should be a, d, c.
-      expect(log).toEqual(["a", "d", "c"]);
-    },
-  );
+    // EXPECTED (per §15-4-5-3): "d" (the opponent's derived trigger) cuts in front of
+    // "c" (the turn player's still-pending effect) — order should be a, d, c.
+    expect(log).toEqual(["a", "d", "c"]);
+  });
 });
 
 describe("§15-5 Trigger Conditions (comprehensive-0167)", () => {
@@ -297,10 +304,7 @@ describe("§15-5 Trigger Conditions (comprehensive-0167)", () => {
 
 describe("§15-6 Processing Conditions (comprehensive-0168)", () => {
   it("15-6-3: an effect can't be activated when none of its processing conditions are met", async () => {
-    cite(
-      "comprehensive-0168",
-      "15-6-3 an effect can't be activated when none of its processing conditions are met",
-    );
+    cite("comprehensive-0168", "15-6-3 an effect can't be activated when none of its processing conditions are met");
 
     const s = setup();
     const p0 = s.state.players[0]!;
@@ -431,13 +435,13 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
 
 // §15-8 Effect Categories (comprehensive-0171)
 markNotTestable(
-    "comprehensive-0171",
-    "15-8-1 is a one-line list of the 4 category names (persistent/trigger/activation/" +
-      "immediate); it carries no independently testable claim beyond its own subsections, " +
-      "each verified separately: persistent at comprehensive-0172 (ch15-04), trigger-type at " +
-      "comprehensive-0173 above, activation-type at comprehensive-0176 above, and immediate-type " +
-      "at comprehensive-0177/0178 above.",
-  );
+  "comprehensive-0171",
+  "15-8-1 is a one-line list of the 4 category names (persistent/trigger/activation/" +
+    "immediate); it carries no independently testable claim beyond its own subsections, " +
+    "each verified separately: persistent at comprehensive-0172 (ch15-04), trigger-type at " +
+    "comprehensive-0173 above, activation-type at comprehensive-0176 above, and immediate-type " +
+    "at comprehensive-0177/0178 above.",
+);
 describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
   it("15-8-4-1/15-8-4-2: BT15-009's [Main][Once Per Turn] is activation-type — it needs a player DECLARATION during the main phase, unlike a trigger-type effect", () => {
     cite(
@@ -561,23 +565,23 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
 
 // §15-8-3-8/15-8-3-9-3 Trigger-Type Effects, cont'd (comprehensive-0174/0175)
 markNotTestable(
-    "comprehensive-0174",
-    "15-8-3-8 distinguishes a trigger CONDITION reference (state at trigger time, frozen) " +
-      "from an ordinary reference (state at processing time) inside one trigger-type effect's " +
-      "own body — a nuance of WHICH state a specific card's text snapshots. No compiled card " +
-      "in the corpus carries the shape the rule's own example needs (a trigger-condition-scoped " +
-      "reference like 'a Digimon with a level less than or equal to the PLAYED Digimon', frozen " +
-      "even if that Digimon later digivolves before the effect activates) — the interpreter's " +
-      "relativeToSource DP/level comparisons all read LIVE state at processing time, so this " +
-      "specific frozen-snapshot semantic has no producing IR shape to drive.",
-  );
-  markNotTestable(
-    "comprehensive-0175",
-    "15-8-3-9-3/4 states that a reference made in a trigger-type effect's PROCESSING " +
-      "CONDITIONS reads current-processing-time state (or trigger-time state for a " +
-      "removed-from-area trigger). This is a narrower restatement of the general processing-" +
-      "conditions timing already verified via BT9-042's 'if you have [Justimon]/[Raidenmon]' " +
-      "gate (comprehensive-0168 above, which reads current battle-area state at declaration " +
-      "time) — no additional real card isolates the trigger-time-vs-processing-time distinction " +
-      "this specific sub-chunk adds for a removed-from-area trigger.",
-  );
+  "comprehensive-0174",
+  "15-8-3-8 distinguishes a trigger CONDITION reference (state at trigger time, frozen) " +
+    "from an ordinary reference (state at processing time) inside one trigger-type effect's " +
+    "own body — a nuance of WHICH state a specific card's text snapshots. No compiled card " +
+    "in the corpus carries the shape the rule's own example needs (a trigger-condition-scoped " +
+    "reference like 'a Digimon with a level less than or equal to the PLAYED Digimon', frozen " +
+    "even if that Digimon later digivolves before the effect activates) — the interpreter's " +
+    "relativeToSource DP/level comparisons all read LIVE state at processing time, so this " +
+    "specific frozen-snapshot semantic has no producing IR shape to drive.",
+);
+markNotTestable(
+  "comprehensive-0175",
+  "15-8-3-9-3/4 states that a reference made in a trigger-type effect's PROCESSING " +
+    "CONDITIONS reads current-processing-time state (or trigger-time state for a " +
+    "removed-from-area trigger). This is a narrower restatement of the general processing-" +
+    "conditions timing already verified via BT9-042's 'if you have [Justimon]/[Raidenmon]' " +
+    "gate (comprehensive-0168 above, which reads current battle-area state at declaration " +
+    "time) — no additional real card isolates the trigger-time-vs-processing-time distinction " +
+    "this specific sub-chunk adds for a removed-from-area trigger.",
+);

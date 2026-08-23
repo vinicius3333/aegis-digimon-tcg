@@ -5,96 +5,94 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // and the 16000-DP gate is evaluated for the result of the fixed +3000 boost
 // (equivalently, current DP >= 13000 before that modifier is recomputed; KB Q1274-Q1276).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-          "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine"
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "lastTargetDpAtLeast",
-            "value": 13000
-          }
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "lastTargetDpAtLeast",
+            value: 13000,
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine"
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "keyword": {
-            "keyword": "Reboot",
-            "raw": "＜Reboot＞"
+          keyword: {
+            keyword: "Reboot",
+            raw: "＜Reboot＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "lastTargetDpAtLeast",
-            "value": 13000
-          }
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "lastTargetDpAtLeast",
+            value: 13000,
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine"
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "lastTargetDpAtLeast",
-            "value": 13000
-          }
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "lastTargetDpAtLeast",
+            value: 13000,
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-109", compiled);

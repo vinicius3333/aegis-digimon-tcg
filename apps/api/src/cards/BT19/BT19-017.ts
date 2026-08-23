@@ -6,64 +6,59 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Aqua",
-                      "Sea Animal"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Aqua", "Sea Animal"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1
-        }
+          kind: "GainMemory",
+          amount: 1,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-017", compiled);

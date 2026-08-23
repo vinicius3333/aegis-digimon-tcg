@@ -6,69 +6,61 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 4000
+          effect: {
+            kind: "modifyDP",
+            amount: 4000,
           },
-          "while": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "or": [
+          while: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              or: [
                 {
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Hybrid"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Hybrid"],
+                      match: "trait",
+                    },
+                  ],
                 },
                 {
-                  "kind": [
-                    "Tamer"
-                  ],
-                  "colors": [
-                    "Red"
-                  ]
-                }
-              ]
+                  kind: ["Tamer"],
+                  colors: ["Red"],
+                },
+              ],
             },
-            "raw": "this Digimon's digivolution cards include a Digimon card with [Hybrid] in its form or a red Tamer card"
-          }
-        }
-      ]
-    }
+            raw: "this Digimon's digivolution cards include a Digimon card with [Hybrid] in its form or a red Tamer card",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-016", compiled);

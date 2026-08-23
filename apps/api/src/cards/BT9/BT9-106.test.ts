@@ -19,10 +19,12 @@ describe("BT9-106 DeathXDigivolution!", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectTargets");
 
     const baseChoice = s.decisions.at(-1)!.req;
@@ -33,11 +35,13 @@ describe("BT9-106 DeathXDigivolution!", () => {
       s.perm("otherLegalBase").permanentId,
     ]);
     expect(baseChoice.options?.candidateInstanceIds).not.toContain(s.perm("wrongLevel").permanentId);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: baseChoice.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("chosenBase").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: baseChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosenBase").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("chosenBase").topCard.instanceId === s.inst("dexEvolution").instanceId);
 
     expect(s.perm("chosenBase").topCard.cardId).toBe("BT9-075");
@@ -57,10 +61,12 @@ describe("BT9-106 DeathXDigivolution!", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: optionId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: optionId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId));
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId)).toBe(true);
@@ -76,10 +82,12 @@ describe("BT9-106 DeathXDigivolution!", () => {
     });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 
   it("adds itself to its owner's hand from Security", async () => {

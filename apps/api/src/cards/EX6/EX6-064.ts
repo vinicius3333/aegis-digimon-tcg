@@ -6,113 +6,98 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Beast",
-                      "Beastkin",
-                      "Holy Beast",
-                      "Cherub"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Beastkin",
-                      "Holy Beast",
-                      "Cherub"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "from": [
-                "hand"
-              ],
-              "reduceCost": 2,
-              "optional": true,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                    tokens: ["Beast", "Beastkin", "Holy Beast", "Cherub"],
+                    match: "trait",
                   },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer"
+                ],
               },
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Beastkin", "Holy Beast", "Cherub"],
+                    match: "trait",
+                  },
+                ],
+              },
+              from: ["hand"],
+              reduceCost: 2,
+              optional: true,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              abortOnDecline: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-064", compiled);

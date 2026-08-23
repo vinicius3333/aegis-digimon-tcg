@@ -4,7 +4,8 @@ import { handOverlap } from "./boardPieces";
 const CARD_WIDTH = 132;
 const MIN_OVERLAP = 34;
 /** What the fan actually occupies, tilted end cards included. */
-const fannedWidth = (cards: number, overlap: number, cardWidth = CARD_WIDTH) => cardWidth * cards - overlap * (cards - 1) + 40;
+const fannedWidth = (cards: number, overlap: number, cardWidth = CARD_WIDTH) =>
+  cardWidth * cards - overlap * (cards - 1) + 40;
 
 describe("hand fan overlap", () => {
   it("keeps the printed spacing while the hand fits", () => {
@@ -13,7 +14,11 @@ describe("hand fan overlap", () => {
   });
 
   it("tightens the fan until it fits the dock", () => {
-    for (const [cards, width] of [[7, 600], [10, 700], [12, 520]] as const) {
+    for (const [cards, width] of [
+      [7, 600],
+      [10, 700],
+      [12, 520],
+    ] as const) {
       const overlap = handOverlap(cards, width);
       expect(overlap).toBeGreaterThan(MIN_OVERLAP);
       expect(fannedWidth(cards, overlap)).toBeLessThanOrEqual(width);

@@ -12,40 +12,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix 2: The ModifyDP +1000 is present but uses a generic own-Digimon filter;
 //   it should target this Digimon (self-ref), not an arbitrary own Digimon.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          amount: 1000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 card in your hand"
+            raw: "by trashing 1 card in your hand",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-006", compiled);

@@ -40,14 +40,14 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
         target: { kind: "permanent", permanentId: tieDefenderId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === arukenimonId) &&
-      s.state.players[0]!.battleArea.some(({ topCard }) =>
-        topCard.instanceId === s.inst("handMalo").instanceId
-      ) &&
-      s.state.memory === 5 &&
-      !observe(s.engine).isAttacking()
-    , 5000);
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === arukenimonId) &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("handMalo").instanceId) &&
+        s.state.memory === 5 &&
+        !observe(s.engine).isAttacking(),
+      5000,
+    );
 
     // Q1105: MaloMyotismon is already in play when Arukenimon deletes itself.
     expect(s.state.players[1]!.security).toHaveLength(2);
@@ -58,12 +58,14 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
         target: { kind: "permanent", permanentId: tieDefenderId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === mummymonId) &&
-      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT3-092").length === 2 &&
-      s.state.memory === 4 &&
-      !observe(s.engine).isAttacking()
-    , 5000);
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === mummymonId) &&
+        s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT3-092").length === 2 &&
+        s.state.memory === 4 &&
+        !observe(s.engine).isAttacking(),
+      5000,
+    );
 
     expect(
       s.engine.applyIntent(0, {
@@ -72,11 +74,12 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
         target: { kind: "permanent", permanentId: tieDefenderId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === tieAttackerId) &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === tieDefenderId) &&
-      s.state.memory === 8 &&
-      !observe(s.engine).isAttacking()
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === tieAttackerId) &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === tieDefenderId) &&
+        s.state.memory === 8 &&
+        !observe(s.engine).isAttacking(),
     );
 
     // Q1118/Q1120: two deletions grant 2 memory to each active MaloMyotismon.

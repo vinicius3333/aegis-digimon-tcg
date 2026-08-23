@@ -6,9 +6,7 @@ import "../index.js";
 describe("EX11-009 Tyrannomon", () => {
   it("encodes the alternate Reptile evolution and conditional optional play", () => {
     const compiled = runtimeCompiledCard("EX11-009")!;
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 3, traits: ["Reptile"], cost: 2, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Reptile"], cost: 2, isAlternate: true }]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
@@ -17,8 +15,15 @@ describe("EX11-009 Tyrannomon", () => {
           from: ["hand"],
           payCost: false,
           optional: true,
-          target: expect.objectContaining({ filter: expect.objectContaining({ nameOrTrait: [{ match: "name", tokens: ["Ryutaro Williams"] }] }), count: 1 }),
-          condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] }, raw: "you have 1 or fewer Tamers" },
+          target: expect.objectContaining({
+            filter: expect.objectContaining({ nameOrTrait: [{ match: "name", tokens: ["Ryutaro Williams"] }] }),
+            count: 1,
+          }),
+          condition: {
+            kind: "youHave",
+            filter: { controllerDefault: "mine", kind: ["Tamer"] },
+            raw: "you have 1 or fewer Tamers",
+          },
         }),
       ],
     });
@@ -34,7 +39,10 @@ describe("EX11-009 Tyrannomon", () => {
       {
         0: {
           battleArea: [{ card: "EX11-008", as: "base", dp: 1000 }],
-          hand: [{ card: "EX11-009", as: "tyrannomon" }, { card: "EX11-056", as: "ryutaro" }],
+          hand: [
+            { card: "EX11-009", as: "tyrannomon" },
+            { card: "EX11-056", as: "ryutaro" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -42,11 +50,13 @@ describe("EX11-009 Tyrannomon", () => {
     s.state.memory = 2;
     const base = s.perm("base");
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: base.permanentId,
-      instanceId: s.inst("tyrannomon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => base.topCard?.cardId === "EX11-009", 600);
     expect(base.topCard?.cardId).toBe("EX11-009");
   });

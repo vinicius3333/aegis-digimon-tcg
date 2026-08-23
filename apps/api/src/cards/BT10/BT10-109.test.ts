@@ -20,10 +20,12 @@ describe("BT10-109 Reinforcement Plug-In O", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("chosen").currentDP === 7000);
 
     await advance(s.engine).runTurn(0);
@@ -45,10 +47,12 @@ describe("BT10-109 Reinforcement Plug-In O", () => {
     s.state.memory = 2;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }).ok,
+    ).toBe(false);
   });
 
   it("Security gains 1 memory and returns itself to hand", async () => {

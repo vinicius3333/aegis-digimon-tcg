@@ -18,8 +18,8 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               excludeSelf: true,
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
           cost: {
             kind: "playFromDigivolutionCards",
@@ -60,8 +60,8 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               excludeSelf: true,
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
           cost: {
             kind: "playFromDigivolutionCards",
@@ -120,31 +120,22 @@ const compiled: CompiledCard = {
       isAlternate: true,
     },
     {
-      "names": [
-        "Nene Amano"
-      ],
-      "minNameStackNames": [
-        "Shademon"
-      ],
-      "minNameStackCount": 1,
-      "cost": 3,
-      "isAlternate": true
-    }
+      names: ["Nene Amano"],
+      minNameStackNames: ["Shademon"],
+      minNameStackCount: 1,
+      cost: 3,
+      isAlternate: true,
+    },
   ],
   digiXrosRequirement: [
     {
       materials: [
         {
-          "names": [
-            "Nene Amano"
-          ]
+          names: ["Nene Amano"],
         },
         {
-          "names": [
-            "Luminamon",
-            "Shademon"
-          ]
-        }
+          names: ["Luminamon", "Shademon"],
+        },
       ],
       count: 1,
     },

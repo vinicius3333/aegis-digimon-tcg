@@ -7,7 +7,15 @@ describe("BT17-094 Ancient Guardian Deity", () => {
       kind: "Return",
       to: "hand",
       optional: true,
-      target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }, { tokens: ["Ten Warriors"], match: "trait", orPrevious: true }] } },
+      target: {
+        filter: {
+          zone: "trash",
+          nameOrTrait: [
+            { tokens: ["Hybrid"], match: "trait" },
+            { tokens: ["Ten Warriors"], match: "trait", orPrevious: true },
+          ],
+        },
+      },
     });
   });
 
@@ -18,14 +26,26 @@ describe("BT17-094 Ancient Guardian Deity", () => {
       payCost: true,
       costReduction: 4,
       optional: true,
-      target: { filter: { orFilters: [{ kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ten Warriors"], match: "trait" }] }, { kind: ["Tamer"], hasInheritedEffects: true }] } },
+      target: {
+        filter: {
+          orFilters: [
+            { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ten Warriors"], match: "trait" }] },
+            { kind: ["Tamer"], hasInheritedEffects: true },
+          ],
+        },
+      },
     });
   });
 
   it("waives color requirements only while a Hybrid Tamer or Digimon is present", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] } } }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] } },
+        },
+      ],
     });
   });
 });

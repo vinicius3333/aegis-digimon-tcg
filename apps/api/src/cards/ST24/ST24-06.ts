@@ -18,270 +18,234 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // identical text, also uses PlayWithoutCost, and Haiku audits it as faithful). The engine
 // resolves "play or use" at runtime based on card kind.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -5000,
-          "duration": "forTheTurn"
+          amount: -5000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DATA SQUAD"
-                  ],
-                  "match": "trait"
-                }
-              ],
-              "playCostLte": 5
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "digivolutionCards",
-                "faceDown": true,
-                "hostFilter": {
-                  "kind": [
-                    "Tamer"
-                  ]
+                  tokens: ["DATA SQUAD"],
+                  match: "trait",
                 },
-                "position": "bottom"
-              },
-              "count": 2
+              ],
+              playCostLte: 5,
             },
-            "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "digivolutionCards",
+                faceDown: true,
+                hostFilter: {
+                  kind: ["Tamer"],
+                },
+                position: "bottom",
+              },
+              count: 2,
+            },
+            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -5000,
-          "duration": "forTheTurn"
+          amount: -5000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DATA SQUAD"
-                  ],
-                  "match": "trait"
-                }
-              ],
-              "playCostLte": 5
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "digivolutionCards",
-                "faceDown": true,
-                "hostFilter": {
-                  "kind": [
-                    "Tamer"
-                  ]
+                  tokens: ["DATA SQUAD"],
+                  match: "trait",
                 },
-                "position": "bottom"
-              },
-              "count": 2
+              ],
+              playCostLte: 5,
             },
-            "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "digivolutionCards",
+                faceDown: true,
+                hostFilter: {
+                  kind: ["Tamer"],
+                },
+                position: "bottom",
+              },
+              count: 2,
+            },
+            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -5000,
-          "duration": "forTheTurn"
+          amount: -5000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DATA SQUAD"
-                  ],
-                  "match": "trait"
-                }
-              ],
-              "playCostLte": 5
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "digivolutionCards",
-                "faceDown": true,
-                "hostFilter": {
-                  "kind": [
-                    "Tamer"
-                  ]
+                  tokens: ["DATA SQUAD"],
+                  match: "trait",
                 },
-                "position": "bottom"
-              },
-              "count": 2
+              ],
+              playCostLte: 5,
             },
-            "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "digivolutionCards",
+                faceDown: true,
+                hostFilter: {
+                  kind: ["Tamer"],
+                },
+                position: "bottom",
+              },
+              count: 2,
+            },
+            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "mode": "prevent",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["ShineGreymon"],
+                match: "name",
+              },
+              {
+                tokens: ["DATA SQUAD"],
+                match: "trait",
+              },
             ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "ShineGreymon"
-                ],
-                "match": "name"
-              },
-              {
-                "tokens": [
-                  "DATA SQUAD"
-                ],
-                "match": "trait"
-              }
-            ]
           },
-          "actions": [],
-          "optional": true,
-          "abortOnDecline": true,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "digivolutionCards",
-                "faceDown": true,
-                "hostFilter": {
-                  "kind": [
-                    "Tamer"
-                  ]
+          actions: [],
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "digivolutionCards",
+                faceDown: true,
+                hostFilter: {
+                  kind: ["Tamer"],
                 },
-                "position": "bottom"
+                position: "bottom",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing the bottom face-down card from under any of your Tamers, it doesn't leave"
+            raw: "by trashing the bottom face-down card from under any of your Tamers, it doesn't leave",
           },
-          "raw": "it doesn't leave"
-        }
+          raw: "it doesn't leave",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "GeoGreymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      names: ["GeoGreymon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "traits": [
-        "DATA SQUAD"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["DATA SQUAD"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST24-06", compiled);

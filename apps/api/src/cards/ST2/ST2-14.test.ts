@@ -15,21 +15,31 @@ describe("ST2-14 Sorrow Blue", () => {
     expect(compiled.effects).toEqual([
       {
         trigger: "Main",
-        actions: [{
-          kind: "Restrict",
-          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true }, count: 1 },
-          restriction: "attackOrBlock",
-          duration: "untilEndOfOpponentNextTurn",
-        }],
+        actions: [
+          {
+            kind: "Restrict",
+            target: {
+              filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true },
+              count: 1,
+            },
+            restriction: "attackOrBlock",
+            duration: "untilEndOfOpponentNextTurn",
+          },
+        ],
       },
       {
         trigger: "Security",
-        actions: [{
-          kind: "Restrict",
-          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true }, count: 1 },
-          restriction: "attackOrBlock",
-          duration: "untilEndOfYourNextTurn",
-        }],
+        actions: [
+          {
+            kind: "Restrict",
+            target: {
+              filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true },
+              count: 1,
+            },
+            restriction: "attackOrBlock",
+            duration: "untilEndOfYourNextTurn",
+          },
+        ],
         isSecurity: true,
       },
     ]);
@@ -54,7 +64,9 @@ describe("ST2-14 Sorrow Blue", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);

@@ -25,9 +25,7 @@ describe("BT6-077 [All Turns] color grant — also treated as black (KB Q1466)",
   }
 
   function effectiveColors(s: Setup, p: Permanent): string[] {
-    return (s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }).effectiveColorsOf(
-      p,
-    );
+    return (s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }).effectiveColorsOf(p);
   }
 
   it("is treated as both Purple (printed) and Black on its OWNER's turn", async () => {
@@ -55,12 +53,15 @@ describe("BT6-077 [All Turns] color grant — also treated as black (KB Q1466)",
   });
 
   it("may trash a hand card to gain Blocker and Retaliation when digivolving", async () => {
-    const s = setup({
-      0: {
-        battleArea: [{ card: "BT6-077", as: "rebellimon" }],
-        hand: [{ card: "BT6-068", as: "cost" }],
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT6-077", as: "rebellimon" }],
+          hand: [{ card: "BT6-068", as: "cost" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("rebellimon"));

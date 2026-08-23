@@ -9,10 +9,13 @@ describe("P-041 Guilmon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 1000 }] },
     });
     const drawnId = s.inst("drawn").instanceId;
-    expect(s.engine.applyIntent(0, {
-      type: "attack", attackerPermanentId: s.perm("guilmon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("guilmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
   });
@@ -23,11 +26,13 @@ describe("P-041 Guilmon", () => {
       1: { security: ["BT1-101"] },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("guilmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("guilmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);

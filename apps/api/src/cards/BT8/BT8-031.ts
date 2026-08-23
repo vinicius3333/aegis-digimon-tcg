@@ -6,62 +6,56 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "fromTop": true
+          amount: 1,
+          fromTop: true,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
+          to: "hand",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "GrantAuraToOpponents",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantAuraToOpponents",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "effectText": "[When Attacking] Trash the bottom digivolution card of this Digimon."
-        }
-      ]
-    }
+          effectText: "[When Attacking] Trash the bottom digivolution card of this Digimon.",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-031", compiled);

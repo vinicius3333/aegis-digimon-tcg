@@ -3,133 +3,125 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "SoC"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["SoC"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom"
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+              count: 1,
+              to: "hand",
             },
-            "count": 1
-          },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect added to a hand"
-          }
+          ],
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect added to a hand",
+          },
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["SoC"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-        }
+          from: ["trash"],
+          payCost: true,
+          reduceCostBy: 2,
+          optional: true,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "SoC"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["SoC"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom"
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+              count: 1,
+              to: "hand",
             },
-            "count": 1
-          },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect added to a hand"
-          }
+          ],
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect added to a hand",
+          },
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT16-099", compiled);

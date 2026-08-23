@@ -27,273 +27,250 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - Two separate Restrict actions for "digivolve" and "attackPlayers".
 // - Option cost in OnPlay/WhenDigivolving/WhenAttacking has no controller restriction.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
+          amount: 1,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "battleArea",
-                "kind": [
-                  "Option"
-                ]
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "battleArea",
+                kind: ["Option"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 Option card in the battle area"
+            raw: "by trashing 1 Option card in the battle area",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn"
-        }
+          duration: "forTheTurn",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
+          amount: 1,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "battleArea",
-                "kind": [
-                  "Option"
-                ]
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "battleArea",
+                kind: ["Option"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 Option card in the battle area"
+            raw: "by trashing 1 Option card in the battle area",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn"
-        }
+          duration: "forTheTurn",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
+          amount: 1,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "battleArea",
-                "kind": [
-                  "Option"
-                ]
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "battleArea",
+                kind: ["Option"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 Option card in the battle area"
+            raw: "by trashing 1 Option card in the battle area",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn"
-        }
+          duration: "forTheTurn",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenTrashedByEffect",
-          "sourceFilter": {
-            "zone": "battleArea",
-            "kind": [
-              "Option"
-            ]
+          kind: "SubTrigger",
+          event: "whenTrashedByEffect",
+          sourceFilter: {
+            zone: "battleArea",
+            kind: ["Option"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "restriction": "digivolve",
-              "duration": "untilOpponentTurnEnd"
+              restriction: "digivolve",
+              duration: "untilOpponentTurnEnd",
             },
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1,
-                "sameTarget": true
+                count: 1,
+                sameTarget: true,
               },
-              "restriction": "attackPlayers",
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
+              restriction: "attackPlayers",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Justimon: Blitz Arm",
-        "Justimon: Critical Arm"
-      ],
-      "cost": 1,
-      "isAlternate": true
+      names: ["Justimon: Blitz Arm", "Justimon: Critical Arm"],
+      cost: 1,
+      isAlternate: true,
     },
     {
-      "level": 5,
-      "names": [
-        "Cyberdramon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      names: ["Cyberdramon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("P-203", compiled);

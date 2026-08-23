@@ -4,62 +4,56 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 5,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 5,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Hybrid"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Hybrid"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "J.P. Shibayama"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["J.P. Shibayama"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
-    }
+          rest: "deckBottom",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 2,
-      "isAlternate": true,
-      "baseIsTamer": true,
-      "baseColors": [
-        "Green"
-      ]
-    }
-  ]
+      cost: 2,
+      isAlternate: true,
+      baseIsTamer: true,
+      baseColors: ["Green"],
+    },
+  ],
 };
 
 registerIrCard("BT7-046", compiled);

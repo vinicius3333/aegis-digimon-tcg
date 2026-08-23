@@ -59,13 +59,16 @@ describe("BT26-098 compiled fidelity", () => {
   });
 
   it("publicly plays a Lalamon from hand and adds itself to hand from security", async () => {
-    const s = setupEngine({
-      0: {
-        security: [{ card: "BT26-098", as: "option", faceUp: true }],
-        hand: [{ card: "BT26-036", as: "lalamon" }],
-        battleArea: [{ card: "BT26-036", as: "existingLalamon" }],
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT26-098", as: "option", faceUp: true }],
+          hand: [{ card: "BT26-036", as: "lalamon" }],
+          battleArea: [{ card: "BT26-036", as: "existingLalamon" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));

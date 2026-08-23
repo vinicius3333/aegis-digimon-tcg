@@ -7,16 +7,39 @@ describe("P-151 Digimon Liberator", () => {
     const compiled = runtimeCompiledCard("P-151")!;
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] } } }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: {
+            kind: "youHave",
+            filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
+          },
+        },
+      ],
     });
     const main = compiled.effects.find((effect) => effect.trigger === "Main")!;
-    expect(main.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ count: 1, to: "hand" }] });
-    expect(main.actions[1]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true, target: { filter: { controller: "mine", playCostLte: 3, nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] } } });
+    expect(main.actions[0]).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 3,
+      rest: "deckBottom",
+      add: [{ count: 1, to: "hand" }],
+    });
+    expect(main.actions[1]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["hand"],
+      payCost: false,
+      optional: true,
+      target: {
+        filter: { controller: "mine", playCostLte: 3, nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
+      },
+    });
   });
 
   it("keeps the Security effect as an activation of the Main effect", () => {
-    expect(runtimeCompiledCard("P-151")!.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }),
-    ]));
+    expect(runtimeCompiledCard("P-151")!.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }),
+      ]),
+    );
   });
 });

@@ -6,44 +6,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "scaling": {
-            "per": 4,
-            "filter": {
-              "zone": "hand",
-              "controller": "opponent"
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 4,
+            filter: {
+              zone: "hand",
+              controller: "opponent",
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "unblockable",
-          "tokens": []
-        }
-      ]
-    }
+          grant: "unblockable",
+          tokens: [],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-035", compiled);

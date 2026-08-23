@@ -9,7 +9,14 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
-      actions: [{ kind: "ModifyDP", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, amount: 2000, duration: "permanent" }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
       isInherited: true,
     },
     {

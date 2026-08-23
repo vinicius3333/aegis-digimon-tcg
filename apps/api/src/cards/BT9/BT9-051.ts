@@ -17,77 +17,69 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   the (Rule) does NOT allow this card to be chosen for "the name [Leomon]" text, so
 //   filtering to name "Leomon" is correct (excludes this card itself as a target).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "Leomon"
-          ]
-        }
-      ]
+          grant: "name",
+          tokens: ["Leomon"],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "mode": "instead",
-          "leaveCause": "byBattle",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          mode: "instead",
+          leaveCause: "byBattle",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Leomon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Leomon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
-            }
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
           ],
-          "raw": "when this Digimon would be deleted in battle, you may play 1 [Leomon] from this Digimon's digivolution cards without paying its memory cost"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Panjyamon"
+          raw: "when this Digimon would be deleted in battle, you may play 1 [Leomon] from this Digimon's digivolution cards without paying its memory cost",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Panjyamon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-051", compiled);

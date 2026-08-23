@@ -28,10 +28,18 @@ describe("BT12-106 handwritten module", () => {
   });
 
   it("Security suspends opposing cards without installing the Main restriction", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT12-106", as: "option", faceUp: true }] },
-      1: { battleArea: [{ card: "BT1-009", as: "digimon" }, { card: "BT12-091", as: "tamer" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT12-106", as: "option", faceUp: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "digimon" },
+            { card: "BT12-091", as: "tamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(s.perm("digimon").isSuspended).toBe(true);
@@ -40,13 +48,19 @@ describe("BT12-106 handwritten module", () => {
 });
 
 it("suspends opposing Digimon and Tamers with its Main effect", async () => {
-  const s = setupEngine({
-    0: { hand: [{ card: "BT12-106", as: "option" }], battleArea: [{ card: "BT12-045", as: "green" }] },
-    1: {
-      battleArea: [{ card: "BT1-009", as: "digimon" }, { card: "BT12-091", as: "tamer" }],
-      security: ["BT1-009"],
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-106", as: "option" }], battleArea: [{ card: "BT12-045", as: "green" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "digimon" },
+          { card: "BT12-091", as: "tamer" },
+        ],
+        security: ["BT1-009"],
+      },
     },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });

@@ -4,7 +4,9 @@ import "./P-194.js";
 
 describe("P-194 Aegiomon", () => {
   it("requires a level 3 TS Digimon for evolution", () => {
-    expect(runtimeCompiledCard("P-194")!.digivolutionRequirement).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
+    expect(runtimeCompiledCard("P-194")!.digivolutionRequirement).toEqual([
+      { level: 3, traits: ["TS"], cost: 2, isAlternate: true },
+    ]);
   });
 
   it("has Blocker and Barrier, with inherited Barrier preserved", () => {
@@ -13,6 +15,8 @@ describe("P-194 Aegiomon", () => {
       { keyword: "Blocker", raw: "＜Blocker＞" },
       { keyword: "Barrier", raw: "＜Barrier＞" },
     ]);
-    expect(card.effects.find((effect) => effect.isInherited)).toMatchObject({ keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] });
+    expect(card.effects.find((effect) => effect.isInherited)).toMatchObject({
+      keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }],
+    });
   });
 });

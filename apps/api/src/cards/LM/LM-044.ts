@@ -6,89 +6,87 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Retaliation",
-          "raw": "＜Retaliation＞"
-        }
-      ]
+          keyword: "Retaliation",
+          raw: "＜Retaliation＞",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "controller": "opponent",
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "hand",
-            "op": "gte",
-            "value": 5,
-            "raw": "your opponent has 5 or more cards in their hand"
-          }
+          controller: "opponent",
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "hand",
+            op: "gte",
+            value: 5,
+            raw: "your opponent has 5 or more cards in their hand",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "hand",
-            "op": "lte",
-            "value": 4,
-            "raw": "they have 4 or fewer cards in their hand"
-          }
-        }
-      ]
-    }
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "hand",
+            op: "lte",
+            value: 4,
+            raw: "they have 4 or fewer cards in their hand",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-044", compiled);

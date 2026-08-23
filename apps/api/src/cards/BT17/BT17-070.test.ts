@@ -6,10 +6,23 @@ describe("BT17-070 Gulfmon", () => {
     const effects = compiled.effects.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(entry.trigger));
     expect(effects).toHaveLength(2);
     for (const effect of effects) {
-      expect(effect.actions[0]).toMatchObject({ kind: "Delete", target: { filter: expect.objectContaining({ controller: "opponent", levelComparison: { op: "lte", value: 5 } }), count: 1 } });
+      expect(effect.actions[0]).toMatchObject({
+        kind: "Delete",
+        target: {
+          filter: expect.objectContaining({ controller: "opponent", levelComparison: { op: "lte", value: 5 } }),
+          count: 1,
+        },
+      });
       expect(effect.actions[0]!.cost).toMatchObject({
         kind: "place",
-        target: expect.objectContaining({ filter: expect.objectContaining({ controller: "mine", levels: [5], nameOrTrait: [{ tokens: ["Dark Masters"], match: "text" }] }), from: ["hand", "trash"] }),
+        target: expect.objectContaining({
+          filter: expect.objectContaining({
+            controller: "mine",
+            levels: [5],
+            nameOrTrait: [{ tokens: ["Dark Masters"], match: "text" }],
+          }),
+          from: ["hand", "trash"],
+        }),
         destination: "digivolutionStack",
         position: "bottom",
         host: "self",

@@ -11,124 +11,109 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - PlaceUnder: not optional.
 // Inherited: whenTrashedFromDigivolutionCards → Draw 1.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Bagra Army"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Bagra Army"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash"
-              ]
+              count: 1,
+              from: ["hand", "trash"],
             },
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+            underFilter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "By placing 1 [Bagra Army] trait Digimon card from your hand or trash under any of your Tamers"
+            raw: "By placing 1 [Bagra Army] trait Digimon card from your hand or trash under any of your Tamers",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "underTamers",
-              "playCostLte": 7,
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "underTamers",
+              playCostLte: 7,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Tuwarmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Tuwarmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "underTamers"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["underTamers"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "excludeToken": true
-          }
-        }
-      ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            excludeToken: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardDiscarded",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "onDigivolutionCardDiscarded",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "hostFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }]
+          hostFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX10-044", compiled);

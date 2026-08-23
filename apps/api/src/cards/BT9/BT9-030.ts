@@ -6,40 +6,34 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Piranimon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Piranimon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-030", compiled);

@@ -20,8 +20,18 @@ describe("ST4-12 Rosemon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack") && observe(s.engine).isRestricted(s.perm("target"), "block"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        observe(s.engine).isRestricted(s.perm("target"), "attack") &&
+        observe(s.engine).isRestricted(s.perm("target"), "block"),
+    );
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
 
     s.state.turnSeat = 1;

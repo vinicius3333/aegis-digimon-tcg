@@ -6,115 +6,101 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Knight",
-                    "CS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Knight", "CS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "beReturned",
-          "duration": "untilOpponentTurnEnd",
-          "byOpponentEffectsOnly": true
-        }
-      ]
+          restriction: "beReturned",
+          duration: "untilOpponentTurnEnd",
+          byOpponentEffectsOnly: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Knight",
-                    "CS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Knight", "CS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "beReturned",
-          "duration": "untilOpponentTurnEnd",
-          "byOpponentEffectsOnly": true
-        }
-      ]
-    }
+          restriction: "beReturned",
+          duration: "untilOpponentTurnEnd",
+          byOpponentEffectsOnly: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Veemon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      names: ["Veemon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "traits": [
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-054", compiled);

@@ -6,17 +6,12 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js"; // register compiled cards so the real activate / OnEndTurn paths run
 
-
 const SIBLINGS = ["EX10-012", "EX10-020", "EX10-057"] as const;
 
 /** The OnDeclaration effectKey for the card's [Hand][Main] reduced-cost play. */
 function reducedCostPlayEffectKey(s: EngineSetup, instance: CardInstance, cardId: string): string {
-  const source = (
-    s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }
-  ).cardSourceOf(instance);
-  const found = effectsOf(EffectTiming.OnDeclaration, source).find((e) =>
-    e.effectKey.startsWith(`${cardId}/`),
-  );
+  const source = (s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }).cardSourceOf(instance);
+  const found = effectsOf(EffectTiming.OnDeclaration, source).find((e) => e.effectKey.startsWith(`${cardId}/`));
   if (found === undefined) throw new Error(`${cardId} surfaces no [Hand][Main] activated effect`);
   return found.effectKey;
 }
@@ -28,9 +23,7 @@ async function fireOnPlayForInstance(s: EngineSetup, instanceId: string): Promis
 }
 
 async function fireEndTurn(s: EngineSetup): Promise<void> {
-  await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
-    EffectTiming.OnEndTurn,
-  );
+  await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnEndTurn);
 }
 
 function onField(s: EngineSetup, instanceId: string): boolean {
@@ -110,7 +103,12 @@ describe("EX10-012 MetalSeadramon — card-specific effects", () => {
   it("prevents one opposing Digimon and one opposing Tamer from suspending", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX10-012", as: "metal" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "digimon" }, { card: "BT1-085", as: "tamer" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "digimon" },
+          { card: "BT1-085", as: "tamer" },
+        ],
+      },
     });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
     const ledger = advance(s.engine).ledgers.continuous;

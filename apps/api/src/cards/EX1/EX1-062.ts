@@ -6,63 +6,59 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Delete",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Agumon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
+            count: 1,
+            isSelf: true,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Agumon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-062", compiled);

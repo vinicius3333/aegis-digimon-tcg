@@ -11,167 +11,155 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - Inherited [Opponent's Turn] condition: replaced the raw, malformed string ("... in its
 //   name in its name") with a structured `selfHasNameContaining` condition (BT20-080 pattern).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Reboot"
+          keyword: {
+            keyword: "Reboot",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Collision",
-            "raw": "＜Collision＞"
+          keyword: {
+            keyword: "Collision",
+            raw: "＜Collision＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainTriggeredEffect",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainTriggeredEffect",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "gainedTrigger": "StartOfYourMainPhase",
-          "gainedActions": [
+          gainedTrigger: "StartOfYourMainPhase",
+          gainedActions: [
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Attack",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
-              }
-            }
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Collision",
-            "raw": "＜Collision＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "GainTriggeredEffect",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "gainedTrigger": "StartOfYourMainPhase",
-          "gainedActions": [
-            {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              }
-            }
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAttackTargetSwitched",
-          "actions": [
-            {
-              "kind": "Trash",
-              "target": {
-                "filter": {
-                  "controller": "opponent"
-                },
-                "count": 1
+                count: 1,
+                isSelf: true,
               },
-              "condition": {
-                "kind": "selfHasNameContaining",
-                "names": [
-                  "Greymon"
-                ]
-              }
-            }
+            },
           ],
-          "raw": "whenAttackTargetSwitched"
-        }
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 4,
-      "names": [
-        "Greymon"
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Collision",
+            raw: "＜Collision＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "GainTriggeredEffect",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          gainedTrigger: "StartOfYourMainPhase",
+          gainedActions: [
+            {
+              kind: "Attack",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+            },
+          ],
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttackTargetSwitched",
+          actions: [
+            {
+              kind: "Trash",
+              target: {
+                filter: {
+                  controller: "opponent",
+                },
+                count: 1,
+              },
+              condition: {
+                kind: "selfHasNameContaining",
+                names: ["Greymon"],
+              },
+            },
+          ],
+          raw: "whenAttackTargetSwitched",
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      names: ["Greymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 export { compiled };

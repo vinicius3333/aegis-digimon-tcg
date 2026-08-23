@@ -6,7 +6,12 @@ import "./EX1-027.js";
 
 describe("EX1-027 Leomon", () => {
   it("recovers 1 after its security battle with 3 or fewer security cards", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX1-027", as: "leomon", faceUp: true }, "BT1-001", "BT1-001"], deck: [{ card: "BT1-009", as: "recovered" }] } });
+    const s = setupEngine({
+      0: {
+        security: [{ card: "EX1-027", as: "leomon", faceUp: true }, "BT1-001", "BT1-001"],
+        deck: [{ card: "BT1-009", as: "recovered" }],
+      },
+    });
     const recoveredId = s.inst("recovered").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("leomon"));
     expect(s.state.players[0]!.security.some((card) => card.instanceId === recoveredId)).toBe(true);

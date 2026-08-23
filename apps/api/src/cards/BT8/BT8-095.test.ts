@@ -9,26 +9,32 @@ import "./BT8-095.js";
 describe("BT8-095 Fire Rocket", () => {
   it("waives its red requirement and grants Security Attack +1 to only the chosen multicolor Digimon", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT8-023", as: "chosen" },
-          { card: "BT8-039", as: "other" },
-        ],
-        hand: [{ card: "BT8-095", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT8-023", as: "chosen" },
+            { card: "BT8-039", as: "other" },
+          ],
+          hand: [{ card: "BT8-095", as: "option" }],
+        },
       },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("chosen").topCard.instanceId);
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      observe(s.engine).keywordAmount(s.perm("chosen"), "SecurityAttack") === 1 &&
-      s.state.players[0]!.trash.some((card) => card.cardId === "BT8-095")
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        observe(s.engine).keywordAmount(s.perm("chosen"), "SecurityAttack") === 1 &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT8-095"),
     );
 
     expect(observe(s.engine).keywordAmount(s.perm("chosen"), "SecurityAttack")).toBe(1);
@@ -37,15 +43,18 @@ describe("BT8-095 Fire Rocket", () => {
   });
 
   it("deletes only the selected opposing Blocker from security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT8-095", as: "option", faceUp: true }] },
-      1: {
-        battleArea: [
-          { card: "BT1-072", as: "blocker" },
-          { card: "BT8-023", as: "nonBlocker" },
-        ],
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT8-095", as: "option", faceUp: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-072", as: "blocker" },
+            { card: "BT8-023", as: "nonBlocker" },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));

@@ -339,7 +339,10 @@ export function potentialWouldDigivolveSelfReduction(
   reducer: WouldDigivolveSelfReducer,
   target?: Permanent,
 ): number {
-  if (reducer.sourceFilter !== undefined && (target === undefined || !permanentMatchesFilter(ctx, target, reducer.sourceFilter, ctx.source))) {
+  if (
+    reducer.sourceFilter !== undefined &&
+    (target === undefined || !permanentMatchesFilter(ctx, target, reducer.sourceFilter, ctx.source))
+  ) {
     return 0;
   }
   const scale = digivolveReducerScale(ctx, reducer, target);

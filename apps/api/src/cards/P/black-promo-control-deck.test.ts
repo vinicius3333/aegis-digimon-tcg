@@ -29,18 +29,22 @@ describe("Black/red promo control deck", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
-      effectKey: "P-026/digi-burst-2-unsuspend",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
+        effectKey: "P-026/digi-burst-2-unsuspend",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("blackWarGreymon").isSuspended);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("multicolor").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("multicolor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     await settle();
 
@@ -50,11 +54,7 @@ describe("Black/red promo control deck", () => {
     const decoyId = s.perm("decoy").permanentId;
     await advance(s.engine).verb.deletePermanent([s.perm("protected").permanentId], "byEffect");
 
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.permanentId === protectedId
-    )).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.permanentId === decoyId
-    )).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === decoyId)).toBe(false);
   });
 });

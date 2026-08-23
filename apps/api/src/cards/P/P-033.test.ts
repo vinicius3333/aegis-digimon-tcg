@@ -60,14 +60,17 @@ describe("P-033 Sunarizamon", () => {
     await s.ready();
 
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("attacker").topCard.cardId === "BT2-064" &&
-      observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack") === 0,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("attacker").topCard.cardId === "BT2-064" &&
+        observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack") === 0,
       2_000,
     );
 

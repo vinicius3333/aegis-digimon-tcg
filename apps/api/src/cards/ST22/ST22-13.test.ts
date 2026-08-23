@@ -7,7 +7,10 @@ import "../index.js";
 describe("ST22-13 GrandGalemon", () => {
   it("suspends an opposing Digimon and gains 3000 DP on play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "ST22-13", as: "grand" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
+      {
+        0: { battleArea: [{ card: "ST22-13", as: "grand" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const grand = s.perm("grand");

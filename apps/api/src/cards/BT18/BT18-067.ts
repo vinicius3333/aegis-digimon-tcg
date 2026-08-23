@@ -6,83 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
-        }
-      ]
+          amount: 1,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
-        }
-      ]
+          amount: 1,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    }
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "J.P. Shibayama"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      names: ["J.P. Shibayama"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "names": [
-        "Beetlemon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Beetlemon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-067", compiled);

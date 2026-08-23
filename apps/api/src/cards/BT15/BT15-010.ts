@@ -6,45 +6,41 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 3000
-                  }
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  dp: {
+                    op: "lte",
+                    value: 3000,
+                  },
                 },
-                "count": 1
+                count: 1,
               },
-              "condition": { "kind": "attackTargetsPlayer", "raw": "one of your Digimon attacks a player" }
-            }
-          ]
-        }
+              condition: { kind: "attackTargetsPlayer", raw: "one of your Digimon attacks a player" },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-010", compiled);

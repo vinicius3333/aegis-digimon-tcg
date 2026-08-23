@@ -12,7 +12,9 @@ import "../P/P-036.js";
 
 function delayEffectKey(s: ReturnType<typeof setupEngine>): string {
   const boost = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "P-036")!;
-  const source = (s.engine as unknown as { cardSourceOf(card: typeof boost.topCard): unknown }).cardSourceOf(boost.topCard);
+  const source = (s.engine as unknown as { cardSourceOf(card: typeof boost.topCard): unknown }).cardSourceOf(
+    boost.topCard,
+  );
   return effectsOf(EffectTiming.OnDeclaration, source as never)[0]!.effectKey;
 }
 
@@ -106,10 +108,13 @@ describe("BT4 Ancient Hybrid deck", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryBoost").instanceId })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("promoLobomon").instanceId) &&
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-036"),
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryBoost").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("promoLobomon").instanceId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-036"),
     );
     await settle();
     expect(s.state.memory).toBe(7);
@@ -118,20 +123,24 @@ describe("BT4 Ancient Hybrid deck", () => {
     const boost = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "P-036")!;
     // Delay can't be activated on the turn the Option entered; advance the fixture to its next turn.
     s.state.turnCount += 1;
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: boost.topCard!.instanceId,
-      effectKey: delayEffectKey(s),
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: boost.topCard!.instanceId,
+        effectKey: delayEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("memoryBoost").instanceId));
     await settle();
     expect(s.state.memory).toBe(9);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("promoLobomon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("promoLobomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT4-114");
 
     expect(s.perm("base").topCard?.cardId).toBe("BT4-114");
@@ -156,20 +165,24 @@ describe("BT4 Ancient Hybrid deck", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("redHost").permanentId,
-      instanceId: s.inst("ancientGreymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redHost").permanentId,
+        instanceId: s.inst("ancientGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("redHost").topCard.cardId === "BT4-113");
     await settle();
     expect(s.state.memory).toBe(7);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("blueHost").permanentId,
-      instanceId: s.inst("ancientGarurumon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueHost").permanentId,
+        instanceId: s.inst("ancientGarurumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("blueHost").topCard.cardId === "BT4-114");
 
     expect(s.state.memory).toBe(4);
@@ -189,14 +202,7 @@ describe("BT4 Ancient Hybrid deck", () => {
               under: ["BT4-011", "BT4-013"],
             },
           ],
-          hand: [
-            { card: "BT7-112", as: "susanoomon" },
-            "BT4-011",
-            "BT4-025",
-            "BT7-021",
-            "BT7-038",
-            "BT7-046",
-          ],
+          hand: [{ card: "BT7-112", as: "susanoomon" }, "BT4-011", "BT4-025", "BT7-021", "BT7-038", "BT7-046"],
           trash: ["BT4-011", "BT4-025", "BT7-021", "BT7-038", "BT7-046"],
           deck: ["BT1-001"],
         },
@@ -209,26 +215,27 @@ describe("BT4 Ancient Hybrid deck", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("zoe").permanentId,
-      instanceId: s.inst("susanoomon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("zoe").topCard.cardId === "BT7-112" &&
-      s.state.players[1]!.battleArea.length === 0,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("zoe").permanentId,
+        instanceId: s.inst("susanoomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("zoe").topCard.cardId === "BT7-112" && s.state.players[1]!.battleArea.length === 0);
     await s.engine.recomputeContinuousEffects();
 
     expect(s.state.players[0]!.deck).toHaveLength(10);
     expect(observe(s.engine).keywordAmount(s.perm("zoe"), "SecurityAttack")).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ancientGreymon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ancientGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await new Promise((resolve) => setTimeout(resolve, 0));
     await settle(
       () =>
@@ -239,11 +246,13 @@ describe("BT4 Ancient Hybrid deck", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(s.state.players[1]!.security).toHaveLength(3);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("zoe").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zoe").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await new Promise((resolve) => setTimeout(resolve, 0));
     await settle(() => s.state.players[1]!.security.length === 0);
 

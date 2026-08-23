@@ -5,25 +5,30 @@ import "./BT3-073.js";
 
 describe("BT3-073 CresGarurumon", () => {
   it("reveals per opposing Digimon and plays an eligible card", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT10-013", as: "base" }],
-        hand: [{ card: "BT3-073", as: "evolving" }],
-        deck: ["BT3-015", { card: "BT1-010", as: "played" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-013", as: "base" }],
+          hand: [{ card: "BT3-073", as: "evolving" }],
+          deck: ["BT3-015", { card: "BT1-010", as: "played" }],
+        },
+        1: { battleArea: ["BT1-010", "BT1-011"] },
       },
-      1: { battleArea: ["BT1-010", "BT1-011"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.events.some(e => e.kind === "effectResolved" && e.sourceCardId === "BT3-073"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT3-073"));
 
-    expect(player.battleArea.some(p => p.topCard.cardId === "BT1-010")).toBe(true);
+    expect(player.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(true);
   });
 
   it("remains suspended after attacking despite having Reboot", async () => {
@@ -34,11 +39,13 @@ describe("BT3-073 CresGarurumon", () => {
     s.state.memory = 1;
     const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !combat.isAttacking);
 
     expect(s.perm("attacker").isSuspended).toBe(true);

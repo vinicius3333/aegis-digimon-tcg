@@ -12,7 +12,14 @@ describe("RB1-021 WezenGammamon", () => {
   });
 
   it("does not grant Blocker to a different Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "RB1-021", as: "wezen" }, { card: "RB1-020", as: "other" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "RB1-021", as: "wezen" },
+          { card: "RB1-020", as: "other" },
+        ],
+      },
+    });
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(false);

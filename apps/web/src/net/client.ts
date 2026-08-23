@@ -1,12 +1,5 @@
 import { Client, type Room } from "colyseus.js";
-import {
-  GameState,
-  ROOM_TYPE,
-  ROOM_TYPE_BOT,
-  ROOM_TYPE_PRIVATE,
-  ROOM_TYPE_RANKED,
-  type Intent,
-} from "@aegis/shared";
+import { GameState, ROOM_TYPE, ROOM_TYPE_BOT, ROOM_TYPE_PRIVATE, ROOM_TYPE_RANKED, type Intent } from "@aegis/shared";
 import {
   deploymentEndpoint,
   loadCurrentDeploymentManifest,
@@ -93,10 +86,7 @@ export class AegisConnectionRouter {
     return this.createBotWithFreshManifest(options, false);
   }
 
-  private async createBotWithFreshManifest(
-    options: AegisJoinOptions,
-    retriedAfterDrain: boolean,
-  ): Promise<AegisRoom> {
+  private async createBotWithFreshManifest(options: AegisJoinOptions, retriedAfterDrain: boolean): Promise<AegisRoom> {
     const manifest = await this.dependencies.loadManifest();
     try {
       const created = await this.client(manifest.active.slot).create(ROOM_TYPE_BOT, options);
@@ -166,10 +156,7 @@ export class AegisConnectionRouter {
     return fetcher(input, init);
   }
 
-  private async withRoomTicket(
-    options: AegisJoinOptions,
-    slot: DeploymentSlot,
-  ): Promise<AegisJoinOptions> {
+  private async withRoomTicket(options: AegisJoinOptions, slot: DeploymentSlot): Promise<AegisJoinOptions> {
     if (!options.ranked) return options;
     try {
       const { http } = this.dependencies.endpointForSlot(slot);
@@ -179,7 +166,7 @@ export class AegisConnectionRouter {
         signal: AbortSignal.timeout(5_000),
       });
       if (!response.ok) return options;
-      const { ticket } = await response.json() as { ticket: string };
+      const { ticket } = (await response.json()) as { ticket: string };
       return { ...options, authTicket: ticket };
     } catch {
       return options;
@@ -195,16 +182,13 @@ export class AegisConnectionRouter {
     });
     if (response.status === 404) return undefined;
     if (!response.ok) throw new Error(`Room lookup failed (${response.status})`);
-    const { roomId } = await response.json() as { roomId: string };
+    const { roomId } = (await response.json()) as { roomId: string };
     return roomId;
   }
 }
 
 function isDrainingResponse(error: unknown): boolean {
-  return typeof error === "object"
-    && error !== null
-    && "code" in error
-    && (error as { code?: unknown }).code === 503;
+  return typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === 503;
 }
 
 let productionRouter: AegisConnectionRouter | undefined;
@@ -219,10 +203,11 @@ function useProductionRouter(): boolean {
 
 function getProductionRouter(): AegisConnectionRouter {
   productionRouter ??= new AegisConnectionRouter({
-    loadManifest: () => loadCurrentDeploymentManifest({
-      bundleRevision: import.meta.env.VITE_AEGIS_REVISION,
-      navigation: window.location,
-    }),
+    loadManifest: () =>
+      loadCurrentDeploymentManifest({
+        bundleRevision: import.meta.env.VITE_AEGIS_REVISION,
+        navigation: window.location,
+      }),
     endpointForSlot: (slot) => deploymentEndpoint(window.location, slot),
     createClient: (endpoint) => new Client(endpoint),
     fetcher: fetch,
@@ -299,7 +284,7 @@ export async function joinPrivateByCode(code: string, options: AegisJoinOptions)
     const body = await response.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error ?? "room not found");
   }
-  const { roomId } = await response.json() as { roomId: string };
+  const { roomId } = (await response.json()) as { roomId: string };
   const joined = await getLegacyClient().joinById<GameState>(roomId, {
     ...options,
     roomCode: code.toUpperCase(),
@@ -316,7 +301,7 @@ async function withLegacyRoomTicket(options: AegisJoinOptions): Promise<AegisJoi
       signal: AbortSignal.timeout(5_000),
     });
     if (!response.ok) return options;
-    const { ticket } = await response.json() as { ticket: string };
+    const { ticket } = (await response.json()) as { ticket: string };
     return { ...options, authTicket: ticket };
   } catch {
     return options;

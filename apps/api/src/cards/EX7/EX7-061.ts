@@ -9,7 +9,9 @@ import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interp
 const cardId = "EX7-061";
 
 function isLilithmonOrXAntibody(def: CardDefinition): boolean {
-  return def.nameEn === "Lilithmon" || def.nameEn === "Lilithmon (X Antibody)" || (def.types ?? []).includes("X Antibody");
+  return (
+    def.nameEn === "Lilithmon" || def.nameEn === "Lilithmon (X Antibody)" || (def.types ?? []).includes("X Antibody")
+  );
 }
 
 function isPurpleLv4OrLowerDigimon(def: CardDefinition): boolean {
@@ -43,8 +45,7 @@ const module: EffectModule = {
               sourcePermanentId: self.permanentId,
               mode: "prevent",
               oncePerTurnKey: `${cardId}/self-protect`,
-              description:
-                "[All Turns] [Once Per Turn] Prevent this Digimon from leaving by deleting 1 other Digimon.",
+              description: "[All Turns] [Once Per Turn] Prevent this Digimon from leaving by deleting 1 other Digimon.",
               protects: (_subCtx, leavingId) => leavingId === self.permanentId,
               preventCheck: async (subCtx) => {
                 const currentSelf = subCtx.game.permanentById(self.permanentId);
@@ -54,7 +55,12 @@ const module: EffectModule = {
                 }
                 const owner = subCtx.game.player(source.ownerSeat);
                 const otherDigimon = Array.from(owner.battleArea)
-                  .filter((p) => p.permanentId !== self.permanentId && p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)))
+                  .filter(
+                    (p) =>
+                      p.permanentId !== self.permanentId &&
+                      p.topCard !== undefined &&
+                      isDigimon(subCtx.game.definitionOf(p.topCard)),
+                  )
                   .map((p) => p.permanentId);
                 if (otherDigimon.length === 0) return false;
                 const yes = await subCtx.ask.optional(

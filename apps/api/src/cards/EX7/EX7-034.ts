@@ -3,70 +3,68 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Vortex",
-          "raw": "＜Vortex＞"
-        }
-      ]
+          keyword: "Vortex",
+          raw: "＜Vortex＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "beAffected",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-          "kind": "ifThisEffectActed",
-            "raw": "if this effect suspends your Digimon"
-          }
-        }
-      ]
+          restriction: "beAffected",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if this effect suspends your Digimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
-        }
+            count: 1,
+            isSelf: true,
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX7-034", compiled);

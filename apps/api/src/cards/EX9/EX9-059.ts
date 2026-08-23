@@ -6,132 +6,126 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Training",
-          "raw": "＜Training＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
-              },
-              "count": 1
-            },
-            "raw": "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          keyword: "Training",
+          raw: "＜Training＞",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "count": 1
             },
-            "raw": "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By placing 1 card in your hand face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "DM"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["DM"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-059", compiled);

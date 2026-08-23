@@ -6,77 +6,71 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1,
-          "fromTop": false
+          amount: 1,
+          fromTop: false,
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 1,
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "permanent",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "digivolutionCards": "none",
-              "zone": "battleArea",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              digivolutionCards: "none",
+              zone: "battleArea",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
-    }
+            unit: "cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-029", compiled);

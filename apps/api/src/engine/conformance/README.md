@@ -26,8 +26,8 @@ supported way to look a chunk up by rule number.
 
   ```ts
   function loadRuleIndex(): RuleIndex;
-  function getChunk(id: string): RuleChunk;              // throws on unknown id
-  function cite(id: string, note?: string): RuleChunk;   // throws on unknown id, records id
+  function getChunk(id: string): RuleChunk; // throws on unknown id
+  function cite(id: string, note?: string): RuleChunk; // throws on unknown id, records id
   function markNotTestable<Reason extends string>(id: string, reason: NonEmptyString<Reason>): void;
   function getCitedIds(): string[];
   function getNotTestableIds(): string[];
@@ -60,7 +60,7 @@ updated if this file ever moves.
 `tools/kb/index-rules.mjs` assigns chunk ids like this (line ~185):
 
 ```js
-id: `${source.id}-${String(chunks.length).padStart(4, "0")}`
+id: `${source.id}-${String(chunks.length).padStart(4, "0")}`;
 ```
 
 That's **not** a stable content hash or a rule number — it's "the Nth chunk

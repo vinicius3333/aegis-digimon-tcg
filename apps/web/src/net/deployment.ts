@@ -129,7 +129,10 @@ function ensureDeploymentRevision({
   return false;
 }
 
-export function deploymentEndpoint(location: LocationLike, slot: DeploymentSlot): {
+export function deploymentEndpoint(
+  location: LocationLike,
+  slot: DeploymentSlot,
+): {
   http: string;
   websocket: string;
 } {
@@ -141,10 +144,12 @@ export function deploymentEndpoint(location: LocationLike, slot: DeploymentSlot)
 }
 
 function isRevision(value: unknown): value is DeploymentRevision {
-  return isRecord(value)
-    && (value.slot === "blue" || value.slot === "green")
-    && typeof value.revision === "string"
-    && value.revision.length > 0;
+  return (
+    isRecord(value) &&
+    (value.slot === "blue" || value.slot === "green") &&
+    typeof value.revision === "string" &&
+    value.revision.length > 0
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

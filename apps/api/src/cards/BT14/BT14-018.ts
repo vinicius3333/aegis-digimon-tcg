@@ -3,148 +3,130 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "Amon of Crimson Flame",
-            "Umon of Blue Thunder"
-          ],
-          "count": 1,
-          "payCost": false
-        }
-      ]
+          kind: "PlayToken",
+          tokens: ["Amon of Crimson Flame", "Umon of Blue Thunder"],
+          count: 1,
+          payCost: false,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "Amon of Crimson Flame",
-            "Umon of Blue Thunder"
-          ],
-          "count": 1,
-          "payCost": false
-        }
-      ]
+          kind: "PlayToken",
+          tokens: ["Amon of Crimson Flame", "Umon of Blue Thunder"],
+          count: 1,
+          payCost: false,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "mode": "instead",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "instead",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Amon of Crimson Flame"
-                      ],
-                      "match": "name"
+                      tokens: ["Amon of Crimson Flame"],
+                      match: "name",
                     },
                     {
-                      "tokens": [
-                        "Umon of Blue Thunder"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Umon of Blue Thunder"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": "all"
-              }
-            }
-          ]
+                count: "all",
+              },
+            },
+          ],
         },
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "mode": "instead",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "instead",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Amon of Crimson Flame"
-                      ],
-                      "match": "name"
+                      tokens: ["Amon of Crimson Flame"],
+                      match: "name",
                     },
                     {
-                      "tokens": [
-                        "Umon of Blue Thunder"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Umon of Blue Thunder"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": "all"
-              }
-            }
-          ]
+                count: "all",
+              },
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Amon of Crimson Flame"
-                ],
-                "match": "name"
+                tokens: ["Amon of Crimson Flame"],
+                match: "name",
               },
               {
-                "tokens": [
-                  "Umon of Blue Thunder"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Umon of Blue Thunder"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Recovery",
-                "raw": "＜Recovery +1 (Deck)＞",
-                "amount": 1
+              keyword: {
+                keyword: "Recovery",
+                raw: "＜Recovery +1 (Deck)＞",
+                amount: 1,
               },
-              "duration": "permanent"
-            }
-          ]
-        }
-      ]
-    }
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-018", compiled);

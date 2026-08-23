@@ -9,8 +9,18 @@ describe("RB1-019 ShinMonzaemon", () => {
   it("moves every level 3 to its owner's security and weakens only opposing level 4 or higher Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "RB1-019", as: "shin" }, { card: "RB1-005", as: "ownLevel3" }] },
-        1: { battleArea: [{ card: "RB1-011", as: "opposingLevel3" }, { card: "RB1-024", as: "opposingLevel5" }] },
+        0: {
+          battleArea: [
+            { card: "RB1-019", as: "shin" },
+            { card: "RB1-005", as: "ownLevel3" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "RB1-011", as: "opposingLevel3" },
+            { card: "RB1-024", as: "opposingLevel5" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -40,8 +50,8 @@ describe("RB1-019 ShinMonzaemon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "RB1-017")).toBe(true);
     expect(s.state.players[1]!.security.at(-1)).toMatchObject({ cardId: "BT1-009", faceUp: false });
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(
-      false,
-    );
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(false);
   });
 });

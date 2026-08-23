@@ -6,90 +6,78 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 2
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 2,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Guilmon"
-                  ],
-                  "match": "name"
+                  tokens: ["Guilmon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Growlmon",
-                    "Gallantmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Growlmon", "Gallantmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
-        }
-      ]
+          to: "hand",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Guilmon"
-                  ],
-                  "match": "name"
+                  tokens: ["Guilmon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Growlmon",
-                    "Gallantmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Growlmon", "Gallantmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
-        }
+          to: "hand",
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Guilmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      names: ["Guilmon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX4-008", compiled);

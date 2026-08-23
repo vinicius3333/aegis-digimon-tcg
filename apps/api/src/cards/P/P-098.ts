@@ -7,99 +7,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
             },
-            "count": 1
+            count: 1,
           },
-          "grant": {
-            "cannotBeDeletedInBattle": true
+          grant: {
+            cannotBeDeletedInBattle: true,
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ]
-            },
-            "count": 1
-          },
-          "grant": {
-            "cannotBeDeletedInBattle": true
-          },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "byEffect": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Blue"
-                  ]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Rush",
-                "raw": "＜Rush＞"
-              },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
+            },
+            count: 1,
+          },
+          grant: {
+            cannotBeDeletedInBattle: true,
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            byEffect: true,
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Blue"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Rush",
+                raw: "＜Rush＞",
+              },
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-098", compiled);

@@ -17,7 +17,9 @@ describe("ST18-04 Pteromon", () => {
     s.state.memory = 3;
     const p0 = s.state.players[0] as PlayerState;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pteromon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pteromon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => p0.hand.some((card) => card.cardId === "ST18-03"));
 
     expect(p0.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["ST18-03", "ST18-08"]));

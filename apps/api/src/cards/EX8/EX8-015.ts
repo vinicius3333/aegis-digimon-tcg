@@ -6,91 +6,84 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "beReturned",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "beReturned",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 10000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 10000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "WarGrowlmon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["WarGrowlmon", "X Antibody"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "[WarGrowlmon]/[X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[WarGrowlmon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "WarGrowlmon"
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
       ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["WarGrowlmon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-015", compiled);

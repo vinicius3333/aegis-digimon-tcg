@@ -12,16 +12,29 @@ describe("P-160 Tyrannomon (X Antibody)", () => {
   it("checks Tyrannomon name or X Antibody trait in the stack for its attack digivolution", () => {
     const attack = runtimeCompiledCard("P-160")!.effects.find((effect) => effect.trigger === "WhenAttacking")!;
     expect(attack).toMatchObject({
-      actions: [{
-        kind: "Digivolve",
-        optional: true,
-        reduceCost: 1,
-        condition: { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: expect.arrayContaining([
-          { tokens: ["Tyrannomon"], match: "name" },
-          { tokens: ["X Antibody"], match: "trait" },
-        ]) } },
-        into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Tyrannomon"], match: "name" }, { tokens: ["Dinosaur"], match: "trait" }] },
-      }],
+      actions: [
+        {
+          kind: "Digivolve",
+          optional: true,
+          reduceCost: 1,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: expect.arrayContaining([
+                { tokens: ["Tyrannomon"], match: "name" },
+                { tokens: ["X Antibody"], match: "trait" },
+              ]),
+            },
+          },
+          into: {
+            kind: ["Digimon"],
+            nameOrTrait: [
+              { tokens: ["Tyrannomon"], match: "name" },
+              { tokens: ["Dinosaur"], match: "trait" },
+            ],
+          },
+        },
+      ],
     });
   });
 });

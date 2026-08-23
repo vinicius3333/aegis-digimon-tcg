@@ -30,11 +30,13 @@ describe("BT26-037 Weatherdramon", () => {
         expect.objectContaining({
           trigger: "Static",
           isLinked: true,
-          actions: [expect.objectContaining({
-            kind: "SubTrigger",
-            event: "whenLinked",
-            actions: [expect.objectContaining({ kind: "Battle", optional: true })],
-          })],
+          actions: [
+            expect.objectContaining({
+              kind: "SubTrigger",
+              event: "whenLinked",
+              actions: [expect.objectContaining({ kind: "Battle", optional: true })],
+            }),
+          ],
         }),
       ]),
     );

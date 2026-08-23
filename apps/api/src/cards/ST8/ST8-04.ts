@@ -6,76 +6,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "UlforceVeedramon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["UlforceVeedramon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 4,
-          "ignoreRequirements": true,
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 6
-              }
+          payCost: true,
+          from: ["hand"],
+          costOverride: 4,
+          ignoreRequirements: true,
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 6,
+              },
             },
-            "raw": "your opponent has a level 6 or higher Digimon in play"
-          }
-        }
-      ]
+            raw: "your opponent has a level 6 or higher Digimon in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "hand",
-            "op": "lte",
-            "value": 7,
-            "raw": "you have 7 or fewer cards in your hand"
-          }
-        }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "hand",
+            op: "lte",
+            value: 7,
+            raw: "you have 7 or fewer cards in your hand",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST8-04", compiled);

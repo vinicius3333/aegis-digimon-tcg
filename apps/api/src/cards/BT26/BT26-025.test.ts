@@ -6,17 +6,40 @@ import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 describe("BT26-025 Liollmon", () => {
   it("compiles On Play and On Move security placement followed by Recovery +1", () => {
-    expect(compiled.coverage).toBe("full"); expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "SecurityManipulation", op: "addTop", source: "deck", cost: { kind: "place", faceDown: true } }] });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
+        { kind: "SecurityManipulation", op: "addTop", source: "deck", cost: { kind: "place", faceDown: true } },
+      ],
+    });
     expect(compiled.effects[1]).toMatchObject({ trigger: "WhenMoving" });
   });
   it("compiles inherited once-per-turn security-to-hand and zero-security recovery", () => {
-    expect(compiled.effects[2]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SecurityManipulation", op: "toHand" }, { kind: "SecurityManipulation", op: "addTop", condition: { kind: "securityAtMost", value: 0 } }] });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "SecurityManipulation", op: "toHand" },
+        { kind: "SecurityManipulation", op: "addTop", condition: { kind: "securityAtMost", value: 0 } },
+      ],
+    });
   });
   it("publicly places the top security card under a Glowing Dawn Tamer and recovers", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST23-14", as: "tamer" }], hand: [{ card: "BT26-025", as: "liollmon" }], security: [{ card: "BT1-009", as: "security" }], deck: [{ card: "BT1-010", as: "recovery" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST23-14", as: "tamer" }],
+        hand: [{ card: "BT26-025", as: "liollmon" }],
+        security: [{ card: "BT1-009", as: "security" }],
+        deck: [{ card: "BT1-010", as: "recovery" }],
+      },
+    });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("liollmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("liollmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.security.some((c) => c.instanceId === s.inst("recovery").instanceId));
     expect(s.state.players[0]!.security.map((c) => c.instanceId)).toContain(s.inst("recovery").instanceId);
     expect(s.perm("tamer").stack.map((c) => c.instanceId)).toContain(s.inst("security").instanceId);
@@ -32,7 +55,9 @@ describe("BT26-025 Liollmon", () => {
     });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("liollmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("liollmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("security").instanceId]);
@@ -40,14 +65,17 @@ describe("BT26-025 Liollmon", () => {
   });
 
   it("pays the same placement cost and recovers when moving from breeding", async () => {
-    const s = setupEngine({
-      0: {
-        breeding: { card: "BT26-025", as: "mover" },
-        battleArea: [{ card: "ST23-14", as: "tamer" }],
-        security: [{ card: "BT1-009", as: "security" }],
-        deck: [{ card: "BT1-010", as: "recovery" }],
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT26-025", as: "mover" },
+          battleArea: [{ card: "ST23-14", as: "tamer" }],
+          security: [{ card: "BT1-009", as: "security" }],
+          deck: [{ card: "BT1-010", as: "recovery" }],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.phase = Phase.Breeding;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
@@ -74,16 +102,19 @@ describe("BT26-025 Liollmon", () => {
   });
 
   it("inherited attack may take the last security, then recovers, only once that turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-027", as: "host", under: [{ card: "BT26-025" }] }],
-        security: [{ card: "BT1-009", as: "taken" }],
-        deck: [
-          { card: "BT1-010", as: "recovery" },
-          { card: "BT1-011", as: "notRecovered" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-027", as: "host", under: [{ card: "BT26-025" }] }],
+          security: [{ card: "BT1-009", as: "taken" }],
+          deck: [
+            { card: "BT1-010", as: "recovery" },
+            { card: "BT1-011", as: "notRecovered" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
     const trigger = { attackerPermanentId: s.perm("host").permanentId };
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), trigger);
@@ -108,12 +139,14 @@ describe("BT26-025 Liollmon", () => {
         hand: [{ card: "BT26-025", as: "liollmon" }],
       },
     });
-    expect(legal.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: legal.perm("glowingDawnEgg").permanentId,
-      instanceId: legal.inst("liollmon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("glowingDawnEgg").permanentId,
+        instanceId: legal.inst("liollmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
 
     const invalid = setupEngine({
       0: {
@@ -121,11 +154,13 @@ describe("BT26-025 Liollmon", () => {
         hand: [{ card: "BT26-025", as: "liollmon" }],
       },
     });
-    expect(invalid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: invalid.perm("plainEgg").permanentId,
-      instanceId: invalid.inst("liollmon").instanceId,
-      useAlternateCost: true,
-    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("plainEgg").permanentId,
+        instanceId: invalid.inst("liollmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

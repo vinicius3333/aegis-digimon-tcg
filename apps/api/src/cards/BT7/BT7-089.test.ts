@@ -23,19 +23,23 @@ describe("BT7-089 J.P. Shibayama", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("otherBase").permanentId,
-      instanceId: s.inst("ontoOther").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("otherBase").permanentId,
+        instanceId: s.inst("ontoOther").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("otherBase").topCard.cardId === "BT7-050" && s.state.memory === 2);
     expect(s.state.memory).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("jp").permanentId,
-      instanceId: s.inst("ontoTamer").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jp").permanentId,
+        instanceId: s.inst("ontoTamer").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("jp").topCard.cardId === "BT7-046" && s.state.memory === 1);
     expect(s.state.memory).toBe(1);
   });
@@ -49,11 +53,13 @@ describe("BT7-089 J.P. Shibayama", () => {
       },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -72,17 +78,16 @@ describe("BT7-089 J.P. Shibayama", () => {
     await s.ready();
 
     expect(
-      advance(s.engine).ledgers.modifiers.evoCostFor(
-        s.perm("hybrid"),
-        requireCardDefinition("BT7-051"),
-      ),
+      advance(s.engine).ledgers.modifiers.evoCostFor(s.perm("hybrid"), requireCardDefinition("BT7-051")),
     ).toBeUndefined();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("hybrid").permanentId,
-      instanceId: s.inst("rhino").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("hybrid").permanentId,
+        instanceId: s.inst("rhino").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("hybrid").topCard.instanceId === s.inst("rhino").instanceId);
 
     // J.P.'s -1 applies only when the Tamer itself digivolves and must not remain

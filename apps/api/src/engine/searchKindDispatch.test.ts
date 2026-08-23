@@ -4,7 +4,6 @@ import type { CardSource } from "./effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "./effects/EffectContext.js";
 import { irCardModule } from "./effects/interpreter.js";
 
-
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
 }

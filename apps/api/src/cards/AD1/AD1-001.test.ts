@@ -18,19 +18,37 @@ describe("AD1-001 Greymon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId)).toBe(
+      false,
+    );
   });
 
   it("allows the printed level-3 ADVENTURE and Omnimon-in-text digivolution routes for cost 2", async () => {
     for (const baseCardId of ["ST20-02", "BT12-059"]) {
-      const s = setupEngine({ 0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "AD1-001", as: "greymon" }], deck: ["BT1-001"] } });
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "AD1-001", as: "greymon" }],
+          deck: ["BT1-001"],
+        },
+      });
       s.state.memory = 2;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("greymon").instanceId })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("greymon").instanceId,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard?.cardId === "AD1-001");
 
       expect(s.perm("base").topCard?.cardId).toBe("AD1-001");
@@ -43,7 +61,10 @@ describe("AD1-001 Greymon", () => {
       {
         0: {
           battleArea: [{ card: "AD1-001", as: "source" }],
-          hand: [{ card: "AD1-010", as: "garurumon" }, { card: "BT1-021", as: "metalGreymon" }],
+          hand: [
+            { card: "AD1-010", as: "garurumon" },
+            { card: "BT1-021", as: "metalGreymon" },
+          ],
           deck: ["BT1-001"],
         },
       },
@@ -51,7 +72,9 @@ describe("AD1-001 Greymon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("source").topCard?.cardId === "BT1-021");
 
     expect(s.perm("source").topCard?.cardId).toBe("BT1-021");
@@ -64,7 +87,10 @@ describe("AD1-001 Greymon", () => {
       {
         0: {
           battleArea: [{ card: "AD1-010", as: "source", under: ["AD1-001"] }],
-          hand: [{ card: "AD1-010", as: "garurumon" }, { card: "BT1-021", as: "metalGreymon" }],
+          hand: [
+            { card: "AD1-010", as: "garurumon" },
+            { card: "BT1-021", as: "metalGreymon" },
+          ],
           deck: ["BT1-001"],
         },
       },
@@ -86,17 +112,26 @@ describe("AD1-001 Greymon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision === null);
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashGarurumon").instanceId)).toBe(
+      true,
+    );
   });
 
   it("grants Raid from the evolution stack and redirects to the highest-DP unsuspended Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT1-021", dp: 7000, as: "attacker", under: ["AD1-001"] }] },
-        1: { battleArea: [{ card: "BT1-001", dp: 9000, as: "highest" }, { card: "BT1-001", dp: 3000, as: "lower" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-001", dp: 9000, as: "highest" },
+            { card: "BT1-001", dp: 3000, as: "lower" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -105,7 +140,9 @@ describe("AD1-001 Greymon", () => {
     const highestId = s.perm("highest").permanentId;
     const lowerId = s.perm("lower").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== attackerId), 5000);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
@@ -117,7 +154,10 @@ describe("AD1-001 Greymon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "AD1-001", as: "greymon" }] } });
     s.state.memory = -10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({ ok: false, reason: "insufficient-memory" });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {
@@ -129,6 +169,5 @@ describe("AD1-001 Greymon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 });

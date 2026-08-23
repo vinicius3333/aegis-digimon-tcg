@@ -3,74 +3,66 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by suspending 1 of your Digimon"
+            raw: "by suspending 1 of your Digimon",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "sameTarget": true,
-            "filter": {
-              "controller": "opponent",
-              "suspended": true
+          kind: "Restrict",
+          target: {
+            sameTarget: true,
+            filter: {
+              controller: "opponent",
+              suspended: true,
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-102", compiled);

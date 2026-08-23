@@ -6,92 +6,83 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Greymon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Greymon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Tai Kamiya"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Tai Kamiya"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a Tamer with [Tai Kamiya] in its name"
-          }
-        }
-      ]
+            raw: "you have a Tamer with [Tai Kamiya] in its name",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 2000
+          effect: {
+            kind: "modifyDP",
+            amount: 2000,
           },
-          "while": {
-            "kind": "selfHasNameContaining", "names": ["Greymon","Omnimon"],
-            "raw": "this Digimon has [Greymon] or [Omnimon] in its name"
-          }
-        }
+          while: {
+            kind: "selfHasNameContaining",
+            names: ["Greymon", "Omnimon"],
+            raw: "this Digimon has [Greymon] or [Omnimon] in its name",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Koromon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Koromon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT14-007", compiled);

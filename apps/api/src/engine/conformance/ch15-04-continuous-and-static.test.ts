@@ -34,7 +34,7 @@ describe("§15-8-2 Persistent Effects (comprehensive-0172)", () => {
   it("15-8-2-2/15-8-2-3: a persistent DP boost is active on the owner's turn and inactive on the opponent's — the rules' OWN worked example", async () => {
     cite(
       "comprehensive-0172",
-      '15-8-2-2/3 persistent effects activate as soon as their condition is met and ' +
+      "15-8-2-2/3 persistent effects activate as soon as their condition is met and " +
         "deactivate as soon as it no longer is — the rules' OWN worked example: '[Your Turn] " +
         "All of your Digimon get +1000 DP' is active from the start of your turn, inactive from " +
         "the start of your opponent's turn",
@@ -113,7 +113,10 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
 
 describe("§15-14-2 {Hand} (comprehensive-0194)", () => {
   it("15-14-2-1: BT9-042's {Hand}[Main] effect is declarable while the card sits face-up in hand", async () => {
-    cite("comprehensive-0194", "15-14-2-1 an effect with the {Hand} icon can be activated when you reveal the card from your hand");
+    cite(
+      "comprehensive-0194",
+      "15-14-2-1 an effect with the {Hand} icon can be activated when you reveal the card from your hand",
+    );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true }); // the clause now really activates, so its optional prompt must be answered
     const p0 = s.state.players[0]!;
@@ -138,83 +141,77 @@ describe("§15-14-2 {Hand} (comprehensive-0194)", () => {
     }
   });
 
-  it(
-    "NOW MET: onAddHand's default base guard should NOT require the source to be on the battle area",
-    () => {
-      cite(
-        "comprehensive-0194",
-        "DIVERGENCE: builders.ts's `onAddHand` builder (used for every IR 'Hand' trigger, " +
-          "builderForTrigger's `case \"Hand\": return onAddHand;`) is defined as `build(opts, {})`" +
-          " — an EMPTY flags object, so its base guard defaults to `onField` (`ctx.source." +
-          "isOnBattleArea()`). A {Hand}-triggered effect's whole point (§15-14-2-1) is that its " +
-          "source is a LOOSE HAND CARD, which is never on the battle area — so canTrigger's base " +
-          "guard is unsatisfiable for the one zone {Hand} effects are defined to fire from.",
-      );
+  it("NOW MET: onAddHand's default base guard should NOT require the source to be on the battle area", () => {
+    cite(
+      "comprehensive-0194",
+      "DIVERGENCE: builders.ts's `onAddHand` builder (used for every IR 'Hand' trigger, " +
+        'builderForTrigger\'s `case "Hand": return onAddHand;`) is defined as `build(opts, {})`' +
+        " — an EMPTY flags object, so its base guard defaults to `onField` (`ctx.source." +
+        "isOnBattleArea()`). A {Hand}-triggered effect's whole point (§15-14-2-1) is that its " +
+        "source is a LOOSE HAND CARD, which is never on the battle area — so canTrigger's base " +
+        "guard is unsatisfiable for the one zone {Hand} effects are defined to fire from.",
+    );
 
-      const ctx = {
-        source: {
-          instanceId: "x",
-          cardId: "BT9-042",
-          ownerSeat: 0 as Seat,
-          definition: {} as EffectContext["source"]["definition"],
-          permanent: () => undefined, // a loose hand card has no permanent
-          isOnBattleArea: () => false, // and is never "on the battle area"
-          isOwnersTurn: () => true,
-          hasColor: (_c: CardColor) => false,
-        },
-      } as unknown as EffectContext;
-      const effect = onAddHand({
-        source: ctx.source,
-        effectKey: "probe/hand-shaped",
-        description: "probe",
-        resolve: async () => {},
-      });
-      // EXPECTED (per §15-14-2-1): a hand-resident {Hand} effect's canTrigger should NOT
-      // be gated on battle-area presence.
-      expect(effect.canTrigger(ctx)).toBe(true);
-    },
-  );
+    const ctx = {
+      source: {
+        instanceId: "x",
+        cardId: "BT9-042",
+        ownerSeat: 0 as Seat,
+        definition: {} as EffectContext["source"]["definition"],
+        permanent: () => undefined, // a loose hand card has no permanent
+        isOnBattleArea: () => false, // and is never "on the battle area"
+        isOwnersTurn: () => true,
+        hasColor: (_c: CardColor) => false,
+      },
+    } as unknown as EffectContext;
+    const effect = onAddHand({
+      source: ctx.source,
+      effectKey: "probe/hand-shaped",
+      description: "probe",
+      resolve: async () => {},
+    });
+    // EXPECTED (per §15-14-2-1): a hand-resident {Hand} effect's canTrigger should NOT
+    // be gated on battle-area presence.
+    expect(effect.canTrigger(ctx)).toBe(true);
+  });
 });
 
 describe("§15-14-3 {Trash} (comprehensive-0195)", () => {
-  it(
-    "NOW MET: a {Trash}-resident effect should activate while its card sits in the trash, not require the battle area",
-    () => {
-      cite(
-        "comprehensive-0195",
-        "RESOLVED: `builderForTrigger` now routes an `isFromTrash`-flagged effect (a " +
-          "compiled `[Trash]` tag, e.g. BT26-078's [Trash][Your Turn]) to `inTrash`, whose " +
-          "base guard requires ACTUAL trash residency (`ctx.source.isInTrash()`) rather than " +
-          "merely 'not on the battle area' — a card resident in HAND or the DECK is also " +
-          "never on the battle area, so the guard must positively confirm trash residency, " +
-          "not just the absence of a field guard (the corresponding regression coverage " +
-          "eighth gap).",
-      );
+  it("NOW MET: a {Trash}-resident effect should activate while its card sits in the trash, not require the battle area", () => {
+    cite(
+      "comprehensive-0195",
+      "RESOLVED: `builderForTrigger` now routes an `isFromTrash`-flagged effect (a " +
+        "compiled `[Trash]` tag, e.g. BT26-078's [Trash][Your Turn]) to `inTrash`, whose " +
+        "base guard requires ACTUAL trash residency (`ctx.source.isInTrash()`) rather than " +
+        "merely 'not on the battle area' — a card resident in HAND or the DECK is also " +
+        "never on the battle area, so the guard must positively confirm trash residency, " +
+        "not just the absence of a field guard (the corresponding regression coverage " +
+        "eighth gap).",
+    );
 
-      const ctx = {
-        source: {
-          instanceId: "x",
-          cardId: "PROBE",
-          ownerSeat: 0 as Seat,
-          definition: {} as EffectContext["source"]["definition"],
-          permanent: () => undefined, // a trashed card has no permanent
-          isOnBattleArea: () => false,
-          isInTrash: () => true, // resident in the trash — the zone this effect requires
-          isOwnersTurn: () => true,
-          hasColor: (_c: CardColor) => false,
-        },
-      } as unknown as EffectContext;
-      // `inTrash` is what builderForTrigger now hands a compiled "Trash"-shaped ([Trash]-tagged)
-      // effect. Its base guard requires genuine trash residency (ctx.source.isInTrash()).
-      const effect = inTrash({
-        source: ctx.source,
-        effectKey: "probe/trash-shaped",
-        description: "probe",
-        resolve: async () => {},
-      });
-      expect(effect.canTrigger(ctx)).toBe(true);
-    },
-  );
+    const ctx = {
+      source: {
+        instanceId: "x",
+        cardId: "PROBE",
+        ownerSeat: 0 as Seat,
+        definition: {} as EffectContext["source"]["definition"],
+        permanent: () => undefined, // a trashed card has no permanent
+        isOnBattleArea: () => false,
+        isInTrash: () => true, // resident in the trash — the zone this effect requires
+        isOwnersTurn: () => true,
+        hasColor: (_c: CardColor) => false,
+      },
+    } as unknown as EffectContext;
+    // `inTrash` is what builderForTrigger now hands a compiled "Trash"-shaped ([Trash]-tagged)
+    // effect. Its base guard requires genuine trash residency (ctx.source.isInTrash()).
+    const effect = inTrash({
+      source: ctx.source,
+      effectKey: "probe/trash-shaped",
+      description: "probe",
+      resolve: async () => {},
+    });
+    expect(effect.canTrigger(ctx)).toBe(true);
+  });
 });
 
 describe("§15-14-4 {Breeding} (comprehensive-0196)", () => {
@@ -298,8 +295,7 @@ describe("§15-16 Effect Timings (comprehensive-0207/0208)", () => {
     cite("comprehensive-0207", "15-16-1 effect timings are shown using bracketed-icon text");
     cite(
       "comprehensive-0208",
-      "15-16-2-1 [On Play] triggers at the point the action of playing a card with " +
-        "that effect completes",
+      "15-16-2-1 [On Play] triggers at the point the action of playing a card with " + "that effect completes",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -347,8 +343,9 @@ describe("§15-16-4 [On Deletion] (comprehensive-0210)", () => {
     s.state.memory = 0;
     const memoryBefore = s.state.memory;
 
-    await (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives
-      .deletePermanent([leomon.permanentId]);
+    await (
+      s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }
+    ).primitives.deletePermanent([leomon.permanentId]);
     await settle(() => s.state.memory !== memoryBefore, 5000);
 
     expect(s.state.memory).toBe(memoryBefore + 2);
@@ -357,7 +354,10 @@ describe("§15-16-4 [On Deletion] (comprehensive-0210)", () => {
 
 describe("§15-16-5 [When Attacking] (comprehensive-0211)", () => {
   it("15-16-5-1: [When Attacking] triggers at the point an attack is declared — BT9-042's INHERITED clause fires on the higher Digimon's attack", async () => {
-    cite("comprehensive-0211", "15-16-5-1 [When Attacking] triggers when an attack declaration is made for the card with that effect");
+    cite(
+      "comprehensive-0211",
+      "15-16-5-1 [When Attacking] triggers when an attack declaration is made for the card with that effect",
+    );
 
     const s = setup({ autoAcceptOptional: true });
     const p0 = s.state.players[0]!;
@@ -381,14 +381,14 @@ describe("§15-16-5 [When Attacking] (comprehensive-0211)", () => {
 
 // §15-16-6 [When Linking] (comprehensive-0212)
 markNotTestable(
-    "comprehensive-0212",
-    "No compiled card prints '[When Linking]' anywhere in the 4,284-card corpus (searched " +
-      "cards.json effectText/inheritedEffectText for the literal bracket) AND the engine's " +
-      "EffectTiming enum (packages/shared/src/schema/enums.ts) has no member for it — unlike " +
-      "every other timing in this section, 'WhenLinking' appears in neither timingForTrigger's " +
-      "IR-trigger switch nor anywhere in GameEngine.ts's link-mechanic handlers (grepped both). " +
-      "There is no real card to drive and no engine window it would dispatch through.",
-  );
+  "comprehensive-0212",
+  "No compiled card prints '[When Linking]' anywhere in the 4,284-card corpus (searched " +
+    "cards.json effectText/inheritedEffectText for the literal bracket) AND the engine's " +
+    "EffectTiming enum (packages/shared/src/schema/enums.ts) has no member for it — unlike " +
+    "every other timing in this section, 'WhenLinking' appears in neither timingForTrigger's " +
+    "IR-trigger switch nor anywhere in GameEngine.ts's link-mechanic handlers (grepped both). " +
+    "There is no real card to drive and no engine window it would dispatch through.",
+);
 describe("§15-16-7 [Main] (comprehensive-0213)", () => {
   it("15-16-7-1: [Main] is exactly the activation-type-effect window — BT15-009 again, cited for its own timing icon this time", () => {
     cite("comprehensive-0213", "15-16-7-1 [Main] is an effect timing for activation-type effects (§15-8-4)");
@@ -435,7 +435,10 @@ describe("§15-16-8 [Your Turn] and [Opponent's Turn] (comprehensive-0214)", () 
 
 describe("§15-16-9 [All Turns] (comprehensive-0215)", () => {
   it("15-16-9-1: an [All Turns] effect triggers/activates on BOTH players' turns, unlike [Your Turn]", () => {
-    cite("comprehensive-0215", "15-16-9-1 [All Turns] effects can be triggered and activated during both your turns and your opponent's turns");
+    cite(
+      "comprehensive-0215",
+      "15-16-9-1 [All Turns] effects can be triggered and activated during both your turns and your opponent's turns",
+    );
 
     const ctx = {
       source: {
@@ -449,7 +452,10 @@ describe("§15-16-9 [All Turns] (comprehensive-0215)", () => {
         hasColor: (_c: CardColor) => false,
       },
     } as unknown as EffectContext;
-    const opponentTurnCtx = { ...ctx, source: { ...ctx.source, isOwnersTurn: () => false } } as unknown as EffectContext;
+    const opponentTurnCtx = {
+      ...ctx,
+      source: { ...ctx.source, isOwnersTurn: () => false },
+    } as unknown as EffectContext;
     // No `turnOwnerGuard` is applied for an "AllTurns"-trigger effect (turnOwnerGuard's
     // switch has no case for it) — the effect is unconditionally live on both turns.
     const effect = staticModifier({
@@ -499,10 +505,7 @@ describe("§15-16-10 [Security] (comprehensive-0216)", () => {
 
 describe("§15-16-13-1 [Start of Your/Opponent's Main Phase] (comprehensive-0217)", () => {
   it("15-16-13-1: [Start of Your Main Phase] fires at the OnStartMainPhase window — BT22-007's {Breeding} clause, gated to the OWNER's turn", async () => {
-    cite(
-      "comprehensive-0217",
-      "15-16-13-1 [Start of Your Main Phase] triggers at the point your main phase arrives",
-    );
+    cite("comprehensive-0217", "15-16-13-1 [Start of Your Main Phase] triggers at the point your main phase arrives");
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0]!;
@@ -525,61 +528,63 @@ describe("§15-16-13-1 [Start of Your/Opponent's Main Phase] (comprehensive-0217
 
 // §15-16-14 [Counter] (comprehensive-0218)
 markNotTestable(
-    "comprehensive-0218",
-    "Every compiled card printing [Counter] in the corpus pairs it ONLY with the " +
-      "＜Blast Digivolve＞ keyword marker (grepped apps/api/src/cards for '\"trigger\": " +
-      "\"Counter\"' — AD1-005/BT14-014/BT14-026/BT14-037, all keyword-only, no independent " +
-      "action body). §11-3 'Counter Timing' (the window this icon fires in) is combat's own " +
-      "declare-block/pre-damage machinery, chapter 11 scaffolding outside this lane's file " +
-      "ownership. There is no real card whose [Counter] clause has an observable body distinct " +
-      "from ＜Blast Digivolve＞'s own well-covered digivolve mechanic (ch08) to drive here.",
-  );
+  "comprehensive-0218",
+  "Every compiled card printing [Counter] in the corpus pairs it ONLY with the " +
+    '＜Blast Digivolve＞ keyword marker (grepped apps/api/src/cards for \'"trigger": ' +
+    '"Counter"\' — AD1-005/BT14-014/BT14-026/BT14-037, all keyword-only, no independent ' +
+    "action body). §11-3 'Counter Timing' (the window this icon fires in) is combat's own " +
+    "declare-block/pre-damage machinery, chapter 11 scaffolding outside this lane's file " +
+    "ownership. There is no real card whose [Counter] clause has an observable body distinct " +
+    "from ＜Blast Digivolve＞'s own well-covered digivolve mechanic (ch08) to drive here.",
+);
 // §15-16-15 [End of Attack] (comprehensive-0219)
 markNotTestable(
-    "comprehensive-0219",
-    "Driving '[End of Attack] triggers when the end of the attack arrives after an attack " +
-      "using the card with that effect' requires a real in-progress attack through combat's own " +
-      "state machine (combat/controller.ts) — chapter 11 'Attacking' scaffolding outside this " +
-      "lane's ch15 file ownership, the same reason comprehensive-0199 above is not-testable here.",
-  );
+  "comprehensive-0219",
+  "Driving '[End of Attack] triggers when the end of the attack arrives after an attack " +
+    "using the card with that effect' requires a real in-progress attack through combat's own " +
+    "state machine (combat/controller.ts) — chapter 11 'Attacking' scaffolding outside this " +
+    "lane's ch15 file ownership, the same reason comprehensive-0199 above is not-testable here.",
+);
 describe("§15-16-16 [When Moving] (comprehensive-0220)", () => {
-  it(
-    "NOW MET: a compiled '[When Moving]' effect should fire at the real OnMove window",
-    async () => {
-      cite(
-        "comprehensive-0220",
-        "DIVERGENCE: 15-16-16-1 '[When Moving] triggers at the point the card with that " +
-          "effect is moved.' GameEngine.ts fires a real, dedicated `EffectTiming.OnMove` window " +
-          "at exactly the breeding<->battle move point (`this.fireTiming(EffectTiming.OnMove, " +
-          "{ movedPermanentId })`, the move action's own comment: 'The breeding -> battle move " +
-          "fires the OnMove timing'). But the IR COMPILER's `timingForTrigger` " +
-          "(effects/interpreter.ts) maps the 'WhenMoving' IR trigger to `EffectTiming.None` (the " +
-          "continuous/static bucket) — the SAME switch arm as 'AllTurns'/'Trash'/'Breeding'/" +
-          "'Static' — not to `EffectTiming.OnMove`. A real card printing [When Moving] (BT24-052 " +
-          "Keramon (X Antibody): '[When Moving] ... you may play 1 [Diaboromon] Token...') is " +
-          "therefore NEVER collected when `fireTiming(EffectTiming.OnMove, ...)` runs; its " +
-          "compiled effect sits in the continuous bucket instead and never activates from a move.",
-      );
+  it("NOW MET: a compiled '[When Moving]' effect should fire at the real OnMove window", async () => {
+    cite(
+      "comprehensive-0220",
+      "DIVERGENCE: 15-16-16-1 '[When Moving] triggers at the point the card with that " +
+        "effect is moved.' GameEngine.ts fires a real, dedicated `EffectTiming.OnMove` window " +
+        "at exactly the breeding<->battle move point (`this.fireTiming(EffectTiming.OnMove, " +
+        "{ movedPermanentId })`, the move action's own comment: 'The breeding -> battle move " +
+        "fires the OnMove timing'). But the IR COMPILER's `timingForTrigger` " +
+        "(effects/interpreter.ts) maps the 'WhenMoving' IR trigger to `EffectTiming.None` (the " +
+        "continuous/static bucket) — the SAME switch arm as 'AllTurns'/'Trash'/'Breeding'/" +
+        "'Static' — not to `EffectTiming.OnMove`. A real card printing [When Moving] (BT24-052 " +
+        "Keramon (X Antibody): '[When Moving] ... you may play 1 [Diaboromon] Token...') is " +
+        "therefore NEVER collected when `fireTiming(EffectTiming.OnMove, ...)` runs; its " +
+        "compiled effect sits in the continuous bucket instead and never activates from a move.",
+    );
 
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-      const p0 = s.state.players[0]!;
-      const keramon = digimon(0, 3000, "BT24-052"); // real: "[When Moving] ... play 1 [Diaboromon] Token..."
-      keramon.inBreeding = true;
-      p0.breeding = keramon;
-      s.state.phase = Phase.Breeding;
-      s.state.turnSeat = 0;
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0]!;
+    const keramon = digimon(0, 3000, "BT24-052"); // real: "[When Moving] ... play 1 [Diaboromon] Token..."
+    keramon.inBreeding = true;
+    p0.breeding = keramon;
+    s.state.phase = Phase.Breeding;
+    s.state.turnSeat = 0;
 
-      const result = applyMoveFromBreeding(s.state, 0, { type: "moveFromBreeding", permanentId: keramon.permanentId }, {});
-      expect(result.ok).toBe(true);
-      void (s.engine as unknown as { fireTiming(t: EffectTiming, trig?: unknown): Promise<void> }).fireTiming(
-        EffectTiming.OnMove,
-        { movedPermanentId: keramon.permanentId },
-      );
-      await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 5000);
-      // EXPECTED (per §15-16-16-1): the [When Moving] optional Token-play prompt fires.
-      expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
-    },
-  );
+    const result = applyMoveFromBreeding(
+      s.state,
+      0,
+      { type: "moveFromBreeding", permanentId: keramon.permanentId },
+      {},
+    );
+    expect(result.ok).toBe(true);
+    void (s.engine as unknown as { fireTiming(t: EffectTiming, trig?: unknown): Promise<void> }).fireTiming(
+      EffectTiming.OnMove,
+      { movedPermanentId: keramon.permanentId },
+    );
+    await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 5000);
+    // EXPECTED (per §15-16-16-1): the [When Moving] optional Token-play prompt fires.
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+  });
 });
 
 describe("§15-8-5 Immediate-Type Effects, real ＜Barrier＞ (comprehensive-0177/0178)", () => {

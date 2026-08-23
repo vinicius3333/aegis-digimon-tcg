@@ -11,94 +11,84 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    even with no valid targets (Q6258) but must choose a target when one exists
 //    (Q6259); the whole [Main] effect remains activatable without targets.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 4000
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Flame",
-                      "TS"
-                    ],
-                    "match": "trait"
-                  }
-                ],
-                "zone": "hand"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
               },
-              "count": 1
             },
-            "raw": "By trashing 1 [Flame] or [TS] trait card from your hand"
-          }
+            count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Flame", "TS"],
+                    match: "trait",
+                  },
+                ],
+                zone: "hand",
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 [Flame] or [TS] trait card from your hand",
+          },
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if this effect didn't delete"
-          }
-        }
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if this effect didn't delete",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 4000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
+              },
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Flame",
-        "TS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Flame", "TS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-014", compiled);

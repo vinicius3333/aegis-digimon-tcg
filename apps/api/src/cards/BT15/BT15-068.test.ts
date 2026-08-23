@@ -41,17 +41,13 @@ describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
     const playRes = engine.applyIntent(0, { type: "playCard", instanceId: gizamon.instanceId });
     expect(playRes).toEqual({ ok: true });
 
-    await settle(
-      () => engine.continuous.listCustomEffectGrants().length > 0,
-      3000,
-    );
+    await settle(() => engine.continuous.listCustomEffectGrants().length > 0, 3000);
 
     const grants = engine.continuous.listCustomEffectGrants();
     expect(
       grants.some(
         (g: { instanceId: string; token: string }) =>
-          g.instanceId === recipient.topCard!.instanceId &&
-          g.token === "[On Deletion] Lose 1 memory.",
+          g.instanceId === recipient.topCard!.instanceId && g.token === "[On Deletion] Lose 1 memory.",
       ),
     ).toBe(true);
 

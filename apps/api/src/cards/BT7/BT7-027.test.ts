@@ -22,14 +22,18 @@ describe("BT7-027 Whamon", () => {
     const blueFromHandId = s.inst("blueFromHand").instanceId;
     s.state.memory = 8;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         player.battleArea.some((permanent) => permanent.topCard?.instanceId === stackLv3Id) &&
         s.perm("host").stack.some((card) => card.instanceId === blueFromHandId),
     );
 
-    expect(player.battleArea.find((permanent) => permanent.topCard?.instanceId === stackLv3Id)?.isSuspended).toBe(false);
+    expect(player.battleArea.find((permanent) => permanent.topCard?.instanceId === stackLv3Id)?.isSuspended).toBe(
+      false,
+    );
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([blueFromHandId]);
     expect(s.state.memory).toBe(0);
   });

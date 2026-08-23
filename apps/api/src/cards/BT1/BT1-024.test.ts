@@ -53,10 +53,12 @@ describe("BT1-024 MetalTyrannomon", () => {
       0: { battleArea: [{ card: "BT1-069", as: "base" }], hand: [{ card: "BT1-024", as: "metalTyrannomon" }] },
     });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("metalTyrannomon").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("metalTyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

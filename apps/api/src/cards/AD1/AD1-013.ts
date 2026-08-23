@@ -6,159 +6,143 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "superlative": "lowestDigivolutionCards",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              superlative: "lowestDigivolutionCards",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "superlative": "lowestDigivolutionCards",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+            count: 1,
           },
-          "actions": [
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              superlative: "lowestDigivolutionCards",
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
             {
-              "kind": "PlayFromZone",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 5
+              kind: "PlayFromZone",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 5,
                   },
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Blue Flare",
-                        "Xros Heart"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Blue Flare", "Xros Heart"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "digiXrosMaterialsFrom": [
-                "battleArea"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
+              from: ["digivolutionCards"],
+              digiXrosMaterialsFrom: ["battleArea"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true,
-              "nameOrTrait": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+              nameOrTrait: [
                 {
-                  "tokens": ["Blue Flare", "Xros Heart"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Blue Flare", "Xros Heart"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [{ "tokens": ["Blue Flare", "Xros Heart"], "match": "trait" }]
-            }
+          amount: 1000,
+          duration: "permanent",
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["Blue Flare", "Xros Heart"], match: "trait" }],
+            },
           },
-          "scaling": {
-            "per": 1,
-            "filter": {},
-            "unit": "digivolutionCardColors"
-          }
-        }
+          scaling: {
+            per: 1,
+            filter: {},
+            unit: "digivolutionCardColors",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "Blue Flare",
-        "Xros Heart"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Blue Flare", "Xros Heart"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("AD1-013", compiled);

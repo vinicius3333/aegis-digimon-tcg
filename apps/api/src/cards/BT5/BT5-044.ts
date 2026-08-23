@@ -3,57 +3,53 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenMovedFromBreeding",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenMovedFromBreeding",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1,
-                "sourceRef": "triggerSubject"
+                count: 1,
+                sourceRef: "triggerSubject",
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": -3,
-                "raw": "＜Security Attack -3＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: -3,
+                raw: "＜Security Attack -3＞",
               },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
-      ]
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifySecurityDP",
-          "controller": "opponent",
-          "amount": -3000,
-          "duration": "permanent"
-        }
-      ]
-    }
+          kind: "ModifySecurityDP",
+          controller: "opponent",
+          amount: -3000,
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-044", compiled);

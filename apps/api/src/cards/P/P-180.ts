@@ -7,129 +7,117 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // "While you have a [Three Musketeers] trait Digimon, can ignore color requirements" → Static
 // WaiveColorRequirement with youHave condition.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardDiscarded",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "onDigivolutionCardDiscarded",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 7000
-                  }
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  dp: {
+                    op: "lte",
+                    value: 7000,
+                  },
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
-      ]
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a [Three Musketeers] trait Digimon"
-          }
-        }
-      ]
+            raw: "you have a [Three Musketeers] trait Digimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trash",
-          "controller": "opponent",
-          "amount": 1,
-          "toTop": true
+          kind: "SecurityManipulation",
+          op: "trash",
+          controller: "opponent",
+          amount: 1,
+          toTop: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Three Musketeers"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Three Musketeers"],
+                match: "trait",
+              },
+            ],
           },
-          "position": "bottom"
-        }
-      ]
+          position: "bottom",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestDP",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-180", compiled);

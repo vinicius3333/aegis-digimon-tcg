@@ -51,7 +51,11 @@ export function observeServerTime(sample: ClockSample): void {
 }
 
 /** Reads the `Date` response header, ignoring a malformed or absent one. */
-export function observeResponseDate(response: Pick<Response, "headers">, sentAt: number, receivedAt: number = Date.now()): void {
+export function observeResponseDate(
+  response: Pick<Response, "headers">,
+  sentAt: number,
+  receivedAt: number = Date.now(),
+): void {
   const header = response.headers.get("date");
   if (!header) return;
   const parsed = Date.parse(header);

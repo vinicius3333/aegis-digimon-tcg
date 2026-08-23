@@ -3,47 +3,45 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "optional": true,
-          "abortOnDecline": true
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
-        },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+            count: 1,
+            isSelf: true,
           },
-          "amount": -6000,
-          "duration": "forTheTurn"
-        }
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -6000,
+          duration: "forTheTurn",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-048", compiled);

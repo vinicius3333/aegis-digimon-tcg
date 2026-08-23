@@ -15,7 +15,11 @@ describe("BT13-019 Gankoomon", () => {
     expect(compiled.residual).toEqual([]);
     for (const effect of compiled.effects) {
       expect(effect.keywords).toContainEqual(expect.objectContaining({ keyword: "Blocker" }));
-      expect(effect.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash", "digivolutionCards"], target: { filter: { excludeNames: ["Omnimon", "Gankoomon"] } } });
+      expect(effect.actions[0]).toMatchObject({
+        kind: "PlayWithoutCost",
+        from: ["trash", "digivolutionCards"],
+        target: { filter: { excludeNames: ["Omnimon", "Gankoomon"] } },
+      });
     }
   });
 
@@ -32,12 +36,22 @@ describe("BT13-019 Gankoomon", () => {
 
   it("does not play excluded Omnimon or Gankoomon cards", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-019", as: "gankoomon" }], trash: [{ card: "BT5-111", as: "omnimon" }, { card: "BT13-019", as: "otherGankoomon" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT13-019", as: "gankoomon" }],
+          trash: [
+            { card: "BT5-111", as: "omnimon" },
+            { card: "BT13-019", as: "otherGankoomon" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await fireOnPlay(s);
     await settle();
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT5-111", "BT13-019"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT5-111", "BT13-019"]),
+    );
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 });

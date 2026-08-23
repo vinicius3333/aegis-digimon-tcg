@@ -15,55 +15,106 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("suspends itself and plays an ADVENTURE card after an ADVENTURE digivolution", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "AD1-019", as: "tamer" }, { card: "ST20-10", as: "base" }],
-        hand: [{ card: "AD1-001", as: "evolving" }, { card: "AD1-001", as: "adventure" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-019", as: "tamer" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "evolving" },
+            { card: "AD1-001", as: "adventure" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "AD1-001" && perm.permanentId !== s.perm("base").permanentId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (perm) => perm.topCard.cardId === "AD1-001" && perm.permanentId !== s.perm("base").permanentId,
+      ),
+    );
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.memory).toBe(4);
   });
 
   it("reduces the effect's paid play cost by 2 with four distinct Tamer colors", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "AD1-019", as: "tamer" },
-          { card: "AD1-023", as: "additional-colors" },
-          { card: "ST20-10", as: "base" },
-        ],
-        hand: [{ card: "AD1-001", as: "evolving" }, { card: "AD1-001", as: "adventure" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-019", as: "tamer" },
+            { card: "AD1-023", as: "additional-colors" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "evolving" },
+            { card: "AD1-001", as: "adventure" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-001").length === 2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-001").length === 2,
+    );
 
     expect(s.state.memory).toBe(5);
   });
 
   it("can play an ADVENTURE Tamer rather than only a Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "AD1-019", as: "tamer" }, { card: "ST20-10", as: "base" }],
-        hand: [{ card: "AD1-001", as: "evolving" }, { card: "AD1-019", as: "adventure-tamer" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-019", as: "tamer" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "evolving" },
+            { card: "AD1-019", as: "adventure-tamer" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-019").length === 2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-019").length === 2,
+    );
 
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-019")).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-019")).toHaveLength(
+      2,
+    );
   });
 
   it("gains 1 memory at start of main only while the opponent has a Digimon", async () => {

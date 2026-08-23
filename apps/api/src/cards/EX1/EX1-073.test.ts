@@ -12,12 +12,26 @@ import "./EX1-073.js";
 
 describe("EX1-073 Machinedramon", () => {
   it("places eligible unique level-5 Cyborgs from hand/trash under itself and gains memory per card", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "EX1-073", as: "machine" }, { card: "EX1-008", as: "redCyborg" }], trash: [{ card: "EX1-050", as: "blackCyborg" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-073", as: "machine" },
+            { card: "EX1-008", as: "redCyborg" },
+          ],
+          trash: [{ card: "EX1-050", as: "blackCyborg" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-073" && p.stack.length === 2) &&
-      s.state.memory === 2,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-073" && p.stack.length === 2) &&
+        s.state.memory === 2,
     );
     expect(s.state.memory).toBe(2);
   });
@@ -35,7 +49,9 @@ describe("EX1-073 Machinedramon", () => {
       { autoDeclineOptional: true, autoSelectCards: false },
     );
     s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-073"));
 
     const machine = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX1-073");
@@ -75,10 +91,16 @@ describe("EX1-073 Machinedramon", () => {
     s.state.memory = 20;
     const reusedId = s.inst("costAndMaterial").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("connection").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("connection").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((c) => c.instanceId === reusedId));
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-073" && p.stack.length === 2));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-073" && p.stack.length === 2),
+    );
 
     const machine = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "EX1-073")!;
     expect(machine.stack.some((c) => c.instanceId === reusedId)).toBe(true);
@@ -86,7 +108,10 @@ describe("EX1-073 Machinedramon", () => {
   });
 
   it("cannot have its DP reduced and prevents deletion by trashing 2 level-5 sources", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-073", as: "machine", under: ["EX1-008", "EX1-050"] }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX1-073", as: "machine", under: ["EX1-008", "EX1-050"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const before = s.perm("machine").currentDP;
     await advance(s.engine).verb.modifyDP(s.perm("machine").permanentId, -3000, EffectDuration.UntilEachTurnEnd);
     expect(s.perm("machine").currentDP).toBe(before);
@@ -99,11 +124,13 @@ describe("EX1-073 Machinedramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "EX1-073",
-            as: "machine",
-            under: ["BT1-114", "EX1-047", "EX1-050"],
-          }],
+          battleArea: [
+            {
+              card: "EX1-073",
+              as: "machine",
+              under: ["BT1-114", "EX1-047", "EX1-050"],
+            },
+          ],
           hand: [{ card: "EX1-049", as: "discardedCyborg" }],
           deck: [
             { card: "EX1-048", as: "firstDraw" },
@@ -120,25 +147,23 @@ describe("EX1-073 Machinedramon", () => {
     await s.ready();
 
     expect(s.perm("machine").currentDP).toBe(14_000);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("machine").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.state.players[0]!.deck.length === 0 &&
-      s.state.players[0]!.trash.some((card) =>
-        card.instanceId === s.inst("discardedCyborg").instanceId,
-      ),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.deck.length === 0 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discardedCyborg").instanceId),
     );
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("firstDraw").instanceId,
-        s.inst("secondDraw").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("firstDraw").instanceId, s.inst("secondDraw").instanceId]),
     );
     expect(observe(s.engine).hasKeyword(s.perm("machine"), "Blocker")).toBe(false);
   });
@@ -147,11 +172,13 @@ describe("EX1-073 Machinedramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "EX1-073",
-            as: "machine",
-            under: ["EX1-048", "EX1-049", "EX1-050", "BT1-114"],
-          }],
+          battleArea: [
+            {
+              card: "EX1-073",
+              as: "machine",
+              under: ["EX1-048", "EX1-049", "EX1-050", "BT1-114"],
+            },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

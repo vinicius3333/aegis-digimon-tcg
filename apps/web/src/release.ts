@@ -34,7 +34,11 @@ export const RELEASE_NOTES: ReleaseNote[] = [
     version: "1.0.0",
     date: "2026-08-09",
     changes: [
-      { type: "added", description: "Initial production release.", translations: {"pt-BR":"Lançamento inicial de produção."} },
+      {
+        type: "added",
+        description: "Initial production release.",
+        translations: { "pt-BR": "Lançamento inicial de produção." },
+      },
     ],
   },
 ];

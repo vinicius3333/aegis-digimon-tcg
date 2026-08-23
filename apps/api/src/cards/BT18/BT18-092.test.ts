@@ -17,13 +17,28 @@ describe("BT18-092 Zenith", () => {
     });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "YourTurn",
-      actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "DeDigivolve", amount: 1, cost: { kind: "suspend" } }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [{ kind: "DeDigivolve", amount: 1, cost: { kind: "suspend" } }],
+        },
+      ],
     });
     expect(compiled.effects[2]).toMatchObject({ trigger: "Security", isSecurity: true });
   });
 
   it("trashes a Vemmon to draw and gain memory at the start of the main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-092", as: "zenith" }], hand: [{ card: "BT11-061", as: "vemmon" }], deck: ["BT1-001"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-092", as: "zenith" }],
+          hand: [{ card: "BT11-061", as: "vemmon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("zenith"));
 
@@ -57,6 +72,30 @@ describe("BT18-092 Zenith", () => {
     const s = setupEngine({ 0: { security: [{ card: "BT18-092", as: "zenith", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("zenith"));
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId),
+    ).toBe(true);
+  });
+
+  it("stays unsuspended and De-Digivolves nothing when the suspend cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-092", as: "zenith" },
+            { card: "BT1-010", as: "attacker", under: ["BT11-061", "BT11-061"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", under: ["BT11-061"] }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
+
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+    expect(s.perm("zenith").isSuspended).toBe(false);
+    expect(s.perm("attacker").stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(2);
+    expect(s.perm("target").stack).toHaveLength(1);
   });
 });

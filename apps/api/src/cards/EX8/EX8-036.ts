@@ -6,63 +6,54 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 5,
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              playCostLte: 5,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "NSo"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["NSo"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [],
-      "keywords": [
+      trigger: "OnDeletion",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Recovery",
-          "amount": 1,
-          "raw": "＜Recovery +1 (Deck)＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "traits": [
-        "NSo"
+          keyword: "Recovery",
+          amount: 1,
+          raw: "＜Recovery +1 (Deck)＞",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      traits: ["NSo"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-036", compiled);

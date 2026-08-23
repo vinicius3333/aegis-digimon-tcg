@@ -20,18 +20,16 @@ describe("ST2-01 Tsunomon", () => {
       actions?: unknown;
       fireCondition?: unknown;
     }>;
-    expect(subTriggers.map((action) => action.event)).toEqual([
-      "whenAttacking",
-      "whenOpponentAttacks",
-      "whenBlocked",
-    ]);
+    expect(subTriggers.map((action) => action.event)).toEqual(["whenAttacking", "whenOpponentAttacks", "whenBlocked"]);
     for (const action of subTriggers) {
-      expect(action.actions).toEqual([{
-        kind: "ModifyDP",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        amount: 1000,
-        duration: "untilEndOfBattle",
-      }]);
+      expect(action.actions).toEqual([
+        {
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 1000,
+          duration: "untilEndOfBattle",
+        },
+      ]);
       expect(action.fireCondition).toMatchObject({
         kind: action.event === "whenAttacking" ? "triggerDefenderMatchesFilter" : "allOf",
       });
@@ -46,7 +44,13 @@ describe("ST2-01 Tsunomon", () => {
       1: { battleArea: [{ card: "ST2-03", as: "defender", dp: 3000, suspended: true }] },
     });
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("defender").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
     // Tsunomon's +1000 DP turns the 3000-DP attacker into a 4000-DP winner;
@@ -61,11 +65,16 @@ describe("ST2-01 Tsunomon", () => {
       1: { battleArea: [{ card: "ST2-03", as: "defender", dp: 3000, suspended: true, under: ["ST2-01"] }] },
     });
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("defender").permanentId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
-
 });

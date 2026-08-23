@@ -11,25 +11,37 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
-          source: { filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 3 } }, count: "all" },
+          source: {
+            filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 3 } },
+            count: "all",
+          },
           toTop: true,
         },
         {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "opponent",
-          source: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "eq", value: 3 } }, count: "all" },
+          source: {
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "eq", value: 3 } },
+            count: "all",
+          },
           toTop: true,
         },
         {
           kind: "ModifyDP",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } }, count: "all" },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } },
+            count: "all",
+          },
           amount: -3000,
           duration: "untilOpponentTurnEnd",
         },
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } }, count: "all" },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } },
+            count: "all",
+          },
           keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
           duration: "untilOpponentTurnEnd",
         },
@@ -46,7 +58,14 @@ export const compiled: CompiledCard = {
           toTop: false,
           cost: {
             kind: "trash",
-            target: { filter: { zone: "digivolutionCards", controller: "mine", nameOrTrait: [{ tokens: ["Numemon"], match: "name" }] }, count: 1 },
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                controller: "mine",
+                nameOrTrait: [{ tokens: ["Numemon"], match: "name" }],
+              },
+              count: 1,
+            },
             raw: "By trashing 1 card with [Numemon] in its name in this Digimon's digivolution cards",
           },
           optional: true,

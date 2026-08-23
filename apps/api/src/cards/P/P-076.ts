@@ -15,10 +15,7 @@ const compiled: CompiledCard = {
           sourceFilter: { isSelfRef: true },
           into: {
             controllerDefault: "mine",
-            or: [
-              { multicolor: true },
-              { nameOrTrait: [{ tokens: ["Composite"], match: "trait" }] },
-            ],
+            or: [{ multicolor: true }, { nameOrTrait: [{ tokens: ["Composite"], match: "trait" }] }],
           },
           raw: "reduce the digivolution cost by 2 for a 2-color or Composite card",
         },

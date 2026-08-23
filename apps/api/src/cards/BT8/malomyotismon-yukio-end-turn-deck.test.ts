@@ -47,17 +47,20 @@ describe("BT8 MaloMyotismon/Yukio end-turn deck", () => {
     const myotismonInstanceId = s.perm("myotismon").topCard.instanceId;
     const yukioPermanentId = s.perm("yukio").permanentId;
     const yukioInstanceId = s.perm("yukio").topCard.instanceId;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: myotismonPermanentId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === myotismonPermanentId) &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === myotismonInstanceId) &&
-      s.perm("yukio").isSuspended &&
-      s.state.memory === 2 &&
-      s.events.some(({ kind }) => kind === "combatResolved"),
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: myotismonPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === myotismonPermanentId) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === myotismonInstanceId) &&
+        s.perm("yukio").isSuspended &&
+        s.state.memory === 2 &&
+        s.events.some(({ kind }) => kind === "combatResolved"),
     );
     await settle();
 
@@ -67,59 +70,56 @@ describe("BT8 MaloMyotismon/Yukio end-turn deck", () => {
     const endTurnFlow = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("yukio"));
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return s.decisions.length > priorDecisionCount &&
-        req?.sourceCardId === "BT8-093" &&
-        req.kind === "selectCards";
+      return s.decisions.length > priorDecisionCount && req?.sourceCardId === "BT8-093" && req.kind === "selectCards";
     });
 
     const trashChoice = s.decisions.at(-1)!.req;
-    expect(new Set(trashChoice.options?.candidateInstanceIds)).toEqual(
-      new Set([firstMaloId, secondMaloId]),
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: trashChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [secondMaloId] },
-    })).toEqual({ ok: true });
+    expect(new Set(trashChoice.options?.candidateInstanceIds)).toEqual(new Set([firstMaloId, secondMaloId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: trashChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [secondMaloId] },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return req?.decisionId !== trashChoice.decisionId &&
-        req?.sourceCardId === "BT8-083" &&
-        req.kind === "chooseTargets";
+      return (
+        req?.decisionId !== trashChoice.decisionId && req?.sourceCardId === "BT8-083" && req.kind === "chooseTargets"
+      );
     });
     const deletionChoice = s.decisions.at(-1)!.req;
     const firstTargetId = s.perm("firstUnsuspendedTarget").permanentId;
     const secondTargetId = s.perm("secondUnsuspendedTarget").permanentId;
-    expect(new Set(deletionChoice.options?.candidateInstanceIds)).toEqual(
-      new Set([firstTargetId, secondTargetId]),
-    );
-    expect(deletionChoice.options?.candidateInstanceIds).not.toContain(
-      s.perm("attacker").permanentId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: deletionChoice.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [secondTargetId] },
-    })).toEqual({ ok: true });
+    expect(new Set(deletionChoice.options?.candidateInstanceIds)).toEqual(new Set([firstTargetId, secondTargetId]));
+    expect(deletionChoice.options?.candidateInstanceIds).not.toContain(s.perm("attacker").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deletionChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [secondTargetId] },
+      }),
+    ).toEqual({ ok: true });
     await endTurnFlow;
 
     const securityTopId = s.inst("securityTop").instanceId;
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === secondMaloId) &&
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === yukioPermanentId) &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondTargetId) &&
-      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === securityTopId) &&
-      s.state.players[1]!.security.length === 1 &&
-      s.state.pendingDecision === undefined,
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === secondMaloId) &&
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === yukioPermanentId) &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondTargetId) &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === securityTopId) &&
+        s.state.players[1]!.security.length === 1 &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === firstMaloId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === yukioInstanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstTargetId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some(
-      ({ permanentId }) => permanentId === s.perm("attacker").permanentId,
-    )).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("attacker").permanentId),
+    ).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.memory).toBe(2);
     assertNoLoudGap(s);

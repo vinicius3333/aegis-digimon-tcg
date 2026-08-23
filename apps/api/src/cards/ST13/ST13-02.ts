@@ -15,118 +15,118 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q767: Player may choose not to play the revealed Legend-Arms card (added to hand instead).
 // KB Q768: If prevented from playing, add to hand.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 1,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 1,
+          add: [
             {
               // If the revealed card is a Digimon with [Legend-Arms] and play cost ≤ 7,
               // optionally play it without paying the cost.
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": ["Legend-Arms"],
-                    "match": "trait"
-                  }
+                    tokens: ["Legend-Arms"],
+                    match: "trait",
+                  },
                 ],
-                "playCostLte": 7
+                playCostLte: 7,
               },
-              "count": 1,
-              "to": "play",
-              "optional": true
+              count: 1,
+              to: "play",
+              optional: true,
             },
             {
               // Add all remaining revealed cards to hand (non-matching or declined-to-play).
-              "filter": {
-                "controllerDefault": "mine"
+              filter: {
+                controllerDefault: "mine",
               },
-              "count": "all",
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom",
-          "cost": {
-            "kind": "place",
-            "destination": "digivolutionStack",
-            "targetIsPermanent": true,
-            "host": "target",
-            "position": "bottom",
-            "target": {
-              "filter": { "isSelfRef": true },
-              "count": 1,
-              "isSelf": true
+              count: "all",
+              to: "hand",
             },
-            "raw": "By placing this Digimon under 1 of your other Digimon that's black or has [Legend-Arms] in its traits as its bottom digivolution card",
-            "underFilter": {
-              "or": [
-                { "colors": ["Black"] },
+          ],
+          rest: "deckBottom",
+          cost: {
+            kind: "place",
+            destination: "digivolutionStack",
+            targetIsPermanent: true,
+            host: "target",
+            position: "bottom",
+            target: {
+              filter: { isSelfRef: true },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "By placing this Digimon under 1 of your other Digimon that's black or has [Legend-Arms] in its traits as its bottom digivolution card",
+            underFilter: {
+              or: [
+                { colors: ["Black"] },
                 {
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": ["Legend-Arms"],
-                      "match": "trait"
-                    }
-                  ]
-                }
+                      tokens: ["Legend-Arms"],
+                      match: "trait",
+                    },
+                  ],
+                },
               ],
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": ["Digimon"]
-            }
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+            },
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "lte",
-                "value": 3000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 3000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "or": [
-                { "colors": ["Black"] },
+          condition: {
+            kind: "youHave",
+            filter: {
+              or: [
+                { colors: ["Black"] },
                 {
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": ["Legend-Arms"],
-                      "match": "trait"
-                    }
-                  ]
-                }
+                      tokens: ["Legend-Arms"],
+                      match: "trait",
+                    },
+                  ],
+                },
               ],
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": ["Digimon"]
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "raw": "you have a Digimon that's black or has [Legend-Arms] in its traits in play"
-          }
-        }
+            raw: "you have a Digimon that's black or has [Legend-Arms] in its traits in play",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST13-02", compiled);

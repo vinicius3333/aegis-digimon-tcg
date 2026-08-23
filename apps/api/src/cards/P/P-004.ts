@@ -13,35 +13,35 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Gates: subjectFilter "an opponent's Digimon" (the host of the trashed card) + triggerByYourEffect
 //   ("when YOU trash", from the Wave-1 byEffectSeat payload). P-004 is an Inherited (ESS) effect.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "isInherited": true,
-      "actions": [
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDigivolutionTrashed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": ["Digimon"]
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "triggerByYourEffect",
-                "raw": "when YOU trash a digivolution card"
-              }
-            }
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "triggerByYourEffect",
+                raw: "when YOU trash a digivolution card",
+              },
+            },
           ],
-          "raw": "[Inherited] When you trash a digivolution card of 1 of your opponent's Digimon, gain 1 memory."
-        }
-      ]
-    }
+          raw: "[Inherited] When you trash a digivolution card of 1 of your opponent's Digimon, gain 1 memory.",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-004", compiled);

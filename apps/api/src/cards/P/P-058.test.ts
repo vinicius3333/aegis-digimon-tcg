@@ -12,14 +12,14 @@ describe("P-058 Gammamon", () => {
     await s.ready();
 
     expect(observe(s.engine).canAttackUnsuspended(s.perm("gammamon"))).toBe(true);
-    expect([...s.perm("gammamon").attackablePermanentIds]).toContain(
-      s.perm("target").permanentId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gammamon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect([...s.perm("gammamon").attackablePermanentIds]).toContain(s.perm("target").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gammamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
   });
 
   it("can't attack an unsuspended Digimon without a red Tamer", async () => {
@@ -30,13 +30,13 @@ describe("P-058 Gammamon", () => {
     await s.ready();
 
     expect(observe(s.engine).canAttackUnsuspended(s.perm("gammamon"))).toBe(false);
-    expect([...s.perm("gammamon").attackablePermanentIds]).not.toContain(
-      s.perm("target").permanentId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gammamon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect([...s.perm("gammamon").attackablePermanentIds]).not.toContain(s.perm("target").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gammamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
   });
 });

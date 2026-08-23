@@ -6,71 +6,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Tamer"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Tai Kamiya"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Tai Kamiya"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
           },
-          "while": {
-            "kind": "selfHasName",
-            "names": [
-              "Agumon - Bond of Bravery"
-            ],
-            "raw": "this Digimon is [Agumon - Bond of Bravery]"
-          }
-        }
+          while: {
+            kind: "selfHasName",
+            names: ["Agumon - Bond of Bravery"],
+            raw: "this Digimon is [Agumon - Bond of Bravery]",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-007", compiled);

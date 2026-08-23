@@ -8,12 +8,7 @@
 import { readJson } from "./lib/manifest.mjs";
 import { loadCardIndex } from "./lib/cards.mjs";
 import { bm25Search, snippet } from "./lib/bm25.mjs";
-import {
-  ERRATA_PATH,
-  QA_PATH,
-  BANLIST_PATH,
-  RULES_INDEX_PATH,
-} from "./lib/paths.mjs";
+import { ERRATA_PATH, QA_PATH, BANLIST_PATH, RULES_INDEX_PATH } from "./lib/paths.mjs";
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -122,7 +117,10 @@ function main() {
     return json ? out(result) : printCard(result);
   }
   if (command === "rules") {
-    const query = args.slice(1).filter((a) => !a.startsWith("--") && a !== String(limit)).join(" ");
+    const query = args
+      .slice(1)
+      .filter((a) => !a.startsWith("--") && a !== String(limit))
+      .join(" ");
     if (!query) return usage();
     const hits = rulesSearch(query);
     return json ? out(hits) : printRules(query, hits);
@@ -132,7 +130,7 @@ function main() {
 
 function usage() {
   out("usage:");
-  out('  node tools/kb/query.mjs card <CARD_ID> [--json]');
+  out("  node tools/kb/query.mjs card <CARD_ID> [--json]");
   out('  node tools/kb/query.mjs rules "<query>" [--limit N] [--json]');
   process.exit(command ? 1 : 0);
 }

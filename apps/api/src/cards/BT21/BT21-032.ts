@@ -6,81 +6,72 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Armor Form",
-                  "Hero"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Armor Form", "Hero"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          ],
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "DemiVeemon"
-      ],
-      "cost": 0,
-      "isAlternate": true
     },
     {
-      "level": 2,
-      "traits": [
-        "Hero"
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["DemiVeemon"],
+      cost: 0,
+      isAlternate: true,
+    },
+    {
+      level: 2,
+      traits: ["Hero"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-032", compiled);

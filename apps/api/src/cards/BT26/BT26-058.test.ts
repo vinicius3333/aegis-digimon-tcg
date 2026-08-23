@@ -7,24 +7,47 @@ import "../index.js";
 
 describe("BT26-058 HiAndromon", () => {
   it("encodes Reboot/Blocker, shared CS protection, and leave prevention paid by rotating its stack", () => {
-    expect(digivolutionRequirementsFor("BT26-058")).toContainEqual({ level: 5, traits: ["CS"], cost: 3, isAlternate: true });
-    expect(compiled.effects?.[0]?.keywords).toEqual(expect.arrayContaining([
-      expect.objectContaining({ keyword: "Reboot" }), expect.objectContaining({ keyword: "Blocker" }),
-    ]));
+    expect(digivolutionRequirementsFor("BT26-058")).toContainEqual({
+      level: 5,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    });
+    expect(compiled.effects?.[0]?.keywords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ keyword: "Reboot" }),
+        expect.objectContaining({ keyword: "Blocker" }),
+      ]),
+    );
     expect(compiled.effects?.[1]?.sharedUseKey).toBe("bt26-058-protect-cs");
     expect(compiled.effects?.[2]?.sharedUseKey).toBe("bt26-058-protect-cs");
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldLeavePlay", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] }, actions: [{ kind: "Prevent", cost: { kind: "placeOwnTopAtStackBottom" } }] }] });
+    expect(compiled.effects?.[3]).toMatchObject({
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+          actions: [{ kind: "Prevent", cost: { kind: "placeOwnTopAtStackBottom" } }],
+        },
+      ],
+    });
   });
 
   it("publicly protects a CS Digimon from opposing Digimon effects during its protection window", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-058", as: "hiAndromon" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-058", as: "hiAndromon" }] },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("hiAndromon"));
 
-    const continuous = (s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }).continuous;
+    const continuous = (
+      s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }
+    ).continuous;
     expect(continuous.hasRestriction(s.perm("hiAndromon").permanentId, "beAffected", "Digimon")).toBe(true);
   });
 });

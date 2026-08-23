@@ -33,7 +33,12 @@ export const compiled: CompiledCard = {
         {
           kind: "Unsuspend",
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], suspended: true, nameOrTrait: [{ tokens: ["Angoramon"], match: "text" }] },
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              suspended: true,
+              nameOrTrait: [{ tokens: ["Angoramon"], match: "text" }],
+            },
             count: 1,
           },
           optional: true,

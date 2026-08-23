@@ -64,11 +64,7 @@ export interface CardDefinition {
 }
 
 /** Convenience predicates derived from `kinds`. */
-export const isDigimon = (def: CardDefinition): boolean =>
-  def.kinds.includes(CardKind.Digimon);
-export const isTamer = (def: CardDefinition): boolean =>
-  def.kinds.includes(CardKind.Tamer);
-export const isOption = (def: CardDefinition): boolean =>
-  def.kinds.includes(CardKind.Option);
-export const isDigiEgg = (def: CardDefinition): boolean =>
-  def.kinds.includes(CardKind.DigiEgg);
+export const isDigimon = (def: CardDefinition): boolean => def.kinds.includes(CardKind.Digimon);
+export const isTamer = (def: CardDefinition): boolean => def.kinds.includes(CardKind.Tamer);
+export const isOption = (def: CardDefinition): boolean => def.kinds.includes(CardKind.Option);
+export const isDigiEgg = (def: CardDefinition): boolean => def.kinds.includes(CardKind.DigiEgg);

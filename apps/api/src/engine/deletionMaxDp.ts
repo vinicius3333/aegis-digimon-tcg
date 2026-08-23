@@ -22,17 +22,13 @@ export class DeletionMaxDpLedger {
   }
 
   addSelf(sourcePermanentId: string, delta: number): void {
-    this.bySourcePermanent.set(
-      sourcePermanentId,
-      (this.bySourcePermanent.get(sourcePermanentId) ?? 0) + delta,
-    );
+    this.bySourcePermanent.set(sourcePermanentId, (this.bySourcePermanent.get(sourcePermanentId) ?? 0) + delta);
   }
 
   /** The DP-cap bonus for a deletion resolved by `seat` from `sourcePermanentId` (when known). */
   bonusFor(seat: Seat, sourcePermanentId?: string): number {
     const wide = this.ownerWide.get(seat) ?? 0;
-    const self =
-      sourcePermanentId !== undefined ? (this.bySourcePermanent.get(sourcePermanentId) ?? 0) : 0;
+    const self = sourcePermanentId !== undefined ? (this.bySourcePermanent.get(sourcePermanentId) ?? 0) : 0;
     return wide + self;
   }
 

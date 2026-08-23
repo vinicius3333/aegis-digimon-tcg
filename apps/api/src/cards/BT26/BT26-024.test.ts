@@ -77,13 +77,16 @@ describe("BT26-024 Tinkermon", () => {
   });
 
   it("does not react to the opponent playing a matching Digimon on their turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: CARD_ID, as: "tinkermon" }],
-        hand: [{ card: "BT26-027", as: "petermon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "tinkermon" }],
+          hand: [{ card: "BT26-027", as: "petermon" }],
+        },
+        1: { hand: [{ card: "BT26-034", as: "opponentVegetation" }] },
       },
-      1: { hand: [{ card: "BT26-034", as: "opponentVegetation" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     s.state.memory = -3;
 

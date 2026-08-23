@@ -15,74 +15,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q1861: count all opponent's unsuspended Digimon+Tamers, divide by 2 (floor).
 // Fix: Trash target needs zone:"security", position:"top" (not a generic opponent filter).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 2,
-            "upTo": true
-          }
+            count: 2,
+            upTo: true,
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon", "Tamer"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "zone": "security",
-              "controller": "opponent",
-              "position": "top"
+          kind: "Trash",
+          target: {
+            filter: {
+              zone: "security",
+              controller: "opponent",
+              position: "top",
             },
-            "count": 1
+            count: 1,
           },
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "zone": "battleArea",
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          scaling: {
+            per: 2,
+            filter: {
+              zone: "battleArea",
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon", "Tamer"],
             },
-            "unit": "cards"
-          }
-        }
+            unit: "cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-069", compiled);

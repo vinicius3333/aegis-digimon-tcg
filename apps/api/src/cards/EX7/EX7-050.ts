@@ -6,74 +6,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true,
-            "zone": ["battleArea"]
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
+            zone: ["battleArea"],
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Dark Dragon",
-                  "Evil Dragon"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Dark Dragon", "Evil Dragon"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Yaamon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Yaamon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX7-050", compiled);

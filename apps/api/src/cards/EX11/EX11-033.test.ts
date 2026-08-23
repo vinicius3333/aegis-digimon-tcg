@@ -11,10 +11,18 @@ describe("EX11-033 Maneuvermon", () => {
     ]);
     const yourTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(yourTurn.actions).toHaveLength(1);
-    expect(yourTurn.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked", actions: [
-      { kind: "Suspend" },
-      { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
-    ] });
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenDeletesInBattle" })] }));
+    expect(yourTurn.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenLinked",
+      actions: [{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" }],
+    });
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenDeletesInBattle" })],
+      }),
+    );
   });
 });

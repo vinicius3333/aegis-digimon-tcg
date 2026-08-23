@@ -10,173 +10,153 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "zone": "hand",
-              "controller": "mine",
-              "colors": [
-                "Blue"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+              colors: ["Blue"],
             },
-            "count": 4,
-            "upTo": true
+            count: 4,
+            upTo: true,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
             },
-            "unit": "cards",
-            "usePaidCount": true
-          }
+            unit: "cards",
+            usePaidCount: true,
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "digivolutionCards": "none"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "none",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
+          to: "hand",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "zone": "hand",
-              "controller": "mine",
-              "colors": [
-                "Blue"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+              colors: ["Blue"],
             },
-            "count": 4,
-            "upTo": true
+            count: 4,
+            upTo: true,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
             },
-            "unit": "cards",
-            "usePaidCount": true
-          }
+            unit: "cards",
+            usePaidCount: true,
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "digivolutionCards": "none"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "none",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
+          to: "hand",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
+          duration: "forTheTurn",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Jellymon"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Jellymon"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": 3,
-              "from": [
-                "trash"
-              ]
+              count: 3,
+              from: ["trash"],
             },
-            "to": "deckBottom",
-            "raw": "By returning 3 cards with [Jellymon] in their texts from your trash to the bottom of the deck"
+            to: "deckBottom",
+            raw: "By returning 3 cards with [Jellymon] in their texts from your trash to the bottom of the deck",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    }
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-005", compiled);

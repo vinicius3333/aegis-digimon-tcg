@@ -6,160 +6,137 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "Starmons"
-          ]
-        }
-      ]
+          grant: "name",
+          tokens: ["Starmons"],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Xros Heart"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Xros Heart"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": -1,
-                "raw": "＜Security Attack -1＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: -1,
+                raw: "＜Security Attack -1＞",
               },
-              "duration": "untilOpponentTurnEnd"
+              duration: "untilOpponentTurnEnd",
             },
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1,
-                "sameTarget": true
+                count: 1,
+                sameTarget: true,
               },
-              "amount": -3000,
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
+              amount: -3000,
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Xros Heart",
-                    "Blue Flare"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Xros Heart", "Blue Flare"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "hand",
-              "trash"
-            ]
+            count: 1,
+            from: ["hand", "trash"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -2000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Xros Heart"], "match": "trait"}]},
-            "raw": "this Digimon has the [Xros Heart] trait"
-          }
-        }
+          amount: -2000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
+            raw: "this Digimon has the [Xros Heart] trait",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Xros Heart"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Xros Heart"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT19-035", compiled);

@@ -6,115 +6,101 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Restrict",
-          "on": "digivolveTarget",
-          "filter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "White"
-            ]
-          }
-        }
-      ]
+          kind: "Restrict",
+          on: "digivolveTarget",
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["White"],
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
+      trigger: "EndOfOpponentsTurn",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Delete",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
+            count: 1,
+            isSelf: true,
+          },
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "excludeNames": [
-                "Piedmon"
-              ],
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              excludeNames: ["Piedmon"],
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dark Masters"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Dark Masters"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [{
-        "kind": "Delete",
-        "target": { "filter": { "sourceRef": "battleOpponent" }, "count": 1 }
-      }],
-      "isInherited": true
-    }
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { sourceRef: "battleOpponent" }, count: 1 },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-079", compiled);

@@ -35,11 +35,13 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
     });
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("metalGreymon").permanentId,
-      instanceId: s.inst("xMetalGreymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("metalGreymon").permanentId,
+        instanceId: s.inst("xMetalGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("metalGreymon").topCard.cardId === "BT11-069");
 
     expect(s.state.memory).toBe(3);

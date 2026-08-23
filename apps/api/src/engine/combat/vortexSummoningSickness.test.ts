@@ -1,11 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
-import {
-  makeDigimon as digimon,
-  setupEngine as setup,
-  settle,
-  type EngineSetup,
-} from "../testkit/harness.js";
+import { makeDigimon as digimon, setupEngine as setup, settle, type EngineSetup } from "../testkit/harness.js";
 import "../../cards/index.js";
 
 /**

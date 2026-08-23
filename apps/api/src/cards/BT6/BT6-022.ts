@@ -7,36 +7,33 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid",
-                    "Ten Warriors"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hybrid", "Ten Warriors"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "this Digimon has [Hybrid] or [Ten Warriors] in its form or type"
-          }
-        }
+            raw: "this Digimon has [Hybrid] or [Ten Warriors] in its form or type",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-022", compiled);

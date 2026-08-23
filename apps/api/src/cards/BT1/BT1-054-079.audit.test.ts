@@ -13,13 +13,27 @@ import { compiled as lillymon } from "./BT1-079.js";
 
 describe("BT1 conditional combat IR coverage", () => {
   it("registers complete IR for the migrated conditional cards", () => {
-    for (const card of [liamon, angemon, tentomon, kokuwamon, ogremon, kuwagamon, kabuterimon, digitamamon, megaKabuterimon, lillymon]) {
+    for (const card of [
+      liamon,
+      angemon,
+      tentomon,
+      kokuwamon,
+      ogremon,
+      kuwagamon,
+      kabuterimon,
+      digitamamon,
+      megaKabuterimon,
+      lillymon,
+    ]) {
       expect(card).toMatchObject({ coverage: "full", residual: [] });
     }
   });
 
   it("preserves exact numeric, level, suspension, and keyword gates", () => {
-    expect(liamon.effects[0]?.actions[0]).toMatchObject({ amount: -2000, condition: { kind: "memoryAtLeast", value: 3 } });
+    expect(liamon.effects[0]?.actions[0]).toMatchObject({
+      amount: -2000,
+      condition: { kind: "memoryAtLeast", value: 3 },
+    });
     expect(angemon.effects[0]?.actions[0]).toMatchObject({ amount: -3000 });
     expect(irNode(tentomon.effects[0]?.actions[0])?.target.filter.dp).toEqual({ op: "lte", value: 3000 });
     expect(kokuwamon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "selfLevelAtLeast", value: 6 });
@@ -27,6 +41,8 @@ describe("BT1 conditional combat IR coverage", () => {
     expect(kabuterimon.effects[0]?.actions[0]?.scaling).toMatchObject({ per: 1, unit: "cards" });
     expect(digitamamon.effects[0]?.actions[1]).toMatchObject({ kind: "GainMemory", amount: -3, at: "endOfTurn" });
     expect(megaKabuterimon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "permanentCount", value: 2 });
-    expect(irNode(lillymon.effects[0]?.actions[0])?.target.filter.excludeKeywords).toContainEqual({ keyword: "Blocker" });
+    expect(irNode(lillymon.effects[0]?.actions[0])?.target.filter.excludeKeywords).toContainEqual({
+      keyword: "Blocker",
+    });
   });
 });

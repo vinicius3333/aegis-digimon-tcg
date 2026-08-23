@@ -29,7 +29,11 @@ describe("BT17-087 Marcus Damon", () => {
   });
 
   it("plays itself from Security without paying its cost", () => {
-    expect(compiled.effects?.[2]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }] });
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+    });
   });
 
   it("plays Marcus Damon from Security when checked", async () => {
@@ -42,11 +46,13 @@ describe("BT17-087 Marcus Damon", () => {
     s.state.turnSeat = 1;
     const marcusId = s.inst("marcus").instanceId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === marcusId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(false);

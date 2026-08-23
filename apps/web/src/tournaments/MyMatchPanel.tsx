@@ -15,13 +15,24 @@ import type { SeriesScoreView } from "@aegis/shared";
 import type { LegacyTournamentMatch, TournamentDetail } from "./types";
 
 /** The player's open bracket row, or undefined when they have none in this event. */
-export function findMyMatch(matches: readonly LegacyTournamentMatch[], accountId: string | undefined): LegacyTournamentMatch | undefined {
+export function findMyMatch(
+  matches: readonly LegacyTournamentMatch[],
+  accountId: string | undefined,
+): LegacyTournamentMatch | undefined {
   if (!accountId) return undefined;
   const mine = matches.filter((match) => match.player0AccountId === accountId || match.player1AccountId === accountId);
   return mine.find((match) => match.status !== "finished") ?? mine[mine.length - 1];
 }
 
-export function MyMatchPanel({ detail, accountId, series }: { detail: TournamentDetail; accountId: string | undefined; series?: SeriesScoreView }) {
+export function MyMatchPanel({
+  detail,
+  accountId,
+  series,
+}: {
+  detail: TournamentDetail;
+  accountId: string | undefined;
+  series?: SeriesScoreView;
+}) {
   const { t } = useTranslation();
   const match = findMyMatch(detail.matches, accountId);
   const joinDeadlineAt = series?.joinDeadlineAt ?? null;
@@ -48,14 +59,16 @@ export function MyMatchPanel({ detail, accountId, series }: { detail: Tournament
 
         <dt>{t("tournaments.myMatch.opponent")}</dt>
         <dd>
-          {match.status === "bye"
-            ? t("tournaments.myMatch.bye")
-            : opponentAccountId
-              // Extension point: the detail payload exposes no account id on ParticipantView, so a
-              // bracket opponent cannot be resolved to a display name yet. Slice 3 replaces this
-              // with the series' participant ids, which DO join with `detail.participants`.
-              ? <code>{opponentAccountId}</code>
-              : t("tournaments.myMatch.opponentUnknown")}
+          {match.status === "bye" ? (
+            t("tournaments.myMatch.bye")
+          ) : opponentAccountId ? (
+            // Extension point: the detail payload exposes no account id on ParticipantView, so a
+            // bracket opponent cannot be resolved to a display name yet. Slice 3 replaces this
+            // with the series' participant ids, which DO join with `detail.participants`.
+            <code>{opponentAccountId}</code>
+          ) : (
+            t("tournaments.myMatch.opponentUnknown")
+          )}
         </dd>
 
         {/* Why this opponent, when the answer is not "the same record as you". A player paired down
@@ -75,20 +88,30 @@ export function MyMatchPanel({ detail, accountId, series }: { detail: Tournament
 
         <dt>{t("tournaments.myMatch.score")}</dt>
         <dd>
-          {series
-            ? `${series.wins0} - ${series.wins1}`
-            : t("tournaments.myMatch.scorePending", { wins: winsRequired })}
+          {series ? `${series.wins0} - ${series.wins1}` : t("tournaments.myMatch.scorePending", { wins: winsRequired })}
         </dd>
 
         <dt>{t("tournaments.myMatch.joinDeadline")}</dt>
         <dd>
-          <Badge tone={countdown.level === "expired" || countdown.level === "warning_1m" ? "danger" : countdown.level === "none" ? "neutral" : "warning"}>
+          <Badge
+            tone={
+              countdown.level === "expired" || countdown.level === "warning_1m"
+                ? "danger"
+                : countdown.level === "none"
+                  ? "neutral"
+                  : "warning"
+            }
+          >
             {t(countdownLevelKey(countdown.level))}
           </Badge>
-          <span className="tournaments-my-match__clock">{joinDeadlineAt === null ? t("tournaments.myMatch.noDeadline") : countdown.text}</span>
+          <span className="tournaments-my-match__clock">
+            {joinDeadlineAt === null ? t("tournaments.myMatch.noDeadline") : countdown.text}
+          </span>
         </dd>
       </dl>
-      <Alert tone="info" title={t("tournaments.myMatch.pendingTitle")}>{t("tournaments.myMatch.pendingBody")}</Alert>
+      <Alert tone="info" title={t("tournaments.myMatch.pendingTitle")}>
+        {t("tournaments.myMatch.pendingBody")}
+      </Alert>
     </Panel>
   );
 }

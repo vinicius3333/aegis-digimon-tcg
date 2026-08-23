@@ -8,7 +8,14 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Gaomon", "Gaogamon"], match: "name" }] }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Gaomon", "Gaogamon"], match: "name" }],
+            },
+            count: 1,
+          },
           keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
           duration: "forTheTurn",
         },
@@ -24,7 +31,11 @@ const compiled: CompiledCard = {
             {
               kind: "GainMemory",
               amount: 1,
-              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
               optional: true,
               abortOnDecline: true,
             },
@@ -34,7 +45,9 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

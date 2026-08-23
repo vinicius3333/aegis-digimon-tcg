@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
@@ -33,116 +34,108 @@ scenario("target-decision", () => {
     vi.unstubAllEnvs();
   });
 
-  it(
-    "choosing a permanent target for Brave Shield unsuspends the chosen Digimon",
-    async () => {
-      vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
-      const { GameScreen } = await import("../src/game/GameScreen");
+  it("choosing a permanent target for Brave Shield unsuspends the chosen Digimon", async () => {
+    vi.stubEnv("VITE_AEGIS_API_URL", server.endpoint);
+    const { GameScreen } = await import("../src/game/GameScreen");
 
-      // Seed 952: seat 0 (protagonist) goes first and its dealt opening hand
-      // includes BT1-095 alongside three Monodramon (BT1-009, cost 2) — found by
-      // exhaustively searching seeds for the swapped RED_DECK, mirroring
-      // mulligan.scenario.test.tsx's seed-4 search.
-      const joinOptions: AegisJoinOptions & { seed?: number } = {
-        displayName: "Protagonist",
-        deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
-        seed: 952,
-      };
+    // Seed 952: seat 0 (protagonist) goes first and its dealt opening hand
+    // includes BT1-095 alongside three Monodramon (BT1-009, cost 2) — found by
+    // exhaustively searching seeds for the swapped RED_DECK, mirroring
+    // mulligan.scenario.test.tsx's seed-4 search.
+    const joinOptions: AegisJoinOptions & { seed?: number } = {
+      displayName: "Protagonist",
+      deck: { mainDeck: PROTAGONIST_DECK.mainDeck, eggDeck: PROTAGONIST_DECK.eggDeck },
+      seed: 952,
+    };
 
-      render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
+    render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
 
-      await screen.findByText(/finding an opponent/i);
+    await screen.findByText(/finding an opponent/i);
 
-      const opponent = await joinHeadlessOpponent(server.endpoint, {
-        displayName: "Headless Opponent",
-        deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
-      });
-      opponent.onDecision((req) => {
-        if (req.kind === "mulligan") opponent.mulligan(true);
-      });
-      // The opponent has no role in this scenario beyond existing — skip its
-      // Breeding/Main windows every turn so the match keeps moving. Ending its own
-      // Main phase without paying anything ends it "passed" (not "crossed"), which
-      // is what hands the protagonist the +3 pass-turn memory bonus each round
-      // (apps/api/src/engine/MemoryGauge.ts's PASS_TURN_MEMORY) — required below.
-      opponent.room.onStateChange((state) => {
-        if (state.turnSeat !== 1 || state.pendingDecision) return;
-        if (state.phase === "Breeding" || state.phase === "Main") opponent.endPhase();
-      });
-      opponent.ready();
+    const opponent = await joinHeadlessOpponent(server.endpoint, {
+      displayName: "Headless Opponent",
+      deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
+    });
+    opponent.onDecision((req) => {
+      if (req.kind === "mulligan") opponent.mulligan(true);
+    });
+    // The opponent has no role in this scenario beyond existing — skip its
+    // Breeding/Main windows every turn so the match keeps moving. Ending its own
+    // Main phase without paying anything ends it "passed" (not "crossed"), which
+    // is what hands the protagonist the +3 pass-turn memory bonus each round
+    // (apps/api/src/engine/MemoryGauge.ts's PASS_TURN_MEMORY) — required below.
+    opponent.room.onStateChange((state) => {
+      if (state.turnSeat !== 1 || state.pendingDecision) return;
+      if (state.phase === "Breeding" || state.phase === "Main") opponent.endPhase();
+    });
+    opponent.ready();
 
-      fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
+    fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-      const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
+    const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
 
-      // Turn 1: the memory gauge starts at 0 (no pass-turn bonus yet), and playing
-      // ANY nonzero-cost card immediately crosses it to the opponent's side, ending
-      // the Main phase right there (apps/api/src/engine/MainPhaseController.ts's
-      // checkTurnEnd — verified interactively: a second play attempt the same turn
-      // is rejected "wrong-phase" once the first crossed). So turn 1 plays nothing
-      // and just passes, banking the +3 bonus for turn 2.
-      const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
-      fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+    // Turn 1: the memory gauge starts at 0 (no pass-turn bonus yet), and playing
+    // ANY nonzero-cost card immediately crosses it to the opponent's side, ending
+    // the Main phase right there (apps/api/src/engine/MainPhaseController.ts's
+    // checkTurnEnd — verified interactively: a second play attempt the same turn
+    // is rejected "wrong-phase" once the first crossed). So turn 1 plays nothing
+    // and just passes, banking the +3 bonus for turn 2.
+    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
 
-      // Turn 2 (memory +3 from the pass-turn bonus): play the first Monodramon
-      // (cost 2, memory 3 -> 1, not crossed — Main stays open) then the second
-      // (cost 2, memory 1 -> -1, crosses — the turn ends right after, which is fine,
-      // both Digimon are already placed).
-      for (let i = 0; i < 2; i += 1) {
-        const secondBreedingHeading = i === 0
-          ? await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 })
-          : undefined;
-        if (secondBreedingHeading) {
-          fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
-        }
-        const [monodramonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /monodramon/i });
-        fireEvent.pointerDown(monodramonImg!, { clientX: 100, clientY: 100 });
-        fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
-        fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
-        await vi.waitFor(
-          () => expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i }).length).toBe(i + 1),
-          { timeout: 10_000 },
-        );
+    // Turn 2 (memory +3 from the pass-turn bonus): play the first Monodramon
+    // (cost 2, memory 3 -> 1, not crossed — Main stays open) then the second
+    // (cost 2, memory 1 -> -1, crosses — the turn ends right after, which is fine,
+    // both Digimon are already placed).
+    for (let i = 0; i < 2; i += 1) {
+      const secondBreedingHeading =
+        i === 0 ? await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 }) : undefined;
+      if (secondBreedingHeading) {
+        fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
       }
-
-      // Turn 3 (memory +3 again): skip breeding, play Brave Shield (cost 5).
-      const thirdBreedingHeading = await screen.findByRole(
-        "heading",
-        { name: /breeding area/i },
+      const [monodramonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /monodramon/i });
+      tap(monodramonImg!);
+      fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
+      await vi.waitFor(
+        () => expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i }).length).toBe(i + 1),
         { timeout: 10_000 },
       );
-      fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    }
 
-      const [braveShieldImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /brave shield/i });
-      fireEvent.pointerDown(braveShieldImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
-      fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
+    // Turn 3 (memory +3 again): skip breeding, play Brave Shield (cost 5).
+    const thirdBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
 
-      // Brave Shield's [Main] Unsuspend target can't auto-resolve (2 Monodramon in
-      // play) — the real "chooseTargets" decision overlay opens.
-      const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
-      expect(within(dialog).getAllByText(/brave shield/i).length).toBeGreaterThan(0);
+    const [braveShieldImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /brave shield/i });
+    tap(braveShieldImg!);
+    fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
-      // Pick the first candidate and confirm once. "That Digimon" binds the Blocker
-      // grant to the Digimon chosen for Unsuspend, so no second target dialog may open.
-      const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
-      const [candidate] = within(dialog).getAllByRole("button", { pressed: false });
-      fireEvent.click(candidate!);
-      fireEvent.click(within(dialog).getByRole("button", { name: /confirm target/i }));
-      await vi.waitFor(() => {
+    // Brave Shield's [Main] Unsuspend target can't auto-resolve (2 Monodramon in
+    // play) — the real "chooseTargets" decision overlay opens.
+    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    expect(within(dialog).getAllByText(/brave shield/i).length).toBeGreaterThan(0);
+
+    // Pick the first candidate and confirm once. "That Digimon" binds the Blocker
+    // grant to the Digimon chosen for Unsuspend, so no second target dialog may open.
+    const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
+    const [candidate] = within(dialog).getAllByRole("button", { pressed: false });
+    fireEvent.click(candidate!);
+    fireEvent.click(within(dialog).getByRole("button", { name: /confirm target/i }));
+    await vi.waitFor(
+      () => {
         expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionIdBefore);
         expect(screen.queryByRole("dialog")).toBeNull();
-      }, { timeout: 10_000 });
+      },
+      { timeout: 10_000 },
+    );
 
-      // Every target decision resolved and no dialog remains — the protagonist's
-      // Digimon are still on the field (nothing was deleted or moved), proving each
-      // chosen target was accepted and the effect completed.
-      expect(screen.queryByRole("dialog")).toBeNull();
-      expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i })).toHaveLength(2);
+    // Every target decision resolved and no dialog remains — the protagonist's
+    // Digimon are still on the field (nothing was deleted or moved), proving each
+    // chosen target was accepted and the effect completed.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i })).toHaveLength(2);
 
-      await opponent.leave();
-    },
-    20_000,
-  );
+    await opponent.leave();
+  }, 20_000);
 });

@@ -41,7 +41,9 @@ describe("BT11-096 Magma Bomb", () => {
     );
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.memory).toBe(0);

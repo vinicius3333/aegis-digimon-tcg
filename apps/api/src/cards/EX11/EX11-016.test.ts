@@ -21,22 +21,42 @@ describe("EX11-016 PolarBearmon", () => {
   it("encodes the Ice-Snow evolution, Iceclad, source trashing, and no-source security target", () => {
     const compiled = runtimeCompiledCard("EX11-016")!;
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Ice-Snow"], cost: 3, isAlternate: true }]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "IceClad", raw: "＜Ice Clad＞" }] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "IceClad", raw: "＜Ice Clad＞" }],
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
           { kind: "TrashDigivolution", amount: 2 },
-          { kind: "SecurityManipulation", op: "addTopOrBottom", optional: true, source: { filter: { digivolutionCards: "none" } } },
+          {
+            kind: "SecurityManipulation",
+            op: "addTopOrBottom",
+            optional: true,
+            source: { filter: { digivolutionCards: "none" } },
+          },
         ],
       });
     }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "YourTurn",
-      isInherited: true,
-      actions: expect.arrayContaining([
-        expect.objectContaining({ effect: expect.objectContaining({ kind: "keyword", keyword: expect.objectContaining({ keyword: "Piercing" }) }) }),
-        expect.objectContaining({ effect: expect.objectContaining({ kind: "keyword", keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }) }) }),
-      ]),
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: expect.arrayContaining([
+          expect.objectContaining({
+            effect: expect.objectContaining({
+              kind: "keyword",
+              keyword: expect.objectContaining({ keyword: "Piercing" }),
+            }),
+          }),
+          expect.objectContaining({
+            effect: expect.objectContaining({
+              kind: "keyword",
+              keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
+            }),
+          }),
+        ]),
+      }),
+    );
   });
 });

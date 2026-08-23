@@ -6,50 +6,48 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
         },
         {
-          "keyword": "Collision",
-          "raw": "＜Collision＞"
-        }
-      ]
+          keyword: "Collision",
+          raw: "＜Collision＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttackTargetSwitched",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenAttackTargetSwitched",
+          actions: [
             {
-              "kind": "RedirectAttack",
-              "mode": "endAttack",
-              "optional": true
-            }
-          ]
-        }
+              kind: "RedirectAttack",
+              mode: "endAttack",
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Armadillomon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Armadillomon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-032", compiled);

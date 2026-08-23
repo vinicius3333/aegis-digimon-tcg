@@ -51,12 +51,13 @@ describe("BT5 ChaosGallantmon historical deck gauntlet", () => {
         instanceId: s.inst("chaosGallantmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === firstRookieId) &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) =>
-        permanentId === s.perm("levelFiveTarget").permanentId
-      ) &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === firstRookieId) &&
+        !s.state.players[1]!.battleArea.some(
+          ({ permanentId }) => permanentId === s.perm("levelFiveTarget").permanentId,
+        ) &&
+        s.state.pendingDecision === undefined,
     );
     await settle();
 
@@ -68,9 +69,7 @@ describe("BT5 ChaosGallantmon historical deck gauntlet", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.perm("base").stack.some(({ cardId }) => cardId === "BT5-079")).toBe(true);
 
-    const revived = s.state.players[0]!.battleArea.find(
-      ({ topCard }) => topCard?.instanceId === firstRookieId,
-    );
+    const revived = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.instanceId === firstRookieId);
     expect(revived).toBeDefined();
     preferred.splice(0, preferred.length, revived!.permanentId);
 
@@ -81,11 +80,12 @@ describe("BT5 ChaosGallantmon historical deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 1 &&
-      !observe(s.engine).isAttacking() &&
-      !s.perm("base").isSuspended &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !observe(s.engine).isAttacking() &&
+        !s.perm("base").isSuspended &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === firstRookieId)).toBe(false);

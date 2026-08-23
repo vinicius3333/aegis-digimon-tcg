@@ -6,31 +6,29 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "RestrictMemoryGain",
-          "seat": "opponent",
-          "exceptTamerEffects": true,
-          "duration": "permanent"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 2,
-      "traits": [
-        "ADVENTURE"
+          kind: "RestrictMemoryGain",
+          seat: "opponent",
+          exceptTamerEffects: true,
+          duration: "permanent",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["ADVENTURE"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST21-02", compiled);

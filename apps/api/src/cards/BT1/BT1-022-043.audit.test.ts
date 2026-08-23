@@ -17,11 +17,20 @@ describe("BT1 combat and evolution IR coverage", () => {
   });
 
   it("preserves printed keywords, timing, costs, and source boundaries", () => {
-    expect(garudamon.effects).toMatchObject([{ trigger: "Static", keywords: [{ keyword: "Piercing" }] }, { trigger: "WhenBlocked", isInherited: true }]);
+    expect(garudamon.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Piercing" }] },
+      { trigger: "WhenBlocked", isInherited: true },
+    ]);
     expect(irNode(skullGreymon.effects[0]?.actions[0])?.target.filter.keywords).toContainEqual({ keyword: "Blocker" });
     expect(breakdramon.effects[0]?.keywords).toContainEqual({ keyword: "Piercing", raw: "＜Piercing＞" });
-    expect(dolphmon.effects[0]?.actions[0]).toMatchObject({ amount: 1000, condition: { kind: "opponentHas", countMin: 1 } });
-    expect(ikkakumon.effects[0]?.actions[0]).toMatchObject({ kind: "Restrict", restriction: "cantBeBlockedByNoDigivolution" });
+    expect(dolphmon.effects[0]?.actions[0]).toMatchObject({
+      amount: 1000,
+      condition: { kind: "opponentHas", countMin: 1 },
+    });
+    expect(ikkakumon.effects[0]?.actions[0]).toMatchObject({
+      kind: "Restrict",
+      restriction: "cantBeBlockedByNoDigivolution",
+    });
     expect(cerberusmon.effects[0]).toMatchObject({ frequency: "TwicePerTurn", optional: true });
     expect(irNode(cerberusmon.effects[0]?.actions[0]?.cost).target).toMatchObject({ count: 3 });
     expect(zudomon.effects[0]?.actions[0]).toMatchObject({ kind: "Draw", amount: 2 });

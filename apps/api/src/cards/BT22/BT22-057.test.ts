@@ -106,7 +106,9 @@ describe("BT22-057 Kurisarimon", () => {
     ).primitives.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle();
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId),
+    ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT5-084")).toBe(true);
   });
 });

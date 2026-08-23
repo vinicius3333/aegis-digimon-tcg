@@ -18,29 +18,30 @@ describe("BT7-104 Black Memory Boost!", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const decision = s.decisions.at(-1)!.req;
     expect(decision.sourceCardId).toBe("BT7-104");
-    expect(new Set(decision.options?.candidateInstanceIds)).toEqual(new Set([
-      s.perm("oneSource").permanentId,
-      s.perm("twoSources").permanentId,
-    ]));
-    expect(decision.options?.candidateInstanceIds).not.toContain(
-      s.perm("twoSources").topCard.instanceId,
+    expect(new Set(decision.options?.candidateInstanceIds)).toEqual(
+      new Set([s.perm("oneSource").permanentId, s.perm("twoSources").permanentId]),
     );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("twoSources").permanentId],
-      },
-    })).toEqual({ ok: true });
+    expect(decision.options?.candidateInstanceIds).not.toContain(s.perm("twoSources").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("twoSources").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === handBefore + 1);
 
     expect(s.state.players[0]!.hand).toHaveLength(handBefore + 1);
@@ -55,18 +56,16 @@ describe("BT7-104 Black Memory Boost!", () => {
     s.state.memory = 3;
     const securityInstanceId = s.inst("metalCannon").instanceId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
-    expect(s.state.players[0]!.hand.some(
-      ({ instanceId }) => instanceId === securityInstanceId,
-    )).toBe(true);
-    expect(s.state.players[0]!.trash.some(
-      ({ instanceId }) => instanceId === securityInstanceId,
-    )).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === securityInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === securityInstanceId)).toBe(false);
   });
 });

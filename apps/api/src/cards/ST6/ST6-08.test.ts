@@ -9,7 +9,13 @@ describe("ST6-08 Devimon", () => {
     s.state.memory = 1;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("devimon"), "Blocker")).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("devimon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("devimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === -1 && s.state.players[1]!.security.length === 0);
     expect(s.state.memory).toBe(-1);
     expect(s.state.players[1]!.security).toHaveLength(0);

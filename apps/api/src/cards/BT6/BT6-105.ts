@@ -5,71 +5,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a Digimon with [Three Musketeers] in its type in play"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "any",
-              "kind": [
-                "Digimon"
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 7
             },
-            "count": "all"
-          }
-        }
-      ]
+            raw: "you have a Digimon with [Three Musketeers] in its type in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "any",
+              kind: ["Digimon"],
+              playCostLte: 7,
+            },
+            count: "all",
+          },
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-105", compiled);

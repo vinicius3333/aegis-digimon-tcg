@@ -7,10 +7,15 @@ describe("BT19-080 Takato Matsuki", () => {
     const card = runtimeCompiledCard("BT19-080");
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
-    expect(card?.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "StartOfYourTurn" }),
-      expect.objectContaining({ trigger: "AllTurns", actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" })] }),
-      expect.objectContaining({ trigger: "Security", isSecurity: true }),
-    ]));
+    expect(card?.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ trigger: "StartOfYourTurn" }),
+        expect.objectContaining({
+          trigger: "AllTurns",
+          actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" })],
+        }),
+        expect.objectContaining({ trigger: "Security", isSecurity: true }),
+      ]),
+    );
   });
 });

@@ -15,11 +15,19 @@ describe("BT3-097 A Delicate Plan", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT3-097"));
     expect(s.state.memory).toBe(9);
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.memory).toBe(9);
   });

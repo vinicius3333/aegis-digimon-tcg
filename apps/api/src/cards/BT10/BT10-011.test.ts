@@ -21,10 +21,15 @@ import { compiled } from "./BT10-011.js";
 
 describe("BT10-011 Canoweissmon [Your Turn] suspend trigger", () => {
   it("encodes both the suspend trigger and Gammamon effect conferral in IR", () => {
-    expect(compiled.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "YourTurn", frequency: "OncePerTurn" }),
-      expect.objectContaining({ trigger: "AllTurns", actions: [expect.objectContaining({ kind: "GrantStatic", grant: "effects" })] }),
-    ]));
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ trigger: "YourTurn", frequency: "OncePerTurn" }),
+        expect.objectContaining({
+          trigger: "AllTurns",
+          actions: [expect.objectContaining({ kind: "GrantStatic", grant: "effects" })],
+        }),
+      ]),
+    );
   });
 
   it("ignores an opponent's Tamer becoming suspended", async () => {
@@ -52,10 +57,7 @@ describe("BT10-011 Canoweissmon [Your Turn] suspend trigger", () => {
     });
     const baseDP = s.perm("canoweissmon").baseDP;
 
-    await advance(s.engine).verb.suspend([
-      s.perm("firstTamer").permanentId,
-      s.perm("secondTamer").permanentId,
-    ]);
+    await advance(s.engine).verb.suspend([s.perm("firstTamer").permanentId, s.perm("secondTamer").permanentId]);
 
     expect(s.perm("canoweissmon").currentDP).toBe(baseDP + 2000);
     expect(observe(s.engine).keywordAmount(s.perm("canoweissmon"), "SecurityAttack")).toBe(0);

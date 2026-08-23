@@ -62,9 +62,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       if (action.totalDpCapScaling && target.totalDpCap !== undefined) {
         target = {
           ...target,
-          totalDpCap:
-            target.totalDpCap +
-            scaleFactor(ctx, action.totalDpCapScaling) * action.totalDpCapScaling.amount,
+          totalDpCap: target.totalDpCap + scaleFactor(ctx, action.totalDpCapScaling) * action.totalDpCapScaling.amount,
         };
       }
       target = raiseDeletionDpCap(ctx, target);
@@ -715,7 +713,8 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "ReturnToEggDeck": {
-      const zones = action.from ?? (action.target.filter.zone !== undefined ? zoneList(action.target.filter.zone) : ["trash"]);
+      const zones =
+        action.from ?? (action.target.filter.zone !== undefined ? zoneList(action.target.filter.zone) : ["trash"]);
       const candidates = candidateLooseInstances(ctx, action.target, zones);
       const count = action.target.count === "all" ? candidates.length : (action.target.count ?? 1);
       if (count <= 0 || candidates.length < count || ctx.fx.returnToEggDeck === undefined) return false;

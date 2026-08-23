@@ -30,7 +30,11 @@ describe("ST21-09", () => {
 
   it("retains inherited Alliance and the ADVENTURE evolution requirement", () => {
     const card = runtimeCompiledCard("ST21-09");
-    expect(card?.effects.some((effect) => effect.isInherited && effect.keywords?.some((keyword) => keyword.keyword === "Alliance"))).toBe(true);
+    expect(
+      card?.effects.some(
+        (effect) => effect.isInherited && effect.keywords?.some((keyword) => keyword.keyword === "Alliance"),
+      ),
+    ).toBe(true);
     expect(card?.digivolutionRequirement).toEqual([{ level: 4, traits: ["ADVENTURE"], cost: 3, isAlternate: true }]);
   });
 });

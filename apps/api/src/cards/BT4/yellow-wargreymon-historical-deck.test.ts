@@ -40,23 +40,20 @@ describe("BT4 yellow WarGreymon historical deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 2 &&
-      !observe(s.engine).isAttacking() &&
-      !s.perm("warGreymon").isSuspended &&
-      s.perm("kari").isSuspended &&
-      s.state.memory === 1 &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) =>
-        permanentId === dpTargetId
-      )
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 2 &&
+        !observe(s.engine).isAttacking() &&
+        !s.perm("warGreymon").isSuspended &&
+        s.perm("kari").isSuspended &&
+        s.state.memory === 1 &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === dpTargetId),
     );
 
-    expect(s.state.players[0]!.hand.some(({ instanceId }) =>
-      instanceId === s.inst("warGreymonSecurity").instanceId
-    )).toBe(true);
-    expect(s.state.players[1]!.trash.some(({ instanceId }) =>
-      instanceId === dpTargetInstanceId
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("warGreymonSecurity").instanceId),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === dpTargetInstanceId)).toBe(true);
 
     expect(
       s.engine.applyIntent(0, {
@@ -80,9 +77,9 @@ describe("BT4 yellow WarGreymon historical deck gauntlet", () => {
     await settle(() => s.state.players[0]!.security.length === 0 && s.state.memory === 3);
 
     expect(s.perm("kari").isSuspended).toBe(true);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) =>
-      instanceId === s.inst("blindingRaySecurity").instanceId
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("blindingRaySecurity").instanceId),
+    ).toBe(true);
     assertNoLoudGap(s);
   });
 });

@@ -23,7 +23,9 @@ describe("BT18-054 AncientKazemon", () => {
     s.perm("highOpponent").currentDP = 12000;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancientKazemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancientKazemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("highOpponent"), "unsuspend"));
 
     expect(s.perm("lowOpponent").isSuspended).toBe(true);

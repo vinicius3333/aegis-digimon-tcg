@@ -16,7 +16,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-main-gain-memory`,
           description: "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.",
-          when: (_ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             return Array.from(ctx.game.player(opponent).battleArea).some(
@@ -24,9 +24,6 @@ const module: EffectModule = {
             );
           },
           resolve: async (ctx) => {
-            // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-            // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-            // owner explicitly rather than the turn player.
             ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
           },
         }),
@@ -98,6 +95,10 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
+                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
+                // choice: ask before suspending, and leave the Tamer untouched on a decline.
+                const willSuspend = await subCtx.ask.optional(subCtx, "Suspend Yujin Ozora to draw 1 card?");
+                if (!willSuspend) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
                 subCtx.fx.draw(source.ownerSeat, 1);

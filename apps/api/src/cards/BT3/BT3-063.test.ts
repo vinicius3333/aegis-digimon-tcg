@@ -22,9 +22,7 @@ describe("BT3-063 Sukamon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("sukamon").permanentId]);
 
-    expect(
-      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === playedId),
-    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === playedId)).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
       s.inst("restOne").instanceId,
       s.inst("restTwo").instanceId,

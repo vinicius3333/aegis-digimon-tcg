@@ -12,13 +12,23 @@ describe("BT25-008 Coronamon", () => {
         amount: 1,
         optional: true,
         abortOnDecline: true,
-        cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine", nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }] }, count: 2, upTo: true } },
+        cost: {
+          kind: "trash",
+          target: {
+            filter: { zone: "hand", controller: "mine", nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }] },
+            count: 2,
+            upTo: true,
+          },
+        },
         scaling: { per: 1, usePaidCount: true },
       });
     }
   });
 
   it("preserves inherited +2000 DP during your turn", () => {
-    expect(BT25_008.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }] });
+    expect(BT25_008.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }],
+    });
   });
 });

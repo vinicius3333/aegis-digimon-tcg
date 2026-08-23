@@ -25,7 +25,7 @@ const module: EffectModule = {
             "[Start of Your Main Phase] By trashing 1 card with [Vemmon] in its text from " +
             "your hand, <Draw 1>. Then, gain 1 memory.",
           optional: true,
-          when: (_ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const vemmonCards = Array.from(owner.hand).filter((c) => hasVemmonInText(ctx.game.definitionOf(c)));
@@ -38,13 +38,7 @@ const module: EffectModule = {
             if (chosen.length > 0) {
               await ctx.fx.trash(chosen);
               ctx.fx.draw(source.ownerSeat, 1);
-              const willGain = await ctx.ask.optional(ctx, "Gain 1 memory?");
-              if (willGain) {
-                // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause
-                // is also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit
-                // this Tamer's owner explicitly rather than the turn player.
-                ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-              }
+              ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
             }
           },
         }),
@@ -73,10 +67,7 @@ const module: EffectModule = {
             if (chosen.length > 0) {
               await ctx.fx.trash(chosen);
               ctx.fx.draw(source.ownerSeat, 1);
-              const willGain = await ctx.ask.optional(ctx, "Gain 1 memory?");
-              if (willGain) {
-                ctx.fx.gainMemory(1);
-              }
+              ctx.fx.gainMemory(1);
             }
           },
         }),
@@ -113,6 +104,13 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
+                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
+                // choice: ask before suspending, and leave the Tamer untouched on a decline.
+                const willSuspend = await subCtx.ask.optional(
+                  subCtx,
+                  "Suspend Xeno to reveal the top 2 cards of your deck?",
+                );
+                if (!willSuspend) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
                 const owner = subCtx.game.player(source.ownerSeat);
@@ -164,6 +162,13 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
+                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
+                // choice: ask before suspending, and leave the Tamer untouched on a decline.
+                const willSuspend = await subCtx.ask.optional(
+                  subCtx,
+                  "Suspend Xeno to reveal the top 2 cards of your deck?",
+                );
+                if (!willSuspend) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
                 const owner = subCtx.game.player(source.ownerSeat);

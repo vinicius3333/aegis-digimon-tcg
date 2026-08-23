@@ -27,7 +27,10 @@ describe('BT8-031 FrosVelgrmon — granted "[When Attacking] Trash the bottom di
               card: "BT1-009",
               dp: 3000,
               as: "attacker",
-              under: [{ card: "BT1-014", as: "bottomCard" }, { card: "BT1-001", as: "topCard" }],
+              under: [
+                { card: "BT1-014", as: "bottomCard" },
+                { card: "BT1-001", as: "topCard" },
+              ],
             },
           ],
         },
@@ -82,7 +85,10 @@ describe('BT8-031 FrosVelgrmon — granted "[When Attacking] Trash the bottom di
               card: "BT1-009",
               dp: 3000,
               as: "attacker",
-              under: [{ card: "BT1-014", as: "bottomCard" }, { card: "BT1-001", as: "topCard" }],
+              under: [
+                { card: "BT1-014", as: "bottomCard" },
+                { card: "BT1-001", as: "topCard" },
+              ],
             },
           ],
         },

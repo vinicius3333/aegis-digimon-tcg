@@ -16,8 +16,14 @@ describe("BT17-062 Dorumon", () => {
       condition: {
         kind: "allOf",
         conditions: [
-          { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] } },
-          { kind: "opponentHas", filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } } },
+          {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] },
+          },
+          {
+            kind: "opponentHas",
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } },
+          },
         ],
       },
       into: { nameOrTrait: [{ tokens: ["Dorugoramon"], match: "name" }] },
@@ -25,50 +31,62 @@ describe("BT17-062 Dorumon", () => {
   });
 
   it("retains Reboot as its inherited keyword", () => {
-    expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([{ keyword: "Reboot", raw: "＜Reboot＞" }]);
+    expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([
+      { keyword: "Reboot", raw: "＜Reboot＞" },
+    ]);
   });
 
   it("digivolves into Dorugoramon for 4 while attacking with both conditions", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT17-062", under: ["BT16-087"], as: "dorumon" }],
-        hand: [{ card: "BT17-073", as: "dorugoramon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-062", under: ["BT16-087"], as: "dorumon" }],
+          hand: [{ card: "BT17-073", as: "dorugoramon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT17-070", as: "levelSix" }],
+          security: 1,
+        },
       },
-      1: {
-        battleArea: [{ card: "BT17-070", as: "levelSix" }],
-        security: 1,
-      },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 4;
     const dorugoramonId = s.inst("dorugoramon").instanceId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("dorumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dorumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("dorumon").topCard?.instanceId === dorugoramonId);
 
     expect(s.state.memory).toBe(0);
   });
 
   it("does not offer the attack evolution without an opposing level 6", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT17-062", under: ["BT16-087"], as: "dorumon" }],
-        hand: [{ card: "BT17-073", as: "dorugoramon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-062", under: ["BT16-087"], as: "dorumon" }],
+          hand: [{ card: "BT17-073", as: "dorugoramon" }],
+        },
+        1: { battleArea: [{ card: "BT17-025", as: "levelFive" }], security: 1 },
       },
-      1: { battleArea: [{ card: "BT17-025", as: "levelFive" }], security: 1 },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("dorumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("dorumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.perm("dorumon").topCard?.cardId).toBe("BT17-062");

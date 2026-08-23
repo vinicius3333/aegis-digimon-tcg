@@ -24,7 +24,10 @@ describe("RB1-022 SymbareAngoramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "RB1-022", as: "symbare" }, { card: "RB1-034", as: "existing" }],
+          battleArea: [
+            { card: "RB1-022", as: "symbare" },
+            { card: "RB1-034", as: "existing" },
+          ],
           hand: [{ card: "RB1-034", as: "ruli" }],
         },
       },
@@ -34,6 +37,8 @@ describe("RB1-022 SymbareAngoramon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("symbare"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "RB1-034")).toBe(true);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "RB1-034")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "RB1-034")).toHaveLength(
+      1,
+    );
   });
 });

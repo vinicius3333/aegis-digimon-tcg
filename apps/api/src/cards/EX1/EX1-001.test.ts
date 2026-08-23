@@ -22,7 +22,13 @@ describe("EX1-001 Agumon", () => {
     const p0 = s.state.players[0]!;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => p0.hand.length === 1);
 
     expect(["ST1-12", "BT1-009"]).toContain(p0.hand[0]!.cardId);

@@ -6,116 +6,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Overclock",
-          "qualifier": "Puppet",
-          "raw": "＜Overclock ([Puppet] trait)＞"
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "attackPlayer": true,
-          "withoutSuspending": true,
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "kindOrToken": [
-                  "Digimon",
-                  "Token"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Puppet"
-                    ],
-                    "match": "trait"
-                  }
-                ],
-                "allowTokens": true
-              },
-              "count": 1
-            },
-            "raw": "by deleting 1 of your Tokens or other [Puppet] trait Digimon"
-          }
-        }
+          keyword: "Overclock",
+          qualifier: "Puppet",
+          raw: "＜Overclock ([Puppet] trait)＞",
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Overclock",
-          "qualifier": "Puppet",
-          "raw": "＜Overclock ([Puppet] trait)＞"
-        }
-      ]
     },
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "Familiar"
-          ],
-          "count": 1,
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayToken",
-          "tokens": [
-            "Familiar"
-          ],
-          "count": 1,
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Attack",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1
+            count: 1,
+            isSelf: true,
           },
-          "amount": -6000,
-          "duration": "forTheTurn"
-        }
-      ]
-    }
+          attackPlayer: true,
+          withoutSuspending: true,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kindOrToken: ["Digimon", "Token"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Puppet"],
+                    match: "trait",
+                  },
+                ],
+                allowTokens: true,
+              },
+              count: 1,
+            },
+            raw: "by deleting 1 of your Tokens or other [Puppet] trait Digimon",
+          },
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Overclock",
+          qualifier: "Puppet",
+          raw: "＜Overclock ([Puppet] trait)＞",
+        },
+      ],
+    },
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "PlayToken",
+          tokens: ["Familiar"],
+          count: 1,
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlayToken",
+          tokens: ["Familiar"],
+          count: 1,
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -6000,
+          duration: "forTheTurn",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX7-030", compiled);

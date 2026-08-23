@@ -2,56 +2,52 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "raw": "by returning 1 of your Digimon to its owner's hand"
+          to: "hand",
+          raw: "by returning 1 of your Digimon to its owner's hand",
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 2,
-            "upTo": true
+            count: 2,
+            upTo: true,
           },
-          "to": "hand"
-        }
-      ]
+          to: "hand",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-102", compiled);

@@ -6,64 +6,60 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Rush",
-          "raw": "＜Rush＞"
-        }
-      ]
+          keyword: "Rush",
+          raw: "＜Rush＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Attack",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "withoutSuspending": false,
-              "optional": true
-            }
-          ]
-        }
+              withoutSuspending: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Gatchmon",
-        "Navimon",
-        "Tweetmon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Gatchmon", "Navimon", "Tweetmon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT21-018", compiled);

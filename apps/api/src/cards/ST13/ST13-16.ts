@@ -22,109 +22,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - Security: same PlayWithoutCost fix as [Main] (Legend-Arms trait + playCostLte:7).
 // - Security PlaceInBattleAreaSelf: removed optional:true.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Legend-Arms"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Legend-Arms"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 7
+              playCostLte: 7,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand"],
+          payCost: false,
+          optional: true,
         },
         {
           // KB Q794: placing this card in your Battle Area is not optional — it's an unconditional
           // "then" step even if you chose not to play a Digimon.
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Trash",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
+            count: 1,
+            isSelf: true,
+          },
         },
         {
           // KB Q795: all revealed cards go to top OR all go to bottom — player chooses which.
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [],
-          "rest": "deckTopOrBottom"
-        }
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [],
+          rest: "deckTopOrBottom",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Legend-Arms"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Legend-Arms"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 7
+              playCostLte: 7,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST13-16", compiled);

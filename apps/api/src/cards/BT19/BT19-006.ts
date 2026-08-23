@@ -6,45 +6,39 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "not",
-            "condition": {
-              "kind": "triggerRemovalCause",
-              "removalCause": "byBattle",
-              "raw": "deleted by battle"
+          to: "hand",
+          condition: {
+            kind: "not",
+            condition: {
+              kind: "triggerRemovalCause",
+              removalCause: "byBattle",
+              raw: "deleted by battle",
             },
-            "raw": "deleted other than by battle"
-          }
-        }
+            raw: "deleted other than by battle",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-006", compiled);

@@ -162,8 +162,7 @@ describe("battle — a player-directed win proceeds to the security check/battle
     // resolved while still in security so a [Security] self-play can locate it there).
     await settle(
       () =>
-        !p0.battleArea.some((p) => p.permanentId === attacker.permanentId) &&
-        p1.security.length === securityBefore - 1,
+        !p0.battleArea.some((p) => p.permanentId === attacker.permanentId) && p1.security.length === securityBefore - 1,
     );
 
     // The attacker lost the security battle and was deleted; the security card was checked.

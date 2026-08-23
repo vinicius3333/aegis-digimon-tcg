@@ -18,7 +18,9 @@ describe("BT25-040 MagnaAngemon", () => {
         },
       },
     });
-    expect(BT25_040.effects?.some((entry) => entry.trigger === "Static" && entry.actions?.[0]?.kind === "PlayWithoutCost")).toBe(false);
+    expect(
+      BT25_040.effects?.some((entry) => entry.trigger === "Static" && entry.actions?.[0]?.kind === "PlayWithoutCost"),
+    ).toBe(false);
   });
 
   it("scopes the inherited DP trigger to removal from its own security stack", () => {

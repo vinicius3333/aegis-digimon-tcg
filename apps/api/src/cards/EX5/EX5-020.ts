@@ -10,143 +10,127 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // must also cover 'wouldBeDigivolvedInto'.
 // The condition requires BOTH: 3+ digivolution cards AND the specific trait.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "CostModifier",
-              "mode": "reduce",
-              "costType": "play",
-              "amount": 2,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "CostModifier",
+              mode: "reduce",
+              costType: "play",
+              amount: 2,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Night Claw",
-                        "Light Fang",
-                        "Galaxy"
-                      ],
-                      "match": "trait"
-                    }
+                      tokens: ["Night Claw", "Light Fang", "Galaxy"],
+                      match: "trait",
+                    },
                   ],
-                  "digivolutionCardCountMin": 3
+                  digivolutionCardCountMin: 3,
                 },
-                "raw": "you have a Digimon with 3 or more digivolution cards and the [Night Claw]/[Light Fang]/[Galaxy] trait"
-              }
-            }
-          ]
+                raw: "you have a Digimon with 3 or more digivolution cards and the [Night Claw]/[Light Fang]/[Galaxy] trait",
+              },
+            },
+          ],
         },
         {
-          "kind": "Replacement",
-          "event": "wouldBeDigivolvedInto",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBeDigivolvedInto",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "CostModifier",
-              "mode": "reduce",
-              "costType": "digivolve",
-              "amount": 2,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "CostModifier",
+              mode: "reduce",
+              costType: "digivolve",
+              amount: 2,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Night Claw",
-                        "Light Fang",
-                        "Galaxy"
-                      ],
-                      "match": "trait"
-                    }
+                      tokens: ["Night Claw", "Light Fang", "Galaxy"],
+                      match: "trait",
+                    },
                   ],
-                  "digivolutionCardCountMin": 3
+                  digivolutionCardCountMin: 3,
                 },
-                "raw": "you have a Digimon with 3 or more digivolution cards and the [Night Claw]/[Light Fang]/[Galaxy] trait"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+                raw: "you have a Digimon with 3 or more digivolution cards and the [Night Claw]/[Light Fang]/[Galaxy] trait",
+              },
             },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          ],
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-020", compiled);

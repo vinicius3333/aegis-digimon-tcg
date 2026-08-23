@@ -11,42 +11,42 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   (new capability — LANE_E.md CAP-E-04).
 // [Security] Activate [Main].
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "playCostLte": 7
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 7,
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "attackPlayers",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "attackPlayers",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GlobalRestrict",
-          "restriction": "opponentCannotAddToSecurity",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          kind: "GlobalRestrict",
+          restriction: "opponentCannotAddToSecurity",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-103", compiled);

@@ -17,17 +17,33 @@ describe("ST21-11", () => {
     const effects = runtimeCompiledCard("ST21-11")?.effects ?? [];
     expect(effects.find((effect) => effect.trigger === "Counter")?.keywords?.[0]!.keyword).toBe("BlastDigivolve");
     expect(effects.find((effect) => effect.trigger === "WhenAttacking")).toMatchObject({ frequency: "OncePerTurn" });
-    expect(effects.find((effect) => effect.trigger === "WhenAttacking")?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"] });
+    expect(effects.find((effect) => effect.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["trash"],
+    });
   });
 
   it("returns a level-4 opponent to the bottom of the deck when digivolving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST21-09", as: "base" }], hand: [{ card: "ST21-11", as: "metal" }] },
-      1: { battleArea: [{ card: "ST1-05", as: "target" }], security: ["BT1-001"] },
-    }, { autoSelectCards: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST21-09", as: "base" }], hand: [{ card: "ST21-11", as: "metal" }] },
+        1: { battleArea: [{ card: "ST1-05", as: "target" }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId));
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("metal").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(false);
   });
 });

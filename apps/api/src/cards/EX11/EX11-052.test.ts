@@ -11,10 +11,22 @@ describe("EX11-052 HeavyMetaldramon", () => {
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving", "EndOfAttack"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
-      expect(effect.actions[1]).toMatchObject({ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true } } });
-      expect(effect.actions[2]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], condition: { kind: "zoneCount", op: "lte", value: 4 } });
+      expect(effect.actions[1]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true } },
+      });
+      expect(effect.actions[2]).toMatchObject({
+        kind: "PlayWithoutCost",
+        from: ["trash"],
+        condition: { kind: "zoneCount", op: "lte", value: 4 },
+      });
     }
     const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
-    expect(replacement.actions[0]).toMatchObject({ kind: "Replacement", event: "wouldLeavePlay", condition: { kind: "zoneCount", op: "lte", value: 4 }, actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }] });
+    expect(replacement.actions[0]).toMatchObject({
+      kind: "Replacement",
+      event: "wouldLeavePlay",
+      condition: { kind: "zoneCount", op: "lte", value: 4 },
+      actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
+    });
   });
 });

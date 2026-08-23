@@ -21,11 +21,27 @@ describe("BT19-071 Beelzemon", () => {
     expect(card?.residual).toEqual([]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = card?.effects.find((entry) => entry.trigger === trigger);
-      expect(effect?.actions).toEqual(expect.arrayContaining([
-        expect.objectContaining({ kind: "TrashTopDeck", controller: "mine", amount: 2 }),
-        expect.objectContaining({ kind: "GainKeyword", keyword: expect.objectContaining({ keyword: "Blocker" }), duration: "untilOpponentTurnEnd" }),
-      ]));
+      expect(effect?.actions).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ kind: "TrashTopDeck", controller: "mine", amount: 2 }),
+          expect.objectContaining({
+            kind: "GainKeyword",
+            keyword: expect.objectContaining({ keyword: "Blocker" }),
+            duration: "untilOpponentTurnEnd",
+          }),
+        ]),
+      );
     }
-    expect(card?.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onDiscardLibrary", sourceFilter: { controller: "mine" }, actions: [{ kind: "Delete" }] }] });
+    expect(card?.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          sourceFilter: { controller: "mine" },
+          actions: [{ kind: "Delete" }],
+        },
+      ],
+    });
   });
 });

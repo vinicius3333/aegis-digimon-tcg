@@ -32,24 +32,54 @@ describe("BT12-090 Davis Motomiya", () => {
   });
 
   it("suspends itself and digivolves an attacking blue-green Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT12-090", as: "davis" }, { card: "BT12-030", as: "attacker" }], hand: [{ card: "BT12-031", as: "fighter" }] },
-      1: { security: ["BT1-009"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-090", as: "davis" },
+            { card: "BT12-030", as: "attacker" },
+          ],
+          hand: [{ card: "BT12-031", as: "fighter" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 2;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard?.cardId === "BT12-031");
     expect(s.perm("davis").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard?.cardId).toBe("BT12-031");
   });
 
   it("does not trigger for a three-color attacker", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT12-090", as: "davis" }, { card: "BT17-077", as: "attacker" }], hand: [{ card: "BT12-031", as: "fighter" }] },
-      1: { security: ["BT1-009"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-090", as: "davis" },
+            { card: "BT17-077", as: "attacker" },
+          ],
+          hand: [{ card: "BT12-031", as: "fighter" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 2;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.perm("davis").isSuspended).toBe(false);
   });

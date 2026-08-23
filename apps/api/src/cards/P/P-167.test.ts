@@ -7,13 +7,25 @@ describe("P-167 Landramon", () => {
     const compiled = runtimeCompiledCard("P-167")!;
     for (const trigger of ["StartOfYourMainPhase", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [{
-          kind: "RevealAdd",
-          revealCount: 3,
-          rest: "deckTopOrBottom",
-          add: [{ count: 1, to: "hand", orTo: "placeUnder" }],
-          cost: { kind: "trash", target: { count: 1, filter: { controller: "mine", zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] } } },
-        }],
+        actions: [
+          {
+            kind: "RevealAdd",
+            revealCount: 3,
+            rest: "deckTopOrBottom",
+            add: [{ count: 1, to: "hand", orTo: "placeUnder" }],
+            cost: {
+              kind: "trash",
+              target: {
+                count: 1,
+                filter: {
+                  controller: "mine",
+                  zone: "digivolutionCards",
+                  nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+                },
+              },
+            },
+          },
+        ],
       });
     }
   });
@@ -22,7 +34,20 @@ describe("P-167 Landramon", () => {
     const inherited = runtimeCompiledCard("P-167")!.effects.find((effect) => effect.isInherited)!;
     expect(inherited).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "SubTrigger", event: "onDigivolutionCardDiscarded", hostFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] }, actions: [{ kind: "DeDigivolve", amount: 1, target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardDiscarded",
+          hostFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }] },
+          actions: [
+            {
+              kind: "DeDigivolve",
+              amount: 1,
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            },
+          ],
+        },
+      ],
     });
   });
 });

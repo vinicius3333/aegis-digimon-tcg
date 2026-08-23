@@ -7,17 +7,21 @@ describe("EX10-043 Sakusimon", () => {
     expect(compiled.residual).toEqual([]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 } }],
+        actions: [
+          { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 } },
+        ],
       });
     }
     expect(compiled.effects?.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenLinkTrashed",
-        sourceFilter: { isSelfRef: true },
-        actions: [{ kind: "GainMemory", amount: 1 }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinkTrashed",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     });
   });
 });

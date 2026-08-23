@@ -14,7 +14,19 @@ import { compiled as forbiddenTemptation } from "./BT1-113.js";
 
 describe("BT1 option IR coverage", () => {
   it("registers complete Main and Security behavior", () => {
-    for (const card of [oblivionBird, braveShield, heartsAttack, graceCrossFreezer, howlingCrusher, bladeOfTheTrue, testament, hornBuster, flowerCannon, gigaBlaster, forbiddenTemptation]) {
+    for (const card of [
+      oblivionBird,
+      braveShield,
+      heartsAttack,
+      graceCrossFreezer,
+      howlingCrusher,
+      bladeOfTheTrue,
+      testament,
+      hornBuster,
+      flowerCannon,
+      gigaBlaster,
+      forbiddenTemptation,
+    ]) {
       expect(card).toMatchObject({ coverage: "full", residual: [] });
     }
   });
@@ -29,6 +41,9 @@ describe("BT1 option IR coverage", () => {
     expect(testament.effects[1]?.actions).toMatchObject([{ kind: "Draw", amount: 1 }, { kind: "AddToHandSelf" }]);
     expect(hornBuster.effects[1]?.actions[1]).toMatchObject({ kind: "AddToHandSelf" });
     expect(gigaBlaster.effects[0]?.actions[0]).toMatchObject({ kind: "ConditionalBranch" });
-    expect(forbiddenTemptation.effects[0]?.actions).toMatchObject([{ kind: "Restrict", restriction: "attack" }, { kind: "Restrict", restriction: "block" }]);
+    expect(forbiddenTemptation.effects[0]?.actions).toMatchObject([
+      { kind: "Restrict", restriction: "attack" },
+      { kind: "Restrict", restriction: "block" },
+    ]);
   });
 });

@@ -36,34 +36,40 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Rule",
-      actions: [{
-        kind: "GrantStatic",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        grant: "name",
-        tokens: ["DarkKnightmon", "Tuwarmon"],
-      }],
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["DarkKnightmon", "Tuwarmon"],
+        },
+      ],
     },
     { trigger: "OnPlay", actions: enterActions },
     { trigger: "WhenDigivolving", actions: enterActions },
     {
       trigger: "OnDeletion",
-      actions: [{
-        kind: "Return",
-        target: {
-          filter: { zone: "trash", controller: "mine", kind: ["Digimon"], colors: ["Black", "Purple"] },
-          count: 2,
-          upTo: true,
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: { zone: "trash", controller: "mine", kind: ["Digimon"], colors: ["Black", "Purple"] },
+            count: 2,
+            upTo: true,
+          },
+          to: "hand",
         },
-        to: "hand",
-      }],
+      ],
     },
   ],
   coverage: "full",
   residual: [],
-  digiXrosRequirement: [{
-    materials: [{ names: ["DarkKnightmon"] }, { names: ["Tuwarmon"] }],
-    count: 2,
-  }],
+  digiXrosRequirement: [
+    {
+      materials: [{ names: ["DarkKnightmon"] }, { names: ["Tuwarmon"] }],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT11-071", compiled);

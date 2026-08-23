@@ -6,104 +6,90 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Beast Dragon",
-                      "DigiPolice"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Beast Dragon", "DigiPolice"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": false,
-              "from": [
-                "hand"
-              ],
-              "optional": true,
-              "condition": {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+              payCost: false,
+              from: ["hand"],
+              optional: true,
+              condition: {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "DigiPolice"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["DigiPolice"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "a Tamer card with the [DigiPolice] trait is in this Digimon's digivolution cards"
-              }
-            }
-          ]
-        }
-      ]
+                raw: "a Tamer card with the [DigiPolice] trait is in this Digimon's digivolution cards",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Beast Dragon",
-                        "DigiPolice"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Beast Dragon", "DigiPolice"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-063", compiled);

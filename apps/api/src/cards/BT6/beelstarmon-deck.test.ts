@@ -53,10 +53,7 @@ describe("BT6 Three Musketeers deck", () => {
           { card: "BT6-112", as: "beelstarmon" },
           { card: "BT6-095", as: "happyBullet" },
         ],
-        trash: [
-          { card: "BT6-109", as: "flyBullet" },
-          "BT6-017",
-        ],
+        trash: [{ card: "BT6-109", as: "flyBullet" }, "BT6-017"],
       },
       1: {
         battleArea: [
@@ -68,84 +65,81 @@ describe("BT6 Three Musketeers deck", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("beelstarmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("beelstarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const recoverDecision = s.decisions.at(-1)!.req;
     expect(recoverDecision.kind).toBe("selectCards");
     expect(recoverDecision.sourceCardId).toBe("BT6-112");
-    expect(recoverDecision.options?.candidateInstanceIds).toEqual([
-      s.inst("flyBullet").instanceId,
-    ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: recoverDecision.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("flyBullet").instanceId],
-      },
-    })).toEqual({ ok: true });
+    expect(recoverDecision.options?.candidateInstanceIds).toEqual([s.inst("flyBullet").instanceId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: recoverDecision.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("flyBullet").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
-      s.decisions.some(({ req }) =>
-        req.decisionId !== recoverDecision.decisionId &&
-        req.kind === "selectCards" &&
-        req.options?.candidateInstanceIds?.length === 2
-      )
+      s.decisions.some(
+        ({ req }) =>
+          req.decisionId !== recoverDecision.decisionId &&
+          req.kind === "selectCards" &&
+          req.options?.candidateInstanceIds?.length === 2,
+      ),
     );
 
-    const useDecision = s.decisions.find(({ req }) =>
-      req.decisionId !== recoverDecision.decisionId &&
-      req.kind === "selectCards" &&
-      req.options?.candidateInstanceIds?.length === 2
+    const useDecision = s.decisions.find(
+      ({ req }) =>
+        req.decisionId !== recoverDecision.decisionId &&
+        req.kind === "selectCards" &&
+        req.options?.candidateInstanceIds?.length === 2,
     )!.req;
     expect(useDecision.options?.candidateInstanceIds).toEqual(
-      expect.arrayContaining([
-        s.inst("happyBullet").instanceId,
-        s.inst("flyBullet").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("happyBullet").instanceId, s.inst("flyBullet").instanceId]),
     );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: useDecision.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("flyBullet").instanceId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: useDecision.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("flyBullet").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const targetDecision = s.decisions.at(-1)!.req;
     expect(targetDecision.kind).toBe("chooseTargets");
-    expect(targetDecision.options?.candidateInstanceIds).toContain(
-      s.perm("levelSixTarget").permanentId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: targetDecision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("levelSixTarget").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some((permanent) =>
-        permanent.topCard.cardId === "BT6-075"
-      ) && s.state.pendingDecision === undefined
+    expect(targetDecision.options?.candidateInstanceIds).toContain(s.perm("levelSixTarget").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetDecision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("levelSixTarget").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT6-075") &&
+        s.state.pendingDecision === undefined,
     );
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
-      "BT1-009",
-    ]);
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("happyBullet").instanceId
-    )).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("happyBullet").instanceId)).toBe(true);
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT6-109"));
-    expect(s.state.players[0]!.trash.some((card) =>
-      card.cardId === "BT6-109"
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT6-109")).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 });

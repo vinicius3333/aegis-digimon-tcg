@@ -6,167 +6,153 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "place",
-            "targetIsPermanent": true,
-            "target": {
-              "filter": {
-                "kind": [
-                  "Digimon"
-                ],
-                "dp": {
-                  "op": "lte",
-                  "value": 8000
-                }
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: {
+              filter: {
+                kind: ["Digimon"],
+                dp: {
+                  op: "lte",
+                  value: 8000,
+                },
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By placing 1 8000 DP or lower Digimon as the bottom security card",
-            "destination": "security",
-            "position": "bottom",
-            "faceDown": true
+            raw: "By placing 1 8000 DP or lower Digimon as the bottom security card",
+            destination: "security",
+            position: "bottom",
+            faceDown: true,
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trash",
-          "controller": "opponent",
-          "target": {
-            "filter": {
-              "controller": "opponent"
+          kind: "SecurityManipulation",
+          op: "trash",
+          controller: "opponent",
+          target: {
+            filter: {
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "security"
-          ],
-          "toTop": true
-        }
-      ]
+          from: ["security"],
+          toTop: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "place",
-            "targetIsPermanent": true,
-            "target": {
-              "filter": {
-                "kind": [
-                  "Digimon"
-                ],
-                "dp": {
-                  "op": "lte",
-                  "value": 8000
-                }
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: {
+              filter: {
+                kind: ["Digimon"],
+                dp: {
+                  op: "lte",
+                  value: 8000,
+                },
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By placing 1 8000 DP or lower Digimon as the bottom security card",
-            "destination": "security",
-            "position": "bottom",
-            "faceDown": true
+            raw: "By placing 1 8000 DP or lower Digimon as the bottom security card",
+            destination: "security",
+            position: "bottom",
+            faceDown: true,
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trash",
-          "controller": "opponent",
-          "target": {
-            "filter": {
-              "controller": "opponent"
+          kind: "SecurityManipulation",
+          op: "trash",
+          controller: "opponent",
+          target: {
+            filter: {
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "security"
-          ],
-          "toTop": true
-        }
-      ]
+          from: ["security"],
+          toTop: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "mode": "prevent",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ver.3"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Ver.3"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "affectsAll": true,
-          "cost": {
-            "kind": "trashSecurityTop",
-            "raw": "by trashing your top security card, they don't leave"
+          affectsAll: true,
+          cost: {
+            kind: "trashSecurityTop",
+            raw: "by trashing your top security card, they don't leave",
           },
-          "raw": "[All Turns] [Once Per Turn] When any of your [Ver.3] trait Digimon would leave the battle area, by trashing your top security card, they don't leave."
-        }
+          raw: "[All Turns] [Once Per Turn] When any of your [Ver.3] trait Digimon would leave the battle area, by trashing your top security card, they don't leave.",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "DM"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["DM"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-056", compiled);

@@ -6,108 +6,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          amount: 3000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card in your hand"
+            raw: "By trashing 1 card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          amount: 3000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card in your hand"
+            raw: "By trashing 1 card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Kokomon",
-        "Lopmon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Kokomon", "Lopmon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-067", compiled);

@@ -4,118 +4,108 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Xros Heart"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Xros Heart"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Xros Heart"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Xros Heart"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Save",
-          "raw": "＜Save＞"
-        }
-      ]
+          keyword: "Save",
+          raw: "＜Save＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Rush",
-              "raw": "＜Rush＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Rush",
+              raw: "＜Rush＞",
+            },
           },
-          "while": {
-            "kind": "selfHasNameContaining",
-            "names": ["Shoutmon"],
-            "raw": "this Digimon has [Shoutmon] in its name"
-          }
-        }
+          while: {
+            kind: "selfHasNameContaining",
+            names: ["Shoutmon"],
+            raw: "this Digimon has [Shoutmon] in its name",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "Xros Heart"
-      ],
-      "cost": 0,
-      "isAlternate": false
-    }
-  ]
+      level: 2,
+      traits: ["Xros Heart"],
+      cost: 0,
+      isAlternate: false,
+    },
+  ],
 };
 
 registerIrCard("BT10-008", compiled);

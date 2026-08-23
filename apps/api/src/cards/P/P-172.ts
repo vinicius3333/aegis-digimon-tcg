@@ -6,123 +6,113 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4",
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controller": "mine",
-                  "zone": "security",
-                  "faceUp": true,
-                  "nameOrTrait": [
-                    { "tokens": ["Nature Spirits"], "match": "nameExact" }
-                  ]
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controller: "mine",
+                  zone: "security",
+                  faceUp: true,
+                  nameOrTrait: [{ tokens: ["Nature Spirits"], match: "nameExact" }],
                 },
-                "raw": "[Nature Spirits] is face-up in your security stack"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+                raw: "[Nature Spirits] is face-up in your security stack",
+              },
             },
-            "count": 1
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
           },
-          "amount": -5000,
-          "duration": "forTheTurn"
+          amount: -5000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -5000,
-          "duration": "forTheTurn"
+          amount: -5000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-172", compiled);

@@ -48,13 +48,10 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     ).toEqual({ ok: true });
 
     // After settling, the permanent should be unsuspended (P-048 WhenDigivolving effect).
-    await settle(
-      () => {
-        const perm = p0.battleArea.find((p) => p.permanentId === basePerm.permanentId);
-        return perm !== undefined && !perm.isSuspended && !s.perm("tamer").isSuspended && s.state.memory === 1;
-      },
-      400,
-    );
+    await settle(() => {
+      const perm = p0.battleArea.find((p) => p.permanentId === basePerm.permanentId);
+      return perm !== undefined && !perm.isSuspended && !s.perm("tamer").isSuspended && s.state.memory === 1;
+    }, 400);
 
     const perm = p0.battleArea.find((p) => p.permanentId === basePerm.permanentId);
     expect(perm).toBeDefined();
@@ -64,9 +61,11 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     expect(s.state.memory).toBe(1); // Paid 4, then the once-per-turn return trigger gained 1.
 
     const another = s.give(0, Zone.Trash, "BT1-009");
-    await (s.engine as unknown as {
-      primitives: { returnToDeck(ids: string[]): Promise<unknown> };
-    }).primitives.returnToDeck([another.instanceId]);
+    await (
+      s.engine as unknown as {
+        primitives: { returnToDeck(ids: string[]): Promise<unknown> };
+      }
+    ).primitives.returnToDeck([another.instanceId]);
     await settle();
     expect(s.state.memory).toBe(1); // The second return in the same turn doesn't gain memory.
   });
@@ -163,15 +162,14 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     await s.engine.recomputeContinuousEffects();
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 1 &&
-      s.perm("attacker").currentDP === baseDp + 2000
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1 && s.perm("attacker").currentDP === baseDp + 2000);
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(3);

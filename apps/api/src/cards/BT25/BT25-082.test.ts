@@ -154,7 +154,10 @@ describe("BT25-082 BlackGatomon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
-    expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([s.inst("source").instanceId, s.inst("old").instanceId]);
+    expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([
+      s.inst("source").instanceId,
+      s.inst("old").instanceId,
+    ]);
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).not.toContain(s.inst("drawn").instanceId);
     await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,

@@ -26,7 +26,12 @@ describe("ST7-05 Growlmon", () => {
   it("does not gain memory again from a second deletion in the same turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST7-09", as: "host", under: ["ST7-05"] }] },
-      1: { battleArea: [{ card: "ST7-02", as: "first" }, { card: "ST7-02", as: "second" }] },
+      1: {
+        battleArea: [
+          { card: "ST7-02", as: "first" },
+          { card: "ST7-02", as: "second" },
+        ],
+      },
     });
     s.state.memory = 0;
     await s.ready();

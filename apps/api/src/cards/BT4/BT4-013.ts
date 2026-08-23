@@ -6,56 +6,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Red"
-              ]
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Red"],
             },
-            "count": 1
+            count: 1,
           },
-          "asLevel": 3,
-          "from": "hand"
-        }
-      ]
+          asLevel: 3,
+          from: "hand",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 3000,
-          "duration": "permanent"
-        }
-      ]
-    }
+          amount: 3000,
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 0,
-      "isAlternate": true,
-      "baseIsTamer": true
-    }
-  ]
+      cost: 0,
+      isAlternate: true,
+      baseIsTamer: true,
+    },
+  ],
 };
 
 registerIrCard("BT4-013", compiled);

@@ -7,32 +7,41 @@ const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "Decoy", raw: "＜Decoy ([Bagra Army])＞" }] },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "Restrict",
-        target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Yuu Amano"], match: "name" }] }, count: "all" },
-        restriction: "beDeleted",
-        duration: "permanent",
-      }],
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Yuu Amano"], match: "name" }] },
+            count: "all",
+          },
+          restriction: "beDeleted",
+          duration: "permanent",
+        },
+      ],
     },
     {
       trigger: "OnDeletion",
-      actions: [{
-        kind: "PlayWithoutCost",
-        target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Damemon"], match: "name" }] }, count: 1 },
-        from: ["trash"],
-        payCost: false,
-        suspended: true,
-        optional: true,
-      }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Damemon"], match: "name" }] }, count: 1 },
+          from: ["trash"],
+          payCost: false,
+          suspended: true,
+          optional: true,
+        },
+      ],
     },
     {
       trigger: "OpponentsTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "onDigivolutionCardsDiscardedBatch",
-        sourceFilter: { isSelfRef: true },
-        actions: [{ kind: "GainMemory", amount: 1 }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
       isInherited: true,
     },
   ],

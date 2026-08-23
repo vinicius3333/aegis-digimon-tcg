@@ -7,7 +7,18 @@ import "./ST9-08.js";
 
 describe("ST9-08 Wormmon", () => {
   it("offers inherited end-of-turn DNA digivolution", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST9-09", as: "green", under: ["ST9-08"] }, { card: "ST9-04", as: "blue" }], hand: [{ card: "ST9-05", as: "dna" }] } }, { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST9-09", as: "green", under: ["ST9-08"] },
+            { card: "ST9-04", as: "blue" },
+          ],
+          hand: [{ card: "ST9-05", as: "dna" }],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("green"));
@@ -20,15 +31,18 @@ describe("ST9-08 Wormmon", () => {
   });
 
   it("does not use a normal level 5 evolution as the DNA result", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "ST9-07", as: "green", under: ["ST9-08"] },
-          { card: "ST9-04", as: "blue" },
-        ],
-        hand: [{ card: "ST9-12", as: "normalLevel5" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST9-07", as: "green", under: ["ST9-08"] },
+            { card: "ST9-04", as: "blue" },
+          ],
+          hand: [{ card: "ST9-12", as: "normalLevel5" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
 
     await advance(s.engine).fireForInstance(
@@ -37,8 +51,6 @@ describe("ST9-08 Wormmon", () => {
     );
 
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("normalLevel5").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalLevel5").instanceId)).toBe(true);
   });
 });

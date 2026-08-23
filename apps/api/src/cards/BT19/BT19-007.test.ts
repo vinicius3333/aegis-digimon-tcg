@@ -7,7 +7,12 @@ import "../index.js";
 describe("BT19-007 Guilmon", () => {
   it("gains memory when Takato is present at the start of the main phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-007", as: "guilmon" }, { card: "BT19-080", as: "takato" }] },
+      0: {
+        battleArea: [
+          { card: "BT19-007", as: "guilmon" },
+          { card: "BT19-080", as: "takato" },
+        ],
+      },
     });
     s.state.memory = 0;
 

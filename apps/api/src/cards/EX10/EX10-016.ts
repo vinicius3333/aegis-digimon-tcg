@@ -6,62 +6,58 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "isLinked": true,
-      "actions": [
+      trigger: "WhenAttacking",
+      isLinked: true,
+      actions: [
         {
-          "kind": "Suspend",
-          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 2 },
-          "cost": {
-            "kind": "trash",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "linked" }, "count": 1 },
-            "raw": "By trashing 1 of this Digimon's link cards"
+          kind: "Suspend",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 2 },
+          cost: {
+            kind: "trash",
+            target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+            raw: "By trashing 1 of this Digimon's link cards",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "Appmon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["Appmon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 export { compiled };

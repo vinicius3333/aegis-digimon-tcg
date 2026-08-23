@@ -50,7 +50,11 @@ describe("EX8-033", () => {
 
   it("recovers the top card of the deck when deleted from an evolution stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-033", as: "pumpkin" }] }], security: 1, deck: [{ card: "AD1-001", as: "recovery" }] },
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-033", as: "pumpkin" }] }],
+        security: 1,
+        deck: [{ card: "AD1-001", as: "recovery" }],
+      },
     });
     const player = s.state.players[0] as PlayerState;
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);

@@ -4,7 +4,10 @@ import { compiled } from "./BT23-025.js";
 describe("BT23-025 MarineAngemon", () => {
   it("returns the lowest-level opposing Digimon on play and when digivolving", () => {
     expect(compiled.effects.filter(({ trigger }) => ["OnPlay", "WhenDigivolving"].includes(trigger))).toHaveLength(2);
-    expect(compiled.effects.find(({ trigger }) => trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "Return", target: { filter: { superlative: "lowestLevel" } } });
+    expect(compiled.effects.find(({ trigger }) => trigger === "OnPlay")?.actions[0]).toMatchObject({
+      kind: "Return",
+      target: { filter: { superlative: "lowestLevel" } },
+    });
   });
 
   it("defers the Security play until the security battle ends and schedules turn-end deletion", async () => {

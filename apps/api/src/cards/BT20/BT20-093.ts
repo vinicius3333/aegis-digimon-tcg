@@ -18,159 +18,136 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Audit: DnaDigivolve is the <Delay> option — separate effect with Delay keyword.
 // Audit: PlaceInBattleAreaSelf is mandatory after optional play (optional:false).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dracomon",
-                    "Examon"
-                  ],
-                  "match": "text"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 3,
-          "optional": true
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanBattle",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Dracomon",
-                  "Examon"
-                ],
-                "match": "text"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+                  tokens: ["Dracomon", "Examon"],
+                  match: "text",
                 },
-                "count": 1,
-                "isSelf": true
-              },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
-              },
-              "duration": "permanent"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ],
-      "actions": [
-        {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 2
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Examon"
-                ],
-                "match": "name"
-              }
-            ],
-            "zone": "hand"
-          },
-          "payCost": true,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Dracomon"
-                  ],
-                  "match": "name"
-                }
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 3,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Dracomon", "Examon"],
+                match: "text",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+              },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+      actions: [
+        {
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
+              {
+                tokens: ["Examon"],
+                match: "name",
+              },
+            ],
+            zone: "hand",
+          },
+          payCost: true,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Dracomon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-093", compiled);

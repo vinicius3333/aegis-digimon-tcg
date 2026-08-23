@@ -6,9 +6,12 @@ import "../index.js";
 
 describe("BT19-006 Pagumon", () => {
   it("returns a level 3 purple Digimon after effect deletion", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-006", as: "pagumon" }], trash: ["BT10-071"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-006", as: "pagumon" }], trash: ["BT10-071"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("pagumon"), {
       removalCause: "byEffect",
@@ -18,9 +21,12 @@ describe("BT19-006 Pagumon", () => {
   });
 
   it("does not return the card after battle deletion", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-006", as: "pagumon" }], trash: ["BT10-071"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT19-006", as: "pagumon" }], trash: ["BT10-071"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("pagumon"), {
       removalCause: "byBattle",

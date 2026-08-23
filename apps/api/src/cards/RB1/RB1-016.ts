@@ -19,194 +19,194 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // TrashDigivolution's choose:true lets the controller pick any card from the target's
 // stack (KB Q4094), rather than a deterministic fromTop/fromBottom slice.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
           // First: by trashing 1 blue card, trash 1 card under opponent's Digimon/Tamer.
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "choose": true,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "colors": ["Blue"]
+          amount: 1,
+          choose: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                colors: ["Blue"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 blue card in your hand"
+            raw: "by trashing 1 blue card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": false
+          optional: true,
+          abortOnDecline: false,
         },
         {
           // Second: by trashing another blue card, trash 1 more card under opponent's Digimon/Tamer.
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "choose": true,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "colors": ["Blue"]
+          amount: 1,
+          choose: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                colors: ["Blue"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing a second blue card in your hand"
+            raw: "by trashing a second blue card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": false
+          optional: true,
+          abortOnDecline: false,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Return",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "optional": true
-        }
-      ]
+          to: "deckBottom",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "choose": true,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "colors": ["Blue"]
+          amount: 1,
+          choose: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                colors: ["Blue"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 blue card in your hand"
+            raw: "by trashing 1 blue card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": false
+          optional: true,
+          abortOnDecline: false,
         },
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "choose": true,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "colors": ["Blue"]
+          amount: 1,
+          choose: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                colors: ["Blue"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing a second blue card in your hand"
+            raw: "by trashing a second blue card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": false
+          optional: true,
+          abortOnDecline: false,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Return",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "optional": true
-        }
-      ]
+          to: "deckBottom",
+          optional: true,
+        },
+      ],
     },
     {
       // [All Turns][Once Per Turn] When one of your blue Digimon would be deleted,
       // by returning 3 cards with [Jellymon] in their texts from your trash to the
       // bottom of the deck in any order, prevent its deletion.
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "colors": ["Blue"]
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            colors: ["Blue"],
           },
-          "actions": [],
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
+          actions: [],
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Jellymon"],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Jellymon"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": 3,
-              "from": ["trash"]
+              count: 3,
+              from: ["trash"],
             },
-            "to": "deckBottom",
-            "raw": "by returning 3 cards with [Jellymon] in their texts from your trash to the bottom of the deck in any order, prevent its deletion"
-          }
-        }
+            to: "deckBottom",
+            raw: "by returning 3 cards with [Jellymon] in their texts from your trash to the bottom of the deck in any order, prevent its deletion",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("RB1-016", compiled);

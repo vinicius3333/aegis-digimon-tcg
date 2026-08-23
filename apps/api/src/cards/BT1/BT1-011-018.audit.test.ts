@@ -16,7 +16,10 @@ describe("BT1-011 through BT1-018 IR coverage", () => {
     expect(agumonExpert.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Return", to: "hand" }] });
     expect(biyomon.effects[0]).toMatchObject({ trigger: "WhenBlocked", isInherited: true });
     expect(greymon.effects[0]).toMatchObject({ trigger: "YourTurn", isInherited: true });
-    expect(birdramon.effects[0]?.actions[0]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } });
+    expect(birdramon.effects[0]?.actions[0]).toMatchObject({
+      kind: "GainKeyword",
+      keyword: { keyword: "SecurityAttack", amount: 1 },
+    });
     expect(flarerizamon.effects[0]?.actions[0]?.condition).toMatchObject({ kind: "memoryAtLeast", value: 3 });
   });
 });

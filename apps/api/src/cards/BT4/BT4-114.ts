@@ -6,75 +6,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "or": [
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              or: [
                 {
-                  "excludeNames": ["KendoGarurumon"],
-                  "nameOrTrait": [{ "tokens": ["Garurumon"], "match": "name" }]
+                  excludeNames: ["KendoGarurumon"],
+                  nameOrTrait: [{ tokens: ["Garurumon"], match: "name" }],
                 },
                 {
-                  "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }]
-                }
-              ]
+                  nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }],
+                },
+              ],
             },
-            "count": 2,
-            "upTo": true
-          }
-        }
+            count: 2,
+            upTo: true,
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hybrid"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-114", compiled);

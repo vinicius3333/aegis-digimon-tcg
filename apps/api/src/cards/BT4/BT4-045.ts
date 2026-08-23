@@ -6,38 +6,38 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifySecurityDP",
-            "seat": "mine",
-            "amount": 4000
+          effect: {
+            kind: "modifySecurityDP",
+            seat: "mine",
+            amount: 4000,
           },
-          "while": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "security",
-            "op": "lte",
-            "value": 3,
-            "raw": "you have 3 or fewer security cards"
-          }
-        }
-      ]
-    }
+          while: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 3,
+            raw: "you have 3 or fewer security cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-045", compiled);

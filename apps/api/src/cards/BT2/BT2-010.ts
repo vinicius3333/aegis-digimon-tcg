@@ -6,23 +6,23 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "isYourTurn",
-            "raw": "it's your turn"
-          }
-        }
-      ]
-    }
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "isYourTurn",
+            raw: "it's your turn",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-010", compiled);

@@ -6,75 +6,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Ginryumon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Ginryumon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you have a Tamer"
-          }
-        }
-      ]
+            raw: "you have a Tamer",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["X Antibody"], "match": "trait"}]},
-            "raw": "this Digimon has the [X Antibody] trait"
-          }
-        }
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+            raw: "this Digimon has the [X Antibody] trait",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-015", compiled);

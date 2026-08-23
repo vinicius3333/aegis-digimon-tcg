@@ -7,10 +7,13 @@ import "./LM-042.js";
 
 describe("LM-042 Rasielmon", () => {
   it("suspends one opponent and restricts that same permanent from unsuspending or digivolving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "LM-042", as: "rasielmon" }] },
-      1: { battleArea: [{ card: "BT1-055", as: "opponent" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "LM-042", as: "rasielmon" }] },
+        1: { battleArea: [{ card: "BT1-055", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rasielmon"));
     await settle(() => s.perm("opponent").isSuspended);

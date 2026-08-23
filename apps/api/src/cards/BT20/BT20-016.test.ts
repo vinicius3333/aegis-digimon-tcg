@@ -13,8 +13,25 @@ describe("BT20-016 Paildramon", () => {
       });
     }
     expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
-      actions: [{ kind: "Replacement", event: "wouldBeDeleted", sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }] }, actions: [{ kind: "DnaDigivolve", materials: { count: 2 }, into: { nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }] }, payCost: true, optional: true }] }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }] },
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              materials: { count: 2 },
+              into: { nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }] },
+              payCost: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
     });
-    expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([{ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }]);
+    expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([
+      { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+    ]);
   });
 });

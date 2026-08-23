@@ -6,93 +6,79 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Leomon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Leomon"],
+                match: "name",
+              },
+            ],
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "optional": true
-        }
-      ]
+          from: ["hand", "trash"],
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "count": 1,
-              "isSelf": true
             },
-            "raw": "By deleting this Digimon"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          from: ["trash"],
+          payCost: false,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "By deleting this Digimon",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Liollmon",
-        "Elecmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Liollmon", "Elecmon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-071", compiled);

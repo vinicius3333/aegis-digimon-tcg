@@ -7,11 +7,15 @@ import "./BT6-082.js";
 
 describe("BT6-082 Sistermon Blanc", () => {
   it("grants Blocker to Sistermon while Huckmon is in play", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT6-082", as: "blanc" },
-      { card: "BT6-009", as: "huckmon" },
-      { card: "BT6-084", as: "sistermon" },
-    ] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT6-082", as: "blanc" },
+          { card: "BT6-009", as: "huckmon" },
+          { card: "BT6-084", as: "sistermon" },
+        ],
+      },
+    });
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("sistermon"), "Blocker")).toBe(true);
@@ -30,11 +34,13 @@ describe("BT6-082 Sistermon Blanc", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("blanc"), "Blocker")).toBe(false);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
 
     expect(s.events.filter((event) => event.kind === "blockWindowOpened")).toEqual([]);
@@ -56,11 +62,13 @@ describe("BT6-082 Sistermon Blanc", () => {
     });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
 
     const opened = s.events.find((event) => event.kind === "blockWindowOpened");
@@ -74,10 +82,14 @@ describe("BT6-082 Sistermon Blanc", () => {
   });
 
   it("removes Blocker as soon as the last enabling Digimon leaves play", async () => {
-    const s = setupEngine({ 0: { battleArea: [
-      { card: "BT6-082", as: "blanc" },
-      { card: "BT6-009", as: "huckmon" },
-    ] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT6-082", as: "blanc" },
+          { card: "BT6-009", as: "huckmon" },
+        ],
+      },
+    });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("blanc"), "Blocker")).toBe(true);
 
@@ -88,12 +100,14 @@ describe("BT6-082 Sistermon Blanc", () => {
   });
 
   it("draws one card on play", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT6-082", as: "source" }], deck: [
-      { card: "BT6-083", as: "drawn" },
-    ] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "BT6-082", as: "source" }], deck: [{ card: "BT6-083", as: "drawn" }] },
+    });
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => player.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(player.deck).toHaveLength(0);
   });

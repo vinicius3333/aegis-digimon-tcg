@@ -6,119 +6,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ravemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Ravemon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
-            "raw": "by placing this Digimon as the bottom digivolution card of 1 of your Digimon with [Ravemon] in its name",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+            raw: "by placing this Digimon as the bottom digivolution card of 1 of your Digimon with [Ravemon] in its name",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ravemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Ravemon"],
+                  match: "name",
+                },
+              ],
             },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target"
-          }
-        }
-      ]
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Trash",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "zone": "hand"
+              kind: "Trash",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  zone: "hand",
                 },
-                "count": 1
+                count: 1,
               },
-              "chooser": "opponent"
-            }
-          ]
-        }
+              chooser: "opponent",
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Pinamon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Pinamon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("P-142", compiled);

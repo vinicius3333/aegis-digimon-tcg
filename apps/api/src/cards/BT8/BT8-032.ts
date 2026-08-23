@@ -6,81 +6,73 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 10000
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 10000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
+          to: "hand",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasColor",
-            "filter": { "colors": ["Blue"] },
-            "raw": "a blue card is in this Digimon's digivolution cards"
-          }
+          condition: {
+            kind: "selfDigivolutionStackHasColor",
+            filter: { colors: ["Blue"] },
+            raw: "a blue card is in this Digimon's digivolution cards",
+          },
         },
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasColor",
-            "filter": { "colors": ["Green"] },
-            "raw": "a green card is in this Digimon's digivolution cards"
-          }
-        }
+          condition: {
+            kind: "selfDigivolutionStackHasColor",
+            filter: { colors: ["Green"] },
+            raw: "a green card is in this Digimon's digivolution cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Dragon Mode"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Dragon Mode"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT8-032", compiled);

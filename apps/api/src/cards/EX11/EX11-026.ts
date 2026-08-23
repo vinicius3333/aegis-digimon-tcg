@@ -6,139 +6,121 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "cost": 0,
-      "isAlternate": true
-    }
+      level: 2,
+      cost: 0,
+      isAlternate: true,
+    },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Avian",
-                    "Bird"
-                  ],
-                  "match": "trait"
+                  tokens: ["Avian", "Bird"],
+                  match: "trait",
                 },
                 {
-                  "tokens": [
-                    "Vortex Warriors"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Vortex Warriors"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect suspended your Digimon"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect suspended your Digimon",
           },
-          "optional": true
         },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Avian",
-                    "Bird"
-                  ],
-                  "match": "trait"
-                },
-                {
-                  "tokens": [
-                    "Vortex Warriors"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect suspended your Digimon"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenBattleWon",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Avian", "Bird"],
+                  match: "trait",
+                },
+                {
+                  tokens: ["Vortex Warriors"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "this effect suspended your Digimon",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenBattleWon",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-026", compiled);

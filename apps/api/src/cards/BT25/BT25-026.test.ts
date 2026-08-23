@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-  CardColor,
-  EffectTiming,
-  type CardDefinition,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { CardColor, EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type {
   DecisionApi,

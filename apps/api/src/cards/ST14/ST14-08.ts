@@ -3,78 +3,78 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 4
-        }
-      ]
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 4,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDiscardLibrary",
-          "actions": [
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "scaling": {
-                "per": 10,
-                "filter": {
-                  "zone": "trash",
-                  "controller": "mine"
+              kind: "GainMemory",
+              amount: 1,
+              scaling: {
+                per: 10,
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
                 },
-                "unit": "trash"
-              }
-            }
+                unit: "trash",
+              },
+            },
           ],
-          "sourceFilter": {
-            "controller": "mine"
-          }
-        }
+          sourceFilter: {
+            controller: "mine",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDiscardLibrary",
-          "actions": [
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": 1,
-                "raw": "＜Security Attack +1＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: 1,
+                raw: "＜Security Attack +1＞",
               },
-              "duration": "forTheTurn"
-            }
+              duration: "forTheTurn",
+            },
           ],
-          "sourceFilter": {
-            "controller": "mine"
-          }
-        }
+          sourceFilter: {
+            controller: "mine",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST14-08", compiled);

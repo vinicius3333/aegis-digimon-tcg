@@ -9,187 +9,161 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "deck"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "deck",
             },
-            "count": 1
+            count: 1,
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "faceDown": true
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              faceDown: true,
             },
-            "unit": "selfFaceDownDigivolutionCards"
-          }
+            unit: "selfFaceDownDigivolutionCards",
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "deck"
-            },
-            "count": 1
-          },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["DM"],
+                  match: "trait",
+                },
               ],
-              "faceDown": true
             },
-            "unit": "selfFaceDownDigivolutionCards"
-          }
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
         },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "deck",
+            },
+            count: 1,
+          },
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              faceDown: true,
+            },
+            unit: "selfFaceDownDigivolutionCards",
+          },
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["DM"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["DM"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["DM"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "DM"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["DM"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-062", compiled);

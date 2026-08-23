@@ -8,42 +8,38 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // for Tamer-onto digivolve; asLevel:3 treats the yellow Tamer as level 3.
 // The digivolutionRequirement captures the alternate-base legality check.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Yellow"
-              ]
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Yellow"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "name": "Kazemon"
+          into: {
+            name: "Kazemon",
           },
-          "asLevel": 3,
-          "from": "hand"
-        }
-      ]
-    }
+          asLevel: 3,
+          from: "hand",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 0,
-      "isAlternate": true,
-      "baseIsTamer": true,
-      "baseColors": ["Yellow"]
-    }
-  ]
+      cost: 0,
+      isAlternate: true,
+      baseIsTamer: true,
+      baseColors: ["Yellow"],
+    },
+  ],
 };
 registerIrCard("BT7-035", compiled);

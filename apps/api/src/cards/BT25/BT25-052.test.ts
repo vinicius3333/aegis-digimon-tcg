@@ -7,7 +7,16 @@ import "./BT25-052.js";
 describe("BT25-052 Logimon", () => {
   it("links an eligible Appmon from hand and plays Kazuki & Itsuki when linked", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT25-052", as: "logimon" }], hand: [{ card: "BT25-061", as: "link" }, { card: "BT25-089", as: "kazuki" }] }, 1: { battleArea: [{ card: "BT25-046", as: "target" }] } },
+      {
+        0: {
+          battleArea: [{ card: "BT25-052", as: "logimon" }],
+          hand: [
+            { card: "BT25-061", as: "link" },
+            { card: "BT25-089", as: "kazuki" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT25-046", as: "target" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

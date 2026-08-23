@@ -6,28 +6,28 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "hand",
-            "op": "lte",
-            "value": 7,
-            "raw": "you have 7 or fewer cards in your hand"
-          }
-        }
-      ]
-    }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "hand",
+            op: "lte",
+            value: 7,
+            raw: "you have 7 or fewer cards in your hand",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-002", compiled);

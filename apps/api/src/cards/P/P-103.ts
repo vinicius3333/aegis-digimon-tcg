@@ -29,73 +29,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     grant — the card's own ＜Delay＞ ability lives on the second [Main] clause above, not on
 //     a separately-granted keyword.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 2,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 2,
+          add: [
             {
-              "filter": { "colors": ["Red"] },
-              "count": 1,
-              "to": "hand"
-            }
+              filter: { colors: ["Red"] },
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [
-        { "keyword": "Delay", "raw": "＜Delay＞" }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "optional": true,
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Red"
-            ]
-          },
-          "costDelta": -2,
-          "payCost": true,
-          "from": [
-            "hand"
-          ]
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "isSecurity": true,
-      "actions": [
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    }
+          kind: "Digivolve",
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            kind: ["Digimon"],
+            colors: ["Red"],
+          },
+          costDelta: -2,
+          payCost: true,
+          from: ["hand"],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-103", compiled);

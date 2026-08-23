@@ -6,41 +6,39 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Training",
-          "raw": "＜Training＞"
-        }
-      ]
+          keyword: "Training",
+          raw: "＜Training＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 2,
-      "traits": [
-        "DM"
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["DM"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-008", compiled);

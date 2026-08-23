@@ -6,74 +6,71 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2,
-          "fromTop": false,
-          "condition": {
-            "kind": "digiXrosCount",
-            "minimum": 1,
-            "raw": "DigiXrosing"
-          }
-        }
-      ]
+          amount: 2,
+          fromTop: false,
+          condition: {
+            kind: "digiXrosCount",
+            minimum: 1,
+            raw: "DigiXrosing",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsAtMost": 3
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsAtMost: 3,
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "attack",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "selfHasName", "names": ["GreyKnightsmon"],
-            "raw": "this Digimon is [GreyKnightsmon]"
-          }
-        }
+          restriction: "attack",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfHasName",
+            names: ["GreyKnightsmon"],
+            raw: "this Digimon is [GreyKnightsmon]",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-020", compiled);

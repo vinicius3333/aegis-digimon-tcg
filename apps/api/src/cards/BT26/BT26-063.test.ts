@@ -299,7 +299,9 @@ describe("BT26-063 Tellermon", () => {
     await watcher.run(ctx);
 
     expect(returnToHand).toHaveBeenCalledWith(["attribute-match"]);
-    expect(returnToDeck).toHaveBeenCalledWith(toTop ? ["nonmatch", "form-match"] : ["form-match", "nonmatch"], { toTop });
+    expect(returnToDeck).toHaveBeenCalledWith(toTop ? ["nonmatch", "form-match"] : ["form-match", "nonmatch"], {
+      toTop,
+    });
   });
 
   it("returns all revealed cards when none has an exact eligible trait", async () => {

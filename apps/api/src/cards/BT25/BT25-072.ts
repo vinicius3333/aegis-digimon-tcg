@@ -133,10 +133,21 @@ const compiled: CompiledCard = {
     {
       trigger: "Static",
       isLinked: true,
-      actions: [{
-        kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true },
-        actions: [{ kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Restrict",
+              target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 },
+              restriction: "unsuspend",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     },
   ],
   coverage: "full",

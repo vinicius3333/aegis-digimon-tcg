@@ -24,7 +24,13 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static",
       actions: [
-        { kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] } } },
+        {
+          kind: "WaiveColorRequirement",
+          condition: {
+            kind: "youHave",
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] },
+          },
+        },
         { kind: "GainKeyword", target: self, keyword: { keyword: "Execute" }, duration: "permanent" },
         { kind: "GainKeyword", target: self, keyword: { keyword: "Ascension" }, duration: "permanent" },
       ],
@@ -33,7 +39,12 @@ export const compiled: CompiledCard = {
     { trigger: "OnDeletion", actions: [playGlowingDawn] },
     {
       trigger: "Main",
-      actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" }, count: 1 } }],
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" }, count: 1 },
+        },
+      ],
     },
   ],
   coverage: "full",

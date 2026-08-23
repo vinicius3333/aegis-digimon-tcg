@@ -247,7 +247,10 @@ export class ArbitrationService {
         },
       });
       if (!cancelled.ok)
-        return { ok: false, reason: cancelled.reason === "tournament_not_found" ? "tournament_not_found" : "tournament_finished" };
+        return {
+          ok: false,
+          reason: cancelled.reason === "tournament_not_found" ? "tournament_not_found" : "tournament_finished",
+        };
       return { ok: true, value: { status: "cancelled" as const }, alreadyApplied: cancelled.value.alreadyApplied };
     });
   }
@@ -396,7 +399,13 @@ export class ArbitrationService {
     // without bound while this stays one index probe.
     const replayed = await findEventByCommandId(this.accounts.pool, input.tournamentId, commandId);
     if (replayed) {
-      logTournamentEvent({ ...base, event: command, outcome: "replayed", reasonCode: replayed.reasonCode, sequence: replayed.sequence });
+      logTournamentEvent({
+        ...base,
+        event: command,
+        outcome: "replayed",
+        reasonCode: replayed.reasonCode,
+        sequence: replayed.sequence,
+      });
       return { ok: true, value: undefined, event: replayed, replayed: true, alreadyApplied: false };
     }
 
@@ -506,7 +515,11 @@ export class ArbitrationService {
             : undefined;
       if (seat === undefined) continue;
       // A seat with nobody opposite is a bye in all but name; there is nobody to award it to.
-      if ((seat === 0 ? row.player1_account_id ?? row.player1_participant_id : row.player0_account_id ?? row.player0_participant_id) === null)
+      if (
+        (seat === 0
+          ? (row.player1_account_id ?? row.player1_participant_id)
+          : (row.player0_account_id ?? row.player0_participant_id)) === null
+      )
         continue;
       const series = await this.series.seriesForMatch(row.id);
       if (series?.status === "resolved") continue;

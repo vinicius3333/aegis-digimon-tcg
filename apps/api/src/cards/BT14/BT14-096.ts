@@ -6,71 +6,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameTarget": true
-          }
+            count: 1,
+            sameTarget: true,
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Mimi Tachikawa"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Mimi Tachikawa"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a Tamer with [Mimi Tachikawa] in its name"
-          }
-        }
-      ]
+            raw: "you have a Tamer with [Mimi Tachikawa] in its name",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
+          kind: "ActivateMain",
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-096", compiled);

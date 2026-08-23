@@ -4,7 +4,24 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "AllTurns", isFromTrash: true, actions: [{ kind: "Replacement", event: "wouldBeDeleted", sourceFilter: { zone: "trash", controller: "mine" }, target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] } }, mode: "prevent", leaveCause: "any", digivolveFromTrash: true, optional: true, abortOnDecline: true, raw: "By digivolving it into this card without paying the cost" }] },
+    {
+      trigger: "AllTurns",
+      isFromTrash: true,
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          sourceFilter: { zone: "trash", controller: "mine" },
+          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }] } },
+          mode: "prevent",
+          leaveCause: "any",
+          digivolveFromTrash: true,
+          optional: true,
+          abortOnDecline: true,
+          raw: "By digivolving it into this card without paying the cost",
+        },
+      ],
+    },
     {
       trigger: "WhenDigivolving",
       actions: [
@@ -16,14 +33,14 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "not",
             condition: {
-            kind: "anyOf",
-            conditions: [
-              {
-                kind: "selfHasInDigivolutionCards",
-                nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }],
-              },
-              { kind: "digivolvedFromZone", zone: "trash" },
-            ],
+              kind: "anyOf",
+              conditions: [
+                {
+                  kind: "selfHasInDigivolutionCards",
+                  nameOrTrait: [{ tokens: ["DoruGreymon"], match: "name" }],
+                },
+                { kind: "digivolvedFromZone", zone: "trash" },
+              ],
             },
           },
         },
@@ -67,9 +84,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    { names: ["DoruGreymon"], cost: 1, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ names: ["DoruGreymon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("BT17-067", compiled);

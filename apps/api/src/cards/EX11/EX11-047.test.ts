@@ -10,8 +10,17 @@ describe("EX11-047 Impmon", () => {
       { names: ["Yaamon"], cost: 0, isAlternate: true },
     ]);
     const start = compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase")!;
-    expect(start.actions[0]).toMatchObject({ kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } });
+    expect(start.actions[0]).toMatchObject({
+      kind: "Trash",
+      target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+    });
     expect(start.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1 });
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "YourTurn", isInherited: true, actions: [expect.objectContaining({ kind: "ModifyDP", amount: 2000 })] }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: [expect.objectContaining({ kind: "ModifyDP", amount: 2000 })],
+      }),
+    );
   });
 });

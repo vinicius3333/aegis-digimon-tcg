@@ -6,9 +6,18 @@ import "./BT6-001.js";
 
 describe("BT6-001 DemiMeramon", () => {
   it("gives its host +1000 DP for the turn when attacking a player", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-014", under: ["BT6-001"], as: "host" }] }, 1: { security: ["BT1-010"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT6-014", under: ["BT6-001"], as: "host" }] },
+      1: { security: ["BT1-010"] },
+    });
     const baseDP = s.perm("host").baseDP;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").currentDP === baseDP + 1000);
     expect(s.perm("host").currentDP).toBe(baseDP + 1000);
   });
@@ -20,11 +29,13 @@ describe("BT6-001 DemiMeramon", () => {
     });
     const baseDP = s.perm("host").baseDP;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("host").currentDP).toBe(baseDP);
@@ -42,11 +53,13 @@ describe("BT6-001 DemiMeramon", () => {
     });
     const baseDP = s.perm("host").baseDP;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("otherAttacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("otherAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.perm("host").currentDP).toBe(baseDP);
@@ -64,16 +77,20 @@ describe("BT6-001 DemiMeramon", () => {
     });
     const baseDP = s.perm("host").baseDP;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(1, {
-      type: "declareBlock",
-      blockerPermanentId: s.perm("blocker").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("host").currentDP).toBe(baseDP + 1_000);

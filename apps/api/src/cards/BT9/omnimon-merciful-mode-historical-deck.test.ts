@@ -11,11 +11,13 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT5-111",
-            as: "omnimonX",
-            under: [{ card: "BT1-084", as: "classicOmnimon" }],
-          }],
+          battleArea: [
+            {
+              card: "BT5-111",
+              as: "omnimonX",
+              under: [{ card: "BT1-084", as: "classicOmnimon" }],
+            },
+          ],
           hand: [{ card: "BT9-083", as: "mercifulMode" }],
         },
         1: {
@@ -51,16 +53,19 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
     s.state.memory = 3;
     const omnimonXInstanceId = s.perm("omnimonX").topCard.instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("omnimonX").permanentId,
-      instanceId: s.inst("mercifulMode").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.state.players[1]!.deck.length === 8 &&
-      s.state.players[1]!.eggDeck.length === 2
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimonX").permanentId,
+        instanceId: s.inst("mercifulMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[1]!.deck.length === 8 &&
+        s.state.players[1]!.eggDeck.length === 2,
     );
 
     expect(s.state.players[1]!.deck).toHaveLength(8);
@@ -68,12 +73,8 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
 
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("omnimonX"));
 
-    expect(s.state.players[0]!.trash.some((card) =>
-      card.instanceId === omnimonXInstanceId
-    )).toBe(true);
-    expect(s.state.players[1]!.trash.some((card) =>
-      card.instanceId === s.inst("securityTop").instanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === omnimonXInstanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("securityTop").instanceId)).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(0);
     assertNoLoudGap(s);
   });

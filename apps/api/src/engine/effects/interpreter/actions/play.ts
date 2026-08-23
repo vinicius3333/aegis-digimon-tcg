@@ -88,8 +88,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // host, it does not mean "play the source card again". The latter is reserved for the
       // targetless/self target forms used by Security and revive clauses.
       const selfPlayTarget =
-        action.target?.isSelf ||
-        (action.target?.filter?.isSelfRef === true && action.target.filter.zone === undefined);
+        action.target?.isSelf || (action.target?.filter?.isSelfRef === true && action.target.filter.zone === undefined);
       if (selfPlayTarget) {
         // "Play this card without paying its cost" — from security (the common
         // [Security] form) or from hand.
@@ -108,7 +107,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         const owner = ctx.game.player?.(self.ownerSeat);
         const fromSecurity =
           action.from?.includes("security") === true ||
-          (ctx.activeTiming === "Security" && owner?.trash !== undefined && !owner.trash.some((card) => card.instanceId === self.instanceId)) ||
+          (ctx.activeTiming === "Security" &&
+            owner?.trash !== undefined &&
+            !owner.trash.some((card) => card.instanceId === self.instanceId)) ||
           owner?.security?.some((card) => card.instanceId === self.instanceId) === true;
         if (fromSecurity) {
           const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
@@ -473,12 +474,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                   ? Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).flatMap((permanent) =>
                       permanent.inBreeding || permanent.topCard === undefined
                         ? []
-                        : [{
-                            instanceId: permanent.topCard.instanceId,
-                            cardId: permanent.topCard.cardId,
-                            ownerSeat: permanent.topCard.ownerSeat,
-                            hostPermanentId: permanent.permanentId,
-                          }],
+                        : [
+                            {
+                              instanceId: permanent.topCard.instanceId,
+                              cardId: permanent.topCard.cardId,
+                              ownerSeat: permanent.topCard.ownerSeat,
+                              hostPermanentId: permanent.permanentId,
+                            },
+                          ],
                     )
                   : looseCardsInZone(ctx, ctx.source.ownerSeat, zone),
               )
@@ -494,7 +497,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
                 : definition;
             });
-            if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials)) digiXrosMaterialInstanceIds = selected;
+            if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials))
+              digiXrosMaterialInstanceIds = selected;
           }
         }
         const played = await ctx.fx.playInstances(pfzChosen, {
@@ -535,9 +539,13 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // registry while preserving the card's authored stats for future token metadata.
           const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
           const registryName =
-            tokenName === "Atho, René & Por" ? "AthoRenePor Token" :
-            tokenName === "Amon of Crimson Flame" ? "Amon Token" :
-            tokenName === "Umon of Blue Thunder" ? "Umon Token" : tokenName;
+            tokenName === "Atho, René & Por"
+              ? "AthoRenePor Token"
+              : tokenName === "Amon of Crimson Flame"
+                ? "Amon Token"
+                : tokenName === "Umon of Blue Thunder"
+                  ? "Umon Token"
+                  : tokenName;
           await ctx.fx.playToken(placementSeat, registryName, {
             payCost: action.payCost ?? false,
             suspended: action.suspended ?? false,

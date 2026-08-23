@@ -128,7 +128,18 @@ function AppShell() {
     if (setActive) setActiveDeckId(deck.id);
   };
 
-  const shared = { player, setPlayer, account, setAccount, decks, activeDeckId, setActiveDeckId, saveDeck, dark, setDark };
+  const shared = {
+    player,
+    setPlayer,
+    account,
+    setAccount,
+    decks,
+    activeDeckId,
+    setActiveDeckId,
+    saveDeck,
+    dark,
+    setDark,
+  };
 
   return <AegisClient {...shared} />;
 }
@@ -160,16 +171,22 @@ export function AegisClient({
   setDark,
   initialScreen,
 }: ClientProps) {
-  const effectivePlayer = useMemo<PlayerIdentity>(() => account ? {
-    ...player,
-    name: account.displayName,
-    avatarId: account.avatarId,
-    avatarUrl: account.avatarUrl,
-  } : {
-    ...player,
-    avatarId: player.guestAvatarId ?? null,
-    avatarUrl: null,
-  }, [account, player]);
+  const effectivePlayer = useMemo<PlayerIdentity>(
+    () =>
+      account
+        ? {
+            ...player,
+            name: account.displayName,
+            avatarId: account.avatarId,
+            avatarUrl: account.avatarUrl,
+          }
+        : {
+            ...player,
+            avatarId: player.guestAvatarId ?? null,
+            avatarUrl: null,
+          },
+    [account, player],
+  );
   const [route, setRoute] = useState<AppRoute>(() => {
     if (initialScreen) return { screen: initialScreen };
     const directRoute = routeFromPathname(window.location.pathname);
@@ -235,7 +252,14 @@ export function AegisClient({
 
   return (
     <Stage>
-      {showNav ? <TopNav screen={screen} onNav={navigateScreen} player={effectivePlayer} actions={<BugReportButton signedIn={!!account} />} /> : null}
+      {showNav ? (
+        <TopNav
+          screen={screen}
+          onNav={navigateScreen}
+          player={effectivePlayer}
+          actions={<BugReportButton signedIn={!!account} />}
+        />
+      ) : null}
 
       <div id="aegis-main" className={`aegis-screen-region${showNav ? " aegis-screen-region--nav" : ""}`} tabIndex={-1}>
         <Suspense fallback={<ScreenFallback />}>

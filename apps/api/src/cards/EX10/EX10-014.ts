@@ -6,72 +6,68 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
+          payCost: false,
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 2
+            count: 2,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 2
+            count: 2,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    }
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 export { compiled };

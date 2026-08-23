@@ -11,8 +11,18 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static",
       actions: [
-        { kind: "GainKeyword", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, keyword: { keyword: "Blocker" }, duration: "permanent" },
-        { kind: "GainKeyword", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, keyword: { keyword: "Fortitude" }, duration: "permanent" },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Blocker" },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Fortitude" },
+          duration: "permanent",
+        },
       ],
       keywords: [
         { keyword: "Reboot", raw: "＜Reboot＞" },
@@ -26,7 +36,13 @@ export const compiled: CompiledCard = {
       sharedUseKey: "ir-shared-0",
       actions: [
         { kind: "Suspend", target: { filter: opponentDigimonOrTamer, count: 1 }, optional: true },
-        { kind: "Restrict", target: { filter: opponentDigimonOrTamer, count: 1 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd", condition: { kind: "ifThisEffectActed" } },
+        {
+          kind: "Restrict",
+          target: { filter: opponentDigimonOrTamer, count: 1 },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "ifThisEffectActed" },
+        },
       ],
     })),
     {
@@ -38,8 +54,19 @@ export const compiled: CompiledCard = {
           event: "whenPlayed",
           sourceFilter: triggeredDigimon,
           actions: [
-            { kind: "DeDigivolve", target: { filter: opponentDigimon, count: 1 }, amount: 1, condition: { kind: "triggerPlayedOrDigivolvedByEffect" } },
-            { kind: "Battle", attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true }, target: { filter: opponentDigimon, count: 1 }, optional: true, condition: { kind: "triggerPlayedOrDigivolvedByEffect" } },
+            {
+              kind: "DeDigivolve",
+              target: { filter: opponentDigimon, count: 1 },
+              amount: 1,
+              condition: { kind: "triggerPlayedOrDigivolvedByEffect" },
+            },
+            {
+              kind: "Battle",
+              attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              target: { filter: opponentDigimon, count: 1 },
+              optional: true,
+              condition: { kind: "triggerPlayedOrDigivolvedByEffect" },
+            },
           ],
         },
         {
@@ -47,8 +74,19 @@ export const compiled: CompiledCard = {
           event: "whenAnyDigivolves",
           sourceFilter: triggeredDigimon,
           actions: [
-            { kind: "DeDigivolve", target: { filter: opponentDigimon, count: 1 }, amount: 1, condition: { kind: "triggerPlayedOrDigivolvedByEffect" } },
-            { kind: "Battle", attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true }, target: { filter: opponentDigimon, count: 1 }, optional: true, condition: { kind: "triggerPlayedOrDigivolvedByEffect" } },
+            {
+              kind: "DeDigivolve",
+              target: { filter: opponentDigimon, count: 1 },
+              amount: 1,
+              condition: { kind: "triggerPlayedOrDigivolvedByEffect" },
+            },
+            {
+              kind: "Battle",
+              attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              target: { filter: opponentDigimon, count: 1 },
+              optional: true,
+              condition: { kind: "triggerPlayedOrDigivolvedByEffect" },
+            },
           ],
         },
       ],

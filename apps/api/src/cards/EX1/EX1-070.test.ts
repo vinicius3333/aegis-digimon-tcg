@@ -7,9 +7,23 @@ import "./EX1-070.js";
 
 describe("EX1-070 Fight for Your Pride!", () => {
   it("plays a purple level-4-or-lower Digimon from trash and gives one Blocker when Myotismon is present", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "EX1-070", as: "option" }], battleArea: [{ card: "EX1-063", as: "myotismon" }, { card: "EX1-056", as: "purpleSource" }], trash: [{ card: "EX1-057", as: "played" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-070", as: "option" }],
+          battleArea: [
+            { card: "EX1-063", as: "myotismon" },
+            { card: "EX1-056", as: "purpleSource" },
+          ],
+          trash: [{ card: "EX1-057", as: "played" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-057"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => observe(s.engine).hasKeyword(p, "Blocker")));
     expect(s.state.players[0]!.battleArea.some((p) => observe(s.engine).hasKeyword(p, "Blocker"))).toBe(true);

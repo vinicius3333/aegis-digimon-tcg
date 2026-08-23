@@ -9,10 +9,7 @@ type EngineInternals = {
 };
 
 async function deleteVenomMyotismon(s: ReturnType<typeof setupEngine>): Promise<void> {
-  await (s.engine as unknown as EngineInternals).primitives.deletePermanent(
-    [s.perm("venom").permanentId],
-    "byEffect",
-  );
+  await (s.engine as unknown as EngineInternals).primitives.deletePermanent([s.perm("venom").permanentId], "byEffect");
 }
 
 describe("P-020 VenomMyotismon", () => {
@@ -30,13 +27,9 @@ describe("P-020 VenomMyotismon", () => {
     const memoryBefore = s.state.memory;
 
     await deleteVenomMyotismon(s);
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId));
 
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId),
-    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId)).toBe(true);
     expect(s.state.memory).toBe(memoryBefore);
   });
 
@@ -58,9 +51,7 @@ describe("P-020 VenomMyotismon", () => {
     const revivedId = s.inst("revived").instanceId;
 
     await deleteVenomMyotismon(s);
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === revivedId));
     await settle();
 
     expect(s.state.players[0]!.deck).toHaveLength(3);
@@ -80,17 +71,12 @@ describe("P-020 VenomMyotismon", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
-    const invalidIds = [
-      s.inst("purple-level-5").instanceId,
-      s.inst("red-level-3").instanceId,
-    ];
+    const invalidIds = [s.inst("purple-level-5").instanceId, s.inst("red-level-3").instanceId];
 
     await deleteVenomMyotismon(s);
     await settle();
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining(invalidIds),
-    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(invalidIds));
   });
 });

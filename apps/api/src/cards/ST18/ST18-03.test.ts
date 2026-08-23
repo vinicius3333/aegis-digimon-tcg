@@ -12,11 +12,13 @@ describe("ST18-03 Falcomon", () => {
       { autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("victim").isSuspended);
 
     expect(s.perm("victim").isSuspended).toBe(true);

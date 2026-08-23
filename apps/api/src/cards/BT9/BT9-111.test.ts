@@ -6,9 +6,27 @@ import "./BT9-111.js";
 
 describe("BT9-111 Alphamon: Ouryuken", () => {
   it("deletes every opposing Digimon tied for the highest play cost when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-111", as: "base" }], hand: [{ card: "BT9-111", as: "evolving" }] }, 1: { battleArea: [{ card: "BT2-047", as: "high1" }, { card: "BT2-047", as: "high2" }, { card: "BT1-015", as: "low" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT6-111", as: "base" }], hand: [{ card: "BT9-111", as: "evolving" }] },
+        1: {
+          battleArea: [
+            { card: "BT2-047", as: "high1" },
+            { card: "BT2-047", as: "high2" },
+            { card: "BT1-015", as: "low" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 7;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("low").permanentId);
   });

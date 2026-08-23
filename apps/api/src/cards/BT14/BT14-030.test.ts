@@ -8,7 +8,12 @@ describe("BT14-030", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "Return", optional: true, abortOnDecline: true });
     expect(compiled.effects[1]?.actions[0]).toMatchObject({ kind: "Return", optional: true, abortOnDecline: true });
   });
-  it("registers the once-per-turn recovery watcher", () => expect(compiled.effects[2]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDigimonReturnsToHand" }] }));
+  it("registers the once-per-turn recovery watcher", () =>
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenDigimonReturnsToHand" }],
+    }));
 
   it("recovers when another Digimon returns to hand during your turn", async () => {
     const s = setup({

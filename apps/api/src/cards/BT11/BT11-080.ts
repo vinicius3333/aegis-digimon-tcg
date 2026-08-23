@@ -8,23 +8,25 @@ const yellow = {
 };
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const compiled: CompiledCard = {
-  effects: [{
-    trigger: "YourTurn",
-    actions: [
-      {
-        kind: "Aura",
-        target: self,
-        effect: { kind: "keyword", keyword: { keyword: "Rush", raw: "＜Rush＞" } },
-        while: yellow,
-      },
-      {
-        kind: "Aura",
-        target: self,
-        effect: { kind: "keyword", keyword: { keyword: "Retaliation", raw: "＜Retaliation＞" } },
-        while: yellow,
-      },
-    ],
-  }],
+  effects: [
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Aura",
+          target: self,
+          effect: { kind: "keyword", keyword: { keyword: "Rush", raw: "＜Rush＞" } },
+          while: yellow,
+        },
+        {
+          kind: "Aura",
+          target: self,
+          effect: { kind: "keyword", keyword: { keyword: "Retaliation", raw: "＜Retaliation＞" } },
+          while: yellow,
+        },
+      ],
+    },
+  ],
   coverage: "full",
   residual: [],
 };

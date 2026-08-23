@@ -4,12 +4,31 @@ import "./BT9-064.js";
 
 describe("BT9-064 Grademon", () => {
   it("adds Alphamon, places an X Antibody card under itself, and trashes the rest", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-061", as: "base" }], hand: [{ card: "BT9-064", as: "evolving" }], deck: [{ card: "BT6-111", as: "alphamon" }, { card: "BT9-068", as: "xAntibody" }, { card: "BT1-001", as: "rest" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-061", as: "base" }],
+          hand: [{ card: "BT9-064", as: "evolving" }],
+          deck: [
+            { card: "BT6-111", as: "alphamon" },
+            { card: "BT9-068", as: "xAntibody" },
+            { card: "BT1-001", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some(card => card.instanceId === s.inst("rest").instanceId));
-    expect(s.state.players[0]!.hand.some(card => card.instanceId === s.inst("alphamon").instanceId)).toBe(true);
-    expect(s.perm("base").stack.some(card => card.instanceId === s.inst("xAntibody").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("rest").instanceId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("alphamon").instanceId)).toBe(true);
+    expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("xAntibody").instanceId)).toBe(true);
   });
 
   it("deletes a cost-5-or-less Digimon at end of attack while inherited by Alphamon", async () => {
@@ -57,6 +76,8 @@ describe("BT9-064 Grademon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("mustSurvive").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("mustSurvive").permanentId),
+    ).toBe(true);
   });
 });

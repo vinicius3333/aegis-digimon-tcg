@@ -24,7 +24,10 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
       {
         0: {
           battleArea: [{ card: MIMI, as: "mimiPerm", dp: 0 }],
-          hand: [{ card: PALMON, as: "palmon" }, { card: P_021, as: "option" }],
+          hand: [
+            { card: PALMON, as: "palmon" },
+            { card: P_021, as: "option" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -53,7 +56,10 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
       {
         0: {
           battleArea: ["BT1-068"],
-          hand: [{ card: P_021, as: "option" }, { card: PALMON, as: "palmon" }],
+          hand: [
+            { card: P_021, as: "option" },
+            { card: PALMON, as: "palmon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -81,7 +87,10 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
       {
         0: {
           battleArea: ["BT5-089"],
-          hand: [{ card: P_021, as: "option" }, { card: PALMON, as: "palmon" }],
+          hand: [
+            { card: P_021, as: "option" },
+            { card: PALMON, as: "palmon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -99,17 +108,19 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
 
   it("keeps the same printed clause through Palmon and exact-Mimi selections", async () => {
     const s = setupEngine(
-      { 0: {
-        battleArea: [
-          { card: "BT1-089", as: "firstMimi" },
-          { card: "BT3-096", as: "secondMimi" },
-        ],
-        hand: [
-          { card: "BT1-067", as: "firstPalmon" },
-          { card: "BT5-047", as: "secondPalmon" },
-          { card: P_021, as: "option" },
-        ],
-      } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-089", as: "firstMimi" },
+            { card: "BT3-096", as: "secondMimi" },
+          ],
+          hand: [
+            { card: "BT1-067", as: "firstPalmon" },
+            { card: "BT5-047", as: "secondPalmon" },
+            { card: P_021, as: "option" },
+          ],
+        },
+      },
       { autoAcceptOptional: true },
     );
     const firstMimi = s.perm("firstMimi");
@@ -117,10 +128,12 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
     const firstPalmonId = s.inst("firstPalmon").instanceId;
     const secondPalmonId = s.inst("secondPalmon").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const palmonRequest = s.decisions.at(-1)!.req;
     expect(palmonRequest.sourceCardId).toBe(P_021);
@@ -130,11 +143,13 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
       expect.arrayContaining([firstPalmonId, secondPalmonId]),
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: palmonRequest.decisionId,
-      response: { kind: "selectCards", instanceIds: [secondPalmonId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: palmonRequest.decisionId,
+        response: { kind: "selectCards", instanceIds: [secondPalmonId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const mimiRequest = s.decisions.at(-1)!.req;
     expect(mimiRequest.sourceCardId).toBe(P_021);
@@ -144,16 +159,22 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
       expect.arrayContaining([firstMimi.permanentId, secondMimi.permanentId]),
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: mimiRequest.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [secondMimi.permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: mimiRequest.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [secondMimi.permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT3-096"));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondPalmonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === secondPalmonId)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === firstPalmonId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === firstMimi.permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === firstMimi.permanentId)).toBe(
+      true,
+    );
     assertNoLoudGap(s);
   });
 });
@@ -167,11 +188,13 @@ describe("P-021 [Security]", () => {
     const optionId = s.inst("option").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === optionId), 5000);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(true);

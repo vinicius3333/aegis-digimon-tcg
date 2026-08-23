@@ -17,9 +17,7 @@ if (whenDigivolving !== undefined) {
     condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
   };
 }
-const saveRequirement = compiled.digivolutionRequirement?.find(
-  (requirement) => requirement.traits?.includes("Save"),
-);
+const saveRequirement = compiled.digivolutionRequirement?.find((requirement) => requirement.traits?.includes("Save"));
 if (saveRequirement !== undefined) saveRequirement.colors = ["Yellow", "Green", "Purple"];
 const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
 const draw = inherited?.actions[0];

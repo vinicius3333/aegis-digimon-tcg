@@ -1,12 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { playSound } from "./sound";
-import {
-  CARD_SLEEVES,
-  DEFAULT_CARD_SLEEVE,
-  getCardSleeveId,
-  setCardSleeveId,
-  subscribeCardSleeve,
-} from "./sleeve";
+import { CARD_SLEEVES, DEFAULT_CARD_SLEEVE, getCardSleeveId, setCardSleeveId, subscribeCardSleeve } from "./sleeve";
 
 export function CardSleevePicker() {
   const selectedId = useSyncExternalStore(subscribeCardSleeve, getCardSleeveId, () => DEFAULT_CARD_SLEEVE.id);
@@ -28,7 +22,11 @@ export function CardSleevePicker() {
             }}
           >
             <span className="settings-sleeve-preview">
-              {sleeve.src ? <img src={sleeve.src} alt="" /> : <span className="settings-sleeve-classic" aria-hidden="true" />}
+              {sleeve.src ? (
+                <img src={sleeve.src} alt="" />
+              ) : (
+                <span className="settings-sleeve-classic" aria-hidden="true" />
+              )}
             </span>
             <span className="settings-sleeve-copy">
               <span>{sleeve.label}</span>

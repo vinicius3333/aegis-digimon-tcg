@@ -3,45 +3,43 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 2
-            }
-          ],
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "hand",
-                "levelMatchesTriggerSource": true
-              },
-              "count": 1
+              kind: "Draw",
+              controller: "mine",
+              amount: 2,
             },
-            "raw": "by trashing 1 card of the same level in your hand"
-          }
-        }
+          ],
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                levelMatchesTriggerSource: true,
+              },
+              count: 1,
+            },
+            raw: "by trashing 1 card of the same level in your hand",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-052", compiled);

@@ -14,11 +14,13 @@ describe("BT7-038 JetSilphymon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.memory).toBe(2);
@@ -26,9 +28,21 @@ describe("BT7-038 JetSilphymon", () => {
   });
 
   it("recovers one card when it has a Hybrid source", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT7-036", as: "base" }], hand: [{ card: "BT7-038", as: "evolving" }], deck: ["BT1-048", "BT1-049"] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT7-036", as: "base" }],
+        hand: [{ card: "BT7-038", as: "evolving" }],
+        deck: ["BT1-048", "BT1-049"],
+      },
+    });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });

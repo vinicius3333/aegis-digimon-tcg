@@ -60,9 +60,7 @@ describe("mutation seam guard", () => {
   });
 
   it("does not list already-migrated files as pending", () => {
-    const migratedButListed = [...MIGRATION_PENDING].filter(
-      (file) => !offendingFiles().includes(file),
-    );
+    const migratedButListed = [...MIGRATION_PENDING].filter((file) => !offendingFiles().includes(file));
     expect(migratedButListed).toEqual([]);
   });
 });

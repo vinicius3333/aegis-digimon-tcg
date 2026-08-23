@@ -9,74 +9,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. PlayWithoutCost target: added nameOrTrait for "Hybrid" form filter — text says
 //    "with Hybrid in its form" (Hybrid is a Form trait in card data).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "excludeKeywords": [
-                    "Blocker"
-                  ]
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  excludeKeywords: ["Blocker"],
                 },
-                "count": 2,
-                "upTo": true
-              }
-            }
-          ]
-        }
-      ]
+                count: 2,
+                upTo: true,
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Green"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Green"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hybrid"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-054", compiled);

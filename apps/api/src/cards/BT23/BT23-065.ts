@@ -3,153 +3,131 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "trash",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Bakemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Bakemon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Ghostmon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Ghostmon"],
+                match: "name",
+              },
+            ],
           },
-          "position": "bottom",
-          "bindHostAs": "ghostmonHost"
+          position: "bottom",
+          bindHostAs: "ghostmonHost",
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "ghostmonHost"
+          kind: "Digivolve",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "ghostmonHost",
           },
-          "into": {
-            "filter": {
-              "isSelfRef": true
-            }
+          into: {
+            filter: {
+              isSelfRef: true,
+            },
           },
-          "from": [
-            "hand"
-          ],
-          "cost": 3,
-          "ignoreRequirements": true,
-          "payCost": true
-        }
+          from: ["hand"],
+          cost: 3,
+          ignoreRequirements: true,
+          payCost: true,
+        },
       ],
-      "isFromHand": true,
-      "condition": {
-        "kind": "youHave",
-        "filter": {
-          "controllerDefault": "mine",
-          "nameOrTrait": [
+      isFromHand: true,
+      condition: {
+        kind: "youHave",
+        filter: {
+          controllerDefault: "mine",
+          nameOrTrait: [
             {
-              "tokens": [
-                "Violet Inboots"
-              ],
-              "match": "name"
-            }
-          ]
+              tokens: ["Violet Inboots"],
+              match: "name",
+            },
+          ],
         },
-        "raw": "you have [Violet Inboots]"
-      }
+        raw: "you have [Violet Inboots]",
+      },
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ghost"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Ghost"],
+                  match: "trait",
+                },
               ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Ghost"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["Ghost"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-065", compiled);

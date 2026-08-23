@@ -6,47 +6,41 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Yellow"
-              ]
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              colors: ["Yellow"],
             },
-            "raw": "you have a yellow Tamer in play"
-          }
-        }
-      ]
-    }
+            raw: "you have a yellow Tamer in play",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-084", compiled);

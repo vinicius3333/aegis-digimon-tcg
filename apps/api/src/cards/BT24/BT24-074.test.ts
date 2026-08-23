@@ -140,9 +140,7 @@ describe("BT24-074 SkullSeadramon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("skullseadramon").permanentId], "byEffect");
     await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
-      ),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
     );
   });
 

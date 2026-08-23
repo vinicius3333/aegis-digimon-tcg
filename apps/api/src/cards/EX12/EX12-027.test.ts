@@ -21,23 +21,32 @@ describe("EX12-027 TeslaJellymon", () => {
     const effect = registeredCompiledCards.get("EX12-027")!.effects[0]!;
     expect(effect.frequency).toBe("OncePerTurn");
     expect(effect.actions).toHaveLength(1);
-    expect(effect.actions[0]).toMatchObject({ kind: "Modal", choose: 1, options: [[{ kind: "PlayWithoutCost" }], [{ kind: "UseOptionWithoutCost" }]] });
+    expect(effect.actions[0]).toMatchObject({
+      kind: "Modal",
+      choose: 1,
+      options: [[{ kind: "PlayWithoutCost" }], [{ kind: "UseOptionWithoutCost" }]],
+    });
   });
 
   it("plays a matching Jellymon-text Digimon with the printed cost reduced by two", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX12-027", as: "source" }],
-        hand: [{ card: "EX12-023", as: "target" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-027", as: "source" }],
+          hand: [{ card: "EX12-023", as: "target" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 });
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
     s.state.memory = 1;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("source").topCard!.instanceId,
-      effectKey: mainEffectKey(s),
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-023"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-023")).toBe(true);
     expect(s.state.memory).toBe(0);
@@ -45,21 +54,26 @@ describe("EX12-027 TeslaJellymon", () => {
   });
 
   it("uses a matching DS Option with the same reduction and resolves its Main effect", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX12-027", as: "source" }],
-        hand: [{ card: "EX12-073", as: "option" }],
-        deck: ["EX12-023", "BT1-009", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-027", as: "source" }],
+          hand: [{ card: "EX12-073", as: "option" }],
+          deck: ["EX12-023", "BT1-009", "BT1-010"],
+        },
       },
-    }, { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 });
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("source").topCard!.instanceId,
-      effectKey: mainEffectKey(s),
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-073"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-073")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-023")).toBe(true);
@@ -67,13 +81,16 @@ describe("EX12-027 TeslaJellymon", () => {
   });
 
   it("inherits once-per-turn Draw 1 only before the hand reaches seven cards", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX12-027", as: "host", under: ["EX12-027"] }],
-        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
-        deck: ["BT1-010", "BT1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-027", as: "host", under: ["EX12-027"] }],
+          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
@@ -93,14 +110,25 @@ describe("EX12-027 TeslaJellymon", () => {
     ]);
     const effect = compiled.effects.find((entry) => entry.trigger === "Main")!;
     expect(effect.frequency).toBe("OncePerTurn");
-    expect(effect.actions).toMatchObject([{
-      kind: "Modal",
-      choose: 1,
-      options: [
-        [{ kind: "PlayWithoutCost", from: ["hand"], payCost: true, reduceCostBy: 2, optional: true }],
-        [{ kind: "UseOptionWithoutCost", from: ["hand"], payCost: true, reduceCostBy: 2, optional: true, filter: { kind: ["Option"] } }],
-      ],
-    }]);
+    expect(effect.actions).toMatchObject([
+      {
+        kind: "Modal",
+        choose: 1,
+        options: [
+          [{ kind: "PlayWithoutCost", from: ["hand"], payCost: true, reduceCostBy: 2, optional: true }],
+          [
+            {
+              kind: "UseOptionWithoutCost",
+              from: ["hand"],
+              payCost: true,
+              reduceCostBy: 2,
+              optional: true,
+              filter: { kind: ["Option"] },
+            },
+          ],
+        ],
+      },
+    ]);
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",

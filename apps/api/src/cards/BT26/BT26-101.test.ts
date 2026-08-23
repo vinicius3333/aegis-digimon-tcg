@@ -30,13 +30,16 @@ describe("BT26-101 compiled fidelity", () => {
   });
 
   it("publicly plays an eligible TS card from hand during the Security effect", async () => {
-    const s = setupEngine({
-      0: {
-        security: [{ card: "BT26-101", as: "option", faceUp: true }],
-        hand: [{ card: "BT26-009", as: "tsCard" }],
-        battleArea: [{ card: "BT26-030", as: "tsSource" }],
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT26-101", as: "option", faceUp: true }],
+          hand: [{ card: "BT26-009", as: "tsCard" }],
+          battleArea: [{ card: "BT26-030", as: "tsSource" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));

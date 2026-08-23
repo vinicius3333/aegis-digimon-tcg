@@ -7,9 +7,12 @@ import "./BT6-104.js";
 
 describe("BT6-104 Parabolic Junk", () => {
   it("makes the chosen own Digimon gain 2 memory when deleted", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-055", as: "recipient" }], hand: [{ card: "BT6-104", as: "option" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT6-055", as: "recipient" }], hand: [{ card: "BT6-104", as: "option" }] },
+      },
+      { autoSelectCards: true },
+    );
     const initialMemory = 5;
     s.state.memory = initialMemory;
     const recipientId = s.perm("recipient").permanentId;

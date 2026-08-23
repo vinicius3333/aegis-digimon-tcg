@@ -8,92 +8,84 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // upTo:true is correct for Q1706 — opponent chooses 0 when they have no Digimon.
 // "excludeSelectionRef" on Target is a new capability (see LANE_H.md).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "zone": "battleArea"
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              zone: "battleArea",
             },
-            "count": 1,
-            "bindAs": "spared",
-            "upTo": true
+            count: 1,
+            bindAs: "spared",
+            upTo: true,
           },
-          "chooser": "opponent"
+          chooser: "opponent",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "kind": [
-                "Digimon"
-              ],
-              "zone": "battleArea",
-              "excludeSelf": true,
-              "excludeSelectionRef": "spared"
+          kind: "Delete",
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              zone: "battleArea",
+              excludeSelf: true,
+              excludeSelectionRef: "spared",
             },
-            "count": "all"
-          }
+            count: "all",
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 1,
+            filter: {
+              kind: ["Digimon"],
             },
-            "unit": "deletedThisEffect"
-          }
-        }
-      ]
+            unit: "deletedThisEffect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "raw": "When an opponent's Digimon is deleted",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          raw: "When an opponent's Digimon is deleted",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": 1,
-                "raw": "＜Security Attack +1＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: 1,
+                raw: "＜Security Attack +1＞",
               },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
-      ]
-    }
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-019", compiled);

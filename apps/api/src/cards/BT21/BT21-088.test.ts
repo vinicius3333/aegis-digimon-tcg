@@ -59,5 +59,6 @@ describe("BT21-088 Tagiru Akashi", () => {
 
     expect(s.perm("tagiru").stack.map((card) => card.cardId)).toContain("BT21-063");
     expect(s.state.memory).toBe(4);
+    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
   });
 });

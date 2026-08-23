@@ -6,44 +6,39 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Machine",
-                      "Cyborg"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Machine", "Cyborg"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 Digimon card with [Machine] or [Cyborg] in its traits in your hand"
+            raw: "by trashing 1 Digimon card with [Machine] or [Cyborg] in its traits in your hand",
           },
-          "optional": true
-        }
-      ]
-    }
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-045", compiled);

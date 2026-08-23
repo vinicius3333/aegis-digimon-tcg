@@ -6,23 +6,23 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "AddToHandSelf"
-        }
-      ]
-    }
+          kind: "AddToHandSelf",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-067", compiled);

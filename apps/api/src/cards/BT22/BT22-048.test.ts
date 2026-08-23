@@ -68,7 +68,9 @@ describe("BT22-048 Togemon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT22-048", as: "togemon" }] } }, { autoSelectCards: true });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("togemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("togemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
     const togemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT22-048")!;
 

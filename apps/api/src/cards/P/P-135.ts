@@ -10,110 +10,104 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   for the turn.
 //
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "A"
-          }
+            count: 1,
+            bindAs: "A",
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "A"
+          kind: "Restrict",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "A",
           },
-          "restriction": "cantAttackDigimon",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "cantAttackDigimon",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "A"
+          kind: "GainKeyword",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "A",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Jamming",
-              "raw": "＜Jamming＞"
-            }
-          },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Arisa Kinosaki"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have [Arisa Kinosaki]"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -2000,
-          "duration": "forTheTurn"
-        }
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Jamming",
+              raw: "＜Jamming＞",
+            },
+          },
+          while: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Arisa Kinosaki"],
+                  match: "name",
+                },
+              ],
+            },
+            raw: "you have [Arisa Kinosaki]",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -2000,
+          duration: "forTheTurn",
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-135", compiled);

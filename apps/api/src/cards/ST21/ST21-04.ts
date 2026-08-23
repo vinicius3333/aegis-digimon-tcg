@@ -19,203 +19,185 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // `digivolutionCardsAtMost:1` is enforced by the interpreter's permanent
 // filter matcher (CAP-H-02).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-            "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "upTo": false
+            count: 1,
+            upTo: false,
           },
-          "amount": 1,
-          "position": "top",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          amount: 1,
+          position: "top",
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "unit": "colors"
-          }
+            unit: "colors",
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsAtMost": 1
+          kind: "Return",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsAtMost: 1,
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-            "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1,
-            "upTo": false
-          },
-          "amount": 1,
-          "position": "top",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "unit": "colors"
-          }
+          to: "hand",
         },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsAtMost": 1
-            },
-            "count": 1
-          },
-          "to": "hand"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
-              },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["ADVENTURE"], "match": "trait"}]},
-                "raw": "any of them have the [ADVENTURE] trait"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
-              },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["ADVENTURE"], "match": "trait"}]},
-                "raw": "any of them have the [ADVENTURE] trait"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "withoutSuspending": false,
-          "optional": true
-        }
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    }
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            upTo: false,
+          },
+          amount: 1,
+          position: "top",
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+            },
+            unit: "colors",
+          },
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsAtMost: 1,
+            },
+            count: 1,
+          },
+          to: "hand",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
+              },
+              duration: "forTheTurn",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+                raw: "any of them have the [ADVENTURE] trait",
+              },
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
+              },
+              duration: "forTheTurn",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+                raw: "any of them have the [ADVENTURE] trait",
+              },
+            },
+          ],
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "ADVENTURE"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["ADVENTURE"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST21-04", compiled);

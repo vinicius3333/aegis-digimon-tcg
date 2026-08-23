@@ -13,7 +13,10 @@ export const compiled: CompiledCard = {
           controller: "opponent",
           target: { filter: { controller: "opponent" }, count: 1 },
           from: ["security"],
-          cost: { kind: "trash", target: { filter: { zone: "battleArea", controller: "mine", kind: ["Option"] }, count: 1 } },
+          cost: {
+            kind: "trash",
+            target: { filter: { zone: "battleArea", controller: "mine", kind: ["Option"] }, count: 1 },
+          },
         },
       ],
       isInherited: true,

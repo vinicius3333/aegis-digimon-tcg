@@ -28,11 +28,13 @@ describe("BT11-082 Tuwarmon", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("damemon").permanentId,
-      instanceId: s.inst("tuwarmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("damemon").permanentId,
+        instanceId: s.inst("tuwarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("damemon").topCard.cardId === "BT11-082");
 
     expect(s.state.memory).toBe(4);
@@ -86,11 +88,7 @@ describe("BT11-082 Tuwarmon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("source").instanceId],
-      1,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("source").instanceId], 1);
     await settle(() => s.state.memory === -1);
 
     expect(s.state.memory).toBe(-1);

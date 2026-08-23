@@ -4,56 +4,54 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "isSelfRef": true,
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              isSelfRef: true,
+              digivolutionCards: "hasAny",
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 2,
-          "raw": "＜Digi-Burst 2＞"
-        }
-      ]
-    }
+          keyword: "DigiBurst",
+          amount: 2,
+          raw: "＜Digi-Burst 2＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST4-13", compiled);

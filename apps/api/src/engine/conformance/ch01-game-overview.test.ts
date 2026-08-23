@@ -165,11 +165,8 @@ describe("§1-2-3 Victory conditions (comprehensive-0022)", () => {
 });
 
 describe("§1-3 Fundamental Principles (comprehensive-0023)", () => {
-  it('1-3-1: card text overrides the rules — <Rush> lets a just-played Digimon attack immediately', () => {
-    cite(
-      "comprehensive-0023",
-      "1-3-1 card text overrides rules; example: <Rush> attacking the turn it's played",
-    );
+  it("1-3-1: card text overrides the rules — <Rush> lets a just-played Digimon attack immediately", () => {
+    cite("comprehensive-0023", "1-3-1 card text overrides rules; example: <Rush> attacking the turn it's played");
 
     const s = setup();
     s.state.turnCount = 1;
@@ -376,4 +373,3 @@ describe("§1-4-4 Token Cards (comprehensive-0030)", () => {
     expect(typeof tokenDef.playCost).toBe("number");
   });
 });
-

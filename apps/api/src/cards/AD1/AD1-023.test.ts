@@ -108,7 +108,10 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "tamer" }],
-          hand: [{ card: "BT18-022", as: "hybrid-a" }, { card: "BT18-022", as: "hybrid-b" }],
+          hand: [
+            { card: "BT18-022", as: "hybrid-a" },
+            { card: "BT18-022", as: "hybrid-b" },
+          ],
           deck: ["BT1-010"],
         },
       },

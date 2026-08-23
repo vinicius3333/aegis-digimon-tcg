@@ -8,30 +8,30 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDiscardLibrary",
-          "sourceFilter": {
-            "controller": "mine"
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          sourceFilter: {
+            controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-074", compiled);

@@ -6,250 +6,236 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Evade",
-          "raw": "＜Evade＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "optional": true
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
         },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "optional": true
-        },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
-            },
-            "count": 1
-          },
-          "optional": true
-        }
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "optional": true
+          keyword: "Evade",
+          raw: "＜Evade＞",
         },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "optional": true
-        },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
-            },
-            "count": 1
-          },
-          "optional": true
-        }
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
+          to: "hand",
+          optional: true,
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          optional: true,
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          optional: true,
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 2
+                count: 2,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Omnimon Alter-S"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Omnimon Alter-S"],
+                    match: "name",
+                  },
+                ],
               },
-              "payCost": true,
-              "optional": true
+              payCost: true,
+              optional: true,
             },
             {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"]
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
-            }
-          ],
-          "frequency": "OncePerTurn"
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              optional: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "restriction": "attackTargetChange",
-          "duration": "permanent"
-        }
+          ],
+          frequency: "OncePerTurn",
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "names": [
-        "Garurumon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      frequency: "OncePerTurn",
     },
     {
-      "traits": [
-        "ADVENTURE"
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          restriction: "attackTargetChange",
+          duration: "permanent",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 5
-    }
-  ]
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      names: ["Garurumon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      traits: ["ADVENTURE"],
+      cost: 3,
+      isAlternate: true,
+      level: 5,
+    },
+  ],
 };
 
 registerIrCard("AD1-012", compiled);

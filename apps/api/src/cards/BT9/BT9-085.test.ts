@@ -14,7 +14,18 @@ describe("BT9-085 Matt Ishida & Sora Takenouchi", () => {
   });
 
   it("may suspend when a blue or red Digimon unsuspends to return an opposing level 3", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT9-085", as: "tamer" }, { card: "BT9-008", as: "ally" }] }, 1: { battleArea: [{ card: "BT1-028", as: "target" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT9-085", as: "tamer" },
+            { card: "BT9-008", as: "ally" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-028", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const targetInstanceId = s.perm("target").topCard!.instanceId;
     await advance(s.engine).fireSubTrigger("whenUnsuspended", { unsuspendedPermanentId: s.perm("ally").permanentId });
     expect(s.perm("tamer").isSuspended).toBe(true);

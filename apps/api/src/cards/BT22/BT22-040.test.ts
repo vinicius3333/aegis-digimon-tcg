@@ -45,10 +45,13 @@ describe("BT22-040 Cendrillmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const familiarCount = () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "TOKEN-Familiar-Token").length;
+    const familiarCount = () =>
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "TOKEN-Familiar-Token").length;
     await s.ready();
     expect(familiarCount()).toBe(0);
-    const primitives = (s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> } }).primitives;
+    const primitives = (
+      s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> } }
+    ).primitives;
 
     await primitives.deletePermanent([s.perm("first").permanentId], "byEffect");
     await settle(() => familiarCount() === 1);

@@ -8,10 +8,44 @@ describe("BT18-081 Rhihimon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Main",
       isFromHand: true,
-      actions: [{ kind: "Digivolve", from: ["hand"], payCost: true, costOverride: 3, ignoreRequirements: true, target: { filter: { kind: ["Tamer"], colors: ["Purple", "Yellow"] } }, additionalCosts: [{ kind: "place", target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["KaiserLeomon"], match: "name" }] }, count: 1 } }] }],
+      actions: [
+        {
+          kind: "Digivolve",
+          from: ["hand"],
+          payCost: true,
+          costOverride: 3,
+          ignoreRequirements: true,
+          target: { filter: { kind: ["Tamer"], colors: ["Purple", "Yellow"] } },
+          additionalCosts: [
+            {
+              kind: "place",
+              target: {
+                filter: { zone: "trash", nameOrTrait: [{ tokens: ["KaiserLeomon"], match: "name" }] },
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
     });
     expect(compiled.effects[1]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Jamming" }] });
-    expect(compiled.effects[2]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { kind: ["Tamer"], hasInheritedEffects: true } } }] });
-    expect(compiled.effects[3]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }] });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          target: { filter: { kind: ["Tamer"], hasInheritedEffects: true } },
+        },
+      ],
+    });
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }],
+    });
   });
 });

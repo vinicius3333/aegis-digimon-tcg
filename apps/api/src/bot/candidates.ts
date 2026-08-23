@@ -1,16 +1,6 @@
 import { CardColor, type CardDefinition, type Intent } from "@aegis/shared";
-import {
-  matchingEvoCost,
-  matchingAlternateDigivolutionRequirement,
-} from "../engine/cards/cardData.js";
-import {
-  isDigimonCard,
-  isDigiEggCard,
-  isOptionCard,
-  isTamerCard,
-  type BotUnit,
-  type BotView,
-} from "./view.js";
+import { matchingEvoCost, matchingAlternateDigivolutionRequirement } from "../engine/cards/cardData.js";
+import { isDigimonCard, isDigiEggCard, isOptionCard, isTamerCard, type BotUnit, type BotView } from "./view.js";
 
 /**
  * Candidate enumeration — the bot's answer to "what may I do right now?".
@@ -166,13 +156,8 @@ function playKindOf(definition: CardDefinition): CandidateKind | undefined {
  * Conservative by construction: it cannot see the continuous color grants the engine folds
  * in, so it may skip a play a grant would have allowed, never propose one that is illegal.
  */
-function colorRequirementMet(
-  definition: CardDefinition,
-  kind: CandidateKind,
-  view: BotView,
-): boolean {
-  const required =
-    definition.optionColorRequirements ?? (kind === "playOption" ? (definition.colors ?? []) : []);
+function colorRequirementMet(definition: CardDefinition, kind: CandidateKind, view: BotView): boolean {
+  const required = definition.optionColorRequirements ?? (kind === "playOption" ? (definition.colors ?? []) : []);
   if (required.length === 0) return true;
   return required.every((color) => color === CardColor.None || view.ownFieldColors.has(color));
 }

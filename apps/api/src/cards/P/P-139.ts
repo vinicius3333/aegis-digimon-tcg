@@ -6,138 +6,126 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn"
-        }
-      ]
+          amount: -3000,
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn"
-        }
-      ]
+          amount: -3000,
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Blocker",
+              raw: "＜Blocker＞",
+            },
           },
-          "while": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Leomon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Leomon", "X Antibody"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "[Leomon]/[X Antibody] is in this Digimon's digivolution cards"
-          }
+            raw: "[Leomon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Fortitude",
-              "raw": "＜Fortitude＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Fortitude",
+              raw: "＜Fortitude＞",
+            },
           },
-          "while": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Leomon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Leomon", "X Antibody"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "[Leomon]/[X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[Leomon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "OnDeletion",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Recovery",
-          "amount": 1,
-          "raw": "＜Recovery +1 (Deck)＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Leomon"
+          keyword: "Recovery",
+          amount: 1,
+          raw: "＜Recovery +1 (Deck)＞",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Leomon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("P-139", compiled);

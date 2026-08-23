@@ -5,12 +5,21 @@ import "./P-123.js";
 
 describe("P-123 Ukkomon", () => {
   it("hatches and gains memory when a Digimon moves from breeding", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "P-123", as: "ukkomon" }], breeding: { card: "BT1-009", as: "raised" }, eggDeck: ["BT1-001"] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-123", as: "ukkomon" }],
+          breeding: { card: "BT1-009", as: "raised" },
+          eggDeck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 0;
     s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("raised").permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("raised").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.breeding !== undefined && s.state.memory === 1);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.breeding).toBeDefined();
@@ -18,20 +27,25 @@ describe("P-123 Ukkomon", () => {
   });
 
   it("Q4236 gains memory even when the optional hatch is declined", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "P-123", as: "ukkomon" }],
-        breeding: { card: "BT1-009", as: "raised" },
-        eggDeck: ["BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-123", as: "ukkomon" }],
+          breeding: { card: "BT1-009", as: "raised" },
+          eggDeck: ["BT1-001"],
+        },
       },
-    }, { autoDeclineOptional: true });
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 0;
     s.state.phase = Phase.Breeding;
 
-    expect(s.engine.applyIntent(0, {
-      type: "moveFromBreeding",
-      permanentId: s.perm("raised").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: s.perm("raised").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);
@@ -39,19 +53,23 @@ describe("P-123 Ukkomon", () => {
   });
 
   it("Q4239 triggers when Ukkomon itself moves from breeding", async () => {
-    const s = setupEngine({
-      0: { breeding: { card: "P-123", as: "ukkomon" }, eggDeck: ["BT1-001"] },
-    }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      {
+        0: { breeding: { card: "P-123", as: "ukkomon" }, eggDeck: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 0;
     s.state.phase = Phase.Breeding;
 
-    expect(s.engine.applyIntent(0, {
-      type: "moveFromBreeding",
-      permanentId: s.perm("ukkomon").permanentId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "moveFromBreeding",
+        permanentId: s.perm("ukkomon").permanentId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);
   });
-
 });

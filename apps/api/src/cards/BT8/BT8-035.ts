@@ -6,37 +6,33 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Purple"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            colors: ["Purple"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-035", compiled);

@@ -49,10 +49,14 @@ describe("BT22-069 Lunamon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lunamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lunamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT22-072"));
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT22-072", "EX5-007"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT22-072", "EX5-007"]),
+    );
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
@@ -75,7 +79,9 @@ describe("BT22-069 Lunamon", () => {
     const initialTop = host.topCard!.instanceId;
     const initialTopUnder = host.stack.at(-1)!.instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: lunamon.instanceId, effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: lunamon.instanceId, effectKey }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT22-001"));
 
     expect(host.topCard!.instanceId).toBe(initialTopUnder);

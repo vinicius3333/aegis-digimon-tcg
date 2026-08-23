@@ -19,11 +19,13 @@ describe("BT26-035 Morphomon", () => {
         expect.objectContaining({
           trigger: "YourTurn",
           isInherited: true,
-          actions: [expect.objectContaining({
-            kind: "SubTrigger",
-            event: "whenBattleWon",
-            sourceFilter: { isSelfRef: true },
-          })],
+          actions: [
+            expect.objectContaining({
+              kind: "SubTrigger",
+              event: "whenBattleWon",
+              sourceFilter: { isSelfRef: true },
+            }),
+          ],
         }),
       ]),
     );
@@ -108,12 +110,14 @@ describe("BT26-035 Morphomon", () => {
         hand: [{ card: "BT26-035", as: "morphomon" }],
       },
     });
-    expect(legal.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: legal.perm("nspEgg").permanentId,
-      instanceId: legal.inst("morphomon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("nspEgg").permanentId,
+        instanceId: legal.inst("morphomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
 
     const invalid = setupEngine({
       0: {
@@ -121,11 +125,13 @@ describe("BT26-035 Morphomon", () => {
         hand: [{ card: "BT26-035", as: "morphomon" }],
       },
     });
-    expect(invalid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: invalid.perm("plainEgg").permanentId,
-      instanceId: invalid.inst("morphomon").instanceId,
-      useAlternateCost: true,
-    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("plainEgg").permanentId,
+        instanceId: invalid.inst("morphomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

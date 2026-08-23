@@ -5,15 +5,20 @@ import "./BT11-007.js";
 
 describe("BT11-007 Biyomon", () => {
   it("reveals three, adds the required red Vaccine Digimon and red Tamer, and bottoms the rest", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT11-007", as: "biyomon" }],
-        deck: ["BT1-009", "BT1-085", "BT11-007"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT11-007", as: "biyomon" }],
+          deck: ["BT1-009", "BT1-085", "BT11-007"],
+        },
       },
-    }, { autoSelectCards: true, autoOrderTriggers: true });
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biyomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biyomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-085"]);
@@ -22,10 +27,7 @@ describe("BT11-007 Biyomon", () => {
 
   it("gains 1 memory on its host's deletion while a red Tamer remains", async () => {
     const s = setupEngine({
-      0: { battleArea: [
-        { card: "BT1-015", as: "host", under: ["BT11-007"] },
-        "BT1-085",
-      ] },
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-007"] }, "BT1-085"] },
     });
     s.state.memory = 0;
 

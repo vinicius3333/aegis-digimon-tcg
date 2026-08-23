@@ -6,77 +6,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
-    { "level": 3, "cost": 3, "colors": ["Purple", "Red"], "isAlternate": true },
-    { "level": 3, "traits": ["Evil"], "cost": 2, "isAlternate": true }
+  digivolutionRequirement: [
+    { level: 3, cost: 3, colors: ["Purple", "Red"], isAlternate: true },
+    { level: 3, traits: ["Evil"], cost: 2, isAlternate: true },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 2
-          }
+            count: 2,
+          },
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Dark Dragon",
-                  "Evil Dragon"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Dark Dragon", "Evil Dragon"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "trash"
-          ],
-          "reduceCost": 2,
-          "optional": true
-        }
-      ]
+          from: ["trash"],
+          reduceCost: 2,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-049", compiled);

@@ -7,114 +7,101 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [End of All Turns] [Once Per Turn]: Trash top security of opponent's security stack.
 // If this effect DIDN'T trash (opponent has no security), delete 1 Digimon and 1 Tamer instead.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "trash",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Lucemon: Larva"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Lucemon: Larva"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "breeding": true,
-          "payCost": false,
-          "optional": true,
-          "abortOnDecline": true
+          breeding: true,
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfAllTurns",
-      "actions": [
+      trigger: "EndOfAllTurns",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trash",
-          "controller": "opponent",
-          "target": {
-            "filter": {
-              "controller": "opponent"
+          kind: "SecurityManipulation",
+          op: "trash",
+          controller: "opponent",
+          target: {
+            filter: {
+              controller: "opponent",
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "security"
-          ],
-          "bindResultAs": "trashedSecurity"
+          from: ["security"],
+          bindResultAs: "trashedSecurity",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "bindingEmpty",
-            "ref": "trashedSecurity",
-            "raw": "this effect didn't trash (opponent has no security)"
-          }
+          condition: {
+            kind: "bindingEmpty",
+            ref: "trashedSecurity",
+            raw: "this effect didn't trash (opponent has no security)",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "bindingEmpty",
-            "ref": "trashedSecurity",
-            "raw": "this effect didn't trash (opponent has no security)"
-          }
-        }
+          condition: {
+            kind: "bindingEmpty",
+            ref: "trashedSecurity",
+            raw: "this effect didn't trash (opponent has no security)",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Lucemon: Chaos Mode"
-      ],
-      "cost": 6,
-      "isAlternate": true
-    }
-  ]
+      names: ["Lucemon: Chaos Mode"],
+      cost: 6,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-101", compiled);

@@ -17,119 +17,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - CostModifier with invalid costType "level" replaced with scaling on Delete's levelCeiling
 //     (new capability — see LANE_E.md)
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenTrashedFromDeck",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenTrashedFromDeck",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Impmon"
-                      ],
-                      "match": "name"
-                    }
+                      tokens: ["Impmon"],
+                      match: "name",
+                    },
                   ],
-                  "zone": "trash"
+                  zone: "trash",
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "trash"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2,
-          "optional": true,
-          "abortOnDecline": true
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 3
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 3,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "controller": "mine"
+          scaling: {
+            per: 10,
+            filter: {
+              controller: "mine",
             },
-            "unit": "trash",
-            "levelCeilingAdd": 1
-          }
-        }
-      ]
+            unit: "trash",
+            levelCeilingAdd: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2,
-          "optional": true,
-          "abortOnDecline": true
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 3
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 3,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "controller": "mine"
+          scaling: {
+            per: 10,
+            filter: {
+              controller: "mine",
             },
-            "unit": "trash",
-            "levelCeilingAdd": 1
-          }
-        }
-      ]
-    }
+            unit: "trash",
+            levelCeilingAdd: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-044", compiled);

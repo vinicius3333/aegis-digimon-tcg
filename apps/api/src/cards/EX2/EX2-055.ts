@@ -69,16 +69,14 @@ const module: EffectModule = {
 
             // The printed cost is 7 OR MORE, so expose every legal contiguous amount to
             // the decision protocol instead of silently fixing the payment at 7.
-            const legalCounts = Array.from(
-              { length: motherPerm.stack.length - 6 },
-              (_, index) => index + 7,
-            );
-            const countChoice = legalCounts.length === 1
-              ? 0
-              : await ctx.ask.chooseOption(
-                  ctx,
-                  legalCounts.map((count) => `Trash ${count} digivolution cards`),
-                );
+            const legalCounts = Array.from({ length: motherPerm.stack.length - 6 }, (_, index) => index + 7);
+            const countChoice =
+              legalCounts.length === 1
+                ? 0
+                : await ctx.ask.chooseOption(
+                    ctx,
+                    legalCounts.map((count) => `Trash ${count} digivolution cards`),
+                  );
             const trashCount = legalCounts[countChoice] ?? 7;
             const toTrash: string[] = [];
             for (let i = 0; i < trashCount; i++) {

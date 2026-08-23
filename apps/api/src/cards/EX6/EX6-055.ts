@@ -6,136 +6,132 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Trash",
-          "target": {
-            "count": 1,
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand"
-            }
+          kind: "Trash",
+          target: {
+            count: 1,
+            filter: {
+              controller: "opponent",
+              zone: "hand",
+            },
           },
-          "condition": {
-            "kind": "ifThisEffectDidNotAct",
-            "raw": "you didn't"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectDidNotAct",
+            raw: "you didn't",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Trash",
-          "target": {
-            "count": 1,
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand"
-            }
+          kind: "Trash",
+          target: {
+            count: 1,
+            filter: {
+              controller: "opponent",
+              zone: "hand",
+            },
           },
-          "condition": {
-            "kind": "ifThisEffectDidNotAct",
-            "raw": "you didn't"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectDidNotAct",
+            raw: "you didn't",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Rush",
-              "raw": "＜Rush＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Rush",
+              raw: "＜Rush＞",
+            },
           },
-          "while": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "hand",
-            "op": "lte",
-            "value": 5,
-            "raw": "your opponent has 5 or fewer cards in their hand"
-          }
+          while: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "hand",
+            op: "lte",
+            value: 5,
+            raw: "your opponent has 5 or fewer cards in their hand",
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
           },
-          "while": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "hand",
-            "op": "lte",
-            "value": 5,
-            "raw": "your opponent has 5 or fewer cards in their hand"
-          }
-        }
-      ]
-    }
+          while: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "hand",
+            op: "lte",
+            value: 5,
+            raw: "your opponent has 5 or fewer cards in their hand",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-055", compiled);

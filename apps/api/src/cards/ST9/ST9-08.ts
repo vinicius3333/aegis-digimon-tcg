@@ -8,46 +8,46 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   along with one of your other Digimon, into a Digimon in your hand that has [DNA Digivolve].
 // Q713/Q714: target card must have [DNA Digivolve] keyword; can't ignore digivolution requirements.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": [
+          kind: "DnaDigivolve",
+          materials: [
             {
-              "filter": { "isSelfRef": true },
-              "count": 1,
-              "zone": "battleArea"
+              filter: { isSelfRef: true },
+              count: 1,
+              zone: "battleArea",
             },
             {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "excludeSelf": true
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                excludeSelf: true,
               },
-              "count": 1,
-              "zone": "battleArea"
-            }
-          ],
-          "into": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "zone": "hand",
-              "hasDnaDigivolutionRequirement": true
+              count: 1,
+              zone: "battleArea",
             },
-            "count": 1
+          ],
+          into: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              zone: "hand",
+              hasDnaDigivolutionRequirement: true,
+            },
+            count: 1,
           },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST9-08", compiled);

@@ -6,72 +6,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Yoshino Fujieda"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Yoshino Fujieda"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
-          },
-          "while": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
             },
-            "raw": "your opponent has a suspended Digimon"
-          }
-        }
+          },
+          while: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
+            },
+            raw: "your opponent has a suspended Digimon",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-054", compiled);

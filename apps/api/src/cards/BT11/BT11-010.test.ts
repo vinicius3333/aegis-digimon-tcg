@@ -27,10 +27,12 @@ describe("BT11-010 Grizzlymon", () => {
 
   it("does not boost its host for another Digimon's target switch", async () => {
     const s = setupEngine({
-      0: { battleArea: [
-        { card: "BT1-064", as: "host", under: ["BT11-010"] },
-        { card: "BT1-064", as: "other" },
-      ] },
+      0: {
+        battleArea: [
+          { card: "BT1-064", as: "host", under: ["BT11-010"] },
+          { card: "BT1-064", as: "other" },
+        ],
+      },
     });
     const before = s.perm("host").currentDP;
 

@@ -13,27 +13,32 @@ describe("Machinedramon SEC / promo Cyborg deck", () => {
   it("combines SEC MetalGreymon's DP inherited effect with promo Sunarizamon's threshold", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{
-          card: "EX1-073",
-          as: "machinedramon",
-          under: ["P-033", "BT1-114"],
-        }],
+        battleArea: [
+          {
+            card: "EX1-073",
+            as: "machinedramon",
+            under: ["P-033", "BT1-114"],
+          },
+        ],
       },
       1: { security: ["BT1-001", "BT1-002"] },
     });
     await s.ready();
-    await settle(() =>
-      s.perm("machinedramon").currentDP === 14_000 &&
-      observe(s.engine).keywordAmount(s.perm("machinedramon"), "SecurityAttack") === 1,
+    await settle(
+      () =>
+        s.perm("machinedramon").currentDP === 14_000 &&
+        observe(s.engine).keywordAmount(s.perm("machinedramon"), "SecurityAttack") === 1,
     );
 
     expect(s.perm("machinedramon").currentDP).toBe(14_000);
     expect(observe(s.engine).keywordAmount(s.perm("machinedramon"), "SecurityAttack")).toBe(1);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("machinedramon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machinedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.security).toHaveLength(0);
@@ -59,19 +64,20 @@ describe("Machinedramon SEC / promo Cyborg deck", () => {
     );
     s.state.memory = 12;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("machinedramon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard.cardId === "EX1-073" && permanent.stack.length === 5
-      ) && s.state.memory === 5,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("machinedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.cardId === "EX1-073" && permanent.stack.length === 5,
+        ) && s.state.memory === 5,
     );
 
-    const machine = s.state.players[0]!.battleArea.find((permanent) =>
-      permanent.topCard.cardId === "EX1-073"
-    )!;
+    const machine = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX1-073")!;
     expect(new Set(machine.stack.map((card) => card.cardId)).size).toBe(5);
     expect(s.state.memory).toBe(5);
 
@@ -109,10 +115,12 @@ describe("Machinedramon SEC / promo Cyborg deck", () => {
     );
     s.state.memory = 12;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("machinedramon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("machinedramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const selection = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
@@ -125,17 +133,16 @@ describe("Machinedramon SEC / promo Cyborg deck", () => {
       { instanceId: s.inst("metalMamemon").instanceId, cardId: "EX1-050" },
     ]);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: selection.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [
-          s.inst("andromonHand").instanceId,
-          s.inst("andromonTrash").instanceId,
-        ],
-      },
-    })).toEqual({ ok: false, reason: "decision-pending" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("andromonHand").instanceId, s.inst("andromonTrash").instanceId],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "decision-pending" });
     expect(s.state.pendingDecision?.decisionId).toBe(selection.decisionId);
 
     const validSelection = [
@@ -143,25 +150,21 @@ describe("Machinedramon SEC / promo Cyborg deck", () => {
       s.inst("metalTyrannomon").instanceId,
       s.inst("metalMamemon").instanceId,
     ];
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: selection.decisionId,
-      response: { kind: "selectCards", instanceIds: validSelection },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: validSelection },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
-      const machine = s.state.players[0]!.battleArea.find((permanent) =>
-        permanent.topCard.cardId === "EX1-073"
-      );
+      const machine = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX1-073");
       return machine?.stack.length === 3 && s.state.memory === 3;
     });
 
-    const machine = s.state.players[0]!.battleArea.find((permanent) =>
-      permanent.topCard.cardId === "EX1-073"
-    )!;
+    const machine = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX1-073")!;
     expect(machine.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(validSelection));
     expect(machine.stack).toHaveLength(validSelection.length);
-    expect(s.state.players[0]!.trash.some((card) =>
-      card.instanceId === s.inst("andromonTrash").instanceId
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("andromonTrash").instanceId)).toBe(true);
   });
 });

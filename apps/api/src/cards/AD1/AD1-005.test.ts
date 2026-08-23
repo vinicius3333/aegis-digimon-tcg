@@ -9,7 +9,12 @@ describe("AD1-005 Gaiamon", () => {
   it("deletes an opposing Digimon within its DP ceiling when played", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "AD1-005", as: "gaiamon" }, { card: "BT21-005", as: "swipemon" }] },
+        0: {
+          hand: [
+            { card: "AD1-005", as: "gaiamon" },
+            { card: "BT21-005", as: "swipemon" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
@@ -17,7 +22,9 @@ describe("AD1-005 Gaiamon", () => {
     await s.ready();
     s.state.memory = 7;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -28,7 +35,10 @@ describe("AD1-005 Gaiamon", () => {
       {
         0: {
           battleArea: [{ card: "AD1-005", dp: 12000, as: "gaiamon", under: [{ card: "BT21-041", as: "stackLink" }] }],
-          hand: [{ card: "BT21-047", as: "handLink" }, { card: "BT21-005", as: "invalidNoLink" }],
+          hand: [
+            { card: "BT21-047", as: "handLink" },
+            { card: "BT21-005", as: "invalidNoLink" },
+          ],
         },
         1: {
           battleArea: [{ card: "BT1-010", dp: 12000, as: "firstTarget" }],
@@ -40,11 +50,15 @@ describe("AD1-005 Gaiamon", () => {
     await s.ready();
     const gaiamon = s.perm("gaiamon");
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
     await settle(() => gaiamon.linked.length === 2 && s.state.players[1]!.battleArea.length === 0);
     await settle();
 
-    expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("stackLink").instanceId, s.inst("handLink").instanceId]));
+    expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("stackLink").instanceId, s.inst("handLink").instanceId]),
+    );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidNoLink").instanceId)).toBe(true);
 
     const lateLink = s.give(0, Zone.Hand, { card: "P-190", as: "lateLink" });
@@ -58,7 +72,10 @@ describe("AD1-005 Gaiamon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "AD1-005", as: "gaiamon" }] } });
     s.state.memory = -10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiamon").instanceId })).toEqual({ ok: false, reason: "insufficient-memory" });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiamon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {
@@ -70,6 +87,5 @@ describe("AD1-005 Gaiamon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 });

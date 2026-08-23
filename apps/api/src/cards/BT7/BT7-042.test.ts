@@ -6,7 +6,14 @@ import "./BT7-042.js";
 
 describe("BT7-042 AncientKazemon", () => {
   it("gives only Security Digimon +4000 DP on the opponent's turn while it has a Hybrid source", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT7-042", under: ["BT7-035"], as: "ancient" }, { card: "BT6-034", as: "ally" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT7-042", under: ["BT7-035"], as: "ancient" },
+          { card: "BT6-034", as: "ally" },
+        ],
+      },
+    });
     const ancientDP = s.perm("ancient").currentDP;
     const allyDP = s.perm("ally").currentDP;
     s.state.turnSeat = 1;
@@ -29,10 +36,17 @@ describe("BT7-042 AncientKazemon", () => {
   });
 
   it("plays a yellow level 4 Hybrid from hand when deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT7-042", as: "ancient" }], hand: [{ card: "BT7-035", as: "kazemon" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT7-042", as: "ancient" }], hand: [{ card: "BT7-035", as: "kazemon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("kazemon").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("kazemon").instanceId,
+      ),
+    );
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });

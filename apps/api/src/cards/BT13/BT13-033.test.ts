@@ -7,8 +7,22 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects).toHaveLength(2);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", actions: expect.arrayContaining([expect.objectContaining({ kind: "Return", to: "hand" }), expect.objectContaining({ kind: "GainMemory" })]) });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenAttacking", actions: [expect.objectContaining({ kind: "Unsuspend", cost: expect.objectContaining({ kind: "return", to: "deckBottom" }) })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: expect.arrayContaining([
+        expect.objectContaining({ kind: "Return", to: "hand" }),
+        expect.objectContaining({ kind: "GainMemory" }),
+      ]),
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "WhenAttacking",
+      actions: [
+        expect.objectContaining({
+          kind: "Unsuspend",
+          cost: expect.objectContaining({ kind: "return", to: "deckBottom" }),
+        }),
+      ],
+    });
   });
 
   it("loads the registered card into the battle area with its printed attack trigger", async () => {

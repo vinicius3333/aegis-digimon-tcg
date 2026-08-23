@@ -20,7 +20,7 @@ const compiled: CompiledCard = {
             count: 5,
             upTo: true,
             from: ["hand", "trash"],
-              distinctCardNumbers: true,
+            distinctCardNumbers: true,
           },
           underFilter: { isSelfRef: true },
           position: "bottom",

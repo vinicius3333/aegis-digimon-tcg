@@ -8,142 +8,124 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a Digimon with [X Antibody] in its traits in play"
-          }
-        }
-      ]
+            raw: "you have a Digimon with [X Antibody] in its traits in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "X Antibody"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["X Antibody"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "digivolve",
-              "digivolveTarget": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              count: 1,
+              to: "digivolve",
+              digivolveTarget: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
-            }
+              optional: true,
+            },
           ],
-          "rest": "trash"
+          rest: "trash",
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "trash",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "X Antibody"
-                ],
-                "match": "trait"
-              }
-            ]
-          }
-        }
-      ]
+                tokens: ["X Antibody"],
+                match: "trait",
+              },
+            ],
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "optional": true,
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          optional: true,
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "nameOrTrait": [
+              filter: {
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "X Antibody"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["X Antibody"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
+          rest: "trash",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-104", compiled);

@@ -20,7 +20,9 @@ describe("ST6-04 Dracmon", () => {
     );
     preferred.push(s.inst("costSeven").instanceId);
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dracmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dracmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("costSeven").instanceId));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("costSeven").instanceId);

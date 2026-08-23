@@ -10,7 +10,10 @@ describe("EX12-014 Canoweissmon", () => {
       {
         0: {
           battleArea: [{ card: "EX12-007", as: "ally" }],
-          hand: [{ card: "EX12-014", as: "source" }, { card: "EX12-007", as: "material" }],
+          hand: [
+            { card: "EX12-014", as: "source" },
+            { card: "EX12-007", as: "material" },
+          ],
         },
         1: {},
       },
@@ -19,9 +22,14 @@ describe("EX12-014 Canoweissmon", () => {
     preferred.push(s.inst("source").instanceId);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    const sourcePermanent = () => s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId);
-    await settle(() => sourcePermanent()?.stack.some((card) => card.instanceId === s.inst("material").instanceId) === true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    const sourcePermanent = () =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId);
+    await settle(
+      () => sourcePermanent()?.stack.some((card) => card.instanceId === s.inst("material").instanceId) === true,
+    );
 
     expect(sourcePermanent()!.stack.map((card) => card.cardId)).toContain("EX12-007");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(false);
@@ -32,7 +40,10 @@ describe("EX12-014 Canoweissmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX12-007", as: "ally" }, { card: "EX12-011", as: "base" }],
+          battleArea: [
+            { card: "EX12-007", as: "ally" },
+            { card: "EX12-011", as: "base" },
+          ],
           hand: [{ card: "EX12-014", as: "source" }],
           trash: [{ card: "EX12-007", as: "material" }],
         },
@@ -58,13 +69,23 @@ describe("EX12-014 Canoweissmon", () => {
   });
 
   it("still resolves the timing window when no matching card is available", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX12-007", as: "ally" }, { card: "EX12-014", as: "source" }] }, 1: { security: ["BT1-009"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-007", as: "ally" },
+            { card: "EX12-014", as: "source" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
-    await (s.engine as unknown as { fireTimingForInstance(timing: string, instanceId: string): Promise<void> }).fireTimingForInstance(
-      "OnPlay",
-      s.perm("source").topCard!.instanceId,
-    );
+    await (
+      s.engine as unknown as { fireTimingForInstance(timing: string, instanceId: string): Promise<void> }
+    ).fireTimingForInstance("OnPlay", s.perm("source").topCard!.instanceId);
     await settle();
 
     expect(s.perm("source").stack).toHaveLength(0);
@@ -95,7 +116,12 @@ describe("EX12-014 Canoweissmon", () => {
             abortOnDecline: true,
             position: "bottom",
           },
-          { kind: "Attack", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, optional: true, withoutSuspending: false },
+          {
+            kind: "Attack",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            optional: true,
+            withoutSuspending: false,
+          },
         ],
       });
     }

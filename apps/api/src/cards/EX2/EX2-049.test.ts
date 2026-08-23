@@ -68,19 +68,23 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("source").topCard.instanceId,
-      effectKey: "EX2-049/ir-27-0",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard.instanceId,
+        effectKey: "EX2-049/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const activation = s.decisions.at(-1)!.req;
     expect(activation.kind).toBe("optional");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: activation.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activation.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const decision = s.decisions.at(-1)!.req;
@@ -93,11 +97,13 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
       { instanceId: s.inst("otherThree").instanceId, cardId: "BT1-011" },
       { instanceId: s.inst("otherFour").instanceId, cardId: "BT1-012" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("adr").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("adr").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;
@@ -113,13 +119,18 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
       { instanceId: s.inst("otherThree").instanceId, cardId: "BT1-011" },
       { instanceId: s.inst("otherFour").instanceId, cardId: "BT1-012" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: bottomOrder },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined &&
-      s.state.players[0]!.deck.map((card) => card.instanceId).join(",") === bottomOrder.join(","));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: bottomOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.deck.map((card) => card.instanceId).join(",") === bottomOrder.join(","),
+    );
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
   });

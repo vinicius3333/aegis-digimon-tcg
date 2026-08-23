@@ -17,9 +17,11 @@ describe("ST18-07 Kokatorimon", () => {
 
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("blocker"), "Blocker")).toBe(true);
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      isInherited: true,
-      keywords: [expect.objectContaining({ keyword: "Piercing" })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        isInherited: true,
+        keywords: [expect.objectContaining({ keyword: "Piercing" })],
+      }),
+    );
   });
 });

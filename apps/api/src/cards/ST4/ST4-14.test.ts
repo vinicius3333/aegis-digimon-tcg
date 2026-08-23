@@ -8,16 +8,29 @@ import "./ST4-15.js";
 
 describe("ST4-14 Izzy Izumi", () => {
   it("suspends to gain memory when an opposing Digimon becomes suspended", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST4-14", as: "izzy" }], hand: [{ card: "ST4-15", as: "option" }] }, 1: { battleArea: [{ card: "ST4-08", as: "target" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST4-14", as: "izzy" }], hand: [{ card: "ST4-15", as: "option" }] },
+        1: { battleArea: [{ card: "ST4-08", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("izzy").isSuspended && s.state.memory === 2);
     expect(s.perm("target").isSuspended).toBe(true);
   });
   it("may trigger when an opposing Blocker suspends during an attack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST4-14", as: "izzy" }, { card: "ST4-13", as: "attacker" }] },
+        0: {
+          battleArea: [
+            { card: "ST4-14", as: "izzy" },
+            { card: "ST4-13", as: "attacker" },
+          ],
+        },
         1: { battleArea: [{ card: "ST4-08", as: "blocker" }], security: ["ST4-03"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

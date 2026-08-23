@@ -6,31 +6,32 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "condition": {
-                "kind": "selfColorCount", "value": 2,
-                "raw": "this Digimon has 2 or more colors"
-              }
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+              condition: {
+                kind: "selfColorCount",
+                value: 2,
+                raw: "this Digimon has 2 or more colors",
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT16-004", compiled);

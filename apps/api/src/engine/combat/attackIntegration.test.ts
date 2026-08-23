@@ -125,23 +125,23 @@ describe("GameEngine.applyIntent — block wiring", () => {
     const attackerId = s.perm("attacker").permanentId;
     const blockerId = s.perm("blocker").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attackerId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"), 1000);
-    expect(s.engine.applyIntent(1, {
-      type: "declareBlock",
-      blockerPermanentId: blockerId,
-    })).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.permanentId === attackerId,
-    ), 1000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: blockerId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId), 1000);
 
-    const survivingBlocker = s.state.players[1]!.battleArea.find(
-      (permanent) => permanent.permanentId === blockerId,
-    );
+    const survivingBlocker = s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === blockerId);
     expect(survivingBlocker?.isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

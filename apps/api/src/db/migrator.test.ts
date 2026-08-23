@@ -100,15 +100,20 @@ describe("runMigrations", () => {
     await pool.query("UPDATE tournaments SET structure='swiss', best_of=3, top_cut_size=8");
     await runMigrations(pool, migrations);
     expect(
-      (await pool.query("SELECT structure, best_of, top_cut_size FROM tournaments WHERE id=$1", [EXISTING_TOURNAMENT_ID]))
-        .rows[0],
+      (
+        await pool.query("SELECT structure, best_of, top_cut_size FROM tournaments WHERE id=$1", [
+          EXISTING_TOURNAMENT_ID,
+        ])
+      ).rows[0],
     ).toEqual({ structure: "swiss", best_of: 3, top_cut_size: 8 });
   });
 
   it("gives a tournament created after the upgrade the same defaults", async () => {
     const pool = createMemoryPool();
     await runMigrations(pool, migrations);
-    await pool.query("INSERT INTO accounts (id, display_name, created_at) VALUES ($1,'Fresh',1)", [EXISTING_ACCOUNT_ID]);
+    await pool.query("INSERT INTO accounts (id, display_name, created_at) VALUES ($1,'Fresh',1)", [
+      EXISTING_ACCOUNT_ID,
+    ]);
     await pool.query(
       "INSERT INTO tournaments (id,name,block,status,starts_at,max_players,created_by,created_at) VALUES ($1,'Fresh Cup','BT10','registration',1,8,$2,1)",
       [EXISTING_TOURNAMENT_ID, EXISTING_ACCOUNT_ID],

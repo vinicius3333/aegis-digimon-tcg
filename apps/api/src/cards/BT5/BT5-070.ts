@@ -5,65 +5,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 6
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 6,
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
               },
-              "count": 2
+              count: 2,
             },
-            "raw": "＜Digi-Burst 2＞"
-          }
+            raw: "＜Digi-Burst 2＞",
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete"
-          }
-        }
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+          },
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 2,
-          "raw": "＜Digi-Burst 2＞"
-        }
-      ]
-    }
+          keyword: "DigiBurst",
+          amount: 2,
+          raw: "＜Digi-Burst 2＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-070", compiled);

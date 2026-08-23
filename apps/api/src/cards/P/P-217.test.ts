@@ -6,9 +6,7 @@ import "./P-217.js";
 describe("P-217 Haru Shinkai", () => {
   it("exposes On Play and Security effects", () => {
     const source = { isOnBattleArea: () => true } as any;
-    expect(getEffectModule("P-217")!.effectsForTiming(EffectTiming.OnPlay, source)[0]!.effectKey).toBe(
-      "P-217/on-play",
-    );
+    expect(getEffectModule("P-217")!.effectsForTiming(EffectTiming.OnPlay, source)[0]!.effectKey).toBe("P-217/on-play");
     expect(getEffectModule("P-217")!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]!.effectKey).toBe(
       "P-217/security",
     );

@@ -2,11 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import {
-  makeInstance as instance,
-  setupEngine as setup,
-  settle,
-} from "../../engine/testkit/harness.js";
+import { makeInstance as instance, setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 // A3 for BT11-089 (Akiho Rindou) — its [On Play] effect reveals the top 4 cards of the

@@ -5,67 +5,58 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q3843: [Your Turn] affects all of YOUR Digimon with the [NSp] trait;
 // the restriction is attackTargetChange on the controller's NSp Digimon, not the opponent's.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "NSp"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["NSp"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "attackTargetChange",
-          "duration": "whileInPlay"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "traits": [
-        "NSp"
+          restriction: "attackTargetChange",
+          duration: "whileInPlay",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      traits: ["NSp"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX7-022", compiled);

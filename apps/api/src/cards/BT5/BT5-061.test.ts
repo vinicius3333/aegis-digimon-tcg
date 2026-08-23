@@ -11,13 +11,22 @@ describe("BT5-061 Commandramon", () => {
   });
 
   it("can redirect an opposing attack as a Blocker", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-061", as: "command" }], security: ["BT1-009"] },
-      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT5-061", as: "command" }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
     const blockerId = s.perm("command").permanentId;
     expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });

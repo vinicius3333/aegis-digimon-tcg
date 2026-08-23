@@ -10,67 +10,68 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Returning the Agumon permanent already trashes its digivolution cards through the engine's
 // permanent-return seam. Do not emit a second synthetic trash action after the permanent is gone.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "description": "[Main] If you have [Tai Kamiya] in play, you may place 1 of your [Agumon] cards at the bottom of its owner's deck to trigger ＜Draw 3＞. (Draw 3 cards from your deck.) Trash that Digimon's digivolution cards.",
-      "condition": {
-        "kind": "youHave",
-        "filter": {
-          "zone": "battleArea",
-          "controllerDefault": "mine",
-          "nameOrTrait": [
+      trigger: "Main",
+      description:
+        "[Main] If you have [Tai Kamiya] in play, you may place 1 of your [Agumon] cards at the bottom of its owner's deck to trigger ＜Draw 3＞. (Draw 3 cards from your deck.) Trash that Digimon's digivolution cards.",
+      condition: {
+        kind: "youHave",
+        filter: {
+          zone: "battleArea",
+          controllerDefault: "mine",
+          nameOrTrait: [
             {
-              "tokens": ["Tai Kamiya"],
-              "match": "nameExact"
-            }
-          ]
-        },
-        "raw": "you have [Tai Kamiya] in play"
-      },
-      "optional": true,
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": ["Agumon"],
-                  "match": "nameExact"
-                }
-              ]
+              tokens: ["Tai Kamiya"],
+              match: "nameExact",
             },
-            "count": 1
+          ],
+        },
+        raw: "you have [Tai Kamiya] in play",
+      },
+      optional: true,
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Agumon"],
+                  match: "nameExact",
+                },
+              ],
+            },
+            count: 1,
           },
-          "to": "deckBottom",
-          "bindResultAs": "returnedAgumon"
+          to: "deckBottom",
+          bindResultAs: "returnedAgumon",
         },
         {
-          "kind": "Draw",
-          "amount": 3,
-          "controller": "mine",
-          "condition": {
-            "kind": "bindingExists",
-            "ref": "returnedAgumon"
-          }
-        }
-      ]
+          kind: "Draw",
+          amount: 3,
+          controller: "mine",
+          condition: {
+            kind: "bindingExists",
+            ref: "returnedAgumon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "description": "[Security] Add this card to your hand.",
-      "actions": [
+      trigger: "Security",
+      description: "[Security] Add this card to your hand.",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-024", compiled);

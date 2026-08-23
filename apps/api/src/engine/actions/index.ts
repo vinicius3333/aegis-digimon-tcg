@@ -72,19 +72,9 @@ export {
   type AssemblyRejection,
 } from "./assembly.js";
 
-export {
-  validateAttack,
-  applyAttack,
-  type AttackIntent,
-  type AttackDeps,
-} from "./attack.js";
+export { validateAttack, applyAttack, type AttackIntent, type AttackDeps } from "./attack.js";
 
-export {
-  applyDeclareBlock,
-  applyDeclineBlock,
-  validateDeclareBlock,
-  type BlockDeps,
-} from "./block.js";
+export { applyDeclareBlock, applyDeclineBlock, validateDeclareBlock, type BlockDeps } from "./block.js";
 
 export {
   applyRespondAlliance,

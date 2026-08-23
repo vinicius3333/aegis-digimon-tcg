@@ -63,10 +63,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
-    !(
-      action.cost.bindHostAs !== undefined &&
-      action.cost.bindHostAs === action.target.fromSelectionRef
-    ) &&
+    !(action.cost.bindHostAs !== undefined && action.cost.bindHostAs === action.target.fromSelectionRef) &&
     (await resolvePermanentTargets(ctx, action.target)).every((id) => {
       const permanent = ctx.game.permanentById(id);
       return permanent === undefined || permanent.isSuspended !== true;
@@ -173,7 +170,12 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // A Return confirmation is actionable only when at least one legal source exists.
     // This covers optional recovery from trash (EX3-068) as well as optional bounce:
     // never ask the player to confirm a move that has no selectable card or permanent.
-    if (action.kind === "Return" && !action.target.isSelf && action.target.filter.isSelfRef !== true && !(action.from ?? []).includes("digivolutionCards")) {
+    if (
+      action.kind === "Return" &&
+      !action.target.isSelf &&
+      action.target.filter.isSelfRef !== true &&
+      !(action.from ?? []).includes("digivolutionCards")
+    ) {
       const zone = action.target.filter.zone;
       const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? zoneList(zone) : undefined);
       // Only preflight loose-zone recovery here. A battle-area Return may have an
@@ -334,8 +336,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // targetColors is resolved after the action's permanent target is selected; it intentionally
   // has no board-wide scaleFactor. Do not let the generic zero guard abort it before dispatch.
   const isPerTargetScaling =
-    action.scaling?.unit === "targetColors" ||
-    action.scaling?.unit === "targetFaceDownDigivolutionCards";
+    action.scaling?.unit === "targetColors" || action.scaling?.unit === "targetFaceDownDigivolutionCards";
   if (
     scale !== undefined &&
     scale === 0 &&

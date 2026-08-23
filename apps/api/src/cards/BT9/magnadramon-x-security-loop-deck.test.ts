@@ -9,9 +9,7 @@ describe("BT9 Magnadramon X security loop deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT2-037", as: "angelStack", under: ["BT9-109"] },
-          ],
+          battleArea: [{ card: "BT2-037", as: "angelStack", under: ["BT9-109"] }],
           hand: [
             { card: "BT9-040", as: "angewomonX" },
             { card: "BT9-043", as: "magnadramonX" },
@@ -36,52 +34,51 @@ describe("BT9 Magnadramon X security loop deck", () => {
     await s.ready();
 
     const priorDecisionCount = s.decisions.length;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("angelStack").permanentId,
-      instanceId: s.inst("angewomonX").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("angelStack").permanentId,
+        instanceId: s.inst("angewomonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return s.decisions.length > priorDecisionCount &&
-        req?.sourceCardId === "BT9-040" &&
-        req.kind === "chooseTargets";
+      return s.decisions.length > priorDecisionCount && req?.sourceCardId === "BT9-040" && req.kind === "chooseTargets";
     });
 
     const securityAttackChoice = s.decisions.at(-1)!.req;
     expect(new Set(securityAttackChoice.options?.candidateInstanceIds)).toEqual(
-      new Set([
-        s.perm("firstTarget").permanentId,
-        s.perm("secondTarget").permanentId,
-      ]),
+      new Set([s.perm("firstTarget").permanentId, s.perm("secondTarget").permanentId]),
     );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: securityAttackChoice.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("secondTarget").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.security.length === 3 &&
-      s.state.pendingDecision === undefined,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: securityAttackChoice.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("secondTarget").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 3 && s.state.pendingDecision === undefined);
     await settle();
 
     expect(observe(s.engine).keywordAmount(s.perm("firstTarget"), "SecurityAttack")).toBe(0);
     expect(observe(s.engine).keywordAmount(s.perm("secondTarget"), "SecurityAttack")).toBe(-1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("angelStack").permanentId,
-      instanceId: s.inst("magnadramonX").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("firstTarget").currentDP === 2000 &&
-      s.perm("secondTarget").currentDP === 2000 &&
-      observe(s.engine).securityDp(1) === -3000 &&
-      s.state.memory === 6,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("angelStack").permanentId,
+        instanceId: s.inst("magnadramonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("firstTarget").currentDP === 2000 &&
+        s.perm("secondTarget").currentDP === 2000 &&
+        observe(s.engine).securityDp(1) === -3000 &&
+        s.state.memory === 6,
     );
     await settle();
 
@@ -91,15 +88,18 @@ describe("BT9 Magnadramon X security loop deck", () => {
 
     const securityMovedToHandId = s.state.players[0]!.security[0]!.instanceId;
     const firstCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("angelStack").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.events.filter(({ kind }) => kind === "combatResolved").length > firstCombatCount &&
-      !s.perm("angelStack").isSuspended &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === securityMovedToHandId),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("angelStack").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter(({ kind }) => kind === "combatResolved").length > firstCombatCount &&
+        !s.perm("angelStack").isSuspended &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === securityMovedToHandId),
     );
 
     expect(s.state.players[0]!.security).toHaveLength(2);
@@ -109,14 +109,17 @@ describe("BT9 Magnadramon X security loop deck", () => {
 
     const decisionCountBeforeSecondAttack = s.decisions.length;
     const secondCombatCount = s.events.filter(({ kind }) => kind === "combatResolved").length;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("angelStack").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.events.filter(({ kind }) => kind === "combatResolved").length > secondCombatCount &&
-      s.state.players[1]!.security.length === 1,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("angelStack").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.filter(({ kind }) => kind === "combatResolved").length > secondCombatCount &&
+        s.state.players[1]!.security.length === 1,
     );
 
     expect(s.decisions).toHaveLength(decisionCountBeforeSecondAttack);

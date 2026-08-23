@@ -6,89 +6,77 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Execute",
-          "raw": "＜Execute＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Ghost"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Ghost"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          keyword: "Execute",
+          raw: "＜Execute＞",
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["Ghost"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["Ghost"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-072", compiled);

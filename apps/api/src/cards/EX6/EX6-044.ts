@@ -10,194 +10,176 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "relativeTo": {
-                "attr": "dp",
-                "op": "lte",
-                "selectionRef": "digivolveHost"
-              }
-            },
-            "count": "all"
-          },
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "destination": "digivolutionStack",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: {
+                attr: "dp",
+                op: "lte",
+                selectionRef: "digivolveHost",
               },
-              "count": 1,
-              "from": [
-                "hand"
-              ]
             },
-            "host": "target",
-            "underFilter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "orFilters": [
+            count: "all",
+          },
+          amount: 1,
+          cost: {
+            kind: "place",
+            destination: "digivolutionStack",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              from: ["hand"],
+            },
+            host: "target",
+            underFilter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              orFilters: [
                 {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    6
-                  ]
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  levels: [6],
                 },
                 {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "traits": [
-                    "Legend-Arms"
-                  ]
-                }
-              ]
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  traits: ["Legend-Arms"],
+                },
+              ],
             },
-            "position": "bottom",
-            "bindHostAs": "digivolveHost",
-            "raw": "By placing this card as the bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms] trait"
+            position: "bottom",
+            bindHostAs: "digivolveHost",
+            raw: "By placing this card as the bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms] trait",
           },
-          "additionalCost": {
-            "kind": "payMemory",
-            "memory": 3,
-            "raw": "By paying 3 cost"
+          additionalCost: {
+            kind: "payMemory",
+            memory: 3,
+            raw: "By paying 3 cost",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isFromHand": true
+      isFromHand: true,
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker"
+          keyword: {
+            keyword: "Blocker",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Reboot"
+          keyword: {
+            keyword: "Reboot",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "grant": "immuneToOpponentDigimonEffects",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "Blocker"
-          },
-          "duration": "permanent"
-        }
+          grant: "immuneToOpponentDigimonEffects",
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "keywords": []
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "mode": "prevent",
-          "target": {
-            "filter": {
-              "isSelfRef": true,
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "Blocker",
+          },
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+      keywords: [],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          target: {
+            filter: {
+              isSelfRef: true,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "RagnaLoardmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["RagnaLoardmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "leaveCause": "otherThanYourEffect",
-          "exceptDeletion": true,
-          "optional": false,
-          "raw": "[RagnaLoardmon] can't leave the battle area other than by your effects or by deletion"
-        }
+          leaveCause: "otherThanYourEffect",
+          exceptDeletion: true,
+          optional: false,
+          raw: "[RagnaLoardmon] can't leave the battle area other than by your effects or by deletion",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-044", compiled);

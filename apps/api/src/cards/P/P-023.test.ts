@@ -114,10 +114,12 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
     const existingSecurityId = s.inst("existingSecurity").instanceId;
     s.state.memory = 1;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const request = s.decisions.at(-1)!.req;
@@ -129,17 +131,16 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
     );
     expect(request.options?.candidateInstanceIds).toHaveLength(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: request.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [stacked.permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [stacked.permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === stackedTopId));
 
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
-      existingSecurityId,
-      stackedTopId,
-    ]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([existingSecurityId, stackedTopId]);
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === plain.permanentId)).toBe(true);
@@ -156,11 +157,13 @@ describe("P-023 [Security]", () => {
     const optionId = s.inst("option").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === optionId), 5000);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(true);

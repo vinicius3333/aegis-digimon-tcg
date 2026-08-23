@@ -12,7 +12,9 @@ describe("BT24-036 Medicmon", () => {
       payCost: false,
     });
     for (const trigger of ["OnPlay", "OnDeletion"]) {
-      expect(BT24_036.effects?.find((entry) => entry.trigger === trigger && !entry.isLinked)?.actions?.[0]).toMatchObject({
+      expect(
+        BT24_036.effects?.find((entry) => entry.trigger === trigger && !entry.isLinked)?.actions?.[0],
+      ).toMatchObject({
         kind: "ModifyDP",
         amount: -3000,
         duration: "forTheTurn",

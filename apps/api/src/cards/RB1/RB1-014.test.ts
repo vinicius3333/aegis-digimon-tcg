@@ -10,7 +10,12 @@ describe("RB1-014 Thetismon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "RB1-014", as: "thetismon" }], hand: ["RB1-011", "RB1-013"] },
-        1: { battleArea: [{ card: "RB1-024", as: "stacked", under: ["RB1-017", "RB1-020"] }, { card: "EX2-045", as: "empty" }] },
+        1: {
+          battleArea: [
+            { card: "RB1-024", as: "stacked", under: ["RB1-017", "RB1-020"] },
+            { card: "EX2-045", as: "empty" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -27,7 +32,10 @@ describe("RB1-014 Thetismon", () => {
 
   it("leaves cards untouched when no blue payment cards are available", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "RB1-014", as: "thetismon" }] }, 1: { battleArea: [{ card: "RB1-024", as: "stacked", under: ["RB1-017"] }] } },
+      {
+        0: { battleArea: [{ card: "RB1-014", as: "thetismon" }] },
+        1: { battleArea: [{ card: "RB1-024", as: "stacked", under: ["RB1-017"] }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 

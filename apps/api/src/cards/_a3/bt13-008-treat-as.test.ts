@@ -75,11 +75,7 @@ describe("BT13-008 TreatAs A3 (HARD-02)", () => {
 
   it("a Tamer granted Digimon kind can attack (canAttackerDeclare returns null)", () => {
     const ledger = new ContinuousEffectLedger();
-    ledger.addKindGrant(
-      "tamer-A",
-      [CardKind.Digimon],
-      EffectDuration.UntilEachTurnEnd,
-    );
+    ledger.addKindGrant("tamer-A", [CardKind.Digimon], EffectDuration.UntilEachTurnEnd);
     const reader: ContinuousLegalityReader = {
       hasRestriction: () => false,
       hasKeyword: () => false,
@@ -118,11 +114,7 @@ describe("BT13-008 TreatAs A3 (HARD-02)", () => {
 
   it("after duration sweep, the Digimon grant expires and the Tamer can no longer attack", () => {
     const ledger = new ContinuousEffectLedger();
-    ledger.addKindGrant(
-      "tamer-A",
-      [CardKind.Digimon],
-      EffectDuration.UntilEachTurnEnd,
-    );
+    ledger.addKindGrant("tamer-A", [CardKind.Digimon], EffectDuration.UntilEachTurnEnd);
     // Sweep at eachTurnEnd for the owner's seat (0)
     ledger.sweep(state, "eachTurnEnd", 0 as Seat);
     const reader: ContinuousLegalityReader = {

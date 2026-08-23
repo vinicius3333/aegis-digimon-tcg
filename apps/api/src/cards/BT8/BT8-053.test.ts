@@ -8,7 +8,12 @@ describe("BT8-053 Lighdramon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT8-021", as: "base" }], hand: [{ card: "BT8-053", as: "evolving" }] },
-        1: { battleArea: [{ card: "BT1-015", as: "target" }, { card: "BT8-042", as: "levelFive" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-015", as: "target" },
+            { card: "BT8-042", as: "levelFive" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

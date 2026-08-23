@@ -3,14 +3,14 @@
 // KB dependency-free; swap in embeddings here later only if recall proves weak.
 
 const STOPWORDS = new Set(
-  ("a an the of to in on for and or is are be can not it its this that these those you " +
-    "your with as at by from if when then they them their there here").split(" "),
+  (
+    "a an the of to in on for and or is are be can not it its this that these those you " +
+    "your with as at by from if when then they them their there here"
+  ).split(" "),
 );
 
 export function tokenize(text) {
-  return (text.toLowerCase().match(/[a-z0-9]+/g) || []).filter(
-    (token) => token.length > 1 && !STOPWORDS.has(token),
-  );
+  return (text.toLowerCase().match(/[a-z0-9]+/g) || []).filter((token) => token.length > 1 && !STOPWORDS.has(token));
 }
 
 export function bm25Search(query, docs, { k1 = 1.5, b = 0.75, limit = 5 } = {}) {
@@ -43,8 +43,7 @@ export function bm25Search(query, docs, { k1 = 1.5, b = 0.75, limit = 5 } = {}) 
       for (const token of queryTokens) {
         const frequency = termFrequency.get(token) ?? 0;
         if (frequency === 0) continue;
-        score +=
-          idf(token) * ((frequency * (k1 + 1)) / (frequency + k1 * (1 - b + (b * length) / avgLength)));
+        score += idf(token) * ((frequency * (k1 + 1)) / (frequency + k1 * (1 - b + (b * length) / avgLength)));
       }
       return { doc, score };
     })

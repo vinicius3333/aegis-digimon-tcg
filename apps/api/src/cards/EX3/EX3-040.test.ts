@@ -108,9 +108,7 @@ describe("EX3-040 Parasaurmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () =>
-        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-064") &&
-        s.state.memory === 1,
+      () => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-064") && s.state.memory === 1,
     );
 
     expect(s.perm("parasaurmon").isSuspended).toBe(false);

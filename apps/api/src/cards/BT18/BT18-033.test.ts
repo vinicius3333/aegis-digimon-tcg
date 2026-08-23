@@ -19,11 +19,13 @@ describe("BT18-033 Patamon", () => {
     await s.ready();
 
     const source = s.inst("patamon");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find(
-      (effect) => effect.effectKey.startsWith("BT18-033/"),
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+      effect.effectKey.startsWith("BT18-033/"),
     )!.effectKey;
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === source.instanceId);
 
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT18-033");
@@ -43,11 +45,13 @@ describe("BT18-033 Patamon", () => {
     await s.ready();
 
     const source = s.inst("patamon");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find(
-      (effect) => effect.effectKey.startsWith("BT18-033/"),
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+      effect.effectKey.startsWith("BT18-033/"),
     )!.effectKey;
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: false, reason: "illegal-target" },
+    );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === source.instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-063")).toBe(true);
   });

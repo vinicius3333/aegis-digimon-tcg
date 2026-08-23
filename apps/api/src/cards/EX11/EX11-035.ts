@@ -9,134 +9,117 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     says "For each suspended Digimon" with no controller restriction.
 
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
-    { "level": 5, "cost": 3, "isAlternate": true }
-  ],
-  "effects": [
+  digivolutionRequirement: [{ level: 5, cost: 3, isAlternate: true }],
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Vortex",
-          "raw": "＜Vortex＞"
-        }
-      ]
+          keyword: "Vortex",
+          raw: "＜Vortex＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Green"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 3000
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Green"],
+                  dp: {
+                    op: "lte",
+                    value: 3000,
                   },
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Avian",
-                        "Bird"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Avian", "Bird"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true,
-              "dpCeilingModifier": {
-                "mode": "raiseCeiling",
-                "amount": 2000,
-                "scaling": {
-                  "per": 1,
-                  "filter": { "controllerDefault": "any", "suspended": true, "kind": ["Digimon"] },
-                  "unit": "cards"
-                }
-              }
-            }
-          ]
-        }
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+              dpCeilingModifier: {
+                mode: "raiseCeiling",
+                amount: 2000,
+                scaling: {
+                  per: 1,
+                  filter: { controllerDefault: "any", suspended: true, kind: ["Digimon"] },
+                  unit: "cards",
+                },
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-035", compiled);

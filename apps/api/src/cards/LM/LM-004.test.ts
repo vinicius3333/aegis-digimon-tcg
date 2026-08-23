@@ -11,7 +11,12 @@ describe("LM-004 Thetismon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions).toMatchObject([
-        { kind: "Unsuspend", target: { filter: { suspended: true } }, cost: { kind: "trash", target: { count: 2 } }, optional: true },
+        {
+          kind: "Unsuspend",
+          target: { filter: { suspended: true } },
+          cost: { kind: "trash", target: { count: 2 } },
+          optional: true,
+        },
         { kind: "Unsuspend", target: { filter: { kind: ["Tamer"] } } },
         { kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" },
       ]);

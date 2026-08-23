@@ -41,7 +41,10 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Machinedramon"], match: "name" }] }, count: 1 },
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Machinedramon"], match: "name" }] },
+            count: 1,
+          },
           from: ["hand"],
           payCost: false,
         },

@@ -8,14 +8,30 @@ import "./ST3-15.js";
 
 describe("ST3-15 Holy Flame", () => {
   it("gives one opposing Digimon Security Attack -3", async () => {
-    const s = setupEngine({ 0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-15", as: "option" }] }, 1: { battleArea: [{ card: "ST3-07", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-15", as: "option" }] },
+        1: { battleArea: [{ card: "ST3-07", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === -3);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-3);
   });
   it("gives every opposing Digimon Security Attack -1 from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST3-15", as: "option", faceUp: true }] }, 1: { battleArea: [{ card: "ST3-07", as: "first" }, { card: "ST3-08", as: "second" }] } });
+    const s = setupEngine({
+      0: { security: [{ card: "ST3-15", as: "option", faceUp: true }] },
+      1: {
+        battleArea: [
+          { card: "ST3-07", as: "first" },
+          { card: "ST3-08", as: "second" },
+        ],
+      },
+    });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(-1);

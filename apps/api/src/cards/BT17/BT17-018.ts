@@ -3,87 +3,81 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all",
-            "totalDpCap": 15000
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all",
-            "totalDpCap": 15000
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "any"
-            },
-            "unit": "cards"
-          }
-        }
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+            totalDpCap: 15000,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+            totalDpCap: 15000,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          scaling: {
+            per: 10,
+            filter: {
+              zone: "trash",
+              controller: "any",
+            },
+            unit: "cards",
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 6,
-      "names": [
-        "Gallantmon"
-      ],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      level: 6,
+      names: ["Gallantmon"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-018", compiled);

@@ -22,7 +22,9 @@ describe("BT7-012 Brachiomon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT7-012", as: "brachiomon" }] } });
     s.state.memory = 9;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("brachiomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("brachiomon").instanceId })).toEqual({
+      ok: true,
+    });
     await s.ready();
 
     expect(s.state.memory).toBe(2);

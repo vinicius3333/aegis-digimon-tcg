@@ -32,30 +32,34 @@ describe("P-030 Lobomon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("lobomon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lobomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.decisions.at(-1)!.req;
     expect(decision.sourceCardId).toBe("P-030");
     expect(decision.kind).toBe("optional");
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("base").topCard.cardId).toBe("P-030");
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ancient").instanceId)).toBe(true);
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("base"));
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.permanentId === s.perm("base").permanentId
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("base").permanentId),
+    ).toBe(true);
   });
 
   it("digivolves into AncientGarurumon for exactly 1 memory, ignoring requirements", async () => {
@@ -172,11 +176,13 @@ describe("P-030 Lobomon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("omnimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.cardId === "BT5-086");
 
     expect(s.state.memory).toBe(6);

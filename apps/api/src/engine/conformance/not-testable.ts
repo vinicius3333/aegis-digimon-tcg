@@ -30,10 +30,7 @@ function entry<Reason extends string>(id: string, reason: NonEmptyString<Reason>
 }
 
 export const NOT_TESTABLE: readonly NotTestableEntry[] = [
-  entry(
-    "comprehensive-0000",
-    "Title page: document title and version stamp only, no rule content.",
-  ),
+  entry("comprehensive-0000", "Title page: document title and version stamp only, no rule content."),
 
   // Table of contents: each chunk is one dot-leader line ("N. Title .......... page"),
   // reproducing a heading that has its own real content chunk later in the document.

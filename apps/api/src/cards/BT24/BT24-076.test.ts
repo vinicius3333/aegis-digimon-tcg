@@ -175,9 +175,7 @@ describe("BT24-076 WarGrowlmon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
-      ),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId),
     );
   });
 

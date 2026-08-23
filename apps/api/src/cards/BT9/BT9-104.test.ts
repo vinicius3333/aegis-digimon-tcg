@@ -24,12 +24,15 @@ describe("BT9-104 X Digivolution!", () => {
     preferred.push(s.inst("evolution").instanceId, s.inst("placedUnder").instanceId, s.perm("base").permanentId);
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("base").topCard.instanceId === s.inst("evolution").instanceId &&
-      s.perm("base").stack.some((card) => card.instanceId === s.inst("placedUnder").instanceId) &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId) &&
-      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("miss").instanceId),
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("base").topCard.instanceId === s.inst("evolution").instanceId &&
+        s.perm("base").stack.some((card) => card.instanceId === s.inst("placedUnder").instanceId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId) &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("miss").instanceId),
     );
 
     // The Option itself costs 3; only the revealed digivolution is free.
@@ -60,10 +63,12 @@ describe("BT9-104 X Digivolution!", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const evolutionChoice = s.decisions.at(-1)!.req;
@@ -74,18 +79,18 @@ describe("BT9-104 X Digivolution!", () => {
       { instanceId: s.inst("incompatibleX").instanceId, cardId: "BT9-008" },
       { instanceId: s.inst("initialMiss").instanceId, cardId: "BT1-009" },
     ]);
-    expect(evolutionChoice.options?.candidateInstanceIds).toEqual([
-      s.inst("evolution").instanceId,
-    ]);
+    expect(evolutionChoice.options?.candidateInstanceIds).toEqual([s.inst("evolution").instanceId]);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: evolutionChoice.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("evolution").instanceId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: evolutionChoice.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("evolution").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => {
       const decision = s.decisions.at(-1)?.req;
@@ -96,10 +101,7 @@ describe("BT9-104 X Digivolution!", () => {
     // unchosen cards are already in trash before Grademon's When Digivolving opens.
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("incompatibleX").instanceId,
-        s.inst("initialMiss").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("incompatibleX").instanceId, s.inst("initialMiss").instanceId]),
     );
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("evolution").instanceId);
   });

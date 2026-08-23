@@ -10,20 +10,24 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenAttacking",
       isLinked: true,
-      actions: [{
-        kind: "DeDigivolve",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-        amount: 1,
-        cost: {
-          kind: "trash",
-          target: { filter: { controller: "mine", zone: "linked", isSelfRef: true }, count: 1 },
-          raw: "By trashing 1 of this Digimon's link cards",
+      actions: [
+        {
+          kind: "DeDigivolve",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: { filter: { controller: "mine", zone: "linked", isSelfRef: true }, count: 1 },
+            raw: "By trashing 1 of this Digimon's link cards",
+          },
         },
-      }],
+      ],
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

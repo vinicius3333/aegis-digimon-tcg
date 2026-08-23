@@ -2,10 +2,13 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const stackGate = { kind: "anyOf", conditions: [
-  { kind: "selfDigivolutionStackMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Growlmon"], match: "name" }] } },
-  { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
-] };
+const stackGate = {
+  kind: "anyOf",
+  conditions: [
+    { kind: "selfDigivolutionStackMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Growlmon"], match: "name" }] } },
+    { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+  ],
+};
 
 export const compiled: CompiledCard = {
   effects: [
@@ -18,7 +21,18 @@ export const compiled: CompiledCard = {
           kind: "GainTriggeredEffect",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           gainedTrigger: "OnDeletion",
-          gainedActions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] }, count: 1 } }],
+          gainedActions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              target: {
+                filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] },
+                count: 1,
+              },
+            },
+          ],
           duration: "untilOpponentTurnEnd",
           condition: stackGate,
         },
@@ -28,7 +42,15 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "onDeletionOf", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, raw: "when any of your opponent's Digimon is deleted", actions: [{ kind: "GainMemory", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          raw: "when any of your opponent's Digimon is deleted",
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     },
   ],
   coverage: "full",

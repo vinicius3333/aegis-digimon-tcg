@@ -6,9 +6,7 @@ describe("BT4-006 Xiaomon", () => {
   it("grants Retaliation to its host while there are at least 10 cards in trash", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT3-081", dp: 1000, as: "host", under: ["BT4-006"] },
-        ],
+        battleArea: [{ card: "BT3-081", dp: 1000, as: "host", under: ["BT4-006"] }],
         trash: Array.from({ length: 10 }, () => "BT1-010"),
       },
       1: { battleArea: [{ card: "BT1-057", dp: 5000, suspended: true, as: "defender" }] },

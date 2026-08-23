@@ -43,10 +43,7 @@ describe("breeding-resident firing seam — a [Breeding] effect fires while the 
 
     // FAILS-WHEN-REVERTED: with the breeding builder guarded by onField, a breeding-area card's
     // [Breeding] effect never fires, so the replacement is never installed and this is 0.
-    const reduction = advance(s.engine).ledgers.subTriggers.costReductionFor(
-      "wouldBePlayed",
-      bred.permanentId,
-    );
+    const reduction = advance(s.engine).ledgers.subTriggers.costReductionFor("wouldBePlayed", bred.permanentId);
     expect(reduction).toBe(1);
   });
 

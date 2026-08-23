@@ -25,15 +25,18 @@ describe("BT8 Kimeramon/Canoweissmon acquired-effect timing", () => {
     const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     await settle(() => mainPhase.isOpen);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("betel").permanentId,
-      instanceId: s.inst("kimeramon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("betel").topCard.cardId === "BT8-084" &&
-      s.perm("betel").stack.some(({ instanceId }) => instanceId === s.inst("canoweissmon").instanceId) &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("betel").permanentId,
+        instanceId: s.inst("kimeramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("betel").topCard.cardId === "BT8-084" &&
+        s.perm("betel").stack.some(({ instanceId }) => instanceId === s.inst("canoweissmon").instanceId) &&
+        s.state.pendingDecision === undefined,
     );
 
     // Q1940: Canoweissmon's inherited grant is acquired only after this When Digivolving

@@ -7,67 +7,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [],
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blitz",
-          "raw": "＜Blitz＞"
-        }
-      ]
+          keyword: "Blitz",
+          raw: "＜Blitz＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenBlocked",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenBlocked",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
-              }
+                count: 1,
+                isSelf: true,
+              },
             },
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "scaling": {
-                "per": 1,
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "GainMemory",
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Hybrid"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Hybrid"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "unit": "digivolutionCards"
-              }
-            }
-          ]
-        }
+                unit: "digivolutionCards",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-016", compiled);

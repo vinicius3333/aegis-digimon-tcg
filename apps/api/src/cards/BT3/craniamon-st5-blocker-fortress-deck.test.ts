@@ -32,54 +32,59 @@ describe("BT3 Craniamon ST5 Blocker fortress deck gauntlet", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("inheritedBlocker"), "Blocker")).toBe(true);
-    expect(s.engine.applyIntent(1, {
-      type: "playCard",
-      instanceId: s.inst("gaiaForce").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("gaiaForce").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const deletionDecision = s.state.pendingDecision;
     expect(deletionDecision?.kind).toBe("chooseTargets");
-    const deletionRequest = s.decisions.find(
-      ({ req }) => req.decisionId === deletionDecision?.decisionId,
-    )?.req;
+    const deletionRequest = s.decisions.find(({ req }) => req.decisionId === deletionDecision?.decisionId)?.req;
     expect(deletionRequest?.sourceCardId).toBe("ST1-16");
     expect(new Set(deletionRequest?.options?.candidateInstanceIds ?? [])).toEqual(
       new Set([craniamonId, inheritedBlockerId, printedBlockerId]),
     );
-    expect(s.engine.applyIntent(1, {
-      type: "respondDecision",
-      decisionId: deletionDecision!.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [inheritedBlockerId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[1]!.trash.some(({ cardId }) => cardId === "ST1-16"),
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: deletionDecision!.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [inheritedBlockerId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined && s.state.players[1]!.trash.some(({ cardId }) => cardId === "ST1-16"),
     );
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
       expect.arrayContaining([craniamonId, inheritedBlockerId, printedBlockerId]),
     );
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).blockingSeat() === 0);
-    expect(s.engine.applyIntent(0, {
-      type: "declareBlock",
-      blockerPermanentId: inheritedBlockerId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === inheritedBlockerId),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: inheritedBlockerId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === inheritedBlockerId),
       5000,
     );
 
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["ST5-11", "ST5-12"]),
-    );
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["ST5-11", "ST5-12"]));
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === craniamonId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === printedBlockerId)).toBe(true);
     assertNoLoudGap(s);

@@ -6,7 +6,11 @@ import "./ST5-03.js";
 
 describe("ST5-03 Agumon", () => {
   it("is fully represented as a static Blocker keyword", () => {
-    expect(runtimeCompiledCard("ST5-03")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "Static", keywords: [{ keyword: "Blocker" }] }] });
+    expect(runtimeCompiledCard("ST5-03")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "Static", keywords: [{ keyword: "Blocker" }] }],
+    });
   });
 
   it("has Blocker", async () => {

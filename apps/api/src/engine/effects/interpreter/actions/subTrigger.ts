@@ -289,7 +289,9 @@ export async function runSubTrigger(
           const deletedCardId = subCtx.trigger.deletedTopCardId;
           if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
           const definition = getCardDefinition(deletedCardId);
-          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(KIND_MAP[kind]));
+          return (
+            definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(KIND_MAP[kind]))
+          );
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
@@ -475,8 +477,7 @@ export async function runSubTrigger(
   // cards' owner seat, mirroring the trash-to-hand event above.
   const cardReturnsFromTrashToDeckGate =
     event === "whenCardReturnsFromTrashToDeck"
-      ? (subCtx: EffectContext): boolean =>
-          subCtx.trigger?.returnedFromTrashToDeckSeat === subCtx.source.ownerSeat
+      ? (subCtx: EffectContext): boolean => subCtx.trigger?.returnedFromTrashToDeckSeat === subCtx.source.ownerSeat
       : undefined;
   // Event payloads attributed to an effect carry the acting seat. `bySourceController`
   // enforces printed clauses such as "one of YOUR effects suspends" and "using one of YOUR

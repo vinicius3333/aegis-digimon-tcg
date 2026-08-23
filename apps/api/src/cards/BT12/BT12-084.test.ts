@@ -24,14 +24,17 @@ describe("BT12-084 handwritten module", () => {
 });
 
 it("applies both Blocker and return restriction when Sparrowmon is in its stack", async () => {
-  const s = setupEngine({
-    0: {
-      battleArea: [
-        { card: "BT12-084", as: "jet", under: ["BT10-060"] },
-        { card: "BT1-009", as: "ally" },
-      ],
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-084", as: "jet", under: ["BT10-060"] },
+          { card: "BT1-009", as: "ally" },
+        ],
+      },
     },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("jet"));
   expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
   const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
@@ -57,5 +60,7 @@ it("keeps the protection after resolution against hand and deck returns", async 
   const allyId = s.perm("ally").topCard!.instanceId;
   await advance(s.engine).verb.returnToHand([allyId]);
   await advance(s.engine).verb.returnToDeck([allyId], { toTop: false });
-  expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("ally").permanentId)).toBe(true);
+  expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("ally").permanentId)).toBe(
+    true,
+  );
 });

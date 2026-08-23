@@ -8,58 +8,108 @@ import "../index.js";
 
 describe("BT26-026 Cougarmon", () => {
   it("models the printed evolution, Barrier, and alternate-cost choices", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Glowing Dawn"], cost: 2, isAlternate: true }]);
-    expect(compiled.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] }),
-      expect.objectContaining({ trigger: "Static", isInherited: true, keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] }),
-      expect.objectContaining({ trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [expect.objectContaining({
-        kind: "Modal", choose: 1, options: expect.arrayContaining([
-          [expect.objectContaining({ kind: "UseOptionWithoutCost", payCost: true, reduceCostBy: 2, cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" } })],
-          [expect.objectContaining({ kind: "UseOptionWithoutCost", payCost: true, reduceCostBy: 2, cost: { kind: "trashSecurityTop", controller: "mine" } })],
-        ]),
-      })] }),
-    ]));
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, traits: ["Glowing Dawn"], cost: 2, isAlternate: true },
+    ]);
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] }),
+        expect.objectContaining({
+          trigger: "Static",
+          isInherited: true,
+          keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }],
+        }),
+        expect.objectContaining({
+          trigger: "WhenAttacking",
+          frequency: "OncePerTurn",
+          actions: [
+            expect.objectContaining({
+              kind: "Modal",
+              choose: 1,
+              options: expect.arrayContaining([
+                [
+                  expect.objectContaining({
+                    kind: "UseOptionWithoutCost",
+                    payCost: true,
+                    reduceCostBy: 2,
+                    cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
+                  }),
+                ],
+                [
+                  expect.objectContaining({
+                    kind: "UseOptionWithoutCost",
+                    payCost: true,
+                    reduceCostBy: 2,
+                    cost: { kind: "trashSecurityTop", controller: "mine" },
+                  }),
+                ],
+              ]),
+            }),
+          ],
+        }),
+      ]),
+    );
   });
 
   it("publicly uses a Glowing Dawn Option after paying the security-top alternate cost", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-026", as: "cougarmon" }], hand: [{ card: "P-236", as: "option" }], security: ["BT1-001"] },
-    }, { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-026", as: "cougarmon" }],
+          hand: [{ card: "P-236", as: "option" }],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
     s.state.memory = 2;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("cougarmon"), { attackerPermanentId: s.perm("cougarmon").permanentId });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("cougarmon"), {
+      attackerPermanentId: s.perm("cougarmon").permanentId,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    );
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
   });
 
   it("uses the bottom face-down Tamer card as the alternate cost and reveals it in trash", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT26-026", as: "cougarmon" },
-          { card: "BT26-089", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
-        ],
-        hand: [{ card: "P-236", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-026", as: "cougarmon" },
+            { card: "BT26-089", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "P-236", as: "option" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
     s.state.memory = 1;
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("cougarmon"), {
       attackerPermanentId: s.perm("cougarmon").permanentId,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    );
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({
-      instanceId: s.inst("cost").instanceId,
-      faceUp: true,
-    }));
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({
+        instanceId: s.inst("cost").instanceId,
+        faceUp: true,
+      }),
+    );
   });
 
   it("publishes Barrier from the top card and as an inherited keyword", async () => {
@@ -91,12 +141,14 @@ describe("BT26-026 Cougarmon", () => {
       },
     });
     legal.state.memory = 2;
-    expect(legal.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: legal.perm("base").permanentId,
-      instanceId: legal.inst("cougarmon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("cougarmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => legal.perm("base").topCard.cardId === "BT26-026");
     expect(legal.state.memory).toBe(0);
 
@@ -107,11 +159,13 @@ describe("BT26-026 Cougarmon", () => {
       },
     });
     invalid.state.memory = 2;
-    expect(invalid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: invalid.perm("base").permanentId,
-      instanceId: invalid.inst("cougarmon").instanceId,
-      useAlternateCost: true,
-    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("cougarmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

@@ -25,7 +25,12 @@ const compiled: CompiledCard = {
         {
           kind: "Digivolve",
           target: { filter: { controller: "mine", kind: ["Digimon"], traits: ["Armor Form"] }, count: 1 },
-          into: { zone: "hand", controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Magnamon"], match: "name" }] },
+          into: {
+            zone: "hand",
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Magnamon"], match: "name" }],
+          },
           from: ["hand"],
           payCost: false,
           ignoreDigivolutionRequirements: true,
@@ -45,7 +50,14 @@ const compiled: CompiledCard = {
     {
       trigger: "Security",
       actions: [
-        { kind: "Return", target: { filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Magnamon"], match: "name" }] }, count: 1 }, to: "hand" },
+        {
+          kind: "Return",
+          target: {
+            filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Magnamon"], match: "name" }] },
+            count: 1,
+          },
+          to: "hand",
+        },
         { kind: "AddToHandSelf" },
       ],
       isSecurity: true,

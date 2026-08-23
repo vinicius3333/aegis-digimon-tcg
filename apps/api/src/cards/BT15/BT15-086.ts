@@ -9,183 +9,163 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited [All Turns]: while this Digimon has [Machine]/[Cyborg]/[SoC] trait, gains <Jamming> and <Blocker>.
 // Inherited [End of All Turns]: you may play 1 [Marvin Jackson] from this Digimon's digivolution cards without cost.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
+      isSecurity: true,
     },
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Machine",
-                      "Cyborg",
-                      "SoC"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Machine", "Cyborg", "SoC"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with the [Machine]/[Cyborg]/[SoC] trait in your hand"
+            raw: "By trashing 1 card with the [Machine]/[Cyborg]/[SoC] trait in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "MindLink",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+          kind: "MindLink",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Machine", "Cyborg", "SoC"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Machine",
-                    "Cyborg",
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Jamming",
-              "raw": "＜Jamming＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Jamming",
+              raw: "＜Jamming＞",
+            },
           },
-          "while": {
-            "kind": "selfTopHasText",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfTopHasText",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Machine",
-                    "Cyborg",
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Machine", "Cyborg", "SoC"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "while this Digimon has the [Machine]/[Cyborg]/[SoC] trait"
-          }
+            raw: "while this Digimon has the [Machine]/[Cyborg]/[SoC] trait",
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Blocker",
+              raw: "＜Blocker＞",
+            },
           },
-          "while": {
-            "kind": "selfTopHasText",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfTopHasText",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Machine",
-                    "Cyborg",
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Machine", "Cyborg", "SoC"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "while this Digimon has the [Machine]/[Cyborg]/[SoC] trait"
-          }
-        }
+            raw: "while this Digimon has the [Machine]/[Cyborg]/[SoC] trait",
+          },
+        },
       ],
-      "isInherited": true
+      isInherited: true,
     },
     {
-      "trigger": "EndOfAllTurns",
-      "actions": [
+      trigger: "EndOfAllTurns",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Marvin Jackson"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Marvin Jackson"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "fromOwnDigivolutionStack": true,
-          "payCost": false,
-          "optional": true
-        }
+          fromOwnDigivolutionStack: true,
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-086", compiled);

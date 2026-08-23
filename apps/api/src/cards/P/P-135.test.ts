@@ -27,11 +27,13 @@ describe("P-135 ShoeShoemon", () => {
     preferred.push(restrictedId);
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("shoeshoemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shoeshoemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         observe(s.engine).isRestricted(restrictedId, "cantAttackDigimon") &&
@@ -43,17 +45,21 @@ describe("P-135 ShoeShoemon", () => {
 
     s.state.turnSeat = 1;
     s.state.phase = Phase.Main;
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: restrictedId,
-      target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: restrictedId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: restrictedId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: restrictedId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -62,7 +68,12 @@ describe("P-135 ShoeShoemon", () => {
 
   it("gains Jamming on its owner's turn only while Arisa Kinosaki is present", async () => {
     const withArisa = setupEngine({
-      0: { battleArea: [{ card: "P-135", as: "shoeshoemon" }, { card: "P-136", as: "arisa" }] },
+      0: {
+        battleArea: [
+          { card: "P-135", as: "shoeshoemon" },
+          { card: "P-136", as: "arisa" },
+        ],
+      },
     });
     await withArisa.ready();
     expect(observe(withArisa.engine).hasKeyword(withArisa.perm("shoeshoemon"), "Jamming")).toBe(true);

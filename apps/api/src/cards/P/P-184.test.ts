@@ -21,8 +21,14 @@ describe("P-184 Dorugoramon", () => {
         { kind: "ModifyDP", amount: 3000, duration: "untilOpponentTurnEnd", target: { isSelf: true, count: 1 } },
         {
           kind: "Unsuspend",
-          target: { count: "all", filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["SoC"], match: "trait" }] } },
-          condition: { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] } },
+          target: {
+            count: "all",
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["SoC"], match: "trait" }] },
+          },
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Kosuke Kisakata"], match: "name" }] },
+          },
         },
       ],
     });

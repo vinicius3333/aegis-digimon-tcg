@@ -23,10 +23,7 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
             { card: "ST2-12", as: "existingMatt" },
             { card: "BT1-009", as: "spareDigimon" },
           ],
-          hand: [
-            { card: "ST2-12", as: "mattToPlay" },
-            ...handFillers,
-          ],
+          hand: [{ card: "ST2-12", as: "mattToPlay" }, ...handFillers],
           deck: [
             { card: "EX1-011", as: "revealedGabumon" },
             { card: "ST2-12", as: "revealedMatt" },
@@ -35,14 +32,16 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
           ],
         },
         1: {
-          battleArea: [{
-            card: "EX1-034",
-            as: "palmonTarget",
-            under: [
-              { card: "BT1-069", as: "firstSource" },
-              { card: "BT1-070", as: "secondSource" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "EX1-034",
+              as: "palmonTarget",
+              under: [
+                { card: "BT1-069", as: "firstSource" },
+                { card: "BT1-070", as: "secondSource" },
+              ],
+            },
+          ],
           security: ["BT1-009"],
         },
       },
@@ -63,22 +62,19 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("metalGarurumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      s.state.players[0]!.battleArea.some(
-        ({ topCard }) => topCard.instanceId === s.inst("mattToPlay").instanceId,
-      ) &&
-      s.state.players[0]!.hand.some(
-        ({ instanceId }) => instanceId === s.inst("revealedGabumon").instanceId,
-      ) &&
-      s.state.players[1]!.deck.some(
-        ({ instanceId }) => instanceId === palmonTopId,
-      ),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("metalGarurumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("mattToPlay").instanceId) &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("revealedGabumon").instanceId) &&
+        s.state.players[1]!.deck.some(({ instanceId }) => instanceId === palmonTopId),
       5000,
     );
 
@@ -87,16 +83,10 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
     expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand).toHaveLength(9);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("unrevealed").instanceId,
-        s.inst("revealedRest").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("unrevealed").instanceId, s.inst("revealedRest").instanceId]),
     );
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("firstSource").instanceId,
-        s.inst("secondSource").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("firstSource").instanceId, s.inst("secondSource").instanceId]),
     );
     // Returning to deck is not deletion, so Palmon's On Deletion suspend never fires on
     // the otherwise eligible unsuspended spare Digimon.

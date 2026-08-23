@@ -6,69 +6,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "actions": [
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "optional": true
-            }
-          ]
-        }
+            count: 1,
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          actions: [
+            {
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-053", compiled);

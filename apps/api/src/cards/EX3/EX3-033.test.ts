@@ -175,9 +175,7 @@ describe("EX3-033 AeroVeedramon", () => {
   it("does not offer placement when Trial is already in the battle area", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "EX3-031", as: "base" },
-        ],
+        battleArea: [{ card: "EX3-031", as: "base" }],
         hand: [
           { card: "EX3-033", as: "aeroveedramon" },
           { card: "EX3-069", as: "existingTrial" },

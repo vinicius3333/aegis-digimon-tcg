@@ -25,22 +25,25 @@ describe("BT10-013 Shoutmon X5", () => {
   });
 
   it("DigiXroses with all five Xros Heart materials for zero cost, then Material Saves exactly three", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT10-087", as: "taiki" }],
-        hand: [
-          { card: "BT10-013", as: "shoutmonX5" },
-          { card: "BT10-008", as: "shoutmon" },
-          { card: "BT10-049", as: "ballistamon" },
-          { card: "BT10-034", as: "dorulumon" },
-          { card: "BT10-029", as: "starmons" },
-          { card: "BT10-060", as: "sparrowmon" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-087", as: "taiki" }],
+          hand: [
+            { card: "BT10-013", as: "shoutmonX5" },
+            { card: "BT10-008", as: "shoutmon" },
+            { card: "BT10-049", as: "ballistamon" },
+            { card: "BT10-034", as: "dorulumon" },
+            { card: "BT10-029", as: "starmons" },
+            { card: "BT10-060", as: "sparrowmon" },
+          ],
+        },
       },
-    }, {
-      autoSelectCards: true,
-      autoOrderTriggers: true,
-    });
+      {
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+      },
+    );
     const materialIds = [
       s.inst("shoutmon").instanceId,
       s.inst("ballistamon").instanceId,
@@ -50,14 +53,18 @@ describe("BT10-013 Shoutmon X5", () => {
     ];
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("shoutmonX5").instanceId,
-      digiXros: { materialInstanceIds: materialIds },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("shoutmonX5").instanceId && permanent.stack.length === 5,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("shoutmonX5").instanceId,
+        digiXros: { materialInstanceIds: materialIds },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("shoutmonX5").instanceId && permanent.stack.length === 5,
+      ),
+    );
 
     const x5 = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.instanceId === s.inst("shoutmonX5").instanceId,

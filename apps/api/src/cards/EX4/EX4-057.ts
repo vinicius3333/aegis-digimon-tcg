@@ -24,128 +24,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    action itself `optional:true` (same pattern as BT2-084), not a separate mandatory
 //    Suspend action ahead of it.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "AddDPFromSuspendedCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "AddDPFromSuspendedCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "dpSource": {
-            "kind": "suspendedTarget"
+          dpSource: {
+            kind: "suspendedTarget",
           },
-          "duration": "forThisAttack",
-          "alsoGainKeywords": [
+          duration: "forThisAttack",
+          alsoGainKeywords: [
             {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
           ],
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "battleArea",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "battleArea",
+                excludeSelf: true,
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by suspending 1 of your other Digimon"
+            raw: "by suspending 1 of your other Digimon",
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfAttack",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Green"
-              ],
-              "levels": [
-                3
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfAttack",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Green"
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "raw": "you have another suspended Digimon in play"
-          }
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Green"],
+              levels: [3],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Green"],
+            },
+            count: 1,
+          },
+          to: "hand",
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              excludeSelf: true,
+              suspended: true,
+              kind: ["Digimon"],
+            },
+            raw: "you have another suspended Digimon in play",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "multicolor": true,
-      "colors": [
-        "Green"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      multicolor: true,
+      colors: ["Green"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX4-057", compiled);

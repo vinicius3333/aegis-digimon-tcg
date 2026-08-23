@@ -21,13 +21,17 @@ describe("EX12-016 MetalGreymon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard?.cardId !== "BT1-011"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("victim").isSuspended).toBe(false);
     s.state.turnSeat = 1;
-    void (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnStartMainPhase);
+    void (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
+      EffectTiming.OnStartMainPhase,
+    );
     await settle(() => s.perm("victim").isSuspended);
     expect(s.perm("victim").isSuspended).toBe(true);
   });
@@ -50,16 +54,20 @@ describe("EX12-016 MetalGreymon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard?.cardId !== "BT1-011"));
     expect(s.perm("base").topCard?.cardId).toBe("EX12-016");
 
     s.state.turnSeat = 1;
-    void (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(EffectTiming.OnStartMainPhase);
+    void (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
+      EffectTiming.OnStartMainPhase,
+    );
     await settle(() => s.perm("victim").isSuspended);
     expect(s.perm("victim").isSuspended).toBe(true);
   });
@@ -74,7 +82,9 @@ describe("EX12-016 MetalGreymon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
     expect(s.perm("opponent").currentDP).toBe(7000);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -89,11 +99,13 @@ describe("EX12-016 MetalGreymon", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-      assembly: { materialInstanceIds: [s.inst("material").instanceId] },
-    } as never)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        assembly: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-016"));
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "EX12-016")!;
@@ -110,23 +122,30 @@ describe("EX12-016 MetalGreymon", () => {
     ]);
     expect(assemblyRequirementFor("EX12-016")).toEqual([
       {
-        materials: [{
-          count: 1,
-          nameOrTrait: [
-            { tokens: ["Agumon", "Greymon"], match: "name" },
-            { tokens: ["ME", "VB"], match: "trait" },
-          ],
-          levelMax: 4,
-        }],
+        materials: [
+          {
+            count: 1,
+            nameOrTrait: [
+              { tokens: ["Agumon", "Greymon"], match: "name" },
+              { tokens: ["ME", "VB"], match: "trait" },
+            ],
+            levelMax: 4,
+          },
+        ],
         reduceCost: 2,
       },
     ]);
     expect(compiled.effects.filter((effect) => effect.trigger === "Static")).toHaveLength(3);
-    expect(compiled.effects.filter((effect) => effect.keywords?.some((keyword) => keyword.keyword === "Decode"))).toHaveLength(2);
+    expect(
+      compiled.effects.filter((effect) => effect.keywords?.some((keyword) => keyword.keyword === "Decode")),
+    ).toHaveLength(2);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
-          { kind: "Delete", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } } } },
+          {
+            kind: "Delete",
+            target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } } },
+          },
           {
             kind: "SubTrigger",
             event: "startOfYourMainPhase",

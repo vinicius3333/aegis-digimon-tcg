@@ -6,26 +6,26 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "selfHasKeyword",
-            "keyword": "Jamming",
-            "raw": "this Digimon has ＜Jamming＞"
-          }
-        }
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "selfHasKeyword",
+            keyword: "Jamming",
+            raw: "this Digimon has ＜Jamming＞",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-013", compiled);

@@ -6,59 +6,55 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 3
+            count: 3,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
               },
-              "count": 3
+              count: 3,
             },
-            "raw": "＜Digi-Burst 3＞"
-          }
+            raw: "＜Digi-Burst 3＞",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
+          amount: -4000,
+          duration: "forTheTurn",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 3,
-          "raw": "＜Digi-Burst 3＞"
-        }
-      ]
-    }
+          keyword: "DigiBurst",
+          amount: 3,
+          raw: "＜Digi-Burst 3＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-049", compiled);

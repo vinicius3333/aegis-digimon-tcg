@@ -11,153 +11,131 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4709: "with cards under it" = has digivolution cards stacked under it.
 // Inherited [When Attacking][Once Per Turn]: <Draw 1> and trash 1 card in hand.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "hasAny",
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          amount: 3,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gesomon"
-                  ],
-                  "match": "name"
+                  tokens: ["Gesomon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "if [Gesomon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "digivolutionCards": "none"
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "digivolutionCards": "hasAny"
-            },
-            "count": 1
-          },
-          "amount": 3,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Gesomon"
-                  ],
-                  "match": "name"
+                  tokens: ["X Antibody"],
+                  match: "trait",
                 },
-                {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "if [Gesomon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
               ],
-              "digivolutionCards": "none"
             },
-            "count": 1
+            raw: "if [Gesomon] or [X Antibody] is in this Digimon's digivolution cards",
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "none",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "hasAny",
+            },
+            count: 1,
+          },
+          amount: 3,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["Gesomon"],
+                  match: "name",
+                },
+                {
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
+            },
+            raw: "if [Gesomon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              digivolutionCards: "none",
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Gesomon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Gesomon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-069", compiled);

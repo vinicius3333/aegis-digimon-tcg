@@ -138,11 +138,13 @@ describe("ST17-13 Magnamon [Security] — end of security battle digivolution", 
     await s.ready();
     const attackerPermanentId = s.perm("attacker").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => s.perm("veemon").topCard.cardId === "ST17-13", 3000);
     expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("checked").instanceId);
@@ -160,13 +162,18 @@ describe("ST17-13 Magnamon [Security] — end of security battle digivolution", 
     await s.ready();
     const attackerPermanentId = s.perm("attacker").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerPermanentId), 3000);
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerPermanentId),
+      3000,
+    );
     expect(() => s.perm("attacker")).toThrow('permanent for "attacker"');
   });
 });

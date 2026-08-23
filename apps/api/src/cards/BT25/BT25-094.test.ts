@@ -22,11 +22,13 @@ describe("BT25-094 Cosmic Area", () => {
     const areaId = s.inst("area").instanceId;
     type PlayCardIntentWithUseAs = Parameters<typeof s.engine.applyIntent>[1] & { useAs?: "digimon" | "option" };
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: areaId,
-      useAs: "option",
-    } as PlayCardIntentWithUseAs)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: areaId,
+        useAs: "option",
+      } as PlayCardIntentWithUseAs),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === areaId));
 
     expect(s.state.players[0]!.security.find((card) => card.instanceId === areaId)).toMatchObject({

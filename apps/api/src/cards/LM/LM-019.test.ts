@@ -17,20 +17,33 @@ describe("LM-019 Bokomon", () => {
   });
 
   it("reveals four cards and adds a Digimon with Gammamon in its text", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "LM-019", as: "bokomon" }], deck: ["AD1-007", "BT1-009", "BT1-010", "BT1-011"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "LM-019", as: "bokomon" }], deck: ["AD1-007", "BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 2;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "AD1-007"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "AD1-007")).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(3);
   });
 
   it("deletes itself to prevent another Gammamon-text Digimon from leaving", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "LM-019", as: "bokomon" }, { card: "AD1-007", as: "gammamon" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-019", as: "bokomon" },
+            { card: "AD1-007", as: "gammamon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const protectedId = s.perm("gammamon").permanentId;
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();

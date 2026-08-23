@@ -6,133 +6,115 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 7,
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              playCostLte: 7,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "WG"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["WG"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 2,
-            "upTo": true
+            count: 2,
+            upTo: true,
           },
-          "to": "deckBottom",
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
+          to: "deckBottom",
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "WG"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "leaveCause": "otherThanBattle",
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "playCostLte": 7,
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "WG"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                },
-                "count": 1
+                tokens: ["WG"],
+                match: "trait",
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+            ],
+          },
+          leaveCause: "otherThanBattle",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  playCostLte: 7,
+                  nameOrTrait: [
+                    {
+                      tokens: ["WG"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX9-045", compiled);

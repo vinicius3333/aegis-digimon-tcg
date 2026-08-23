@@ -13,20 +13,36 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] },
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
+          },
           actions: [
             {
               kind: "ModifyDP",
-              target: { sourceRef: "triggerSubject", filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+              target: {
+                sourceRef: "triggerSubject",
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
               amount: 2000,
               duration: "untilOpponentTurnEnd",
-              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
               optional: true,
               abortOnDecline: true,
             },
             {
               kind: "Restrict",
-              target: { sourceRef: "triggerSubject", filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+              target: {
+                sourceRef: "triggerSubject",
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
               restriction: "beAffected",
               duration: "untilOpponentTurnEnd",
               fromSourceKind: ["Option"],
@@ -39,7 +55,9 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

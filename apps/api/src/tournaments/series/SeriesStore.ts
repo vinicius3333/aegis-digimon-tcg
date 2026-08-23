@@ -810,7 +810,8 @@ export class SeriesStore {
       // itself would be a lie. `decide` writes no score, because an administratively settled
       // confrontation genuinely had no games: claiming wins nobody played for would be worse.
       if (input.mode === "correct") {
-        const wins = input.correctedWins ?? coherentWins(before.wins, input.outcome.officialResult, before.winsRequired);
+        const wins =
+          input.correctedWins ?? coherentWins(before.wins, input.outcome.officialResult, before.winsRequired);
         if (wins[0] !== before.wins[0] || wins[1] !== before.wins[1])
           await client.query("UPDATE match_series SET wins0=$1, wins1=$2 WHERE id=$3", [wins[0], wins[1], before.id]);
       }
@@ -1396,10 +1397,7 @@ function toGame(row: GameRow): GameRecord {
     allocatedAt: Number(row.allocated_at),
     claimedAt: nullableNumber(row.claimed_at),
     finishedAt: nullableNumber(row.finished_at),
-    deckSnapshots: [
-      parseSnapshot(row.player0_deck_snapshot) ?? null,
-      parseSnapshot(row.player1_deck_snapshot) ?? null,
-    ],
+    deckSnapshots: [parseSnapshot(row.player0_deck_snapshot) ?? null, parseSnapshot(row.player1_deck_snapshot) ?? null],
   };
 }
 

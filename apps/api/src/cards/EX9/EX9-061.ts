@@ -7,104 +7,100 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Training"
+          keyword: {
+            keyword: "Training",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 3,
-                "scaling": {
-                  "per": 2,
-                  "unit": "selfFaceDownDigivolutionCards"
-                }
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 3,
+                scaling: {
+                  per: 2,
+                  unit: "selfFaceDownDigivolutionCards",
+                },
               },
-              "count": 1,
-              "from": ["deck"]
             },
-            "raw": "By placing your deck's top card face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+              },
+              count: 1,
+              from: ["deck"],
+            },
+            raw: "By placing your deck's top card face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Retaliation"
+          keyword: {
+            keyword: "Retaliation",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "isInherited": true,
-      "keywords": []
-    }
+      isInherited: true,
+      keywords: [],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "DM"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["DM"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX9-061", compiled);

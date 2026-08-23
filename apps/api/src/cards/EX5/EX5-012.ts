@@ -15,147 +15,131 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Add separate "wouldDigivolve" Replacement for digivolution cost reduction
 //   - Add digivolutionCardCount: gte 3 to the youHave condition filter
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "CostModifier",
-              "mode": "reduce",
-              "costType": "play",
-              "amount": 2,
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "CostModifier",
+              mode: "reduce",
+              costType: "play",
+              amount: 2,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Light Fang",
-                        "Night Claw",
-                        "Galaxy"
-                      ],
-                      "match": "trait"
-                    }
+                      tokens: ["Light Fang", "Night Claw", "Galaxy"],
+                      match: "trait",
+                    },
                   ],
-                  "digivolutionCardCount": {
-                    "op": "gte",
-                    "value": 3
-                  }
+                  digivolutionCardCount: {
+                    op: "gte",
+                    value: 3,
+                  },
                 },
-                "raw": "you have a Digimon with 3 or more digivolution cards and the [Light Fang]/[Night Claw]/[Galaxy] trait"
-              }
-            }
-          ]
+                raw: "you have a Digimon with 3 or more digivolution cards and the [Light Fang]/[Night Claw]/[Galaxy] trait",
+              },
+            },
+          ],
         },
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "mode": "reduceCost",
-          "amount": 2,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          mode: "reduceCost",
+          amount: 2,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Light Fang",
-                    "Night Claw",
-                    "Galaxy"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Light Fang", "Night Claw", "Galaxy"],
+                  match: "trait",
+                },
               ],
-              "digivolutionCardCount": {
-                "op": "gte",
-                "value": 3
-              }
+              digivolutionCardCount: {
+                op: "gte",
+                value: 3,
+              },
             },
-            "raw": "you have a Digimon with 3 or more digivolution cards and the [Light Fang]/[Night Claw]/[Galaxy] trait"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+            raw: "you have a Digimon with 3 or more digivolution cards and the [Light Fang]/[Night Claw]/[Galaxy] trait",
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-012", compiled);

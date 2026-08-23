@@ -3,54 +3,52 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
+                  count: 1,
+                  isSelf: true,
                 },
-                "raw": "by suspending this Tamer"
+                raw: "by suspending this Tamer",
               },
-              "optional": true
-            }
-          ]
-        }
-      ]
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-          "payCost": false
-        }
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST6-14", compiled);

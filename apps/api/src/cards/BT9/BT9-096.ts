@@ -6,76 +6,72 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          to: "hand",
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Jellymon"], "match": "name" }]
-                }
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Jellymon"], match: "name" }],
+                },
               },
               {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": ["Digimon"],
-                  "digivolutionStackNameOrTrait": [{ "tokens": ["Jellymon"], "match": "nameExact" }]
-                }
-              }
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  digivolutionStackNameOrTrait: [{ tokens: ["Jellymon"], match: "nameExact" }],
+                },
+              },
             ],
-            "raw": "you have a Digimon with [Jellymon] in its name or with [Jellymon] in its digivolution cards"
-          }
-        }
-      ]
+            raw: "you have a Digimon with [Jellymon] in its name or with [Jellymon] in its digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-096", compiled);

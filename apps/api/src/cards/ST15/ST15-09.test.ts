@@ -28,13 +28,18 @@ describe("ST15-09 Knightmon", () => {
   });
 
   it("does nothing when the opponent has no eligible Digimon", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "ST15-09", as: "knightmon" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "cost6" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST15-09", as: "knightmon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "cost6" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("knightmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("knightmon").instanceId })).toEqual({
+      ok: true,
+    });
     await s.ready();
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

@@ -7,7 +7,17 @@ describe("BT1-103 Testament", () => {
     expect(getCardDefinition("BT1-103")).toMatchObject({ nameEn: "Testament", playCost: 3 });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toEqual([
-      { trigger: "Main", actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }] },
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "GainKeyword",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            keyword: { keyword: "Blocker" },
+            duration: "untilOpponentTurnEnd",
+          },
+        ],
+      },
       { trigger: "Security", actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "AddToHandSelf" }] },
     ]);
   });

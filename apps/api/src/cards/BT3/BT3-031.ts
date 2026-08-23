@@ -7,76 +7,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "CostModifier",
-          "costType": "digivolve",
-          "mode": "reduce",
-          "amount": 2,
-          "handResident": true,
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "CostModifier",
+          costType: "digivolve",
+          mode: "reduce",
+          amount: 2,
+          handResident: true,
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "permanent",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "zone": "battleArea",
-            "nameOrTrait": [
+          duration: "permanent",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            zone: "battleArea",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Paildramon",
-                  "Dinobeemon"
-                ],
-                "match": "name"
-              }
-            ]
-          }
-        }
-      ]
+                tokens: ["Paildramon", "Dinobeemon"],
+                match: "name",
+              },
+            ],
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Jamming",
-          "raw": "＜Jamming＞"
-        }
-      ]
+          keyword: "Jamming",
+          raw: "＜Jamming＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "Jamming"
-              ]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              keywords: ["Jamming"],
             },
-            "count": "all"
-          }
-        }
-      ]
-    }
+            count: "all",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-031", compiled);

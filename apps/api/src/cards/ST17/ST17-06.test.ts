@@ -6,13 +6,19 @@ import "../index.js";
 
 describe("ST17-06 Rapidmon", () => {
   it("has Blocker and Armor Purge and gives one opposing Digimon and all Security Digimon -4000 DP", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST17-06", as: "rapidmon", suspended: true }] },
-      1: {
-        battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }],
-        security: [{ card: "BT1-009", faceUp: true }, { card: "BT1-010", faceUp: true }],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-06", as: "rapidmon", suspended: true }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }],
+          security: [
+            { card: "BT1-009", faceUp: true },
+            { card: "BT1-010", faceUp: true },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("rapidmon").permanentId, "Blocker")).toBe(true);

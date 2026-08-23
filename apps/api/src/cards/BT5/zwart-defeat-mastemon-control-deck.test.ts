@@ -32,35 +32,36 @@ describe("BT5 Omnimon Zwart Defeat Mastemon control deck", () => {
     const secondDigimonCardId = s.perm("secondDigimon").topCard.instanceId;
     const initialDecisionCount = s.decisions.length;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("mastemon").permanentId,
-      instanceId: s.inst("zwartDefeat").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("mastemon").permanentId,
+        instanceId: s.inst("zwartDefeat").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return s.decisions.length > initialDecisionCount &&
-        req?.sourceCardId === "BT5-112" &&
-        req.kind === "chooseTargets";
+      return (
+        s.decisions.length > initialDecisionCount && req?.sourceCardId === "BT5-112" && req.kind === "chooseTargets"
+      );
     });
 
     const tamerDecision = s.decisions.at(-1)!.req;
-    expect(new Set(tamerDecision.options?.candidateInstanceIds)).toEqual(
-      new Set([firstTamerId, secondTamerId]),
-    );
-    expect(tamerDecision.options?.candidateInstanceIds).not.toContain(
-      s.perm("firstTamer").topCard.instanceId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: tamerDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [secondTamerId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondTamerId) &&
-      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === secondTamerCardId) &&
-      s.state.memory === 7 &&
-      s.state.pendingDecision === undefined,
+    expect(new Set(tamerDecision.options?.candidateInstanceIds)).toEqual(new Set([firstTamerId, secondTamerId]));
+    expect(tamerDecision.options?.candidateInstanceIds).not.toContain(s.perm("firstTamer").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: tamerDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [secondTamerId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondTamerId) &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === secondTamerCardId) &&
+        s.state.memory === 7 &&
+        s.state.pendingDecision === undefined,
     );
     await settle();
 
@@ -72,33 +73,36 @@ describe("BT5 Omnimon Zwart Defeat Mastemon control deck", () => {
     await s.engine.recomputeContinuousEffects();
 
     const decisionCountBeforeGaia = s.decisions.length;
-    expect(s.engine.applyIntent(1, {
-      type: "playCard",
-      instanceId: s.inst("gaiaForce").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: s.inst("gaiaForce").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const req = s.decisions.at(-1)?.req;
-      return s.decisions.length > decisionCountBeforeGaia &&
-        req?.sourceCardId === "BT5-112" &&
-        req.kind === "chooseTargets";
+      return (
+        s.decisions.length > decisionCountBeforeGaia && req?.sourceCardId === "BT5-112" && req.kind === "chooseTargets"
+      );
     });
 
     const digimonDecision = s.decisions.at(-1)!.req;
-    expect(new Set(digimonDecision.options?.candidateInstanceIds)).toEqual(
-      new Set([firstDigimonId, secondDigimonId]),
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: digimonDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [secondDigimonId] },
-    })).toEqual({ ok: true });
+    expect(new Set(digimonDecision.options?.candidateInstanceIds)).toEqual(new Set([firstDigimonId, secondDigimonId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: digimonDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [secondDigimonId] },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === zwartPermanentId) &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === zwartCardId) &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === mastemonCardId) &&
-      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === secondDigimonCardId) &&
-      s.state.pendingDecision === undefined,
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === zwartPermanentId) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === zwartCardId) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === mastemonCardId) &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === secondDigimonCardId) &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstTamerId)).toBe(true);

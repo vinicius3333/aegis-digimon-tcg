@@ -19,11 +19,13 @@ describe("BT11-074 BlackWarGreymon X", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("blackWarGreymon").permanentId,
-      instanceId: s.inst("xAntibody").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blackWarGreymon").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("blackWarGreymon").topCard.cardId === "BT11-074");
 
     expect(s.state.memory).toBe(3);
@@ -46,11 +48,13 @@ describe("BT11-074 BlackWarGreymon X", () => {
     await s.ready();
     const highestId = s.perm("highest").permanentId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: highestId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: highestId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 300);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -72,11 +76,13 @@ describe("BT11-074 BlackWarGreymon X", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("lower").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("lower").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

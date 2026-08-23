@@ -63,12 +63,7 @@ export interface TestPlayCardDeps extends PlayCardDeps {
   maxAffordable(state: GameState, seat: Seat): number;
   payMemory(state: GameState, seat: Seat, cost: number): void;
   nextPermanentId(): string;
-  fireTiming(
-    state: GameState,
-    seat: Seat,
-    timing: EffectTiming,
-    sourceInstanceId: string,
-  ): Promise<void>;
+  fireTiming(state: GameState, seat: Seat, timing: EffectTiming, sourceInstanceId: string): Promise<void>;
   emit?: (event: any) => void;
 }
 
@@ -77,7 +72,10 @@ function makeDeps(): TestPlayCardDeps {
   return {
     maxAffordable: () => 10,
     payMemory: () => {},
-    nextPermanentId: () => { nextPermId += 1; return `p-${nextPermId}`; },
+    nextPermanentId: () => {
+      nextPermId += 1;
+      return `p-${nextPermId}`;
+    },
     fireTiming: async () => {}, // no-op — Main resolution not needed for zone routing
     emit: () => {},
   };
@@ -100,10 +98,15 @@ describe("Delay placement — A3 behavioral proof (KEYW-01)", () => {
     const delayOption = s.inst("delayOption");
 
     const deps = makeDeps();
-    const result = await applyPlayCard(state, 0, {
-      type: "playCard",
-      instanceId: delayOption.instanceId,
-    }, deps);
+    const result = await applyPlayCard(
+      state,
+      0,
+      {
+        type: "playCard",
+        instanceId: delayOption.instanceId,
+      },
+      deps,
+    );
 
     expect(result.ok).toBe(true);
 
@@ -125,10 +128,15 @@ describe("Delay placement — A3 behavioral proof (KEYW-01)", () => {
     const normalOption = s.inst("normalOption");
 
     const deps = makeDeps();
-    const result = await applyPlayCard(state, 0, {
-      type: "playCard",
-      instanceId: normalOption.instanceId,
-    }, deps);
+    const result = await applyPlayCard(
+      state,
+      0,
+      {
+        type: "playCard",
+        instanceId: normalOption.instanceId,
+      },
+      deps,
+    );
 
     expect(result.ok).toBe(true);
 

@@ -265,10 +265,9 @@ describe("SwissProgram start", () => {
     // than pair around.
     fixture = await build(4);
     const bot = fixture.players[2]!;
-    await fixture.accounts.pool.query(
-      "UPDATE tournament_participants SET kind='bot', account_id=NULL WHERE id=$1",
-      [bot.participantId],
-    );
+    await fixture.accounts.pool.query("UPDATE tournament_participants SET kind='bot', account_id=NULL WHERE id=$1", [
+      bot.participantId,
+    ]);
     const started = await fixture.swiss.startTournamentProgram(fixture.tournamentId, T0);
     expect(started).toEqual({ ok: false, reason: "participant_without_account", detail: bot.participantId });
     // And nothing was published, so the organizer's fix starts from a clean field.

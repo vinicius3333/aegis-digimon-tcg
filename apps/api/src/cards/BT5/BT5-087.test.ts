@@ -11,7 +11,10 @@ describe("BT5-087 Omnimon Zwart", () => {
         0: {
           battleArea: [{ card: "BT5-087", as: "omnimon" }],
           deck: ["BT1-010", "BT1-011", "BT1-012"],
-          trash: [{ card: "BT5-059", as: "black" }, { card: "BT5-071", as: "purple" }],
+          trash: [
+            { card: "BT5-059", as: "black" },
+            { card: "BT5-071", as: "purple" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -34,7 +37,13 @@ describe("BT5-087 Omnimon Zwart", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("omnimon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omnimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("level6").instanceId)).toBe(true);

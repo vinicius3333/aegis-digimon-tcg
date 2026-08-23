@@ -84,13 +84,9 @@ export interface CombatOutcome {
  * (CombatController) performs the actual deletion and fires deletion timings.
  */
 export function resolvePermanentBattle(combatants: Combatants): CombatOutcome {
-  const useIceclad =
-    combatants.attackerHasIceclad === true || combatants.defenderHasIceclad === true;
+  const useIceclad = combatants.attackerHasIceclad === true || combatants.defenderHasIceclad === true;
   const comparison = useIceclad
-    ? compareDP(
-        combatants.attackerDigivolutionCount ?? 0,
-        combatants.defenderDigivolutionCount ?? 0,
-      )
+    ? compareDP(combatants.attackerDigivolutionCount ?? 0, combatants.defenderDigivolutionCount ?? 0)
     : compareDP(combatants.attackerDP, combatants.defenderDP);
 
   const rawLoserIds: string[] =

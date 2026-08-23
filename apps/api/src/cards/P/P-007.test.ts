@@ -15,11 +15,13 @@ describe("P-007 Garurumon", () => {
     });
     const drawnId = s.inst("drawn").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("family").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("family").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(drawnId);
@@ -34,11 +36,13 @@ describe("P-007 Garurumon", () => {
       1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("unrelated").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("unrelated").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });

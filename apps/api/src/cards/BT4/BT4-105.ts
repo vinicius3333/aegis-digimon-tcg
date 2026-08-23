@@ -7,54 +7,50 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 99
+          amount: 99,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {},
-            "count": 1,
-            "sameTarget": true
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {},
+            count: 1,
+            sameTarget: true,
           },
-          "toTop": true
-        }
-      ]
+          toTop: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "from": [
-            "deck"
-          ],
-          "amount": 1
-        }
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          from: ["deck"],
+          amount: 1,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-105", compiled);

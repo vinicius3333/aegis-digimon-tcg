@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type CompiledCard,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CompiledCard, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "./effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "./effects/EffectContext.js";
 import { irCardModule } from "./effects/interpreter.js";
@@ -206,7 +200,10 @@ describe("effect-result binding — delete-count -> ifThisEffectDidNotDelete", (
       deleteCount: (ids) => ids.length, // a real delete: 1 removed
       digivolveResult: () => undefined,
     });
-    const effects = irCardModule("X-DEL-1", deleteThenGatedCompiled()).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    const effects = irCardModule("X-DEL-1", deleteThenGatedCompiled()).effectsForTiming(
+      EffectTiming.OnPlay,
+      ctx.source,
+    );
     await effects[0]!.resolve(ctx);
 
     expect(ctx.lastDeleteCount).toBe(1);
@@ -224,7 +221,10 @@ describe("effect-result binding — delete-count -> ifThisEffectDidNotDelete", (
       deleteCount: () => 0,
       digivolveResult: () => undefined,
     });
-    const effects = irCardModule("X-DEL-0", deleteThenGatedCompiled()).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    const effects = irCardModule("X-DEL-0", deleteThenGatedCompiled()).effectsForTiming(
+      EffectTiming.OnPlay,
+      ctx.source,
+    );
     await effects[0]!.resolve(ctx);
 
     expect(ctx.lastDeleteCount).toBe(0);

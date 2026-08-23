@@ -6,49 +6,45 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Black"
-              ]
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Black"],
             },
-            "count": 1
+            count: 1,
           },
-          "asLevel": 3,
-          "from": "hand"
-        }
-      ]
+          asLevel: 3,
+          from: "hand",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-          "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } }
-        }
-      ]
-    }
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: { kind: "keyword", keyword: { keyword: "Blocker", raw: "＜Blocker＞" } },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 0,
-      "isAlternate": true,
-      "baseIsTamer": true
-    }
-  ]
+      cost: 0,
+      isAlternate: true,
+      baseIsTamer: true,
+    },
+  ],
 };
 
 registerIrCard("BT7-061", compiled);

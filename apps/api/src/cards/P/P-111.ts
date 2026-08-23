@@ -6,124 +6,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          amount: -3000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
+            unit: "cards",
+          },
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          amount: -3000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
+            unit: "cards",
+          },
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Yellow",
-                    "Black"
-                  ],
-                  "levels": [
-                    3
-                  ]
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Yellow", "Black"],
+                  levels: [3],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-111", compiled);

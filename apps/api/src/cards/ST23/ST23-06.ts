@@ -18,145 +18,127 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The second add slot uses the dedicated underTamer disposition so the selected
 // face-down card is placed beneath a matching [Glowing Dawn] Tamer.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Glowing Dawn"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Glowing Dawn"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Glowing Dawn"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "underTamer",
-              "faceDown": true,
-              "underFilter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
+                    tokens: ["Glowing Dawn"],
+                    match: "trait",
+                  },
                 ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Glowing Dawn"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              }
-            }
-          ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Glowing Dawn"
-                    ],
-                    "match": "trait"
-                  }
-                ]
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "underTamer",
+              faceDown: true,
+              underFilter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Glowing Dawn"],
+                    match: "trait",
+                  },
+                ],
+              },
             },
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Glowing Dawn"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "underTamer",
-              "faceDown": true,
-              "underFilter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Glowing Dawn"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              }
-            }
           ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
-        {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 2,
-      "traits": [
-        "Glowing Dawn"
+          rest: "deckBottom",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Glowing Dawn"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
+            },
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Glowing Dawn"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "underTamer",
+              faceDown: true,
+              underFilter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Glowing Dawn"],
+                    match: "trait",
+                  },
+                ],
+              },
+            },
+          ],
+          rest: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["Glowing Dawn"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST23-06", compiled);

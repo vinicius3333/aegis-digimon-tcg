@@ -10,159 +10,144 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // reveal the top 3 cards of your deck. You may play 1 black or yellow Digimon with a play
 // cost of 3 or less among them without paying the cost. Trash the rest.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
+            count: 1,
             // Bind the selected Digimon so the GainEffect below can reference it.
-            "bindAs": "dpTarget"
+            bindAs: "dpTarget",
           },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
           // Grant the SAME targeted Digimon "[Start of Your Main Phase] This Digimon attacks."
           // Uses GainEffect (new primitive — see LANE_A.md CAP-A12).
-          "kind": "GainEffect",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainEffect",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "fromSelectionRef": "dpTarget"
+            count: 1,
+            fromSelectionRef: "dpTarget",
           },
-          "grant": {
-            "trigger": "StartOfYourMainPhase",
-            "actions": [
+          grant: {
+            trigger: "StartOfYourMainPhase",
+            actions: [
               {
-                "kind": "Attack",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                kind: "Attack",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
-                }
-              }
-            ]
+                  count: 1,
+                  isSelf: true,
+                },
+              },
+            ],
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "dpTarget"
+            count: 1,
+            bindAs: "dpTarget",
           },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainEffect",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainEffect",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "fromSelectionRef": "dpTarget"
+            count: 1,
+            fromSelectionRef: "dpTarget",
           },
-          "grant": {
-            "trigger": "StartOfYourMainPhase",
-            "actions": [
+          grant: {
+            trigger: "StartOfYourMainPhase",
+            actions: [
               {
-                "kind": "Attack",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                kind: "Attack",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
-                }
-              }
-            ]
+                  count: 1,
+                  isSelf: true,
+                },
+              },
+            ],
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
               // "You may reveal" — optional reveal.
-              "kind": "RevealAdd",
-              "revealCount": 3,
-              "add": [
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
                 {
-                  "filter": {
-                    "controllerDefault": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "colors": [
-                      "Black",
-                      "Yellow"
-                    ],
-                    "playCostLte": 3
+                  filter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    colors: ["Black", "Yellow"],
+                    playCostLte: 3,
                   },
-                  "count": 1,
-                  "to": "play",
-                  "optional": true
-                }
+                  count: 1,
+                  to: "play",
+                  optional: true,
+                },
               ],
-              "rest": "trash",
-              "optional": true
-            }
-          ]
-        }
+              rest: "trash",
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": [
-        "Sukamon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      names: ["Sukamon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX5-048", compiled);

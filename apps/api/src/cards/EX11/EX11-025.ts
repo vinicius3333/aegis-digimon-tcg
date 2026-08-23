@@ -6,109 +6,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Base"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Base"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Reboot",
-            "raw": "＜Reboot＞"
+          keyword: {
+            keyword: "Reboot",
+            raw: "＜Reboot＞",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "isSecurity": true
+      isSecurity: true,
     },
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Base"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Base"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": false,
-          "faceUp": true,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          toTop: false,
+          faceUp: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent"
-        }
+          amount: 1000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "Royal Base"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["Royal Base"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX11-025", compiled);

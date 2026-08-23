@@ -6,67 +6,59 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "Blocker"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              keywords: ["Blocker"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "excludeNames": ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Greymon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Greymon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a Digimon card with [Greymon] in its name other than [DoruGreymon], [BurningGreymon], or [DexDoruGreymon] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "a Digimon card with [Greymon] in its name other than [DoruGreymon], [BurningGreymon], or [DexDoruGreymon] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 3000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 3000,
+              },
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-016", compiled);

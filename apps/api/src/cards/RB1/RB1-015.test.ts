@@ -10,9 +10,7 @@ describe("RB1-015 Fumamon", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "RB1-015", as: "fumamon" }] },
       1: {
-        battleArea: [
-          { card: "EX2-045", as: "target", under: ["RB1-017", "BT1-009", "RB1-020"] },
-        ],
+        battleArea: [{ card: "EX2-045", as: "target", under: ["RB1-017", "BT1-009", "RB1-020"] }],
       },
     });
 

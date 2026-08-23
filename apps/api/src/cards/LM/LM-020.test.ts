@@ -165,12 +165,27 @@ describe("LM-020 Quantumon", () => {
   });
 
   it("publicly digivolves Quantumon and places an owned Digimon into security", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-036", as: "base" }, { card: "LM-016", as: "fodder" }], hand: [{ card: "LM-020", as: "quantumon" }] },
-      1: { security: ["BT1-001", "BT1-085"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-036", as: "base" },
+            { card: "LM-016", as: "fodder" },
+          ],
+          hand: [{ card: "LM-020", as: "quantumon" }],
+        },
+        1: { security: ["BT1-001", "BT1-085"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("quantumon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("quantumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.security.some((card) => card.cardId === "LM-020") &&
@@ -184,12 +199,21 @@ describe("LM-020 Quantumon", () => {
   });
 
   it("still places the chosen Digimon when the opponent has no security cards", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-036", as: "base" }], hand: [{ card: "LM-020", as: "quantumon" }] },
-      1: { security: [] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-036", as: "base" }], hand: [{ card: "LM-020", as: "quantumon" }] },
+        1: { security: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("quantumon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("quantumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "LM-020"));
     expect(s.state.players[0]!.security.filter((card) => card.cardId === "LM-020")).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(0);
@@ -204,17 +228,13 @@ describe("LM-020 Quantumon", () => {
   // Q4003: [Start of Opponent's Turn] fires at the START of the OPPONENT's turn.
   // The engine models that as the opponent's OnStartTurn window. The IR trigger
   // "StartOfOpponentsTurn" must map to EffectTiming.OnStartTurn, not to None.
-  it(
-    "StartOfOpponentsTurn clause produces at least one effect at OnStartTurn timing",
-    // Now PASSES: timingForTrigger() maps "StartOfOpponentsTurn" -> EffectTiming.OnStartTurn
-    // and the turn-ownership guard restricts it to the opponent's turn (the engine models the
-    // opponent's turn-start as the opponent's OnStartTurn window).
-    () => {
-      const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.OnStartTurn, source);
-      expect(effects.length).toBeGreaterThanOrEqual(1);
-    },
-  );
+  // Now PASSES: timingForTrigger() maps "StartOfOpponentsTurn" -> EffectTiming.OnStartTurn
+  // and the turn-ownership guard restricts it to the opponent's turn.
+  it("StartOfOpponentsTurn clause produces at least one effect at OnStartTurn timing", () => {
+    const source = makeSource();
+    const effects = module!.effectsForTiming(EffectTiming.OnStartTurn, source);
+    expect(effects.length).toBeGreaterThanOrEqual(1);
+  });
 
   // Q4003: No effect fires at WhenDigivolving for the Start-of-Opponent's-Turn clause —
   // wrong-timing sanity check (a separate guard from the main xfail above).
@@ -229,41 +249,38 @@ describe("LM-020 Quantumon", () => {
   // of the WhenDigivolving effect is ADDING a Digimon to security (addSecurity /
   // SecurityManipulation.placeAsSecurity), NOT trashing security (trashTop). The
   // IR incorrectly encodes this as SecurityManipulation.trashTop on the opponent.
-  it(
-    "WhenDigivolving: resolving the effect calls addSecurity (place Digimon to security), not trashFromSecurity",
-    // Now PASSES: the IR override encodes the "place 1 Digimon to security" cost as
-    // SecurityManipulation{op:"placeAsSecurity", controller:"mine", source: a battle-area
-    // Digimon}, which resolves the Digimon's top card and dispatches addSecurity.
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      // Provide one own battle-area Digimon so the effect has a candidate to place.
-      const ownDigimon = {
-        permanentId: "PERM#own1",
-        isSuspended: false,
-        currentDP: 5000,
-        stack: [],
-        topCard: { instanceId: "INST#own1", cardId: "LM-001", ownerSeat: 0 as Seat },
-      };
-      const ctx = makeContext({
-        recorder,
-        turnSeat: 0 as Seat, // owner's turn (when digivolving)
-        ownerBattleArea: [ownDigimon],
-        oppSecurity: [],
-      });
+  // Now PASSES: the IR override encodes the "place 1 Digimon to security" cost as
+  // SecurityManipulation{op:"placeAsSecurity", controller:"mine", source: a battle-area
+  // Digimon}, which resolves the Digimon's top card and dispatches addSecurity.
+  it("WhenDigivolving: resolving the effect calls addSecurity (place Digimon to security), not trashFromSecurity", async () => {
+    const recorder: Recorder = { calls: [] };
+    // Provide one own battle-area Digimon so the effect has a candidate to place.
+    const ownDigimon = {
+      permanentId: "PERM#own1",
+      isSuspended: false,
+      currentDP: 5000,
+      stack: [],
+      topCard: { instanceId: "INST#own1", cardId: "LM-001", ownerSeat: 0 as Seat },
+    };
+    const ctx = makeContext({
+      recorder,
+      turnSeat: 0 as Seat, // owner's turn (when digivolving)
+      ownerBattleArea: [ownDigimon],
+      oppSecurity: [],
+    });
 
-      const source = makeSource({
-        isOnBattleArea: () => true,
-        permanent: () => undefined,
-      });
-      const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-      expect(effects.length).toBeGreaterThanOrEqual(1);
+    const source = makeSource({
+      isOnBattleArea: () => true,
+      permanent: () => undefined,
+    });
+    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
+    expect(effects.length).toBeGreaterThanOrEqual(1);
 
-      await effects[0]!.resolve(ctx);
+    await effects[0]!.resolve(ctx);
 
-      // The KB-correct call is addSecurity (place a Digimon onto security stack).
-      // The IR wrongly calls trashFromSecurity instead.
-      const addCalls = recorder.calls.filter((c) => c.verb === "addSecurity");
-      expect(addCalls.length).toBeGreaterThanOrEqual(1);
-    },
-  );
+    // The KB-correct call is addSecurity (place a Digimon onto security stack).
+    // The IR wrongly calls trashFromSecurity instead.
+    const addCalls = recorder.calls.filter((c) => c.verb === "addSecurity");
+    expect(addCalls.length).toBeGreaterThanOrEqual(1);
+  });
 });

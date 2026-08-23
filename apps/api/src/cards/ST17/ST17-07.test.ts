@@ -6,12 +6,18 @@ import "../index.js";
 
 describe("ST17-07 Rapidmon", () => {
   it("de-digivolves one opposing Digimon and protects itself from opponent deletion and return effects", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST17-07", as: "rapidmon" }, { card: "ST17-10", as: "henry" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST17-07", as: "rapidmon" },
+            { card: "ST17-10", as: "henry" },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-004", as: "opponent", under: ["BT1-009", "BT1-010"] }] },
       },
-      1: { battleArea: [{ card: "AD1-004", as: "opponent", under: ["BT1-009", "BT1-010"] }] },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
     const stackBefore = s.perm("opponent").stack.length;
 
@@ -21,7 +27,9 @@ describe("ST17-07 Rapidmon", () => {
     s.state.turnSeat = 1;
     const rapidmonCard = s.perm("rapidmon").topCard.instanceId;
     await advance(s.engine).verb.returnToHand([rapidmonCard]);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("rapidmon").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("rapidmon").permanentId)).toBe(
+      true,
+    );
   });
 
   it("trashes the opponent's top security card once per turn when its host wins a battle", async () => {

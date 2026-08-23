@@ -23,118 +23,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - digivolutionRequirement: the shared alternate-requirement override adds the
 //   required [Arcturusmon] card in the base's digivolution stack.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
                   },
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Gammamon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Gammamon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "trash"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Gammamon"
-                    ],
-                    "match": "text"
-                  }
-                ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
               },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash"
-              ]
             },
-            "raw": "By placing 1 Digimon card with [Gammamon] in its text from your hand or trash as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Gammamon"],
+                    match: "text",
+                  },
+                ],
+              },
+              count: 1,
+              from: ["hand", "trash"],
+            },
+            raw: "By placing 1 Digimon card with [Gammamon] in its text from your hand or trash as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Siriusmon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      names: ["Siriusmon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("RB1-036", compiled);

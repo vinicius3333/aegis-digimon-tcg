@@ -6,93 +6,86 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Fallen Angel",
-                      "Demon Lord"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Fallen Angel", "Demon Lord"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Option"
-                ],
-                "colors": [
-                  "Purple"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Option"],
+                colors: ["Purple"],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "you added cards"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "you added cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "hand",
-            "op": "lte",
-            "value": 6,
-            "raw": "your opponent has 6 or fewer cards in their hand"
-          }
-        }
+          while: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "hand",
+            op: "lte",
+            value: 6,
+            raw: "your opponent has 6 or fewer cards in their hand",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-047", compiled);

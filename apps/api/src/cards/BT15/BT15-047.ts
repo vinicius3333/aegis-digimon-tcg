@@ -6,49 +6,49 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "immuneToOpponentDigimonEffects",
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfIsSuspended",
-            "raw": "this Digimon is suspended"
-          }
-        }
-      ]
+          grant: "immuneToOpponentDigimonEffects",
+          duration: "permanent",
+          condition: {
+            kind: "selfIsSuspended",
+            raw: "this Digimon is suspended",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "sourceFilter": { "isSelfRef": true },
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-047", compiled);

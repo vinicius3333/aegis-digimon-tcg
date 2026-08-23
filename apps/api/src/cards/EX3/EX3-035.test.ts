@@ -196,13 +196,9 @@ describe("EX3-035 Goldramon", () => {
         response: { kind: "selectCards", instanceIds: [trialId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === trialId),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === trialId));
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(trialId);
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
-      trialId,
-    );
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(trialId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("digivolutionDraw").instanceId, s.inst("trialDraw").instanceId]),
     );

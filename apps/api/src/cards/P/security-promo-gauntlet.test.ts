@@ -45,24 +45,28 @@ describe("Security promo gauntlet", () => {
     s.state.turnSeat = 1;
 
     for (let index = 0; index < promos.length; index += 1) {
-      expect(s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm(`attacker${index}`).permanentId,
-        target: { kind: "player" },
-      }), promos[index]).toEqual({ ok: true });
-      await settle(() =>
-        s.events.filter((event) => event.kind === "securityChecked").length === index + 1 &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === promoIds[index]) &&
-        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm(`attacker${index}`).permanentId,
+          target: { kind: "player" },
+        }),
+        promos[index],
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.filter((event) => event.kind === "securityChecked").length === index + 1 &&
+          s.state.players[0]!.hand.some((card) => card.instanceId === promoIds[index]) &&
+          !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
         2_000,
       );
       expect(s.state.players[0]!.hand.some((card) => card.instanceId === promoIds[index])).toBe(true);
     }
 
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(promoIds.every((instanceId) =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)
-    )).toBe(true);
+    expect(
+      promoIds.every((instanceId) => s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)),
+    ).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === deletedId)).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("controlTarget"), "SecurityAttack")).toBe(-1);
     expect(s.perm("controlTarget").isSuspended).toBe(true);

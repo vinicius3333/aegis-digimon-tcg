@@ -5,9 +5,17 @@ import "./EX1-019.js";
 
 describe("EX1-019 Paildramon", () => {
   it("unsuspends when digivolving with a Free-trait card in its sources", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-014", as: "base", suspended: true }], hand: [{ card: "EX1-019", as: "evo" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-014", as: "base", suspended: true }], hand: [{ card: "EX1-019", as: "evo" }] },
+    });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evo").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("base").isSuspended);
     expect(s.perm("base").isSuspended).toBe(false);
   });

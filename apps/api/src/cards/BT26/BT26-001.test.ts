@@ -8,16 +8,20 @@ const CARD_ID = "BT26-001";
 
 describe("BT26-001 Yokomon", () => {
   it("encodes the inherited once-per-turn Chronomon-text digivolution watcher", () => {
-    expect(compiled.effects).toMatchObject([{
-      trigger: "YourTurn",
-      frequency: "OncePerTurn",
-      isInherited: true,
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenEffectAddsToDeck",
-        actions: [{ kind: "Digivolve", from: ["hand"], costDelta: -1, optional: true }],
-      }],
-    }]);
+    expect(compiled.effects).toMatchObject([
+      {
+        trigger: "YourTurn",
+        frequency: "OncePerTurn",
+        isInherited: true,
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenEffectAddsToDeck",
+            actions: [{ kind: "Digivolve", from: ["hand"], costDelta: -1, optional: true }],
+          },
+        ],
+      },
+    ]);
   });
 
   it("Q6948/Q6951 publicly evolves after its effect adds an opponent's card to their deck, pays printed cost -1, and draws", async () => {

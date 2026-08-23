@@ -3,68 +3,64 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "CostModifier",
-          "mode": "reduce",
-          "costType": "play",
-          "amount": 1,
-          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
-          "handResident": true,
-          "duration": "permanent",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "play",
+          amount: 1,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          handResident: true,
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
+                },
               ],
-              "orFilters": [{"kind": ["Option"], "playCostOneOf": [7]}]
+              orFilters: [{ kind: ["Option"], playCostOneOf: [7] }],
             },
-            "unit": "trash"
-          }
-        }
-      ]
+            unit: "trash",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Option"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Option"],
             },
-            "count": 1,
-            "upTo": true
+            count: 1,
+            upTo: true,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "UseOptionWithoutCost",
-          "filter": {"kind": ["Option"], "playCostOneOf": [7]},
-          "from": ["hand"],
-          "payCost": false
-        }
-      ]
-    }
+          kind: "UseOptionWithoutCost",
+          filter: { kind: ["Option"], playCostOneOf: [7] },
+          from: ["hand"],
+          payCost: false,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-112", compiled);

@@ -31,7 +31,9 @@ describe("P-035 Red Memory Boost!", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
     const orderDecision = [...s.decisions].reverse().find(({ req }) => req.kind === "orderCards")!.req;
 
@@ -40,12 +42,18 @@ describe("P-035 Red Memory Boost!", () => {
       s.inst("secondRest").instanceId,
       s.inst("thirdRest").instanceId,
     ]);
-    const chosenOrder = [s.inst("thirdRest").instanceId, s.inst("firstRest").instanceId, s.inst("secondRest").instanceId];
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: orderDecision.decisionId,
-      response: { kind: "orderCards", order: chosenOrder },
-    })).toEqual({ ok: true });
+    const chosenOrder = [
+      s.inst("thirdRest").instanceId,
+      s.inst("firstRest").instanceId,
+      s.inst("secondRest").instanceId,
+    ];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: { kind: "orderCards", order: chosenOrder },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.map((card) => card.instanceId).join(",") === chosenOrder.join(","));
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(chosenOrder);

@@ -8,15 +8,19 @@ describe("BT23-061 Ghostmon", () => {
   it("gives exactly one own Ghost Digimon Blocker through the opponent's turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-061", as: "ghostmon" }, { card: "BT20-063", as: "ghost" }] },
+        0: {
+          battleArea: [
+            { card: "BT23-061", as: "ghostmon" },
+            { card: "BT20-063", as: "ghost" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const ghostmon = s.perm("ghostmon");
-    await (s.engine as unknown as { fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void> }).fireTiming(
-      EffectTiming.OnPlay,
-      { subjectPermanentId: s.perm("ghostmon").permanentId },
-    );
+    await (
+      s.engine as unknown as { fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void> }
+    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("ghostmon").permanentId });
     expect(ghostmon.grantedKeywords).toContain("Blocker");
   });
 

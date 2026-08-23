@@ -19,26 +19,29 @@ describe("P-093 Bastemon", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("bastemon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("bastemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.at(-1)!.req;
 
     expect(decision.sourceCardId).toBe("P-093");
     expect(decision.options?.min).toBe(1);
     expect(decision.options?.max).toBe(1);
-    expect(decision.options?.candidateInstanceIds).toEqual(expect.arrayContaining([
-      s.perm("target").permanentId,
-      s.perm("otherTarget").permanentId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
-    })).toEqual({ ok: true });
+    expect(decision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("target").permanentId, s.perm("otherTarget").permanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended && s.state.pendingDecision === undefined);
 
     expect(s.perm("target").isSuspended).toBe(true);
@@ -63,11 +66,13 @@ describe("P-093 Bastemon", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ally").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("ally").isSuspended && s.state.pendingDecision === undefined);
 
     expect(s.perm("ally").isSuspended).toBe(true);
@@ -93,19 +98,23 @@ describe("P-093 Bastemon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("level6").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("level6").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.instanceId === s.inst("level6").instanceId);
     expect(s.state.memory).toBe(9);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("host").permanentId,
-      instanceId: s.inst("level7").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("level7").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard?.instanceId === s.inst("level7").instanceId);
 
     expect(s.state.memory).toBe(3);

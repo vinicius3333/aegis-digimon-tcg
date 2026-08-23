@@ -39,9 +39,7 @@ interface ActivatableEntry {
 /** Local copy of mechanic.test.ts's activatableEffects helper — not exported from there. */
 function activatableEffects(s: EngineSetup, perm: { activatableEffectsJson?: string }): ActivatableEntry[] {
   (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
-  return perm.activatableEffectsJson
-    ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[])
-    : [];
+  return perm.activatableEffectsJson ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 
 describe("§16-10 <Digisorption> (comprehensive-0228)", () => {
@@ -98,9 +96,9 @@ describe("§16-11 <Reboot> (comprehensive-0229)", () => {
     await s.engine.recomputeContinuousEffects(); // pick up AD1-013's printed <Reboot>
 
     // Seat 0's active/unsuspend phase is "the opponent's unsuspend phase" from seat 1's side.
-    await (
-      s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
-    ).unsuspendForActivePhase(0 as Seat);
+    await (s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }).unsuspendForActivePhase(
+      0 as Seat,
+    );
 
     expect(rebooter.isSuspended).toBe(false);
   });
@@ -112,9 +110,9 @@ describe("§16-11 <Reboot> (comprehensive-0229)", () => {
     plain.isSuspended = true;
     p1.battleArea.push(plain);
 
-    await (
-      s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
-    ).unsuspendForActivePhase(0 as Seat);
+    await (s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }).unsuspendForActivePhase(
+      0 as Seat,
+    );
 
     expect(plain.isSuspended).toBe(true); // unchanged — only the turn player's OWN permanents unsuspend
   });
@@ -134,53 +132,50 @@ markNotTestable(
 );
 
 describe("§16-13 <Retaliation> (comprehensive-0231) — ENGINE BUG: the keyword check reads the wrong side", () => {
-  it(
-    "NOW MET: a Digimon deleted in battle with <Retaliation> also deletes the opponent's battled Digimon",
-    async () => {
-      cite(
-        "comprehensive-0231",
-        "DIVERGENCE (engine bug, not a card-implementation gap): §16-13-1 <Retaliation>: 'when a " +
-          "Digimon WITH THIS EFFECT is deleted in battle, the battled opponent's Digimon is " +
-          "also deleted.' combat/controller.ts's consume seam has the keyword check on the " +
-          "WRONG side of each branch: `deletedIds.has(attacker) && hasKeyword(DEFENDER, " +
-          "'Retaliation')` (should check the ATTACKER's own keyword — a Retaliation attacker " +
-          "that dies should take the defender with it) and symmetrically `deletedIds.has" +
-          "(defender) && hasKeyword(ATTACKER, 'Retaliation')` (should check the DEFENDER's own " +
-          "keyword). As written, Retaliation only fires when the *surviving* side happens to " +
-          "also carry the keyword — the dying Retaliation-holder's own death never triggers its " +
-          "own effect. Real card: BT10-078, which gains <Retaliation> via an Aura while a " +
-          "[Gammamon] digivolution card is stacked (KB confirms the printed text).",
-      );
+  it("NOW MET: a Digimon deleted in battle with <Retaliation> also deletes the opponent's battled Digimon", async () => {
+    cite(
+      "comprehensive-0231",
+      "DIVERGENCE (engine bug, not a card-implementation gap): §16-13-1 <Retaliation>: 'when a " +
+        "Digimon WITH THIS EFFECT is deleted in battle, the battled opponent's Digimon is " +
+        "also deleted.' combat/controller.ts's consume seam has the keyword check on the " +
+        "WRONG side of each branch: `deletedIds.has(attacker) && hasKeyword(DEFENDER, " +
+        "'Retaliation')` (should check the ATTACKER's own keyword — a Retaliation attacker " +
+        "that dies should take the defender with it) and symmetrically `deletedIds.has" +
+        "(defender) && hasKeyword(ATTACKER, 'Retaliation')` (should check the DEFENDER's own " +
+        "keyword). As written, Retaliation only fires when the *surviving* side happens to " +
+        "also carry the keyword — the dying Retaliation-holder's own death never triggers its " +
+        "own effect. Real card: BT10-078, which gains <Retaliation> via an Aura while a " +
+        "[Gammamon] digivolution card is stacked (KB confirms the printed text).",
+    );
 
-      const s = setup();
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const attacker = digimon(0, 9000, NON_KEYWORD_CARD); // no Retaliation
-      p0.battleArea.push(attacker);
-      const retaliator = digimon(1, 4000, "BT10-078"); // GulusGammamon: HAS <Retaliation> here
-      retaliator.isSuspended = true;
-      retaliator.stack.push(instance("BT21-010", 1, true)); // a real card named Gammamon — satisfies the Aura's "while" gate
-      p1.battleArea.push(retaliator);
-      await s.engine.recomputeContinuousEffects(); // pick up the Aura-granted <Retaliation>
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const attacker = digimon(0, 9000, NON_KEYWORD_CARD); // no Retaliation
+    p0.battleArea.push(attacker);
+    const retaliator = digimon(1, 4000, "BT10-078"); // GulusGammamon: HAS <Retaliation> here
+    retaliator.isSuspended = true;
+    retaliator.stack.push(instance("BT21-010", 1, true)); // a real card named Gammamon — satisfies the Aura's "while" gate
+    p1.battleArea.push(retaliator);
+    await s.engine.recomputeContinuousEffects(); // pick up the Aura-granted <Retaliation>
 
-      expect(
-        s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "permanent", permanentId: retaliator.permanentId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => false, 5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: retaliator.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 5000);
 
-      // The defender (4000 DP, HAS Retaliation) lost to the attacker (9000 DP) as usual...
-      expect(p1.battleArea.some((p) => p.permanentId === retaliator.permanentId)).toBe(false);
-      // EXPECTED (per §16-13-1): Retaliation should also delete the winning attacker, because
-      // the DYING side (retaliator) is the one that carries the keyword. The engine's inverted
-      // check instead looks for Retaliation on the SURVIVING attacker (which has none here), so
-      // the attacker survives.
-      expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
-    },
-  );
+    // The defender (4000 DP, HAS Retaliation) lost to the attacker (9000 DP) as usual...
+    expect(p1.battleArea.some((p) => p.permanentId === retaliator.permanentId)).toBe(false);
+    // EXPECTED (per §16-13-1): Retaliation should also delete the winning attacker, because
+    // the DYING side (retaliator) is the one that carries the keyword. The engine's inverted
+    // check instead looks for Retaliation on the SURVIVING attacker (which has none here), so
+    // the attacker survives.
+    expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
+  });
 });
 
 describe("§16-14 <Digi-Burst> (comprehensive-0232)", () => {
@@ -203,9 +198,9 @@ describe("§16-14 <Digi-Burst> (comprehensive-0232)", () => {
     const entry = activatableEffects(s, burster).find((e) => e.instanceId === sourceInstanceId);
     expect(entry, "BT4-012 surfaces its [Main] <Digi-Burst 2> ability").toBeDefined();
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey })).toEqual({
+      ok: true,
+    });
     await settle(() => p1.battleArea.some((p) => p.permanentId === weakTarget.permanentId) === false, 5000);
 
     expect(burster.stack.length).toBe(0); // both digivolution cards trashed as the cost
@@ -268,9 +263,9 @@ describe("§16-16 <Blitz> (comprehensive-0234)", () => {
     const blitzer = digimon(0, 5000, NON_KEYWORD_CARD);
     p0.battleArea.push(blitzer);
     const hasBlitz = (seat: Seat) =>
-      (s.engine as unknown as { combat: { hasBlitzAttackAvailable(seat: Seat): boolean } }).combat.hasBlitzAttackAvailable(
-        seat,
-      );
+      (
+        s.engine as unknown as { combat: { hasBlitzAttackAvailable(seat: Seat): boolean } }
+      ).combat.hasBlitzAttackAvailable(seat);
 
     // Before memory crosses (turn player's own positive side): no Blitz attack is available,
     // even once the keyword is granted.
@@ -321,9 +316,9 @@ describe("§16-17 <Delay> (comprehensive-0235)", () => {
     expect(entry, "BT10-097 surfaces its <Delay> ability once eligible").toBeDefined();
 
     const trashBefore = p0.trash.length;
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey })).toEqual({
+      ok: true,
+    });
     await settle(() => p0.battleArea.length === 0, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === delayer.permanentId)).toBe(false); // trashed itself
@@ -332,77 +327,71 @@ describe("§16-17 <Delay> (comprehensive-0235)", () => {
 });
 
 describe("§16-18 <Decoy> (comprehensive-0236)", () => {
-  it(
-    "a <Decoy>-protected Digimon stays deletable: the protection is paid by deleting the Decoy holder",
-    async () => {
-      cite(
-        "comprehensive-0236",
-        "§16-18-1 <Decoy (X)>: 'When another of your specified Digimon would be deleted by an " +
-          "opponent's effect, by deleting the Digimon with this effect, this effect prevents the " +
-          "Digimon specified by this effect from being deleted.' The protection is a one-shot " +
-          "cost paid at the deletion consult, never a standing can't-be-deleted restriction.",
-      );
+  it("a <Decoy>-protected Digimon stays deletable: the protection is paid by deleting the Decoy holder", async () => {
+    cite(
+      "comprehensive-0236",
+      "§16-18-1 <Decoy (X)>: 'When another of your specified Digimon would be deleted by an " +
+        "opponent's effect, by deleting the Digimon with this effect, this effect prevents the " +
+        "Digimon specified by this effect from being deleted.' The protection is a one-shot " +
+        "cost paid at the deletion consult, never a standing can't-be-deleted restriction.",
+    );
 
-      const s = setup();
-      const p0 = s.state.players[0] as PlayerState;
-      const decoy = digimon(0, 3000, "BT11-082"); // printed <Decoy ([Bagra Army])>
-      const protectedAlly = digimon(0, 1000, "BT10-070"); // a [Bagra Army] Digimon it covers
-      p0.battleArea.push(decoy, protectedAlly);
-      await s.engine.recomputeContinuousEffects();
-      const reader = (s.engine as unknown as { continuous: { hasRestriction(id: string, r: string): boolean } })
-        .continuous;
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const decoy = digimon(0, 3000, "BT11-082"); // printed <Decoy ([Bagra Army])>
+    const protectedAlly = digimon(0, 1000, "BT10-070"); // a [Bagra Army] Digimon it covers
+    p0.battleArea.push(decoy, protectedAlly);
+    await s.engine.recomputeContinuousEffects();
+    const reader = (s.engine as unknown as { continuous: { hasRestriction(id: string, r: string): boolean } })
+      .continuous;
 
-      // The covered ally carries NO standing restriction: it is deletable until the Decoy
-      // holder is actually deleted as the cost at the consult.
-      expect(reader.hasRestriction(protectedAlly.permanentId, "beDeleted")).toBe(false);
-      // The <Decoy> marker itself is the keyword grant the deletion consult reads.
-      expect(
-        (s.engine as unknown as { continuous: { hasKeyword(id: string, k: string): boolean } }).continuous.hasKeyword(
-          decoy.permanentId,
-          "Decoy",
-        ),
-      ).toBe(true);
-    },
-  );
+    // The covered ally carries NO standing restriction: it is deletable until the Decoy
+    // holder is actually deleted as the cost at the consult.
+    expect(reader.hasRestriction(protectedAlly.permanentId, "beDeleted")).toBe(false);
+    // The <Decoy> marker itself is the keyword grant the deletion consult reads.
+    expect(
+      (s.engine as unknown as { continuous: { hasKeyword(id: string, k: string): boolean } }).continuous.hasKeyword(
+        decoy.permanentId,
+        "Decoy",
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("§16-19 <Armor Purge> (comprehensive-0237)", () => {
-  it(
-    "NOW MET: a printed-<Armor Purge> Digimon that loses a battle should be spared by trashing its own top card",
-    async () => {
-      cite(
-        "comprehensive-0237",
-        "DIVERGENCE: §16-19-1 <Armor Purge>: 'When a Digimon with this effect would be " +
-          "deleted, by trashing the top card of the Digimon with this effect, this effect " +
-          "prevents the deletion.' Every real <Armor Purge> printer checked (BT10-012, " +
-          "BT10-015, BT10-074) compiles the keyword to an empty-actions Static marker only — " +
-          "no Replacement/Prevent registration exists anywhere in the engine keyed on " +
-          "'Armor Purge' (confirmed by an engine-wide grep for hasKeyword(...,\"Armor Purge\")). " +
-          "A Digimon that loses a battle is deleted exactly as if it never printed the keyword.",
-      );
+  it("NOW MET: a printed-<Armor Purge> Digimon that loses a battle should be spared by trashing its own top card", async () => {
+    cite(
+      "comprehensive-0237",
+      "DIVERGENCE: §16-19-1 <Armor Purge>: 'When a Digimon with this effect would be " +
+        "deleted, by trashing the top card of the Digimon with this effect, this effect " +
+        "prevents the deletion.' Every real <Armor Purge> printer checked (BT10-012, " +
+        "BT10-015, BT10-074) compiles the keyword to an empty-actions Static marker only — " +
+        "no Replacement/Prevent registration exists anywhere in the engine keyed on " +
+        "'Armor Purge' (confirmed by an engine-wide grep for hasKeyword(...,\"Armor Purge\")). " +
+        "A Digimon that loses a battle is deleted exactly as if it never printed the keyword.",
+    );
 
-      const s = setup();
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const attacker = digimon(0, 9000, NON_KEYWORD_CARD);
-      p0.battleArea.push(attacker);
-      const armored = digimon(1, 4000, "BT10-012"); // printed <Armor Purge>
-      armored.isSuspended = true;
-      armored.stack.push(instance(NON_KEYWORD_CARD, 1, true)); // a top card to trash as the cost
-      p1.battleArea.push(armored);
-      await s.engine.recomputeContinuousEffects(); // pick up BT10-012's printed <Armor Purge>
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const attacker = digimon(0, 9000, NON_KEYWORD_CARD);
+    p0.battleArea.push(attacker);
+    const armored = digimon(1, 4000, "BT10-012"); // printed <Armor Purge>
+    armored.isSuspended = true;
+    armored.stack.push(instance(NON_KEYWORD_CARD, 1, true)); // a top card to trash as the cost
+    p1.battleArea.push(armored);
+    await s.engine.recomputeContinuousEffects(); // pick up BT10-012's printed <Armor Purge>
 
-      expect(
-        s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "permanent", permanentId: armored.permanentId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => false, 5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: armored.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 5000);
 
-      // EXPECTED (per §16-19-1): spared by trashing its own top card instead.
-      expect(p1.battleArea.some((p) => p.permanentId === armored.permanentId)).toBe(true);
-    },
-  );
+    // EXPECTED (per §16-19-1): spared by trashing its own top card instead.
+    expect(p1.battleArea.some((p) => p.permanentId === armored.permanentId)).toBe(true);
+  });
 });

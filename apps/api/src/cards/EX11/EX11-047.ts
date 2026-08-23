@@ -6,51 +6,51 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
-    { "level": 2, "cost": 1, "colors": ["Purple", "Red"], "isAlternate": true },
-    { "names": ["Yaamon"], "cost": 0, "isAlternate": true }
+  digivolutionRequirement: [
+    { level: 2, cost: 1, colors: ["Purple", "Red"], isAlternate: true },
+    { names: ["Yaamon"], cost: 0, isAlternate: true },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1
-        }
-      ]
+          kind: "GainMemory",
+          amount: 1,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-047", compiled);

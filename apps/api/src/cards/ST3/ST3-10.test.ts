@@ -46,11 +46,6 @@ describe("ST3-10 Magnadramon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "ST3-10");
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").baseDP).toBe(12000);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([
-      "ST3-01",
-      "ST3-02",
-      "ST3-06",
-      "ST3-09",
-    ]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["ST3-01", "ST3-02", "ST3-06", "ST3-09"]);
   });
 });

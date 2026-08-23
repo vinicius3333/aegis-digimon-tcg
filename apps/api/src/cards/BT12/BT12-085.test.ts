@@ -35,9 +35,12 @@ it("trashes one security card per ten cards in trash with a matching stack", asy
 });
 
 it("plays an Impmon from trash when deleted", async () => {
-  const s = setupEngine({
-    0: { battleArea: [{ card: "BT12-085", as: "beelx" }], trash: ["BT12-073"] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-085", as: "beelx" }], trash: ["BT12-073"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await advance(s.engine).verb.deletePermanent([s.perm("beelx").permanentId]);
   await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-073"));
   expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-073")).toBe(true);

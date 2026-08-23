@@ -6,87 +6,76 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
+          amount: -4000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "ModifySecurityDP",
-          "controller": "opponent",
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
-      ]
+          kind: "ModifySecurityDP",
+          controller: "opponent",
+          amount: -4000,
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "colors": [
-              "Red",
-              "Yellow"
-            ]
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            colors: ["Red", "Yellow"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": -4000,
-              "duration": "forTheTurn"
+              amount: -4000,
+              duration: "forTheTurn",
             },
             {
-              "kind": "ModifySecurityDP",
-              "controller": "opponent",
-              "amount": -4000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              kind: "ModifySecurityDP",
+              controller: "opponent",
+              amount: -4000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "GeoGreymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      names: ["GeoGreymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX4-009", compiled);

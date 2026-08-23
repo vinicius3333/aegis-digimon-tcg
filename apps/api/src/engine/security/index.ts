@@ -10,7 +10,4 @@
 export { WinCheck } from "./winCheck.js";
 export type { GameOverReason, LossCause } from "./winCheck.js";
 export { runSecurityCheck } from "./securityCheck.js";
-export type {
-  SecurityCheckDeps,
-  SecurityCheckAttacker,
-} from "./securityCheck.js";
+export type { SecurityCheckDeps, SecurityCheckAttacker } from "./securityCheck.js";

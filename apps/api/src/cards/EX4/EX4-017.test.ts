@@ -7,14 +7,30 @@ import "../index.js";
 
 describe("EX4-017 Gaogamon", () => {
   it("returns an opposing level 3 Digimon", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({ kind: "Return", to: "hand", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 } });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({
+      kind: "Return",
+      to: "hand",
+      target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
+    });
   });
   it("gains memory once per turn when an effect adds to the opponent's hand", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({ isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToOpponentHand", actions: [{ kind: "GainMemory", amount: 1 }] }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "SubTrigger", event: "whenEffectAddsToOpponentHand", actions: [{ kind: "GainMemory", amount: 1 }] },
+      ],
+    });
   });
 
   it("returns one opposing level 3 Digimon to its owner's hand", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-017", as: "gaogamon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "level3" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-017", as: "gaogamon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "level3" }] },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("gaogamon"));

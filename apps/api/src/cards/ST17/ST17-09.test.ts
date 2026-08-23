@@ -7,18 +7,28 @@ import "../index.js";
 
 describe("ST17-09 Cherubimon", () => {
   it("has Alliance, deletes an opposing level 4 Digimon, and plays a qualifying card from trash for free", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST17-09", as: "cherubimon" }],
-        trash: [{ card: "ST17-04", as: "revived" }, { card: "BT1-009", as: "wrongColor" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST17-09", as: "cherubimon" }],
+          trash: [
+            { card: "ST17-04", as: "revived" },
+            { card: "BT1-009", as: "wrongColor" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
       },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("cherubimon"), "Alliance")).toBe(true);
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("cherubimon"));
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-04"));
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-04"),
+    );
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-04")).toBe(true);

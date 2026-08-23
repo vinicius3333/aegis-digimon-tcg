@@ -6,96 +6,94 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [{"tokens": ["Zanbamon"], "match": "nameExact"}]
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Zanbamon"], match: "nameExact" }],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ],
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "trash",
-              "controller": "opponent"
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
             },
-            "unit": "colors"
-          }
-        }
-      ]
+          ],
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "trash",
+              controller: "opponent",
+            },
+            unit: "colors",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "permanent",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "zone": "trash",
-              "controller": "opponent"
+          duration: "permanent",
+          scaling: {
+            per: 2,
+            filter: {
+              zone: "trash",
+              controller: "opponent",
             },
-            "unit": "colors"
-          }
+            unit: "colors",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "zone": "trash",
-              "controller": "opponent"
+          amount: 2000,
+          duration: "permanent",
+          scaling: {
+            per: 2,
+            filter: {
+              zone: "trash",
+              controller: "opponent",
             },
-            "unit": "colors"
-          }
-        }
-      ]
-    }
+            unit: "colors",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT18-085", compiled);

@@ -6,97 +6,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "or": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              or: [
                 {
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ]
+                  kind: ["Digimon"],
+                  levels: [3],
                 },
                 {
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Whamon"
-                      ],
-                      "match": "nameExact"
-                    }
-                  ]
-                }
+                      tokens: ["Whamon"],
+                      match: "nameExact",
+                    },
+                  ],
+                },
               ],
-              "zone": "digivolutionCards"
+              zone: "digivolutionCards",
             },
-            "count": 1
+            count: 1,
           },
-          "fromOwnDigivolutionStack": true,
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          fromOwnDigivolutionStack: true,
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "fromDigivolution": true
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            fromDigivolution: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 99,
-              "raw": "Trash all of the digivolution cards of that Digimon."
+              amount: 99,
+              raw: "Trash all of the digivolution cards of that Digimon.",
             },
             {
-              "kind": "Return",
-              "target": {
-                "filter": {},
-                "count": 1,
-                "sameTarget": true
+              kind: "Return",
+              target: {
+                filter: {},
+                count: 1,
+                sameTarget: true,
               },
-              "to": "hand"
-            }
+              to: "hand",
+            },
           ],
-          "raw": "whenPlayed"
-        }
-      ]
-    }
+          raw: "whenPlayed",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-028", compiled);

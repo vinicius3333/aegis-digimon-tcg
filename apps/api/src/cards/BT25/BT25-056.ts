@@ -128,16 +128,20 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static",
       isLinked: true,
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenLinked",
-        sourceFilter: { isSelfRef: true },
-        actions: [{
-          kind: "Return",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 },
-          to: "deckBottom",
-        }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Return",
+              target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 },
+              to: "deckBottom",
+            },
+          ],
+        },
+      ],
     },
   ],
   coverage: "full",

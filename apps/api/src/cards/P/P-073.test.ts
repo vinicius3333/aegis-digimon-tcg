@@ -34,7 +34,10 @@ describe("P-073 WereGarurumon: Sagittarius Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-010", as: "base" }, { card: "BT1-089", as: "tamer" }],
+          battleArea: [
+            { card: "AD1-010", as: "base" },
+            { card: "BT1-089", as: "tamer" },
+          ],
           hand: [{ card: "P-073", as: "source" }],
         },
         1: {
@@ -47,10 +50,7 @@ describe("P-073 WereGarurumon: Sagittarius Mode", () => {
       },
       { autoSelectCards: true },
     );
-    const returnedIds = [
-      s.perm("level-3-a").topCard!.instanceId,
-      s.perm("level-3-b").topCard!.instanceId,
-    ];
+    const returnedIds = [s.perm("level-3-a").topCard!.instanceId, s.perm("level-3-b").topCard!.instanceId];
     const level4Id = s.perm("level-4").permanentId;
     s.state.memory = 10;
 
@@ -71,7 +71,10 @@ describe("P-073 WereGarurumon: Sagittarius Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-010", as: "base" }, { card: "BT1-089", as: "tamer" }],
+          battleArea: [
+            { card: "AD1-010", as: "base" },
+            { card: "BT1-089", as: "tamer" },
+          ],
           hand: [{ card: "P-073", as: "source" }],
         },
         1: {
@@ -87,27 +90,31 @@ describe("P-073 WereGarurumon: Sagittarius Mode", () => {
     const unchosenPermanentId = s.perm("unchosen").permanentId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.at(-1)!.req;
     expect(decision.options?.min).toBe(0);
     expect(decision.options?.max).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === chosenCardId));
 
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === chosenCardId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some(
-      (permanent) => permanent.permanentId === unchosenPermanentId,
-    )).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === unchosenPermanentId)).toBe(
+      true,
+    );
   });
 
   it("does not return level 3 Digimon without a Tamer", async () => {
@@ -146,11 +153,7 @@ describe("P-073 WereGarurumon: Sagittarius Mode", () => {
               as: "defender",
               dp: 7000,
               suspended: true,
-              under: [
-                { card: "BT1-009", as: "level-3-a" },
-                { card: "BT1-010", as: "level-3-b" },
-                "P-073",
-              ],
+              under: [{ card: "BT1-009", as: "level-3-a" }, { card: "BT1-010", as: "level-3-b" }, "P-073"],
             },
           ],
         },
@@ -214,9 +217,7 @@ describe("P-073 WereGarurumon: Sagittarius Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-044", as: "host", under: ["BT1-009", "BT1-010", "P-073"] },
-          ],
+          battleArea: [{ card: "BT1-044", as: "host", under: ["BT1-009", "BT1-010", "P-073"] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

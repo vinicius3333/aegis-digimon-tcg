@@ -11,8 +11,27 @@ describe("EX11-034 QueenBeemon", () => {
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
       const effects = compiled.effects.filter((effect) => effect.trigger === trigger);
-      expect(effects[0]).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0", actions: [{ kind: "SecurityManipulation", op: "addTopOrBottom", filter: { nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }] } }, { kind: "DeleteBudget", budget: 8 }] });
+      expect(effects[0]).toMatchObject({
+        frequency: "OncePerTurn",
+        sharedUseKey: "ir-shared-0",
+        actions: [
+          {
+            kind: "SecurityManipulation",
+            op: "addTopOrBottom",
+            filter: { nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }] },
+          },
+          { kind: "DeleteBudget", budget: 8 },
+        ],
+      });
     }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "WhenDigivolving", sharedUseKey: "ir-shared-1", actions: [expect.objectContaining({ kind: "PlayFromZone", costReductionScaling: expect.objectContaining({ per: 1 }) })] }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        sharedUseKey: "ir-shared-1",
+        actions: [
+          expect.objectContaining({ kind: "PlayFromZone", costReductionScaling: expect.objectContaining({ per: 1 }) }),
+        ],
+      }),
+    );
   });
 });

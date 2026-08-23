@@ -16,9 +16,7 @@ export interface CompilerAliases {
   /** Shorthand for `colors`. */
   color?: string | string[];
   /** Shorthand for `nameOrTrait`. */
-  name?:
-    | string
-    | { tokens: string[]; match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any" };
+  name?: string | { tokens: string[]; match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any" };
   /** Shorthand for `nameOrTrait` with match "trait". */
   trait?: string | string[];
   /** String form of `nameOrTrait`. */

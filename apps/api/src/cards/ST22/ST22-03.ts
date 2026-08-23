@@ -6,97 +6,79 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Renamon",
-                      "Kyubimon",
-                      "Taomon",
-                      "Sakuyamon",
-                      "Rika Nonaka"
-                    ],
-                    "match": "name"
+                    tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon", "Rika Nonaka"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "Onmyōjutsu",
-                      "Plug-In"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Onmyōjutsu", "Plug-In"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Renamon",
-                      "Kyubimon",
-                      "Taomon",
-                      "Sakuyamon",
-                      "Rika Nonaka"
-                    ],
-                    "match": "name"
+                    tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon", "Rika Nonaka"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "Onmyōjutsu",
-                      "Plug-In"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Onmyōjutsu", "Plug-In"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
-    }
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST22-03", compiled);

@@ -16,11 +16,13 @@ describe("EX1-020 Plesiomon", () => {
     await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
 
     expect(observe(s.engine).canAttackUnsuspended(s.perm("plesiomon"))).toBe(true);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("plesiomon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("plesiomon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
   });
 
   it("draws 2 when an opponent's digivolution card is trashed", async () => {

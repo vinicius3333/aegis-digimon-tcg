@@ -19,7 +19,11 @@ describe("BT25-021 Gaomon", () => {
           ],
         },
       }),
-      expect.objectContaining({ count: 1, to: "hand", filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Gaogamon"], match: "name" }] } }),
+      expect.objectContaining({
+        count: 1,
+        to: "hand",
+        filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Gaogamon"], match: "name" }] },
+      }),
     ]);
   });
 

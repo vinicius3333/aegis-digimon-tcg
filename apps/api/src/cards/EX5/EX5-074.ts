@@ -14,12 +14,14 @@ for (const effect of compiled.effects) {
 }
 const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
 if (allTurns) {
-  allTurns.actions = [{
-    kind: "GrantStatic",
-    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-    grant: "immuneToOpponentDigimonEffects",
-    duration: "permanent",
-  }];
+  allTurns.actions = [
+    {
+      kind: "GrantStatic",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      grant: "immuneToOpponentDigimonEffects",
+      duration: "permanent",
+    },
+  ];
 }
 compiled.coverage = "full";
 compiled.residual = [];

@@ -56,14 +56,21 @@ describe("BT22-052 Leopardmon", () => {
     );
     s.state.memory = 7;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("leopardmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("leopardmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-057"));
     await settle();
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT22-057")!;
     expect(observe(s.engine).hasKeyword(played, "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("existing"), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT22-052")!, "Blocker")).toBe(true);
+    expect(
+      observe(s.engine).hasKeyword(
+        s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT22-052")!,
+        "Blocker",
+      ),
+    ).toBe(true);
   });
 
   it("gains memory at would-leave timing only once across two other Digimon", async () => {
@@ -78,7 +85,9 @@ describe("BT22-052 Leopardmon", () => {
     });
     await s.ready();
     s.state.memory = 0;
-    const primitives = (s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> } }).primitives;
+    const primitives = (
+      s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> } }
+    ).primitives;
 
     await primitives.deletePermanent([s.perm("first").permanentId], "byEffect");
     await settle();

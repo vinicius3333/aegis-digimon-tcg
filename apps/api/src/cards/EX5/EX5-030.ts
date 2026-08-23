@@ -6,99 +6,85 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Leomon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Leomon"],
+                match: "name",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 1,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "name",
-          "tokens": [
-            "Leomon"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -2000,
-          "duration": "untilOpponentTurnEnd"
-        }
+          from: ["hand"],
+          reduceCost: 1,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "name",
+          tokens: ["Leomon"],
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -2000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Liollmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Liollmon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "names": [
-        "Elecmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Elecmon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX5-030", compiled);

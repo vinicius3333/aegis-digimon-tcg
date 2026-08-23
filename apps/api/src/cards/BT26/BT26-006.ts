@@ -15,32 +15,56 @@ const cost = {
 };
 
 export const compiled: CompiledCard = {
-  effects: [{
-    trigger: "WhenAttacking",
-    isInherited: true,
-    frequency: "OncePerTurn",
-    actions: [{
-      kind: "Modal",
-      choose: 1,
-      options: [[{
-        kind: "PlayWithoutCost",
-        target: { filter: { controllerDefault: "mine", zone: "hand", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }] }, count: 1 },
-        from: ["hand"],
-        payCost: true,
-        reduceCostBy: 2,
-        optional: true,
-        cost,
-      }], [{
-        kind: "UseOptionWithoutCost",
-        filter: { controllerDefault: "mine", zone: "hand", kind: ["Option"], nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }] },
-        from: ["hand"],
-        payCost: true,
-        reduceCostBy: 2,
-        optional: true,
-        cost,
-      }]],
-    }],
-  }],
+  effects: [
+    {
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Modal",
+          choose: 1,
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controllerDefault: "mine",
+                    zone: "hand",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+                  },
+                  count: 1,
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+                cost,
+              },
+            ],
+            [
+              {
+                kind: "UseOptionWithoutCost",
+                filter: {
+                  controllerDefault: "mine",
+                  zone: "hand",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+                cost,
+              },
+            ],
+          ],
+        },
+      ],
+    },
+  ],
   coverage: "full",
   residual: [],
 };

@@ -113,7 +113,9 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "trash") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
-    return cost.target.upTo === true ? candidates.length >= (cost.stopIfZero === true ? 1 : 0) : candidates.length >= required;
+    return cost.target.upTo === true
+      ? candidates.length >= (cost.stopIfZero === true ? 1 : 0)
+      : candidates.length >= required;
   }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "hand") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
@@ -233,7 +235,8 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     }
     return (
       ctx.source.permanent() !== undefined ||
-      (ctx.trigger.attackerPermanentId !== undefined && ctx.game.permanentById(ctx.trigger.attackerPermanentId) !== undefined)
+      (ctx.trigger.attackerPermanentId !== undefined &&
+        ctx.game.permanentById(ctx.trigger.attackerPermanentId) !== undefined)
     );
   }
   return true;
@@ -313,7 +316,10 @@ export async function payCost(
           const picked = await decisionCtx.ask.selectCards(decisionCtx, {
             candidates: candidates.map((candidate) => candidate.instanceId),
             min,
-            max: Math.min(nested.target.count === "all" ? candidates.length : (nested.target.count ?? 1), candidates.length),
+            max: Math.min(
+              nested.target.count === "all" ? candidates.length : (nested.target.count ?? 1),
+              candidates.length,
+            ),
             visible: candidateLooseInstances(ctx, { filter: { zone: "trash" }, count: "all" }, ["trash"]).map(
               (candidate) => candidate.instanceId,
             ),
@@ -327,16 +333,17 @@ export async function payCost(
         }
         if (chosen.length > 1) {
           const decisionCtx = ctx.activeTiming === "WhenAttacking" ? { ...ctx, activeTiming: "OnAllyAttack" } : ctx;
-          const ordered = (await decisionCtx.ask.orderCards?.(decisionCtx, {
-            candidates: chosen,
-            visibleCards: chosen.map((instanceId) => {
-              const card = candidateLooseInstances(ctx, { filter: { zone: "trash" }, count: "all" }, ["trash"]).find(
-                (candidate) => candidate.instanceId === instanceId,
-              );
-              return { instanceId, cardId: card?.cardId ?? instanceId };
-            }),
-            destination: "deckBottom",
-          })) ?? chosen;
+          const ordered =
+            (await decisionCtx.ask.orderCards?.(decisionCtx, {
+              candidates: chosen,
+              visibleCards: chosen.map((instanceId) => {
+                const card = candidateLooseInstances(ctx, { filter: { zone: "trash" }, count: "all" }, ["trash"]).find(
+                  (candidate) => candidate.instanceId === instanceId,
+                );
+                return { instanceId, cardId: card?.cardId ?? instanceId };
+              }),
+              destination: "deckBottom",
+            })) ?? chosen;
           await ctx.fx.returnToDeck(ordered, { toTop: false });
         } else if (chosen.length === 1) {
           await ctx.fx.returnToDeck(chosen, { toTop: false });
@@ -942,13 +949,16 @@ export async function payCost(
           }
           const eligibleHosts = [...byHost.entries()].filter(([, group]) => group.length >= n);
           if (eligibleHosts.length === 0) return false;
-          const hostId = eligibleHosts.length === 1
-            ? eligibleHosts[0]![0]
-            : (await ctx.ask.chooseTargets(ctx, {
-                candidates: eligibleHosts.map(([id]) => id),
-                min: 1,
-                max: 1,
-              }))[0];
+          const hostId =
+            eligibleHosts.length === 1
+              ? eligibleHosts[0]![0]
+              : (
+                  await ctx.ask.chooseTargets(ctx, {
+                    candidates: eligibleHosts.map(([id]) => id),
+                    min: 1,
+                    max: 1,
+                  })
+                )[0];
           if (hostId === undefined) return false;
           candidates = byHost.get(hostId) ?? [];
         }
@@ -1324,9 +1334,9 @@ export async function payCost(
             });
           }
           if (out) out.paidCount = sourceIds.length;
-        return true;
-      }
-      const srcZones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
+          return true;
+        }
+        const srcZones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
         const srcCandidates = candidateLooseInstances(ctx, cost.target, srcZones);
         const visibleSourceIds = srcZones.every((zone) => zone === "hand" || zone === "trash")
           ? seatsForController(ctx, cost.target.filter).flatMap((seat) =>
@@ -1579,7 +1589,10 @@ export async function payCost(
           destination: "stackBottom",
         });
       }
-      await ctx.fx.placeUnder(hostId, [...orderedChosen].reverse(), { belowTop: false, faceUp: cost.faceDown !== true });
+      await ctx.fx.placeUnder(hostId, [...orderedChosen].reverse(), {
+        belowTop: false,
+        faceUp: cost.faceDown !== true,
+      });
       if (cost.storeAs !== undefined && chosen.length > 0) {
         const pickedCard = candidates.find((c) => c.instanceId === chosen[0]);
         const level = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never).level : undefined;

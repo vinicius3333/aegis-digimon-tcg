@@ -7,10 +7,24 @@ import "./BT3-106.js";
 
 describe("BT3-106 Final Zubagon Punch", () => {
   it("gives Security Attack +1 to all Digimon with Blocker or Reboot", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT3-070", as: "blocker" }, { card: "BT3-071", as: "reboot" }], hand: [{ card: "BT3-106", as: "option" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-070", as: "blocker" },
+          { card: "BT3-071", as: "reboot" },
+        ],
+        hand: [{ card: "BT3-106", as: "option" }],
+      },
+    });
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => observe(s.engine).keywordAmount(s.perm("blocker"), "SecurityAttack") === 1 && observe(s.engine).keywordAmount(s.perm("reboot"), "SecurityAttack") === 1);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        observe(s.engine).keywordAmount(s.perm("blocker"), "SecurityAttack") === 1 &&
+        observe(s.engine).keywordAmount(s.perm("reboot"), "SecurityAttack") === 1,
+    );
     expect(observe(s.engine).keywordAmount(s.perm("blocker"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).keywordAmount(s.perm("reboot"), "SecurityAttack")).toBe(1);
   });

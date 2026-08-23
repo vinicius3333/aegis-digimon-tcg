@@ -19,10 +19,12 @@ describe("BT9-098 Awakening of the Golden Knight", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("flamedramon").topCard.cardId === "BT9-044");
 
     expect(s.perm("flamedramon").topCard.instanceId).toBe(s.inst("magnamonX").instanceId);
@@ -39,9 +41,11 @@ describe("BT9-098 Awakening of the Golden Knight", () => {
     });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-    })).toEqual({ ok: false, reason: "color-requirement-unmet" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
   });
 });

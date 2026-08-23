@@ -33,18 +33,14 @@ describe("BT11-112 [On Play] grant Blocker + Evade to a [Veemon]/[Veedramon] Dig
     const card = s.inst("card");
     s.state.memory = 3; // exactly the printed play cost
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
 
     await settle(() => false, 60); // flush the on-play resolution
 
     const rejected = s.events.find((e) => e.kind === "actionRejected");
     expect(rejected).toBeUndefined();
 
-    const ledger = (
-      s.engine as unknown as { continuous: { hasKeyword(id: string, k: string): boolean } }
-    ).continuous;
+    const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, k: string): boolean } }).continuous;
     expect(ledger.hasKeyword(veemon.permanentId, "Blocker")).toBe(true);
     expect(ledger.hasKeyword(veemon.permanentId, "Evade")).toBe(true);
   });
@@ -134,14 +130,17 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
 
 describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory", () => {
   it("gains memory from the actual unsuspended-permanent trigger field", async () => {
-    const s = setup({
-      0: {
-        battleArea: [
-          { card: "BT11-112", as: "kouji" },
-          { card: "BT11-023", as: "blue" },
-        ],
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", as: "kouji" },
+            { card: "BT11-023", as: "blue" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 3;
     await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
     s.perm("blue").isSuspended = true;

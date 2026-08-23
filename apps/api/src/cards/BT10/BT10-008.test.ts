@@ -7,34 +7,47 @@ import "./BT10-008.js";
 
 describe("BT10-008 Shoutmon", () => {
   it("adds one Xros Heart Digimon and Tamer from the top three cards", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT10-008", as: "source" }], deck: [
-      { card: "BT10-034", as: "digimon" }, { card: "BT10-087", as: "tamer" }, "BT10-010",
-    ] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-008", as: "source" }],
+          deck: [{ card: "BT10-034", as: "digimon" }, { card: "BT10-087", as: "tamer" }, "BT10-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => player.hand.some(c => c.instanceId === s.inst("digimon").instanceId));
-    expect(player.hand.some(c => c.instanceId === s.inst("tamer").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.hand.some((c) => c.instanceId === s.inst("digimon").instanceId));
+    expect(player.hand.some((c) => c.instanceId === s.inst("tamer").instanceId)).toBe(true);
     expect(player.deck).toHaveLength(1);
   });
 
   it("must add both eligible Xros Heart card kinds when both are revealed (Q1934)", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT10-008", as: "source" }],
-        deck: [
-          { card: "BT10-034", as: "digimon" },
-          { card: "BT10-087", as: "tamer" },
-          { card: "BT1-010", as: "rest" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-008", as: "source" }],
+          deck: [
+            { card: "BT10-034", as: "digimon" },
+            { card: "BT10-087", as: "tamer" },
+            { card: "BT1-010", as: "rest" },
+          ],
+        },
       },
-    }, { autoOrderTriggers: true, autoOrderCards: true });
+      { autoOrderTriggers: true, autoOrderCards: true },
+    );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const digimonDecision = s.state.pendingDecision!;
@@ -42,11 +55,7 @@ describe("BT10-008 Shoutmon", () => {
     expect(digimonRequest.sourceCardId).toBe("BT10-008");
     expect(digimonRequest.options).toMatchObject({
       candidateInstanceIds: [s.inst("digimon").instanceId],
-      visibleInstanceIds: [
-        s.inst("digimon").instanceId,
-        s.inst("tamer").instanceId,
-        s.inst("rest").instanceId,
-      ],
+      visibleInstanceIds: [s.inst("digimon").instanceId, s.inst("tamer").instanceId, s.inst("rest").instanceId],
       min: 1,
       max: 1,
       timing: "OnPlay",
@@ -56,20 +65,25 @@ describe("BT10-008 Shoutmon", () => {
       { instanceId: s.inst("tamer").instanceId, cardId: "BT10-087" },
       { instanceId: s.inst("rest").instanceId, cardId: "BT1-010" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: digimonDecision.decisionId,
-      response: { kind: "selectCards", instanceIds: [] },
-    })).toEqual({ ok: false, reason: "decision-pending" });
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: digimonDecision.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("digimon").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: digimonDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: false, reason: "decision-pending" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: digimonDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("digimon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.state.pendingDecision?.kind === "selectCards" &&
-      s.state.pendingDecision.decisionId !== digimonDecision.decisionId,
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "selectCards" &&
+        s.state.pendingDecision.decisionId !== digimonDecision.decisionId,
     );
     const tamerDecision = s.state.pendingDecision!;
     const tamerRequest = s.decisions.find(({ req }) => req.decisionId === tamerDecision.decisionId)!.req;
@@ -80,24 +94,20 @@ describe("BT10-008 Shoutmon", () => {
       max: 1,
       timing: "OnPlay",
     });
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: tamerDecision.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("tamer").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: tamerDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("tamer").instanceId] },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[0]!.deck.length === 1,
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("digimon").instanceId, s.inst("tamer").instanceId]),
     );
-
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("digimon").instanceId,
-      s.inst("tamer").instanceId,
-    ]));
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
-      s.inst("rest").instanceId,
-    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
   it("adds the only eligible kind and rejects Digimon/Tamers without Xros Heart (Q1932/Q1933)", async () => {
@@ -116,36 +126,38 @@ describe("BT10-008 Shoutmon", () => {
     );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some(({ instanceId }) =>
-        instanceId === s.inst("eligibleDigimon").instanceId
-      ) && s.state.players[0]!.deck.length === 2
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("eligibleDigimon").instanceId) &&
+        s.state.players[0]!.deck.length === 2,
     );
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       s.inst("eligibleDigimon").instanceId,
     );
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("plainDigimon").instanceId,
-        s.inst("plainTamer").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("plainDigimon").instanceId, s.inst("plainTamer").instanceId]),
     );
   });
 
   it("may save itself under one of its Tamers after deletion", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-087", as: "tamer" },
-          { card: "BT10-008", as: "deleted" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-087", as: "tamer" },
+            { card: "BT10-008", as: "deleted" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     const deletedInstanceId = s.perm("deleted").topCard.instanceId;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId])).toBe(1);
@@ -156,14 +168,17 @@ describe("BT10-008 Shoutmon", () => {
   });
 
   it("can decline Save and then sends itself to the trash", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-087", as: "tamer" },
-          { card: "BT10-008", as: "deleted" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-087", as: "tamer" },
+            { card: "BT10-008", as: "deleted" },
+          ],
+        },
       },
-    }, { autoDeclineOptional: true, autoOrderTriggers: true });
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
     const deletedInstanceId = s.perm("deleted").topCard.instanceId;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId])).toBe(1);
@@ -174,14 +189,17 @@ describe("BT10-008 Shoutmon", () => {
   });
 
   it("grants inherited Rush only when the host has Shoutmon in its name", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-013", as: "shoutmonHost", under: ["BT10-008"] },
-          { card: "BT10-034", as: "otherHost", under: ["BT10-008"] },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-013", as: "shoutmonHost", under: ["BT10-008"] },
+            { card: "BT10-034", as: "otherHost", under: ["BT10-008"] },
+          ],
+        },
       },
-    }, { autoOrderTriggers: true });
+      { autoOrderTriggers: true },
+    );
 
     await s.ready();
 

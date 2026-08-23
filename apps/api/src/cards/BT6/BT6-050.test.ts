@@ -5,10 +5,22 @@ import "./BT6-050.js";
 
 describe("BT6-050 Petaldramon", () => {
   it("digivolves onto a green Tamer and has Piercing", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-088", as: "tamer" }], hand: [{ card: "BT6-050", as: "petaldramon" }], deck: ["BT1-010"] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-088", as: "tamer" }],
+        hand: [{ card: "BT6-050", as: "petaldramon" }],
+        deck: ["BT1-010"],
+      },
+    });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("tamer").permanentId, instanceId: s.inst("petaldramon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("petaldramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").topCard?.cardId === "BT6-050" && s.state.memory === 0);
     await s.engine.recomputeContinuousEffects();
 
@@ -25,11 +37,13 @@ describe("BT6-050 Petaldramon", () => {
     });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("redTamer").permanentId,
-      instanceId: s.inst("petaldramon").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redTamer").permanentId,
+        instanceId: s.inst("petaldramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(s.perm("redTamer").topCard.cardId).toBe("BT1-085");
   });
 });

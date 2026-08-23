@@ -13,10 +13,19 @@ describe("ST24-04 Agumon", () => {
         rest: "deckBottom",
         add: [
           { count: 1, to: "hand", filter: { nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] } },
-          { count: 1, to: "placeUnder", faceDown: true, underFilter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] } },
+          {
+            count: 1,
+            to: "placeUnder",
+            faceDown: true,
+            underFilter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] },
+          },
         ],
       });
     }
-    expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({ kind: "ModifyDP", amount: 2000, duration: "permanent" });
+    expect(compiled.effects.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
+      kind: "ModifyDP",
+      amount: 2000,
+      duration: "permanent",
+    });
   });
 });

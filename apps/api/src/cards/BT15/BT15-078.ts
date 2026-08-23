@@ -6,105 +6,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ],
-            "zone": "battleArea",
-            "byEffect": true
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            zone: "battleArea",
+            byEffect: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GrantAuraToOpponents",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "GrantAuraToOpponents",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": "all"
+                count: "all",
               },
-              "event": "onDeletionOf",
-              "actions": [
+              event: "onDeletionOf",
+              actions: [
                 {
-                  "kind": "GainMemory",
-                  "amount": -1
-                }
+                  kind: "GainMemory",
+                  amount: -1,
+                },
               ],
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "suspended": true,
-          "suppressOnPlayEffects": true,
-          "bindResultAs": "playedDigimon"
+          from: ["trash"],
+          payCost: false,
+          suspended: true,
+          suppressOnPlayEffects: true,
+          bindResultAs: "playedDigimon",
         },
         {
-          "kind": "RedirectAttack",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "boundRef": "playedDigimon"
+          kind: "RedirectAttack",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              boundRef: "playedDigimon",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "condition": {
-            "kind": "bindingExists",
-            "ref": "playedDigimon"
-          }
-        }
-      ]
+          optional: true,
+          condition: {
+            kind: "bindingExists",
+            ref: "playedDigimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [{
-        "kind": "Delete",
-        "target": { "filter": { "sourceRef": "battleOpponent" }, "count": 1 }
-      }],
-      "isInherited": true
-    }
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { sourceRef: "battleOpponent" }, count: 1 },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-078", compiled);

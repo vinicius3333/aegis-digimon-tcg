@@ -6,91 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Scapegoat",
-          "raw": "＜Scapegoat＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "levels": [
-                3
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Purple"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
-                },
-                "count": 1
-              },
-              "from": [
-                "trash"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+          keyword: "Scapegoat",
+          raw: "＜Scapegoat＞",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              levels: [3],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Purple"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-052", compiled);

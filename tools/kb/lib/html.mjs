@@ -22,15 +22,10 @@ const NAMED_ENTITIES = {
 export function decodeEntities(input) {
   return input.replace(/&(#x?[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);/g, (match, body) => {
     if (body[0] === "#") {
-      const code =
-        body[1] === "x" || body[1] === "X"
-          ? parseInt(body.slice(2), 16)
-          : parseInt(body.slice(1), 10);
+      const code = body[1] === "x" || body[1] === "X" ? parseInt(body.slice(2), 16) : parseInt(body.slice(1), 10);
       return Number.isFinite(code) ? String.fromCodePoint(code) : match;
     }
-    return Object.prototype.hasOwnProperty.call(NAMED_ENTITIES, body)
-      ? NAMED_ENTITIES[body]
-      : match;
+    return Object.prototype.hasOwnProperty.call(NAMED_ENTITIES, body) ? NAMED_ENTITIES[body] : match;
   });
 }
 
@@ -57,8 +52,18 @@ export function linesOf(html) {
 }
 
 const MONTHS = {
-  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
-  jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  jan: 1,
+  feb: 2,
+  mar: 3,
+  apr: 4,
+  may: 5,
+  jun: 6,
+  jul: 7,
+  aug: 8,
+  sep: 9,
+  oct: 10,
+  nov: 11,
+  dec: 12,
 };
 
 // "May 29, 2026" | "Sep. 5, 2025" | "September 01, 2025" -> "2026-05-29"

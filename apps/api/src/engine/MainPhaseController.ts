@@ -106,9 +106,7 @@ export class MainPhaseController {
     // create a nested decision (only one decision is allowed at a time).
     if (this.state.pendingDecision !== undefined) return false;
 
-    const how: MainPhaseEnd = this.hasCrossedToOpponent()
-      ? "crossed"
-      : "passed";
+    const how: MainPhaseEnd = this.hasCrossedToOpponent() ? "crossed" : "passed";
     this.finish(how);
     return true;
   }

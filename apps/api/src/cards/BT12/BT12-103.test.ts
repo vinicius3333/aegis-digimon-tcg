@@ -24,10 +24,13 @@ describe("BT12-103 handwritten module", () => {
 });
 
 it("reduces an opposing Digimon by 4000 DP for the turn", async () => {
-  const s = setupEngine({
-    0: { hand: [{ card: "BT12-103", as: "option" }], battleArea: [{ card: "BT12-033", as: "yellow" }] },
-    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-103", as: "option" }], battleArea: [{ card: "BT12-033", as: "yellow" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   s.state.memory = 2;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
@@ -49,13 +52,16 @@ it("gates Security Attack -1 on four or more digivolution cards", async () => {
 });
 
 it("activates its Main deletion effect from security", async () => {
-  const s = setupEngine({
-    0: {
-      security: [{ card: "BT12-103", as: "option", faceUp: true }],
-      battleArea: [{ card: "BT12-091", as: "hunter" }],
+  const s = setupEngine(
+    {
+      0: {
+        security: [{ card: "BT12-103", as: "option", faceUp: true }],
+        battleArea: [{ card: "BT12-091", as: "hunter" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
     },
-    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
-  }, { autoSelectCards: true });
+    { autoSelectCards: true },
+  );
   await s.ready();
 
   await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));

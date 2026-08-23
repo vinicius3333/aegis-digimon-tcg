@@ -27,22 +27,25 @@ describe("P-100 Kuwagamon", () => {
     await settle(() => mainPhase.isOpen);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("kuwagamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("kuwagamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.at(-1)!.req;
     expect(decision.sourceCardId).toBe("P-100");
-    expect(decision.options?.candidateInstanceIds).toEqual(expect.arrayContaining([
-      s.perm("digimon").permanentId,
-      s.perm("tamer").permanentId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
-    })).toEqual({ ok: true });
+    expect(decision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("digimon").permanentId, s.perm("tamer").permanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend"));
 
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
@@ -103,23 +106,26 @@ describe("P-100 Kuwagamon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("kuwagamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kuwagamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const decision = s.decisions.at(-1)!.req;
     expect(decision.sourceCardId).toBe("P-100");
-    expect(decision.options?.candidateInstanceIds).toEqual(expect.arrayContaining([
-      s.perm("digimon").permanentId,
-      s.perm("tamer").permanentId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
-    })).toEqual({ ok: true });
+    expect(decision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("digimon").permanentId, s.perm("tamer").permanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend"));
 
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("kuwagamon").instanceId);

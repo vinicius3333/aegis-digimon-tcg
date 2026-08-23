@@ -37,7 +37,10 @@ describe("EX12-013 BetelGammamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-007"));
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-013", "EX12-007"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
+      "EX12-013",
+      "EX12-007",
+    ]);
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(false);
   });
@@ -99,7 +102,9 @@ describe("EX12-013 BetelGammamon", () => {
     await settle();
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "EX12-007")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "EX12-007")).toHaveLength(
+      1,
+    );
   });
 
   it("does not offer an unrelated card and preserves the source's board state", async () => {
@@ -140,8 +145,26 @@ describe("EX12-013 BetelGammamon", () => {
         kind: "Modal",
         choose: 1,
         options: [
-          [{ kind: "PlayWithoutCost", from: ["hand"], payCost: true, reduceCostBy: 2, optional: true, target: { filter: { kind: ["Digimon", "Tamer"] } } }],
-          [{ kind: "UseOptionWithoutCost", from: ["hand"], payCost: true, reduceCostBy: 2, optional: true, filter: { kind: ["Option"] } }],
+          [
+            {
+              kind: "PlayWithoutCost",
+              from: ["hand"],
+              payCost: true,
+              reduceCostBy: 2,
+              optional: true,
+              target: { filter: { kind: ["Digimon", "Tamer"] } },
+            },
+          ],
+          [
+            {
+              kind: "UseOptionWithoutCost",
+              from: ["hand"],
+              payCost: true,
+              reduceCostBy: 2,
+              optional: true,
+              filter: { kind: ["Option"] },
+            },
+          ],
         ],
       },
     ]);

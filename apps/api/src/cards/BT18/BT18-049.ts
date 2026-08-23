@@ -6,85 +6,77 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
-    }
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Zoe Orimoto"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      names: ["Zoe Orimoto"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "names": [
-        "Kazemon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Kazemon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-049", compiled);

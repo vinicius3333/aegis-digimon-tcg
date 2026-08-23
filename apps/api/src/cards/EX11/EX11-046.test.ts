@@ -86,7 +86,11 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     s.state.memory = 10;
 
     const base = s.perm("base");
-    s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: s.inst("evolving").instanceId });
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    });
     await settle(() => observe(s.engine).hasKeyword(base, "Blocker"));
 
     expect(base.topCard?.cardId).toBe(GALACTICMON);

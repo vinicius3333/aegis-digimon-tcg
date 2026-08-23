@@ -6,91 +6,84 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourTurn",
-      "actions": [
+      trigger: "StartOfYourTurn",
+      actions: [
         {
-          "kind": "SetMemory",
-          "value": 3,
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 2,
-            "controller": "mine"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Gargomon",
-                  "Rapidmon"
-                ],
-                "match": "name"
-              }
-            ]
+          kind: "SetMemory",
+          value: 3,
+          condition: {
+            kind: "memoryAtMost",
+            value: 2,
+            controller: "mine",
           },
-          "actions": [
-            {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
-                  },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer"
-              },
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Gargomon", "Rapidmon"],
+                match: "name",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-061", compiled);

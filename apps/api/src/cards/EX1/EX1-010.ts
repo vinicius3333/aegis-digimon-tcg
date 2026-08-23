@@ -7,7 +7,9 @@ const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "SecurityAttack", amount: 1 }] },
     {
       trigger: "WhenAttacking",
-      actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "Draw", controller: "mine", amount: 2 }] }],
+      actions: [
+        { kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "Draw", controller: "mine", amount: 2 }] },
+      ],
     },
   ],
   coverage: "full",

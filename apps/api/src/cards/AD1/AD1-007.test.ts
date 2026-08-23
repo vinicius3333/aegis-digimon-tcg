@@ -14,7 +14,6 @@ describe("AD1-007 Siriusmon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("places three qualifying Gammamon-text Digimon and deletes only within its DP ceiling", async () => {
@@ -40,7 +39,14 @@ describe("AD1-007 Siriusmon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("siriusmon").instanceId, alternateRequirementIndex: 0 })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.perm("base").stack).toHaveLength(4);
@@ -53,12 +59,14 @@ describe("AD1-007 Siriusmon", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("canoweissmon").permanentId,
-      instanceId: s.inst("siriusmon").instanceId,
-      alternateRequirementIndex: 0,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("canoweissmon").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("canoweissmon").topCard?.cardId === "AD1-007");
 
     expect(s.state.memory).toBe(2);
@@ -88,10 +96,22 @@ describe("AD1-007 Siriusmon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("siriusmon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     await settle();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -102,12 +122,14 @@ describe("AD1-007 Siriusmon", () => {
     const qualified = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "AD1-007",
-            as: "qualified",
-            suspended: true,
-            under: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          }],
+          battleArea: [
+            {
+              card: "AD1-007",
+              as: "qualified",
+              suspended: true,
+              under: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+            },
+          ],
         },
         1: { security: ["BT1-001"] },
       },
@@ -126,12 +148,14 @@ describe("AD1-007 Siriusmon", () => {
     const unqualified = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "AD1-007",
-            as: "unqualified",
-            suspended: true,
-            under: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-          }],
+          battleArea: [
+            {
+              card: "AD1-007",
+              as: "unqualified",
+              suspended: true,
+              under: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+            },
+          ],
         },
         1: { security: ["BT1-001"] },
       },

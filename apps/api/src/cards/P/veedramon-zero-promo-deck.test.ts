@@ -42,26 +42,32 @@ describe("Veedramon Zero promo deck", () => {
     const drawnId = s.inst("drawn").instanceId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("tai").topCard.instanceId,
-      effectKey: "P-012/main",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("tai").topCard.instanceId,
+        effectKey: "P-012/main",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("secVeedramon").currentDP === secBaseDP + 1000);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("zero").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zero").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("zero").currentDP === zeroBaseDP + 2000 && s.state.players[0]!.trash.length === 6);
     await settle();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("aero").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("secondTarget").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("aero").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("secondTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.perm("tai").isSuspended).toBe(true);
@@ -87,19 +93,23 @@ describe("Veedramon Zero promo deck", () => {
     );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("aero").permanentId,
-      instanceId: s.inst("ulforce").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aero").permanentId,
+        instanceId: s.inst("ulforce").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("aero").isSuspended && !s.perm("tai").isSuspended && s.state.memory === 1);
     const ulforceBaseDp = s.perm("aero").baseDP;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("aero").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("aero").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 0 && s.perm("aero").currentDP === ulforceBaseDp + 2000);
 
     expect(s.state.players[0]!.deck).toHaveLength(6);

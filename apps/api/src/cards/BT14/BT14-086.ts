@@ -4,191 +4,187 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has a Digimon"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "MindLink",
-          "target": {
-            "filter": {
-              "or": [
-                {
-                  "nameOrTrait": [{ "tokens": ["Numemon"], "match": "name" }]
-                },
-                {
-                  "nameOrTrait": [{ "tokens": ["Monzaemon"], "match": "name" }]
-                },
-                {
-                  "trait": "DigiPolice"
-                }
-              ]
-            },
-            "count": 1,
-            "controller": "mine"
-          }
-        }
+            raw: "your opponent has a Digimon",
+          },
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Mind Link",
-          "raw": "＜Mind Link＞"
-        }
-      ]
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          kind: "MindLink",
+          target: {
+            filter: {
+              or: [
                 {
-                  "tokens": [
-                    "DigiPolice"
-                  ],
-                  "match": "trait"
+                  nameOrTrait: [{ tokens: ["Numemon"], match: "name" }],
                 },
                 {
-                  "tokens": [
-                    "Numemon"
-                  ],
-                  "match": "name"
+                  nameOrTrait: [{ tokens: ["Monzaemon"], match: "name" }],
                 },
                 {
-                  "tokens": [
-                    "Monzaemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  trait: "DigiPolice",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
+            controller: "mine",
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Jamming",
-              "raw": "＜Jamming＞"
-            }
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Mind Link",
+          raw: "＜Mind Link＞",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["DigiPolice"],
+                  match: "trait",
+                },
+                {
+                  tokens: ["Numemon"],
+                  match: "name",
+                },
+                {
+                  tokens: ["Monzaemon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
           },
-          "while": {
-            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["Numemon"],"match":"name"},{"tokens":["Monzaemon"],"match":"name"},{"tokens":["DigiPolice"],"match":"trait"}]},
-            "raw": "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait"
-          }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Jamming",
+              raw: "＜Jamming＞",
+            },
+          },
+          while: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [
+                { tokens: ["Numemon"], match: "name" },
+                { tokens: ["Monzaemon"], match: "name" },
+                { tokens: ["DigiPolice"], match: "trait" },
+              ],
+            },
+            raw: "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait",
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          kind: "Aura",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DigiPolice"
-                  ],
-                  "match": "trait"
+                  tokens: ["DigiPolice"],
+                  match: "trait",
                 },
                 {
-                  "tokens": [
-                    "Numemon"
-                  ],
-                  "match": "name"
+                  tokens: ["Numemon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Monzaemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Monzaemon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Reboot",
-              "raw": "＜Reboot＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Reboot",
+              raw: "＜Reboot＞",
+            },
           },
-          "while": {
-            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["Numemon"],"match":"name"},{"tokens":["Monzaemon"],"match":"name"},{"tokens":["DigiPolice"],"match":"trait"}]},
-            "raw": "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait"
-          }
-        }
+          while: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [
+                { tokens: ["Numemon"], match: "name" },
+                { tokens: ["Monzaemon"], match: "name" },
+                { tokens: ["DigiPolice"], match: "trait" },
+              ],
+            },
+            raw: "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait",
+          },
+        },
       ],
-      "isInherited": true
+      isInherited: true,
     },
     {
-      "trigger": "EndOfAllTurns",
-      "actions": [
+      trigger: "EndOfAllTurns",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Satsuki Tamahime"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Satsuki Tamahime"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isInherited": true
+      isInherited: true,
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 export { compiled };

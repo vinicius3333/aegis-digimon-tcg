@@ -6,72 +6,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Evade",
-          "raw": "＜Evade＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenEffectAddsToOpponentHand",
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Thomas H. Norstein"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1
-              },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+          keyword: "Evade",
+          raw: "＜Evade＞",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
+            },
+            count: 1,
+          },
+          to: "hand",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectAddsToOpponentHand",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Thomas H. Norstein"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-031", compiled);

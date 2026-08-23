@@ -6,142 +6,122 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Belphemon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Purple"
-                ]
+                tokens: ["Belphemon"],
+                match: "name",
               },
-              "count": 1
-            },
-            "raw": "By deleting 1 of your other purple Digimon"
-          },
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
             ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Belphemon"
-                ],
-                "match": "name"
-              }
-            ]
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Purple"
-                ]
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                colors: ["Purple"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 of your other purple Digimon"
+            raw: "By deleting 1 of your other purple Digimon",
           },
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenTrashedFromHand",
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "zone": "trash",
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "colors": ["Purple"],
-                  "levelComparison": {"op": "lte", "value": 4}
-                },
-                "count": 1
-              },
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Belphemon"],
+                match: "name",
+              },
+            ],
+          },
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                colors: ["Purple"],
+              },
+              count: 1,
+            },
+            raw: "By deleting 1 of your other purple Digimon",
+          },
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenTrashedFromHand",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Purple"],
+                  levelComparison: { op: "lte", value: 4 },
+                },
+                count: 1,
+              },
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-084", compiled);

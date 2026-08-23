@@ -14,123 +14,119 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4407: Digimon with 0 DP are deleted after ALL processing finishes.
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDNADigivolve",
-          "raw": "＜Blast DNA Digivolve ([Fenriloogamon] + [Kazuchimon])＞"
-        }
-      ]
+          keyword: "BlastDNADigivolve",
+          raw: "＜Blast DNA Digivolve ([Fenriloogamon] + [Kazuchimon])＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 2
+            count: 2,
           },
-          "amount": -10000,
-          "duration": "forTheTurn"
+          amount: -10000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 10000
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "selfDigivolutionStackCountAtLeast", "count": 1, "filter": {"kind": ["Tamer"]},
-            "raw": "a Tamer card is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 2
-          },
-          "amount": -10000,
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 10000
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "selfDigivolutionStackCountAtLeast", "count": 1, "filter": {"kind": ["Tamer"]},
-            "raw": "a Tamer card is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "ReactivateEffect",
-          "fromTrigger": "WhenDigivolving",
-          "count": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-              "zone": "security"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 10000,
               },
-              "count": 1,
-              "fromTop": true
             },
-            "raw": "By trashing your top security card"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    }
+          condition: {
+            kind: "selfDigivolutionStackCountAtLeast",
+            count: 1,
+            filter: { kind: ["Tamer"] },
+            raw: "a Tamer card is in this Digimon's digivolution cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+          amount: -10000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 10000,
+              },
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "selfDigivolutionStackCountAtLeast",
+            count: 1,
+            filter: { kind: ["Tamer"] },
+            raw: "a Tamer card is in this Digimon's digivolution cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "ReactivateEffect",
+          fromTrigger: "WhenDigivolving",
+          count: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+              },
+              count: 1,
+              fromTop: true,
+            },
+            raw: "By trashing your top security card",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-081", compiled);

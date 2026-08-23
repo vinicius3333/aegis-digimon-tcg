@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  effectiveCopyLimit,
-  banlistRestrictionMap,
-  DEFAULT_COPY_LIMIT,
-} from "./banlistRestrictions.js";
+import { effectiveCopyLimit, banlistRestrictionMap, DEFAULT_COPY_LIMIT } from "./banlistRestrictions.js";
 
 describe("banlist restriction map (latest-event-wins)", () => {
   it("returns the default cap of 4 for a card with no banlist event", () => {

@@ -38,11 +38,7 @@ describe("BT8 BlackWarGreymon historical deck gauntlet", () => {
         instanceId: s.inst("blackWarGreymon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[1]!.battleArea.length === 1 &&
-        !s.perm("metalGreymonX").isSuspended,
-    );
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && !s.perm("metalGreymonX").isSuspended);
 
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT8-093")).toBe(true);

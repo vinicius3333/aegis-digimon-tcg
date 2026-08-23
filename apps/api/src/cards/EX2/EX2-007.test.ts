@@ -146,11 +146,13 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     await s.ready();
     const searcherId = s.inst("searcher").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("mother").topCard.instanceId,
-      effectKey: "EX2-007/ir-27-0",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("mother").topCard.instanceId,
+        effectKey: "EX2-007/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("mother").stack.some((card) => card.instanceId === searcherId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(searcherId);
@@ -172,21 +174,23 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     );
     const motherInstanceId = s.perm("mother").topCard.instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: motherInstanceId,
-      effectKey: "EX2-007/ir-27-0",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: motherInstanceId,
+        effectKey: "EX2-007/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("mother").stack.length === 1);
-    await settle(() => s.events.some((event) =>
-      event.kind === "effectActivated" && event.sourceCardId === "EX2-007",
-    ));
+    await settle(() => s.events.some((event) => event.kind === "effectActivated" && event.sourceCardId === "EX2-007"));
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: motherInstanceId,
-      effectKey: "EX2-007/ir-27-0",
-    }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: motherInstanceId,
+        effectKey: "EX2-007/ir-27-0",
+      }).ok,
+    ).toBe(false);
     expect(s.perm("mother").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
@@ -206,11 +210,13 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     await s.ready();
     const searcherId = s.perm("fieldSearcher").topCard.instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("mother").topCard.instanceId,
-      effectKey: "EX2-007/ir-27-0",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("mother").topCard.instanceId,
+        effectKey: "EX2-007/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("mother").stack.some((card) => card.instanceId === searcherId));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -219,5 +225,4 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
       expect.arrayContaining(["EX2-001", "EX2-002"]),
     );
   });
-
 });

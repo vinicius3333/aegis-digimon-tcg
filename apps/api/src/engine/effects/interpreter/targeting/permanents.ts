@@ -56,7 +56,9 @@ export function candidatePermanents(
     // Real self targets still have to satisfy their printed qualifiers (for example,
     // "this blue Digimon with [TS]"). Some lightweight dispatch seams intentionally
     // omit topCard; retain identity-only behavior for those incomplete fakes.
-    return self.topCard === undefined || target.filter === undefined || permanentMatchesFilter(ctx, self, target.filter, source)
+    return self.topCard === undefined ||
+      target.filter === undefined ||
+      permanentMatchesFilter(ctx, self, target.filter, source)
       ? [self]
       : [];
   }
@@ -253,7 +255,10 @@ export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Targe
     return [];
   }
 
-  const affectable = filterAffectable(ctx, selectedCandidates.map(({ permanentId }) => permanentId));
+  const affectable = filterAffectable(
+    ctx,
+    selectedCandidates.map(({ permanentId }) => permanentId),
+  );
   if (target.minimum !== undefined && affectable.length < target.minimum) return [];
   ctx.lastResolvedPermanentIds = affectable;
   return affectable;
@@ -416,7 +421,11 @@ export async function resolvePermanentTargets(
   }
 
   const want = effectiveTargetCount(ctx, target);
-  if (candidates.length <= want && !target.upTo && (target as Target & { forceSelection?: boolean }).forceSelection !== true) {
+  if (
+    candidates.length <= want &&
+    !target.upTo &&
+    (target as Target & { forceSelection?: boolean }).forceSelection !== true
+  ) {
     const result = finalize(candidates.map((p) => p.permanentId));
     ctx.lastResolvedPermanentIds = result;
     return result;

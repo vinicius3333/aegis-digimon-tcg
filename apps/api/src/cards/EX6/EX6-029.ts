@@ -10,159 +10,141 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (`max(0, security.length - leaveCount)`). `until` is a re-encoding of a concept the
 // engine already reads under a different key, not a new capability.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDNADigivolve",
-          "raw": "＜Blast DNA Digivolve ([Angewomon] + [LadyDevimon])＞"
-        }
-      ]
+          keyword: "BlastDNADigivolve",
+          raw: "＜Blast DNA Digivolve ([Angewomon] + [LadyDevimon])＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Fallen Angel"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Angel", "Archangel", "Fallen Angel"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "excludeSelf": true,
-              "kind": ["Digimon"],
-              "zone": "battleArea"
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              excludeSelf: true,
+              kind: ["Digimon"],
+              zone: "battleArea",
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "zone": "security",
-            "position": "bottom",
-            "owner": "owner"
+          underFilter: {
+            zone: "security",
+            position: "bottom",
+            owner: "owner",
           },
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "leaveCount": 4,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          leaveCount: 4,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Fallen Angel"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Angel", "Archangel", "Fallen Angel"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "excludeSelf": true,
-              "kind": ["Digimon"],
-              "zone": "battleArea"
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              excludeSelf: true,
+              kind: ["Digimon"],
+              zone: "battleArea",
             },
-            "count": 1
+            count: 1,
           },
-          "underFilter": {
-            "zone": "security",
-            "position": "bottom",
-            "owner": "owner"
+          underFilter: {
+            zone: "security",
+            position: "bottom",
+            owner: "owner",
           },
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "leaveCount": 4,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          leaveCount: 4,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
-          "optional": true
-        }
-      ]
-    }
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-029", compiled);

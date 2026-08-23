@@ -13,7 +13,9 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
           breeding: true,
           payCost: false,
           optional: true,
-          target: { filter: { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Lucemon: Larva"], match: "name" }] } },
+          target: {
+            filter: { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Lucemon: Larva"], match: "name" }] },
+          },
         },
         { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } } },
       ],
@@ -26,8 +28,16 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
       frequency: "OncePerTurn",
       actions: [
         { kind: "SecurityManipulation", op: "trash", from: ["security"], bindResultAs: "trashedSecurity" },
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] } }, condition: { kind: "bindingEmpty", ref: "trashedSecurity" } },
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Tamer"] } }, condition: { kind: "bindingEmpty", ref: "trashedSecurity" } },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] } },
+          condition: { kind: "bindingEmpty", ref: "trashedSecurity" },
+        },
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Tamer"] } },
+          condition: { kind: "bindingEmpty", ref: "trashedSecurity" },
+        },
       ],
     });
   });

@@ -56,10 +56,9 @@ describe("BT26-036 Lalamon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("greenTamer").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("greenTamer").instanceId]);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("otherTamer").instanceId,
-      s.inst("plain").instanceId,
-    ]));
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("otherTamer").instanceId, s.inst("plain").instanceId]),
+    );
   });
 
   it("inherited When Attacking suspends one opponent Digimon only once per turn", async () => {
@@ -93,12 +92,14 @@ describe("BT26-036 Lalamon", () => {
         hand: [{ card: "BT26-036", as: "lalamon" }],
       },
     });
-    expect(legal.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: legal.perm("dataSquadEgg").permanentId,
-      instanceId: legal.inst("lalamon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("dataSquadEgg").permanentId,
+        instanceId: legal.inst("lalamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
 
     const invalid = setupEngine({
       0: {
@@ -106,11 +107,13 @@ describe("BT26-036 Lalamon", () => {
         hand: [{ card: "BT26-036", as: "lalamon" }],
       },
     });
-    expect(invalid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: invalid.perm("plainEgg").permanentId,
-      instanceId: invalid.inst("lalamon").instanceId,
-      useAlternateCost: true,
-    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("plainEgg").permanentId,
+        instanceId: invalid.inst("lalamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

@@ -6,116 +6,100 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Veedramon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Veedramon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ],
-                "colors": [
-                  "Blue"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                colors: ["Blue"],
               },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Veedramon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ],
-                "colors": [
-                  "Blue"
-                ]
-              },
-              "count": 1,
-              "to": "hand"
-            }
           ],
-          "rest": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenUnsuspended",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+          rest: "deckBottom",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Veedramon"],
+                    match: "name",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
+            },
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                colors: ["Blue"],
+              },
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenUnsuspended",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-138", compiled);

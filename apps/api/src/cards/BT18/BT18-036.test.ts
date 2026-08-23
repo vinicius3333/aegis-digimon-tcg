@@ -26,5 +26,6 @@ describe("BT18-036 Wizardmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
     expect(s.state.memory).toBe(initialMemory + 1);
+    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
   });
 });

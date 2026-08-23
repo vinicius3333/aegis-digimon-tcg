@@ -6,118 +6,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Red",
-              "Green"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Red", "Green"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Hybrid"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 1,
-          "optional": true
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "hasInheritedEffects": true,
-                  "controller": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
-                },
-                "count": 1
+                tokens: ["Hybrid"],
+                match: "trait",
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+            ],
+          },
+          from: ["hand"],
+          reduceCost: 1,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Zoe Orimoto"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      frequency: "OncePerTurn",
     },
     {
-      "names": [
-        "Zephyrmon"
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  hasInheritedEffects: true,
+                  controller: "mine",
+                  kind: ["Tamer"],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Zoe Orimoto"],
+      cost: 2,
+      isAlternate: true,
+    },
+    {
+      names: ["Zephyrmon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-048", compiled);

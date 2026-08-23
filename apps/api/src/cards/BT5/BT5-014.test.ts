@@ -5,13 +5,21 @@ import "./BT5-014.js";
 
 describe("BT5-014 OmniShoutmon", () => {
   it("digivolves over Shoutmon for the alternate cost of 4", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "BT5-009", as: "shoutmon" }],
-      hand: [{ card: "BT5-014", as: "evolving" }],
-    } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT5-009", as: "shoutmon" }],
+        hand: [{ card: "BT5-014", as: "evolving" }],
+      },
+    });
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("shoutmon").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shoutmon").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("shoutmon").topCard.cardId === "BT5-014" && s.state.memory === 0);
 
     expect(s.state.memory).toBe(0);
@@ -19,17 +27,21 @@ describe("BT5-014 OmniShoutmon", () => {
   });
 
   it("Q1291 rejects the Shoutmon shortcut in the breeding area", () => {
-    const s = setupEngine({ 0: {
-      breeding: { card: "BT5-009", as: "shoutmon" },
-      hand: [{ card: "BT5-014", as: "evolving" }],
-    } });
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT5-009", as: "shoutmon" },
+        hand: [{ card: "BT5-014", as: "evolving" }],
+      },
+    });
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("shoutmon").permanentId,
-      instanceId: s.inst("evolving").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shoutmon").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
   it("gives Security Attack +1 to a host with Blitz", async () => {

@@ -6,97 +6,89 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Shoemon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Puppet"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
-                  },
-                  "count": 1,
-                  "isSelf": true
+                  tokens: ["Shoemon"],
+                  match: "name",
                 },
-                "raw": "by suspending this Tamer"
-              },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Puppet"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": false
-        }
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-136", compiled);

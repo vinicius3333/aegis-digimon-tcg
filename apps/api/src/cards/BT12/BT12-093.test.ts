@@ -24,12 +24,18 @@ describe("BT12-093 handwritten module", () => {
   });
 
   it("places a Save Digimon under Ren and gives one of your Digimon +2000 DP", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT12-093", as: "ren" }, { card: "BT12-034", as: "target", dp: 5000 }],
-        hand: [{ card: "BT12-008", as: "save" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-093", as: "ren" },
+            { card: "BT12-034", as: "target", dp: 5000 },
+          ],
+          hand: [{ card: "BT12-008", as: "save" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ren"));
     await settle(() => s.perm("ren").stack.some(({ cardId }) => cardId === "BT12-008"));

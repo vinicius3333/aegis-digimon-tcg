@@ -36,9 +36,7 @@ interface ActivatableEntry {
 }
 function activatableEffects(s: EngineSetup, perm: { activatableEffectsJson?: string }): ActivatableEntry[] {
   (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
-  return perm.activatableEffectsJson
-    ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[])
-    : [];
+  return perm.activatableEffectsJson ? (JSON.parse(perm.activatableEffectsJson) as ActivatableEntry[]) : [];
 }
 
 describe("§16-20 <Save> (comprehensive-0238)", () => {
@@ -76,48 +74,45 @@ describe("§16-20 <Save> (comprehensive-0238)", () => {
 });
 
 describe("§16-21/16-21-6 <Material Save> (comprehensive-0239/0240)", () => {
-  it(
-    "NOW MET: on deletion, <Material Save N> should place N DigiXros-requirement digivolution cards under a Tamer",
-    async () => {
-      cite(
-        "comprehensive-0239",
-        "DIVERGENCE: §16-21-1 <Material Save N>: 'When a Digimon with this effect is deleted, " +
-          "this effect allows you to place N of the cards specified in the top card's DigiXros " +
-          "requirements from among the digivolution cards under 1 of your Tamers.' BT10-009 " +
-          "(printed <Material Save 2>) compiles the keyword to an empty-actions Static marker " +
-          "only — its actual OnPlay/EndOfAttack effects are unrelated (a flat draw and a " +
-          "self-unsuspend-by-cost ability), and no OnDeletion action implements Material Save's " +
-          "described placement at all. An engine-wide grep for hasKeyword(...,\"MaterialSave\") " +
-          "returns zero consumption sites.",
-      );
-      cite("comprehensive-0240", "16-21-6 (a stacking-order sub-rule of the same, unimplemented, mechanic)");
+  it("NOW MET: on deletion, <Material Save N> should place N DigiXros-requirement digivolution cards under a Tamer", async () => {
+    cite(
+      "comprehensive-0239",
+      "DIVERGENCE: §16-21-1 <Material Save N>: 'When a Digimon with this effect is deleted, " +
+        "this effect allows you to place N of the cards specified in the top card's DigiXros " +
+        "requirements from among the digivolution cards under 1 of your Tamers.' BT10-009 " +
+        "(printed <Material Save 2>) compiles the keyword to an empty-actions Static marker " +
+        "only — its actual OnPlay/EndOfAttack effects are unrelated (a flat draw and a " +
+        "self-unsuspend-by-cost ability), and no OnDeletion action implements Material Save's " +
+        'described placement at all. An engine-wide grep for hasKeyword(...,"MaterialSave") ' +
+        "returns zero consumption sites.",
+    );
+    cite("comprehensive-0240", "16-21-6 (a stacking-order sub-rule of the same, unimplemented, mechanic)");
 
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const tamer = digimon(0, 0, MARCUS);
-      p0.battleArea.push(tamer);
-      const attacker = digimon(1, 20000, NON_KEYWORD_CARD);
-      p1.battleArea.push(attacker);
-      const saver = digimon(0, 8000, "BT10-009"); // printed <Material Save 2>
-      saver.isSuspended = true;
-      saver.stack.push(instance("BT10-008", 0, true)); // a plausible DigiXros-material stand-in
-      p0.battleArea.push(saver);
-      s.state.turnSeat = 1; // seat 1 is declaring the attack
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const tamer = digimon(0, 0, MARCUS);
+    p0.battleArea.push(tamer);
+    const attacker = digimon(1, 20000, NON_KEYWORD_CARD);
+    p1.battleArea.push(attacker);
+    const saver = digimon(0, 8000, "BT10-009"); // printed <Material Save 2>
+    saver.isSuspended = true;
+    saver.stack.push(instance("BT10-008", 0, true)); // a plausible DigiXros-material stand-in
+    p0.battleArea.push(saver);
+    s.state.turnSeat = 1; // seat 1 is declaring the attack
 
-      expect(
-        s.engine.applyIntent(1, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "permanent", permanentId: saver.permanentId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => false, 5000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: saver.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 5000);
 
-      // EXPECTED (per §16-21-1): a digivolution card ends up placed under the Tamer.
-      expect(tamer.stack.length).toBeGreaterThan(0);
-    },
-  );
+    // EXPECTED (per §16-21-1): a digivolution card ends up placed under the Tamer.
+    expect(tamer.stack.length).toBeGreaterThan(0);
+  });
 });
 
 markNotTestable(
@@ -135,48 +130,45 @@ markNotTestable(
 );
 
 describe("§16-23 <Raid> (comprehensive-0242)", () => {
-  it(
-    "NOW MET: a printed-<Raid> attacker should be able to switch its attack onto the opponent's highest-DP unsuspended Digimon",
-    async () => {
-      cite(
-        "comprehensive-0242",
-        "DIVERGENCE: §16-23-1 <Raid>: 'can switch the target of attack to the opponent's " +
-          "unsuspended Digimon with the highest DP when a Digimon with this keyword effect " +
-          "attacks.' AD1-004 and AD1-003 (both real <Raid> printers) compile the keyword to an " +
-          "empty-actions Static marker only; no RedirectAttack (or any other) action consumes " +
-          "it anywhere, and no generic engine-level 'Raid' auto-redirect exists (confirmed by " +
-          "grepping the engine for hasKeyword(...,\"Raid\")) — unlike ＜Collision＞/＜Vortex＞, " +
-          "which ARE read generically from printed text in combat/legality.ts.",
-      );
+  it("NOW MET: a printed-<Raid> attacker should be able to switch its attack onto the opponent's highest-DP unsuspended Digimon", async () => {
+    cite(
+      "comprehensive-0242",
+      "DIVERGENCE: §16-23-1 <Raid>: 'can switch the target of attack to the opponent's " +
+        "unsuspended Digimon with the highest DP when a Digimon with this keyword effect " +
+        "attacks.' AD1-004 and AD1-003 (both real <Raid> printers) compile the keyword to an " +
+        "empty-actions Static marker only; no RedirectAttack (or any other) action consumes " +
+        "it anywhere, and no generic engine-level 'Raid' auto-redirect exists (confirmed by " +
+        'grepping the engine for hasKeyword(...,"Raid")) — unlike ＜Collision＞/＜Vortex＞, ' +
+        "which ARE read generically from printed text in combat/legality.ts.",
+    );
 
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true }); // <Raid> is a MAY: an unanswered prompt means no redirect
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const attacker = digimon(0, 5000, "AD1-004"); // printed <Raid>
-      p0.battleArea.push(attacker);
-      const unsuspendedHighDP = digimon(1, 9000, NON_KEYWORD_CARD); // the highest-DP unsuspended target
-      p1.battleArea.push(unsuspendedHighDP);
-      await s.engine.recomputeContinuousEffects();
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true }); // <Raid> is a MAY: an unanswered prompt means no redirect
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const attacker = digimon(0, 5000, "AD1-004"); // printed <Raid>
+    p0.battleArea.push(attacker);
+    const unsuspendedHighDP = digimon(1, 9000, NON_KEYWORD_CARD); // the highest-DP unsuspended target
+    p1.battleArea.push(unsuspendedHighDP);
+    await s.engine.recomputeContinuousEffects();
 
-      // Per §16-23-1 a player-target attack is switched onto the unsuspended high-DP Digimon
-      // and becomes a Digimon battle. The observable is the attacker's own fate, not the
-      // defender's: at 5000 DP it loses to the 9000 DP defender and is deleted, while the
-      // defender survives. If no redirect happened the attack would have hit the player and
-      // run a security check instead, leaving the attacker alive.
-      const securityBefore = p1.security.length;
-      expect(
-        s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "player" },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId), 5000);
-      expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
-      expect(p1.battleArea.some((p) => p.permanentId === unsuspendedHighDP.permanentId)).toBe(true);
-      expect(p1.security.length).toBe(securityBefore);
-    },
-  );
+    // Per §16-23-1 a player-target attack is switched onto the unsuspended high-DP Digimon
+    // and becomes a Digimon battle. The observable is the attacker's own fate, not the
+    // defender's: at 5000 DP it loses to the 9000 DP defender and is deleted, while the
+    // defender survives. If no redirect happened the attack would have hit the player and
+    // run a security check instead, leaving the attacker alive.
+    const securityBefore = p1.security.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId), 5000);
+    expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
+    expect(p1.battleArea.some((p) => p.permanentId === unsuspendedHighDP.permanentId)).toBe(true);
+    expect(p1.security.length).toBe(securityBefore);
+  });
 });
 
 describe("§16-24 <Alliance> (comprehensive-0243)", () => {
@@ -208,9 +200,9 @@ describe("§16-24 <Alliance> (comprehensive-0243)", () => {
     ).toEqual({ ok: true });
     const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
     await settle(() => combat.hasOpenAllianceDecision);
-    expect(
-      s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: ally.permanentId } as never),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: ally.permanentId } as never)).toEqual({
+      ok: true,
+    });
     const blockWindow = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
     await settle(() => blockWindow.hasOpenBlockWindow, 5000);
 
@@ -321,45 +313,42 @@ describe("§16-26 <Blast Digivolve> (comprehensive-0245)", () => {
 });
 
 describe("§16-27 <Fortitude> (comprehensive-0246)", () => {
-  it(
-    "NOW MET: a <Fortitude> Digimon with digivolution cards, on deletion, should replay itself for free",
-    async () => {
-      cite(
-        "comprehensive-0246",
-        "DIVERGENCE: §16-27-1 <Fortitude>: 'When a Digimon with digivolution cards and this " +
-          "effect is deleted, you play this Digimon without paying the cost.' BT20-034 (printed " +
-          "<Fortitude>) compiles the keyword to an empty-actions Static marker; its actual " +
-          "AllTurns effects are an unrelated digivolve-activation restriction and a once-per-turn " +
-          "security trash on battle wins — no PlayWithoutCost/replay action ever fires on this " +
-          "card's own deletion.",
-      );
+  it("NOW MET: a <Fortitude> Digimon with digivolution cards, on deletion, should replay itself for free", async () => {
+    cite(
+      "comprehensive-0246",
+      "DIVERGENCE: §16-27-1 <Fortitude>: 'When a Digimon with digivolution cards and this " +
+        "effect is deleted, you play this Digimon without paying the cost.' BT20-034 (printed " +
+        "<Fortitude>) compiles the keyword to an empty-actions Static marker; its actual " +
+        "AllTurns effects are an unrelated digivolve-activation restriction and a once-per-turn " +
+        "security trash on battle wins — no PlayWithoutCost/replay action ever fires on this " +
+        "card's own deletion.",
+    );
 
-      const s = setup();
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
-      p1.battleArea.push(attacker);
-      const fort = digimon(0, 4000, "BT20-034"); // printed <Fortitude>
-      fort.isSuspended = true;
-      fort.stack.push(instance(NON_KEYWORD_CARD, 0, true)); // "with digivolution cards"
-      p0.battleArea.push(fort);
-      await s.engine.recomputeContinuousEffects();
-      s.state.turnSeat = 1; // seat 1 is declaring the attack
-      const trashBefore = p0.trash.length;
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
+    p1.battleArea.push(attacker);
+    const fort = digimon(0, 4000, "BT20-034"); // printed <Fortitude>
+    fort.isSuspended = true;
+    fort.stack.push(instance(NON_KEYWORD_CARD, 0, true)); // "with digivolution cards"
+    p0.battleArea.push(fort);
+    await s.engine.recomputeContinuousEffects();
+    s.state.turnSeat = 1; // seat 1 is declaring the attack
+    const trashBefore = p0.trash.length;
 
-      expect(
-        s.engine.applyIntent(1, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "permanent", permanentId: fort.permanentId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => p0.trash.length > trashBefore, 5000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: fort.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => p0.trash.length > trashBefore, 5000);
 
-      // EXPECTED (per §16-27-1): replayed for free — back on the battle area, not sitting trashed.
-      expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT20-034")).toBe(true);
-    },
-  );
+    // EXPECTED (per §16-27-1): replayed for free — back on the battle area, not sitting trashed.
+    expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT20-034")).toBe(true);
+  });
 });
 
 describe("§16-28 <Mind Link> (comprehensive-0247)", () => {
@@ -380,9 +369,9 @@ describe("§16-28 <Mind Link> (comprehensive-0247)", () => {
     const entry = activatableEffects(s, linker).find((e) => e.instanceId === sourceInstanceId);
     expect(entry, "BT14-086 surfaces its [Main] <Mind Link> ability").toBeDefined();
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey })).toEqual({
+      ok: true,
+    });
     await settle(() => p0.battleArea.some((p) => p.permanentId === linker.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === linker.permanentId)).toBe(false); // left the field as its own permanent
@@ -534,44 +523,41 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
 });
 
 describe("§16-32 <Scapegoat> (comprehensive-0251)", () => {
-  it(
-    "NOW MET: deleting another of the controller's Digimon should prevent a <Scapegoat> Digimon's non-owner-effect deletion",
-    async () => {
-      cite(
-        "comprehensive-0251",
-        "DIVERGENCE: §16-32-1 <Scapegoat>: 'By deleting 1 of your other Digimon when a Digimon " +
-          "with this effect would be deleted other than by one of your effects, this effect " +
-          "prevents the deletion.' BT20-080 (printed <Scapegoat>) compiles the keyword to an " +
-          "empty-actions Static marker; its real effects (a free-replay-on-digivolve and a " +
-          "conditional security trash) are unrelated — no Prevent/Replacement keyed on " +
-          "Scapegoat's own deletion trigger exists.",
-      );
+  it("NOW MET: deleting another of the controller's Digimon should prevent a <Scapegoat> Digimon's non-owner-effect deletion", async () => {
+    cite(
+      "comprehensive-0251",
+      "DIVERGENCE: §16-32-1 <Scapegoat>: 'By deleting 1 of your other Digimon when a Digimon " +
+        "with this effect would be deleted other than by one of your effects, this effect " +
+        "prevents the deletion.' BT20-080 (printed <Scapegoat>) compiles the keyword to an " +
+        "empty-actions Static marker; its real effects (a free-replay-on-digivolve and a " +
+        "conditional security trash) are unrelated — no Prevent/Replacement keyed on " +
+        "Scapegoat's own deletion trigger exists.",
+    );
 
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const other = digimon(0, 1000, NON_KEYWORD_CARD); // the would-be scapegoat sacrifice
-      const scapegoater = digimon(0, 4000, "BT20-080"); // printed <Scapegoat>
-      scapegoater.isSuspended = true;
-      p0.battleArea.push(other, scapegoater);
-      const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
-      p1.battleArea.push(attacker);
-      await s.engine.recomputeContinuousEffects();
-      s.state.turnSeat = 1; // seat 1 is declaring the attack
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const other = digimon(0, 1000, NON_KEYWORD_CARD); // the would-be scapegoat sacrifice
+    const scapegoater = digimon(0, 4000, "BT20-080"); // printed <Scapegoat>
+    scapegoater.isSuspended = true;
+    p0.battleArea.push(other, scapegoater);
+    const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
+    p1.battleArea.push(attacker);
+    await s.engine.recomputeContinuousEffects();
+    s.state.turnSeat = 1; // seat 1 is declaring the attack
 
-      expect(
-        s.engine.applyIntent(1, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "permanent", permanentId: scapegoater.permanentId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => false, 5000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: scapegoater.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 5000);
 
-      // EXPECTED (per §16-32-1): spared, with `other` sacrificed instead.
-      expect(p0.battleArea.some((p) => p.permanentId === scapegoater.permanentId)).toBe(true);
-    },
-  );
+    // EXPECTED (per §16-32-1): spared, with `other` sacrificed instead.
+    expect(p0.battleArea.some((p) => p.permanentId === scapegoater.permanentId)).toBe(true);
+  });
 });
 
 describe("§16-33 <Vortex> (comprehensive-0252)", () => {
@@ -592,37 +578,41 @@ describe("§16-33 <Vortex> (comprehensive-0252)", () => {
 
     expect(canAttackerDeclare(access, 0 as Seat, vortexer, undefined, true)).toBeNull();
     expect(
-      canAttackTarget(access, 0 as Seat, vortexer, { kind: "permanent", permanentId: unsuspendedTarget.permanentId }, undefined, true),
+      canAttackTarget(
+        access,
+        0 as Seat,
+        vortexer,
+        { kind: "permanent", permanentId: unsuspendedTarget.permanentId },
+        undefined,
+        true,
+      ),
     ).toBeNull();
   });
 
-  it(
-    "NOW MET: 16-33-1's 'also allows attacking the same turn the Digimon was played' relax summoning sickness for a Vortex attack",
-    () => {
-      cite(
-        "comprehensive-0252",
-        "DIVERGENCE: §16-33-1 <Vortex> 'is a keyword effect that also allows a Digimon to " +
-          "attack in the same turn it was played.' canAttackerDeclare's summoning-sickness gate " +
-          "(combat/legality.ts) checks ONLY hasRush(attacker, reader) — isVortex is checked " +
-          "afterward, in a SEPARATE guard that never reaches a same-turn Vortex attacker, " +
-          "because the Rush-only gate rejects it first. A printed-<Vortex>-only Digimon (no " +
-          "Rush) that entered THIS turn cannot declare a Vortex attack, contradicting 16-33-1's " +
-          "own explicit grant.",
-      );
+  it("NOW MET: 16-33-1's 'also allows attacking the same turn the Digimon was played' relax summoning sickness for a Vortex attack", () => {
+    cite(
+      "comprehensive-0252",
+      "DIVERGENCE: §16-33-1 <Vortex> 'is a keyword effect that also allows a Digimon to " +
+        "attack in the same turn it was played.' canAttackerDeclare's summoning-sickness gate " +
+        "(combat/legality.ts) checks ONLY hasRush(attacker, reader) — isVortex is checked " +
+        "afterward, in a SEPARATE guard that never reaches a same-turn Vortex attacker, " +
+        "because the Rush-only gate rejects it first. A printed-<Vortex>-only Digimon (no " +
+        "Rush) that entered THIS turn cannot declare a Vortex attack, contradicting 16-33-1's " +
+        "own explicit grant.",
+    );
 
-      const s = setup();
-      const p0 = s.state.players[0] as PlayerState;
-      s.state.turnCount = 1;
-      const vortexer = digimon(0, 8000, "BT20-101"); // printed <Vortex>, no Rush
-      vortexer.enterFieldTurnCount = s.state.turnCount; // entered THIS turn
-      p0.battleArea.push(vortexer);
-      const access = new GameStateAccess(s.state);
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    s.state.turnCount = 1;
+    const vortexer = digimon(0, 8000, "BT20-101"); // printed <Vortex>, no Rush
+    vortexer.enterFieldTurnCount = s.state.turnCount; // entered THIS turn
+    p0.battleArea.push(vortexer);
+    const access = new GameStateAccess(s.state);
 
-      // EXPECTED (per §16-33-1): legal, despite entering this turn, because Vortex itself
-      // grants the same-turn-attack relaxation.
-      expect(canAttackerDeclare(access, 0 as Seat, vortexer, undefined, true)).toBeNull();
-    },
-  );
+    // EXPECTED (per §16-33-1): legal, despite entering this turn, because Vortex itself
+    // grants the same-turn-attack relaxation.
+    expect(canAttackerDeclare(access, 0 as Seat, vortexer, undefined, true)).toBeNull();
+  });
 });
 
 markNotTestable(
@@ -672,47 +662,44 @@ markNotTestable(
 );
 
 describe("§16-37 <Fragment> (comprehensive-0256)", () => {
-  it(
-    "NOW MET: trashing the specified number of digivolution cards should prevent a <Fragment> Digimon's deletion",
-    async () => {
-      cite(
-        "comprehensive-0256",
-        "DIVERGENCE: §16-37-1 <Fragment (N)>: 'When a Digimon with this effect would be " +
-          "deleted, by choosing and trashing N of this Digimon's digivolution cards, it isn't " +
-          "deleted.' BT22-061 (printed <Fragment (3)>) compiles the keyword to an empty-actions " +
-          "Static marker; its real WhenDigivolving/WhenAttacking effects (DeDigivolve + Return) " +
-          "are unrelated — no Prevent/Replacement keyed on Fragment's own deletion exists.",
-      );
+  it("NOW MET: trashing the specified number of digivolution cards should prevent a <Fragment> Digimon's deletion", async () => {
+    cite(
+      "comprehensive-0256",
+      "DIVERGENCE: §16-37-1 <Fragment (N)>: 'When a Digimon with this effect would be " +
+        "deleted, by choosing and trashing N of this Digimon's digivolution cards, it isn't " +
+        "deleted.' BT22-061 (printed <Fragment (3)>) compiles the keyword to an empty-actions " +
+        "Static marker; its real WhenDigivolving/WhenAttacking effects (DeDigivolve + Return) " +
+        "are unrelated — no Prevent/Replacement keyed on Fragment's own deletion exists.",
+    );
 
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const fragmented = digimon(0, 4000, "BT22-061"); // printed <Fragment (3)>
-      fragmented.isSuspended = true;
-      fragmented.stack.push(
-        instance(NON_KEYWORD_CARD, 0, true),
-        instance(NON_KEYWORD_CARD, 0, true),
-        instance(NON_KEYWORD_CARD, 0, true),
-      );
-      p0.battleArea.push(fragmented);
-      const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
-      p1.battleArea.push(attacker);
-      await s.engine.recomputeContinuousEffects();
-      s.state.turnSeat = 1; // seat 1 is declaring the attack
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const fragmented = digimon(0, 4000, "BT22-061"); // printed <Fragment (3)>
+    fragmented.isSuspended = true;
+    fragmented.stack.push(
+      instance(NON_KEYWORD_CARD, 0, true),
+      instance(NON_KEYWORD_CARD, 0, true),
+      instance(NON_KEYWORD_CARD, 0, true),
+    );
+    p0.battleArea.push(fragmented);
+    const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
+    p1.battleArea.push(attacker);
+    await s.engine.recomputeContinuousEffects();
+    s.state.turnSeat = 1; // seat 1 is declaring the attack
 
-      expect(
-        s.engine.applyIntent(1, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "permanent", permanentId: fragmented.permanentId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => false, 5000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: fragmented.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 5000);
 
-      // EXPECTED (per §16-37-1): spared by trashing its 3 digivolution cards instead.
-      expect(p0.battleArea.some((p) => p.permanentId === fragmented.permanentId)).toBe(true);
-    },
-  );
+    // EXPECTED (per §16-37-1): spared by trashing its 3 digivolution cards instead.
+    expect(p0.battleArea.some((p) => p.permanentId === fragmented.permanentId)).toBe(true);
+  });
 });
 
 describe("§16-38 <Execute> (comprehensive-0257)", () => {
@@ -743,50 +730,47 @@ describe("§16-38 <Execute> (comprehensive-0257)", () => {
 });
 
 describe("§16-39 <Progress> (comprehensive-0258)", () => {
-  it(
-    "NOW MET: a <Progress> Digimon should be immune to the opponent's effects while attacking",
-    async () => {
-      cite(
-        "comprehensive-0258",
-        "DIVERGENCE: §16-39-1 <Progress>: 'this Digimon isn't affected by your opponent's " +
-          "effects while attacking.' BT21-025 (printed <Progress>) compiles the keyword to an " +
-          "empty-actions Static marker; its real effects (an attack-target-switch trash reaction " +
-          "and a security-removed free-play reaction) are unrelated — no GrantImmunity/beAffected " +
-          "restriction scoped to 'while attacking' exists for this card.",
-      );
+  it("NOW MET: a <Progress> Digimon should be immune to the opponent's effects while attacking", async () => {
+    cite(
+      "comprehensive-0258",
+      "DIVERGENCE: §16-39-1 <Progress>: 'this Digimon isn't affected by your opponent's " +
+        "effects while attacking.' BT21-025 (printed <Progress>) compiles the keyword to an " +
+        "empty-actions Static marker; its real effects (an attack-target-switch trash reaction " +
+        "and a security-removed free-play reaction) are unrelated — no GrantImmunity/beAffected " +
+        "restriction scoped to 'while attacking' exists for this card.",
+    );
 
-      const s = setup();
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const progresser = digimon(0, 7000, "BT21-025"); // printed <Progress>
-      p0.battleArea.push(progresser);
-      p1.battleArea.push(digimon(1, 1000, "ST18-07"));
-      await s.engine.recomputeContinuousEffects();
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const progresser = digimon(0, 7000, "BT21-025"); // printed <Progress>
+    p0.battleArea.push(progresser);
+    p1.battleArea.push(digimon(1, 1000, "ST18-07"));
+    await s.engine.recomputeContinuousEffects();
 
-      expect(
-        s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: progresser.permanentId,
-          target: { kind: "player" },
-        }),
-      ).toEqual({ ok: true });
-      const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
-      await settle(() => combat.hasOpenBlockWindow, 5000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: progresser.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+    await settle(() => combat.hasOpenBlockWindow, 5000);
 
-      // §16-39-1 is enforced behaviourally, not as a ledger entry: primitives.ts computes
-      // isUnaffectableByOpponentEffects live as hasKeyword(id,"Progress") && the permanent being
-      // the current attacker, deliberately avoiding a per-attack ledger write and teardown.
-      // Asserting on continuous.hasRestriction would test the internal representation rather
-      // than the rule, and would fail for a correct implementation.
-      const prim = (
-        s.engine as unknown as {
-          primitives: { isUnaffectableByOpponentEffects(id: string): boolean };
-        }
-      ).primitives;
-      expect(prim.isUnaffectableByOpponentEffects(progresser.permanentId)).toBe(true);
-      expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
-    },
-  );
+    // §16-39-1 is enforced behaviourally, not as a ledger entry: primitives.ts computes
+    // isUnaffectableByOpponentEffects live as hasKeyword(id,"Progress") && the permanent being
+    // the current attacker, deliberately avoiding a per-attack ledger write and teardown.
+    // Asserting on continuous.hasRestriction would test the internal representation rather
+    // than the rule, and would fail for a correct implementation.
+    const prim = (
+      s.engine as unknown as {
+        primitives: { isUnaffectableByOpponentEffects(id: string): boolean };
+      }
+    ).primitives;
+    expect(prim.isUnaffectableByOpponentEffects(progresser.permanentId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+  });
 });
 
 describe("§16-40 <Link +> (comprehensive-0259)", () => {
@@ -800,9 +784,7 @@ describe("§16-40 <Link +> (comprehensive-0259)", () => {
     linked.linked.push(instance("AD1-005", 0, false)); // 1 link card
     linked.linked.push(instance("AD1-005", 0, false)); // 2nd link card — legal ONLY with the +1 grant
 
-    const linkMaxOf = (
-      s.engine as unknown as { linkMaxOf(p: typeof linked): number }
-    ).linkMaxOf.bind(s.engine);
+    const linkMaxOf = (s.engine as unknown as { linkMaxOf(p: typeof linked): number }).linkMaxOf.bind(s.engine);
     expect(linkMaxOf(linked)).toBe(1); // base max is unaffected by the raw push above until recompute
   });
 
@@ -838,9 +820,9 @@ describe("§16-41 <Training> (comprehensive-0260)", () => {
     expect(entry, "EX9-008 surfaces its <Training> activated ability").toBeDefined();
 
     const deckBefore = p0.deck.length;
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey })).toEqual({
+      ok: true,
+    });
     await settle(() => trainer.stack.length > 0, 5000);
 
     expect(trainer.isSuspended).toBe(true); // the suspend WAS the cost
@@ -879,7 +861,10 @@ describe("§16-42 <Use Req.> (comprehensive-0261) — NOW MET: compiles to, and 
   });
 
   it("baseline (unaffected): BT25-093's own color requirement is still enforced when unmet and no Use Req. condition holds", () => {
-    cite("comprehensive-0091", "4-21-2 to meet color requirements, you need a Digimon/Tamer of that color on your field");
+    cite(
+      "comprehensive-0091",
+      "4-21-2 to meet color requirements, you need a Digimon/Tamer of that color on your field",
+    );
 
     const s = setup({ autoAcceptOptional: true });
     const p0 = s.state.players[0]!;
@@ -922,10 +907,30 @@ describe("§16-42 <Use Req.> compiler coverage — all 24 printed cards", () => 
     // The full, exhaustive set (verified against packages/shared/src/cards/data/cards.json:
     // every `effectText`/`optionEffect` containing "Use Req" — no more, no fewer).
     const USE_REQ_CARD_IDS = [
-      "BT25-043", "BT25-057", "BT25-085", "BT25-093", "BT25-098", "BT25-100", "BT25-101",
-      "BT25-104", "EX12-069", "EX12-070", "EX12-071", "EX12-072", "EX12-073", "EX12-074",
-      "EX12-075", "P-235", "P-236", "P-237", "P-238", "P-243", "ST23-09", "ST23-15",
-      "ST24-07", "ST24-15",
+      "BT25-043",
+      "BT25-057",
+      "BT25-085",
+      "BT25-093",
+      "BT25-098",
+      "BT25-100",
+      "BT25-101",
+      "BT25-104",
+      "EX12-069",
+      "EX12-070",
+      "EX12-071",
+      "EX12-072",
+      "EX12-073",
+      "EX12-074",
+      "EX12-075",
+      "P-235",
+      "P-236",
+      "P-237",
+      "P-238",
+      "P-243",
+      "ST23-09",
+      "ST23-15",
+      "ST24-07",
+      "ST24-15",
     ];
     const { getCompiledCard } = await import("@aegis/shared");
     const missing: string[] = [];
@@ -942,40 +947,37 @@ describe("§16-42 <Use Req.> compiler coverage — all 24 printed cards", () => 
 });
 
 describe("§16-43 <Ascension> (comprehensive-0262)", () => {
-  it(
-    "NOW MET: on deletion, an <Ascension> card should be placeable atop the controller's security stack instead of trashed",
-    async () => {
-      cite(
-        "comprehensive-0262",
-        "DIVERGENCE: §16-43-1 <Ascension>: 'When the card with this effect is deleted, the " +
-          "player may place this card at the top of the security stack.' BT25-034 (printed " +
-          "<Ascension>) compiles the keyword to an empty-actions Static marker; its real effect " +
-          "(a whenTrashedFromSecurity reaction) is unrelated — no OnDeletion PlaceAsSecurity " +
-          "action exists for this card's OWN deletion.",
-      );
+  it("NOW MET: on deletion, an <Ascension> card should be placeable atop the controller's security stack instead of trashed", async () => {
+    cite(
+      "comprehensive-0262",
+      "DIVERGENCE: §16-43-1 <Ascension>: 'When the card with this effect is deleted, the " +
+        "player may place this card at the top of the security stack.' BT25-034 (printed " +
+        "<Ascension>) compiles the keyword to an empty-actions Static marker; its real effect " +
+        "(a whenTrashedFromSecurity reaction) is unrelated — no OnDeletion PlaceAsSecurity " +
+        "action exists for this card's OWN deletion.",
+    );
 
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-      const p0 = s.state.players[0] as PlayerState;
-      const p1 = s.state.players[1] as PlayerState;
-      const ascender = digimon(0, 5000, "BT25-034"); // printed <Ascension>
-      ascender.isSuspended = true;
-      p0.battleArea.push(ascender);
-      const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
-      p1.battleArea.push(attacker);
-      await s.engine.recomputeContinuousEffects();
-      s.state.turnSeat = 1; // seat 1 is declaring the attack
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const ascender = digimon(0, 5000, "BT25-034"); // printed <Ascension>
+    ascender.isSuspended = true;
+    p0.battleArea.push(ascender);
+    const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
+    p1.battleArea.push(attacker);
+    await s.engine.recomputeContinuousEffects();
+    s.state.turnSeat = 1; // seat 1 is declaring the attack
 
-      expect(
-        s.engine.applyIntent(1, {
-          type: "attack",
-          attackerPermanentId: attacker.permanentId,
-          target: { kind: "permanent", permanentId: ascender.permanentId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(() => false, 5000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: ascender.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 5000);
 
-      // EXPECTED (per §16-43-1): sitting atop security, NOT in the trash.
-      expect(p0.security.some((c) => c.cardId === "BT25-034" && c.faceUp === false)).toBe(true);
-    },
-  );
+    // EXPECTED (per §16-43-1): sitting atop security, NOT in the trash.
+    expect(p0.security.some((c) => c.cardId === "BT25-034" && c.faceUp === false)).toBe(true);
+  });
 });

@@ -7,13 +7,18 @@ import "./BT11-015.js";
 
 describe("BT11-015 OmniShoutmon", () => {
   it("deletes two 4000-DP Digimon when Shoutmon is in its sources", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-015", as: "omni", under: ["BT10-008"] }] },
-      1: { battleArea: [
-        { card: "BT1-009", as: "one", dp: 4000 },
-        { card: "BT1-010", as: "two", dp: 4000 },
-      ] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-015", as: "omni", under: ["BT10-008"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "one", dp: 4000 },
+            { card: "BT1-010", as: "two", dp: 4000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omni"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);
@@ -31,12 +36,17 @@ describe("BT11-015 OmniShoutmon", () => {
   });
 
   it("Saves itself under a Tamer on deletion", async () => {
-    const s = setupEngine({
-      0: { battleArea: [
-        { card: "BT11-015", as: "omni" },
-        { card: "BT10-087", as: "taiki" },
-      ] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-015", as: "omni" },
+            { card: "BT10-087", as: "taiki" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const omniCardId = s.perm("omni").topCard.instanceId;
 
     await advance(s.engine).verb.deletePermanent([s.perm("omni").permanentId]);

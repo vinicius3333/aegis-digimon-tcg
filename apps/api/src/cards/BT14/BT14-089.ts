@@ -6,93 +6,81 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "not",
-            "condition": {
-              "kind": "youHave",
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Greymon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
               },
-              "raw": "you have a Digimon with [Greymon] in its name"
             },
-            "raw": "you don't have a Digimon with [Greymon] in its name"
-          }
+            count: 1,
+          },
+          condition: {
+            kind: "not",
+            condition: {
+              kind: "youHave",
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Greymon"],
+                    match: "name",
+                  },
+                ],
+              },
+              raw: "you have a Digimon with [Greymon] in its name",
+            },
+            raw: "you don't have a Digimon with [Greymon] in its name",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Greymon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Greymon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a Digimon with [Greymon] in its name"
-          }
-        }
-      ]
+            raw: "you have a Digimon with [Greymon] in its name",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 export { compiled };

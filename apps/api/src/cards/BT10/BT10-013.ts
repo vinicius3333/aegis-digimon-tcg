@@ -6,62 +6,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
         },
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
         },
         {
-          "keyword": "MaterialSave",
-          "amount": 3,
-          "raw": "＜Material Save 3＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
-    {
-      "materials": [
-        {
-          "names": [
-            "Shoutmon"
-          ]
+          keyword: "MaterialSave",
+          amount: 3,
+          raw: "＜Material Save 3＞",
         },
-        {
-          "names": [
-            "Ballistamon"
-          ]
-        },
-        {
-          "names": [
-            "Dorulumon"
-          ]
-        },
-        {
-          "names": [
-            "Starmons"
-          ]
-        },
-        {
-          "names": [
-            "Sparrowmon"
-          ]
-        }
       ],
-      "count": 2
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          names: ["Shoutmon"],
+        },
+        {
+          names: ["Ballistamon"],
+        },
+        {
+          names: ["Dorulumon"],
+        },
+        {
+          names: ["Starmons"],
+        },
+        {
+          names: ["Sparrowmon"],
+        },
+      ],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT10-013", compiled);

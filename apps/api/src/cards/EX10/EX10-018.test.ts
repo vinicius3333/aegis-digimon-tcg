@@ -10,11 +10,20 @@ describe("EX10-018 Astamon", () => {
       { level: 4, texts: ["Save"], cost: 3, isAlternate: true },
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({ actions: [{
-        kind: "PlayWithoutCost", from: ["underMyTamers"], payCost: false, optional: true,
-        target: { filter: { controller: "mine", playCostLte: 4, keywords: ["Save"] }, count: 1 },
-      }] });
+      expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            from: ["underMyTamers"],
+            payCost: false,
+            optional: true,
+            target: { filter: { controller: "mine", playCostLte: 4, keywords: ["Save"] }, count: 1 },
+          },
+        ],
+      });
     }
-    expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({ keywords: [{ keyword: "Piercing" }] });
+    expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
+      keywords: [{ keyword: "Piercing" }],
+    });
   });
 });

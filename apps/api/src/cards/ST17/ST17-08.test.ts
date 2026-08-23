@@ -7,15 +7,18 @@ import "../index.js";
 
 describe("ST17-08 MegaGargomon", () => {
   it("has Blocker and Reboot and suspends and restricts two opposing Digimon/Tamers", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST17-08", as: "mega" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "opponentDigimon" },
-          { card: "ST17-10", as: "opponentTamer" },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-08", as: "mega" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "opponentDigimon" },
+            { card: "ST17-10", as: "opponentTamer" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("mega"), "Blocker")).toBe(true);
@@ -31,9 +34,12 @@ describe("ST17-08 MegaGargomon", () => {
   });
 
   it("unsuspends itself through the shared once-per-turn When Digivolving/End of Attack effect", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST17-08", as: "mega", suspended: true }] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-08", as: "mega", suspended: true }] },
+      },
+      { autoAcceptOptional: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("mega"));

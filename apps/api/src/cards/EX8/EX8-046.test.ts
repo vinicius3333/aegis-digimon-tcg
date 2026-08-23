@@ -49,7 +49,9 @@ describe("EX8-046", () => {
     );
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-046"));
     const source = player.battleArea.find((permanent) => permanent.topCard?.cardId === "EX8-046")!;
     await advance(s.engine).verb.deletePermanent([source.permanentId]);

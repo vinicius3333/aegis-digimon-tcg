@@ -10,283 +10,257 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - GainKeyword(Retaliation) was optional+abortOnDecline — wrong. The effect is a single
 //     "by trashing, gain Blocker AND Retaliation". Second GainKeyword is mandatory after cost.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Rush",
-          "raw": "＜Rush＞"
-        }
-      ]
+          keyword: "Rush",
+          raw: "＜Rush＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Collision",
-          "raw": "＜Collision＞"
-        }
-      ]
+          keyword: "Collision",
+          raw: "＜Collision＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Bagra Army"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Bagra Army"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "bindAs": "chosen"
+            count: 1,
+            bindAs: "chosen",
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Bagra Army"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Bagra Army"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": ["digivolutionCards"]
+              count: 1,
+              from: ["digivolutionCards"],
             },
-            "raw": "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon"
+            raw: "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": { "fromSelectionRef": "chosen" },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "chosen" },
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Bagra Army"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Bagra Army"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "bindAs": "chosen"
+            count: 1,
+            bindAs: "chosen",
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Bagra Army"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Bagra Army"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": ["digivolutionCards"]
+              count: 1,
+              from: ["digivolutionCards"],
             },
-            "raw": "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon"
+            raw: "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": { "fromSelectionRef": "chosen" },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "chosen" },
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Bagra Army"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Bagra Army"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "bindAs": "chosen"
+            count: 1,
+            bindAs: "chosen",
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Bagra Army"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Bagra Army"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": ["digivolutionCards"]
+              count: 1,
+              from: ["digivolutionCards"],
             },
-            "raw": "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon"
+            raw: "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": { "fromSelectionRef": "chosen" },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "chosen" },
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [],
-      "keywords": [
+      trigger: "OnDeletion",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Save",
-          "raw": "＜Save＞"
-        }
-      ]
+          keyword: "Save",
+          raw: "＜Save＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardDiscarded",
-          "sourceFilter": { "isSelfRef": true },
-          "hostFilter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }] },
-          "actions": [
+          kind: "SubTrigger",
+          event: "onDigivolutionCardDiscarded",
+          sourceFilter: { isSelfRef: true },
+          hostFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+          },
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Damemon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
+      names: ["Damemon"],
+      cost: 1,
+      isAlternate: true,
+    },
   ],
-  "digiXrosRequirement": [
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "names": [
-            "Damemon"
-          ]
+          names: ["Damemon"],
         },
         {
-          "names": [
-            "ChuuChuumon"
-          ]
-        }
+          names: ["ChuuChuumon"],
+        },
       ],
-      "count": 2
-    }
-  ]
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("EX10-045", compiled);

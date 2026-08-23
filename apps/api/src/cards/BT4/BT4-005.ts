@@ -6,44 +6,42 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "D-Brigade"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["D-Brigade"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "this Digimon has [D-Brigade] in its type"
-          }
-        }
+            raw: "this Digimon has [D-Brigade] in its type",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-005", compiled);

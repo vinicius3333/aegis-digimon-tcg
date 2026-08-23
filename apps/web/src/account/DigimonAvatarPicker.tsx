@@ -96,7 +96,9 @@ export function DigimonAvatarPicker({
 
       {status ? (
         <p className="account-avatar-picker__status" data-tone={status.tone} role="status" aria-live="polite">
-          {status.tone === "success" ? t("account.avatar.saved", { name: status.name ?? "" }) : t("account.avatar.error")}
+          {status.tone === "success"
+            ? t("account.avatar.saved", { name: status.name ?? "" })
+            : t("account.avatar.error")}
         </p>
       ) : null}
     </section>

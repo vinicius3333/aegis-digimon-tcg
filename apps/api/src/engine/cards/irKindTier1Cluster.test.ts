@@ -45,10 +45,7 @@ async function recompute(s: EngineSetup): Promise<void> {
 interface ContinuousReader {
   grantedNames(permanentId: string): string[];
   blocksCostReduction(seat: Seat, costType: "play" | "digivolve"): boolean;
-  canGainMemoryFromEffect(
-    seat: Seat,
-    effectSource: { definition: { kinds: unknown[] } } | undefined,
-  ): boolean;
+  canGainMemoryFromEffect(seat: Seat, effectSource: { definition: { kinds: unknown[] } } | undefined): boolean;
 }
 
 function continuousLedger(s: EngineSetup): ContinuousReader {
@@ -102,7 +99,10 @@ describe("IR-02 Tier-1 — Trash (BT13-080 [On Play] discard 1 from hand)", () =
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT13-080", as: "source" }, { card: "BT1-009", as: "victim" }], // BT13-080: Purple Digimon, cost 3; victim: the lone OTHER hand card
+          hand: [
+            { card: "BT13-080", as: "source" },
+            { card: "BT1-009", as: "victim" },
+          ], // BT13-080: Purple Digimon, cost 3; victim: the lone OTHER hand card
           // A drawable card so the [On Play] Draw 1 has a source.
           deck: ["AD1-001"],
         },
@@ -248,9 +248,9 @@ describe("BT16-063 — DNA-only security placement and opponent-Digimon immunity
     const placement = compiled.effects
       .find((effect) => effect.trigger === "WhenDigivolving")!
       .actions.find((action) => action.kind === "SecurityManipulation") as {
-        condition?: { kind?: string };
-        source?: { filter?: { level?: { lte?: { kind?: string } } } };
-      };
+      condition?: { kind?: string };
+      source?: { filter?: { level?: { lte?: { kind?: string } } } };
+    };
     const grant = compiled.effects
       .find((effect) => effect.trigger === "WhenDigivolving")!
       .actions.find((action) => action.kind === "GrantStatic") as { grant?: string };
@@ -282,7 +282,9 @@ describe("IR-02 Tier-1 — GrantStatic (BT8-061 name also treated as [Mamemon])"
     await recompute(s);
 
     // The ledger stores granted names lowercased (the name-comparison normal form).
-    const names = continuousLedger(s).grantedNames(carrier.permanentId).map((n) => n.toLowerCase());
+    const names = continuousLedger(s)
+      .grantedNames(carrier.permanentId)
+      .map((n) => n.toLowerCase());
     expect(names).toContain("mamemon");
     assertNoLoudGap(s);
   });
@@ -311,10 +313,10 @@ describe("IR-02 Tier-1 — AddToHandSelf (BT1-093 [Security] add this card to ha
     const securityEffect = compiled.effects.find((e) => e.isSecurity);
     expect(securityEffect, "BT1-093 has a [Security] effect").toBeDefined();
 
-    const ctx = (s.engine as unknown as {
+    const ctx = s.engine as unknown as {
       buildEffectContext(source: unknown, trigger: unknown): EffectContext;
       cardSourceOf(instance: CardInstance): unknown;
-    });
+    };
     const source = ctx.cardSourceOf(sec);
     const effects = module.effectsForTiming(EffectTiming.SecuritySkill, source as never);
     expect(effects.length).toBeGreaterThanOrEqual(1);

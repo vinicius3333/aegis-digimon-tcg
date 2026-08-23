@@ -6,7 +6,13 @@ import "./BT6-031.js";
 
 describe("BT6-031 Tinkermon", () => {
   it("gives an opposing Digimon Security Attack -1 on deletion", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-031", as: "tinkermon" }] }, 1: { battleArea: [{ card: "BT1-010", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT6-031", as: "tinkermon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).verb.deletePermanent([s.perm("tinkermon").permanentId], "byEffect");
 

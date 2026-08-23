@@ -14,14 +14,21 @@ describe("AD1-014 MetalGarurumon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("deletes one opposing level-five-or-lower Digimon on play and leaves a higher level intact", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "AD1-014", as: "metal" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "low" }, { card: "AD1-014", as: "high" }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "AD1-014", as: "metal" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "low" },
+            { card: "AD1-014", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
@@ -33,7 +40,10 @@ describe("AD1-014 MetalGarurumon", () => {
       {
         0: {
           hand: [{ card: "AD1-014", as: "metal" }],
-          battleArea: [{ card: "AD1-020", as: "three-colors" }, { card: "ST6-14", as: "purple" }],
+          battleArea: [
+            { card: "AD1-020", as: "three-colors" },
+            { card: "ST6-14", as: "purple" },
+          ],
         },
         1: {
           battleArea: [
@@ -48,10 +58,19 @@ describe("AD1-014 MetalGarurumon", () => {
     s.state.memory = 12;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
-    const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }).continuous;
-    await settle(() => s.state.players[1]!.battleArea.filter((permanent) => continuous.hasRestriction(permanent.permanentId, "suspend")).length === 2);
+    const continuous = (
+      s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }
+    ).continuous;
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.filter((permanent) =>
+          continuous.hasRestriction(permanent.permanentId, "suspend"),
+        ).length === 2,
+    );
 
-    expect(s.state.players[1]!.battleArea.filter((permanent) => continuous.hasRestriction(permanent.permanentId, "suspend"))).toHaveLength(2);
+    expect(
+      s.state.players[1]!.battleArea.filter((permanent) => continuous.hasRestriction(permanent.permanentId, "suspend")),
+    ).toHaveLength(2);
   });
 
   it("does not create a suspension restriction with fewer than two Tamer colors", async () => {
@@ -66,17 +85,33 @@ describe("AD1-014 MetalGarurumon", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
     await settle();
-    const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }).continuous;
+    const continuous = (
+      s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }
+    ).continuous;
     expect(continuous.hasRestriction(s.perm("target").permanentId, "suspend")).toBe(false);
   });
 
   it("unsuspends once when one of its Digimon suspends", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-014", as: "metal", suspended: true }, { card: "BT1-010", as: "attacker" }] },
-      1: { security: ["BT1-001"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-014", as: "metal", suspended: true },
+            { card: "BT1-010", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("metal").isSuspended === false);
     expect(s.perm("metal").isSuspended).toBe(false);
   });
@@ -88,7 +123,14 @@ describe("AD1-014 MetalGarurumon", () => {
       });
       s.state.memory = 5;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("metal").instanceId, alternateRequirementIndex: baseCard === "BT1-040" ? 0 : 1 })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("metal").instanceId,
+          alternateRequirementIndex: baseCard === "BT1-040" ? 0 : 1,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "AD1-014");
       expect(s.state.memory).toBe(2);
     }
@@ -97,7 +139,8 @@ describe("AD1-014 MetalGarurumon", () => {
   it("publishes Blocker and Evade", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-014", as: "metal" }] } });
     await s.ready();
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("metal").permanentId, "Blocker")).toBe(true);
     expect(continuous.hasKeyword(s.perm("metal").permanentId, "Evade")).toBe(true);
   });

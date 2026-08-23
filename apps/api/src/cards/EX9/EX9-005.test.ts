@@ -13,11 +13,17 @@ describe("EX9-005", () => {
   });
   it("restricts itself from digivolving, being deleted, and being trashed, and redirects opponent attacks", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions).toHaveLength(3);
-    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenOpponentAttacks" });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenOpponentAttacks",
+    });
   });
 
   it("plays a Negamon-text Digimon from hand and places Negamon underneath it", async () => {
-    const s = setupEngine({ 0: { breeding: { card: "EX9-005", as: "negamon" }, hand: [{ card: "EX9-046", as: "played" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { breeding: { card: "EX9-005", as: "negamon" }, hand: [{ card: "EX9-046", as: "played" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 1;
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("negamon"));
     await settle(() => s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === "EX9-005"), 100);

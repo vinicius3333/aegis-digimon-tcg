@@ -7,65 +7,59 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Tamer"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Matt Ishida"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Matt Ishida"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "selfHasName",
-            "names": [
-              "Gabumon - Bond of Friendship"
-            ],
-            "raw": "this Digimon is [Gabumon - Bond of Friendship]"
+          condition: {
+            kind: "selfHasName",
+            names: ["Gabumon - Bond of Friendship"],
+            raw: "this Digimon is [Gabumon - Bond of Friendship]",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-019", compiled);

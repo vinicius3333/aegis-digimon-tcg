@@ -6,120 +6,104 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Angel", "Archangel", "Three Great Angels"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dominimon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Dominimon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you don't have [Dominimon]"
-          }
+            raw: "you don't have [Dominimon]",
+          },
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Angel", "Archangel", "Three Great Angels"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": "all"
+            count: "all",
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Dominimon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Dominimon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have [Dominimon]"
-          }
-        }
-      ]
+            raw: "you have [Dominimon]",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Recovery",
-            "amount": 1,
-            "raw": "＜Recovery +1 (Deck)＞"
-          }
+          keyword: {
+            keyword: "Recovery",
+            amount: 1,
+            raw: "＜Recovery +1 (Deck)＞",
+          },
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true,
-      "keywords": [
+      isSecurity: true,
+      keywords: [
         {
-          "keyword": "Recovery",
-          "amount": 1,
-          "raw": "＜Recovery +1 (Deck)＞"
-        }
-      ]
-    }
+          keyword: "Recovery",
+          amount: 1,
+          raw: "＜Recovery +1 (Deck)＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-067", compiled);

@@ -4,7 +4,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }] },
+    {
+      trigger: "StartOfYourTurn",
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
+    },
     {
       trigger: "OnPlay",
       actions: [
@@ -26,7 +29,14 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1 }, from: ["security"], payCost: false }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1 },
+          from: ["security"],
+          payCost: false,
+        },
+      ],
       isSecurity: true,
     },
   ],

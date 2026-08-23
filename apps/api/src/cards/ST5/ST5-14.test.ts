@@ -14,12 +14,32 @@ describe("ST5-14 Tai Kamiya", () => {
 
   it("suspends to unsuspend a Digimon after using Blocker", async () => {
     const preferInstanceIds: string[] = [];
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST5-14", as: "tai" }, { card: "ST5-03", as: "blocker" }, { card: "ST5-08", as: "other", suspended: true }] }, 1: { battleArea: [{ card: "ST5-08", as: "attacker" }] } }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST5-14", as: "tai" },
+            { card: "ST5-03", as: "blocker" },
+            { card: "ST5-08", as: "other", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "ST5-08", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
     preferInstanceIds.push(s.perm("other").permanentId, s.perm("other").topCard.instanceId);
     s.state.turnSeat = 1;
-    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).blockingSeat() === 0);
-    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tai").isSuspended && !s.perm("other").isSuspended);
     expect(s.perm("other").isSuspended).toBe(false);
   });

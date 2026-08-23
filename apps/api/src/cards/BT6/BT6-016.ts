@@ -6,90 +6,81 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Sistermon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Sistermon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "once": true,
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          once: true,
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-              "filter": {},
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{"tokens": ["Jesmon"], "match": "name"}],
-              "count": "all"
-            },
-              "amount": 3000,
-              "duration": "forTheTurn",
-              "continuous": false
+              kind: "ModifyDP",
+              target: {
+                filter: {},
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Jesmon"], match: "name" }],
+                count: "all",
+              },
+              amount: 3000,
+              duration: "forTheTurn",
+              continuous: false,
             },
             {
-              "kind": "GainKeyword",
-              "target": {
-              "filter": {},
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{"tokens": ["Jesmon"], "match": "name"}],
-              "count": "all"
+              kind: "GainKeyword",
+              target: {
+                filter: {},
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Jesmon"], match: "name" }],
+                count: "all",
               },
-              "keyword": {
-                "keyword": "Piercing",
-                "raw": "＜Piercing＞"
+              keyword: {
+                keyword: "Piercing",
+                raw: "＜Piercing＞",
               },
-              "duration": "forTheTurn"
-            }
+              duration: "forTheTurn",
+            },
           ],
-          "oncePerTurnKey": "global:BT6-016/jesmon-sistermon"
-        }
+          oncePerTurnKey: "global:BT6-016/jesmon-sistermon",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-016", compiled);

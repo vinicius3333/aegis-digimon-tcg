@@ -1,10 +1,4 @@
-import type {
-  CardColor,
-  CardDefinition,
-  CardInstance,
-  Permanent,
-  Seat,
-} from "@aegis/shared";
+import type { CardColor, CardDefinition, CardInstance, Permanent, Seat } from "@aegis/shared";
 import type { CardSource } from "../effects/CardSource.js";
 import { definitionOf, hasColor as defHasColor } from "./cardData.js";
 
@@ -51,14 +45,11 @@ export interface CardStateLookup {
  * Pure and testable: given an instance and a lookup it constructs a value object;
  * it mutates nothing.
  */
-export function createCardSource(
-  instance: CardInstance,
-  lookup: CardStateLookup,
-): CardSource {
+export function createCardSource(instance: CardInstance, lookup: CardStateLookup): CardSource {
   if (typeof instance.cardId !== "string") {
     throw new Error(
       `createCardSource: instance ${instance.instanceId} has non-string cardId ` +
-      `(${typeof instance.cardId}): ${JSON.stringify(instance.cardId)}`,
+        `(${typeof instance.cardId}): ${JSON.stringify(instance.cardId)}`,
     );
   }
   const definition: CardDefinition = definitionOf(instance.cardId);

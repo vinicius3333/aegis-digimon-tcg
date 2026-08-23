@@ -11,7 +11,13 @@ describe("BT18-048 Kazemon", () => {
       1: { battleArea: [{ card: "BT1-030", as: "opponentTarget" }] },
     });
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("zoe").permanentId, instanceId: s.inst("kazemon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("zoe").permanentId,
+        instanceId: s.inst("kazemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("zoe").topCard?.cardId === "BT18-048");
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zoe"));
 

@@ -147,12 +147,8 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
 
     const surviving = s.state.players[0]!.battleArea.find((p) => p.permanentId === hostId);
     expect(surviving).toBeDefined();
-    expect(surviving!.stack.map((card) => card.instanceId)).not.toEqual(
-      expect.arrayContaining(paidIds),
-    );
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining(paidIds),
-    );
+    expect(surviving!.stack.map((card) => card.instanceId)).not.toEqual(expect.arrayContaining(paidIds));
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(paidIds));
     expect(s.state.players[0]!.trash).toHaveLength(2);
   });
 
@@ -212,9 +208,7 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-044", as: "host", under: ["BT1-009", "BT1-010", P_072] },
-          ],
+          battleArea: [{ card: "BT1-044", as: "host", under: ["BT1-009", "BT1-010", P_072] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -232,9 +226,7 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-025", as: "host", under: ["BT1-009", "BT1-010", P_072] },
-          ],
+          battleArea: [{ card: "BT1-025", as: "host", under: ["BT1-009", "BT1-010", P_072] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -253,9 +245,7 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-025", as: "host", under: ["BT1-009", "BT1-010", P_072] },
-          ],
+          battleArea: [{ card: "BT1-025", as: "host", under: ["BT1-009", "BT1-010", P_072] }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

@@ -7,31 +7,33 @@ import "./P-062.js";
 
 describe("P-062 Hiro Amanokawa", () => {
   it("suspends to give Security Attack +1 to an attacker with Gammamon in its sources", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "P-062", as: "hiro" },
-            { card: "BT9-023", as: "attacker", under: ["P-059"] },
-          ],
-        },
-        1: { security: ["BT1-001", "BT1-002"] },
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-062", as: "hiro" },
+          { card: "BT9-023", as: "attacker", under: ["P-059"] },
+        ],
       },
-    );
+      1: { security: ["BT1-001", "BT1-002"] },
+    });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const prompt = s.decisions.at(-1)!.req;
     expect(prompt.sourceCardId).toBe("P-062");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: prompt.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: prompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("hiro").isSuspended && s.state.players[1]!.security.length === 0);
 
     expect(s.perm("hiro").isSuspended).toBe(true);
@@ -53,11 +55,13 @@ describe("P-062 Hiro Amanokawa", () => {
       { autoAcceptOptional: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
@@ -77,11 +81,13 @@ describe("P-062 Hiro Amanokawa", () => {
       { autoAcceptOptional: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.perm("hiro").isSuspended).toBe(false);

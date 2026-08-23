@@ -67,7 +67,9 @@ describe("BT9-095 Gaia Force ZERO", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("greymon").isSuspended);
 
     expect(s.perm("greymon").isSuspended).toBe(true);

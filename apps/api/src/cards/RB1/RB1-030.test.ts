@@ -79,10 +79,7 @@ async function setupGranted(costCardId: string | undefined) {
           // P0 grant recipient — biased into preferInstanceIds below.
           { card: MY_RECIPIENT, dp: 7000, as: "recipient" },
         ],
-        hand: [
-          ...(costCardId !== undefined ? [{ card: costCardId }] : []),
-          { card: RB1_030, as: "evolving" },
-        ],
+        hand: [...(costCardId !== undefined ? [{ card: costCardId }] : []), { card: RB1_030, as: "evolving" }],
       },
       1: {
         // Opponent Digimon at levels 3/4/5 — the lowest level is 3 (Monodramon).
@@ -142,14 +139,14 @@ async function setupGranted(costCardId: string | undefined) {
 
 describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Digimon'", () => {
   it("POSITIVE: granted Digimon's deletion deletes the opponent's LOWEST-level Digimon", async () => {
-    const { s, engine, p1, recipient, oppL3, oppL4, oppL5, evolvedRB } = await setupGranted(
-      GAMMAMON_TEXT_OPTION,
-    );
+    const { s, engine, p1, recipient, oppL3, oppL4, oppL5, evolvedRB } = await setupGranted(GAMMAMON_TEXT_OPTION);
     expect(evolvedRB).toBe(true);
 
     // The grant landed on the recipient (paying the Gammamon-text trash cost).
     const grants = engine.continuous.listCustomEffectGrants();
-    expect(grants.some((g) => g.instanceId === recipient.topCard.instanceId && g.token === "OnDeletionDeleteLowest")).toBe(true);
+    expect(
+      grants.some((g) => g.instanceId === recipient.topCard.instanceId && g.token === "OnDeletionDeleteLowest"),
+    ).toBe(true);
 
     // Delete the granted Digimon through the REAL effect-deletion primitive.
     await engine.recomputeContinuousEffects();
@@ -163,16 +160,12 @@ describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Dig
 
     // No loud gap surfaced.
     expect(
-      s.events.find(
-        (e) => e.kind === "actionRejected" && "reason" in e && /Unsupported effect/.test(e.reason),
-      ),
+      s.events.find((e) => e.kind === "actionRejected" && "reason" in e && /Unsupported effect/.test(e.reason)),
     ).toBeUndefined();
   });
 
   it("NEGATIVE (cost): no Gammamon-text card in hand => no grant => deletion deletes nothing", async () => {
-    const { s, engine, p1, recipient, oppL3, oppL4, oppL5, evolvedRB } = await setupGranted(
-      NON_GAMMAMON_OPTION,
-    );
+    const { s, engine, p1, recipient, oppL3, oppL4, oppL5, evolvedRB } = await setupGranted(NON_GAMMAMON_OPTION);
     expect(evolvedRB).toBe(true);
 
     // The trash cost is unpayable (the only hand card has no "Gammamon" in its text) -> no grant.
@@ -192,16 +185,16 @@ describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Dig
   it("EXPIRY: the grant lapses at the end of the opponent's turn (UntilOpponentTurnEnd)", async () => {
     const { s, engine, recipient, evolvedRB } = await setupGranted(GAMMAMON_TEXT_OPTION);
     expect(evolvedRB).toBe(true);
-    expect(
-      engine.continuous.listCustomEffectGrants().some((g) => g.instanceId === recipient.topCard.instanceId),
-    ).toBe(true);
+    expect(engine.continuous.listCustomEffectGrants().some((g) => g.instanceId === recipient.topCard.instanceId)).toBe(
+      true,
+    );
 
     // Sweep the opponent-turn-end boundary as the opponent (seat 1): UntilOpponentTurnEnd grants
     // (framed from the granter seat 0) clear at the end of seat-0's opponent's turn.
     engine.continuous.sweep(s.state, "opponentTurnEnd", 1 as Seat);
 
-    expect(
-      engine.continuous.listCustomEffectGrants().some((g) => g.instanceId === recipient.topCard.instanceId),
-    ).toBe(false);
+    expect(engine.continuous.listCustomEffectGrants().some((g) => g.instanceId === recipient.topCard.instanceId)).toBe(
+      false,
+    );
   });
 });

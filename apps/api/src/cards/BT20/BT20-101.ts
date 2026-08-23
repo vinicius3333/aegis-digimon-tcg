@@ -17,178 +17,162 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // siblings, this card alone is pinned as a hand override so a future recompile can't
 // silently revert its "any" back to "mine".
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Vortex",
-          "raw": "＜Vortex＞"
-        }
-      ]
+          keyword: "Vortex",
+          raw: "＜Vortex＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controllerDefault": "any",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controllerDefault: "any",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "optional": true,
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controllerDefault": "any",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          to: "deckBottom",
+          optional: true,
+          scaling: {
+            per: 2,
+            filter: {
+              controllerDefault: "any",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "optional": true,
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controllerDefault": "any",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          to: "deckBottom",
+          optional: true,
+          scaling: {
+            per: 2,
+            filter: {
+              controllerDefault: "any",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
-    }
+            unit: "cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 6,
-      "traits": [
-        "Vortex Warriors"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      level: 6,
+      traits: ["Vortex Warriors"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT20-101", compiled);

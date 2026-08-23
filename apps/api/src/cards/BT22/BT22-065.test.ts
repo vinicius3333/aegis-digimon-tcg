@@ -56,7 +56,10 @@ describe("BT22-065 PlatinumNumemon", () => {
       {
         0: {
           battleArea: [{ card: "BT22-054", as: "cs-base" }],
-          hand: [{ card: "BT22-065", as: "platinum" }, { card: "BT22-056", as: "cs-evolution" }],
+          hand: [
+            { card: "BT22-065", as: "platinum" },
+            { card: "BT22-056", as: "cs-evolution" },
+          ],
         },
         1: { battleArea: [{ card: "BT22-074", as: "target" }] },
       },
@@ -64,7 +67,9 @@ describe("BT22-065 PlatinumNumemon", () => {
     );
     s.state.memory = 9;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("platinum").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("platinum").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("cs-base").topCard?.cardId === "BT22-056");
     await settle();
 
@@ -77,7 +82,10 @@ describe("BT22-065 PlatinumNumemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT22-065", as: "platinum" }, { card: "BT22-054", as: "cs-base" }],
+          battleArea: [
+            { card: "BT22-065", as: "platinum" },
+            { card: "BT22-054", as: "cs-base" },
+          ],
           hand: [{ card: "BT22-056", as: "cs-evolution" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },

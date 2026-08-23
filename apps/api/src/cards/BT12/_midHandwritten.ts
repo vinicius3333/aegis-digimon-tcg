@@ -47,9 +47,9 @@ function mine(
 function sourcePermanent(ctx: EffectContext, source: CardSource): Permanent | undefined {
   return (
     source.permanent() ??
-    ctx.game.player(source.ownerSeat).battleArea.find(
-      (candidate) => candidate.topCard?.instanceId === source.instanceId,
-    )
+    ctx.game
+      .player(source.ownerSeat)
+      .battleArea.find((candidate) => candidate.topCard?.instanceId === source.instanceId)
   );
 }
 
@@ -203,20 +203,22 @@ function opponentDigimonWasDeletedByDpZero(ctx: EffectContext, source: CardSourc
   if (zeroDpTopCards.size === 0 && ctx.trigger.deletedByDpZero !== true) return false;
   const deleted = new Set(ctx.trigger.deletedInstanceIds ?? []);
   const deletedStack = new Set(ctx.trigger.deletedWasStackInstanceIds ?? []);
-  return ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).trash.some(
-    (instance) =>
-      deleted.has(instance.instanceId) &&
-      !deletedStack.has(instance.instanceId) &&
-      (zeroDpTopCards.size === 0 || zeroDpTopCards.has(instance.instanceId)) &&
-      isDigimon(ctx.game.definitionOf(instance)),
-  );
+  return ctx.game
+    .player(ctx.game.opponentOf(source.ownerSeat))
+    .trash.some(
+      (instance) =>
+        deleted.has(instance.instanceId) &&
+        !deletedStack.has(instance.instanceId) &&
+        (zeroDpTopCards.size === 0 || zeroDpTopCards.has(instance.instanceId)) &&
+        isDigimon(ctx.game.definitionOf(instance)),
+    );
 }
 
 function ownTamerWasDeleted(ctx: EffectContext, source: CardSource): boolean {
   const deleted = new Set(ctx.trigger.deletedInstanceIds ?? []);
-  return ctx.game.player(source.ownerSeat).trash.some(
-    (instance) => deleted.has(instance.instanceId) && isTamer(ctx.game.definitionOf(instance)),
-  );
+  return ctx.game
+    .player(source.ownerSeat)
+    .trash.some((instance) => deleted.has(instance.instanceId) && isTamer(ctx.game.definitionOf(instance)));
 }
 
 function recoverMarcus(cardId: string, source: CardSource, isInherited = false): Effect {
@@ -230,9 +232,7 @@ function recoverMarcus(cardId: string, source: CardSource, isInherited = false):
     resolve: async (ctx) => {
       const [marcus] = await card(
         ctx,
-        ctx.game
-          .player(source.ownerSeat)
-          .trash.filter((item) => ctx.game.definitionOf(item).nameEn === "Marcus Damon"),
+        ctx.game.player(source.ownerSeat).trash.filter((item) => ctx.game.definitionOf(item).nameEn === "Marcus Damon"),
         1,
         true,
       );
@@ -316,10 +316,11 @@ export function midBt12Module(cardId: string): EffectModule {
                   // stack containing (for example) a red Digimon plus a blue
                   // Tamer.  Keep the colour and kind test on the same source
                   // card.
-                  const hasRedTamer = self?.stack.some((item) => {
-                    const definition = ctx.game.definitionOf(item);
-                    return isTamer(definition) && definition.colors.includes(CardColor.Red);
-                  }) === true;
+                  const hasRedTamer =
+                    self?.stack.some((item) => {
+                      const definition = ctx.game.definitionOf(item);
+                      return isTamer(definition) && definition.colors.includes(CardColor.Red);
+                    }) === true;
                   const cap = hasRedTamer ? (self?.currentDP ?? 6000) : 6000;
                   const [target] = await permanent(
                     ctx,
@@ -952,7 +953,8 @@ export function midBt12Module(cardId: string): EffectModule {
                       .trash.filter(
                         (item) =>
                           item.instanceId !== source.instanceId &&
-                          isDigimon(ctx.game.definitionOf(item)) && contains(ctx.game.definitionOf(item), "save"),
+                          isDigimon(ctx.game.definitionOf(item)) &&
+                          contains(ctx.game.definitionOf(item), "save"),
                       ),
                     1,
                   );
@@ -1263,8 +1265,10 @@ export function midBt12Module(cardId: string): EffectModule {
                   const host = source.permanent()?.topCard;
                   if (host === undefined || !source.isOwnersTurn()) return false;
                   const definition = ctx.game.definitionOf(host);
-                  return isDigimon(definition) &&
-                    (definition.nameEn.includes("Imperialdramon") || cardHasTrait(definition, "Free"));
+                  return (
+                    isDigimon(definition) &&
+                    (definition.nameEn.includes("Imperialdramon") || cardHasTrait(definition, "Free"))
+                  );
                 },
                 resolve: async (ctx) => {
                   await ctx.fx.trashFromSecurity(ctx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });

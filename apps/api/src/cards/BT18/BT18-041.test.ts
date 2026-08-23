@@ -7,10 +7,13 @@ import "./BT18-041.js";
 
 describe("BT18-041 MetalEtemon", () => {
   it("reduces an opponent's Security Attack by 2 and De-Digivolves exactly 1", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT18-041", as: "metal" }] },
-      1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030"] }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT18-041", as: "metal" }] },
+        1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030"] }] },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.perm("metal").topCard!);

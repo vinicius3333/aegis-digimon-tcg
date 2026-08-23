@@ -17,7 +17,10 @@ describe("BT17-084 Davis Motomiya & Ken Ichijoji — end-of-turn Free attack", (
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: TAMER, as: "tamer" }, { card: FREE_DIGIMON, as: "free" }],
+          battleArea: [
+            { card: TAMER, as: "tamer" },
+            { card: FREE_DIGIMON, as: "free" },
+          ],
           security: [{ card: OPPONENT_DIGIMON, faceUp: true }],
         },
         1: { battleArea: [{ card: OPPONENT_DIGIMON, as: "opponent" }] },

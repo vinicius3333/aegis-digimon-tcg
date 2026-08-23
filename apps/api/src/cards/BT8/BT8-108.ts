@@ -3,52 +3,52 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2
-        }
+          kind: "GainMemory",
+          amount: 2,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-108", compiled);

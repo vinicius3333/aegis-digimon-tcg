@@ -6,84 +6,74 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you have a Tamer in play"
-          }
+            raw: "you have a Tamer in play",
+          },
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Blue"
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Blue"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you don't have a Tamer in play"
+            raw: "you don't have a Tamer in play",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenUnsuspended",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenUnsuspended",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "fireCondition": {
-            "kind": "phaseIs",
-            "phase": "Main"
+          fireCondition: {
+            kind: "phaseIs",
+            phase: "Main",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-026", compiled);

@@ -3,76 +3,70 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
             {
-              "kind": "DeDigivolve",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DeDigivolve",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 1
-            }
-          ]
-        }
-      ]
+              amount: 1,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine"
+          amount: -4000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
             },
-            "unit": "security"
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Seraphimon"
+            unit: "security",
+          },
+        },
       ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Seraphimon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX4-050", compiled);

@@ -17,16 +17,21 @@ describe("ST21-14", () => {
   });
 
   it("reveals three cards, adds an ADVENTURE card, and places itself in the battle area", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST21-13", as: "adventureTamer" }],
-        hand: [{ card: "ST21-14", as: "option" }],
-        deck: ["ST21-10", "BT1-009", "BT1-045"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST21-13", as: "adventureTamer" }],
+          hand: [{ card: "ST21-14", as: "option" }],
+          deck: ["ST21-10", "BT1-009", "BT1-045"],
+        },
+        1: { security: ["BT1-003"] },
       },
-      1: { security: ["BT1-003"] },
-    }, { autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true });
+      { autoSelectCards: true, autoOrderCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST21-14"));
     const hand = s.state.players[0]!.hand;
     expect(hand.filter((card) => card.cardId === "ST21-10")).toHaveLength(1);

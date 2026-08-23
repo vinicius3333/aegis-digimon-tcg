@@ -6,56 +6,53 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "chooser": "opponent",
-          "condition": {
-            "kind": "not", "condition": {"kind": "triggerRemovalCause", "removalCause": "byBattle"},
-            "raw": "deleted outside of a battle"
-          }
-        }
+          chooser: "opponent",
+          condition: {
+            kind: "not",
+            condition: { kind: "triggerRemovalCause", removalCause: "byBattle" },
+            raw: "deleted outside of a battle",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-079", compiled);

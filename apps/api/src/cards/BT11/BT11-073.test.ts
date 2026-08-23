@@ -29,11 +29,13 @@ describe("BT11-073 Justimon: Accel Arm", () => {
     );
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("justimon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("justimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("justimon").topCard.cardId === "BT10-067");
 
     expect(s.perm("justimon").topCard.cardId).toBe("BT10-067");
@@ -52,11 +54,13 @@ describe("BT11-073 Justimon: Accel Arm", () => {
     );
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("justimon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("justimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 20);
 
     expect(s.perm("justimon").topCard.cardId).toBe("BT11-073");

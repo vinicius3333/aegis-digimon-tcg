@@ -7,7 +7,13 @@ describe("P-188 DemiVeemon", () => {
     expect(runtimeCompiledCard("P-188")!.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ event: "whenPlayed", sourceFilter: { controller: "mine", kind: ["Tamer"], colors: ["Blue"] }, actions: [{ kind: "Draw", controller: "mine", amount: 1 }] }],
+      actions: [
+        {
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Tamer"], colors: ["Blue"] },
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+        },
+      ],
     });
   });
 });

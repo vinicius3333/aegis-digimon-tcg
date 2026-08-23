@@ -12,21 +12,38 @@ describe("P-175 Hina Kurihara", () => {
   it("triggers on your Rock Dragon or Machine Dragon play and suspends to digivolve from hand for -2", () => {
     const effect = runtimeCompiledCard("P-175")!.effects.find((entry) => entry.trigger === "YourTurn")!;
     expect(effect).toMatchObject({
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenPlayed",
-        sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Rock Dragon", "Machine Dragon"], match: "trait" }] },
-        actions: [{
-          kind: "Digivolve",
-          reduceCost: 2,
-          from: ["hand"],
-          optional: true,
-          abortOnDecline: true,
-          cost: { kind: "suspend", target: { isSelf: true } },
-          target: { filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } }, count: 1 },
-          into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Rock Dragon", "Earth Dragon", "Machine Dragon", "Sky Dragon"], match: "trait" }] },
-        }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Rock Dragon", "Machine Dragon"], match: "trait" }],
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              reduceCost: 2,
+              from: ["hand"],
+              optional: true,
+              abortOnDecline: true,
+              cost: { kind: "suspend", target: { isSelf: true } },
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "gte", value: 4 } },
+                count: 1,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  { tokens: ["Rock Dragon", "Earth Dragon", "Machine Dragon", "Sky Dragon"], match: "trait" },
+                ],
+              },
+            },
+          ],
+        },
+      ],
     });
   });
 

@@ -21,94 +21,86 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   (self + one other Digimon excluding self); into filter adds hasDnaDigivolutionRequirement
 //   and zone:'hand'; into is a filter wrapping (not a nested object).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "into": {
-            "or": [
+          into: {
+            or: [
               {
-                "colors": [
-                  "Black"
-                ]
+                colors: ["Black"],
               },
               {
-                "nameOrTrait": [
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Legend-Arms"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              }
+                    tokens: ["Legend-Arms"],
+                    match: "trait",
+                  },
+                ],
+              },
             ],
-            "zone": "hand",
-            "controller": "mine"
+            zone: "hand",
+            controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": [
+          kind: "DnaDigivolve",
+          materials: [
             {
-              "filter": {
-                "isSelfRef": true
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
             {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "zone": "battleArea",
-                "excludeSelf": true
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                zone: "battleArea",
+                excludeSelf: true,
               },
-              "count": 1
-            }
+              count: 1,
+            },
           ],
-          "into": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "zone": "hand",
-              "hasDnaDigivolutionRequirement": true
+          into: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              zone: "hand",
+              hasDnaDigivolutionRequirement: true,
             },
-            "count": 1
+            count: 1,
           },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST13-04", compiled);

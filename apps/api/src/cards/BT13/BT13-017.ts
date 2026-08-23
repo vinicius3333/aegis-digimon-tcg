@@ -6,112 +6,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeleteByDPBudget",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeleteByDPBudget",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "baseBudget": 6000,
-          "budgetBonus": {
-            "per": 2000,
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          baseBudget: 6000,
+          budgetBonus: {
+            per: 2000,
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeleteByDPBudget",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeleteByDPBudget",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "baseBudget": 6000,
-          "budgetBonus": {
-            "per": 2000,
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          baseBudget: 6000,
+          budgetBonus: {
+            per: 2000,
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          amount: 1000,
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Sistermon"
-                  ],
-                  "match": "name"
+                  tokens: ["Sistermon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Royal Knight"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Knight"],
+                  match: "trait",
+                },
+              ],
             },
-            "unit": "cards"
-          }
-        }
-      ]
-    }
+            unit: "cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-017", compiled);

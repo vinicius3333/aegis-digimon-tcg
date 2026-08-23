@@ -11,7 +11,10 @@ describe("BT13-010 Biyomon", () => {
       {
         0: {
           security: [{ card: "BT15-088", as: "security", faceUp: true }],
-          hand: [{ card: "BT13-010", as: "biyomon" }, { card: "BT13-014", as: "garudamon" }],
+          hand: [
+            { card: "BT13-010", as: "biyomon" },
+            { card: "BT13-014", as: "garudamon" },
+          ],
           battleArea: [{ card: "BT13-094", as: "kristy" }],
           deck: ["BT1-001"],
         },
@@ -28,14 +31,18 @@ describe("BT13-010 Biyomon", () => {
     expect(garudamon.stack.some((card) => card.cardId === "BT13-010")).toBe(true);
     // Garudamon's registered When Digivolving effect immediately replays the
     // returned 3-cost red Tamer, proving Kristy first left her original permanent.
-    expect(s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === kristyId,
-    )).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === kristyId)).toBe(true);
   });
 
   it("may return Kristy Damon even without a Garudamon in hand (Q2269)", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "BT15-088", as: "security", faceUp: true }], hand: [{ card: "BT13-010", as: "biyomon" }], battleArea: [{ card: "BT13-094", as: "kristy" }] } },
+      {
+        0: {
+          security: [{ card: "BT15-088", as: "security", faceUp: true }],
+          hand: [{ card: "BT13-010", as: "biyomon" }],
+          battleArea: [{ card: "BT13-094", as: "kristy" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
@@ -46,11 +53,24 @@ describe("BT13-010 Biyomon", () => {
   });
 
   it("does not offer the Kristy cost when Biyomon is played normally", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT13-010", as: "biyomon" }, { card: "BT13-014", as: "garudamon" }], battleArea: [{ card: "BT13-094", as: "kristy" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT13-010", as: "biyomon" },
+            { card: "BT13-014", as: "garudamon" },
+          ],
+          battleArea: [{ card: "BT13-094", as: "kristy" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biyomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("biyomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-010"));
     await settle();
     expect(s.perm("kristy").topCard.cardId).toBe("BT13-094");
@@ -58,7 +78,9 @@ describe("BT13-010 Biyomon", () => {
   });
 
   it("draws one when the Digimon carrying its inherited effect is deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-010"] }], deck: ["BT1-001"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-010"] }], deck: ["BT1-001"] },
+    });
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);

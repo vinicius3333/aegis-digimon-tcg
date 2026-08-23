@@ -8,32 +8,32 @@ describe("P-099 Etemon", () => {
       {
         0: { hand: [{ card: "P-099", as: "etemon" }] },
         1: {
-          battleArea: [{
-            card: "BT1-025",
-            as: "target",
-            under: [
-              { card: "BT1-009", as: "bottom" },
-              { card: "BT1-015", as: "promoted" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "BT1-025",
+              as: "target",
+              under: [
+                { card: "BT1-009", as: "bottom" },
+                { card: "BT1-015", as: "promoted" },
+              ],
+            },
+          ],
         },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("etemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("etemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard.instanceId === s.inst("promoted").instanceId);
 
-    expect(s.state.players[1]!.trash.some(
-      (card) => card.cardId === "BT1-025",
-    )).toBe(true);
-    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([
-      s.inst("bottom").instanceId,
-    ]);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-025")).toBe(true);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
     assertNoLoudGap(s);
   });
 
@@ -46,25 +46,29 @@ describe("P-099 Etemon", () => {
           deck: ["BT1-001"],
         },
         1: {
-          battleArea: [{
-            card: "BT1-025",
-            as: "target",
-            under: [
-              { card: "BT1-009", as: "bottom" },
-              { card: "BT1-015", as: "promoted" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "BT1-025",
+              as: "target",
+              under: [
+                { card: "BT1-009", as: "bottom" },
+                { card: "BT1-015", as: "promoted" },
+              ],
+            },
+          ],
         },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("etemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("etemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard.instanceId === s.inst("promoted").instanceId);
 
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("etemon").instanceId);
@@ -87,18 +91,20 @@ describe("P-099 Etemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("winner").permanentId },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("winner").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId,
+      ),
+    );
 
-    expect(s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("tooExpensive").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

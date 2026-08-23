@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-097.js";
 
 describe("BT13-097 Thomas H. Norstein", () => {
@@ -37,6 +37,10 @@ describe("BT13-097 Thomas H. Norstein", () => {
           raw: "by suspending this Tamer",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         },
+        // Paying the suspend cost is the controller's choice, and declining it must also
+        // cancel the opponent's draw below.
+        optional: true,
+        abortOnDecline: true,
       },
       { kind: "Draw", controller: "opponent", amount: 1, condition: { kind: "ifThisEffectActed", raw: "you did" } },
     ]);
@@ -53,5 +57,58 @@ describe("BT13-097 Thomas H. Norstein", () => {
     s.state.memory = 1;
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("thomas"));
     expect(s.state.memory).toBe(3);
+  });
+
+  it("suspends the Tamer and draws for both players when the cost is accepted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-097", as: "thomas" },
+            { card: "BT13-021", as: "gaomon" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const myHand = s.state.players[0]!.hand.length;
+    const theirHand = s.state.players[1]!.hand.length;
+
+    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("gaomon").permanentId });
+    await settle(() => s.perm("thomas").isSuspended);
+
+    expect(s.perm("thomas").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.length).toBe(myHand + 1);
+    expect(s.state.players[1]!.hand.length).toBe(theirHand + 1);
+  });
+
+  it("stays unsuspended and neither player draws when the suspend cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-097", as: "thomas" },
+            { card: "BT13-021", as: "gaomon" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const myHand = s.state.players[0]!.hand.length;
+    const theirHand = s.state.players[1]!.hand.length;
+
+    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("gaomon").permanentId });
+    await settle(() => false, 60);
+
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
+    expect(s.perm("thomas").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.length).toBe(myHand);
+    expect(s.state.players[1]!.hand.length).toBe(theirHand);
   });
 });

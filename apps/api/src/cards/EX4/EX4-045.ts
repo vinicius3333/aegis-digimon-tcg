@@ -13,52 +13,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     fromSelectionRef), not any digivolve action by any of my Digimon
 //   - Remove stray nested Replacement (was doubly-nested, now flat inside Digivolve)
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "ex4045DigivolveTarget"
+            count: 1,
+            bindAs: "ex4045DigivolveTarget",
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 6,
             },
-            "nameOrTrait": [
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Garurumon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Garurumon"],
+                match: "name",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "costDelta": -2,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          costDelta: -2,
+          optional: true,
+        },
+      ],
     },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-045", compiled);

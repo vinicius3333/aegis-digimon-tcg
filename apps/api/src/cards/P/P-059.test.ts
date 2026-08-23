@@ -6,10 +6,7 @@ describe("P-059 Gammamon", () => {
   it("gives its host +2000 DP during your turn while Hiro is in play", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "P-062" },
-          { card: "BT9-023", as: "host", under: ["P-059"] },
-        ],
+        battleArea: [{ card: "P-062" }, { card: "BT9-023", as: "host", under: ["P-059"] }],
       },
     });
     const printedDP = s.perm("host").baseDP;

@@ -12,68 +12,62 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Digi-Burst"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Digi-Burst"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": "all",
-              "to": "hand"
-            }
+              count: "all",
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom",
-          "trackCount": "addedByPollenSpray"
+          rest: "deckBottom",
+          trackCount: "addedByPollenSpray",
         },
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "raw": "suspend 1 of your opponent's Digimon for each card added to your hand by this effect",
-          "scaling": {
-            "per": 1,
-            "unit": "namedCount",
-            "countSource": "addedByPollenSpray"
-          }
-        }
-      ]
+          raw: "suspend 1 of your opponent's Digimon for each card added to your hand by this effect",
+          scaling: {
+            per: 1,
+            unit: "namedCount",
+            countSource: "addedByPollenSpray",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-107", compiled);

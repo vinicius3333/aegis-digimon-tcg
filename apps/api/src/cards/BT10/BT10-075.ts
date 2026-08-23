@@ -2,142 +2,128 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Yuu Amano"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Yuu Amano"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Yuu Amano"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Yuu Amano"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you don't have an [Yuu Amano] in play"
+            raw: "you don't have an [Yuu Amano] in play",
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Yuu Amano"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Yuu Amano"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you don't have an [Yuu Amano] in play"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ]
-          },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Save",
-          "raw": "＜Save＞"
-        }
-      ]
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardsDiscardedBatch",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Yuu Amano"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
           },
-          "actions": [
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Yuu Amano"],
+                  match: "name",
+                },
+              ],
+            },
+            raw: "you don't have an [Yuu Amano] in play",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+          },
+          optional: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Save",
+          raw: "＜Save＞",
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
+              kind: "GainMemory",
+              amount: 1,
+            },
           ],
-          "raw": "When an effect trashes this digivolution card, gain 1 memory."
-        }
+          raw: "When an effect trashes this digivolution card, gain 1 memory.",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-075", compiled);

@@ -7,52 +7,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [All Turns] inherited: all of your OTHER Digimon with the same name as the HOST Digimon
 // (the top card of the stack that includes this card, per KB Q3237) get +2000 DP.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": ["Digimon"],
-            "levelComparison": { "op": "gte", "value": 5 },
-            "zone": "battleArea"
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            levelComparison: { op: "gte", value: 5 },
+            zone: "battleArea",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": ["Digimon"],
-              "isSameName": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              isSameName: true,
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-051", compiled);

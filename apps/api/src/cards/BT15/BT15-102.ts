@@ -6,125 +6,116 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4 for each [Dark Masters] trait card placed by this cost",
-              "cost": {
-                "kind": "place",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "nameOrTrait": [
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4 for each [Dark Masters] trait card placed by this cost",
+              cost: {
+                kind: "place",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Dark Masters"
-                        ],
-                        "match": "trait"
-                      }
+                        tokens: ["Dark Masters"],
+                        match: "trait",
+                      },
                     ],
-                    "distinctNames": true,
-                    "zone": "trashOrBattleArea"
+                    distinctNames: true,
+                    zone: "trashOrBattleArea",
                   },
-                  "count": 3,
-                  "upTo": true,
-                  "from": [
-                    "battleArea",
-                    "trash"
-                  ]
+                  count: 3,
+                  upTo: true,
+                  from: ["battleArea", "trash"],
                 },
-                "raw": "by placing up to 3 [Dark Masters] trait cards with different names from your battle area or trash under it",
-                "trackCount": "placedDarkMasters"
+                raw: "by placing up to 3 [Dark Masters] trait cards with different names from your battle area or trash under it",
+                trackCount: "placedDarkMasters",
               },
-              "optional": true,
-              "abortOnDecline": true,
-              "amountPerPlaced": 4,
-              "scaling": {
-                "per": 1,
-                "countSource": "placedDarkMasters",
-                "unit": "cards"
-              }
-            }
-          ]
-        }
-      ]
+              optional: true,
+              abortOnDecline: true,
+              amountPerPlaced: 4,
+              scaling: {
+                per: 1,
+                countSource: "placedDarkMasters",
+                unit: "cards",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "ActivateEffect",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ActivateEffect",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effectType": "OnPlay",
-          "count": 1,
-          "asEffectOf": "this Digimon",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 6
-                }
+          effectType: "OnPlay",
+          count: 1,
+          asEffectOf: "this Digimon",
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                levelComparison: {
+                  op: "lte",
+                  value: 6,
+                },
               },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
+              count: 1,
+              from: ["trash"],
             },
-            "raw": "By placing 1 level 6 or lower card from your trash as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
+            raw: "By placing 1 level 6 or lower card from your trash as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "TrashTopDeck",
-          "controller": "opponent",
-          "amount": 2,
-          "optional": false,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "isSelfRef": true,
-              "zone": "digivolutionCards",
-              "levels": [
-                6
-              ]
+          kind: "TrashTopDeck",
+          controller: "opponent",
+          amount: 2,
+          optional: false,
+          scaling: {
+            per: 1,
+            filter: {
+              isSelfRef: true,
+              zone: "digivolutionCards",
+              levels: [6],
             },
-            "unit": "digivolutionCards"
+            unit: "digivolutionCards",
           },
-          "raw": "trash the top 2 cards of your opponent's deck for each of this Digimon's level 6 digivolution cards"
-        }
+          raw: "trash the top 2 cards of your opponent's deck for each of this Digimon's level 6 digivolution cards",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-102", compiled);

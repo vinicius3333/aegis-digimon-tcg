@@ -171,9 +171,7 @@ function makeContext(opts: {
     // then trash the Option + fire whenOptionUsed (the real primitive trashes then fires
     // whenOptionUsed, so the fire is co-located).
     useOptionFromHand: async (subCtx: EffectContext, instanceId: string) => {
-      const usedCardId = [...opts.ownHand, ...(opts.ownTrash ?? [])].find(
-        (c) => c.instanceId === instanceId,
-      )?.cardId;
+      const usedCardId = [...opts.ownHand, ...(opts.ownTrash ?? [])].find((c) => c.instanceId === instanceId)?.cardId;
       if (usedCardId !== undefined) {
         subCtx.lastOptionUsed = true;
         const usedModule = getEffectModule(usedCardId);
@@ -191,7 +189,7 @@ function makeContext(opts: {
       rec.calls.push("unsuspend");
       void ids;
     },
-    isPlayProhibited: (_seat: Seat, cardId: string) => (opts.prohibited?.has(cardId) ?? false),
+    isPlayProhibited: (_seat: Seat, cardId: string) => opts.prohibited?.has(cardId) ?? false,
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
@@ -384,16 +382,20 @@ describe("use-option-without-cost engine path", () => {
     });
     const ir: CompiledCard = {
       coverage: "full",
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "UseOptionWithoutCost",
-          filter: { controller: "mine", kind: ["Option"] },
-          payCost: false,
-          waiveColorRequirement: true,
-          from: ["hand"],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"] },
+              payCost: false,
+              waiveColorRequirement: true,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("X-WAIVER", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
@@ -446,16 +448,20 @@ describe("use-option-without-cost engine path", () => {
 
     const ir: CompiledCard = {
       coverage: "full",
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "UseOptionWithoutCost",
-          filter: { controller: "mine", kind: ["Option"] },
-          payCost: true,
-          reduceCostBy: 2,
-          from: ["hand"],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"] },
+              payCost: true,
+              reduceCostBy: 2,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("X-PAYER", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
@@ -484,16 +490,20 @@ describe("use-option-without-cost engine path", () => {
 
     const ir: CompiledCard = {
       coverage: "full",
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "UseOptionWithoutCost",
-          filter: { controller: "mine", kind: ["Option"] },
-          payCost: true,
-          reduceCostBy: 3,
-          from: ["hand"],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"] },
+              payCost: true,
+              reduceCostBy: 3,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("X-PAYER2", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
@@ -516,15 +526,19 @@ describe("use-option-without-cost engine path", () => {
 
     const ir: CompiledCard = {
       coverage: "full",
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "UseOptionWithoutCost",
-          filter: { controller: "mine", kind: ["Option"], playCostLte: 10 },
-          payCost: false,
-          from: ["hand"],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"], playCostLte: 10 },
+              payCost: false,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("X-CAPTEST", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
@@ -546,15 +560,19 @@ describe("use-option-without-cost engine path", () => {
 
     const ir: CompiledCard = {
       coverage: "full",
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "UseOptionWithoutCost",
-          filter: { controller: "mine", kind: ["Option"] },
-          payCost: false,
-          from: ["hand"],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"] },
+              payCost: false,
+              from: ["hand"],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("X-CAP5", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);

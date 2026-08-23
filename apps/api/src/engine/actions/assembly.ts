@@ -144,9 +144,7 @@ export function validateAssembly(
   }
 
   const printed = normalizeCost(definition.playCost);
-  const base = deps.adjustedPlayCost
-    ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed))
-    : printed;
+  const base = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
   const cost = Math.max(0, base - requirement.reduceCost);
   if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
 
@@ -249,10 +247,7 @@ function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial
  * in the current corpus, so kept as a straightforward per-slot partition rather than a full
  * bipartite search.
  */
-export function materialsSatisfyAssemblyRecipe(
-  materials: CardDefinition[],
-  slots: AssemblyMaterial[],
-): boolean {
+export function materialsSatisfyAssemblyRecipe(materials: CardDefinition[], slots: AssemblyMaterial[]): boolean {
   if (materials.length === 0 || slots.length === 0) return false;
   if (slots.length === 1) {
     const slot = slots[0]!;

@@ -80,11 +80,23 @@ export function BattlefieldPicker() {
               key={field.id}
               type="button"
               aria-pressed={selected}
-              onClick={() => { setBattlefieldId(field.id); playSound("select"); }}
+              onClick={() => {
+                setBattlefieldId(field.id);
+                playSound("select");
+              }}
               style={tileStyle(selected)}
             >
               <span style={{ display: "block", height: 68, ...battlefieldStyle(field.id) }} />
-              <span style={{ display: "block", padding: "8px 10px 10px", fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 14, color: selected ? "var(--ds-primary)" : "var(--ds-foreground)" }}>
+              <span
+                style={{
+                  display: "block",
+                  padding: "8px 10px 10px",
+                  fontFamily: "var(--ds-font-display)",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  color: selected ? "var(--ds-primary)" : "var(--ds-foreground)",
+                }}
+              >
                 {field.label}
               </span>
             </button>
@@ -95,7 +107,11 @@ export function BattlefieldPicker() {
           type="button"
           aria-pressed={customSelected}
           onClick={() => {
-            if (customSrc && !customSelected) { setBattlefieldId(CUSTOM_BATTLEFIELD_ID); playSound("select"); return; }
+            if (customSrc && !customSelected) {
+              setBattlefieldId(CUSTOM_BATTLEFIELD_ID);
+              playSound("select");
+              return;
+            }
             fileRef.current?.click();
           }}
           style={tileStyle(customSelected)}
@@ -103,11 +119,28 @@ export function BattlefieldPicker() {
           {customSrc ? (
             <span style={{ display: "block", height: 68, ...battlefieldStyle(CUSTOM_BATTLEFIELD_ID) }} />
           ) : (
-            <span style={{ display: "grid", height: 68, placeItems: "center", color: "var(--ds-foreground-muted)", background: "var(--ds-surface-muted)" }}>
+            <span
+              style={{
+                display: "grid",
+                height: 68,
+                placeItems: "center",
+                color: "var(--ds-foreground-muted)",
+                background: "var(--ds-surface-muted)",
+              }}
+            >
               <Icons.Upload size={20} />
             </span>
           )}
-          <span style={{ display: "block", padding: "8px 10px 10px", fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 14, color: customSelected ? "var(--ds-primary)" : "var(--ds-foreground)" }}>
+          <span
+            style={{
+              display: "block",
+              padding: "8px 10px 10px",
+              fontFamily: "var(--ds-font-display)",
+              fontWeight: 700,
+              fontSize: 14,
+              color: customSelected ? "var(--ds-primary)" : "var(--ds-foreground)",
+            }}
+          >
             {customSrc ? t("settings.playmatCustom") : t("settings.playmatUpload")}
           </span>
         </button>
@@ -126,11 +159,16 @@ export function BattlefieldPicker() {
 
       {customSrc ? (
         <button type="button" className="settings-playmat-clear" onClick={() => clearCustomBattlefield()}>
-          <Icons.Ban size={14} />{t("settings.playmatRemove")}
+          <Icons.Ban size={14} />
+          {t("settings.playmatRemove")}
         </button>
       ) : null}
 
-      {error ? <p className="settings-playmat-error" role="status">{error}</p> : null}
+      {error ? (
+        <p className="settings-playmat-error" role="status">
+          {error}
+        </p>
+      ) : null}
     </>
   );
 }

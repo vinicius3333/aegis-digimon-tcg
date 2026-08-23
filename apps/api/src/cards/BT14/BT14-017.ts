@@ -6,71 +6,69 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [All Turns]: while opponent has 1+ memory, this Digimon gets +4000 DP AND opponent can't play Digimon ≤6000 DP.
 // KB Q2379: "while your opponent has 1 or more memory" = while memory >= 1 (opponent's side = positive).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blitz",
-            "raw": "＜Blitz＞"
+          keyword: {
+            keyword: "Blitz",
+            raw: "＜Blitz＞",
           },
-          "duration": "forTheTurn"
-        }
-      ]
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 4000
+          effect: {
+            kind: "modifyDP",
+            amount: 4000,
           },
-          "while": {
-            "kind": "memoryAtLeast",
-            "value": 1,
-            "raw": "while your opponent has 1 or more memory"
-          }
+          while: {
+            kind: "memoryAtLeast",
+            value: 1,
+            raw: "while your opponent has 1 or more memory",
+          },
         },
         {
-          "kind": "RestrictPlay",
-          "seat": "opponent",
-          "filter": {
-            "kind": [
-              "Digimon"
-            ],
-            "dpAtMost": 6000
+          kind: "RestrictPlay",
+          seat: "opponent",
+          filter: {
+            kind: ["Digimon"],
+            dpAtMost: 6000,
           },
-          "mode": "play",
-          "duration": "permanent",
-          "while": {
-            "kind": "memoryAtLeast",
-            "value": 1,
-            "raw": "while your opponent has 1 or more memory"
-          }
-        }
-      ]
-    }
+          mode: "play",
+          duration: "permanent",
+          while: {
+            kind: "memoryAtLeast",
+            value: 1,
+            raw: "while your opponent has 1 or more memory",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-017", compiled);

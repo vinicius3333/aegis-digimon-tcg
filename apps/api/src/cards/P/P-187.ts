@@ -17,147 +17,128 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The interpreter's security placement cost now prompts for the controller's
 // top/bottom choice when `position: "choice"` is used.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [],
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Recovery",
-          "amount": 1,
-          "raw": "＜Recovery +1 (Deck)＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "any",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon",
-                  "Tamer"
-                ]
-              },
-              "count": 1
-            },
-            "destination": "security",
-            "position": "choice",
-            "raw": "by placing 1 other Digimon or Tamer as the top or bottom security card"
-          },
-          "optional": true,
-          "abortOnDecline": true,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow",
-                "Purple"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "position": "top"
-              },
-              "count": 1
-            },
-            "raw": "By trashing your top security card"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          keyword: "Recovery",
+          amount: 1,
+          raw: "＜Recovery +1 (Deck)＞",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "trashSecurityPlayDigimon"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow",
-                "Purple"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "position": "top"
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "any",
+                excludeSelf: true,
+                kind: ["Digimon", "Tamer"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing your top security card"
+            destination: "security",
+            position: "choice",
+            raw: "by placing 1 other Digimon or Tamer as the top or bottom security card",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "trashSecurityPlayDigimon"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow", "Purple"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
+              },
+              count: 1,
+            },
+            raw: "By trashing your top security card",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "trashSecurityPlayDigimon",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow", "Purple"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
+              },
+              count: 1,
+            },
+            raw: "By trashing your top security card",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "trashSecurityPlayDigimon",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-187", compiled);

@@ -13,12 +13,20 @@ describe("BT6-080 Ornismon", () => {
   });
 
   it("deletes an opposing level 5 or lower Digimon", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT6-080", as: "source" }] }, 1: {
-      battleArea: [{ card: "BT6-075", as: "target" }],
-    } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT6-080", as: "source" }] },
+        1: {
+          battleArea: [{ card: "BT6-075", as: "target" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
     const opponent = s.state.players[1] as PlayerState;
     s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => opponent.battleArea.length === 0);
     expect(opponent.trash.some((card) => card.cardId === "BT6-075")).toBe(true);
   });

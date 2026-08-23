@@ -18,9 +18,7 @@ const DICTIONARIES: Record<Locale, Record<TranslationKey, string>> = {
 
 function interpolate(template: string, params?: TranslationParams): string {
   if (!params) return template;
-  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
-    key in params ? String(params[key]) : match,
-  );
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => (key in params ? String(params[key]) : match));
 }
 
 /** A standalone translator, for code that runs outside the React tree. */
@@ -46,10 +44,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (typeof document !== "undefined") document.documentElement.lang = next;
   }, []);
 
-  const value = useMemo<I18nValue>(
-    () => ({ locale, setLocale, t: translator(locale) }),
-    [locale, setLocale],
-  );
+  const value = useMemo<I18nValue>(() => ({ locale, setLocale, t: translator(locale) }), [locale, setLocale]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

@@ -11,8 +11,42 @@ import { APP_VERSION } from "../release";
 import { useTranslation } from "../i18n";
 import "./onboarding.css";
 
-const ADJ = ["Ashen", "Verdant", "Cobalt", "Gilded", "Umbral", "Tidal", "Ember", "Storm", "Hollow", "Crimson", "Pale", "Iron", "Lunar", "Vesper", "Onyx", "Dawn"];
-const NOUN = ["Warden", "Tamer", "Herald", "Drake", "Sentinel", "Augur", "Knell", "Mourner", "Vow", "Cinder", "Reverie", "Oathkeeper", "Wisp", "Sable", "Quill", "Vane"];
+const ADJ = [
+  "Ashen",
+  "Verdant",
+  "Cobalt",
+  "Gilded",
+  "Umbral",
+  "Tidal",
+  "Ember",
+  "Storm",
+  "Hollow",
+  "Crimson",
+  "Pale",
+  "Iron",
+  "Lunar",
+  "Vesper",
+  "Onyx",
+  "Dawn",
+];
+const NOUN = [
+  "Warden",
+  "Tamer",
+  "Herald",
+  "Drake",
+  "Sentinel",
+  "Augur",
+  "Knell",
+  "Mourner",
+  "Vow",
+  "Cinder",
+  "Reverie",
+  "Oathkeeper",
+  "Wisp",
+  "Sable",
+  "Quill",
+  "Vane",
+];
 
 export type OnboardingResult = { name: string; color: ColorName; avatarId: DigimonWorldAvatarId | null };
 
@@ -36,7 +70,13 @@ export function accentForAvatar(avatarId: DigimonWorldAvatarId | null, fallback:
   return COLOR_KEYS[hash % COLOR_KEYS.length] ?? fallback;
 }
 
-export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: ColorName; onEnter: (identity: OnboardingResult) => void }) {
+export function Onboarding({
+  initialColor = "Blue",
+  onEnter,
+}: {
+  initialColor?: ColorName;
+  onEnter: (identity: OnboardingResult) => void;
+}) {
   const { t } = useTranslation();
   const [step, setStep] = useState<"path" | "profile">("path");
   const [name, setName] = useState("");
@@ -46,7 +86,9 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
   const valid = trimmed.length >= 2 && trimmed.length <= 16;
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => { if (step === "profile") inputRef.current?.focus(); }, [step]);
+  useEffect(() => {
+    if (step === "profile") inputRef.current?.focus();
+  }, [step]);
 
   const visibleAvatars = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
@@ -55,7 +97,9 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
   }, [query]);
 
   const selectedAvatar = DIGIMON_WORLD_AVATARS.find(({ id }) => id === avatarId);
-  const submit = () => { if (valid) onEnter({ name: trimmed, color: accentForAvatar(avatarId, initialColor), avatarId }); };
+  const submit = () => {
+    if (valid) onEnter({ name: trimmed, color: accentForAvatar(avatarId, initialColor), avatarId });
+  };
 
   const startGuest = () => {
     if (!name) setName(randomName());
@@ -76,9 +120,13 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
             <button
               type="button"
               className="onboarding-path"
-              onClick={() => { location.href = `${accountApi.base}/auth/discord`; }}
+              onClick={() => {
+                location.href = `${accountApi.base}/auth/discord`;
+              }}
             >
-              <span className="onboarding-path__icon"><Icons.Discord size={24} /></span>
+              <span className="onboarding-path__icon">
+                <Icons.Discord size={24} />
+              </span>
               <span className="onboarding-path__copy">
                 <strong>{t("onboarding.discordTitle")}</strong>
                 <small>{t("onboarding.discordCopy")}</small>
@@ -87,7 +135,9 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
             </button>
 
             <button type="button" className="onboarding-path" onClick={startGuest}>
-              <span className="onboarding-path__icon"><Icons.Swords size={24} /></span>
+              <span className="onboarding-path__icon">
+                <Icons.Swords size={24} />
+              </span>
               <span className="onboarding-path__copy">
                 <strong>{t("onboarding.guestTitle")}</strong>
                 <small>{t("onboarding.guestCopy")}</small>
@@ -109,7 +159,8 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
       <section className="onboarding-card onboarding-card--profile">
         <header className="onboarding-head onboarding-head--compact">
           <button type="button" className="onboarding-back" onClick={() => setStep("path")}>
-            <Icons.ArrowLeft size={15} />{t("onboarding.back")}
+            <Icons.ArrowLeft size={15} />
+            {t("onboarding.back")}
           </button>
           <h1>{t("onboarding.title")}</h1>
         </header>
@@ -118,7 +169,11 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
           <div className="onboarding-profile__form">
             <div className="onboarding-preview">
               <span className="onboarding-preview__portrait">
-                {avatarId ? <img src={digimonAvatarUrl(avatarId)} alt="" width={96} height={96} decoding="async" /> : <Icons.User size={30} />}
+                {avatarId ? (
+                  <img src={digimonAvatarUrl(avatarId)} alt="" width={96} height={96} decoding="async" />
+                ) : (
+                  <Icons.User size={30} />
+                )}
               </span>
               <span className="onboarding-preview__copy">
                 <strong>{trimmed || t("onboarding.previewNamePlaceholder")}</strong>
@@ -126,7 +181,9 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
               </span>
             </div>
 
-            <label className="onboarding-label" htmlFor="onboarding-name">{t("onboarding.nickname")}</label>
+            <label className="onboarding-label" htmlFor="onboarding-name">
+              {t("onboarding.nickname")}
+            </label>
             <div className="onboarding-name">
               <input
                 id="onboarding-name"
@@ -137,25 +194,39 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
                 maxLength={16}
                 aria-invalid={Boolean(trimmed) && !valid}
                 onChange={(event) => setName(event.target.value)}
-                onKeyDown={(event) => { if (event.key === "Enter") submit(); }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") submit();
+                }}
                 placeholder={t("onboarding.namePlaceholder")}
                 data-invalid={Boolean(trimmed) && !valid ? true : undefined}
               />
-              <button type="button" className="onboarding-shuffle" onClick={() => setName(randomName())} title={t("onboarding.surpriseMe")}>
-                <Icons.Dices size={14} />{t("onboarding.random")}
+              <button
+                type="button"
+                className="onboarding-shuffle"
+                onClick={() => setName(randomName())}
+                title={t("onboarding.surpriseMe")}
+              >
+                <Icons.Dices size={14} />
+                {t("onboarding.random")}
               </button>
             </div>
             <div className="onboarding-name-meta">
-              <span data-invalid={trimmed && !valid ? true : undefined}>{trimmed && !valid ? t("onboarding.nameInvalid") : t("onboarding.nameHint")}</span>
+              <span data-invalid={trimmed && !valid ? true : undefined}>
+                {trimmed && !valid ? t("onboarding.nameInvalid") : t("onboarding.nameHint")}
+              </span>
               <span className="onboarding-counter">{name.length}/16</span>
             </div>
 
-            <Button size="lg" full icon={Icons.ArrowRight} disabled={!valid} onClick={submit}>{t("onboarding.enter")}</Button>
+            <Button size="lg" full icon={Icons.ArrowRight} disabled={!valid} onClick={submit}>
+              {t("onboarding.enter")}
+            </Button>
           </div>
 
           <div className="onboarding-profile__portraits">
             <div className="onboarding-avatars-head">
-              <label className="onboarding-label" htmlFor="onboarding-avatar-search">{t("onboarding.avatarLabel")}</label>
+              <label className="onboarding-label" htmlFor="onboarding-avatar-search">
+                {t("onboarding.avatarLabel")}
+              </label>
               <div className="onboarding-avatars-tools">
                 <input
                   id="onboarding-avatar-search"
@@ -165,7 +236,8 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
                   placeholder={t("onboarding.avatarSearch")}
                 />
                 <button type="button" className="onboarding-shuffle" onClick={() => setAvatarId(randomAvatarId())}>
-                  <Icons.Dices size={14} />{t("onboarding.random")}
+                  <Icons.Dices size={14} />
+                  {t("onboarding.random")}
                 </button>
               </div>
             </div>
@@ -181,14 +253,23 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
                     aria-label={avatar.name}
                     onClick={() => setAvatarId(avatar.id)}
                   >
-                    <img src={digimonAvatarUrl(avatar.id)} alt="" width={72} height={72} loading="lazy" decoding="async" />
+                    <img
+                      src={digimonAvatarUrl(avatar.id)}
+                      alt=""
+                      width={72}
+                      height={72}
+                      loading="lazy"
+                      decoding="async"
+                    />
                     <span>{avatar.name}</span>
                     {avatar.id === avatarId ? <Icons.Check className="onboarding-avatar__check" size={14} /> : null}
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="onboarding-avatars-empty" role="status">{t("onboarding.avatarEmpty")}</p>
+              <p className="onboarding-avatars-empty" role="status">
+                {t("onboarding.avatarEmpty")}
+              </p>
             )}
           </div>
         </div>

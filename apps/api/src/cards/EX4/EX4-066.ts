@@ -6,160 +6,136 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          options: [
             [
               {
-                "kind": "Digivolve",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "nameOrTrait": [
+                kind: "Digivolve",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Agumon",
-                          "Greymon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["Agumon", "Greymon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "into": {
-                  "controllerDefault": "mine",
-                  "nameOrTrait": [
+                into: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "BlitzGreymon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["BlitzGreymon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "payCost": false,
-                "from": [
-                  "hand"
-                ],
-                "ignoreRequirements": true,
-                "optional": true,
-                "condition": {
-                  "kind": "youHave",
-                  "filter": {
-                    "zone": "battleArea",
-                    "controllerDefault": "mine",
-                    "nameOrTrait": [
+                payCost: false,
+                from: ["hand"],
+                ignoreRequirements: true,
+                optional: true,
+                condition: {
+                  kind: "youHave",
+                  filter: {
+                    zone: "battleArea",
+                    controllerDefault: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "CresGarurumon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["CresGarurumon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "raw": "you have [CresGarurumon] in play"
-                }
-              }
+                  raw: "you have [CresGarurumon] in play",
+                },
+              },
             ],
             [
               {
-                "kind": "Digivolve",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "nameOrTrait": [
+                kind: "Digivolve",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Gabumon",
-                          "Garurumon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["Gabumon", "Garurumon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "into": {
-                  "controllerDefault": "mine",
-                  "nameOrTrait": [
+                into: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "CresGarurumon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["CresGarurumon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "payCost": false,
-                "from": [
-                  "hand"
-                ],
-                "ignoreRequirements": true,
-                "optional": true,
-                "condition": {
-                  "kind": "youHave",
-                  "filter": {
-                    "zone": "battleArea",
-                    "controllerDefault": "mine",
-                    "nameOrTrait": [
+                payCost: false,
+                from: ["hand"],
+                ignoreRequirements: true,
+                optional: true,
+                condition: {
+                  kind: "youHave",
+                  filter: {
+                    zone: "battleArea",
+                    controllerDefault: "mine",
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "BlitzGreymon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["BlitzGreymon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "raw": "you have [BlitzGreymon] in play"
-                }
-              }
-            ]
-          ]
-        }
-      ]
+                  raw: "you have [BlitzGreymon] in play",
+                },
+              },
+            ],
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gabumon",
-                    "Agumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gabumon", "Agumon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-066", compiled);

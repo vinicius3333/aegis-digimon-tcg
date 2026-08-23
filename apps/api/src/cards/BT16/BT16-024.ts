@@ -6,244 +6,206 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Search",
-          "controller": "mine",
-          "filter": {
-            "zone": "security",
-            "controllerDefault": "mine"
+          kind: "Search",
+          controller: "mine",
+          filter: {
+            zone: "security",
+            controllerDefault: "mine",
           },
-          "condition": {
-            "kind": "isYourTurn",
-            "raw": "it's your turn"
+          condition: {
+            kind: "isYourTurn",
+            raw: "it's your turn",
           },
-          "count": "all",
-          "searchZone": "security",
-          "purpose": "digivolveAmongRevealed"
+          count: "all",
+          searchZone: "security",
+          purpose: "digivolveAmongRevealed",
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          into: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Angel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "payCost": true,
-          "reduceCost": 2,
-          "optional": true,
-          "from": [
-            "security"
-          ],
-          "amongPreviousSearch": true,
-          "bindResultAs": "digivolvedByThisEffect"
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "shuffle",
-          "controller": "mine"
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "zone": "hand",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Angel", "Three Great Angels"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": false,
-          "condition": {
-            "kind": "bindingExists",
-            "ref": "digivolvedByThisEffect",
-            "raw": "this effect digivolved"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Search",
-          "controller": "mine",
-          "filter": {
-            "zone": "security",
-            "controllerDefault": "mine"
-          },
-          "condition": {
-            "kind": "isYourTurn",
-            "raw": "it's your turn"
-          },
-          "count": "all",
-          "searchZone": "security",
-          "purpose": "digivolveAmongRevealed"
+          payCost: true,
+          reduceCost: 2,
+          optional: true,
+          from: ["security"],
+          amongPreviousSearch: true,
+          bindResultAs: "digivolvedByThisEffect",
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "into": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "payCost": true,
-          "reduceCost": 2,
-          "optional": true,
-          "from": [
-            "security"
-          ],
-          "amongPreviousSearch": true,
-          "bindResultAs": "digivolvedByThisEffect"
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "mine",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "shuffle",
-          "controller": "mine"
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              zone: "hand",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Angel", "Archangel", "Three Great Angels"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          toTop: false,
+          condition: {
+            kind: "bindingExists",
+            ref: "digivolvedByThisEffect",
+            raw: "this effect digivolved",
+          },
+          optional: true,
         },
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "zone": "hand",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "toTop": false,
-          "condition": {
-            "kind": "bindingExists",
-            "ref": "digivolvedByThisEffect",
-            "raw": "this effect digivolved"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angel",
-                    "Archangel",
-                    "Three Great Angels"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": "all"
-          },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
-          "duration": "forTheTurn"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Search",
+          controller: "mine",
+          filter: {
+            zone: "security",
+            controllerDefault: "mine",
+          },
+          condition: {
+            kind: "isYourTurn",
+            raw: "it's your turn",
+          },
+          count: "all",
+          searchZone: "security",
+          purpose: "digivolveAmongRevealed",
+        },
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          into: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Angel", "Three Great Angels"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          payCost: true,
+          reduceCost: 2,
+          optional: true,
+          from: ["security"],
+          amongPreviousSearch: true,
+          bindResultAs: "digivolvedByThisEffect",
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "mine",
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              zone: "hand",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Angel", "Archangel", "Three Great Angels"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          toTop: false,
+          condition: {
+            kind: "bindingExists",
+            ref: "digivolvedByThisEffect",
+            raw: "this effect digivolved",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Angel", "Archangel", "Three Great Angels"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "forTheTurn",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Angemon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      names: ["Angemon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-024", compiled);

@@ -12,124 +12,112 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   use digivolutionStackNameOrTrait to check for Terriermon/Lopmon in digivolution cards.
 // - [Your Turn] Replacement cost: suspend THIS Tamer (isSelf:true), not the source Digimon.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Terriermon",
-                    "Lopmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Terriermon", "Lopmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "raw": "you have 1 or fewer Digimon in play"
+            raw: "you have 1 or fewer Digimon in play",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "targetPlayedByThisEffect": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              targetPlayedByThisEffect: true,
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "digivolve",
-          "duration": "permanent"
+          restriction: "digivolve",
+          duration: "permanent",
         },
         {
-          "kind": "DelayedDelete"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "digivolutionStackNameOrTrait": [
-              {
-                "tokens": [
-                  "Terriermon",
-                  "Lopmon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ],
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "by suspending this Tamer"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
+          kind: "DelayedDelete",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            digivolutionStackNameOrTrait: [
+              {
+                tokens: ["Terriermon", "Lopmon"],
+                match: "name",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+            },
+          ],
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-063", compiled);

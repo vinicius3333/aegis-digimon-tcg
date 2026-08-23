@@ -7,10 +7,17 @@ import "../index.js";
 
 describe("EX7-018 Gekomon", () => {
   it("draws one on play and digivolving", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "Draw", amount: 1 });
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({ kind: "Draw", amount: 1 });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
+      kind: "Draw",
+      amount: 1,
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
+      kind: "Draw",
+      amount: 1,
+    });
   });
-  it("inherits Jamming", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords?.[0]?.keyword).toBe("Jamming"));
+  it("inherits Jamming", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords?.[0]?.keyword).toBe("Jamming"));
 
   it("draws one card on play", async () => {
     const s = setupEngine({ 0: { deck: ["BT1-009"], battleArea: [{ card: "EX7-018", as: "geko" }] } });

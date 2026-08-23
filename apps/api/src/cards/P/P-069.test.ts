@@ -21,11 +21,13 @@ describe("P-069 Pulsemon", () => {
     const pulsemonId = s.inst("pulsemon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === pulsemonId));
 
     expect(s.perm("target").isSuspended).toBe(true);
@@ -40,17 +42,15 @@ describe("P-069 Pulsemon", () => {
     const pulsemonId = s.inst("pulsemon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(
-      (card) => card.instanceId === pulsemonId,
-    ));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === pulsemonId));
 
-    expect(s.state.players[0]!.hand.some(
-      (card) => card.instanceId === pulsemonId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === pulsemonId)).toBe(true);
   });
 });

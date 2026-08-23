@@ -40,16 +40,29 @@ describe("BT7-029 MagnaGarurumon", () => {
   });
 
   it("returns a Hybrid source and an opposing Digimon of the same level when attacking", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT7-029", under: [{ card: "BT6-049", as: "hybrid" }], as: "magna" }] },
-      1: { battleArea: [{ card: "BT6-049", under: [{ card: "BT1-010", as: "targetSource" }], as: "target" }], security: ["BT1-101"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-029", under: [{ card: "BT6-049", as: "hybrid" }], as: "magna" }] },
+        1: {
+          battleArea: [{ card: "BT6-049", under: [{ card: "BT1-010", as: "targetSource" }], as: "target" }],
+          security: ["BT1-101"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const targetId = s.perm("target").topCard!.instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("magna").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId) &&
-      s.state.players[1]!.hand.some((card) => card.instanceId === targetId),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId) &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === targetId),
     );
 
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);
@@ -60,11 +73,16 @@ describe("BT7-029 MagnaGarurumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT7-029",
-            under: [{ card: "BT6-049", as: "firstHybrid" }, { card: "BT6-049", as: "secondHybrid" }],
-            as: "magna",
-          }],
+          battleArea: [
+            {
+              card: "BT7-029",
+              under: [
+                { card: "BT6-049", as: "firstHybrid" },
+                { card: "BT6-049", as: "secondHybrid" },
+              ],
+              as: "magna",
+            },
+          ],
         },
         1: {
           battleArea: [
@@ -82,11 +100,13 @@ describe("BT7-029 MagnaGarurumon", () => {
     expect(s.perm("magna").stack).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("magna").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await s.ready();
 
     expect(s.perm("magna").stack).toHaveLength(1);

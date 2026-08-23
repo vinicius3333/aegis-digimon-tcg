@@ -4,62 +4,58 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-maintained: intrinsic Delay already trashes the source as its activation cost.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Blue"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Blue"],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2
-        }
+          kind: "GainMemory",
+          amount: 2,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-036", compiled);

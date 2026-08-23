@@ -24,18 +24,24 @@ describe("EX12-018 Siriusmon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").stack.length === 3 && s.perm("opponent").currentDP === 2000);
 
     expect(s.perm("base").topCard?.cardId).toBe("EX12-018");
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX12-014", "EX12-007", "EX12-013"]));
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX12-014", "EX12-007", "EX12-013"]),
+    );
     expect(s.perm("opponent").currentDP).toBe(2000);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handMaterial").instanceId)).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashMaterial").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashMaterial").instanceId)).toBe(
+      false,
+    );
   });
 
   it("places a matching card during an attack and scales the temporary reduction", async () => {
@@ -89,7 +95,9 @@ describe("EX12-018 Siriusmon", () => {
     s.state.memory = 10;
     const highestId = s.perm("highest").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== highestId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId)).toBe(false);
@@ -102,24 +110,46 @@ describe("EX12-018 Siriusmon", () => {
       { level: 5, texts: ["Gammamon"], cost: 3, isAlternate: true },
       { traits: ["VB"], cost: 3, isAlternate: true, level: 5 },
     ]);
-    const keywords = compiled.effects.filter((effect) => effect.trigger === "Static").flatMap((effect) => effect.keywords ?? []);
+    const keywords = compiled.effects
+      .filter((effect) => effect.trigger === "Static")
+      .flatMap((effect) => effect.keywords ?? []);
     expect(keywords.map((keyword) => keyword.keyword)).toEqual(["Progress", "Piercing", "SecurityAttack"]);
     expect(keywords.find((keyword) => keyword.keyword === "SecurityAttack")).toMatchObject({ amount: 1 });
     const module = getEffectModule("EX12-018")!;
-    expect(module.effectsForTiming(EffectTiming.WhenDigivolving, { cardId: "EX12-018", ownerSeat: 0 } as never)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.OnUseAttack, { cardId: "EX12-018", ownerSeat: 0 } as never)).toHaveLength(1);
+    expect(
+      module.effectsForTiming(EffectTiming.WhenDigivolving, { cardId: "EX12-018", ownerSeat: 0 } as never),
+    ).toHaveLength(1);
+    expect(
+      module.effectsForTiming(EffectTiming.OnUseAttack, { cardId: "EX12-018", ownerSeat: 0 } as never),
+    ).toHaveLength(1);
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         frequency: "OncePerTurn",
         sharedUseKey: "ir-shared-0",
         actions: [
           { kind: "PlaceUnder", optional: true, target: { count: 2, upTo: true, from: ["hand", "trash"] } },
-          { kind: "ModifyDP", amount: -2000, duration: "untilOpponentTurnEnd", condition: { kind: "ifThisEffectActed" }, scaling: { per: 1, unit: "digivolutionCards" } },
+          {
+            kind: "ModifyDP",
+            amount: -2000,
+            duration: "untilOpponentTurnEnd",
+            condition: { kind: "ifThisEffectActed" },
+            scaling: { per: 1, unit: "digivolutionCards" },
+          },
         ],
       });
     }
-    expect(compiled.effects.find((effect) => effect.trigger === "Static" && effect.actions?.some((action) => action.kind === "WaiveColorRequirement"))).toMatchObject({
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["VB"], match: "trait" }] } } }],
+    expect(
+      compiled.effects.find(
+        (effect) =>
+          effect.trigger === "Static" && effect.actions?.some((action) => action.kind === "WaiveColorRequirement"),
+      ),
+    ).toMatchObject({
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["VB"], match: "trait" }] } },
+        },
+      ],
     });
   });
 });

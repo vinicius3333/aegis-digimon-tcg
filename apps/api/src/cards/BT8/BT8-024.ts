@@ -6,74 +6,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // cards, <Recovery +1 (Deck)>." — fires once during the digivolve declaration;
 // the Replacement.actions run at that moment (KB Q1714: after declaring, before paying).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "security",
-            "op": "lte",
-            "value": 3
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 3,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "keyword": {
-                "keyword": "Recovery",
-                "amount": 1,
-                "source": "deck"
+              kind: "GainKeyword",
+              keyword: {
+                keyword: "Recovery",
+                amount: 1,
+                source: "deck",
               },
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 3,
-                "raw": "you have 3 or fewer security cards"
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 3,
+                raw: "you have 3 or fewer security cards",
               },
-              "raw": "<Recovery +1 (Deck)>"
-            }
-          ]
-        }
-      ]
+              raw: "<Recovery +1 (Deck)>",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "securityAtLeast",
-            "value": 3
-          }
-        }
+          to: "hand",
+          condition: {
+            kind: "securityAtLeast",
+            value: 3,
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-024", compiled);

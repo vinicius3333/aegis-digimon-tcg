@@ -22,15 +22,15 @@ function board() {
 describe("mindLink helpers", () => {
   it("detects Tamer in digivolution stack", () => {
     const s = board();
-    expect(
-      hasTamerInDigivolutionStack(s.perm("withTamer"), (c) => (c.cardId === "T-1" ? tamerDef : digimonDef)),
-    ).toBe(true);
+    expect(hasTamerInDigivolutionStack(s.perm("withTamer"), (c) => (c.cardId === "T-1" ? tamerDef : digimonDef))).toBe(
+      true,
+    );
     expect(hasTamerInDigivolutionStack(s.perm("bare"), () => digimonDef)).toBe(false);
   });
 
   it("rejects Digimon with Tamer in stack for Mind Link", () => {
     const s = board();
-    const filter = { controller: "mine" as const, kind: ["Digimon"] as ("Digimon")[] };
+    const filter = { controller: "mine" as const, kind: ["Digimon"] as "Digimon"[] };
     const ok = digimonEligibleForMindLink(
       s.perm("withTamer"),
       filter,
@@ -42,7 +42,7 @@ describe("mindLink helpers", () => {
 
   it("accepts eligible non-token Digimon", () => {
     const s = board();
-    const filter = { controller: "mine" as const, kind: ["Digimon"] as ("Digimon")[], excludeToken: true };
+    const filter = { controller: "mine" as const, kind: ["Digimon"] as "Digimon"[], excludeToken: true };
     const ok = digimonEligibleForMindLink(
       s.perm("bare"),
       filter,

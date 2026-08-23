@@ -6,96 +6,84 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Sukamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Sukamon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Prevent",
-              "cost": {
-                "kind": "deleteOwn",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "excludeSelf": true,
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "nameOrTrait": [
+              kind: "Prevent",
+              cost: {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    excludeSelf: true,
+                    kind: ["Digimon"],
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Sukamon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["Sukamon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "raw": "by deleting 1 other Digimon with [Sukamon] in its name"
+                raw: "by deleting 1 other Digimon with [Sukamon] in its name",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": [
-        "Sukamon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      names: ["Sukamon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT13-069", compiled);

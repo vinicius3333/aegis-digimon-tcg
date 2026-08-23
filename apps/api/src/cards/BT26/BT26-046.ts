@@ -9,11 +9,51 @@ const body = [
   { kind: "Restrict", target: opponentTarget, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
   { kind: "Restrict", target: ownDigimon, restriction: "beDeletedInBattle", duration: "untilOpponentTurnEnd" },
 ];
-export const compiled: CompiledCard = { effects: [
-  { trigger: "Static", keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }, { keyword: "Vortex", raw: "＜Vortex＞" }], actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Avian"], duration: "permanent" }] },
-  { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { controllerDefault: "any", isSelfRef: true }, mode: "reduceCost", amount: 4, condition: { kind: "zoneCount", seat: "any", zone: "battleArea", filter: { kind: ["Digimon"], suspended: true }, op: "gte", value: 2, raw: "there are 2 or more suspended Digimon" } }] },
-  { trigger: "OnPlay", actions: body },
-  { trigger: "WhenDigivolving", actions: body },
-], coverage: "full", residual: [], digivolutionRequirement: [{ level: 5, traits: ["TS"], cost: 3, isAlternate: true }] };
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      keywords: [
+        { keyword: "Piercing", raw: "＜Piercing＞" },
+        { keyword: "Vortex", raw: "＜Vortex＞" },
+      ],
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "trait",
+          tokens: ["Avian"],
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: { controllerDefault: "any", isSelfRef: true },
+          mode: "reduceCost",
+          amount: 4,
+          condition: {
+            kind: "zoneCount",
+            seat: "any",
+            zone: "battleArea",
+            filter: { kind: ["Digimon"], suspended: true },
+            op: "gte",
+            value: 2,
+            raw: "there are 2 or more suspended Digimon",
+          },
+        },
+      ],
+    },
+    { trigger: "OnPlay", actions: body },
+    { trigger: "WhenDigivolving", actions: body },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [{ level: 5, traits: ["TS"], cost: 3, isAlternate: true }],
+};
 registerIrCard("BT26-046", compiled);
 export default compiled;

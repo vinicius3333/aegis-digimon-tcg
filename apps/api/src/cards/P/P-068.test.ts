@@ -23,11 +23,13 @@ describe("P-068 Herissmon", () => {
     const herissmonId = s.inst("herissmon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === herissmonId));
     await s.engine.recomputeContinuousEffects();
 
@@ -51,14 +53,17 @@ describe("P-068 Herissmon", () => {
     const remainingId = s.inst("remainingSecurity").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === herissmonId) &&
-      s.state.players[0]!.security.some((card) => card.instanceId === remainingId)
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === herissmonId) &&
+        s.state.players[0]!.security.some((card) => card.instanceId === remainingId),
     );
     // The predicate above becomes true while the first check is still resolving.
     // Flush the attack so the final assertion catches a stale opening Strike that

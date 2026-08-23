@@ -3,206 +3,169 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "zone": "security",
-              "controllerDefault": "mine",
-              "faceUp": true
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              zone: "security",
+              controllerDefault: "mine",
+              faceUp: true,
             },
-            "raw": "you have no face-up security cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow",
-                "Purple"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": "all"
+            raw: "you have no face-up security cards",
           },
-          "keyword": {
-            "keyword": "Alliance",
-            "raw": "＜Alliance＞"
-          },
-          "duration": "permanent"
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow",
-                "Purple"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": "all"
-          },
-          "keyword": {
-            "keyword": "Scapegoat",
-            "raw": "＜Scapegoat＞"
-          },
-          "duration": "permanent",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Junomon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1,
-            "raw": "while you have a Digimon with [Junomon] in its name"
-          }
-        }
       ],
-      "isSecurity": true
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": false
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "toTop": false,
-          "faceUp": true
-        },
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow",
-                "Purple"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow", "Purple"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: "all",
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 3,
-          "optional": true
-        }
-      ]
+          keyword: {
+            keyword: "Alliance",
+            raw: "＜Alliance＞",
+          },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow", "Purple"],
+              nameOrTrait: [
+                {
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          keyword: {
+            keyword: "Scapegoat",
+            raw: "＜Scapegoat＞",
+          },
+          duration: "permanent",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Junomon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+            raw: "while you have a Digimon with [Junomon] in its name",
+          },
+        },
+      ],
+      isSecurity: true,
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: false,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          toTop: false,
+          faceUp: true,
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow", "Purple"],
+              nameOrTrait: [
+                {
+                  tokens: ["TS"],
+                  match: "trait",
+                },
               ],
-              "colors": [
-                "Yellow",
-                "Purple"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 3,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow", "Purple"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": false
-        }
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT25-097", compiled);

@@ -3,62 +3,56 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": { "op": "lte", "relativeTo": "lastDeleted" }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", relativeTo: "lastDeleted" },
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by deleting 1 of your Digimon"
+            raw: "by deleting 1 of your Digimon",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-107", compiled);

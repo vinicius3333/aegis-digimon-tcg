@@ -258,7 +258,8 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           const referenceId = ctx.selections?.get(matchedFilter.sameColorAsSelectionRef);
           const reference = referenceId === undefined ? undefined : ctx.game.permanentById(referenceId);
           if (reference?.topCard === undefined) continue;
-          const referenceColors = ctx.game.effectiveColors?.(reference) ?? ctx.game.definitionOf(reference.topCard).colors;
+          const referenceColors =
+            ctx.game.effectiveColors?.(reference) ?? ctx.game.definitionOf(reference.topCard).colors;
           if (!def.colors.some((color) => referenceColors.includes(color))) continue;
         }
         if (matchedFilter?.faceUp === true && cand.faceUp !== true) continue;
@@ -312,15 +313,7 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
 }
 
 export function findLooseCandidateByInstance(ctx: EffectContext, instanceId: string): LooseCandidate | undefined {
-  const zones: ZoneRef[] = [
-    "hand",
-    "trash",
-    "deck",
-    "security",
-    "breeding",
-    "digivolutionCards",
-    "linked",
-  ];
+  const zones: ZoneRef[] = ["hand", "trash", "deck", "security", "breeding", "digivolutionCards", "linked"];
   for (const seat of [ctx.source.ownerSeat, ctx.game.opponentOf(ctx.source.ownerSeat)]) {
     for (const zone of zones) {
       const found = looseCardsInZone(ctx, seat, zone).find((candidate) => candidate.instanceId === instanceId);
@@ -542,9 +535,7 @@ export async function pickLoose(
   if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
-  const min = target.upTo
-    ? Math.min(target.minimum ?? 0, candidates.length)
-    : Math.min(want, candidates.length);
+  const min = target.upTo ? Math.min(target.minimum ?? 0, candidates.length) : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
 
   let chosen = await asker.selectCards(ctx, {

@@ -12,7 +12,13 @@ describe("BT18-063 Beetlemon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("beetlemon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("beetlemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT18-063");
     await advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("base").topCard!);
     await settle(() => observe(s.engine).isRestricted(s.perm("base"), "beDeleted"));

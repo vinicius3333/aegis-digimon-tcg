@@ -1,9 +1,4 @@
-import {
-  PendingDecision,
-  type DecisionRequest,
-  type GameState,
-  type Seat,
-} from "@aegis/shared";
+import { PendingDecision, type DecisionRequest, type GameState, type Seat } from "@aegis/shared";
 
 /**
  * The opening-hand mulligan window (subsystem: deck-and-setup; source: Comprehensive
@@ -29,9 +24,7 @@ export interface MulliganTransport {
 }
 
 export class MulliganCoordinator {
-  private open:
-    | { seat: Seat; decisionId: string; resolve: (keep: boolean) => void }
-    | undefined;
+  private open: { seat: Seat; decisionId: string; resolve: (keep: boolean) => void } | undefined;
   private seq = 0;
 
   constructor(

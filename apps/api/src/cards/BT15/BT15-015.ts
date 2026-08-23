@@ -6,50 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "payMemory",
-            "memory": 2,
-            "raw": "By paying 2 cost"
+          duration: "forTheTurn",
+          cost: {
+            kind: "payMemory",
+            memory: 2,
+            raw: "By paying 2 cost",
           },
-          "abortOnDecline": true
+          abortOnDecline: true,
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Attack",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
+          withoutSuspending: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-015", compiled);

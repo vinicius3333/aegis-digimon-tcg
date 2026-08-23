@@ -111,7 +111,13 @@ describe("BT25-091 Monica Simmons", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonTsOption").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("nonTsOption").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nonTsOption").instanceId));
     expect(s.perm("monica").isSuspended).toBe(false);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);

@@ -51,7 +51,9 @@ describe("EX8-048", () => {
       1: { battleArea: [{ card: "BT1-010", as: "target" }] },
     });
     await s.ready();
-    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], { byEffectSeat: 0 });
+    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], {
+      byEffectSeat: 0,
+    });
     await settle(() => (s.state.players[1] as PlayerState).battleArea.length === 0);
     expect((s.state.players[1] as PlayerState).battleArea).toHaveLength(0);
   });
@@ -62,7 +64,9 @@ describe("EX8-048", () => {
       1: { battleArea: [{ card: "BT1-010", as: "target" }] },
     });
     await s.ready();
-    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], { byEffectSeat: 0 });
+    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], {
+      byEffectSeat: 0,
+    });
     expect((s.state.players[1] as PlayerState).battleArea).toHaveLength(1);
   });
 });

@@ -151,11 +151,13 @@ async function runPlainMainLink(): Promise<{ memoryPaid: number; linkedCount: nu
   const memory = new MemoryGauge(state, (e) => events.push(e));
   const stateLookup: CardStateLookup = {
     permanentOf: (instanceId) => {
-      for (const p of state.players) for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return perm;
+      for (const p of state.players)
+        for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return perm;
       return undefined;
     },
     isOnBattleArea: (instanceId) => {
-      for (const p of state.players) for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return true;
+      for (const p of state.players)
+        for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return true;
       return false;
     },
     isSeatsTurn: (seat) => state.turnSeat === seat,
@@ -164,8 +166,10 @@ async function runPlainMainLink(): Promise<{ memoryPaid: number; linkedCount: nu
   const decisionApi = {
     selectPermanents: async () => [],
     optional: async () => true,
-    chooseTargets: async (_ctx: unknown, opts: { candidates: string[]; max: number }) => opts.candidates.slice(0, opts.max),
-    selectCards: async (_ctx: unknown, opts: { candidates: string[]; max: number }) => opts.candidates.slice(0, opts.max),
+    chooseTargets: async (_ctx: unknown, opts: { candidates: string[]; max: number }) =>
+      opts.candidates.slice(0, opts.max),
+    selectCards: async (_ctx: unknown, opts: { candidates: string[]; max: number }) =>
+      opts.candidates.slice(0, opts.max),
     chooseOption: async () => 0,
   };
   const engine: PrimitivesEngine = {
@@ -225,11 +229,13 @@ async function runEx11027Link(): Promise<{ state: GameState; p0: PlayerState; ho
   const memory = new MemoryGauge(state, (e) => events.push(e));
   const stateLookup: CardStateLookup = {
     permanentOf: (instanceId) => {
-      for (const p of state.players) for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return perm;
+      for (const p of state.players)
+        for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return perm;
       return undefined;
     },
     isOnBattleArea: (instanceId) => {
-      for (const p of state.players) for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return true;
+      for (const p of state.players)
+        for (const perm of p.battleArea) if (perm.topCard?.instanceId === instanceId) return true;
       return false;
     },
     isSeatsTurn: (seat) => state.turnSeat === seat,
@@ -238,7 +244,8 @@ async function runEx11027Link(): Promise<{ state: GameState; p0: PlayerState; ho
   const decisionApi = {
     selectPermanents: async () => [],
     optional: async () => true, // "Link this Digimon to 1 of your other Digimon?" -> yes
-    chooseTargets: async (_ctx: unknown, opts: { candidates: string[]; max: number }) => opts.candidates.slice(0, opts.max),
+    chooseTargets: async (_ctx: unknown, opts: { candidates: string[]; max: number }) =>
+      opts.candidates.slice(0, opts.max),
     selectCards: async () => [], // decline the reveal-3 name/text adds — irrelevant to the link clause
     chooseOption: async () => 0,
   };
@@ -453,43 +460,40 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
     expect(recipient.linked.length).toBe(1);
   });
 
-  it(
-    "NOW MET: when a Digimon already holding a link card receives another, the new one is plugged in at the BOTTOM",
-    () => {
-      cite(
-        "comprehensive-0141",
-        "DIVERGENCE: §10-1-2-1 'If a card already has stacked cards, the new card is plugged in " +
-          "at the bottom' (the same bottom-insertion convention Comprehensive Rules §4-3-2 states " +
-          "for placing a new card under a Tamer that already has stacked cards) reads as applying " +
-          "to a Digimon that already holds a link card and receives a second one. The `link` " +
-          "primitive (effects/primitives.ts) always `permanent.linked.push(instance)` — a flat " +
-          "append with no top/bottom distinction at all (unlike `permanent.stack`, whose " +
-          "bottom-vs-top order IS meaningfully consumed elsewhere, e.g. Iceclad's " +
-          "digivolution-count compare and de-digivolve's top-card removal). A second link card " +
-          "is simply appended after the first; nothing in the engine ever reads `linked` " +
-          "positionally, so 'plugged in at the bottom' has no observable effect either way.",
-      );
+  it("NOW MET: when a Digimon already holding a link card receives another, the new one is plugged in at the BOTTOM", () => {
+    cite(
+      "comprehensive-0141",
+      "DIVERGENCE: §10-1-2-1 'If a card already has stacked cards, the new card is plugged in " +
+        "at the bottom' (the same bottom-insertion convention Comprehensive Rules §4-3-2 states " +
+        "for placing a new card under a Tamer that already has stacked cards) reads as applying " +
+        "to a Digimon that already holds a link card and receives a second one. The `link` " +
+        "primitive (effects/primitives.ts) always `permanent.linked.push(instance)` — a flat " +
+        "append with no top/bottom distinction at all (unlike `permanent.stack`, whose " +
+        "bottom-vs-top order IS meaningfully consumed elsewhere, e.g. Iceclad's " +
+        "digivolution-count compare and de-digivolve's top-card removal). A second link card " +
+        "is simply appended after the first; nothing in the engine ever reads `linked` " +
+        "positionally, so 'plugged in at the bottom' has no observable effect either way.",
+    );
 
-      const { state, fx } = fixture();
-      const p0 = state.players[0]!;
-      const recipient = new Permanent();
-      recipient.permanentId = "recipient-perm";
-      recipient.controllerSeat = 0;
-      recipient.topCard = card("AD1-005", 0, true); // a real printed ＜Link +1＞ card
-      p0.battleArea.push(recipient);
+    const { state, fx } = fixture();
+    const p0 = state.players[0]!;
+    const recipient = new Permanent();
+    recipient.permanentId = "recipient-perm";
+    recipient.controllerSeat = 0;
+    recipient.topCard = card("AD1-005", 0, true); // a real printed ＜Link +1＞ card
+    p0.battleArea.push(recipient);
 
-      const firstLinked = card(LINKABLE, 0, false);
-      const secondLinked = card(LINKABLE, 0, false);
-      p0.hand.push(firstLinked, secondLinked);
+    const firstLinked = card(LINKABLE, 0, false);
+    const secondLinked = card(LINKABLE, 0, false);
+    p0.hand.push(firstLinked, secondLinked);
 
-      void fx.link(recipient.permanentId, [firstLinked.instanceId]);
-      void fx.link(recipient.permanentId, [secondLinked.instanceId]);
+    void fx.link(recipient.permanentId, [firstLinked.instanceId]);
+    void fx.link(recipient.permanentId, [secondLinked.instanceId]);
 
-      // EXPECTED (per §10-1-2-1): the second (most-recently-linked) card sits at the BOTTOM —
-      // i.e. BEFORE the first — so index 0 is the second-linked card.
-      expect(recipient.linked[0]?.instanceId).toBe(secondLinked.instanceId);
-    },
-  );
+    // EXPECTED (per §10-1-2-1): the second (most-recently-linked) card sits at the BOTTOM —
+    // i.e. BEFORE the first — so index 0 is the second-linked card.
+    expect(recipient.linked[0]?.instanceId).toBe(secondLinked.instanceId);
+  });
 });
 
 /**
@@ -556,9 +560,9 @@ describe("§4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and th
     effectPlayer.hand.push(effectCand1, effectCand2);
     effectGame.state.memory = 20;
 
-    expect(
-      effectGame.engine.applyIntent(0, { type: "playCard", instanceId: effectSource.instanceId }),
-    ).toEqual({ ok: true });
+    expect(effectGame.engine.applyIntent(0, { type: "playCard", instanceId: effectSource.instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => findPermanent(effectGame, 0, "AD1-005") !== undefined);
     const effectHost = findPermanent(effectGame, 0, "AD1-005")!;
     (
@@ -636,9 +640,9 @@ describe("§4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and th
     effectPlayer.hand.push(looseCard("BT21-009", 0), looseCard("BT21-041", 0));
     effectGame.state.memory = 20;
 
-    expect(
-      effectGame.engine.applyIntent(0, { type: "playCard", instanceId: effectSource.instanceId }),
-    ).toEqual({ ok: true });
+    expect(effectGame.engine.applyIntent(0, { type: "playCard", instanceId: effectSource.instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => findPermanent(effectGame, 0, "AD1-005") !== undefined);
     const effectHost = findPermanent(effectGame, 0, "AD1-005")!;
     (

@@ -6,109 +6,100 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "D-Brigade",
-                      "DigiPolice"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["D-Brigade", "DigiPolice"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckTop"
+          rest: "deckTop",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "playCostLte": 4,
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "D-Brigade",
-                      "DigiPolice"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
-          ],
-          "rest": "trash"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                playCostLte: 4,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "D-Brigade",
-                      "DigiPolice"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["D-Brigade", "DigiPolice"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "play",
+              optional: true,
+            },
           ],
-          "rest": "deckTop"
+          rest: "trash",
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["D-Brigade", "DigiPolice"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckTop",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT16-096", compiled);

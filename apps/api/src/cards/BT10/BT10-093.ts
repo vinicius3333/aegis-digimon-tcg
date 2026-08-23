@@ -7,14 +7,46 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", triggerFilter: { isSelfRef: true }, addedDigivolutionCardFilter: { colors: ["Purple"] }, actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", controller: "mine", amount: 1 }], raw: "When a purple card is placed under this Tamer, draw 1 and gain 1 memory." }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          triggerFilter: { isSelfRef: true },
+          addedDigivolutionCardFilter: { colors: ["Purple"] },
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", controller: "mine", amount: 1 },
+          ],
+          raw: "When a purple card is placed under this Tamer, draw 1 and gain 1 memory.",
+        },
+      ],
     },
     {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { controller: "mine", kind: ["Digimon"], levelMin: 4, nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }] }, mode: "reduceCost", amount: 2, raw: "When you would play a level 4 or higher [Bagra Army] Digimon, place up to 3 purple Digimon from under your Tamers as digivolution cards and reduce the play cost by 2 for each." }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            levelMin: 4,
+            nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+          },
+          mode: "reduceCost",
+          amount: 2,
+          raw: "When you would play a level 4 or higher [Bagra Army] Digimon, place up to 3 purple Digimon from under your Tamers as digivolution cards and reduce the play cost by 2 for each.",
+        },
+      ],
     },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }] },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

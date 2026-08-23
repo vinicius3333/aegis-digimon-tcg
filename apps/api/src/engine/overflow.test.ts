@@ -279,10 +279,7 @@ describe("<Overflow> (Comprehensive Rules §4-18)", () => {
     // Deliberately hand the NON-turn player's card first: this proves the eventual
     // turn-player-first processing order comes from applyOverflow's own §4-18-5 sort, not
     // from caller/array order.
-    await primitivesOf(s).returnToDeck([
-      aceNonTurnPlayer.topCard!.instanceId,
-      aceTurnPlayer.topCard!.instanceId,
-    ]);
+    await primitivesOf(s).returnToDeck([aceNonTurnPlayer.topCard!.instanceId, aceTurnPlayer.topCard!.instanceId]);
 
     // Turn-player-first: seat 0 loses 3 first (-9 - 3 = -12, clamps to MEMORY_MIN -10), THEN
     // seat 1 loses 3, mirrored as +3 turn-relative (-10 + 3 = -7). The reverse order clamps on
@@ -317,10 +314,7 @@ describe("<Overflow> (Comprehensive Rules §4-18)", () => {
     // NON-turn player's id FIRST, so a correct implementation must still resolve seat 0
     // (turnSeat) before seat 1, proving the ordering comes from the batched Overflow sort,
     // not from this array's order.
-    await primitivesOf(s).deletePermanent(
-      [aceNonTurnPlayer.permanentId, aceTurnPlayer.permanentId],
-      "byEffect",
-    );
+    await primitivesOf(s).deletePermanent([aceNonTurnPlayer.permanentId, aceTurnPlayer.permanentId], "byEffect");
 
     expect(p0.battleArea).toHaveLength(0);
     expect(p1.battleArea).toHaveLength(0);

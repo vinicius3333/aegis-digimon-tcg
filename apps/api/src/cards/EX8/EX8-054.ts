@@ -6,17 +6,23 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [], keywords: [{ keyword: "Rush", raw: "＜Rush＞" }] },
     { trigger: "Static", actions: [], keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] },
-    { trigger: "Static", actions: [], keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }] },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }],
+    },
     {
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "ActivateForeignEffect",
-        zone: "digivolutionCards",
-        fromTriggers: ["WhenDigivolving"],
-        filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Justimon"], match: "name" }] },
-        count: 1,
-      }],
+      actions: [
+        {
+          kind: "ActivateForeignEffect",
+          zone: "digivolutionCards",
+          fromTriggers: ["WhenDigivolving"],
+          filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Justimon"], match: "name" }] },
+          count: 1,
+        },
+      ],
     },
     {
       trigger: "EndOfYourTurn",
@@ -27,11 +33,13 @@ export const compiled: CompiledCard = {
         filter: { controllerDefault: "opponent", kind: ["Digimon"], unsuspended: true },
         raw: "your opponent has an unsuspended Digimon",
       },
-      actions: [{
-        kind: "Attack",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        attackPlayer: true,
-      }],
+      actions: [
+        {
+          kind: "Attack",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          attackPlayer: true,
+        },
+      ],
     },
   ],
   coverage: "full",

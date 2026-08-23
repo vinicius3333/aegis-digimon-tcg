@@ -40,34 +40,42 @@ describe("Beelzemon SEC and promo deck through BT10", () => {
     const promoImpmonId = s.inst("promoImpmon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trashImpmonId) &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === promoImpmonId) &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === trashImpmonId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === promoImpmonId) &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
     s.state.turnSeat = 0;
     s.state.phase = Phase.Main;
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.state.players[0]!.battleArea.find((permanent) =>
-        permanent.topCard.instanceId === trashImpmonId
-      )!.permanentId,
-      instanceId: s.inst("beelzemon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.inst("beelzemon").instanceId
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === trashImpmonId)!
+          .permanentId,
+        instanceId: s.inst("beelzemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("beelzemon").instanceId,
+      ),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.inst("beelzemon").instanceId
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("beelzemon").instanceId,
+      ),
+    ).toBe(true);
   });
 
   it("mills Blast Mode with Baalmon, deletes a level 4, then plays Beelzemon after crossing 10 trash", async () => {
@@ -75,12 +83,7 @@ describe("Beelzemon SEC and promo deck through BT10", () => {
       {
         0: {
           battleArea: [{ card: "BT10-081", as: "baalmon" }],
-          deck: [
-            { card: "EX2-074", as: "blastMode" },
-            "BT1-001",
-            "BT1-002",
-            "BT1-003",
-          ],
+          deck: [{ card: "EX2-074", as: "blastMode" }, "BT1-001", "BT1-002", "BT1-003"],
           trash: [
             { card: "BT2-111", as: "beelzemon" },
             "BT1-004",
@@ -104,11 +107,17 @@ describe("Beelzemon SEC and promo deck through BT10", () => {
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("baalmon"));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("blastMode").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("level5").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("level5").permanentId),
+    ).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX2-021")).toBe(false);
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId])).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("beelzemon").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("beelzemon").instanceId,
+      ),
+    );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-111")).toBe(true);
   });
@@ -132,7 +141,9 @@ describe("Beelzemon SEC and promo deck through BT10", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryBoost").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryBoost").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("baalmon").instanceId));
     await settle();
     expect(s.state.memory).toBe(7);
@@ -141,11 +152,13 @@ describe("Beelzemon SEC and promo deck through BT10", () => {
     const source = (s.engine as any).cardSourceOf(boost.topCard);
     const delayKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
     s.state.turnCount += 1;
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: boost.topCard.instanceId,
-      effectKey: delayKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: boost.topCard.instanceId,
+        effectKey: delayKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("memoryBoost").instanceId));
     await settle();
 

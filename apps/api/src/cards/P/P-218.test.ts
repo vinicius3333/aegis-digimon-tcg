@@ -6,9 +6,7 @@ import "./P-218.js";
 describe("P-218 Torajiro Asuka", () => {
   it("exposes On Play and Security effects", () => {
     const source = { isOnBattleArea: () => true } as any;
-    expect(getEffectModule("P-218")!.effectsForTiming(EffectTiming.OnPlay, source)[0]!.effectKey).toBe(
-      "P-218/on-play",
-    );
+    expect(getEffectModule("P-218")!.effectsForTiming(EffectTiming.OnPlay, source)[0]!.effectKey).toBe("P-218/on-play");
     expect(getEffectModule("P-218")!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]!.effectKey).toBe(
       "P-218/security",
     );

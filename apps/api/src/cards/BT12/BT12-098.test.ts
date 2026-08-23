@@ -25,12 +25,15 @@ describe("BT12-098 handwritten module", () => {
   });
 
   it("reveals three cards and adds a Save Digimon and a Hunter card", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT12-098", as: "watchmaker" }],
-        deck: ["BT12-008", "BT12-087", "BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-098", as: "watchmaker" }],
+          deck: ["BT12-008", "BT12-087", "BT1-009"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("watchmaker"));
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
@@ -40,17 +43,20 @@ describe("BT12-098 handwritten module", () => {
   });
 
   it("suspends with four Tamers to give a Save Digimon Security Attack +1", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT12-098", as: "watchmaker" },
-          "BT12-087",
-          "BT12-088",
-          "BT12-089",
-          { card: "BT12-008", as: "save" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-098", as: "watchmaker" },
+            "BT12-087",
+            "BT12-088",
+            "BT12-089",
+            { card: "BT12-008", as: "save" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnUseOption, s.perm("watchmaker"));

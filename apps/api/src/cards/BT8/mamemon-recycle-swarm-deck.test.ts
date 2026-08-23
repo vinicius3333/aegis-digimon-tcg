@@ -43,11 +43,13 @@ describe("BT8 Mamemon recycle swarm deck gauntlet", () => {
     const banchoMamemonId = s.inst("banchoMamemon").instanceId;
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("levelFourBase").permanentId,
-      instanceId: s.inst("catchMamemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("levelFourBase").permanentId,
+        instanceId: s.inst("catchMamemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const recycleDecision = s.state.pendingDecision!;
@@ -56,37 +58,44 @@ describe("BT8 Mamemon recycle swarm deck gauntlet", () => {
     expect(new Set(recycleRequest?.options?.candidateInstanceIds ?? [])).toEqual(
       new Set([...recycledIds, unchosenId, banchoMamemonId]),
     );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: recycleDecision.decisionId,
-      response: { kind: "selectCards", instanceIds: recycledIds },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: recycleDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: recycledIds },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const deDigivolveDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: deDigivolveDecision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("deDigivolveTarget").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.perm("deDigivolveTarget").topCard.cardId === "BT1-015" &&
-      recycledIds.every((instanceId) => s.state.players[0]!.deck.some((card) => card.instanceId === instanceId)),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deDigivolveDecision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("deDigivolveTarget").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.perm("deDigivolveTarget").topCard.cardId === "BT1-015" &&
+        recycledIds.every((instanceId) => s.state.players[0]!.deck.some((card) => card.instanceId === instanceId)),
     );
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === unchosenId)).toBe(true);
     expect(new Set(s.state.players[0]!.deck.slice(0, 3).map(({ instanceId }) => instanceId))).toEqual(
       new Set(recycledIds),
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("levelFourBase").permanentId,
-      instanceId: s.inst("banchoMamemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("levelFourBase").permanentId,
+        instanceId: s.inst("banchoMamemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const pending = s.state.pendingDecision;
       return pending?.kind === "selectCards" && pending.decisionId !== recycleDecision.decisionId;
@@ -98,34 +107,35 @@ describe("BT8 Mamemon recycle swarm deck gauntlet", () => {
     expect(swarmRequest?.sourceCardId).toBe("BT8-068");
     expect(swarmCandidateIds).toHaveLength(2);
     expect(swarmCandidateIds.every((instanceId) => recycledIds.includes(instanceId))).toBe(true);
-    expect(recycledIds.filter((instanceId) =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)
-    )).toHaveLength(1);
+    expect(
+      recycledIds.filter((instanceId) => s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)),
+    ).toHaveLength(1);
     expect(swarmRequest?.options?.max).toBe(2);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: swarmDecision.decisionId,
-      response: { kind: "selectCards", instanceIds: swarmCandidateIds },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      swarmCandidateIds.every((instanceId) =>
-        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === instanceId)
-      ) &&
-      s.state.players[0]!.trash.some(({ instanceId }) =>
-        instanceId === s.inst("banchoRevealRest").instanceId
-      ) &&
-      s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-068"),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: swarmDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: swarmCandidateIds },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        swarmCandidateIds.every((instanceId) =>
+          s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === instanceId),
+        ) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("banchoRevealRest").instanceId) &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-068"),
       5000,
     );
 
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.state.players[0]!.hand.some(({ instanceId }) =>
-      instanceId === s.inst("catchEvolutionDraw").instanceId
-    )).toBe(true);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) =>
-      instanceId === s.inst("banchoRevealRest").instanceId
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("catchEvolutionDraw").instanceId),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("banchoRevealRest").instanceId),
+    ).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("levelFourBase"), "SecurityAttack")).toBe(1);
     assertNoLoudGap(s);
   });

@@ -6,7 +6,13 @@ import "./BT9-102.js";
 
 describe("BT9-102 Attack of the Heavy Mobile Digimon! — Security", () => {
   it("may trash a Machine or Cyborg to delete an opponent no more expensive than it", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT9-102", as: "option", faceUp: true }], hand: [{ card: "BT9-029", as: "cost" }] }, 1: { battleArea: [{ card: "BT1-028", as: "target" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT9-102", as: "option", faceUp: true }], hand: [{ card: "BT9-029", as: "cost" }] },
+        1: { battleArea: [{ card: "BT1-028", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

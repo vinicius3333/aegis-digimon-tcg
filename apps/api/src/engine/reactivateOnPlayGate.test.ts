@@ -64,9 +64,7 @@ describe("GameEngine.reactivateOnPlay canTrigger gate (finding 11)", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: TEST_CARD, dp: 1000, as: "perm" }] } });
     const perm = s.perm("perm");
 
-    await (s.engine as unknown as { reactivateOnPlay(id: string): Promise<void> }).reactivateOnPlay(
-      perm.permanentId,
-    );
+    await (s.engine as unknown as { reactivateOnPlay(id: string): Promise<void> }).reactivateOnPlay(perm.permanentId);
 
     expect(triggered).toBe(0);
   });

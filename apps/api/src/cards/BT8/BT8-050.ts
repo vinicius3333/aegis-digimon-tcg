@@ -6,71 +6,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by suspending 1 of your Digimon"
+            raw: "by suspending 1 of your Digimon",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          amount: 1000,
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
+            unit: "cards",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-050", compiled);

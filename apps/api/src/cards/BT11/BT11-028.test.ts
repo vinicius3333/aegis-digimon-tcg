@@ -16,11 +16,13 @@ describe("BT11-028 MachGaogamon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("mach").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mach").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").currentDP === 11000);
 
     expect(s.perm("base").currentDP).toBe(11000);

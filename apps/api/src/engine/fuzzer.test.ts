@@ -20,13 +20,7 @@
  *   - No orphaned references
  */
 import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  Permanent,
-  CardInstance,
-  Phase,
-  type Seat,
-} from "@aegis/shared";
+import { GameState, Permanent, CardInstance, Phase, type Seat } from "@aegis/shared";
 import { GameEngine } from "./GameEngine.js";
 import "../cards/index.js";
 
@@ -42,8 +36,8 @@ const CARD_POOL = [
   "BT1-009", // Agumon, Red, cost 3
   "BT1-010", // Agumon Expert, Red, cost 4
   "BT1-011", // Agumon, Red, cost 3
-  "ST1-01",  // Koromon, Red, cost 3
-  "ST1-02",  // ... 
+  "ST1-01", // Koromon, Red, cost 3
+  "ST1-02", // ...
   "ST1-03",
   "ST1-04",
   // Lv.4 Digimon (mid cost)
@@ -234,14 +228,24 @@ function randomIntent(state: GameState): { seat: Seat; intent: Record<string, un
     const attacker = player.battleArea[Math.floor(Math.random() * player.battleArea.length)]!;
     // 60% attack player, 40% attack opponent Digimon
     if (Math.random() < 0.6) {
-      return { seat, intent: { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } } };
+      return {
+        seat,
+        intent: { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } },
+      };
     } else {
       const opp = seat === 0 ? p1 : p0;
       if (opp.battleArea.length > 0) {
         // Suspend the target so attack is legal
         const target = opp.battleArea[Math.floor(Math.random() * opp.battleArea.length)]!;
         target.isSuspended = true;
-        return { seat, intent: { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "permanent", permanentId: target.permanentId } } };
+        return {
+          seat,
+          intent: {
+            type: "attack",
+            attackerPermanentId: attacker.permanentId,
+            target: { kind: "permanent", permanentId: target.permanentId },
+          },
+        };
       }
     }
   }
@@ -297,7 +301,9 @@ function checkInvariants(ctx: FuzzContext): string[] {
         if (!card.instanceId) continue; // schema placeholder, skip
         const existing = allIds.get(card.instanceId);
         if (existing) {
-          errors.push(`[${iteration}] seat ${si} ${zone}: duplicate instanceId ${card.instanceId}: in ${existing} and ${zone}`);
+          errors.push(
+            `[${iteration}] seat ${si} ${zone}: duplicate instanceId ${card.instanceId}: in ${existing} and ${zone}`,
+          );
         }
         allIds.set(card.instanceId, `${si}:${zone}`);
       }
@@ -397,9 +403,7 @@ describe(`Engine Fuzzer — ${ITERATIONS} random iterations`, () => {
           // Legal rejection, check invariants
         }
       } catch (err) {
-        allErrors.push(
-          `[${i}] CRASH on intent ${JSON.stringify(gen.intent).slice(0, 100)}: ${(err as Error).message}`,
-        );
+        allErrors.push(`[${i}] CRASH on intent ${JSON.stringify(gen.intent).slice(0, 100)}: ${(err as Error).message}`);
         crashCount++;
         continue;
       }
@@ -419,7 +423,9 @@ describe(`Engine Fuzzer — ${ITERATIONS} random iterations`, () => {
 
     // Report
     if (allErrors.length > 0) {
-      console.log(`\nFuzzer found ${allErrors.length} issue(s) in ${ITERATIONS} iterations (${intentCount} intents, ${crashCount} crashes):`);
+      console.log(
+        `\nFuzzer found ${allErrors.length} issue(s) in ${ITERATIONS} iterations (${intentCount} intents, ${crashCount} crashes):`,
+      );
       for (const err of allErrors.slice(0, 20)) {
         console.log(`  ${err}`);
       }
@@ -429,7 +435,7 @@ describe(`Engine Fuzzer — ${ITERATIONS} random iterations`, () => {
     }
 
     expect(crashCount).toBe(0);
-    expect(allErrors.filter(e => !e.includes("controllerSeat")).length).toBe(0);
+    expect(allErrors.filter((e) => !e.includes("controllerSeat")).length).toBe(0);
   });
 
   it("rapid single-card plays don't leak or corrupt state", async () => {

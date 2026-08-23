@@ -71,8 +71,7 @@ describe("A3 BT6-102 — granted '[On Deletion] Lose 2 memory'", () => {
     expect(
       grants.some(
         (g: { instanceId: string; token: string }) =>
-          g.instanceId === recipient.topCard!.instanceId &&
-          g.token === "[On Deletion] Lose 2 memory",
+          g.instanceId === recipient.topCard!.instanceId && g.token === "[On Deletion] Lose 2 memory",
       ),
     ).toBe(true);
 
@@ -86,7 +85,6 @@ describe("A3 BT6-102 — granted '[On Deletion] Lose 2 memory'", () => {
     // "the opponent loses 2 memory", which — since `memory` is stored turn-player-relative —
     // surfaces as memory RISING by 2 in the turn player's (seat 0's) favor.
     expect(s.state.memory).toBe(7); // 5 + 2
-
   });
 
   it("NEGATIVE: a Digimon that never received the grant costs nothing on deletion", async () => {

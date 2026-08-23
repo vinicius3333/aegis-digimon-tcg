@@ -10,7 +10,9 @@ describe("EX11-013 Sangomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sangomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sangomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"), 600);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
@@ -19,14 +21,18 @@ describe("EX11-013 Sangomon", () => {
     const compiled = runtimeCompiledCard("EX11-013")!;
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [{ kind: "Draw", controller: "mine", amount: 1, condition: { kind: "zoneCount", op: "lte", value: 7 } }],
+        actions: [
+          { kind: "Draw", controller: "mine", amount: 1, condition: { kind: "zoneCount", op: "lte", value: 7 } },
+        ],
       });
     }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "EndOfAttack",
-      isInherited: true,
-      frequency: "OncePerTurn",
-      actions: [{ kind: "GainMemory", amount: 1 }],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "EndOfAttack",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [{ kind: "GainMemory", amount: 1 }],
+      }),
+    );
   });
 });

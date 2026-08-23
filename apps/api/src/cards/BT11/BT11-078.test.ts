@@ -47,9 +47,10 @@ describe("BT11-078 Soulmon", () => {
         target: { kind: "permanent", permanentId: opponentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== soulmonId) &&
-      s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== opponentId),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== soulmonId) &&
+        s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== opponentId),
     );
 
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === soulmonId)).toBe(false);

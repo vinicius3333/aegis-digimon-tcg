@@ -15,53 +15,53 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // already-live "whenTrashedFromHand" (per-card hand-trash event) with the correct
 // "sourceFilter" key its own gate reads.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenTrashedFromHand",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenTrashedFromHand",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
           ],
-          "raw": "When you trash this card in your hand using one of your effects, Draw 1"
-        }
-      ]
+          raw: "When you trash this card in your hand using one of your effects, Draw 1",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "zone": "hand",
-              "controller": "mine"
+          kind: "Trash",
+          target: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainMemory",
-          "amount": 1
-        }
+          kind: "GainMemory",
+          amount: 1,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-076", compiled);

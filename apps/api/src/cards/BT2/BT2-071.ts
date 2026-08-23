@@ -6,54 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "permanent",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow"
-              ]
+          duration: "permanent",
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow"],
             },
-            "raw": "you have a yellow Digimon in play"
-          }
-        }
-      ]
+            raw: "you have a yellow Digimon in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        }
-      ]
-    }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-071", compiled);

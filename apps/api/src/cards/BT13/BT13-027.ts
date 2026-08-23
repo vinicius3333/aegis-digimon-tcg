@@ -6,46 +6,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
                 },
-                "count": 1
+                count: 1,
               },
-              "fromOwnDigivolutionStack": true,
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              fromOwnDigivolutionStack: true,
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    }
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-027", compiled);

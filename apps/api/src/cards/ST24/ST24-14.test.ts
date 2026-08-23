@@ -9,7 +9,13 @@ function primitivesOf(s: EngineSetup): Primitives {
 
 describe("ST24-14 Yoshino & Keenan", () => {
   it("on play places the deck top face down under the Tamer and gains memory for an opposing Digimon", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "ST24-14", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST24-14", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
@@ -19,7 +25,13 @@ describe("ST24-14 Yoshino & Keenan", () => {
   });
 
   it("does not gain memory from an opponent's Tamer alone", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "ST24-14", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] }, 1: { battleArea: [{ card: "ST24-13", as: "opponentTamer" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST24-14", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] },
+        1: { battleArea: [{ card: "ST24-13", as: "opponentTamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.memory < 0);
@@ -29,7 +41,9 @@ describe("ST24-14 Yoshino & Keenan", () => {
   it("suspends exactly one opponent Digimon when this Tamer's stacked card is trashed", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "ST24-14", as: "tamer", under: [{ card: "BT1-001", as: "underCard", faceUp: false }] }] },
+        0: {
+          battleArea: [{ card: "ST24-14", as: "tamer", under: [{ card: "BT1-001", as: "underCard", faceUp: false }] }],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "opponentTarget" },
@@ -68,7 +82,9 @@ describe("ST24-14 Yoshino & Keenan", () => {
     );
     const otherHost = s.perm("otherHost");
     await s.engine.recomputeContinuousEffects();
-    await primitivesOf(s).trashDigivolutionCards(otherHost.permanentId, [s.inst("otherUnder").instanceId], { byEffectSeat: 0 });
+    await primitivesOf(s).trashDigivolutionCards(otherHost.permanentId, [s.inst("otherUnder").instanceId], {
+      byEffectSeat: 0,
+    });
     await settle(() => false, 100);
 
     expect(s.perm("tamer").isSuspended).toBe(false);

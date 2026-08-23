@@ -18,7 +18,9 @@ describe("deck card truth: newly executable complex effects", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 50;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => false, 100);
     expect(s.perm("victim").currentDP).toBe(2000);
     expect(s.perm("victim").isSuspended).toBe(false);
@@ -46,7 +48,9 @@ describe("deck card truth: newly executable complex effects", () => {
     );
     s.state.memory = 50;
     const securityBefore = s.state.players[0]!.security.length;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => false, 120);
     // One security card moves to hand and one Angel moves from hand to security, so the
     // stack size is unchanged. Counting the received cards proves the wrapper cost was
@@ -106,7 +110,10 @@ describe("deck card truth: newly executable complex effects", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT18-034", as: "lucemon" }, { card: "BT1-009", as: "payment" }],
+          hand: [
+            { card: "BT18-034", as: "lucemon" },
+            { card: "BT1-009", as: "payment" },
+          ],
           security: ["BT1-090", "BT1-090"],
         },
         1: { security: ["BT1-090", "BT1-090"] },
@@ -122,5 +129,4 @@ describe("deck card truth: newly executable complex effects", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
-
 });

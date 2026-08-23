@@ -6,96 +6,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": true,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "toTop": true,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Tamer"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ]
-                },
-                "count": 1
-              },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+          from: ["hand"],
+          toTop: true,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          toTop: true,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Tamer"],
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levels: [3],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-040", compiled);

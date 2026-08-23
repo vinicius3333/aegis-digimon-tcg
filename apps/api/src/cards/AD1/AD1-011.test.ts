@@ -14,30 +14,44 @@ describe("AD1-011 Paildramon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
-
   });
 
   it("protects the digivolved Paildramon from battle deletion until the opponent's turn ends", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT8-053", as: "base" }], hand: [{ card: "AD1-011", as: "paildramon" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "opponent", dp: 12000, suspended: true }] },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT8-053", as: "base" }], hand: [{ card: "AD1-011", as: "paildramon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent", dp: 12000, suspended: true }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("paildramon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "AD1-011");
 
-    const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }).continuous;
+    const continuous = (
+      s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }
+    ).continuous;
     await settle(() => continuous.hasRestriction(s.perm("base").permanentId, "beDeletedInBattle"));
     expect(continuous.hasRestriction(s.perm("base").permanentId, "beDeletedInBattle")).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("base").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("base").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("base").permanentId),
+    ).toBe(true);
   });
 
   it("digivolves into Imperialdramon while attacking with the cost reduced by 2", async () => {
@@ -50,7 +64,13 @@ describe("AD1-011 Paildramon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("paildramon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paildramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("paildramon").topCard.cardId === "BT12-030");
 
     expect(s.state.memory).toBe(3);
@@ -67,7 +87,8 @@ describe("AD1-011 Paildramon", () => {
       },
     });
     await s.ready();
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
 
     expect(continuous.hasKeyword(s.perm("paildramon").permanentId, "Partition")).toBe(true);
     expect(continuous.hasKeyword(s.perm("host").permanentId, "Partition")).toBe(true);

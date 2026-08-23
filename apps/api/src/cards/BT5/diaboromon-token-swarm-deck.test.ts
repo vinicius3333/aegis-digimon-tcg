@@ -52,11 +52,13 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
         instanceId: s.inst("diaboromon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 2 &&
-      s.perm("arata").isSuspended &&
-      s.state.pendingDecision === undefined,
-    5000);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 2 &&
+        s.perm("arata").isSuspended &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
     expect(s.state.memory).toBe(7);
 
     expect(
@@ -65,17 +67,19 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
         instanceId: s.inst("catastropheCannon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 3 &&
-      s.perm("opponentStack").stack.length === 0 &&
-      s.state.pendingDecision === undefined,
-    5000);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 3 &&
+        s.perm("opponentStack").stack.length === 0 &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
     expect(s.state.memory).toBe(3);
     expect(s.perm("opponentStack").topCard?.cardId).toBe("BT5-059");
 
-    const tokenIds = s.state.players[0]!.battleArea
-      .filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon")
-      .map(({ permanentId }) => permanentId);
+    const tokenIds = s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").map(
+      ({ permanentId }) => permanentId,
+    );
     expect(new Set(tokenIds).size).toBe(3);
     preferred.push(tokenIds[0]!);
 
@@ -85,12 +89,16 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
         instanceId: s.inst("armageddemon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("armageddemon").instanceId) &&
-      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 2 &&
-      s.state.memory === 0 &&
-      s.state.pendingDecision === undefined,
-    5000);
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          ({ topCard }) => topCard?.instanceId === s.inst("armageddemon").instanceId,
+        ) &&
+        s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 2 &&
+        s.state.memory === 0 &&
+        s.state.pendingDecision === undefined,
+      5000,
+    );
 
     const costRequest = s.decisions
       .filter(({ req }) => req.kind === "chooseTargets")
@@ -103,9 +111,9 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
       new Set([s.perm("infermon").permanentId, ...tokenIds]),
     );
     expect(s.state.memory).toBe(0);
-    expect(
-      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon"),
-    ).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon")).toHaveLength(
+      2,
+    );
     const armageddemon = s.state.players[0]!.battleArea.find(
       ({ topCard }) => topCard?.instanceId === s.inst("armageddemon").instanceId,
     );

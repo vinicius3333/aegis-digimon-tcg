@@ -6,10 +6,12 @@ const compiled: CompiledCard = {
   effects: [],
   coverage: "full",
   residual: [],
-  digiXrosRequirement: [{
-    materials: [{ names: ["Monitamon"] }, { names: ["Monitamon"] }, { names: ["Monitamon"] }],
-    count: 2,
-  }],
+  digiXrosRequirement: [
+    {
+      materials: [{ names: ["Monitamon"] }, { names: ["Monitamon"] }, { names: ["Monitamon"] }],
+      count: 2,
+    },
+  ],
 };
 
 export { compiled };

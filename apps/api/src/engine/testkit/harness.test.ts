@@ -95,9 +95,12 @@ describe("automatic decision responders", () => {
   });
 
   it("can leave orderTriggers pending when explicitly disabled", async () => {
-    const s = setupEngine({
-      0: { battleArea: ["BT1-085", "BT1-087"], hand: ["BT1-010"] },
-    }, { autoOrderTriggers: false });
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT1-085", "BT1-087"], hand: ["BT1-010"] },
+      },
+      { autoOrderTriggers: false },
+    );
     s.state.memory = 1;
 
     const turn = s.engine.runOneTurn();
@@ -108,14 +111,16 @@ describe("automatic decision responders", () => {
     expect(pending?.kind).toBe("orderTriggers");
     expect(request.options?.triggerKeys).toHaveLength(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: pending!.decisionId,
-      response: {
-        kind: "orderTriggers",
-        order: request.options!.triggerKeys!.slice(0, 1),
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending!.decisionId,
+        response: {
+          kind: "orderTriggers",
+          order: request.options!.triggerKeys!.slice(0, 1),
+        },
+      }),
+    ).toEqual({ ok: true });
 
     const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     for (let i = 0; i < 500 && !mainPhase.isOpen; i += 1) await Promise.resolve();

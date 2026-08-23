@@ -4,15 +4,18 @@ import "./BT11-091.js";
 
 describe("BT11-091 Taiga", () => {
   it("gives all own Digimon +1000 DP and suspends to reduce a green level-5+ evolution by 1", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT11-091", as: "taiga" },
-          { card: "BT1-075", as: "base", dp: 5000 },
-        ],
-        hand: [{ card: "BT1-083", as: "target" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-091", as: "taiga" },
+            { card: "BT1-075", as: "base", dp: 5000 },
+          ],
+          hand: [{ card: "BT1-083", as: "target" }],
+        },
       },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 10;
     await s.ready();
     expect(s.perm("base").currentDP).toBe(6000);
@@ -55,11 +58,13 @@ describe("BT11-091 Taiga", () => {
     );
     nonGreen.state.memory = 10;
 
-    expect(nonGreen.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: nonGreen.perm("red-base").permanentId,
-      instanceId: nonGreen.inst("red-level-five").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      nonGreen.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: nonGreen.perm("red-base").permanentId,
+        instanceId: nonGreen.inst("red-level-five").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => nonGreen.perm("red-base").topCard.cardId === "BT1-020");
 
     expect(nonGreen.state.memory).toBe(8);

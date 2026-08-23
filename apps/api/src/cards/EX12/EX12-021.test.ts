@@ -43,13 +43,16 @@ describe("EX12-021 Gabumon", () => {
   });
 
   it("draws once from the inherited attack effect when the hand has seven or fewer cards", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX12-026", as: "host", under: ["EX12-021"] }],
-        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
-        deck: ["BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-026", as: "host", under: ["EX12-021"] }],
+          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-010"],
+        },
       },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle(() => s.state.players[0]!.hand.length === 8);
@@ -89,7 +92,13 @@ describe("EX12-021 Gabumon", () => {
             kind: "trash",
             target: {
               count: 1,
-              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Garurumon"], match: "name" }, { tokens: ["VB"], match: "trait" }] },
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
+                  { tokens: ["Garurumon"], match: "name" },
+                  { tokens: ["VB"], match: "trait" },
+                ],
+              },
             },
           },
         },

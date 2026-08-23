@@ -20,11 +20,13 @@ describe("BT11-029 AeroVeedramon", () => {
     await s.ready();
     const effect = observe(s.engine).activatableEffects(s.perm("aero")) as { effectKey: string }[];
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("aero").topCard!.instanceId,
-      effectKey: effect[0]!.effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("aero").topCard!.instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === 1);
 
     expect(s.perm("aero").isSuspended).toBe(true);
@@ -35,15 +37,18 @@ describe("BT11-029 AeroVeedramon", () => {
   });
 
   it("inherited effect activates a Rina Shinomiya On Play effect when its host attacks", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT11-033", as: "host", under: ["BT11-029"] },
-          { card: "BT11-112", as: "rina" },
-          { card: "BT11-023", as: "veemon" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-033", as: "host", under: ["BT11-029"] },
+            { card: "BT11-112", as: "rina" },
+            { card: "BT11-023", as: "veemon" },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("host").permanentId });
 

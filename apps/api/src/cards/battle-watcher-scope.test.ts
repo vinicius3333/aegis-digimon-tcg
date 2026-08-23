@@ -123,21 +123,24 @@ describe("self-scoped battle deletion watchers", () => {
   });
 
   it("only applies RustTyrannomon and Kuwagamon target effects for their own winner", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT2-051", as: "rustTyrannomon" },
-          { card: "EX1-040", as: "kuwagamonHost", under: ["EX1-037"] },
-          { card: "BT2-047", as: "otherWinner" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-051", as: "rustTyrannomon" },
+            { card: "EX1-040", as: "kuwagamonHost", under: ["EX1-037"] },
+            { card: "BT2-047", as: "otherWinner" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "targetToSuspend" },
+            { card: "BT1-011", as: "targetToRestrict", suspended: true },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-010", as: "targetToSuspend" },
-          { card: "BT1-011", as: "targetToRestrict", suspended: true },
-        ],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
@@ -155,9 +158,10 @@ describe("self-scoped battle deletion watchers", () => {
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
       attackerPermanentId: s.perm("kuwagamonHost").permanentId,
     });
-    expect([
-      s.perm("targetToSuspend"),
-      s.perm("targetToRestrict"),
-    ].some((permanent) => observe(s.engine).isRestricted(permanent, "unsuspend"))).toBe(true);
+    expect(
+      [s.perm("targetToSuspend"), s.perm("targetToRestrict")].some((permanent) =>
+        observe(s.engine).isRestricted(permanent, "unsuspend"),
+      ),
+    ).toBe(true);
   });
 });

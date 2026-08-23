@@ -6,55 +6,51 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Retaliation",
-          "raw": "＜Retaliation＞"
-        }
-      ]
+          keyword: "Retaliation",
+          raw: "＜Retaliation＞",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ornismon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Ornismon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "you have 10 or more cards in your trash"
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "you have 10 or more cards in your trash",
           },
-          "optional": true
-        }
-      ]
-    }
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-079", compiled);

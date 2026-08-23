@@ -41,9 +41,7 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     await settle(
       () =>
         s.perm("ajatarmon").isSuspended &&
-        s.state.players[0]!.battleArea.some(
-          ({ topCard }) => topCard?.instanceId === s.inst("vegetation").instanceId,
-        ),
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("vegetation").instanceId),
     );
 
     expect(
@@ -56,9 +54,8 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     await settle(
       () =>
         !s.perm("ajatarmon").isSuspended &&
-        s.state.players[0]!.battleArea.find(
-          ({ topCard }) => topCard?.instanceId === s.inst("vegetation").instanceId,
-        )?.isSuspended === true &&
+        s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.instanceId === s.inst("vegetation").instanceId)
+          ?.isSuspended === true &&
         observe(s.engine).hasPierce(s.perm("ajatarmon")),
     );
 

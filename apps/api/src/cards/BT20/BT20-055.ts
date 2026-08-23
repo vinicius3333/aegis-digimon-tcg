@@ -10,116 +10,116 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Filter.digivolutionCardsAtMost: number (for "1 or fewer digivolution cards")
 //   - SubTrigger event "whenCheckedFaceUpSecurity" (for "when your Digimon checks a face-up security card")
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
+      trigger: "EndOfOpponentsTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
+      isSecurity: true,
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
+          amount: 2,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "flipFaceUp",
-          "controller": "opponent"
+          kind: "SecurityManipulation",
+          op: "flipFaceUp",
+          controller: "opponent",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "digivolutionCardsAtMost": 1
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsAtMost: 1,
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
+            count: 1,
           },
-          "amount": 2
         },
-        {
-          "kind": "SecurityManipulation",
-          "op": "flipFaceUp",
-          "controller": "opponent"
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "digivolutionCardsAtMost": 1
-            },
-            "count": 1
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenCheckedFaceUpSecurity",
-          "actions": [
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 2,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "flipFaceUp",
+          controller: "opponent",
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsAtMost: 1,
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenCheckedFaceUpSecurity",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "addBottom",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "isSelfRef": true
-                }
+              kind: "SecurityManipulation",
+              op: "addBottom",
+              controller: "mine",
+              source: {
+                filter: {
+                  isSelfRef: true,
+                },
               },
-              "faceUp": true,
-              "fromDigivolutionTop": true
-            }
+              faceUp: true,
+              fromDigivolutionTop: true,
+            },
           ],
-          "optional": true,
-          "raw": "when your Digimon checks a face-up security card, you may place the top card of this Digimon face-up at the bottom of your security stack"
-        }
-      ]
-    }
+          optional: true,
+          raw: "when your Digimon checks a face-up security card, you may place the top card of this Digimon face-up at the bottom of your security stack",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-055", compiled);

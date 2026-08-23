@@ -65,12 +65,7 @@ interface MakePermanentOpts {
   stack?: { instanceId: string; cardId: string; ownerSeat: Seat }[];
 }
 
-function makePermanent(
-  permanentId: string,
-  seat: Seat,
-  cardId: string,
-  opts: MakePermanentOpts = {},
-): Permanent {
+function makePermanent(permanentId: string, seat: Seat, cardId: string, opts: MakePermanentOpts = {}): Permanent {
   const { dp = 5000, stack = [] } = opts;
   return {
     permanentId,
@@ -133,8 +128,7 @@ function makeContext(opts: {
     state,
     player: (seat: Seat) => players[seat] as never,
     opponentOf: (s: Seat) => (s === 0 ? 1 : 0),
-    permanentById: (id: string) =>
-      [...ownerBattleArea, ...opponentBattleArea].find((p) => p.permanentId === id),
+    permanentById: (id: string) => [...ownerBattleArea, ...opponentBattleArea].find((p) => p.permanentId === id),
     definitionOf: (card: { cardId: string }) => {
       const over = definitionOverrides?.get(card.cardId) ?? {};
       return fakeDefinition({ cardId: card.cardId, nameEn: card.cardId, kinds: ["Digimon"] as never, ...over });
@@ -170,10 +164,8 @@ function makeContext(opts: {
   const ask: DecisionApi = {
     optional: async () => true,
     // Single-candidate paths bypass the prompt; multi-candidate paths take the first.
-    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
-    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) =>
-      o.candidates.slice(0, o.max),
+    chooseTargets: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
+    selectCards: async (_c: unknown, o: { candidates: unknown[]; max: number }) => o.candidates.slice(0, o.max),
     chooseOption: async () => 0,
   } as unknown as DecisionApi;
 
@@ -392,20 +384,16 @@ describe("deletion-DP cluster A3 — EX6-031 SA-sign-swap is a wired catalog act
     const url = await import("node:url");
     const here = url.fileURLToPath(import.meta.url);
     const root = here.slice(0, here.indexOf("/apps/api/"));
-    const catalog = JSON.parse(
-      fs.readFileSync(`${root}/packages/shared/src/effects/effects.json`, "utf8"),
-    ) as Record<string, { effects?: { actions?: { kind?: string; primitive?: string }[] }[] }>;
+    const catalog = JSON.parse(fs.readFileSync(`${root}/packages/shared/src/effects/effects.json`, "utf8")) as Record<
+      string,
+      { effects?: { actions?: { kind?: string; primitive?: string }[] }[] }
+    >;
     const effects = catalog["EX6-031"]?.effects ?? [];
     const hasMissingPrimitive = effects.some((e) =>
-      (e.actions ?? []).some((a) => a.kind === "MissingPrimitive" && a.primitive === "security-attack-sign-inversion")
+      (e.actions ?? []).some((a) => a.kind === "MissingPrimitive" && a.primitive === "security-attack-sign-inversion"),
     );
-    const hasInvert = effects.some((e) =>
-      (e.actions ?? []).some((a) => a.kind === "SecurityAttackInvert")
-    );
+    const hasInvert = effects.some((e) => (e.actions ?? []).some((a) => a.kind === "SecurityAttackInvert"));
     expect(hasMissingPrimitive, "EX6-031 must not regress to the missing-primitive flag").toBe(false);
-    expect(
-      hasInvert,
-      "EX6-031 must carry the wired SA-sign-inversion action",
-    ).toBe(true);
+    expect(hasInvert, "EX6-031 must carry the wired SA-sign-inversion action").toBe(true);
   });
 });

@@ -14,11 +14,13 @@ describe("BT10-001 DemiMeramon", () => {
   it("does not treat a red multicolor digivolution card as non-red (Q1929)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{
-          card: "BT10-013",
-          as: "host",
-          under: ["BT10-009", "BT10-001"],
-        }],
+        battleArea: [
+          {
+            card: "BT10-013",
+            as: "host",
+            under: ["BT10-009", "BT10-001"],
+          },
+        ],
       },
     });
 

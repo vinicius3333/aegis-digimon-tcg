@@ -6,32 +6,32 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Retaliation",
-          "raw": "＜Retaliation＞"
-        }
-      ]
+          keyword: "Retaliation",
+          raw: "＜Retaliation＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2,
-          "optional": true
-        }
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-040", compiled);

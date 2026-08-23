@@ -7,7 +7,9 @@ import "./BT11-068.js";
 describe("BT11-068 Mamemon", () => {
   it("registers both reveal timings as dedicated effects", () => {
     const compiled = runtimeCompiledCard("BT11-068")!;
-    expect(compiled.effects.filter(({ trigger }) => trigger === "OnPlay" || trigger === "WhenDigivolving")).toHaveLength(2);
+    expect(
+      compiled.effects.filter(({ trigger }) => trigger === "OnPlay" || trigger === "WhenDigivolving"),
+    ).toHaveLength(2);
     expect(compiled.effects.find(({ isInherited }) => isInherited)).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
@@ -27,7 +29,9 @@ describe("BT11-068 Mamemon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mamemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mamemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-088"));
 
     expect(s.state.memory).toBe(3);
@@ -36,15 +40,18 @@ describe("BT11-068 Mamemon", () => {
   });
 
   it("grants Blocker only after another Digimon is played by an effect", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT11-069", as: "host", under: ["BT11-068"] },
-          { card: "BT1-010", as: "played" },
-          { card: "BT1-011", as: "recipient" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-069", as: "host", under: ["BT11-068"] },
+            { card: "BT1-010", as: "played" },
+            { card: "BT1-011", as: "recipient" },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
     const payload = { subjectPermanentId: s.perm("played").permanentId };
 
@@ -52,8 +59,12 @@ describe("BT11-068 Mamemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Blocker")).toBe(false);
 
     await advance(s.engine).fireSubTrigger("whenPlayed", { ...payload, playedByEffect: true });
-    await settle(() => ["host", "played", "recipient"].some((alias) => observe(s.engine).hasKeyword(s.perm(alias), "Blocker")));
+    await settle(() =>
+      ["host", "played", "recipient"].some((alias) => observe(s.engine).hasKeyword(s.perm(alias), "Blocker")),
+    );
 
-    expect(["host", "played", "recipient"].filter((alias) => observe(s.engine).hasKeyword(s.perm(alias), "Blocker"))).toHaveLength(1);
+    expect(
+      ["host", "played", "recipient"].filter((alias) => observe(s.engine).hasKeyword(s.perm(alias), "Blocker")),
+    ).toHaveLength(1);
   });
 });

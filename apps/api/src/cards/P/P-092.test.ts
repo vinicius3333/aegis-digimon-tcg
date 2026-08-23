@@ -21,16 +21,18 @@ describe("P-092 Dracomon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("groundramon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("groundramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("dracomon").topCard.instanceId === s.inst("wingdramon").instanceId);
 
     expect(s.perm("dracomon").stack.some((card) => card.cardId === "P-092")).toBe(true);
-    expect(s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("unrelatedDigimon").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("unrelatedDigimon").instanceId)).toBe(
+      true,
+    );
     expect(s.state.memory).toBe(2); // 10 - Groundramon 5 - fixed digivolution cost 3
     assertNoLoudGap(s);
   });
@@ -51,10 +53,12 @@ describe("P-092 Dracomon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("groundramon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("groundramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.instanceId === s.inst("wingdramon").instanceId);
 
     expect(s.state.memory).toBe(5);
@@ -74,19 +78,21 @@ describe("P-092 Dracomon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("groundramon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("groundramon").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("groundramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("groundramon").instanceId,
+      ),
+    );
     await settle(() => false, 40);
 
     expect(s.perm("host").topCard.cardId).toBe("BT1-027");
-    expect(s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("wingdramon").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wingdramon").instanceId)).toBe(true);
     expect(s.decisions.filter(({ req }) => req.sourceCardId === "P-092")).toHaveLength(0);
     assertNoLoudGap(s);
   });

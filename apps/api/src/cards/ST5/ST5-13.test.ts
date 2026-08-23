@@ -16,16 +16,52 @@ interface CardEffectTestSeam {
 
 describe("ST5-13 BlitzGreymon", () => {
   it("is fully represented with Security Attack and Digi-Burst cost", () => {
-    expect(runtimeCompiledCard("ST5-13")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "Static", keywords: [{ keyword: "SecurityAttack", amount: 1 }] }, { trigger: "Main", keywords: [{ keyword: "DigiBurst", amount: 2 }], actions: [{ kind: "ModifyDP", amount: 4000, duration: "untilOpponentTurnEnd", cost: { kind: "trash", target: { count: 2 } } }] }] });
+    expect(runtimeCompiledCard("ST5-13")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "Static", keywords: [{ keyword: "SecurityAttack", amount: 1 }] },
+        {
+          trigger: "Main",
+          keywords: [{ keyword: "DigiBurst", amount: 2 }],
+          actions: [
+            {
+              kind: "ModifyDP",
+              amount: 4000,
+              duration: "untilOpponentTurnEnd",
+              cost: { kind: "trash", target: { count: 2 } },
+            },
+          ],
+        },
+      ],
+    });
   });
 
   it("has Security Attack +1 and Digi-Bursts 2 to give +4000 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST5-13", under: ["ST5-03", "ST5-08"], as: "blitz" }, { card: "ST5-03", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST5-13", under: ["ST5-03", "ST5-08"], as: "blitz" },
+            { card: "ST5-03", as: "target" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
     const seam = s.engine as unknown as CardEffectTestSeam;
     const source = seam.cardSourceOf(s.perm("blitz").topCard);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("ST5-13/"))!.effectKey;
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("blitz").topCard!.instanceId, effectKey })).toEqual({ ok: true });
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("ST5-13/"),
+    )!.effectKey;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("blitz").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 5000);
     expect(s.perm("blitz").stack).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("blitz"), "SecurityAttack")).toBe(true);

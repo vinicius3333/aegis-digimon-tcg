@@ -52,14 +52,22 @@ describe("server clock", () => {
     // Second sample lands later over a 4 s round trip. Its own estimate is 2 s off, which would
     // drag a countdown backwards across a warning threshold; the worse RTT is rejected.
     vi.setSystemTime(LOCAL_NOW + 30_000);
-    observeServerTime({ serverEpochMs: LOCAL_NOW + 30_000 + 60_000, sentAt: LOCAL_NOW + 30_000, receivedAt: LOCAL_NOW + 34_000 });
+    observeServerTime({
+      serverEpochMs: LOCAL_NOW + 30_000 + 60_000,
+      sentAt: LOCAL_NOW + 30_000,
+      receivedAt: LOCAL_NOW + 34_000,
+    });
     expect(serverClockOffsetMs()).toBe(sharp);
   });
 
   it("accepts a worse sample once the best one has gone stale, so real drift is tracked", () => {
     observeServerTime({ serverEpochMs: LOCAL_NOW + 10, sentAt: LOCAL_NOW, receivedAt: LOCAL_NOW + 20 });
     const sixMinutesLater = LOCAL_NOW + 6 * 60_000;
-    observeServerTime({ serverEpochMs: sixMinutesLater + 45_000, sentAt: sixMinutesLater, receivedAt: sixMinutesLater + 4_000 });
+    observeServerTime({
+      serverEpochMs: sixMinutesLater + 45_000,
+      sentAt: sixMinutesLater,
+      receivedAt: sixMinutesLater + 4_000,
+    });
     expect(Math.round(serverClockOffsetMs() / 1000)).toBe(43);
   });
 

@@ -6,9 +6,21 @@ import "./EX2-044.js";
 
 describe("EX2-074 Beelzemon: Blast Mode", () => {
   it("deletes every opposing Digimon tied for highest level when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX2-044", as: "base" }], hand: [{ card: "EX2-074", as: "evolution" }] }, 1: { battleArea: ["EX2-029", "EX2-043", "EX2-019"] } }, { autoSelectCards: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-044", as: "base" }], hand: [{ card: "EX2-074", as: "evolution" }] },
+        1: { battleArea: ["EX2-029", "EX2-043", "EX2-019"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolution").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX2-019"]);
   });
@@ -38,11 +50,13 @@ describe("EX2-074 Beelzemon: Blast Mode", () => {
     );
     const preferredTarget = s.perm("level4").topCard.instanceId;
     preferredTargets.push(preferredTarget);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("miller").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("miller").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).not.toContain(

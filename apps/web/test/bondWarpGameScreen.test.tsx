@@ -8,8 +8,8 @@ import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/te
 const mocked = vi.hoisted(() => ({
   roomResult: { current: undefined as unknown },
   room: { roomId: "bond-warp-ui-room" },
-  activateEffect: vi.fn(),
-  respondDecision: vi.fn(),
+  activateEffect: vi.fn<(room: unknown, sourceInstanceId: string, effectKey: string) => void>(),
+  respondDecision: vi.fn<(room: unknown, decisionId: string, response: unknown) => void>(),
 }));
 
 vi.mock("../src/net/useRoom", () => ({
@@ -76,7 +76,9 @@ async function renderBondState({ decision }: { decision?: (s: ReturnType<typeof 
 it("exposes Tai's Bond warp as an activatable Main action", async () => {
   const s = await renderBondState();
 
-  fireEvent.click(screen.getByRole("button", { name: /main/i }));
+  // The button reads "Main" but names itself after the effect it activates, the
+  // convention permanentView.test.tsx pins: "Activate effect: <description>".
+  fireEvent.click(screen.getByRole("button", { name: /^activate effect: .*digivolve/i }));
 
   expect(mocked.activateEffect).toHaveBeenCalledWith(
     mocked.room,

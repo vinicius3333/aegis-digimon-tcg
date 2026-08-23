@@ -6,167 +6,142 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Sistermon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Sistermon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 2000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Gankoomon"
-                      ],
-                      "match": "nameExact"
-                    }
-                  ]
+                      tokens: ["Gankoomon"],
+                      match: "nameExact",
+                    },
+                  ],
                 },
-                "raw": "[Gankoomon] is in this Digimon's digivolution cards"
+                raw: "[Gankoomon] is in this Digimon's digivolution cards",
               },
               {
-                "kind": "youHave",
-                "filter": {
-                  "zone": "battleArea",
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Sistermon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Sistermon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "raw": "you have a Digimon with [Sistermon] in its name in play"
-              }
+                raw: "you have a Digimon with [Sistermon] in its name in play",
+              },
             ],
-            "raw": "[Gankoomon] is in this Digimon's digivolution cards or you have a Digimon with [Sistermon] in its name in play"
-          }
+            raw: "[Gankoomon] is in this Digimon's digivolution cards or you have a Digimon with [Sistermon] in its name in play",
+          },
         },
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "grant": "immuneToOpponentDPReductionAndReturn",
-          "tokens": [],
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          grant: "immuneToOpponentDPReductionAndReturn",
+          tokens: [],
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Gankoomon"
-                      ],
-                      "match": "nameExact"
-                    }
-                  ]
+                      tokens: ["Gankoomon"],
+                      match: "nameExact",
+                    },
+                  ],
                 },
-                "raw": "[Gankoomon] is in this Digimon's digivolution cards"
+                raw: "[Gankoomon] is in this Digimon's digivolution cards",
               },
               {
-                "kind": "youHave",
-                "filter": {
-                  "zone": "battleArea",
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Sistermon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Sistermon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "raw": "you have a Digimon with [Sistermon] in its name in play"
-              }
+                raw: "you have a Digimon with [Sistermon] in its name in play",
+              },
             ],
-            "raw": "[Gankoomon] is in this Digimon's digivolution cards or you have a Digimon with [Sistermon] in its name in play"
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Gankoomon"
+            raw: "[Gankoomon] is in this Digimon's digivolution cards or you have a Digimon with [Sistermon] in its name in play",
+          },
+        },
       ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Gankoomon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT10-068", compiled);

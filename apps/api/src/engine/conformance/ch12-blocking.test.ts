@@ -52,7 +52,10 @@ function bareState(): GameState {
 
 describe("§12-1 Blocking (comprehensive-0151)", () => {
   it("12-1-1: a block switches the attack target onto the blocking Digimon", async () => {
-    cite("comprehensive-0151", "12-1-1 a block switches the attack target to a Digimon with ＜Blocker＞ in the battle area");
+    cite(
+      "comprehensive-0151",
+      "12-1-1 a block switches the attack target to a Digimon with ＜Blocker＞ in the battle area",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },
@@ -150,7 +153,10 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
   });
 
   it("12-1-7-1: declaring a block suspends the chosen blocking Digimon", async () => {
-    cite("comprehensive-0151", "12-1-7-1 the player makes a block declaration and suspends 1 of their battle-area Digimon to block");
+    cite(
+      "comprehensive-0151",
+      "12-1-7-1 the player makes a block declaration and suspends 1 of their battle-area Digimon to block",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },

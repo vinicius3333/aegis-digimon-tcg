@@ -35,21 +35,28 @@ describe("BT4 D-Brigade historical deck gauntlet", () => {
     const deletedId = deletedBrigade.permanentId;
     const deletedInstanceId = deletedBrigade.topCard!.instanceId;
 
-    await (s.engine as unknown as {
-      primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<void> };
-    }).primitives.deletePermanent([deletedId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard?.instanceId === s.inst("revealedCommandramon").instanceId,
-    ));
-
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("darkdramon").instanceId,
-    })).toEqual({ ok: true });
+    await (
+      s.engine as unknown as {
+        primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<void> };
+      }
+    ).primitives.deletePermanent([deletedId], "byEffect");
     await settle(() =>
-      s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("oldCommandramon").instanceId) &&
-      s.state.players[0]!.deck.some((card) => card.instanceId === deletedInstanceId) &&
-      s.state.memory === 1
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("revealedCommandramon").instanceId,
+      ),
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("oldCommandramon").instanceId) &&
+        s.state.players[0]!.deck.some((card) => card.instanceId === deletedInstanceId) &&
+        s.state.memory === 1,
     );
 
     const darkdramon = s.state.players[0]!.battleArea.find(
@@ -59,13 +66,16 @@ describe("BT4 D-Brigade historical deck gauntlet", () => {
     expect(observe(s.engine).hasKeyword(darkdramon!, "Rush")).toBe(true);
     expect(s.state.memory).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("darkRoar").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.battleArea.length === 0 &&
-      s.state.players[0]!.trash.some((card) => card.cardId === "BT4-110")
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkRoar").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT4-110"),
     );
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

@@ -6,70 +6,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDiscardSecurity",
-      "actions": [
+      trigger: "OnDiscardSecurity",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
-      ]
+          kind: "ActivateMain",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "totalSecurityCount",
-            "op": "lte",
-            "value": 6,
-            "raw": "there're 6 or fewer total cards in both players' security stacks"
-          }
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "totalSecurityCount",
+            op: "lte",
+            value: 6,
+            raw: "there're 6 or fewer total cards in both players' security stacks",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-106", compiled);

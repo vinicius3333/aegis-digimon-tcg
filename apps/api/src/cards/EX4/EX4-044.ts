@@ -3,72 +3,64 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "filter": {
-              "zone": "hand",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
+          into: {
+            filter: {
+              zone: "hand",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Garurumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Garurumon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "costDelta": -2,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: true,
+          costDelta: -2,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
-        }
+            count: 1,
+            isSelf: true,
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-044", compiled);

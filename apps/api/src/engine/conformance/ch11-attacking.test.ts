@@ -161,7 +161,9 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
         // Remove the attacker from the field during the first (OnUseAttack) window — mirrors an
         // effect that deletes/bounces the attacker between declaration and the block window.
         if (timing === EffectTiming.OnUseAttack) {
-          const seat = h.state.players.find((p) => p?.battleArea.some((pp) => pp.permanentId === trigger.attackerPermanentId));
+          const seat = h.state.players.find((p) =>
+            p?.battleArea.some((pp) => pp.permanentId === trigger.attackerPermanentId),
+          );
           if (seat !== undefined) {
             seat.battleArea = seat.battleArea.filter((pp) => pp.permanentId !== trigger.attackerPermanentId) as never;
           }
@@ -201,7 +203,10 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
   });
 
   it("11-2-3: 1 Digimon can perform only 1 attack per turn — a second declaration with the same attacker is rejected", async () => {
-    cite("comprehensive-0144", "11-2-3 1 Digimon can perform 1 attack for an attack declaration; multiple attacks aren't allowed");
+    cite(
+      "comprehensive-0144",
+      "11-2-3 1 Digimon can perform 1 attack for an attack declaration; multiple attacks aren't allowed",
+    );
 
     // Driven directly against the pure `validateAttack` (actions/attack.ts) with a hand-built
     // AttackDeps, rather than through the full GameEngine: a real attack's own resolution
@@ -268,7 +273,10 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
   });
 
   it("11-2-5: an attack declaration can't be made using a Digimon that's already suspended", () => {
-    cite("comprehensive-0144", "11-2-5 an attack declaration can't be made using a Digimon that can't suspend (already suspended)");
+    cite(
+      "comprehensive-0144",
+      "11-2-5 an attack declaration can't be made using a Digimon that can't suspend (already suspended)",
+    );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 5000, suspended: true, as: "attacker" }] } });
     const attacker = s.perm("attacker");
@@ -558,7 +566,10 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
 
 describe("§11-4 Block Timing (comprehensive-0147)", () => {
   it("11-4-1: the block timing is when the non-turn player may use a ＜Blocker＞ Digimon to block", async () => {
-    cite("comprehensive-0147", "11-4-1 the block timing is when the non-turn player can use a ＜Blocker＞ Digimon to block");
+    cite(
+      "comprehensive-0147",
+      "11-4-1 the block timing is when the non-turn player can use a ＜Blocker＞ Digimon to block",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },
@@ -586,7 +597,10 @@ describe("§11-4 Block Timing (comprehensive-0147)", () => {
 
 describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", () => {
   it("11-5-1-1: a successful player-directed attack against 1+ security triggers a security check", async () => {
-    cite("comprehensive-0148", "11-5-1-1/11-5-1-1-1 an attack on the player with 1+ security triggers a security check");
+    cite(
+      "comprehensive-0148",
+      "11-5-1-1/11-5-1-1-1 an attack on the player with 1+ security triggers a security check",
+    );
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },
@@ -604,7 +618,10 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
   });
 
   it("11-5-1-2: a successful player-directed attack against EMPTY security wins the game for the attacker", async () => {
-    cite("comprehensive-0148", "11-5-1-2/11-5-1-2-1 an attack on a player with 0 security wins the attacker's controller the game");
+    cite(
+      "comprehensive-0148",
+      "11-5-1-2/11-5-1-2-1 an attack on a player with 0 security wins the attacker's controller the game",
+    );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] } });
     const attacker = s.perm("attacker");
@@ -633,11 +650,13 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
     const attacker = s.perm("attacker");
     const defender = s.perm("defender");
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attacker.permanentId,
-      target: { kind: "permanent", permanentId: defender.permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "permanent", permanentId: defender.permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((e) => e.kind === "combatResolved"), 5000);
     const resolved = s.events.find((e) => e.kind === "combatResolved");
     expect(resolved).toMatchObject({ seat: 0, deletedPermanentIds: [defender.permanentId] });
@@ -724,8 +743,9 @@ describe("§11 Attacking — direct validateAttack/applyAttack sanity", () => {
     expect(validateAttack(deps, 0, { attackerPermanentId: attacker.permanentId, target: { kind: "player" } })).toBe(
       "wrong-phase",
     );
-    expect(
-      applyAttack(deps, 0, { attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
-    ).toEqual({ ok: false, reason: "wrong-phase" });
+    expect(applyAttack(deps, 0, { attackerPermanentId: attacker.permanentId, target: { kind: "player" } })).toEqual({
+      ok: false,
+      reason: "wrong-phase",
+    });
   });
 });

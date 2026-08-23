@@ -7,12 +7,14 @@ const compiled: CompiledCard = {
     { trigger: "Static", actions: [], keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }] },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "ModifyDP",
-        target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Retaliation"] }, count: "all" },
-        amount: 2000,
-        duration: "permanent",
-      }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Retaliation"] }, count: "all" },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
     },
   ],
   coverage: "full",

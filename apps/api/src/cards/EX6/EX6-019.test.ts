@@ -4,6 +4,9 @@ import { compiled } from "./EX6-019.js";
 describe("EX6-019 Patamon", () => {
   it("has Barrier and inherits once-per-turn conditional draw", () => {
     expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords?.[0]?.keyword).toBe("Barrier");
-    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "Draw", amount: 1, condition: { kind: "selfHasTrait" } }] });
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Draw", amount: 1, condition: { kind: "selfHasTrait" } }],
+    });
   });
 });

@@ -1,12 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ArraySchema } from "@colyseus/schema";
-import {
-  GameState,
-  PlayerState,
-  CardInstance,
-  Phase,
-  type Seat,
-} from "@aegis/shared";
+import { GameState, PlayerState, CardInstance, Phase, type Seat } from "@aegis/shared";
 import { TurnStateMachine, type TurnFlowHooks, type MainPhaseEnd } from "./TurnStateMachine.js";
 
 /**

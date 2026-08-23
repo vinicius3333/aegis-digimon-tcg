@@ -6,9 +6,17 @@ import "./ST3-14.js";
 
 describe("ST3-14 Heaven's Charm", () => {
   it("gives an opposing Digimon -2000 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-14", as: "option" }] }, 1: { battleArea: [{ card: "ST3-07", as: "target" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: ["ST3-07"], hand: [{ card: "ST3-14", as: "option" }] },
+        1: { battleArea: [{ card: "ST3-07", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
   });

@@ -19,10 +19,12 @@ describe("BT10-105 Defense Plug-In C", () => {
     withTamer.state.memory = 5;
     await withTamer.ready();
 
-    expect(withTamer.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: withTamer.inst("option").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      withTamer.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: withTamer.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
 
     const withoutTamer = setupEngine({
       0: {
@@ -33,10 +35,12 @@ describe("BT10-105 Defense Plug-In C", () => {
     withoutTamer.state.memory = 5;
     await withoutTamer.ready();
 
-    expect(withoutTamer.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: withoutTamer.inst("option").instanceId,
-    }).ok).toBe(false);
+    expect(
+      withoutTamer.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: withoutTamer.inst("option").instanceId,
+      }).ok,
+    ).toBe(false);
   });
 
   it("grants Blocker, Reboot, and opponent-effect deletion protection to the same chosen Digimon", async () => {
@@ -44,11 +48,7 @@ describe("BT10-105 Defense Plug-In C", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            "BT10-092",
-            { card: "BT1-010", as: "chosen" },
-            { card: "BT1-011", as: "other" },
-          ],
+          battleArea: ["BT10-092", { card: "BT1-010", as: "chosen" }, { card: "BT1-011", as: "other" }],
           hand: [{ card: "BT10-105", as: "option" }],
         },
       },
@@ -58,18 +58,18 @@ describe("BT10-105 Defense Plug-In C", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
-      [s.perm("chosen"), s.perm("other")].some((permanent) =>
-        observe(s.engine).hasKeyword(permanent, "Blocker") &&
-        observe(s.engine).hasKeyword(permanent, "Reboot"),
+      [s.perm("chosen"), s.perm("other")].some(
+        (permanent) =>
+          observe(s.engine).hasKeyword(permanent, "Blocker") && observe(s.engine).hasKeyword(permanent, "Reboot"),
       ),
     );
 
     const permanents = [s.perm("chosen"), s.perm("other")];
-    const recipients = permanents.filter((permanent) =>
-      observe(s.engine).hasKeyword(permanent, "Blocker"),
-    );
+    const recipients = permanents.filter((permanent) => observe(s.engine).hasKeyword(permanent, "Blocker"));
     expect(recipients).toHaveLength(1);
     expect(observe(s.engine).hasKeyword(recipients[0]!, "Reboot")).toBe(true);
 
@@ -100,12 +100,12 @@ describe("BT10-105 Defense Plug-In C", () => {
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === s.inst("eligible").instanceId,
-    )).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("securityOption").instanceId,
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.deck.every((card) => deckIdsBefore.has(card.instanceId))).toBe(true);
   });

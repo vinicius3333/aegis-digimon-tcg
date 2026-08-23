@@ -58,11 +58,7 @@ describe("BT16-081", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("malo"));
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId),
-    ).toBe(false);
-    expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId),
-    ).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
   });
 });

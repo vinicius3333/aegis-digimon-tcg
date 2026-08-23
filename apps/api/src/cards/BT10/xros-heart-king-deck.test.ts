@@ -32,25 +32,26 @@ describe("BT10 Xros Heart / Shoutmon King Version deck", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("kingVersion").instanceId,
-      digiXros: { materialInstanceIds: [ballistamonId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("kingVersion").instanceId,
+        digiXros: { materialInstanceIds: [ballistamonId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.instanceId === recoveredId) &&
-        s.state.players[0]!.battleArea.some((permanent) =>
-          permanent.topCard.cardId === "BT10-111" &&
-          permanent.stack.some((card) => card.instanceId === ballistamonId),
+        s.state.players[0]!.battleArea.some(
+          (permanent) =>
+            permanent.topCard.cardId === "BT10-111" &&
+            permanent.stack.some((card) => card.instanceId === ballistamonId),
         ),
       5000,
     );
     await settle();
 
-    const king = s.state.players[0]!.battleArea.find((permanent) =>
-      permanent.topCard.cardId === "BT10-111"
-    )!;
+    const king = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT10-111")!;
     expect(s.state.memory).toBe(2);
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).keywordAmount(king, "MaterialSave")).toBe(1);
@@ -107,41 +108,40 @@ describe("BT10 Xros Heart / Shoutmon King Version deck", () => {
     ];
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: x4Id,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: x4Id,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === x4Id) &&
-        reusableMaterialIds.every((instanceId) =>
-          s.perm("taiki").stack.some((card) => card.instanceId === instanceId)
-        ),
+        reusableMaterialIds.every((instanceId) => s.perm("taiki").stack.some((card) => card.instanceId === instanceId)),
       5000,
     );
 
     expect(s.perm("taiki").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-009")).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("shoutmonX5").instanceId,
-      digiXros: {
-        materialInstanceIds: [
-          ...reusableMaterialIds,
-          s.inst("sparrowmon").instanceId,
-        ],
-        expanderPermanentIds: [s.perm("taiki").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.cardId === "BT10-013" && permanent.stack.length === 5
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("shoutmonX5").instanceId,
+        digiXros: {
+          materialInstanceIds: [...reusableMaterialIds, s.inst("sparrowmon").instanceId],
+          expanderPermanentIds: [s.perm("taiki").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT10-013" && permanent.stack.length === 5,
+      ),
+    );
 
-    const x5 = s.state.players[0]!.battleArea.find((permanent) =>
-      permanent.topCard.cardId === "BT10-013"
-    )!;
+    const x5 = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT10-013")!;
     expect(x5.stack.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([...reusableMaterialIds, s.inst("sparrowmon").instanceId]),
     );

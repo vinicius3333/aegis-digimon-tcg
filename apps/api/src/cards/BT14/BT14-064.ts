@@ -6,98 +6,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "playCostLte": 4,
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                playCostLte: 4,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "D-Brigade",
-                      "DigiPolice"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["D-Brigade", "DigiPolice"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
+              count: 1,
+              to: "play",
+              optional: true,
+            },
           ],
-          "rest": "trash"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "playCostLte": 4,
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "D-Brigade",
-                      "DigiPolice"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
-          ],
-          "rest": "trash"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {"controller": "mine", "excludeSelf": true, "kind": ["Digimon"]},
-          "actions": [
-            {
-              "kind": "RevealAdd",
-              "revealCount": 3,
-              "add": [
-                {
-                  "filter": {"controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{"tokens": ["Commandramon"], "match": "name"}]},
-                  "count": 1,
-                  "to": "play",
-                  "payCost": false,
-                  "optional": true
-                }
-              ],
-              "rest": "deckBottom"
-            }
-          ]
-        }
+          rest: "trash",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                playCostLte: 4,
+                nameOrTrait: [
+                  {
+                    tokens: ["D-Brigade", "DigiPolice"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "play",
+              optional: true,
+            },
+          ],
+          rest: "trash",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
+                {
+                  filter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Commandramon"], match: "name" }],
+                  },
+                  count: 1,
+                  to: "play",
+                  payCost: false,
+                  optional: true,
+                },
+              ],
+              rest: "deckBottom",
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-064", compiled);

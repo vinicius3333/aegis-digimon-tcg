@@ -6,120 +6,102 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "labels": ["Play a matching card", "Use a matching Option"],
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          labels: ["Play a matching card", "Use a matching Option"],
+          options: [
             [
               {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Angoramon"
-                  ],
-                  "match": "text"
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [
+                      {
+                        tokens: ["Angoramon"],
+                        match: "text",
+                      },
+                      {
+                        tokens: ["NSp"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                  count: 1,
                 },
-                {
-                  "tokens": [
-                    "NSp"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-              }
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
             ],
             [
               {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "controller": "mine",
-            "kind": [
-              "Option"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Angoramon"
-                ],
-                "match": "text"
+                kind: "UseOptionWithoutCost",
+                filter: {
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Angoramon"],
+                      match: "text",
+                    },
+                    {
+                      tokens: ["NSp"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
               },
-              {
-                "tokens": [
-                  "NSp"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand"
+            ],
           ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-              }
-            ]
-          ]
-        }
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent"
-        }
+          amount: 1000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Angoramon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Angoramon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "traits": [
-        "NSp"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["NSp"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-050", compiled);

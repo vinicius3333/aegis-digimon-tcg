@@ -23,14 +23,36 @@ describe("EX8-068", () => {
     ]);
   });
   it("plays an optional level 5 or lower DS Digimon from hand on security", () =>
-    expect(compiled.effects?.find((entry) => entry.trigger === "Security"))
-      .toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true, target: { filter: { levelComparison: { op: "lte", value: 5 } } } }] }));
+    expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          target: { filter: { levelComparison: { op: "lte", value: 5 } } },
+        },
+      ],
+    }));
   it("plays the exact DS Digimon from hand when the security effect is revealed", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "EX8-068", as: "securityCard" }], hand: [{ card: "EX8-058", as: "dsCard" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+        1: { security: [{ card: "EX8-068", as: "securityCard" }], hand: [{ card: "EX8-058", as: "dsCard" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const player = s.state.players[1] as PlayerState;
     const instanceId = s.inst("dsCard").instanceId;
     const memoryBeforeSecurityEffect = s.state.memory;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
     expect(player.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(player.hand.some((card) => card.instanceId === instanceId)).toBe(false);
@@ -48,11 +70,13 @@ describe("EX8-068", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("ds").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ds").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId)).toBe(true);

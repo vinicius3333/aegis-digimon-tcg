@@ -7,10 +7,20 @@ import { compiled } from "./EX8-014.js";
 
 describe("EX8-014", () => {
   it("has Fortitude and may suspend a Digimon to delete an opposing Digimon with 8000 DP or less", () => {
-    expect(compiled.effects?.find((entry) => !entry.isInherited && entry.trigger === "Static")?.keywords).toContainEqual({ keyword: "Fortitude", raw: "＜Fortitude＞" });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([{ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { isSelfRef: true } }, { kind: "Suspend", optional: true }]);
+    expect(
+      compiled.effects?.find((entry) => !entry.isInherited && entry.trigger === "Static")?.keywords,
+    ).toContainEqual({ keyword: "Fortitude", raw: "＜Fortitude＞" });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
+      { kind: "SubTrigger", event: "whenSuspended", sourceFilter: { isSelfRef: true } },
+      { kind: "Suspend", optional: true },
+    ]);
   });
-  it("inherits Security Attack +1", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }));
+  it("inherits Security Attack +1", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+      keyword: "SecurityAttack",
+      amount: 1,
+      raw: "＜Security Attack +1＞",
+    }));
   it("suspends a Digimon and deletes an opposing Digimon at the 8000 DP boundary", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
@@ -42,7 +52,9 @@ describe("EX8-014", () => {
 
     expect(s.perm("master").isSuspended).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.perm("target").topCard!.instanceId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.perm("target").topCard!.instanceId)).toBe(
+      false,
+    );
   });
   it("suspends and deletes through the When Digivolving trigger", async () => {
     const s = setupEngine(

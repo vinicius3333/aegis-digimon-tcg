@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [],
   coverage: "full",
-  residual: []
+  residual: [],
 };
 
 registerIrCard("BT6-074", compiled);

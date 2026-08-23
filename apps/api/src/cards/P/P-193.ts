@@ -6,111 +6,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Composite",
-                      "Wicked God"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Composite", "Wicked God"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with the [Composite] or [Wicked God] trait from your hand"
+            raw: "By trashing 1 card with the [Composite] or [Wicked God] trait from your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf",
-          "optional": true
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "EndOfAllTurns",
-      "actions": [
+      trigger: "EndOfAllTurns",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Wicked God"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Wicked God"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
+          from: ["hand", "trash"],
+          payCost: false,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Millenniummon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Millenniummon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 of your [Millenniummon]"
+            raw: "By deleting 1 of your [Millenniummon]",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-193", compiled);

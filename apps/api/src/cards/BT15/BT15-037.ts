@@ -6,11 +6,26 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnDiscardSecurity",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, from: ["trash"], payCost: false, optional: true }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
       trigger: "AllTurns",
-      actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved", sourceFilter: { controller: "mine" }, actions: [{ kind: "GainMemory", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          sourceFilter: { controller: "mine" },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
       frequency: "OncePerTurn",
     },
     { trigger: "Static", actions: [], keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] },

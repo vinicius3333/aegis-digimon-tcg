@@ -9,73 +9,71 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   copies don't activate — modeled via condition check per-activation.
 // Fixed: cost uses trashSecurityTop (not generic trash); rest is "trash" not "deckBottom".
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 6,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 6,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 6
-                }
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                levelComparison: {
+                  op: "lte",
+                  value: 6,
+                },
               },
-              "count": 2,
-              "to": "hand",
-              "upTo": true
-            }
+              count: 2,
+              to: "hand",
+              upTo: true,
+            },
           ],
-          "rest": "trash",
-          "cost": {
-            "kind": "trashSecurityTop",
-            "raw": "by trashing the top card of your security stack"
+          rest: "trash",
+          cost: {
+            kind: "trashSecurityTop",
+            raw: "by trashing the top card of your security stack",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "sourceFilter": {
-            "controller": "mine"
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          sourceFilter: {
+            controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "addTop",
-              "controller": "mine",
-              "amount": 1,
-              "source": "deck",
-              "toTop": true,
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 3,
-                "raw": "you have 3 or fewer security cards"
-              }
-            }
-          ]
-        }
+              kind: "SecurityManipulation",
+              op: "addTop",
+              controller: "mine",
+              amount: 1,
+              source: "deck",
+              toTop: true,
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 3,
+                raw: "you have 3 or fewer security cards",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-044", compiled);

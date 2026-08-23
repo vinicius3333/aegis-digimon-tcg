@@ -22,11 +22,18 @@ const effectBearingDeckCards = new Map<string, string[]>();
 for (const deck of [...ALL_FAMOUS_DECKS].reverse()) {
   for (const cardId of deckCardIds(deck)) {
     const definition = getCardDefinition(cardId);
-    if (definition === undefined || (definition.effectText === undefined && definition.inheritedEffectText === undefined)) continue;
+    if (
+      definition === undefined ||
+      (definition.effectText === undefined && definition.inheritedEffectText === undefined)
+    )
+      continue;
     const allDecks = effectBearingDeckCards.get(cardId) ?? [];
     allDecks.push(deck.deckId);
     effectBearingDeckCards.set(cardId, allDecks);
-    if (!definition.kinds.some((kind) => kind === CardKind.Digimon || kind === CardKind.Tamer || kind === CardKind.Option)) continue;
+    if (
+      !definition.kinds.some((kind) => kind === CardKind.Digimon || kind === CardKind.Tamer || kind === CardKind.Option)
+    )
+      continue;
     if (getEffectModule(cardId) === undefined) continue;
     const decks = deckCardMap.get(cardId) ?? [];
     decks.push(deck.deckId);

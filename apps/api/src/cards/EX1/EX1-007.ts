@@ -6,70 +6,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 3000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 3000,
+              },
             },
-            "count": 2,
-            "upTo": true
-          }
-        }
-      ]
+            count: 2,
+            upTo: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
+            },
           },
-          "while": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Machine"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Machine"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "this Digimon has [Machine] in its traits"
-          }
-        }
+            raw: "this Digimon has [Machine] in its traits",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-007", compiled);

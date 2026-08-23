@@ -24,7 +24,9 @@ describe("P-015 Infermon", () => {
     const removedTopId = s.perm("target").topCard!.instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === removedTopId));
 
     expect(s.perm("target").topCard?.cardId).toBe("BT1-014");
@@ -42,7 +44,9 @@ describe("P-015 Infermon", () => {
     const topId = s.perm("level-3").topCard!.instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.perm("level-3").topCard?.instanceId).toBe(topId);

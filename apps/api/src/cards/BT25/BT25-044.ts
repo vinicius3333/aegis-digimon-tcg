@@ -6,137 +6,128 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 5,
-              "raw": "reduce the cost by 5",
-              "condition": {
-                "kind": "totalSecurityCount", "op": "lte", "value": 6,
-                "raw": "there are 6 or fewer total cards in both players' security stacks"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "toTop": true
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "mine",
-          "bothPlayers": true,
-          "amount": 1
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "toTop": true
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "mine",
-          "bothPlayers": true,
-          "amount": 1
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "playCostLte": 8,
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Angel",
-                        "Archangel",
-                        "Iliad"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                },
-                "count": 1
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 5,
+              raw: "reduce the cost by 5",
+              condition: {
+                kind: "totalSecurityCount",
+                op: "lte",
+                value: 6,
+                raw: "there are 6 or fewer total cards in both players' security stacks",
               },
-              "from": [
-                "hand",
-                "trash"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 5,
-      "traits": [
-        "Angel",
-        "Archangel",
-        "TS"
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          toTop: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          bothPlayers: true,
+          amount: 1,
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          toTop: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          bothPlayers: true,
+          amount: 1,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  playCostLte: 8,
+                  nameOrTrait: [
+                    {
+                      tokens: ["Angel", "Archangel", "Iliad"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      traits: ["Angel", "Archangel", "TS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-044", compiled);

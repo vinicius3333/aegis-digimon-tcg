@@ -14,15 +14,19 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
     case "DynamicDigivolutionNames": {
       const self = ctx.source.permanent();
       if (self === undefined || ctx.fx.grantDynamicNames === undefined) return false;
-      ctx.fx.grantDynamicNames(self.permanentId, () => {
-        const current = ctx.source.permanent();
-        if (current === undefined) return [];
-        const names = Array.from(current.stack).flatMap((card) => {
-          const definition = ctx.game.definitionOf(card);
-          return (definition.level ?? 99) <= 3 ? (definition.nameEn ? [definition.nameEn] : []) : [];
-        });
-        return [...new Set(names)];
-      }, toDuration("permanent"));
+      ctx.fx.grantDynamicNames(
+        self.permanentId,
+        () => {
+          const current = ctx.source.permanent();
+          if (current === undefined) return [];
+          const names = Array.from(current.stack).flatMap((card) => {
+            const definition = ctx.game.definitionOf(card);
+            return (definition.level ?? 99) <= 3 ? (definition.nameEn ? [definition.nameEn] : []) : [];
+          });
+          return [...new Set(names)];
+        },
+        toDuration("permanent"),
+      );
       return false;
     }
     case "GrantStatic": {
@@ -357,10 +361,24 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           for (const permanentId of ids) {
             if (grant.dp !== undefined) ctx.fx.setBaseDP(permanentId, grant.dp, grantDuration);
             if (grant.color !== undefined || grant.originalName !== undefined) {
-              ctx.fx.setOriginalCardInfo(permanentId, {
-                ...(grant.color === undefined ? {} : { colors: [COLOR_MAP[Object.keys(COLOR_MAP).find((key) => key.toLowerCase() === grant.color!.toLowerCase()) as keyof typeof COLOR_MAP]] }),
-                ...(grant.originalName === undefined ? {} : { name: grant.originalName }),
-              }, grantDuration);
+              ctx.fx.setOriginalCardInfo(
+                permanentId,
+                {
+                  ...(grant.color === undefined
+                    ? {}
+                    : {
+                        colors: [
+                          COLOR_MAP[
+                            Object.keys(COLOR_MAP).find(
+                              (key) => key.toLowerCase() === grant.color!.toLowerCase(),
+                            ) as keyof typeof COLOR_MAP
+                          ],
+                        ],
+                      }),
+                  ...(grant.originalName === undefined ? {} : { name: grant.originalName }),
+                },
+                grantDuration,
+              );
             }
           }
           return false;

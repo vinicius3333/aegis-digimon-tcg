@@ -6,115 +6,113 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": ["X-Antibody"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X-Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "from": ["hand"],
-            "count": 1
+            from: ["hand"],
+            count: 1,
           },
-          "underFilter": {
-            "isSelfRef": true
+          underFilter: {
+            isSelfRef: true,
           },
-          "position": "bottom",
-          "optional": true
+          position: "bottom",
+          optional: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "playCostLte": 7
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 7,
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "PlaceUnder resolved"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "PlaceUnder resolved",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onAddDigivolutionCards",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "amount": 2000,
-              "duration": "untilOpponentTurnEnd"
+              amount: 2000,
+              duration: "untilOpponentTurnEnd",
             },
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Restrict",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "restriction": "beDeleted",
-              "byOpponentEffectsOnly": true,
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
+              restriction: "beDeleted",
+              byOpponentEffectsOnly: true,
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "selfHasNameContaining",
-            "names": ["Alphamon"]
-          }
-        }
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Alphamon"],
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "isInherited": true
-    }
+      frequency: "OncePerTurn",
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-069", compiled);

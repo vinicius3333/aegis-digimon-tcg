@@ -8,21 +8,42 @@ import "../index.js";
 
 describe("ST15-10 Andromon", () => {
   it("de-digivolves one opposing stack and inherits Reboot on the next host", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST15-08", as: "base" }], hand: [{ card: "ST15-10", as: "andromon" }, { card: "ST15-13", as: "hia" }] },
-      1: { battleArea: [{ card: "ST15-12", as: "target", under: ["BT1-009", "ST15-08", "ST15-11"] }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST15-08", as: "base" }],
+          hand: [
+            { card: "ST15-10", as: "andromon" },
+            { card: "ST15-13", as: "hia" },
+          ],
+        },
+        1: { battleArea: [{ card: "ST15-12", as: "target", under: ["BT1-009", "ST15-08", "ST15-11"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
 
     const base = s.perm("base");
     const target = s.perm("target");
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: s.inst("andromon").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: s.inst("andromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await s.ready();
 
     expect(target.topCard?.cardId).toBe("ST15-11");
     expect(target.stack).toHaveLength(2);
     expect(observe(s.engine).hasKeyword(base, "Reboot")).toBe(false);
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: s.inst("hia").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: s.inst("hia").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => base.topCard.cardId === "ST15-13");
     await s.engine.recomputeContinuousEffects();
     expect(registeredCompiledCards.get("ST15-10")?.effects.find((effect) => effect.isInherited)).toMatchObject({

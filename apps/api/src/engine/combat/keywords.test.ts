@@ -155,11 +155,13 @@ describe("resolved keyword contract", () => {
       });
       await s.ready();
 
-      expect(s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.state.players[1]!.security.length === 0);
 
       expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
@@ -178,11 +180,13 @@ describe("resolved keyword contract", () => {
       });
       await s.ready();
 
-      expect(s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
 
       expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
@@ -201,11 +205,13 @@ describe("resolved keyword contract", () => {
     s.state.turnCount = 1;
     s.perm("striker").enterFieldTurnCount = s.state.turnCount;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("striker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("striker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
   });
 
   it("publishes canonical keyword names through the synchronized GameState", async () => {

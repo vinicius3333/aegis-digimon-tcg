@@ -41,49 +41,46 @@ describe("BT7 Eyesmon discard deck gauntlet", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("koichi").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        ({ topCard }) => topCard.instanceId === discardedEyesmonId,
-      ) && s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("koichi").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === discardedEyesmonId) &&
+        s.state.pendingDecision === undefined,
     );
     await settle();
 
-    const discardChoice = s.decisions.find(({ req }) =>
-      req.kind === "selectCards" &&
-      req.sourceCardId === "BT7-091" &&
-      req.options?.candidateInstanceIds?.includes(discardedEyesmonId)
+    const discardChoice = s.decisions.find(
+      ({ req }) =>
+        req.kind === "selectCards" &&
+        req.sourceCardId === "BT7-091" &&
+        req.options?.candidateInstanceIds?.includes(discardedEyesmonId),
     )?.req;
-    expect(new Set(discardChoice?.options?.candidateInstanceIds ?? [])).toEqual(new Set([
-      discardedEyesmonId,
-      keptEyesmonId,
-      drawnWendigomonId,
-    ]));
-    expect(new Set(discardChoice?.options?.visibleInstanceIds ?? [])).toEqual(new Set([
-      discardedEyesmonId,
-      keptEyesmonId,
-      drawnWendigomonId,
-    ]));
+    expect(new Set(discardChoice?.options?.candidateInstanceIds ?? [])).toEqual(
+      new Set([discardedEyesmonId, keptEyesmonId, drawnWendigomonId]),
+    );
+    expect(new Set(discardChoice?.options?.visibleInstanceIds ?? [])).toEqual(
+      new Set([discardedEyesmonId, keptEyesmonId, drawnWendigomonId]),
+    );
 
-    const eyesmon = s.state.players[0]!.battleArea.find(
-      ({ topCard }) => topCard.instanceId === discardedEyesmonId,
-    )!;
+    const eyesmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === discardedEyesmonId)!;
     expect(eyesmon.currentDP).toBe(9000);
-    expect(s.state.players[0]!.battleArea.filter(
-      ({ topCard }) => topCard.cardId === "BT7-072",
-    )).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT7-072")).toHaveLength(1);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === keptEyesmonId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === discardedEyesmonId)).toBe(false);
     expect(s.state.memory).toBe(0);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: eyesmon.permanentId,
-      target: { kind: "permanent", permanentId: targetId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: eyesmon.permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId) &&

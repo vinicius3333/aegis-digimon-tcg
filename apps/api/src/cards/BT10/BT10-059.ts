@@ -13,92 +13,82 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // De-Digivolve can't trash past level 3), so it belongs on the DeDigivolve action as
 // `stopAtLevel: 3`, not as a second action.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "stopAtLevel": 3,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          amount: 1,
+          stopAtLevel: 3,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
-            "raw": "By placing this Digimon under 1 of your Digimon with [Legend-Arms] or [Xros Heart] in its traits as its bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target",
-            "targetIsPermanent": true,
-            "underFilter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+            raw: "By placing this Digimon under 1 of your Digimon with [Legend-Arms] or [Xros Heart] in its traits as its bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+            targetIsPermanent: true,
+            underFilter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Legend-Arms",
-                    "Xros Heart"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            }
+                  tokens: ["Legend-Arms", "Xros Heart"],
+                  match: "trait",
+                },
+              ],
+            },
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Legend-Arms",
-                      "Xros Heart"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Legend-Arms", "Xros Heart"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
+          rest: "deckBottom",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-059", compiled);

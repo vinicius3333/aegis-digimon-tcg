@@ -11,7 +11,13 @@ const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", zone: "trash", kind: ["Digimon"], colors: ["Black", "Purple"], playCostLte: 8 },
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              kind: ["Digimon"],
+              colors: ["Black", "Purple"],
+              playCostLte: 8,
+            },
             count: 2,
           },
           from: ["trash"],
@@ -22,16 +28,29 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
-      actions: [{
-        kind: "Delete",
-        target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true, playCostLte: 12 }, count: 1 },
-        cost: {
-          kind: "return",
-          to: "hand",
-          target: { filter: { zone: "digivolutionCards", controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 6 } }, count: 1 },
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true, playCostLte: 12 },
+            count: 1,
+          },
+          cost: {
+            kind: "return",
+            to: "hand",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                controller: "mine",
+                kind: ["Digimon"],
+                levelComparison: { op: "eq", value: 6 },
+              },
+              count: 1,
+            },
+          },
+          optional: true,
         },
-        optional: true,
-      }],
+      ],
     },
   ],
   coverage: "full",

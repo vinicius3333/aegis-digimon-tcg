@@ -12,178 +12,154 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes: added GrantStatic deDigivolve protection; added DeadlyAxemon to DigiXros materials;
 // added kind filter to PlayWithoutCost target.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "selectionRef": "protected",
-          "grant": {
-            "kind": "Protection",
-            "protections": [
-              "deDigivolve"
-            ],
-            "from": "opponent"
+          selectionRef: "protected",
+          grant: {
+            kind: "Protection",
+            protections: ["deDigivolve"],
+            from: "opponent",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "fromSelectionRef": "protected",
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          fromSelectionRef: "protected",
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "selectionRef": "protected",
-          "grant": {
-            "kind": "Protection",
-            "protections": [
-              "deDigivolve"
-            ],
-            "from": "opponent"
+          selectionRef: "protected",
+          grant: {
+            kind: "Protection",
+            protections: ["deDigivolve"],
+            from: "opponent",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "fromSelectionRef": "protected",
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          fromSelectionRef: "protected",
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon",
-                    "Tamer",
-                    "Option"
-                  ],
-                  "playCostLte": 4
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon", "Tamer", "Option"],
+                  playCostLte: 4,
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "texts": [
-        "Knightmon"
-      ],
-      "cost": 4,
-      "isAlternate": true
-    }
+      level: 4,
+      texts: ["Knightmon"],
+      cost: 4,
+      isAlternate: true,
+    },
   ],
-  "digiXrosRequirement": [
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "names": [
-            "SkullKnightmon"
-          ]
+          names: ["SkullKnightmon"],
         },
         {
-          "names": [
-            "DeadlyAxemon"
-          ]
-        }
+          names: ["DeadlyAxemon"],
+        },
       ],
-      "count": 1
-    }
-  ]
+      count: 1,
+    },
+  ],
 };
 
 export { compiled };

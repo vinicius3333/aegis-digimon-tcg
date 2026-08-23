@@ -6,126 +6,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-          "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card in your hand"
+            raw: "By trashing 1 card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Agumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Agumon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          duration: "forTheTurn",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Tai Kamiya"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Tai Kamiya"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a Tamer with [Tai Kamiya] in its name"
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "names": [
-        "Greymon"
+            raw: "you have a Tamer with [Tai Kamiya] in its name",
+          },
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      names: ["Greymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT14-076", compiled);

@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  CardKind,
-  EffectTiming,
-  type CardDefinition,
-  type GameState,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { CardKind, EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -131,7 +124,7 @@ function makeContext(opts: {
   const game: GameAccess = {
     state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
     player: (seat: Seat) => players[seat] as never,
-    opponentOf: (seat: Seat) => ((seat === 0 ? 1 : 0) as Seat),
+    opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
     permanentById: (id: string) => ownerBattleArea.find((p) => p.permanentId === id),
     definitionOf: (card: { cardId: string }) => fakeDefinition(card.cardId),
   } as unknown as GameAccess;
@@ -151,8 +144,7 @@ function makeContext(opts: {
     },
   ) as unknown as Primitives;
 
-  const pickFirst = async (_c: unknown, o: { candidates: string[]; max?: number }) =>
-    o.candidates.slice(0, o.max ?? 1);
+  const pickFirst = async (_c: unknown, o: { candidates: string[]; max?: number }) => o.candidates.slice(0, o.max ?? 1);
   const ask = {
     optional: async () => true,
     chooseTargets: pickFirst,

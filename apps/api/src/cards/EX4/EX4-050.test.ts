@@ -3,7 +3,11 @@ import { compiled } from "./EX4-050.js";
 
 describe("EX4-050 ShadowSeraphimon", () => {
   it("De-Digivolves an opposing Digimon when security is removed during the opponent's turn", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions?.[0]).toMatchObject({ kind: "SubTrigger", event: "whenSecurityRemoved", actions: [{ kind: "DeDigivolve", amount: 1, target: { filter: { controller: "opponent" } } }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions?.[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      actions: [{ kind: "DeDigivolve", amount: 1, target: { filter: { controller: "opponent" } } }],
+    });
   });
   it("adds one security and reduces opposing DP by 4000 per own security on deletion", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions;

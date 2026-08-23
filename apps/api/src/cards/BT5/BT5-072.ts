@@ -6,37 +6,31 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "excludeNames": [
-                "Fake Agumon Expert"
-              ],
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ],
-              "effectTextContains": "[On Deletion]"
+          kind: "Return",
+          target: {
+            filter: {
+              excludeNames: ["Fake Agumon Expert"],
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [3],
+              effectTextContains: "[On Deletion]",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
-        }
-      ]
-    }
+          to: "hand",
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-072", compiled);

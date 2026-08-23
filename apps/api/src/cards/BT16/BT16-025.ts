@@ -6,115 +6,109 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Partition",
-          "raw": "＜Partition (blue Lv.4 & green Lv.4)＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "digivolutionCardsCompareToSource": "lte",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          }
+          keyword: "Partition",
+          raw: "＜Partition (blue Lv.4 & green Lv.4)＞",
         },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "condition": {
-            "kind": "ifThisEffectDidNotSuspend",
-            "raw": "this effect didn't suspend"
-          }
-        }
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "keyword": "Partition",
-          "raw": "＜Partition (blue Lv.4 & green Lv.4)＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "dnaDigivolveRequirement": [
-    {
-      "cost": 0,
-      "materials": [
-        {
-          "color": "Blue",
-          "level": 4
+          kind: "Suspend",
+          target: {
+            filter: {
+              digivolutionCardsCompareToSource: "lte",
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
         },
         {
-          "color": "Green",
-          "level": 4
-        }
-      ]
-    }
-  ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          condition: {
+            kind: "ifThisEffectDidNotSuspend",
+            raw: "this effect didn't suspend",
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Partition",
+          raw: "＜Partition (blue Lv.4 & green Lv.4)＞",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Blue",
+          level: 4,
+        },
+        {
+          color: "Green",
+          level: 4,
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT16-025", compiled);

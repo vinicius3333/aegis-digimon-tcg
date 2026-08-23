@@ -6,73 +6,73 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{"tokens": ["Angoramon"], "match": "name"}]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Angoramon"], match: "name" }],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [{"tokens": ["Lamortmon"], "match": "name"}]
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [{ tokens: ["Lamortmon"], match: "name" }],
           },
-          "from": ["hand"],
-          "payCost": true,
-          "costOverride": 3,
-          "ignoreRequirements": true,
-          "optional": true,
-          "additionalCosts": [
+          from: ["hand"],
+          payCost: true,
+          costOverride: 3,
+          ignoreRequirements: true,
+          optional: true,
+          additionalCosts: [
             {
-              "kind": "place",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{"tokens": ["SymbareAngoramon"], "match": "name"}]
+              kind: "place",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["SymbareAngoramon"], match: "name" }],
                 },
-                "count": 1,
-                "from": ["hand"]
+                count: 1,
+                from: ["hand"],
               },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target",
-              "raw": "by placing 1 [SymbareAngoramon] from your hand as 1 of your [Angoramon]'s bottom digivolution card"
-            }
-          ]
-        }
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "target",
+              raw: "by placing 1 [SymbareAngoramon] from your hand as 1 of your [Angoramon]'s bottom digivolution card",
+            },
+          ],
+        },
       ],
-      "isFromHand": true
+      isFromHand: true,
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-055", compiled);

@@ -9,10 +9,23 @@ describe("BT18-002 Chapmon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "AllTurns",
       isInherited: true,
-      actions: [{ kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: { kind: "youHave", filter: { excludeSelf: true, kind: ["Digimon"], colors: ["Blue"] } } }],
+      actions: [
+        {
+          kind: "Aura",
+          effect: { kind: "modifyDP", amount: 1000 },
+          while: { kind: "youHave", filter: { excludeSelf: true, kind: ["Digimon"], colors: ["Blue"] } },
+        },
+      ],
     });
 
-    const withAnother = setupEngine({ 0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-002"] }, { card: "BT1-030", as: "other" }] } });
+    const withAnother = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-030", as: "host", under: ["BT18-002"] },
+          { card: "BT1-030", as: "other" },
+        ],
+      },
+    });
     await withAnother.engine.recomputeContinuousEffects();
     expect(withAnother.perm("host").currentDP).toBe(4000);
 

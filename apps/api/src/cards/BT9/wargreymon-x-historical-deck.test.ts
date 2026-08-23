@@ -71,36 +71,42 @@ describe("BT9 WarGreymon X historical deck gauntlet", () => {
         instanceId: metalGreymonXId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("metalGreymon").topCard?.instanceId === metalGreymonXId &&
-      s.perm("metalGreymon").currentDP === 11000
+    await settle(
+      () =>
+        s.perm("metalGreymon").topCard?.instanceId === metalGreymonXId && s.perm("metalGreymon").currentDP === 11000,
     );
     expect(s.perm("metalGreymon").currentDP).toBe(11000);
     expect(observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("warGreymon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("metalGreymon").topCard?.instanceId === s.inst("warGreymon").instanceId &&
-      s.perm("metalGreymon").currentDP === 14000 &&
-      observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack") === 2 &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("warGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("metalGreymon").topCard?.instanceId === s.inst("warGreymon").instanceId &&
+        s.perm("metalGreymon").currentDP === 14000 &&
+        observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack") === 2 &&
+        s.state.pendingDecision === undefined,
     );
     expect(observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack")).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: hostId,
-      instanceId: s.inst("warGreymonX").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("metalGreymon").topCard?.instanceId === s.inst("warGreymonX").instanceId &&
-      s.perm("metalGreymon").currentDP === 15000 &&
-      observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack") === 2 &&
-      s.state.pendingDecision === undefined
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("warGreymonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("metalGreymon").topCard?.instanceId === s.inst("warGreymonX").instanceId &&
+        s.perm("metalGreymon").currentDP === 15000 &&
+        observe(s.engine).keywordAmount(s.perm("metalGreymon"), "SecurityAttack") === 2 &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.state.memory).toBe(4);
@@ -114,9 +120,10 @@ describe("BT9 WarGreymon X historical deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === endAttackTargetId)
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === endAttackTargetId),
     );
     if (s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === endAttackTargetId)) {
       await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("metalGreymon"));
@@ -136,24 +143,19 @@ describe("BT9 WarGreymon X historical deck gauntlet", () => {
         instanceId: gaiaForceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === greymonXSourceId) &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === tyrannomonSourceId) &&
-      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === gaiaForceId)
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === greymonXSourceId) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === tyrannomonSourceId) &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === gaiaForceId),
     );
 
-    const protectionChoice = s.decisions.find(({ req }) =>
-      req.kind === "selectCards" &&
-      req.options?.candidateInstanceIds?.includes(greymonXSourceId)
+    const protectionChoice = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(greymonXSourceId),
     )?.req;
     expect(new Set(protectionChoice?.options?.candidateInstanceIds ?? [])).toEqual(
-      new Set([
-        greymonXSourceId,
-        tyrannomonSourceId,
-        originalMetalGreymonId,
-        metalGreymonXId,
-      ]),
+      new Set([greymonXSourceId, tyrannomonSourceId, originalMetalGreymonId, metalGreymonXId]),
     );
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([hostId]);
     expect(s.perm("metalGreymon").stack.map(({ instanceId }) => instanceId)).toEqual([

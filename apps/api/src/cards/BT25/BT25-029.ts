@@ -6,230 +6,216 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Reboot"
+          keyword: {
+            keyword: "Reboot",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker"
+          keyword: {
+            keyword: "Blocker",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Evade"
+          keyword: {
+            keyword: "Evade",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
+          to: "hand",
+          optional: true,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "cost": {
-            "kind": "trashBottomFaceDownUnderTamer",
-            "controller": "mine",
-            "count": 1,
-            "raw": "by trashing the bottom face-down card under any of your Tamers"
+          to: "hand",
+          cost: {
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            count: 1,
+            raw: "by trashing the bottom face-down card under any of your Tamers",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
+          to: "hand",
+          optional: true,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "cost": {
-            "kind": "trashBottomFaceDownUnderTamer",
-            "controller": "mine",
-            "count": 1,
-            "raw": "by trashing the bottom face-down card under any of your Tamers"
+          to: "hand",
+          cost: {
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            count: 1,
+            raw: "by trashing the bottom face-down card under any of your Tamers",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectAddsToOpponentHand",
-          "optional": true,
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenEffectAddsToOpponentHand",
+          optional: true,
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
-              }
-            }
+                count: 1,
+                isSelf: true,
+              },
+            },
           ],
-          "raw": "When effects add cards to your opponent's hand, this Digimon may unsuspend."
+          raw: "When effects add cards to your opponent's hand, this Digimon may unsuspend.",
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenDigivolutionTrashed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ]
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
           },
-          "optional": true,
-          "actions": [
+          optional: true,
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
-              }
-            }
+                count: 1,
+                isSelf: true,
+              },
+            },
           ],
-          "raw": "When effects trash cards from under your Tamers, this Digimon may unsuspend."
-        }
+          raw: "When effects trash cards from under your Tamers, this Digimon may unsuspend.",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "names": [
-        "MachGaogamon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      level: 5,
+      names: ["MachGaogamon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "DATA SQUAD"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 5
-    }
-  ]
+      traits: ["DATA SQUAD"],
+      cost: 3,
+      isAlternate: true,
+      level: 5,
+    },
+  ],
 };
 
 registerIrCard("BT25-029", compiled);

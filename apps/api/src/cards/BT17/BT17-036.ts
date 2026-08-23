@@ -3,129 +3,115 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "mode": "prevent",
-          "leaveCause": "byOpponentEffect",
-          "actions": [],
-          "cost": {
-            "kind": "trashSecurityTop",
-            "raw": "by trashing the top card of your security stack, prevent it"
-          }
-        }
+          mode: "prevent",
+          leaveCause: "byOpponentEffect",
+          actions: [],
+          cost: {
+            kind: "trashSecurityTop",
+            raw: "by trashing the top card of your security stack, prevent it",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectRemovesFromSecurity",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenEffectRemovesFromSecurity",
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "isSelfRef": true,
-                  "digivolutionStackNameOrTrait": [
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  isSelfRef: true,
+                  digivolutionStackNameOrTrait: [
                     {
-                      "tokens": [
-                        "Leon Alexander"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Leon Alexander"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Pulsemon"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Pulsemon"],
+                    match: "text",
+                  },
+                ],
               },
-              "payCost": false,
-              "from": [
-                "hand"
-              ],
-              "optional": true
-            }
-          ]
-        }
+              payCost: false,
+              from: ["hand"],
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "selfTopHasText",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfTopHasText",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Pulsemon"
-                  ],
-                  "match": "text"
-                }
-              ]
+                  tokens: ["Pulsemon"],
+                  match: "text",
+                },
+              ],
             },
-            "raw": "this Digimon has [Pulsemon] in its text"
+            raw: "this Digimon has [Pulsemon] in its text",
           },
-          "cost": {
-            "kind": "trashSecurityTop",
-            "raw": "by trashing the top card of your security stack"
+          cost: {
+            kind: "trashSecurityTop",
+            raw: "by trashing the top card of your security stack",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "texts": [
-        "Pulsemon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      texts: ["Pulsemon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-036", compiled);

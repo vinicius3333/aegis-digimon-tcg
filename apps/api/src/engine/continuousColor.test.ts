@@ -60,9 +60,7 @@ describe("A3 static/continuous color derivation — a continuously-derived color
 
     // The engine's effective-color accessor unions BT3-040's printed Yellow with the
     // continuously-derived Blue — Q1075's "treated as both yellow and blue".
-    const colors = (
-      s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }
-    ).effectiveColorsOf(base);
+    const colors = (s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }).effectiveColorsOf(base);
     expect(colors).toContain("Yellow"); // printed
     expect(colors).toContain("Blue"); // continuously derived
 
@@ -99,9 +97,7 @@ describe("A3 static/continuous color derivation — a continuously-derived color
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
 
-    const colors = (
-      s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }
-    ).effectiveColorsOf(base);
+    const colors = (s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }).effectiveColorsOf(base);
     expect(colors).toContain("Yellow"); // printed colour always present
     expect(colors).not.toContain("Blue"); // [Your Turn] grant lapsed on the opponent's turn
   });

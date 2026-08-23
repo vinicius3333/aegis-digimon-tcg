@@ -35,7 +35,11 @@ const compiled: CompiledCard = {
             {
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["MetalGreymon"], match: "name" }] },
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["MetalGreymon"], match: "name" }],
+                },
                 count: 1,
               },
               from: ["digivolutionCards"],
@@ -45,7 +49,11 @@ const compiled: CompiledCard = {
             {
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DarkKnightmon"], match: "name" }] },
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["DarkKnightmon"], match: "name" }],
+                },
                 count: 1,
               },
               from: ["digivolutionCards"],

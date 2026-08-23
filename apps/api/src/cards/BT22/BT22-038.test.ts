@@ -53,14 +53,16 @@ describe("BT22-038 Monzaemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "EX9-050",
-            as: "numemon",
-            under: [
-              { card: "BT1-001", faceUp: false },
-              { card: "BT1-002", faceUp: false },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "EX9-050",
+              as: "numemon",
+              under: [
+                { card: "BT1-001", faceUp: false },
+                { card: "BT1-002", faceUp: false },
+              ],
+            },
+          ],
           hand: [{ card: "BT22-038", as: "monzaemon" }],
         },
         1: { battleArea: [{ card: "BT22-052", as: "target" }] },
@@ -69,18 +71,22 @@ describe("BT22-038 Monzaemon", () => {
     );
     s.state.memory = 1;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("numemon").permanentId,
-      instanceId: s.inst("monzaemon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("numemon").permanentId,
+        instanceId: s.inst("monzaemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving"));
     await settle();
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("target").currentDP).toBe(8000);
     expect(observe(s.engine).timingEffectDisabled(s.perm("target"), "whenDigivolving")).toBe(true);
-    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-001" || card.cardId === "BT1-002")).toHaveLength(1);
+    expect(
+      s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-001" || card.cardId === "BT1-002"),
+    ).toHaveLength(1);
   });
 });

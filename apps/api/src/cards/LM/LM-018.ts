@@ -6,44 +6,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "Gyuukimon Token"
-          ],
-          "count": 1,
-          "payCost": false,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "you did"
+          kind: "PlayToken",
+          tokens: ["Gyuukimon Token"],
+          count: 1,
+          payCost: false,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "you did",
           },
-          "optional": true
-        }
-      ]
-    }
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-018", compiled);

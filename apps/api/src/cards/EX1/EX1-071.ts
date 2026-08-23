@@ -9,63 +9,61 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Cannot reduce cost for Digimon in the breeding area (KB Q3259).
 //   - Color match uses all current colors (multicolor OK, DNA OK).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
             },
-            "raw": "you have a Tamer in play"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "CostModifier",
-          "mode": "reduce",
-          "costType": "digivolve",
-          "amount": 4,
-          "duration": "nextDigivolveThisTurn",
-          "zone": "battleArea",
-          "cost": {
-            "kind": "trash",
-            "raw": "by trashing 1 Digimon card in your hand of the same color as the digivolving Digimon"
+            raw: "you have a Tamer in play",
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "AddToHandSelf"
-        }
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "digivolve",
+          amount: 4,
+          duration: "nextDigivolveThisTurn",
+          zone: "battleArea",
+          cost: {
+            kind: "trash",
+            raw: "by trashing 1 Digimon card in your hand of the same color as the digivolving Digimon",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-071", compiled);

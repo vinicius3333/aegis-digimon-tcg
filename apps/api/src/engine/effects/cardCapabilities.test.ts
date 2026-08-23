@@ -1,18 +1,7 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type CompiledCard,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CompiledCard, type Permanent, type Seat } from "@aegis/shared";
 import { irCardModule } from "./interpreter.js";
-import {
-  type DecisionApi,
-  type EffectContext,
-  type GameAccess,
-  type Primitives,
-} from "./EffectContext.js";
+import { type DecisionApi, type EffectContext, type GameAccess, type Primitives } from "./EffectContext.js";
 import type { CardSource } from "./CardSource.js";
 
 /**
@@ -93,11 +82,10 @@ interface Sink {
   dp: { id: string; amount: number }[];
 }
 
-function makeCtx(opts: {
-  source: CardSource;
-  own?: Permanent[];
-  opponent?: Permanent[];
-}): { ctx: EffectContext; sink: Sink } {
+function makeCtx(opts: { source: CardSource; own?: Permanent[]; opponent?: Permanent[] }): {
+  ctx: EffectContext;
+  sink: Sink;
+} {
   const sink: Sink = { deleted: [], suspended: [], dp: [] };
   const players = [
     { seat: 0, battleArea: opts.own ?? [], security: [], hand: [], deck: [], trash: [] },

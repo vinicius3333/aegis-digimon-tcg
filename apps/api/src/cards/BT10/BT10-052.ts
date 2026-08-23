@@ -6,68 +6,64 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "mode": "reduceCost",
-          "amount": 2,
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          mode: "reduceCost",
+          amount: 2,
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "optional": true
+            optional: true,
           },
-          "raw": "＜Digisorption -2＞"
-        }
+          raw: "＜Digisorption -2＞",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Digisorption",
-          "amount": -2,
-          "raw": "＜Digisorption -2＞"
-        }
-      ]
+          keyword: "Digisorption",
+          amount: -2,
+          raw: "＜Digisorption -2＞",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "suspended": true,
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  suspended: true,
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-052", compiled);

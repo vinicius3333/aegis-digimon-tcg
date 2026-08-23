@@ -8,27 +8,36 @@ describe("EX10-006 Agumon", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Koromon"], cost: 0, isAlternate: true }]);
 
     expect(compiled.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")).toMatchObject({
-      actions: [{
-        kind: "Return",
-        optional: true,
-        to: "hand",
-        target: {
-          filter: {
-            zone: "trash",
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              { tokens: ["Virus"], match: "trait" },
-              { tokens: ["Greymon"], match: "name" },
-            ],
+      actions: [
+        {
+          kind: "Return",
+          optional: true,
+          to: "hand",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                { tokens: ["Virus"], match: "trait" },
+                { tokens: ["Greymon"], match: "name" },
+              ],
+            },
+            count: 1,
           },
-          count: 1,
         },
-      }],
+      ],
     });
     expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "AllTurns",
-      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent", target: { filter: { isSelfRef: true }, isSelf: true } }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 1000,
+          duration: "permanent",
+          target: { filter: { isSelfRef: true }, isSelf: true },
+        },
+      ],
     });
   });
 });

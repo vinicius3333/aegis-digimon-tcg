@@ -13,21 +13,41 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, budget: 6, upTo: true, condition: both },
-        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Digimon"] }, budget: 6, upTo: true, condition: onlyRed },
-        { kind: "DeleteBudget", filter: { controller: "opponent", kind: ["Tamer"] }, budget: 6, upTo: true, condition: onlyBlack },
+        {
+          kind: "DeleteBudget",
+          filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+          budget: 6,
+          upTo: true,
+          condition: both,
+        },
+        {
+          kind: "DeleteBudget",
+          filter: { controller: "opponent", kind: ["Digimon"] },
+          budget: 6,
+          upTo: true,
+          condition: onlyRed,
+        },
+        {
+          kind: "DeleteBudget",
+          filter: { controller: "opponent", kind: ["Tamer"] },
+          budget: 6,
+          upTo: true,
+          condition: onlyBlack,
+        },
       ],
     },
     {
       trigger: "AllTurns",
       isInherited: false,
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "onDeletionOf",
-        sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-        actions: [{ kind: "Unsuspend", target: { isSelfRef: true, count: 1, isSelf: true }, optional: true }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          actions: [{ kind: "Unsuspend", target: { isSelfRef: true, count: 1, isSelf: true }, optional: true }],
+        },
+      ],
     },
   ],
   coverage: "full",

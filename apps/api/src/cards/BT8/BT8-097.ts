@@ -3,73 +3,69 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 1,
-          "raw": "Reduce the memory cost of this card in your hand by 1",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "battleArea",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 1,
+          raw: "Reduce the memory cost of this card in your hand by 1",
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "battleArea",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RestrictPlay",
-          "seat": "opponent",
-          "filter": {
-            "kind": ["Digimon"]
+          kind: "RestrictPlay",
+          seat: "opponent",
+          filter: {
+            kind: ["Digimon"],
           },
-          "mode": "play",
-          "byEffectOnly": true,
-          "duration": "untilOpponentTurnEnd"
+          mode: "play",
+          byEffectOnly: true,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
             },
-            "count": "all"
-          }
-        }
-      ]
+            count: "all",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-097", compiled);

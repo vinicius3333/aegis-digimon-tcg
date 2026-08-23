@@ -39,7 +39,8 @@ import "../cards/index.js";
  * test that builds its stores directly gets neither of them.
  */
 
-const SERIES_DURATION_MS = AEGIS_LIGHTNING_PRESET.clocks[1].topCutDurationMs ?? AEGIS_LIGHTNING_PRESET.clocks[1].finalDurationMs;
+const SERIES_DURATION_MS =
+  AEGIS_LIGHTNING_PRESET.clocks[1].topCutDurationMs ?? AEGIS_LIGHTNING_PRESET.clocks[1].finalDurationMs;
 const WINS_REQUIRED = 1;
 const MINUTE_MS = 60_000;
 /**

@@ -25,7 +25,9 @@ describe("BT11-072 Machinedramon", () => {
     );
     s.state.memory = 20;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.length === 4);
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-067");
@@ -66,18 +68,29 @@ describe("BT11-072 Machinedramon", () => {
     s.state.memory = 0;
 
     await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("replacement").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("replacement").instanceId),
+    );
 
     // The returned Analogman is immediately revealed by the replacement
     // Machinedramon's [On Play] effect and added back to hand.
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-092")).toBe(true);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("replacement").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("replacement").instanceId),
+    ).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 
   it("may still bottom-deck Analogman when no Machinedramon is in hand", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT11-072", as: "deleted" }, { card: "BT11-092", as: "analogman" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-072", as: "deleted" },
+            { card: "BT11-092", as: "analogman" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 

@@ -8,91 +8,88 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (the prior IR independently re-targeted an opponent Digimon for the Restrict).
 const suspendThenRestrict = () => [
   {
-    "kind": "SelectBind",
-    "target": {
-      "filter": {
-        "controller": "opponent",
-        "kind": ["Digimon"]
+    kind: "SelectBind",
+    target: {
+      filter: {
+        controller: "opponent",
+        kind: ["Digimon"],
       },
-      "count": 1,
-      "bindAs": "suspended"
-    }
-  },
-  {
-    "kind": "Suspend",
-    "target": {
-      "fromSelectionRef": "suspended",
-      "filter": {},
-      "count": 1
-    }
-  },
-  {
-    "kind": "Restrict",
-    "target": {
-      "fromSelectionRef": "suspended",
-      "filter": {},
-      "count": 1
+      count: 1,
+      bindAs: "suspended",
     },
-    "restriction": "unsuspend",
-    "duration": "untilOpponentTurnEnd",
-    "condition": {
-      "kind": "selfDigivolutionStackHasTrait",
-      "filter": {
-        "nameOrTrait": [
+  },
+  {
+    kind: "Suspend",
+    target: {
+      fromSelectionRef: "suspended",
+      filter: {},
+      count: 1,
+    },
+  },
+  {
+    kind: "Restrict",
+    target: {
+      fromSelectionRef: "suspended",
+      filter: {},
+      count: 1,
+    },
+    restriction: "unsuspend",
+    duration: "untilOpponentTurnEnd",
+    condition: {
+      kind: "selfDigivolutionStackHasTrait",
+      filter: {
+        nameOrTrait: [
           {
-            "tokens": ["DigiPolice"],
-            "match": "trait"
-          }
-        ]
+            tokens: ["DigiPolice"],
+            match: "trait",
+          },
+        ],
       },
-      "raw": "a Tamer card with the [DigiPolice] trait is in this Digimon's digivolution cards"
-    }
-  }
+      raw: "a Tamer card with the [DigiPolice] trait is in this Digimon's digivolution cards",
+    },
+  },
 ];
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {
-      "trigger": "OnPlay",
-      "actions": suspendThenRestrict()
+      trigger: "OnPlay",
+      actions: suspendThenRestrict(),
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": suspendThenRestrict()
+      trigger: "WhenDigivolving",
+      actions: suspendThenRestrict(),
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ]
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon", "Tamer"],
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-058", compiled);

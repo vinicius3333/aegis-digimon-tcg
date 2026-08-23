@@ -80,13 +80,16 @@ describe("catalogued Digi-Egg behavior — inherited effects on a battle-area ho
 
 describe("catalogued Digi-Egg behavior — breeding isolation", () => {
   it("does not fire BT15-004's inherited battle effect while the egg is in breeding", async () => {
-    const s = setupEngine({
-      0: {
-        breeding: { card: "BT15-004", as: "egg" },
-        security: ["BT1-085", "BT1-085"],
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT15-004", as: "egg" },
+          security: ["BT1-085", "BT1-085"],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "defender" }] },
       },
-      1: { battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "defender" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await fireTiming(s, EffectTiming.OnEndTurn);
     await settle(() => false, 40);

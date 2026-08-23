@@ -23,9 +23,17 @@ describe("BT10-049 Ballistamon", () => {
   });
 
   it("may Save itself under a Tamer when deleted", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-049", as: "source" }, { card: "BT10-087", as: "tamer" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-049", as: "source" },
+            { card: "BT10-087", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     const sourceId = s.perm("source").topCard.instanceId;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId])).toBe(1);

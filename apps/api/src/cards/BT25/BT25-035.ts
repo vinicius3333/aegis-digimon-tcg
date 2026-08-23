@@ -8,141 +8,123 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // any of your Tamers" (KB Q6300/Q6301: all 2 must come from underTamers,
 // may be spread across multiple Tamers).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn"
+          amount: -3000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Glowing Dawn"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Glowing Dawn"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "cost": {
-            "kind": "trashBottomFaceDownUnderTamer",
-            "controller": "mine",
-            "count": 2,
-            "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          cost: {
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            count: 2,
+            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
           },
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": -3000,
-          "duration": "forTheTurn"
+          abortOnDecline: true,
         },
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Glowing Dawn"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "cost": {
-            "kind": "trashBottomFaceDownUnderTamer",
-            "controller": "mine",
-            "count": 2,
-            "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
-          },
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
-        {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "traits": [
-        "Glowing Dawn"
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -3000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Glowing Dawn"],
+                match: "trait",
+              },
+            ],
+          },
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          cost: {
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            count: 2,
+            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
+          },
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      traits: ["Glowing Dawn"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-035", compiled);

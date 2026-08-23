@@ -18,14 +18,17 @@ describe("P-071 Impmon", () => {
     const impmonId = s.inst("impmon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === gabumonId) &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === impmonId)
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === gabumonId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === impmonId),
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === gabumonId)).toBe(true);
@@ -47,11 +50,13 @@ describe("P-071 Impmon", () => {
     const impmonId = s.inst("impmon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === impmonId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === gabumonId)).toBe(true);

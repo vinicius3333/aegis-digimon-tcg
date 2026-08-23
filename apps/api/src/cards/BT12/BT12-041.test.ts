@@ -60,10 +60,7 @@ it("draws when a zero-DP opponent is removed in a mixed rule-deletion batch", as
   });
   await s.ready();
   const handBefore = s.state.players[0]!.hand.length;
-  await advance(s.engine).verb.deletePermanent(
-    [s.perm("zero").permanentId, s.perm("aboveZero").permanentId],
-    "byRule",
-  );
+  await advance(s.engine).verb.deletePermanent([s.perm("zero").permanentId, s.perm("aboveZero").permanentId], "byRule");
   await settle(() => s.state.players[0]!.hand.length > handBefore);
   expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
 });
@@ -167,10 +164,13 @@ it("allows the alternate evolution from a level 4 Digimon with Save in its text"
 });
 
 it("applies the inherited minus 2000 DP effect only when the host has Save in its text", async () => {
-  const s = setupEngine({
-    0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-041"] }] },
-    1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
-  }, { autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-041"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
+    },
+    { autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
   await settle(() => s.perm("victim").currentDP === 8000);
@@ -187,20 +187,25 @@ it("applies the inherited Save reduction through the public attack intent", asyn
   );
   await s.ready();
   s.state.turnSeat = 0;
-  expect(s.engine.applyIntent(0, {
-    type: "attack",
-    attackerPermanentId: s.perm("host").permanentId,
-    target: { kind: "player" },
-  })).toEqual({ ok: true });
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
   await settle(() => s.perm("attacker").currentDP === 8000);
   expect(s.perm("attacker").currentDP).toBe(8000);
 });
 
 it("does not apply the inherited effect when the host top card has no Save text", async () => {
-  const s = setupEngine({
-    0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-041"] }] },
-    1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
-  }, { autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-041"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
+    },
+    { autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
   await settle(() => s.state.players[1]!.battleArea.length === 1);

@@ -32,18 +32,21 @@ describe("BT2 ShineGreymon yellow Tamer deck gauntlet", () => {
     s.state.memory = 4;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("rizegreymon").permanentId,
-      instanceId: s.inst("shinegreymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rizegreymon").permanentId,
+        instanceId: s.inst("shinegreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
 
     const expectedChoices = [singleHitTargetId, doubleHitTargetId, doubleHitTargetId];
     let previousDecisionId: string | undefined;
     for (const selectedId of expectedChoices) {
-      await settle(() =>
-        s.state.pendingDecision?.kind === "chooseTargets" &&
-        s.state.pendingDecision.decisionId !== previousDecisionId
+      await settle(
+        () =>
+          s.state.pendingDecision?.kind === "chooseTargets" &&
+          s.state.pendingDecision.decisionId !== previousDecisionId,
       );
       const choice = s.state.pendingDecision!;
       expect(choice.kind).toBe("chooseTargets");
@@ -52,25 +55,22 @@ describe("BT2 ShineGreymon yellow Tamer deck gauntlet", () => {
       expect(new Set(request?.options?.candidateInstanceIds ?? [])).toEqual(
         new Set([singleHitTargetId, doubleHitTargetId, bystanderId]),
       );
-      expect(s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: choice.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [selectedId] },
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: choice.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [selectedId] },
+        }),
+      ).toEqual({ ok: true });
       previousDecisionId = choice.decisionId;
     }
 
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[1]!.battleArea.length === 1
-    );
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.battleArea.length === 1);
 
     expect(s.perm("tkOne").isSuspended).toBe(true);
     expect(s.perm("kari").isSuspended).toBe(true);
     expect(s.perm("tkTwo").isSuspended).toBe(true);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
-      bystanderId,
-    ]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([bystanderId]);
     expect(s.perm("bystander").currentDP).toBe(12000);
     expect(s.perm("rizegreymon").topCard.instanceId).toBe(s.inst("shinegreymon").instanceId);
     expect(s.perm("rizegreymon").currentDP).toBe(14000);

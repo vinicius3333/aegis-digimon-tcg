@@ -8,9 +8,9 @@ describe("BT25-018 Apollomon", () => {
     expect(staticEffect?.actions?.[0]).toMatchObject({ kind: "Replacement", event: "wouldBePlayed" });
     const nested = staticEffect?.actions?.[0] as { actions?: unknown[] } | undefined;
     expect(nested?.actions?.[0]).toMatchObject({
-        mode: "reduceCost",
-        amount: 5,
-        condition: { kind: "opponentHas", filter: { dp: { op: "gte", value: 12000 } } },
+      mode: "reduceCost",
+      amount: 5,
+      condition: { kind: "opponentHas", filter: { dp: { op: "gte", value: 12000 } } },
     });
   });
 
@@ -23,14 +23,25 @@ describe("BT25-018 Apollomon", () => {
         scaling: { per: 1, filter: { controller: "mine", kind: ["Digimon"] }, unit: "cards" },
         target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
       });
-      expect(effect?.actions?.[1]).toMatchObject({ kind: "Delete", target: { filter: { dp: { op: "lte", relativeToSource: true } }, count: 1 } });
+      expect(effect?.actions?.[1]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { dp: { op: "lte", relativeToSource: true } }, count: 1 },
+      });
     }
   });
 
   it("keeps the end-turn DNA-then-attack sequence and inherited deletion", () => {
     const endTurn = BT25_018.effects?.find((entry) => entry.trigger === "EndOfYourTurn");
-    expect(endTurn?.actions?.[0]).toMatchObject({ kind: "DnaDigivolve", payCost: true, optional: true, into: { zone: "hand" } });
+    expect(endTurn?.actions?.[0]).toMatchObject({
+      kind: "DnaDigivolve",
+      payCost: true,
+      optional: true,
+      into: { zone: "hand" },
+    });
     expect(endTurn?.actions?.[1]).toMatchObject({ kind: "Attack", optional: true, withoutSuspending: false });
-    expect(BT25_018.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn" });
+    expect(BT25_018.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+    });
   });
 });

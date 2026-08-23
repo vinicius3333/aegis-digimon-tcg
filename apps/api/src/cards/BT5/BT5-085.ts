@@ -29,7 +29,14 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Armageddemon"], match: "name" }] }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Armageddemon"], match: "name" }],
+            },
+            count: 1,
+          },
           keyword: { keyword: "Rush" },
           duration: "permanent",
         },

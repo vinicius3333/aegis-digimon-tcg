@@ -81,12 +81,14 @@ describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck 
   it("uses the inherited trigger only once per turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{
-          card: TOP,
-          as: "host",
-          suspended: true,
-          under: [{ card: SNATCH }, { card: VEMMON, as: "first" }, { card: VEMMON, as: "second" }],
-        }],
+        battleArea: [
+          {
+            card: TOP,
+            as: "host",
+            suspended: true,
+            under: [{ card: SNATCH }, { card: VEMMON, as: "first" }, { card: VEMMON, as: "second" }],
+          },
+        ],
       },
     });
 
@@ -122,11 +124,13 @@ describe("BT11-065 when digivolving", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("snatch").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("snatch").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-105"));
 
     expect(s.perm("base").stack.filter(({ cardId }) => cardId === VEMMON)).toHaveLength(4);

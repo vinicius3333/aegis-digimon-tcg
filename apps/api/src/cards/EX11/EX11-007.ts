@@ -6,175 +6,145 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Tyrannomon"
-                  ],
-                  "match": "name"
+                  tokens: ["Tyrannomon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Reptile",
-                    "Dinosaur"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Reptile", "Dinosaur"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Raid",
-            "raw": "＜Raid＞"
+          keyword: {
+            keyword: "Raid",
+            raw: "＜Raid＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Tyrannomon"
-                  ],
-                  "match": "name"
+                  tokens: ["Tyrannomon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "Reptile",
-                    "Dinosaur"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
-          },
-          "duration": "forTheTurn"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Tyrannomon"
-                  ],
-                  "match": "name"
+                  tokens: ["Reptile", "Dinosaur"],
+                  match: "trait",
                 },
-                {
-                  "tokens": [
-                    "Reptile",
-                    "Dinosaur"
-                  ],
-                  "match": "trait"
-                }
-              ]
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Raid",
-            "raw": "＜Raid＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Tyrannomon"
-                  ],
-                  "match": "name"
-                },
-                {
-                  "tokens": [
-                    "Reptile",
-                    "Dinosaur"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
-          },
-          "duration": "forTheTurn"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 1000,
-          "duration": "permanent"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Tyrannomon"],
+                  match: "name",
+                },
+                {
+                  tokens: ["Reptile", "Dinosaur"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Raid",
+            raw: "＜Raid＞",
+          },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Tyrannomon"],
+                  match: "name",
+                },
+                {
+                  tokens: ["Reptile", "Dinosaur"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
+          },
+          duration: "forTheTurn",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 1000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Koromon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Koromon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX11-007", compiled);

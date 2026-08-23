@@ -16,128 +16,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - DigiXros count:1 = reduce cost by 1 per placed material (ir.ts DigiXrosRequirement.count).
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Xros Heart",
-                    "Blue Flare",
-                    "Hero"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Xros Heart", "Blue Flare", "Hero"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "hand",
-              "trash"
-            ]
+            count: 1,
+            from: ["hand", "trash"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "excludeToken": true
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            excludeToken: true,
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "excludeToken": true
-          }
-        }
-      ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            excludeToken: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Xros Heart",
-        "Hero"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
+      level: 3,
+      traits: ["Xros Heart", "Hero"],
+      cost: 2,
+      isAlternate: true,
+    },
   ],
-  "digiXrosRequirement": [
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "traits": [
-            "Xros Heart"
-          ]
-        }
+          traits: ["Xros Heart"],
+        },
       ],
-      "count": 1
-    }
-  ]
+      count: 1,
+    },
+  ],
 };
 
 registerIrCard("BT21-016", compiled);

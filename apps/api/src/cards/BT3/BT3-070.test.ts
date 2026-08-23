@@ -10,13 +10,7 @@ describe("BT3-070 Etemon", () => {
       {
         0: {
           battleArea: [{ card: "BT3-070", as: "etemon" }],
-          deck: [
-            { card: "BT3-074", as: "metalEtemon" },
-            "BT1-010",
-            "BT1-011",
-            "BT1-012",
-            "BT1-013",
-          ],
+          deck: [{ card: "BT3-074", as: "metalEtemon" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -27,9 +21,7 @@ describe("BT3-070 Etemon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("etemon").permanentId]);
 
-    expect(
-      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === playedId),
-    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === playedId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(4);
   });
 });

@@ -37,14 +37,7 @@ describe("BT11-045 ClavisAngemon", () => {
         battleArea: [{ card: "BT11-042", as: "base" }],
         hand: [{ card: "BT11-045", as: "clavis" }],
         deck: [{ card: "BT1-001", as: "top" }],
-        security: [
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-          "BT1-001",
-        ],
+        security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
       },
     });
     s.state.memory = 10;
@@ -67,7 +60,7 @@ describe("BT11-045 ClavisAngemon", () => {
       {
         0: {
           battleArea: [{ card: "BT11-045", as: "clavis" }],
-        security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         },
         1: {
           battleArea: [{ card: "BT1-114", as: "attacker" }],

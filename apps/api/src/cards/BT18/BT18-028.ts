@@ -6,156 +6,136 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 2,
-          "fromTop": false
+          amount: 2,
+          fromTop: false,
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
-            },
-            "count": "all"
-          },
-          "amount": 2,
-          "fromTop": false
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
         },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  },
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Mammal",
-                        "Ice-Snow",
-                        "Hybrid"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                },
-                "count": 1
-              },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Ice-Snow"
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
-    {
-      "materials": [
-        {
-          "names": [
-            "Kumamon"
-          ]
-        }
       ],
-      "count": 2
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
+            },
+            count: "all",
+          },
+          amount: 2,
+          fromTop: false,
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
+                  nameOrTrait: [
+                    {
+                      tokens: ["Mammal", "Ice-Snow", "Hybrid"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Ice-Snow"],
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          names: ["Kumamon"],
+        },
+      ],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT18-028", compiled);

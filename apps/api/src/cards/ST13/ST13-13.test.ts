@@ -14,7 +14,9 @@ describe("ST13-13 RaijiLudomon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 7;
     await s.ready();
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("smasher").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("smasher").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("raiji").permanentId)).toBe(true);
   });
@@ -27,24 +29,31 @@ describe("ST13-13 RaijiLudomon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("raiji").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("raiji").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST13-13")).toBe(true);
   });
 
   it("DNA digivolves its inherited host with the required partner at end of turn", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [
-        { card: "ST13-14", as: "black-material", under: ["ST13-13"] },
-        { card: "ST13-05", as: "red-material" },
-      ],
-      hand: [{ card: "ST13-06", as: "ragna" }],
-    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-14", as: "black-material", under: ["ST13-13"] },
+            { card: "ST13-05", as: "red-material" },
+          ],
+          hand: [{ card: "ST13-06", as: "ragna" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("black-material"));
@@ -58,13 +67,18 @@ describe("ST13-13 RaijiLudomon", () => {
   });
 
   it("cannot use the inherited effect for a card without a DNA requirement", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [
-        { card: "ST13-14", as: "host", under: ["ST13-13"] },
-        { card: "ST13-05", as: "partner" },
-      ],
-      hand: [{ card: "BT1-025", as: "non-dna" }],
-    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-14", as: "host", under: ["ST13-13"] },
+            { card: "ST13-05", as: "partner" },
+          ],
+          hand: [{ card: "BT1-025", as: "non-dna" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));

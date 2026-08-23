@@ -6,154 +6,124 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Black"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Black"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Black"
-            ]
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Black"],
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 3,
-          "optional": true
+          from: ["hand"],
+          reduceCost: 3,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "StartOfYourTurn",
-      "actions": [
+      trigger: "StartOfYourTurn",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Black"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Black"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckTop",
-          "from": ["trash"],
-          "mandatory": true
+          to: "deckTop",
+          from: ["trash"],
+          mandatory: true,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Black"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 2000
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Black"],
+              dp: {
+                op: "lte",
+                value: 2000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "raw": "you don't have a Digimon"
+            raw: "you don't have a Digimon",
           },
-          "optional": true
-        }
-      ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ],
-      "condition": {
-        "kind": "opponentHas",
-        "filter": {
-          "controllerDefault": "opponent",
-          "kind": [
-            "Digimon"
-          ]
+          optional: true,
         },
-        "raw": "your opponent has a Digimon"
-      }
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+      condition: {
+        kind: "opponentHas",
+        filter: {
+          controllerDefault: "opponent",
+          kind: ["Digimon"],
+        },
+        raw: "your opponent has a Digimon",
+      },
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Black"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 2000
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Black"],
+              dp: {
+                op: "lte",
+                value: 2000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("LM-031", compiled);

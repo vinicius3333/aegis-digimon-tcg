@@ -37,15 +37,15 @@ export function OpponentActionFeed({
 
   const content = (
     <>
-      <span className="opponent-action-feed__icon" aria-hidden="true"><ActionIcon item={current} /></span>
+      <span className="opponent-action-feed__icon" aria-hidden="true">
+        <ActionIcon item={current} />
+      </span>
       <ActionCopy item={current} />
       <span className="aegis-sr-only" role="status" aria-live="polite">
         {t(current.titleKey, current.titleParams)}
       </span>
       {pendingCount > 0 ? (
-        <span className="opponent-action-feed__pending">
-          {t("feed.pendingActions", { count: pendingCount })}
-        </span>
+        <span className="opponent-action-feed__pending">{t("feed.pendingActions", { count: pendingCount })}</span>
       ) : null}
     </>
   );
@@ -84,7 +84,9 @@ export function MatchHistorySheet({ log, onClose }: { log: readonly LogLine[]; o
           <span>{t("game.matchLog")}</span>
           <h2 id="aegis-match-history-title">{t("feed.historyTitle")}</h2>
         </div>
-        <Button size="sm" variant="ghost" onClick={onClose}>{t("common.close")}</Button>
+        <Button size="sm" variant="ghost" onClick={onClose}>
+          {t("common.close")}
+        </Button>
       </header>
       <div className="match-history-sheet__list">
         {log.length === 0 ? <p>{t("feed.noHistory")}</p> : null}

@@ -65,9 +65,16 @@ describe("EX12-006 Kakamon", () => {
     expect(effect.actions[0]).toMatchObject({
       kind: "Draw",
       amount: 1,
-      cost: { kind: "trash", target: { count: 1, filter: { controller: "mine", nameOrTrait: [{ match: "trait", tokens: ["SW"] }] } } },
+      cost: {
+        kind: "trash",
+        target: { count: 1, filter: { controller: "mine", nameOrTrait: [{ match: "trait", tokens: ["SW"] }] } },
+      },
     });
-    expect(effect.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectActed" } });
+    expect(effect.actions[1]).toMatchObject({
+      kind: "GainMemory",
+      amount: 1,
+      condition: { kind: "ifThisEffectActed" },
+    });
     expect(effect.isInherited).not.toBe(true);
     expect(registeredCompiledCards.get("EX12-006")!.effects[1]).toMatchObject({
       trigger: "YourTurn",

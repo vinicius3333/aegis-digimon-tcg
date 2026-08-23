@@ -5,8 +5,17 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-014.js";
 describe("BT10-014 PileVolcamon", () => {
   it("gains Blitz when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "BT10-014", as: "evolving" }] } }); s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "BT10-014", as: "evolving" }] },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Blitz"));
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blitz")).toBe(true);
   });

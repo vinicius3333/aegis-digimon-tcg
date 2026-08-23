@@ -32,10 +32,12 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       s.state.memory = 3;
       const optionId = s.inst("option").instanceId;
 
-      expect(s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: optionId,
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: optionId,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
       const selection = s.decisions.at(-1)!.req;
@@ -46,11 +48,13 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
         s.inst("tamer").instanceId,
       ]);
       expect(selection.options?.candidateInstanceIds).toEqual([s.inst("matching").instanceId]);
-      expect(s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: selection.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("matching").instanceId] },
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst("matching").instanceId] },
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
       const order = s.decisions.at(-1)!.req;
@@ -60,14 +64,14 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
         s.inst("offColor").instanceId,
       ];
       expect(order.options?.visibleCards?.map((card) => card.instanceId)).toEqual(expect.arrayContaining(bottomOrder));
-      expect(s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: order.decisionId,
-        response: { kind: "orderCards", order: bottomOrder },
-      })).toEqual({ ok: true });
-      await settle(() => s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === optionId,
-      ));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: order.decisionId,
+          response: { kind: "orderCards", order: bottomOrder },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
 
       expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
     });
@@ -91,20 +95,18 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       s.state.memory = 3;
       const optionInstanceId = s.inst("option").instanceId;
 
-      expect(s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: optionInstanceId,
-      })).toEqual({ ok: true });
-      await settle(() => s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard?.cardId === testCase.cardId,
-      ));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: optionInstanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === testCase.cardId),
+      );
 
-      expect(s.state.players[0]!.hand.some(
-        (card) => card.instanceId === s.inst("matching").instanceId,
-      )).toBe(true);
-      expect(s.state.players[0]!.hand.some(
-        (card) => card.instanceId === s.inst("offColor").instanceId,
-      )).toBe(false);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matching").instanceId)).toBe(true);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("offColor").instanceId)).toBe(false);
 
       const delay = s.state.players[0]!.battleArea.find(
         (permanent) => permanent.topCard?.instanceId === optionInstanceId,
@@ -118,19 +120,21 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
         effectKey: string;
         description: string;
       }>;
-      const entry = entries.find(({ instanceId, description }) =>
-        instanceId === delay.topCard.instanceId && /delay/i.test(description)
+      const entry = entries.find(
+        ({ instanceId, description }) => instanceId === delay.topCard.instanceId && /delay/i.test(description),
       );
       expect(entry).toBeDefined();
 
-      expect(s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: delay.topCard.instanceId,
-        effectKey: entry!.effectKey,
-      })).toEqual({ ok: true });
-      await settle(() => !s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.permanentId === delay.permanentId,
-      ));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: delay.topCard.instanceId,
+          effectKey: entry!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === delay.permanentId),
+      );
       await settle(() => s.state.memory === 2);
 
       expect(s.state.memory).toBe(2);
@@ -147,10 +151,12 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       s.perm("placedBoost").placedByEffect = true;
       s.state.memory = 3;
 
-      expect(s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: s.inst("secondBoost").instanceId,
-      })).toEqual({ ok: false, reason: "color-requirement-unmet" });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("secondBoost").instanceId,
+        }),
+      ).toEqual({ ok: false, reason: "color-requirement-unmet" });
     });
 
     it("places itself from security and offers Delay only from the next turn, without a color source", async () => {
@@ -160,9 +166,7 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       const optionId = s.inst("securityBoost").instanceId;
 
       await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityBoost"));
-      const delay = s.state.players[0]!.battleArea.find(
-        (permanent) => permanent.topCard.instanceId === optionId,
-      );
+      const delay = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === optionId);
       expect(delay).toBeDefined();
       if (!delay) return;
 
@@ -180,11 +184,13 @@ export function memoryBoostTests(testCase: MemoryBoostCase): void {
       expect(entry).toBeDefined();
       s.state.memory = 0;
 
-      expect(s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: optionId,
-        effectKey: entry!.effectKey,
-      })).toEqual({ ok: true });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: optionId,
+          effectKey: entry!.effectKey,
+        }),
+      ).toEqual({ ok: true });
       await settle(() => s.state.memory === 2);
 
       expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);

@@ -15,11 +15,13 @@ describe("EX1-061 Myotismon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-063" && s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });
@@ -35,11 +37,13 @@ describe("EX1-061 Myotismon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-061" && s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });
@@ -55,11 +59,13 @@ describe("EX1-061 Myotismon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("breedingBase").permanentId,
-      instanceId: s.inst("evo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("breedingBase").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-063");
     expect(s.state.memory).toBe(1);
   });
@@ -82,16 +88,20 @@ describe("EX1-061 Myotismon", () => {
     await s.ready();
     expect(observe(s.engine).canAttackUnsuspended(s.perm("retaliationAttacker"))).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("retaliationAttacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("levelFive").permanentId },
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("retaliationAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("levelFive").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("retaliationAttacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("levelThree").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("retaliationAttacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("levelThree").permanentId },
+      }),
+    ).toEqual({ ok: true });
   });
 });

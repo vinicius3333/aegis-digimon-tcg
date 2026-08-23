@@ -14,11 +14,13 @@ describe("BT7-014 Aldamon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("aldamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aldamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("aldamon").instanceId);
 
     expect(s.state.memory).toBe(4); // Printed 3, reduced by 2.
@@ -34,20 +36,30 @@ describe("BT7-014 Aldamon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("aldamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aldamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("aldamon").instanceId);
 
     expect(s.state.memory).toBe(2);
   });
 
   it("gets +4000 DP when it has a Hybrid source", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT7-011", as: "base" }], hand: [{ card: "BT7-014", as: "evolving" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT7-011", as: "base" }], hand: [{ card: "BT7-014", as: "evolving" }] },
+    });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").currentDP === 12000);
     expect(s.perm("base").currentDP).toBe(12000);
   });

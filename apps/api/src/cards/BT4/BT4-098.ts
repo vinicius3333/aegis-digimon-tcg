@@ -11,7 +11,11 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SelectBind",
-          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] }, count: 1, bindAs: "atomicInfernoTarget" },
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
+            count: 1,
+            bindAs: "atomicInfernoTarget",
+          },
         },
         {
           kind: "ModifyDP",
@@ -49,12 +53,14 @@ export const compiled: CompiledCard = {
           playerScoped: true,
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
           duration: "untilYourTurnEnd",
-          actions: [{
-            kind: "GainKeyword",
-            target: { filter: { isTriggerSource: true }, count: 1 },
-            keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
-            duration: "untilOwnerTurnEnd",
-          }],
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { isTriggerSource: true }, count: 1 },
+              keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+              duration: "untilOwnerTurnEnd",
+            },
+          ],
         },
       ],
       isSecurity: true,

@@ -3,155 +3,139 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "cost": 3,
-      "colors": ["Green", "Black"],
-      "isAlternate": true
+      level: 3,
+      cost: 3,
+      colors: ["Green", "Black"],
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "traits": ["Royal Base"],
-      "cost": 2,
-      "isAlternate": true
-    }
+      level: 3,
+      traits: ["Royal Base"],
+      cost: 2,
+      isAlternate: true,
+    },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Base"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Base"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Reboot",
-            "raw": "＜Reboot＞"
+          keyword: {
+            keyword: "Reboot",
+            raw: "＜Reboot＞",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "isSecurity": true
+      isSecurity: true,
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true,
-          "faceDownOnly": true
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+          faceDownOnly: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Base"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Base"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": false,
-          "faceUp": true,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          toTop: false,
+          faceUp: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true,
-          "faceDownOnly": true
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+          faceDownOnly: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Base"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Base"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": false,
-          "faceUp": true,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          toTop: false,
+          faceUp: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent"
-        }
+          amount: 1000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-030", compiled);

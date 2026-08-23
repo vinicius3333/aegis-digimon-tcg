@@ -6,66 +6,64 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 2000,
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "＜Digi-Burst 1＞"
+            raw: "＜Digi-Burst 1＞",
           },
-          "abortOnDecline": true
-        }
+          abortOnDecline: true,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 1,
-          "raw": "＜Digi-Burst 1＞"
-        }
-      ]
+          keyword: "DigiBurst",
+          amount: 1,
+          raw: "＜Digi-Burst 1＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": { "kind": "modifyDP", "amount": 1000 },
-          "while": { "kind": "true" }
-        }
+          effect: { kind: "modifyDP", amount: 1000 },
+          while: { kind: "true" },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-072", compiled);

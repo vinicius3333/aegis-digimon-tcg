@@ -6,7 +6,10 @@ import "./index.js";
 describe("BT17-001–010 targeted audit regressions", () => {
   it("BT17-002 draws only when a Digimon is played from a stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-030", under: [{ card: "BT1-010", as: "stackPlay" }, "BT17-002"], as: "host" }], deck: ["BT1-011"] },
+      0: {
+        battleArea: [{ card: "BT6-030", under: [{ card: "BT1-010", as: "stackPlay" }, "BT17-002"], as: "host" }],
+        deck: ["BT1-011"],
+      },
     });
     s.state.memory = 0;
     await s.ready();
@@ -16,13 +19,16 @@ describe("BT17-001–010 targeted audit regressions", () => {
   });
 
   it("BT17-006 reacts to the same Tamer placement and digivolves only the host", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-009", under: ["BT17-006"], as: "host" }],
-        hand: [{ card: "BT1-085", as: "tamer" }],
-        trash: ["BT15-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", under: ["BT17-006"], as: "host" }],
+          hand: [{ card: "BT1-085", as: "tamer" }],
+          trash: ["BT15-011"],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
     await s.ready();
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("tamer").instanceId]);
@@ -34,7 +40,10 @@ describe("BT17-001–010 targeted audit regressions", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT6-030", under: ["BT17-003"], as: "host" }],
-        hand: [{ card: "BT1-085", as: "tamer" }, { card: "BT1-010", as: "digimon" }],
+        hand: [
+          { card: "BT1-085", as: "tamer" },
+          { card: "BT1-010", as: "digimon" },
+        ],
       },
     });
     s.state.memory = 0;
@@ -48,7 +57,10 @@ describe("BT17-001–010 targeted audit regressions", () => {
   it("BT17-008 checks the entered subject instead of unrelated existing cards", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT17-008", as: "guilmon" }, { card: "BT1-009", as: "calumonLike" }],
+        battleArea: [
+          { card: "BT17-008", as: "guilmon" },
+          { card: "BT1-009", as: "calumonLike" },
+        ],
         hand: [{ card: "BT1-010", as: "unrelated" }],
       },
     });

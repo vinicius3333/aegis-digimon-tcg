@@ -16,7 +16,9 @@ describe("EX12-009 Wankomon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 1);
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
@@ -37,7 +39,9 @@ describe("EX12-009 Wankomon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX12-011");
@@ -56,7 +60,9 @@ describe("EX12-009 Wankomon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX12-006");
@@ -76,9 +82,7 @@ describe("EX12-009 Wankomon", () => {
 
   it("encodes both independent trait searches, zero-cost evolution, and inherited DP", () => {
     const compiled = registeredCompiledCards.get("EX12-009")!;
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 2, traits: ["Shambala"], cost: 0, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["Shambala"], cost: 0, isAlternate: true }]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [

@@ -4,7 +4,17 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
   effects: [
-    { trigger: "Main", actions: [{ kind: "ModifyDP", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -2000, duration: "forTheTurn" }] },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -2000,
+          duration: "forTheTurn",
+        },
+      ],
+    },
     { trigger: "Security", actions: [{ kind: "AddToHandSelf" }], isSecurity: true },
   ],
   coverage: "full",

@@ -6,125 +6,121 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          amount: 2000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card in your hand"
+            raw: "By trashing 1 card in your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["SoC"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "a Tamer card with the [SoC] trait is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+            raw: "a Tamer card with the [SoC] trait is in this Digimon's digivolution cards",
           },
-          "amount": 2000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 card in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
         },
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "a Tamer card with the [SoC] trait is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfAttack",
-      "actions": [
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "memoryAtLeast",
-            "controller": "opponent",
-            "value": 1,
-            "raw": "your opponent has 1 or more memory"
-          }
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card in your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["SoC"],
+                  match: "trait",
+                },
+              ],
+            },
+            raw: "a Tamer card with the [SoC] trait is in this Digimon's digivolution cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "memoryAtLeast",
+            controller: "opponent",
+            value: 1,
+            raw: "your opponent has 1 or more memory",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-075", compiled);

@@ -6,36 +6,36 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "memoryAtMost",
-            "controller": "opponent",
-            "value": 1,
-            "raw": "your opponent has 1 or less memory"
-          }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "memoryAtMost",
+            controller: "opponent",
+            value: 1,
+            raw: "your opponent has 1 or less memory",
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "memoryAtLeast",
-            "controller": "opponent",
-            "value": 1,
-            "raw": "your opponent has 1 or more memory"
-          }
-        }
-      ]
-    }
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "memoryAtLeast",
+            controller: "opponent",
+            value: 1,
+            raw: "your opponent has 1 or more memory",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-069", compiled);

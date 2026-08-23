@@ -15,153 +15,143 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - The all-opponent trash is only reachable if the player suspended (sequential: if you don't
 //     suspend, abortOnDecline stops the sequence)
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "MarineAngemon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["MarineAngemon"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce its play cost by 1"
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce its play cost by 1",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Blue"
-            ],
-            "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "nameExact" }]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Blue"],
+            nameOrTrait: [{ tokens: ["MarineAngemon"], match: "nameExact" }],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "digivolutionCards": "hasAny"
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 1,
-              "fromTop": false,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+              amount: 1,
+              fromTop: false,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
+                  count: 1,
+                  isSelf: true,
                 },
-                "raw": "by suspending this Tamer"
+                raw: "by suspending this Tamer",
               },
-              "optional": true,
-              "abortOnDecline": false
+              optional: true,
+              abortOnDecline: false,
             },
             {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "digivolutionCards": "hasAny"
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
                 },
-                "count": "all"
+                count: "all",
               },
-              "amount": 1,
-              "fromTop": false,
-              "condition": { "kind": "ifThisEffectActed" }
-            }
-          ]
+              amount: 1,
+              fromTop: false,
+              condition: { kind: "ifThisEffectActed" },
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": ["Digimon"],
-            "colors": ["Blue"],
-            "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "nameExact", "negate": true }]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Blue"],
+            nameOrTrait: [{ tokens: ["MarineAngemon"], match: "nameExact", negate: true }],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"],
-                  "digivolutionCards": "hasAny"
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 1,
-              "fromTop": false,
-              "cost": {
-                "kind": "suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "raw": "by suspending this Tamer"
+              amount: 1,
+              fromTop: false,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-057", compiled);

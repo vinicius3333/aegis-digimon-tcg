@@ -11,7 +11,10 @@ describe("BT26-011 Buraimon", () => {
   it("compiles both Raid keywords and the two draw-two triggers", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((effect) => [effect.trigger, effect.isInherited])).toEqual([
-      ["Static", undefined], ["OnPlay", undefined], ["WhenDigivolving", undefined], ["Static", true],
+      ["Static", undefined],
+      ["OnPlay", undefined],
+      ["WhenDigivolving", undefined],
+      ["Static", true],
     ]);
   });
   it("evolves from an off-color Lv.3 TS Digimon for 2 and rejects a non-TS peer", async () => {
@@ -78,40 +81,47 @@ describe("BT26-011 Buraimon", () => {
 
   it("when digivolving may pay with a Shaman card and draws 2 after the evolution draw", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT25-078", as: "base" }],
-        hand: [
-          { card: CARD_ID, as: "buraimon" },
-          { card: "BT26-032", as: "shamanCost" },
-          { card: "BT1-009", as: "unrelated" },
-        ],
-        deck: [
-          { card: "BT1-010", as: "evolutionDraw" },
-          { card: "BT1-011", as: "effectDrawOne" },
-          { card: "BT1-012", as: "effectDrawTwo" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-078", as: "base" }],
+          hand: [
+            { card: CARD_ID, as: "buraimon" },
+            { card: "BT26-032", as: "shamanCost" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          deck: [
+            { card: "BT1-010", as: "evolutionDraw" },
+            { card: "BT1-011", as: "effectDrawOne" },
+            { card: "BT1-012", as: "effectDrawTwo" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.inst("shamanCost").instanceId);
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("buraimon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("buraimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.deck.length === 0);
 
     expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("shamanCost").instanceId);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("unrelated").instanceId,
-      s.inst("evolutionDraw").instanceId,
-      s.inst("effectDrawOne").instanceId,
-      s.inst("effectDrawTwo").instanceId,
-    ]));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("unrelated").instanceId,
+        s.inst("evolutionDraw").instanceId,
+        s.inst("effectDrawOne").instanceId,
+        s.inst("effectDrawTwo").instanceId,
+      ]),
+    );
   });
 
   it("publishes Raid both as the top card and inherited from a real stack", async () => {

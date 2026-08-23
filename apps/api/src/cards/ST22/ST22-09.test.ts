@@ -8,7 +8,10 @@ import "../index.js";
 describe("ST22-09 High-Speed Plug-In H", () => {
   it("restricts an opposing Digimon from suspending and adds itself to hand from security", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "ST22-09", as: "option", faceUp: true }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
+      {
+        0: { security: [{ card: "ST22-09", as: "option", faceUp: true }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const option = s.inst("option").instanceId;

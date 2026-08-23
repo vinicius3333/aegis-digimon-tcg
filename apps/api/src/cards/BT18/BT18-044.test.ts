@@ -11,13 +11,18 @@ describe("BT18-044 FunBeemon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT18-044", as: "funbeemon" }, { card: "BT18-046", as: "royalBase" }],
+          hand: [
+            { card: "BT18-044", as: "funbeemon" },
+            { card: "BT18-046", as: "royalBase" },
+          ],
           security: [{ card: "BT1-001", as: "topSecurity" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({
+      ok: true,
+    });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.state.players[0]!.battleArea[0]!);
 

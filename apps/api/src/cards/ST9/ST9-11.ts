@@ -8,111 +8,109 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "dinobeemonTarget"
-          }
-        },
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "dinobeemonTarget"
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "dinobeemonTarget"
+            count: 1,
+            bindAs: "dinobeemonTarget",
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "When DNA digivolving"
-          }
-        }
-      ]
+        },
+        {
+          kind: "Suspend",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "dinobeemonTarget",
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "dinobeemonTarget",
+          },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "When DNA digivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "selfColorCount",
-            "op": "gte",
-            "value": 1,
-            "raw": "this Digimon has at least 1 color"
-          }
+          while: {
+            kind: "selfColorCount",
+            op: "gte",
+            value: 1,
+            raw: "this Digimon has at least 1 color",
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "selfColorCount",
-            "op": "gte",
-            "value": 2,
-            "raw": "this Digimon has at least 2 colors"
-          }
-        }
+          while: {
+            kind: "selfColorCount",
+            op: "gte",
+            value: 2,
+            raw: "this Digimon has at least 2 colors",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "dnaDigivolveRequirement": [
+  coverage: "full",
+  residual: [],
+  dnaDigivolveRequirement: [
     {
-      "cost": 0,
-      "materials": [
+      cost: 0,
+      materials: [
         {
-          "color": "Green",
-          "level": 4
+          color: "Green",
+          level: 4,
         },
         {
-          "color": "Blue",
-          "level": 4
-        }
-      ]
-    }
-  ]
+          color: "Blue",
+          level: 4,
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("ST9-11", compiled);

@@ -44,20 +44,22 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "SubTrigger",
-        event: "onDigivolutionCardReturnToDeckBottom",
-        sourceFilter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
-        actions: [
-          { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-          {
-            kind: "GainKeyword",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
-            duration: "untilOpponentTurnEnd",
-          },
-        ],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardReturnToDeckBottom",
+          sourceFilter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+          actions: [
+            { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+            {
+              kind: "GainKeyword",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
       isInherited: true,
       frequency: "OncePerTurn",
     },

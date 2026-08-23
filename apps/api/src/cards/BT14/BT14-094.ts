@@ -6,83 +6,77 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          options: [
             [
               {
-                "kind": "ModifyDP",
-                "target": {
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ]
+                kind: "ModifyDP",
+                target: {
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "amount": -6000,
-                "duration": "forTheTurn"
-              }
+                amount: -6000,
+                duration: "forTheTurn",
+              },
             ],
             [
               {
-                "kind": "SecurityManipulation",
-                "op": "placeAsSecurity",
-                "controller": "opponent",
-                "source": {
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ]
+                kind: "SecurityManipulation",
+                op: "placeAsSecurity",
+                controller: "opponent",
+                source: {
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "toTop": false,
-                "cost": {
-                  "kind": "deleteOwn",
-                  "target": {
-                    "filter": {
-                      "controller": "mine",
-                      "nameOrTrait": [
+                toTop: false,
+                cost: {
+                  kind: "deleteOwn",
+                  target: {
+                    filter: {
+                      controller: "mine",
+                      nameOrTrait: [
                         {
-                          "tokens": [
-                            "Angemon"
-                          ],
-                          "match": "name"
-                        }
-                      ]
+                          tokens: ["Angemon"],
+                          match: "name",
+                        },
+                      ],
                     },
-                    "count": 1
+                    count: 1,
                   },
-                  "raw": "By deleting 1 of your [Angemon]"
+                  raw: "By deleting 1 of your [Angemon]",
                 },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
-          ]
-        }
-      ]
+                optional: true,
+                abortOnDecline: true,
+              },
+            ],
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-094", compiled);

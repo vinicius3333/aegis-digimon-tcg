@@ -52,26 +52,40 @@ describe("BT26-015 compiled fidelity", () => {
   });
 
   it("unsuspends an inherited host when your effect adds to your deck, only once per turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT26-060", as: "host", suspended: true, under: [{ card: "BT26-015" }] },
-          { card: "BT1-009", as: "plainHost", suspended: true, under: [{ card: "BT26-015" }] },
-        ],
-        trash: [
-          { card: "BT1-011", as: "first" },
-          { card: "BT1-012", as: "second" },
-        ],
-        deck: [{ card: "BT1-003", as: "firstDeck" }, { card: "BT1-004", as: "secondDeck" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-060", as: "host", suspended: true, under: [{ card: "BT26-015" }] },
+            { card: "BT1-009", as: "plainHost", suspended: true, under: [{ card: "BT26-015" }] },
+          ],
+          trash: [
+            { card: "BT1-011", as: "first" },
+            { card: "BT1-012", as: "second" },
+          ],
+          deck: [
+            { card: "BT1-003", as: "firstDeck" },
+            { card: "BT1-004", as: "secondDeck" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 0, byEffectCardId: "BT26-015" });
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
+      effectAddedToDeckSeat: 0,
+      effectAddedToDeckBySeat: 0,
+      byEffectCardId: "BT26-015",
+    });
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("plainHost").isSuspended).toBe(true);
 
     s.perm("host").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 0, byEffectCardId: "BT26-015" });
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
+      effectAddedToDeckSeat: 0,
+      effectAddedToDeckBySeat: 0,
+      byEffectCardId: "BT26-015",
+    });
     expect(s.perm("host").isSuspended).toBe(true);
   });
 });

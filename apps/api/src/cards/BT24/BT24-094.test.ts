@@ -88,7 +88,10 @@ describe("BT24-094 Central Town: Throne Room", () => {
       {
         0: {
           battleArea: [{ card: "BT1-045", as: "yellowSource" }],
-          hand: [{ card: "BT24-094", as: "source" }, { card: "BT24-024", as: "digimon" }],
+          hand: [
+            { card: "BT24-094", as: "source" },
+            { card: "BT24-024", as: "digimon" },
+          ],
           security: [{ card: "BT1-001", as: "bottom" }],
         },
       },
@@ -102,7 +105,9 @@ describe("BT24-094 Central Town: Throne Room", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-024"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceCard.instanceId && card.faceUp)).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceCard.instanceId && card.faceUp)).toBe(
+      true,
+    );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-024")).toBe(true);
   });
 

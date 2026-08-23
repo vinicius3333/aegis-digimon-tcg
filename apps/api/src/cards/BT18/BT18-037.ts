@@ -21,87 +21,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Recovery +1 is a GainKeyword action (fires the verb immediately per interpreter).
 // The security stack shuffle is a SecurityManipulation with op:"shuffle".
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Search",
-          "controller": "mine",
-          "searchZone": "security",
-          "zone": "security",
-          "filter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "Search",
+          controller: "mine",
+          searchZone: "security",
+          zone: "security",
+          filter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Hybrid",
-                  "Ten Warriors"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Hybrid", "Ten Warriors"],
+                match: "trait",
+              },
+            ],
           },
-          "count": 1,
-          "to": "hand",
-          "bindResultAs": "searched",
-          "optional": true
+          count: 1,
+          to: "hand",
+          bindResultAs: "searched",
+          optional: true,
         },
         {
-          "kind": "Recover",
-          "amount": 1,
-          "condition": {
-            "kind": "bindingExists",
-            "ref": "searched",
-            "raw": "if you added"
-          }
+          kind: "Recover",
+          amount: 1,
+          condition: {
+            kind: "bindingExists",
+            ref: "searched",
+            raw: "if you added",
+          },
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "shuffle",
-          "controller": "mine"
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "mine",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "hand",
-            "op": "lte",
-            "value": 7,
-            "raw": "you have 7 or fewer cards in your hand"
-          }
-        }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "hand",
+            op: "lte",
+            value: 7,
+            raw: "you have 7 or fewer cards in your hand",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Koji Minamoto"
-      ],
-      "cost": 2,
-      "isAlternate": true,
-      "baseIsTamer": true
+      names: ["Koji Minamoto"],
+      cost: 2,
+      isAlternate: true,
+      baseIsTamer: true,
     },
     {
-      "names": [
-        "KendoGarurumon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["KendoGarurumon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-037", compiled);

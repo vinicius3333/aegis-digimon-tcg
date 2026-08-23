@@ -21,7 +21,13 @@ describe("BT18-037 Lobomon", () => {
     const resolving = advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("lobomon").topCard!);
     await settle(() => s.decisions.length > 0);
     const decision = s.decisions[0]!.req;
-    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: decision.decisionId, response: { kind: "optional", accept: true } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await resolving;
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);

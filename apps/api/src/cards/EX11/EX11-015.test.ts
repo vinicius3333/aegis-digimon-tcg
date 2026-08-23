@@ -9,17 +9,22 @@ describe("EX11-015 Frigimon", () => {
       {
         0: {
           battleArea: [{ card: "EX11-014", as: "base", dp: 2000 }],
-          hand: [{ card: "EX11-015", as: "frigimon" }, { card: "EX11-057", as: "suzune" }],
+          hand: [
+            { card: "EX11-015", as: "frigimon" },
+            { card: "EX11-057", as: "suzune" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 2;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("frigimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("frigimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "EX11-015", 600);
     expect(s.perm("base").topCard?.cardId).toBe("EX11-015");
   });
@@ -29,15 +34,19 @@ describe("EX11-015 Frigimon", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Ice-Snow"], cost: 2, isAlternate: true }]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "WhenDigivolving",
-      actions: [{
-        kind: "PlayWithoutCost",
-        from: ["hand"],
-        payCost: false,
-        optional: true,
-        condition: { kind: "youHave", raw: "you have 1 or fewer Tamers" },
-        target: expect.objectContaining({ count: 1 }),
-      }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          condition: { kind: "youHave", raw: "you have 1 or fewer Tamers" },
+          target: expect.objectContaining({ count: 1 }),
+        },
+      ],
     });
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ isInherited: true, keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ isInherited: true, keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] }),
+    );
   });
 });

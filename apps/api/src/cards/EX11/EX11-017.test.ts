@@ -25,7 +25,14 @@ describe("EX11-017 Skadimon", () => {
         sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
         actions: [
           expect.objectContaining({ kind: "TrashDigivolution", amount: 3 }),
-          expect.objectContaining({ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd", target: expect.objectContaining({ filter: expect.objectContaining({ controller: "opponent", digivolutionCards: "none" }) }) }),
+          expect.objectContaining({
+            kind: "Restrict",
+            restriction: "suspend",
+            duration: "untilOpponentTurnEnd",
+            target: expect.objectContaining({
+              filter: expect.objectContaining({ controller: "opponent", digivolutionCards: "none" }),
+            }),
+          }),
         ],
       }),
       expect.objectContaining({

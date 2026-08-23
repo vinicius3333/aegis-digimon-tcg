@@ -6,46 +6,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "nameOrTrait": [
+          kind: "Aura",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gaossmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gaossmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "effect": { "kind": "modifyDP", "amount": 3000 },
-          "while": { "kind": "true" }
-        }
-      ]
+          effect: { kind: "modifyDP", amount: 3000 },
+          while: { kind: "true" },
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "RestrictCostReduction",
-          "seat": "opponent",
-          "costType": "digivolve",
-          "duration": "permanent"
-        }
-      ]
-    }
+          kind: "RestrictCostReduction",
+          seat: "opponent",
+          costType: "digivolve",
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-008", compiled);

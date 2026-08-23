@@ -12,68 +12,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // with `into: { traits: ["TB"] }` to restrict to TB-trait digivolution targets, and an
 // inner wouldDigivolve reduceCost action (mirrors EX12-040 / BT5-058 pattern).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "traits": [
-              "TB"
-            ]
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            traits: ["TB"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the cost by 1"
-            }
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the cost by 1",
+            },
           ],
-          "raw": "When this Digimon would digivolve into a Digimon card with the [TB] trait, reduce the cost by 1"
-        }
-      ]
+          raw: "When this Digimon would digivolve into a Digimon card with the [TB] trait, reduce the cost by 1",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "handAtMost",
-            "value": 7,
-            "raw": "your hand has 7 or fewer cards"
-          }
-        }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "handAtMost",
+            value: 7,
+            raw: "your hand has 7 or fewer cards",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "Shambala"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["Shambala"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-020", compiled);

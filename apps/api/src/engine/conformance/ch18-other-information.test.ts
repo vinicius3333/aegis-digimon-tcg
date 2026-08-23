@@ -169,53 +169,50 @@ describe("§18-1 Pending Processing (comprehensive-0267)", () => {
 });
 
 describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
-  it(
-    "NOW MET: with a [Kiriha Aonuma] in play and a [MetalGreymon] in the trash, BT10-019's printed 'instead' clause should let the player return it to hand INSTEAD of the default reveal-top-4 processing",
-    async () => {
-      cite(
-        "comprehensive-0268",
-        "DIVERGENCE: §18-2-1/18-2-2 overwrite processing ('instead' text) with an OPTIONAL " +
-          "overwrite — the rule's OWN example is BT10-019's exact printed text: '[On Play] Reveal " +
-          "the top 4 cards of your deck. Add 2 cards with [Blue Flare]... When you have [Kiriha " +
-          "Aonuma], you may return 1 [MetalGreymon] from your trash to your hand instead.' Worse " +
-          "than merely unreachable: BT10-019.ts's hasKirihaAonuma() reads `p.topCardId` on every " +
-          "battle-area permanent to find its definition, but `Permanent` (packages/shared) has no " +
-          "`topCardId` field (the real field is `topCard.cardId`) — `definitionOf({instanceId: " +
-          "undefined}).cardId` throws 'Unknown cardId: undefined' the instant the owner has ANY " +
-          "battle-area permanent (guaranteed here: Kiriha itself). GameEngine.ts's handlePlayCard " +
-          "catches this at the top-level applyPlayCard.catch, logs it, and emits `actionRejected` " +
-          "— so BOTH branches (reveal-4 AND the 'instead' return) fail to run; the entire [On " +
-          "Play] effect is inert whenever the rule's own precondition (a [Kiriha Aonuma] in play) " +
-          "holds, not just the optional branch.",
-      );
+  it("NOW MET: with a [Kiriha Aonuma] in play and a [MetalGreymon] in the trash, BT10-019's printed 'instead' clause should let the player return it to hand INSTEAD of the default reveal-top-4 processing", async () => {
+    cite(
+      "comprehensive-0268",
+      "DIVERGENCE: §18-2-1/18-2-2 overwrite processing ('instead' text) with an OPTIONAL " +
+        "overwrite — the rule's OWN example is BT10-019's exact printed text: '[On Play] Reveal " +
+        "the top 4 cards of your deck. Add 2 cards with [Blue Flare]... When you have [Kiriha " +
+        "Aonuma], you may return 1 [MetalGreymon] from your trash to your hand instead.' Worse " +
+        "than merely unreachable: BT10-019.ts's hasKirihaAonuma() reads `p.topCardId` on every " +
+        "battle-area permanent to find its definition, but `Permanent` (packages/shared) has no " +
+        "`topCardId` field (the real field is `topCard.cardId`) — `definitionOf({instanceId: " +
+        "undefined}).cardId` throws 'Unknown cardId: undefined' the instant the owner has ANY " +
+        "battle-area permanent (guaranteed here: Kiriha itself). GameEngine.ts's handlePlayCard " +
+        "catches this at the top-level applyPlayCard.catch, logs it, and emits `actionRejected` " +
+        "— so BOTH branches (reveal-4 AND the 'instead' return) fail to run; the entire [On " +
+        "Play] effect is inert whenever the rule's own precondition (a [Kiriha Aonuma] in play) " +
+        "holds, not just the optional branch.",
+    );
 
-      const kirihaDef = requireCardDefinition("BT10-088"); // real [Kiriha Aonuma] Tamer
-      expect(kirihaDef.nameEn).toBe("Kiriha Aonuma");
-      const metalDef = requireCardDefinition("BT10-024"); // real [MetalGreymon] Digimon
-      expect(metalDef.nameEn).toBe("MetalGreymon");
+    const kirihaDef = requireCardDefinition("BT10-088"); // real [Kiriha Aonuma] Tamer
+    expect(kirihaDef.nameEn).toBe("Kiriha Aonuma");
+    const metalDef = requireCardDefinition("BT10-024"); // real [MetalGreymon] Digimon
+    expect(metalDef.nameEn).toBe("MetalGreymon");
 
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-      const p0 = s.state.players[0] as PlayerState;
-      p0.battleArea.push(digimon(0, 0, "BT10-088")); // [Kiriha Aonuma] in play
-      const metalInTrash = instance("BT10-024", 0, true);
-      p0.trash.push(metalInTrash); // a [MetalGreymon] in the trash
-      for (let i = 0; i < 6; i += 1) p0.deck.push(instance("AD1-001", 0, false)); // non-empty deck
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0] as PlayerState;
+    p0.battleArea.push(digimon(0, 0, "BT10-088")); // [Kiriha Aonuma] in play
+    const metalInTrash = instance("BT10-024", 0, true);
+    p0.trash.push(metalInTrash); // a [MetalGreymon] in the trash
+    for (let i = 0; i < 6; i += 1) p0.deck.push(instance("AD1-001", 0, false)); // non-empty deck
 
-      const greymon = instance("BT10-019", 0, false);
-      p0.hand.push(greymon);
-      const def = requireCardDefinition("BT10-019");
-      s.state.memory = def.playCost;
+    const greymon = instance("BT10-019", 0, false);
+    p0.hand.push(greymon);
+    const def = requireCardDefinition("BT10-019");
+    s.state.memory = def.playCost;
 
-      const result = s.engine.applyIntent(0, { type: "playCard", instanceId: greymon.instanceId });
-      expect(result).toEqual({ ok: true });
-      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-019"), 5000);
-      await settle(() => false, 60);
+    const result = s.engine.applyIntent(0, { type: "playCard", instanceId: greymon.instanceId });
+    expect(result).toEqual({ ok: true });
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-019"), 5000);
+    await settle(() => false, 60);
 
-      // EXPECTED (per §18-2-2): the "instead" processing was available and usable — the
-      // MetalGreymon ends up back in hand instead of the default reveal-top-4 running.
-      expect(p0.hand.some((c) => c.instanceId === metalInTrash.instanceId)).toBe(true);
-    },
-  );
+    // EXPECTED (per §18-2-2): the "instead" processing was available and usable — the
+    // MetalGreymon ends up back in hand instead of the default reveal-top-4 running.
+    expect(p0.hand.some((c) => c.instanceId === metalInTrash.instanceId)).toBe(true);
+  });
 });
 
 // §18-2-4 Overwrite processing for immediate-type effects can't be interrupted — NOT TESTABLE.
@@ -234,45 +231,40 @@ markNotTestable(
 );
 
 describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
-  it(
-    "NOW MET: when the rule-check fixpoint can't converge, the match should end in a draw (§18-3-2), not throw an engine error",
-    async () => {
-      cite(
-        "comprehensive-0270",
-        "DIVERGENCE: §18-3-2 'If an infinite loop occurs and neither player has the ability to " +
-          "stop it, that game ends in a draw.' GameEngine.ts's ruleProcess() fixpoint (and " +
-          "effects/stack.ts's resolveTiming fixpoint) both guard against non-termination with a " +
-          "hardcoded pass cap (MAX_RULE_PROCESS_PASSES / MAX_RESOLUTION_PASSES = 1000) that " +
-          "THROWS a plain Error on overflow — there is no draw-outcome branch anywhere in this " +
-          "path (contrast security/winCheck.ts's real `{ outcome: 'draw' }` emit for simultaneous " +
-          "double-loss, which exists but is never reached from here). The cap is lowered to 0 " +
-          "below (via a runtime override of the class's own static field) so the SAME throw " +
-          "statement a genuine runaway loop would hit is reached deterministically and fast, " +
-          "without needing to actually construct 1000 real passes.",
-      );
+  it("NOW MET: when the rule-check fixpoint can't converge, the match should end in a draw (§18-3-2), not throw an engine error", async () => {
+    cite(
+      "comprehensive-0270",
+      "DIVERGENCE: §18-3-2 'If an infinite loop occurs and neither player has the ability to " +
+        "stop it, that game ends in a draw.' GameEngine.ts's ruleProcess() fixpoint (and " +
+        "effects/stack.ts's resolveTiming fixpoint) both guard against non-termination with a " +
+        "hardcoded pass cap (MAX_RULE_PROCESS_PASSES / MAX_RESOLUTION_PASSES = 1000) that " +
+        "THROWS a plain Error on overflow — there is no draw-outcome branch anywhere in this " +
+        "path (contrast security/winCheck.ts's real `{ outcome: 'draw' }` emit for simultaneous " +
+        "double-loss, which exists but is never reached from here). The cap is lowered to 0 " +
+        "below (via a runtime override of the class's own static field) so the SAME throw " +
+        "statement a genuine runaway loop would hit is reached deterministically and fast, " +
+        "without needing to actually construct 1000 real passes.",
+    );
 
-      const s = setup();
-      const engineCtor = GameEngine as unknown as { MAX_RULE_PROCESS_PASSES: number };
-      const original = engineCtor.MAX_RULE_PROCESS_PASSES;
-      engineCtor.MAX_RULE_PROCESS_PASSES = 0;
-      try {
-        const p0 = s.state.players[0] as PlayerState;
-        const violator = digimon(0, 0); // one real §17-1-3-1-1 violation is enough to trip pass #1
-        p0.battleArea.push(violator);
+    const s = setup();
+    const engineCtor = GameEngine as unknown as { MAX_RULE_PROCESS_PASSES: number };
+    const original = engineCtor.MAX_RULE_PROCESS_PASSES;
+    engineCtor.MAX_RULE_PROCESS_PASSES = 0;
+    try {
+      const p0 = s.state.players[0] as PlayerState;
+      const violator = digimon(0, 0); // one real §17-1-3-1-1 violation is enough to trip pass #1
+      p0.battleArea.push(violator);
 
-        const engineAny = s.engine as unknown as { ruleProcess(): Promise<void> };
+      const engineAny = s.engine as unknown as { ruleProcess(): Promise<void> };
 
-        // EXPECTED (per §18-3-2): this resolves the match to a draw, it does not reject/throw.
-        await expect(engineAny.ruleProcess()).resolves.toBeUndefined();
-        expect(s.state.gameOver).toBe(true);
-        expect(s.events.some((e) => e.kind === "gameOver" && "result" in e && e.result?.outcome === "draw")).toBe(
-          true,
-        );
-      } finally {
-        engineCtor.MAX_RULE_PROCESS_PASSES = original;
-      }
-    },
-  );
+      // EXPECTED (per §18-3-2): this resolves the match to a draw, it does not reject/throw.
+      await expect(engineAny.ruleProcess()).resolves.toBeUndefined();
+      expect(s.state.gameOver).toBe(true);
+      expect(s.events.some((e) => e.kind === "gameOver" && "result" in e && e.result?.outcome === "draw")).toBe(true);
+    } finally {
+      engineCtor.MAX_RULE_PROCESS_PASSES = original;
+    }
+  });
 
   it("§18-3-3's turn-player/non-turn-player 'declare a repeat count' stop procedure has no protocol representation", () => {
     cite(

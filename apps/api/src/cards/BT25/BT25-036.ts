@@ -6,75 +6,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true
+          payCost: false,
         },
-        {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true
-        },
-        {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
-    {
-      "names": [
-        "Kabemon",
-        "Gomimon",
-        "Ecomon",
-        "Puzzlemon"
       ],
-      "cost": 0
-    }
-  ]
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
+    {
+      names: ["Kabemon", "Gomimon", "Ecomon", "Puzzlemon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT25-036", compiled);

@@ -18,7 +18,9 @@ describe("BT25-035 Cougarmon", () => {
   });
 
   it("keeps the -3000 DP effect independent of the cost payment", () => {
-    for (const effect of BT25_035.effects?.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(String(entry.trigger))) ?? []) {
+    for (const effect of BT25_035.effects?.filter((entry) =>
+      ["OnPlay", "WhenDigivolving"].includes(String(entry.trigger)),
+    ) ?? []) {
       expect(effect.actions?.[0]).toMatchObject({
         kind: "ModifyDP",
         amount: -3000,

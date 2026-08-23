@@ -13,129 +13,108 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // seats) and is restricted to kind ["Tamer"] only (no Digimon fallback), and the
 // Unsuspend fires under the same condition regardless of whether a Tamer was deleted.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Black",
-                "Purple"
-              ],
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Black", "Purple"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DarkKnightmon (X Antibody)"
-                  ],
-                  "match": "nameExact",
-                  "negate": true
-                }
-              ]
+                  tokens: ["DarkKnightmon (X Antibody)"],
+                  match: "nameExact",
+                  negate: true,
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
+          to: "hand",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "kind": [
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DarkKnightmon",
-                    "X Antibody"
-                  ],
-                  "match": "nameExact"
-                }
-              ]
+                  tokens: ["DarkKnightmon", "X Antibody"],
+                  match: "nameExact",
+                },
+              ],
             },
-            "raw": "[DarkKnightmon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
+            raw: "[DarkKnightmon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DarkKnightmon",
-                    "X Antibody"
-                  ],
-                  "match": "nameExact"
-                }
-              ]
+                  tokens: ["DarkKnightmon", "X Antibody"],
+                  match: "nameExact",
+                },
+              ],
             },
-            "raw": "[DarkKnightmon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[DarkKnightmon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DarkKnightmon"
-                  ],
-                  "match": "nameExact"
-                }
-              ]
+                  tokens: ["DarkKnightmon"],
+                  match: "nameExact",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "DarkKnightmon"
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["DarkKnightmon"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT10-069", compiled);

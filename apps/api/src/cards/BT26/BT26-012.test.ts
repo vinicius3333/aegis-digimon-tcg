@@ -79,7 +79,12 @@ describe("BT26-012 Manekimon", () => {
   it("encodes the once-per-turn TB play/use branches and inherited DP reduction", () => {
     expect(compiled.effects).toMatchObject([
       { trigger: "Main", frequency: "OncePerTurn", actions: [{ kind: "Modal", choose: 1 }] },
-      { trigger: "OnAllyAttack", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "ModifyDP", amount: -2000 }] },
+      {
+        trigger: "OnAllyAttack",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [{ kind: "ModifyDP", amount: -2000 }],
+      },
     ]);
   });
 
@@ -99,7 +104,13 @@ describe("BT26-012 Manekimon", () => {
           deck: [{ card: "BT1-001" }, { card: "BT1-002" }],
         },
       },
-      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred, preferOptionIndex: 1 },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        preferOptionIndex: 1,
+      },
     );
     s.state.memory = 3;
     preferred.push(s.inst("option").instanceId, s.inst("payment").instanceId);
@@ -141,12 +152,15 @@ describe("BT26-012 Manekimon", () => {
   });
 
   it("may decline the Main effect without paying memory or moving the TB card", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: CARD_ID, as: "manekimon" }],
-        hand: [{ card: "BT26-014", as: "tb" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "manekimon" }],
+          hand: [{ card: "BT26-014", as: "tb" }],
+        },
       },
-    }, { autoChooseOption: true, autoDeclineOptional: true, autoSelectCards: true });
+      { autoChooseOption: true, autoDeclineOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
 
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));

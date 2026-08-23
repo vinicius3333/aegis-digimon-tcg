@@ -14,53 +14,51 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (3) Static effect removed — it was empty and served no role; the [Main] ability
 //     is captured via digivolutionRequirement (above).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "topCard": true
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                topCard: true,
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing the top card of your security stack"
+            raw: "by trashing the top card of your security stack",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "namesExact": [
-        "Lopmon"
-      ],
-      "cost": 3,
-      "controllerControls": {
-        "kind": ["Tamer"],
-        "namesExact": ["Shu-Chong Wong"],
-        "min": 1
+      namesExact: ["Lopmon"],
+      cost: 3,
+      controllerControls: {
+        kind: ["Tamer"],
+        namesExact: ["Shu-Chong Wong"],
+        min: 1,
       },
-      "isAlternate": true
-    }
-  ]
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX2-022", compiled);

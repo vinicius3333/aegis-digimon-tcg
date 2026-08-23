@@ -11,7 +11,10 @@ describe("BT18-070 RhinoKabuterimon", () => {
         0: {
           battleArea: [{ card: "BT18-091", as: "tamer" }],
           hand: [{ card: "BT18-070", as: "rhino" }],
-          trash: [{ card: "BT18-063", as: "beetlemon" }, { card: "BT18-067", as: "metalKabuterimon" }],
+          trash: [
+            { card: "BT18-063", as: "beetlemon" },
+            { card: "BT18-067", as: "metalKabuterimon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -24,7 +27,13 @@ describe("BT18-070 RhinoKabuterimon", () => {
     s.state.phase = Phase.Main;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("rhino").instanceId, effectKey: effects[0]!.effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("rhino").instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tamer").topCard?.cardId === "BT18-070");
     await s.ready();
 

@@ -21,8 +21,10 @@ function isLocale(value: string | null): value is Locale {
 /** Best match for a browser language tag, e.g. `pt`, `pt-br`, `pt-PT` → `pt-BR`. */
 export function matchLocale(languageTag: string): Locale | undefined {
   const tag = languageTag.toLowerCase();
-  return LOCALES.find((locale) => locale.toLowerCase() === tag)
-    ?? LOCALES.find((locale) => locale.toLowerCase().split("-")[0] === tag.split("-")[0]);
+  return (
+    LOCALES.find((locale) => locale.toLowerCase() === tag) ??
+    LOCALES.find((locale) => locale.toLowerCase().split("-")[0] === tag.split("-")[0])
+  );
 }
 
 /** Stored choice first, then the browser's languages, then English. */

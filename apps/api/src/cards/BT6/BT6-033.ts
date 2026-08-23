@@ -3,67 +3,67 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "mine",
-          "leaveCount": 3,
-          "upTo": true,
-          "trackCount": "securityTrashed"
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          leaveCount: 3,
+          upTo: true,
+          trackCount: "securityTrashed",
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "scaling": {
-            "per": 1,
-            "unit": "namedCount",
-            "countSource": "securityTrashed"
+          kind: "GainMemory",
+          amount: 1,
+          scaling: {
+            per: 1,
+            unit: "namedCount",
+            countSource: "securityTrashed",
           },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "for each security card you trashed"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "for each security card you trashed",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Jamming",
-              "raw": "＜Jamming＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Jamming",
+              raw: "＜Jamming＞",
+            },
           },
-          "while": {
-            "kind": "allOf",
-            "conditions": [
-              { "kind": "securityAtLeast", "value": 3 },
-              { "kind": "securityAtMost", "value": 3 }
+          while: {
+            kind: "allOf",
+            conditions: [
+              { kind: "securityAtLeast", value: 3 },
+              { kind: "securityAtMost", value: 3 },
             ],
-            "raw": "while you have 3 security cards"
-          }
-        }
+            raw: "while you have 3 security cards",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT6-033", compiled);

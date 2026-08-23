@@ -10,7 +10,11 @@ describe("EX11-008 Elizamon", () => {
     for (const trigger of ["WhenMoving", "OnPlay"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger)!;
       expect(effect.actions).toEqual([
-        expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Raid", raw: "＜Raid＞" }, duration: "forTheTurn" }),
+        expect.objectContaining({
+          kind: "GainKeyword",
+          keyword: { keyword: "Raid", raw: "＜Raid＞" },
+          duration: "forTheTurn",
+        }),
         expect.objectContaining({ kind: "ModifyDP", amount: 3000, duration: "forTheTurn" }),
       ]);
     }
@@ -45,7 +49,9 @@ describe("EX11-008 Elizamon", () => {
     const ally = s.perm("ally");
     const initialDP = ally.currentDP;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elizamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elizamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => ally.currentDP === initialDP + 3000, 600);
 
     expect(ally.currentDP).toBe(initialDP + 3000);

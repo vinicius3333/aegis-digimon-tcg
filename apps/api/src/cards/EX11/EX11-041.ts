@@ -6,169 +6,157 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "digivolutionRequirement": [
-    { "level": 4, "cost": 4, "colors": ["Black", "Blue"], "isAlternate": true },
-    { "level": 4, "traits": ["Cyborg"], "cost": 3, "isAlternate": true }
+  digivolutionRequirement: [
+    { level: 4, cost: 4, colors: ["Black", "Blue"], isAlternate: true },
+    { level: 4, traits: ["Cyborg"], cost: 3, isAlternate: true },
   ],
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
+      trigger: "EndOfOpponentsTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
+      isSecurity: true,
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "flipUp",
-          "controller": "opponent",
-          "amount": 1
+          kind: "SecurityManipulation",
+          op: "flipUp",
+          controller: "opponent",
+          amount: 1,
         },
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
+          amount: 1,
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Invisimon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Invisimon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "condition": {
-            "kind": "isOpponentsTurn",
-            "raw": "it's their turn"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "flipUp",
-          "controller": "opponent",
-          "amount": 1
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          condition: {
+            kind: "isOpponentsTurn",
+            raw: "it's their turn",
+          },
         },
-        {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 1
-        },
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Invisimon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "condition": {
-            "kind": "isOpponentsTurn",
-            "raw": "it's their turn"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "placeFromSourceToSecurity",
-          "source": "selfTopDigivolutionCard",
-          "position": "bottom",
-          "faceUp": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "restriction": "attackTargetChange",
-          "duration": "permanent"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "flipUp",
+          controller: "opponent",
+          amount: 1,
+        },
+        {
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 1,
+        },
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
+              {
+                tokens: ["Invisimon"],
+                match: "name",
+              },
+            ],
+          },
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          condition: {
+            kind: "isOpponentsTurn",
+            raw: "it's their turn",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "placeFromSourceToSecurity",
+          source: "selfTopDigivolutionCard",
+          position: "bottom",
+          faceUp: true,
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          restriction: "attackTargetChange",
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-041", compiled);

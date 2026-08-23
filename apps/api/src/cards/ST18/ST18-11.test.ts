@@ -12,7 +12,9 @@ describe("ST18-11 Parrotmon", () => {
     );
     s.state.memory = 7;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("parrotmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("parrotmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("victim").isSuspended && observe(s.engine).isRestricted(s.perm("victim"), "unsuspend"));
 
     expect(s.perm("victim").isSuspended).toBe(true);
@@ -20,9 +22,11 @@ describe("ST18-11 Parrotmon", () => {
   });
 
   it("publishes Piercing as its inherited keyword", () => {
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      isInherited: true,
-      keywords: [expect.objectContaining({ keyword: "Piercing" })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        isInherited: true,
+        keywords: [expect.objectContaining({ keyword: "Piercing" })],
+      }),
+    );
   });
 });

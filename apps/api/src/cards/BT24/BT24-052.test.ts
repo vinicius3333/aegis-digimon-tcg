@@ -91,9 +91,9 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
     expect(s.perm("mover").inBreeding).toBe(false);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId.startsWith("TOKEN-"))).toHaveLength(
-      1,
-    );
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId.startsWith("TOKEN-")),
+    ).toHaveLength(1);
   });
 
   it("protects only its own Diaboromon-text host by deleting another exact Diaboromon", async () => {

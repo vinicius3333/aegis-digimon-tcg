@@ -7,12 +7,28 @@ import "../index.js";
 
 describe("BT26-071 Flarerizamon", () => {
   it("compiles inherited Raid and both delete triggers", () => {
-    expect(digivolutionRequirementsFor("BT26-071")).toContainEqual({ level: 3, traits: ["NSo"], cost: 2, isAlternate: true });
+    expect(digivolutionRequirementsFor("BT26-071")).toContainEqual({
+      level: 3,
+      traits: ["NSo"],
+      cost: 2,
+      isAlternate: true,
+    });
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((e) => e.trigger)).toEqual(["Static", "OnPlay", "WhenDigivolving"]);
   });
   it("deletes an own Digimon as cost, then deletes an opposing level-4 Digimon", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT26-071", as: "self" }], battleArea: [{ card: "BT26-012", as: "ownCost" }] }, 1: { battleArea: [{ card: "BT26-020", as: "target" }, { card: "BT26-021", as: "high" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT26-071", as: "self" }], battleArea: [{ card: "BT26-012", as: "ownCost" }] },
+        1: {
+          battleArea: [
+            { card: "BT26-020", as: "target" },
+            { card: "BT26-021", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 1);

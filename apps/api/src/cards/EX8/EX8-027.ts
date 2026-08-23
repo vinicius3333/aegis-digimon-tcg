@@ -6,194 +6,168 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 2
+                count: 2,
               },
-              "into": {
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "DS"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["DS"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": true,
-              "optional": true,
-              "bindResultAs": "dnaDigivolvedByThisEffect",
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter",
-                "filter": {
-                  "nameOrTrait": [
+              payCost: true,
+              optional: true,
+              bindResultAs: "dnaDigivolvedByThisEffect",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "DS"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["DS"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "any of them have the [DS] trait"
-              }
+                raw: "any of them have the [DS] trait",
+              },
             },
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "boundRef": "dnaDigivolvedByThisEffect"
+              kind: "Attack",
+              target: {
+                filter: {
+                  boundRef: "dnaDigivolvedByThisEffect",
                 },
-                "count": 1
+                count: 1,
               },
-              "withoutSuspending": false,
-              "optional": true,
-              "condition": {
-                "kind": "bindingExists",
-                "ref": "dnaDigivolvedByThisEffect",
-                "raw": "that DNA digivolved Digimon"
-              }
-            }
+              withoutSuspending: false,
+              optional: true,
+              condition: {
+                kind: "bindingExists",
+                ref: "dnaDigivolvedByThisEffect",
+                raw: "that DNA digivolved Digimon",
+              },
+            },
           ],
-          "raw": "whenPlayed"
+          raw: "whenPlayed",
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 2
+                count: 2,
               },
-              "into": {
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "DS"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["DS"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": true,
-              "optional": true,
-              "bindResultAs": "dnaDigivolvedByThisEffect",
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter",
-                "filter": {
-                  "nameOrTrait": [
+              payCost: true,
+              optional: true,
+              bindResultAs: "dnaDigivolvedByThisEffect",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "DS"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["DS"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "any of them have the [DS] trait"
-              }
+                raw: "any of them have the [DS] trait",
+              },
             },
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "boundRef": "dnaDigivolvedByThisEffect"
+              kind: "Attack",
+              target: {
+                filter: {
+                  boundRef: "dnaDigivolvedByThisEffect",
                 },
-                "count": 1
+                count: 1,
               },
-              "withoutSuspending": false,
-              "optional": true,
-              "condition": {
-                "kind": "bindingExists",
-                "ref": "dnaDigivolvedByThisEffect",
-                "raw": "that DNA digivolved Digimon"
-              }
-            }
+              withoutSuspending: false,
+              optional: true,
+              condition: {
+                kind: "bindingExists",
+                ref: "dnaDigivolvedByThisEffect",
+                raw: "that DNA digivolved Digimon",
+              },
+            },
           ],
-          "raw": "whenDigivolving"
-        }
+          raw: "whenDigivolving",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "DS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["DS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-027", compiled);

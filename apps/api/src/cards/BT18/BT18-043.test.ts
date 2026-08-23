@@ -14,7 +14,13 @@ describe("BT18-043 Tinkermon", () => {
     const initialMemory = s.state.memory;
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tinkermon"));
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("tinkermon").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tinkermon").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tinkermon").topCard?.instanceId === s.inst("evolving").instanceId);
 
     expect(s.perm("tinkermon").topCard?.cardId).toBe("BT11-052");

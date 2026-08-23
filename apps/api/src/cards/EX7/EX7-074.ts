@@ -6,129 +6,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "zone": "battleArea",
-              "kind": [
-                "Digimon",
-                "Tamer"
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              zone: "battleArea",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
+                {
+                  tokens: ["LIBERATOR"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "LIBERATOR"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "raw": "you have a Digimon or Tamer with the [LIBERATOR] trait"
+            raw: "you have a Digimon or Tamer with the [LIBERATOR] trait",
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "hand"
-            }
-          ],
-          "rest": "deckBottom"
+          optional: true,
         },
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 4,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 4,
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "LIBERATOR"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        },
-        {
-          "kind": "AddToHandSelf"
-        }
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+          },
+          from: ["hand"],
+          reduceCost: 4,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 4,
+              nameOrTrait: [
+                {
+                  tokens: ["LIBERATOR"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX7-074", compiled);

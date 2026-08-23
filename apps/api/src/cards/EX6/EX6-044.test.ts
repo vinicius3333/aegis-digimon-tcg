@@ -61,7 +61,12 @@ const DIGIMON = "AD1-001";
 interface Harness {
   state: GameState;
   fx: ReturnType<typeof createPrimitives>;
-  consult(ids: string[], cause: RemovalCause, resolvingSeat?: Seat, opts?: { isBounce?: boolean }): Promise<Set<string>>;
+  consult(
+    ids: string[],
+    cause: RemovalCause,
+    resolvingSeat?: Seat,
+    opts?: { isBounce?: boolean },
+  ): Promise<Set<string>>;
   installPrevent(sourcePermanent: Permanent): Promise<void>;
 }
 

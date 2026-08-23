@@ -16,7 +16,9 @@ describe("EX12-010 Greymon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX12-005"));
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX12-005");
@@ -62,7 +64,9 @@ describe("EX12-010 Greymon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
@@ -73,7 +77,8 @@ describe("EX12-010 Greymon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX12-010", as: "host", under: ["EX12-010"] }] } });
     await s.ready();
 
-    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
     expect(continuous.hasKeyword(s.perm("host").permanentId, "Raid")).toBe(true);
   });
 

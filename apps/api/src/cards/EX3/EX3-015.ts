@@ -7,75 +7,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // from your hand under that Digimon as its bottom digivolution card.
 // KB Q&A Q3378: "that Digimon" = the blue Digimon selected by the [On Play] effect.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
             },
-            "count": 1,
-            "bindAs": "jammingTarget"
-          }
+            count: 1,
+            bindAs: "jammingTarget",
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "fromSelectionRef": "jammingTarget",
-            "filter": {},
-            "count": 1
+          kind: "GainKeyword",
+          target: {
+            fromSelectionRef: "jammingTarget",
+            filter: {},
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Jamming",
-            "raw": "＜Jamming＞"
+          keyword: {
+            keyword: "Jamming",
+            raw: "＜Jamming＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
         {
           // Conditional on being played from digivolution cards.
           // Target: 1 blue level 5 or lower Digimon card from hand.
           // Destination: under the selected blue Digimon (the one that got Jamming) as bottom digivolution card.
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "hand",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "hand",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              colors: ["Blue"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "underSelectionRef": "jammingTarget",
-          "position": "bottom",
-          "optional": true,
-          "condition": {
-            "kind": "playedFromZone",
-            "zone": "digivolutionCards",
-            "raw": "when played from digivolution cards"
-          }
-        }
-      ]
-    }
+          underSelectionRef: "jammingTarget",
+          position: "bottom",
+          optional: true,
+          condition: {
+            kind: "playedFromZone",
+            zone: "digivolutionCards",
+            raw: "when played from digivolution cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX3-015", compiled);

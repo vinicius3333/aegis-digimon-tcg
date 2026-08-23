@@ -6,248 +6,218 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Evade",
-          "raw": "＜Evade＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
-            },
-            "count": 1
-          }
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
         },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "unit": "colors"
-          }
-        }
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
-            },
-            "count": 1
-          }
+          keyword: "Evade",
+          raw: "＜Evade＞",
         },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "unit": "colors"
-          }
-        }
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
-            },
-            "count": 1
-          }
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "unit": "colors"
-          }
-        }
-      ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
               },
-              "optional": true
-            }
-          ]
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "selfHasNameContaining", "names": ["Garurumon","Omnimon"],
-            "raw": "this Digimon has [Garurumon] or [Omnimon] in its name"
-          }
-        }
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+            },
+            unit: "colors",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "names": [
-        "Garurumon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "level": 5,
-      "traits": [
-        "ADVENTURE",
-        "Hero"
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+            },
+            unit: "colors",
+          },
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+            },
+            unit: "colors",
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Garurumon", "Omnimon"],
+            raw: "this Digimon has [Garurumon] or [Omnimon] in its name",
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      names: ["Garurumon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      level: 5,
+      traits: ["ADVENTURE", "Hero"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("AD1-014", compiled);

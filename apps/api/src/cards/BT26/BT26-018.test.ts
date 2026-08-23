@@ -90,11 +90,14 @@ describe("BT26-018 reveal movement boundaries", () => {
       expect.any(Object),
       expect.objectContaining({ candidates: ["aqua", "sea", "ds"], min: 1, max: 1 }),
     );
-    expect(orderCards).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
-      candidates: ["sea", "ds", "plain"],
-      visibleCards: cards.slice(1),
-      destination: "deckBottom",
-    }));
+    expect(orderCards).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        candidates: ["sea", "ds", "plain"],
+        visibleCards: cards.slice(1),
+        destination: "deckBottom",
+      }),
+    );
     expect(returnToDeck).toHaveBeenCalledWith(["plain", "ds", "sea"], { toTop: false });
   });
 });
@@ -206,12 +209,14 @@ describe("BT26-018 public engine behavior", () => {
         hand: [{ card: CARD_ID, as: "sangomon" }],
       },
     });
-    expect(invalid.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: invalid.perm("nonDsEgg").permanentId,
-      instanceId: invalid.inst("sangomon").instanceId,
-      useAlternateCost: true,
-    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonDsEgg").permanentId,
+        instanceId: invalid.inst("sangomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
     expect(invalid.perm("nonDsEgg").topCard.cardId).toBe("BT26-001");
   });
 });

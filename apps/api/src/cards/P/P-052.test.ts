@@ -43,9 +43,7 @@ describe("P-052 Vikemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      ["empty-a", "empty-b", "empty-c"].every((alias) =>
-        observe(s.engine).isRestricted(s.perm(alias), "attack"),
-      ),
+      ["empty-a", "empty-b", "empty-c"].every((alias) => observe(s.engine).isRestricted(s.perm(alias), "attack")),
     );
 
     for (const alias of ["empty-a", "empty-b", "empty-c"]) {
@@ -78,20 +76,24 @@ describe("P-052 Vikemon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("source").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
     const decision = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
     expect(decision.options?.candidateInstanceIds).toHaveLength(3);
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("chosen"), "attack"));
 
     expect(observe(s.engine).isRestricted(s.perm("chosen"), "attack")).toBe(true);
@@ -127,10 +129,9 @@ describe("P-052 Vikemon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
 
     const addedSource = s.give(1, Zone.Hand, "BT1-001");
-    await (s.engine as unknown as EngineInternals).primitives.placeUnder(
-      s.perm("target").permanentId,
-      [addedSource.instanceId],
-    );
+    await (s.engine as unknown as EngineInternals).primitives.placeUnder(s.perm("target").permanentId, [
+      addedSource.instanceId,
+    ]);
 
     expect(s.perm("target").stack).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
@@ -202,9 +203,11 @@ describe("P-052 Vikemon", () => {
         s.events.filter((event) => event.kind === "combatResolved").length === 1,
     );
 
-    await (s.engine as unknown as {
-      primitives: { unsuspend(permanentIds: string[]): Promise<void> };
-    }).primitives.unsuspend([s.perm("attacker").permanentId]);
+    await (
+      s.engine as unknown as {
+        primitives: { unsuspend(permanentIds: string[]): Promise<void> };
+      }
+    ).primitives.unsuspend([s.perm("attacker").permanentId]);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

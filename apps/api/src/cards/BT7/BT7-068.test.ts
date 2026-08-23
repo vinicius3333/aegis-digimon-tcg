@@ -5,7 +5,12 @@ import "./BT7-068.js";
 
 describe("BT7-068 Lopmon", () => {
   it("gains 1 memory when its owner plays a Tamer", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-075", under: ["BT7-068"], as: "host" }], hand: [{ card: "BT7-090", as: "tamer" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT6-075", under: ["BT7-068"], as: "host" }],
+        hand: [{ card: "BT7-090", as: "tamer" }],
+      },
+    });
     s.state.memory = 0;
     await s.ready();
 

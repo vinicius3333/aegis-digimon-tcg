@@ -6,146 +6,129 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "forTheTurn"
+          amount: 3000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 3000,
-          "duration": "forTheTurn"
+          withoutSuspending: false,
+          optional: true,
         },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controllerDefault": "any",
-            "kind": [
-              "Digimon"
-            ],
-            "dp": {
-              "op": "gte",
-              "value": 13000
-            }
-          },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Marsmon",
-                      "Callismon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "payCost": false,
-              "from": [
-                "hand"
-              ],
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
-        {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "traits": [
-        "TS"
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 3000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controllerDefault: "any",
+            kind: ["Digimon"],
+            dp: {
+              op: "gte",
+              value: 13000,
+            },
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Marsmon", "Callismon"],
+                    match: "name",
+                  },
+                ],
+              },
+              payCost: false,
+              from: ["hand"],
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      traits: ["TS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-016", compiled);

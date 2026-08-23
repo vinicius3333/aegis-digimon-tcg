@@ -6,41 +6,39 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 2000
+          effect: {
+            kind: "modifyDP",
+            amount: 2000,
           },
-          "while": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          while: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "countMax": 1,
-            "raw": "your opponent has 1 or fewer Digimon"
-          }
-        }
+            countMax: 1,
+            raw: "your opponent has 1 or fewer Digimon",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX7-001", compiled);

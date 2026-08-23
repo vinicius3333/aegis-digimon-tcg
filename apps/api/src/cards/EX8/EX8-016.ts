@@ -6,140 +6,126 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Aura",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "effect": {
-            "kind": "restriction",
-            "restriction": "attackOnlySuspendedDigimon"
+          effect: {
+            kind: "restriction",
+            restriction: "attackOnlySuspendedDigimon",
           },
-          "while": {
-            "kind": "selfIsSuspended",
-            "raw": "this Digimon is suspended"
-          }
-        }
-      ]
-    }
+          while: {
+            kind: "selfIsSuspended",
+            raw: "this Digimon is suspended",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "names": [
-        "Tyrannomon"
-      ],
-      "cost": 4,
-      "isAlternate": true
+      level: 5,
+      names: ["Tyrannomon"],
+      cost: 4,
+      isAlternate: true,
     },
     {
-      "level": 5,
-      "traits": [
-        "Dinosaur"
-      ],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Dinosaur"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-016", compiled);

@@ -6,83 +6,73 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Tamer"
-              ],
-            "excludeColors": [
-              "Purple"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Tamer"],
+              excludeColors: ["Purple"],
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Tamer"
-              ],
-            "excludeColors": [
-              "Purple"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Tamer"
-            ]
+            count: 1,
           },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "keyword": "Retaliation",
-          "raw": "＜Retaliation＞"
-        }
-      ]
-    }
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Tamer"],
+              excludeColors: ["Purple"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Tamer"],
+          },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Retaliation",
+          raw: "＜Retaliation＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT25-081", compiled);

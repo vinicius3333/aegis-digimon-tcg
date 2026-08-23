@@ -28,9 +28,7 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] },
-          ],
+          battleArea: [{ card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] }],
           hand: [{ card: ANGEL_CARD, as: "angel" }],
           deck: [{ card: "BT1-001", faceUp: false }],
         },
@@ -55,9 +53,7 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] },
-          ],
+          battleArea: [{ card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] }],
           hand: [{ card: NON_ANGEL_CARD, as: "nonAngel" }],
           deck: [{ card: "BT1-001", faceUp: false }],
         },
@@ -70,7 +66,9 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
 
     const handBefore = p0.hand.length;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonAngel").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonAngel").instanceId })).toEqual({
+      ok: true,
+    });
     // Allow time for any spurious resolve.
     await settle(() => false, 20);
 
@@ -82,9 +80,7 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] },
-          ],
+          battleArea: [{ card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] }],
           hand: [{ card: ANGEL_CARD, as: "angel" }],
           deck: [{ card: "BT1-001", faceUp: false }],
         },
@@ -98,7 +94,10 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
 
     const handBefore = p0.hand.length;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angel").instanceId })).toEqual({ ok: false, reason: expect.any(String) });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angel").instanceId })).toEqual({
+      ok: false,
+      reason: expect.any(String),
+    });
     await settle(() => false, 20);
 
     expect(p0.hand.length).toBe(handBefore); // no draw off-turn

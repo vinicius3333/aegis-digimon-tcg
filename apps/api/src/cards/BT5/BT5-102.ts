@@ -6,87 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 2,
-            "upTo": true
+            count: 2,
+            upTo: true,
           },
-          "restriction": "attackOrBlock",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "attackOrBlock",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "DigiBurst"
-              ]
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              keywords: ["DigiBurst"],
             },
-            "raw": "you have a Digimon with ＜Digi-Burst＞ in play"
-          }
-        }
-      ]
+            raw: "you have a Digimon with ＜Digi-Burst＞ in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 2,
-            "upTo": true
+            count: 2,
+            upTo: true,
           },
-          "restriction": "attack",
-          "duration": "permanent"
+          restriction: "attack",
+          duration: "permanent",
         },
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": [
-                "DigiBurst"
-              ]
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              keywords: ["DigiBurst"],
             },
-            "raw": "you have a Digimon with ＜Digi-Burst＞ in play"
-          }
-        }
+            raw: "you have a Digimon with ＜Digi-Burst＞ in play",
+          },
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-102", compiled);

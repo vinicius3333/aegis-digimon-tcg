@@ -22,7 +22,9 @@ describe("BT18-056 TigerVespamon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tigerVespamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tigerVespamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).isRestricted(s.perm("opponentTwo"), "unsuspend"));
 
     expect(s.perm("opponentOne").isSuspended).toBe(true);

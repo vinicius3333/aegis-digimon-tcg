@@ -6,207 +6,188 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          amount: -4000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Olympos XII"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Olympos XII"],
+                  match: "trait",
+                },
+              ],
             },
-            "unit": "cards"
-          }
+            unit: "cards",
+          },
         },
         {
-          "kind": "DeleteByDPBudget",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeleteByDPBudget",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "baseBudget": 7000,
-          "budgetBonus": {
-            "per": 1,
-            "filter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }] },
-            "unit": "cards"
-          }
-        }
-      ]
+          baseBudget: 7000,
+          budgetBonus: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Olympos XII"], match: "trait" }],
+            },
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          amount: -4000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Olympos XII"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Olympos XII"],
+                  match: "trait",
+                },
+              ],
             },
-            "unit": "cards"
-          }
+            unit: "cards",
+          },
         },
         {
-          "kind": "DeleteByDPBudget",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeleteByDPBudget",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "baseBudget": 7000,
-          "budgetBonus": {
-            "per": 1,
-            "filter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }] },
-            "unit": "cards"
-          }
-        }
-      ]
+          baseBudget: 7000,
+          budgetBonus: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Olympos XII"], match: "trait" }],
+            },
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 2
+            count: 2,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "GraceNovamon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["GraceNovamon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": true,
-          "optional": true
+          payCost: true,
+          optional: true,
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
+          withoutSuspending: false,
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "Light Fang",
-        "Night Claw"
-      ],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Light Fang", "Night Claw"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("P-191", compiled);

@@ -11,7 +11,11 @@ describe("BT26-029 compiled fidelity", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
-    expect(card?.effects?.find((effect) => effect.trigger === "Static" && effect.keywords)?.keywords?.map((keyword) => keyword.keyword)).toEqual(expect.arrayContaining(["Decode", "Ascension"]));
+    expect(
+      card?.effects
+        ?.find((effect) => effect.trigger === "Static" && effect.keywords)
+        ?.keywords?.map((keyword) => keyword.keyword),
+    ).toEqual(expect.arrayContaining(["Decode", "Ascension"]));
     expect(card?.effects?.[0]?.actions).toMatchObject([
       { kind: "SecurityManipulation", op: "trashTop" },
       { kind: "SelectBind" },
@@ -51,50 +55,65 @@ describe("BT26-029 compiled fidelity", () => {
   });
 
   it("when its security is removed gives exactly 3 opponent Digimon -5000 DP only once", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-029", as: "holy" }],
-        security: [
-          { card: "BT1-001", as: "firstSecurity" },
-          { card: "BT1-002", as: "secondSecurity" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-029", as: "holy" }],
+          security: [
+            { card: "BT1-001", as: "firstSecurity" },
+            { card: "BT1-002", as: "secondSecurity" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first", dp: 6000 },
+            { card: "BT1-010", as: "second", dp: 6000 },
+            { card: "BT1-011", as: "third", dp: 6000 },
+            { card: "BT1-012", as: "fourth", dp: 6000 },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "first", dp: 6000 },
-          { card: "BT1-010", as: "second", dp: 6000 },
-          { card: "BT1-011", as: "third", dp: 6000 },
-          { card: "BT1-012", as: "fourth", dp: 6000 },
-        ],
-      },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).verb.trashFromSecurity(0, 1);
-    expect([s.perm("first"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter((permanent) => permanent.currentDP === 1000)).toHaveLength(3);
+    expect(
+      [s.perm("first"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter(
+        (permanent) => permanent.currentDP === 1000,
+      ),
+    ).toHaveLength(3);
 
     await advance(s.engine).verb.trashFromSecurity(0, 1);
-    expect([s.perm("first"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter((permanent) => permanent.currentDP === 1000)).toHaveLength(3);
+    expect(
+      [s.perm("first"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter(
+        (permanent) => permanent.currentDP === 1000,
+      ),
+    ).toHaveLength(3);
   });
 
-
   it("evolves from Aegiomon for 3 and applies the paid protection on When Digivolving", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-034", as: "aegiomon" }],
-        hand: [{ card: "BT26-029", as: "holy" }],
-        security: [{ card: "BT1-001", as: "cost" }],
-        deck: ["BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-034", as: "aegiomon" }],
+          hand: [{ card: "BT26-029", as: "holy" }],
+          security: [{ card: "BT1-001", as: "cost" }],
+          deck: ["BT1-009"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("aegiomon").permanentId,
-      instanceId: s.inst("holy").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aegiomon").permanentId,
+        instanceId: s.inst("holy").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).isRestricted(s.perm("aegiomon"), "beReturned"));
 
     expect(s.perm("aegiomon").topCard.cardId).toBe("BT26-029");

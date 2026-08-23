@@ -162,8 +162,7 @@ describe("manual-0031/manual-0032/manual-0033 — DigiXros: cost reduction SCALE
       );
       cite(
         "manual-0032",
-        "worked example: DigiXros -2 per card, 4 cards placed -> total reduction 8, printed cost " +
-          "9 becomes 1",
+        "worked example: DigiXros -2 per card, 4 cards placed -> total reduction 8, printed cost " + "9 becomes 1",
       );
       cite("manual-0033", "cards placed for a DigiXros stack top-to-bottom in requirement order");
 

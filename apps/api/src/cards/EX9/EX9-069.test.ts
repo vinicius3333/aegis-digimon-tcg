@@ -7,24 +7,39 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import compiled from "./EX9-069.js";
 
 describe("EX9-069", () => {
-  const source = { instanceId: "source", cardId: "EX9-069", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
+  const source = {
+    instanceId: "source",
+    cardId: "EX9-069",
+    ownerSeat: 0,
+    definition: {},
+    permanent: () => undefined,
+    isOnBattleArea: () => true,
+    isOwnersTurn: () => true,
+    hasColor: () => true,
+  } as never;
   it("registers start-main placement and security play", () => {
     expect(getEffectModule("EX9-069")!.effectsForTiming(EffectTiming.OnStartMainPhase, source)).toHaveLength(1);
     expect(getEffectModule("EX9-069")!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
-  it("registers memory/draw on adding digivolution cards and opponent-turn Reboot", () => expect(getEffectModule("EX9-069")!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2));
+  it("registers memory/draw on adding digivolution cards and opponent-turn Reboot", () =>
+    expect(getEffectModule("EX9-069")!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2));
   it("encodes face-down battle-area placement reactions as compiled IR", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[1]).toMatchObject({
       trigger: "YourTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "onAddDigivolutionCards",
-        sourceFilter: { controller: "mine", kind: ["Digimon"] },
-        addedDigivolutionCardFilter: { faceDown: true },
-        cost: { kind: "suspend", target: { filter: { isSelfRef: true } } },
-        actions: [{ kind: "GainMemory", amount: 1 }, { kind: "Draw", amount: 1 }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          addedDigivolutionCardFilter: { faceDown: true },
+          cost: { kind: "suspend", target: { filter: { isSelfRef: true } } },
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            { kind: "Draw", amount: 1 },
+          ],
+        },
+      ],
     });
     expect(compiled.effects[2]).toMatchObject({
       trigger: "OpponentsTurn",
@@ -32,7 +47,19 @@ describe("EX9-069", () => {
     });
   });
   it("places a hand card face-down under a DM Digimon at the start of main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX9-069", as: "source" }, { card: "EX9-065", as: "host" }], hand: ["BT1-009"], deck: ["BT1-010"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-069", as: "source" },
+            { card: "EX9-065", as: "host" },
+          ],
+          hand: ["BT1-009"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
@@ -44,20 +71,30 @@ describe("EX9-069", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
   });
   it("grants Reboot to own Digimon with face-down sources during the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX9-069", as: "source" }, { card: "EX9-065", as: "host", under: [{ card: "BT1-009", faceUp: false }] }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX9-069", as: "source" },
+          { card: "EX9-065", as: "host", under: [{ card: "BT1-009", faceUp: false }] },
+        ],
+      },
+    });
     s.state.turnSeat = 1;
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
   });
   it("does not react when a face-down card is placed under a breeding Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX9-069", as: "source" }],
-        breeding: { card: "EX9-065", as: "breeding" },
-        deck: ["BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-069", as: "source" }],
+          breeding: { card: "EX9-065", as: "breeding" },
+          deck: ["BT1-010"],
+        },
       },
-    }, { autoAcceptOptional: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoOrderTriggers: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {

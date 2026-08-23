@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  compareDP,
-  resolvePermanentBattle,
-  resolveSecurityBattle,
-} from "./resolve.js";
+import { compareDP, resolvePermanentBattle, resolveSecurityBattle } from "./resolve.js";
 
 describe("compareDP (IBattle.CompareStats)", () => {
   it("attacker with higher DP wins", () => {

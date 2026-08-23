@@ -6,122 +6,110 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "IceClad",
-          "raw": "＜Ice Clad＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 2,
-          "fromTop": false
+          keyword: "IceClad",
+          raw: "＜Ice Clad＞",
         },
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "digivolutionCards": "hasAny",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "raw": "your opponent has no Digimon with digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 2,
-          "fromTop": false
-        },
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "digivolutionCards": "hasAny",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "raw": "your opponent has no Digimon with digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security Attack -1＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 2,
+          fromTop: false,
+        },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHasNone",
+            filter: {
+              digivolutionCards: "hasAny",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            raw: "your opponent has no Digimon with digivolution cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 2,
+          fromTop: false,
+        },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHasNone",
+            filter: {
+              digivolutionCards: "hasAny",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            raw: "your opponent has no Digimon with digivolution cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security Attack -1＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Ice-Snow"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Ice-Snow"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-022", compiled);

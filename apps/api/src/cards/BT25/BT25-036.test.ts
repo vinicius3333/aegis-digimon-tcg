@@ -7,8 +7,20 @@ describe("BT25-036 Craftmon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = BT25_036.effects?.find((entry) => entry.trigger === trigger);
       expect(effect?.actions).toHaveLength(2);
-      expect(effect?.actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: true });
-      expect(effect?.actions?.[1]).toMatchObject({ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 });
+      expect(effect?.actions?.[0]).toMatchObject({
+        kind: "SecurityManipulation",
+        op: "toHand",
+        controller: "mine",
+        amount: 1,
+        toTop: true,
+      });
+      expect(effect?.actions?.[1]).toMatchObject({
+        kind: "SecurityManipulation",
+        op: "addTop",
+        controller: "mine",
+        source: "deck",
+        amount: 1,
+      });
     }
   });
 

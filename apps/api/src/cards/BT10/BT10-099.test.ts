@@ -11,14 +11,21 @@ describe("BT10-099 Healing Therapy", () => {
     const s = setupEngine(
       {
         0: { battleArea: ["BT10-029"], hand: [{ card: "BT10-099", as: "option" }] },
-        1: { battleArea: [{ card: "BT10-043", as: "chosen" }, { card: "BT10-044", as: "other" }] },
+        1: {
+          battleArea: [
+            { card: "BT10-043", as: "chosen" },
+            { card: "BT10-044", as: "other" },
+          ],
+        },
       },
       { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("chosen").permanentId);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).keywordAmount(s.perm("chosen"), "SecurityAttack") === -1);
 
     expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(0);
@@ -43,10 +50,14 @@ describe("BT10-099 Healing Therapy", () => {
     preferred.push(s.perm("target1").permanentId, s.perm("target2").permanentId, s.perm("target3").permanentId);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => ["target1", "target2", "target3"].every((alias) =>
-      observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -1,
-    ));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      ["target1", "target2", "target3"].every(
+        (alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -1,
+      ),
+    );
 
     expect(observe(s.engine).keywordAmount(s.perm("untouched"), "SecurityAttack")).toBe(0);
   });
@@ -55,15 +66,23 @@ describe("BT10-099 Healing Therapy", () => {
     const s = setupEngine(
       {
         0: { battleArea: ["BT10-042"], security: [{ card: "BT10-099", as: "option", faceUp: true }] },
-        1: { battleArea: [{ card: "BT10-043", as: "target1" }, { card: "BT10-044", as: "target2" }, { card: "BT10-045", as: "target3" }] },
+        1: {
+          battleArea: [
+            { card: "BT10-043", as: "target1" },
+            { card: "BT10-044", as: "target2" },
+            { card: "BT10-045", as: "target3" },
+          ],
+        },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
 
-    expect(["target1", "target2", "target3"].every((alias) =>
-      observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -1,
-    )).toBe(true);
+    expect(
+      ["target1", "target2", "target3"].every(
+        (alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -1,
+      ),
+    ).toBe(true);
   });
 });

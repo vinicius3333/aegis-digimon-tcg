@@ -8,159 +8,139 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   2. place 1 [DATA SQUAD] trait card face-down under any of your [DATA SQUAD] Tamers
 // KB Q6207: the placed card goes to the bottom of any existing cards under the Tamer.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "DATA SQUAD"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["DATA SQUAD"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "DATA SQUAD"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "placeUnder",
-              "underFilter": {
-                "controller": "mine",
-                "kind": [
-                  "Tamer"
+                    tokens: ["DATA SQUAD"],
+                    match: "trait",
+                  },
                 ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "DATA SQUAD"
-                    ],
-                    "match": "trait"
-                  }
-                ]
               },
-              "faceDown": true
-            }
+              count: 1,
+              to: "placeUnder",
+              underFilter: {
+                controller: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
+                  {
+                    tokens: ["DATA SQUAD"],
+                    match: "trait",
+                  },
+                ],
+              },
+              faceDown: true,
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "DATA SQUAD"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["DATA SQUAD"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "DATA SQUAD"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "placeUnder",
-              "underFilter": {
-                "controller": "mine",
-                "kind": [
-                  "Tamer"
+                    tokens: ["DATA SQUAD"],
+                    match: "trait",
+                  },
                 ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "DATA SQUAD"
-                    ],
-                    "match": "trait"
-                  }
-                ]
               },
-              "faceDown": true
-            }
+              count: 1,
+              to: "placeUnder",
+              underFilter: {
+                controller: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
+                  {
+                    tokens: ["DATA SQUAD"],
+                    match: "trait",
+                  },
+                ],
+              },
+              faceDown: true,
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Koromon"
-      ],
-      "cost": 0,
-      "isAlternate": true
+      names: ["Koromon"],
+      cost: 0,
+      isAlternate: true,
     },
     {
-      "level": 2,
-      "traits": [
-        "DATA SQUAD"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["DATA SQUAD"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST24-04", compiled);

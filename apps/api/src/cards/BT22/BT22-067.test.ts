@@ -27,7 +27,9 @@ describe("BT22-067 LordKnightmon", () => {
   });
 
   it("gates the Rie Kishibe evolution path at three security cards", () => {
-    expect(digivolutionRequirementsFor("BT22-067")?.find((entry) => entry.names?.includes("Rie Kishibe"))).toMatchObject({
+    expect(
+      digivolutionRequirementsFor("BT22-067")?.find((entry) => entry.names?.includes("Rie Kishibe")),
+    ).toMatchObject({
       cost: 5,
       whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
     });
@@ -47,12 +49,16 @@ describe("BT22-067 LordKnightmon", () => {
     );
     s.state.memory = 12;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lordknightmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lordknightmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009"));
     await settle();
 
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "EX5-007"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "EX5-007"]),
+    );
   });
 });

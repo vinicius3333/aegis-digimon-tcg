@@ -98,8 +98,8 @@ describe("BT26-010 Roleplaymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.length === 1);
-    await settle(() =>
-      observe(s.engine).hasKeyword(s.perm("host"), "Progress") && observe(s.engine).hasPierce(s.perm("host")),
+    await settle(
+      () => observe(s.engine).hasKeyword(s.perm("host"), "Progress") && observe(s.engine).hasPierce(s.perm("host")),
     );
     expect(s.state.memory).toBe(0);
     expect(s.perm("host").linked[0]).toMatchObject({ instanceId: s.inst("link").instanceId, faceUp: true });
@@ -161,13 +161,16 @@ describe("BT26-010 Roleplaymon", () => {
     ["Open", "BT26-086"],
     ["Seven Code", "BT26-019"],
   ])("accepts the %s trait as the attack cost", async (_trait, costCard) => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: CARD_ID, as: "roleplay" }],
-        hand: [{ card: costCard, as: "cost" }],
-        deck: ["BT1-009", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "roleplay" }],
+          hand: [{ card: costCard, as: "cost" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
 
@@ -194,7 +197,10 @@ describe("BT26-010 Roleplaymon", () => {
 
   it("encodes the exact hand cost, inherited draw, and linked keywords", () => {
     expect(compiled.effects).toMatchObject([
-      { trigger: "WhenAttacking", actions: [{ kind: "Draw", amount: 2, cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } } }] },
+      {
+        trigger: "WhenAttacking",
+        actions: [{ kind: "Draw", amount: 2, cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } } }],
+      },
       { trigger: "Static", isLinked: true, keywords: [{ keyword: "Progress" }, { keyword: "Piercing" }] },
     ]);
     expect(compiled.keywords).toContainEqual(expect.objectContaining({ keyword: "Detach" }));

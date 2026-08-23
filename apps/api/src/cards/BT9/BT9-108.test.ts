@@ -18,9 +18,9 @@ describe("BT9-108 Eye of the Gorgon", () => {
     );
     s.state.memory = 10;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.players[1]!.battleArea.length === 0 &&
@@ -47,14 +47,12 @@ describe("BT9-108 Eye of the Gorgon", () => {
     );
     s.state.memory = 10;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT9-108"));
 
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
-      s.inst("mustStayInTrash").instanceId,
-    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("mustStayInTrash").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 });

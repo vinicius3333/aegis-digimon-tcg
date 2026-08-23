@@ -51,11 +51,13 @@ describe("EX2 Sakuyamon Rika Plug-In deck gauntlet", () => {
     s.state.memory = 0;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("sakuyamon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sakuyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === dpTargetId) &&
@@ -65,10 +67,11 @@ describe("EX2 Sakuyamon Rika Plug-In deck gauntlet", () => {
     );
     await settle();
 
-    const plugInChoice = s.decisions.find(({ req }) =>
-      req.kind === "selectCards" &&
-      req.sourceCardId === "EX2-060" &&
-      req.options?.candidateInstanceIds?.includes(offensivePlugInId)
+    const plugInChoice = s.decisions.find(
+      ({ req }) =>
+        req.kind === "selectCards" &&
+        req.sourceCardId === "EX2-060" &&
+        req.options?.candidateInstanceIds?.includes(offensivePlugInId),
     )?.req;
     expect(new Set(plugInChoice?.options?.candidateInstanceIds ?? [])).toEqual(
       new Set([offensivePlugInId, highSpeedPlugInId]),
@@ -76,10 +79,7 @@ describe("EX2 Sakuyamon Rika Plug-In deck gauntlet", () => {
 
     const reactionSources = new Set(
       s.decisions
-        .filter(({ req }) =>
-          req.kind === "chooseTargets" &&
-          req.options?.candidateInstanceIds?.includes(dpTargetId)
-        )
+        .filter(({ req }) => req.kind === "chooseTargets" && req.options?.candidateInstanceIds?.includes(dpTargetId))
         .map(({ req }) => req.sourceCardId),
     );
     expect(reactionSources).toEqual(new Set(["EX2-021", "EX2-023", "EX2-024"]));
@@ -89,9 +89,7 @@ describe("EX2 Sakuyamon Rika Plug-In deck gauntlet", () => {
     expect(observe(s.engine).keywordAmount(s.perm("sakuyamon"), "SecurityAttack")).toBe(1);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === offensivePlugInId)).toBe(true);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === highSpeedPlugInId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
-      bystanderId,
-    ]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([bystanderId]);
     expect(s.perm("bystander").currentDP).toBe(12000);
     assertNoLoudGap(s);
   });

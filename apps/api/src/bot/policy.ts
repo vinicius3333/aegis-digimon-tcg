@@ -1,9 +1,4 @@
-import {
-  CardKind,
-  type DecisionRequest,
-  type Intent,
-  type ServerEvent,
-} from "@aegis/shared";
+import { CardKind, type DecisionRequest, type Intent, type ServerEvent } from "@aegis/shared";
 import { enumerateMainPhaseCandidates, digivolveCost, type Candidate } from "./candidates.js";
 import { appraiseBlock, bodyValue, scoreCandidate, shouldPayBarrier } from "./evaluate.js";
 import { DEFAULT_BOT_PROFILE, type BotProfile } from "./profiles.js";
@@ -126,16 +121,8 @@ export function createEvaluationPolicy(options: EvaluationPolicyOptions = {}): B
     },
 
     chooseBlockResponse(view: BotView, context: BlockContext): Intent {
-      const attacker = view.opponentBoard.find(
-        (unit) => unit.permanentId === context.attackerPermanentId,
-      );
-      const appraisal = appraiseBlock(
-        view,
-        attacker,
-        context.eligibleBlockerIds,
-        context.targetsPlayer,
-        profile,
-      );
+      const attacker = view.opponentBoard.find((unit) => unit.permanentId === context.attackerPermanentId);
+      const appraisal = appraiseBlock(view, attacker, context.eligibleBlockerIds, context.targetsPlayer, profile);
       if (appraisal === undefined) return { type: "declineBlock" };
       return { type: "declareBlock", blockerPermanentId: appraisal.blockerPermanentId };
     },
@@ -210,11 +197,7 @@ function candidateKeyOf(intent: Intent): string | undefined {
  * risk appetite genuinely applies: these are effect resolutions where the printed text is
  * not available to reason over, so the safe general rule is to take the beneficial branch.
  */
-export function answerDecisionWith(
-  view: BotView | undefined,
-  request: DecisionRequest,
-  _profile: BotProfile,
-): Intent {
+export function answerDecisionWith(view: BotView | undefined, request: DecisionRequest, _profile: BotProfile): Intent {
   switch (request.kind) {
     case "mulligan":
       return { type: "mulligan", keep: shouldKeepHand(view) };

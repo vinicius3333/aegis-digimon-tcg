@@ -6,56 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -2,
-            "raw": "＜Security Attack -2＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -2,
+            raw: "＜Security Attack -2＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Four Sovereigns"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Four Sovereigns"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a Digimon with [Four Sovereigns] in its traits in play"
-          }
-        }
-      ]
-    }
+            raw: "you have a Digimon with [Four Sovereigns] in its traits in play",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX3-032", compiled);

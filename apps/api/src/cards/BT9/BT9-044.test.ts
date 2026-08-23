@@ -6,7 +6,10 @@ import "./BT9-023.js";
 
 describe("BT9-044 Magnamon (X Antibody)", () => {
   it("may place its top card face down in security to prevent deletion", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT9-044", as: "magna", under: ["BT8-038"] }] } }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT9-044", as: "magna", under: ["BT8-038"] }] } },
+      { autoAcceptOptional: true },
+    );
     const permanentId = s.perm("magna").permanentId;
     const topId = s.perm("magna").topCard!.instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId], "byEffect");
@@ -19,21 +22,26 @@ describe("BT9-044 Magnamon (X Antibody)", () => {
   });
 
   it("redirects an unblockable player attack while remaining unsuspended when X Antibody is in its stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT9-044", as: "magna", under: ["BT9-109"] }],
-        security: ["BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-044", as: "magna", under: ["BT9-109"] }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT9-023", as: "attacker" }] },
       },
-      1: { battleArea: [{ card: "BT9-023", as: "attacker" }] },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -41,21 +49,26 @@ describe("BT9-044 Magnamon (X Antibody)", () => {
   });
 
   it("does not treat an X Antibody trait as the specifically named X Antibody card", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT9-044", as: "magna", under: ["BT9-044"] }],
-        security: [{ card: "BT1-001", as: "security" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-044", as: "magna", under: ["BT9-044"] }],
+          security: [{ card: "BT1-001", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT9-023", as: "attacker" }] },
       },
-      1: { battleArea: [{ card: "BT9-023", as: "attacker" }] },
-    }, { autoAcceptOptional: true });
+      { autoAcceptOptional: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.state.players[0]!.security).toHaveLength(0);
@@ -63,9 +76,12 @@ describe("BT9-044 Magnamon (X Antibody)", () => {
   });
 
   it("cannot prevent deletion without a digivolution card to place in security", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT9-044", as: "magna" }] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-044", as: "magna" }] },
+      },
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId], "byEffect");
 

@@ -22,14 +22,7 @@ export * from "./builders.js";
 export { registerCard, getEffectModule, registeredCardCount } from "./registry.js";
 
 // Kernel: cross-cutting guards + per-turn use tracking (ICardEffect base class).
-export {
-  UseTracker,
-  isOverMaxPerTurn,
-  passesPlacementGuard,
-  canTrigger,
-  canActivate,
-  canUse,
-} from "./kernel.js";
+export { UseTracker, isOverMaxPerTurn, passesPlacementGuard, canTrigger, canActivate, canUse } from "./kernel.js";
 
 // Collection: query registered modules for the effects that fire at a timing.
 export { effectsOf, collectTriggeredEffects } from "./collect.js";
@@ -54,12 +47,7 @@ export type { EffectEnvironment } from "./context.js";
 export { createPrimitives } from "./primitives.js";
 export type { PrimitivesEngine, MemoryPort, SelectionPort } from "./primitives.js";
 export { ModifierLedger } from "./modifiers.js";
-export type {
-  DpModifier,
-  PierceGrant,
-  EvoCostAdjustment,
-  DurationBoundary,
-} from "./modifiers.js";
+export type { DpModifier, PierceGrant, EvoCostAdjustment, DurationBoundary } from "./modifiers.js";
 
 // Continuous-effect application layer (subsystem: static-continuous-effects) — the
 // server-only store of "can't ..." restrictions, name/trait aliases, and color-cost

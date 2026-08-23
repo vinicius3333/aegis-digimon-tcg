@@ -11,7 +11,15 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttackTargetSwitched",
-          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1, condition: { kind: "triggerAttackerIsSelf" } }],
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+              condition: { kind: "triggerAttackerIsSelf" },
+            },
+          ],
         },
       ],
       isInherited: true,

@@ -24,10 +24,13 @@ describe("BT12-091 handwritten module", () => {
   });
 
   it("places a Save Digimon under Airu and gives an opposing Digimon -2000 DP", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT12-091", as: "airu" }], hand: [{ card: "BT12-008", as: "save" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 5000 }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-091", as: "airu" }], hand: [{ card: "BT12-008", as: "save" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("airu"));
     await settle(() => s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-008"));

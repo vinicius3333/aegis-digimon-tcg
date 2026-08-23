@@ -16,50 +16,48 @@ const cases = [
 ] as const;
 
 describe("BT7 Frontier Hybrid Tamer color gates", () => {
-  it.each(cases)("allows $hybrid only on a $color Tamer for cost 2", async ({
-    hybrid,
-    correctTamer,
-    wrongTamer,
-    color,
-  }) => {
-    expect(matchingAlternateDigivolutionRequirement(hybrid, wrongTamer)).toBeUndefined();
-    expect(matchingAlternateDigivolutionRequirement(hybrid, correctTamer)).toMatchObject({
-      cost: 2,
-      baseIsTamer: true,
-      baseColors: [color],
-    });
+  it.each(cases)(
+    "allows $hybrid only on a $color Tamer for cost 2",
+    async ({ hybrid, correctTamer, wrongTamer, color }) => {
+      expect(matchingAlternateDigivolutionRequirement(hybrid, wrongTamer)).toBeUndefined();
+      expect(matchingAlternateDigivolutionRequirement(hybrid, correctTamer)).toMatchObject({
+        cost: 2,
+        baseIsTamer: true,
+        baseColors: [color],
+      });
 
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: correctTamer, as: "correctTamer" },
-          { card: wrongTamer, as: "wrongTamer" },
-        ],
-        hand: [{ card: hybrid, as: "hybrid" }],
-        deck: ["BT1-001"],
-      },
-    });
-    s.state.memory = 2;
-    const hybridId = s.inst("hybrid").instanceId;
+      const s = setupEngine({
+        0: {
+          battleArea: [
+            { card: correctTamer, as: "correctTamer" },
+            { card: wrongTamer, as: "wrongTamer" },
+          ],
+          hand: [{ card: hybrid, as: "hybrid" }],
+          deck: ["BT1-001"],
+        },
+      });
+      s.state.memory = 2;
+      const hybridId = s.inst("hybrid").instanceId;
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("wrongTamer").permanentId,
-        instanceId: hybridId,
-      }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("correctTamer").permanentId,
-        instanceId: hybridId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("correctTamer").topCard?.instanceId === hybridId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("wrongTamer").permanentId,
+          instanceId: hybridId,
+        }),
+      ).toEqual({ ok: false, reason: "invalid-evolution" });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("correctTamer").permanentId,
+          instanceId: hybridId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("correctTamer").topCard?.instanceId === hybridId);
 
-    expect(s.perm("correctTamer").topCard?.instanceId).toBe(hybridId);
-    expect(s.state.memory).toBe(0);
-    assertNoLoudGap(s);
-  });
+      expect(s.perm("correctTamer").topCard?.instanceId).toBe(hybridId);
+      expect(s.state.memory).toBe(0);
+      assertNoLoudGap(s);
+    },
+  );
 });

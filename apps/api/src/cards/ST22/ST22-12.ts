@@ -6,60 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Social",
-                    "Navi",
-                    "Tool"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Social", "Navi", "Tool"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "costDelta": -2,
-          "optional": true
-        }
+          costDelta: -2,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Gatchmon",
-        "Navimon",
-        "Tweetmon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Gatchmon", "Navimon", "Tweetmon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("ST22-12", compiled);

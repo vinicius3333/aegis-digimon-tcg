@@ -6,82 +6,68 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-          "count": 1,
-          "bindResultAs": "deleted"
-          }
+            count: 1,
+            bindResultAs: "deleted",
+          },
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "bindingExists",
-            "ref": "deleted",
-            "raw": "you do"
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "bindingExists",
+            ref: "deleted",
+            raw: "you do",
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "DisableTimingEffect",
-          "duration": "permanent",
-          "target": {
-            "count": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            }
+          kind: "DisableTimingEffect",
+          duration: "permanent",
+          target: {
+            count: 1,
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+            },
           },
-          "timings": [
-            "onPlay"
-          ]
-        }
-      ]
+          timings: ["onPlay"],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-108", compiled);

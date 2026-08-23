@@ -57,10 +57,7 @@ describe("BT26-002 Budmon", () => {
           {
             card: "BT1-009",
             as: "host",
-            under: [
-              { card: "BT26-002" },
-              { card: "BT1-008", as: "digimonUnder" },
-            ],
+            under: [{ card: "BT26-002" }, { card: "BT1-008", as: "digimonUnder" }],
           },
         ],
         deck: ["BT1-012"],

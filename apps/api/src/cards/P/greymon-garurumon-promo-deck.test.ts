@@ -28,14 +28,16 @@ describe("Greymon and Garurumon promo decks", () => {
     expect(observe(s.engine).keywordAmount(s.perm("greymon"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).keywordAmount(s.perm("metalGarurumon"), "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("wereGarurumon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.perm("wereGarurumon").isSuspended &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("wereGarurumon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.perm("wereGarurumon").isSuspended && s.state.players[0]!.hand.some((card) => card.instanceId === drawnId),
     );
 
     expect(s.perm("wereGarurumon").isSuspended).toBe(false);

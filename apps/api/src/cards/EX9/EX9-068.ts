@@ -7,9 +7,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
-      actions: [
-        { kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } },
-      ],
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
     },
     {
       trigger: "YourTurn",
@@ -21,9 +19,7 @@ const compiled: CompiledCard = {
             controller: "mine",
             kind: ["Digimon"],
             playCostGte: 7,
-            nameOrTrait: [
-              { tokens: ["Cyborg", "Machine", "DM"], match: "trait" },
-            ],
+            nameOrTrait: [{ tokens: ["Cyborg", "Machine", "DM"], match: "trait" }],
           },
           cost: {
             kind: "suspend",

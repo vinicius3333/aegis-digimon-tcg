@@ -6,23 +6,23 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDiscardLibrary",
-          "sourceFilter": { "controller": "opponent" },
-          "actions": [{ "kind": "Draw", "amount": 1, "controller": "mine" }]
-        }
+          kind: "SubTrigger",
+          event: "onDiscardLibrary",
+          sourceFilter: { controller: "opponent" },
+          actions: [{ kind: "Draw", amount: 1, controller: "mine" }],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 export { compiled };

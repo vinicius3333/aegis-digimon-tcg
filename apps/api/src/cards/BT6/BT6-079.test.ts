@@ -6,9 +6,26 @@ import "./BT6-079.js";
 
 describe("BT6-079 Murmukusmon", () => {
   it("has Retaliation and plays Ornismon from trash on deletion with 10 cards", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-079", as: "murmukusmon" }], trash: [{ card: "BT6-080", as: "ornismon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008", "BT1-009"] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-079", as: "murmukusmon" }],
+          trash: [
+            { card: "BT6-080", as: "ornismon" },
+            "BT1-001",
+            "BT1-002",
+            "BT1-003",
+            "BT1-004",
+            "BT1-005",
+            "BT1-006",
+            "BT1-007",
+            "BT1-008",
+            "BT1-009",
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("murmukusmon"), "Retaliation")).toBe(true);
 

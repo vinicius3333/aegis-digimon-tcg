@@ -13,24 +13,30 @@ import "./BT6-112.js";
 describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-7 Option count", () => {
   it("returns a cost-7 Option from trash, then uses one from hand for free", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT6-112", as: "beelstarmon" }],
-        trash: [{ card: "BT6-095", as: "option" }],
-        battleArea: ["BT1-009"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT6-112", as: "beelstarmon" }],
+          trash: [{ card: "BT6-095", as: "option" }],
+          battleArea: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT6-075", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT6-075", as: "target" }] },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     const optionId = s.inst("option").instanceId;
     preferred.push(optionId, s.perm("target").permanentId);
     const targetInstanceId = s.perm("target").topCard.instanceId;
     s.state.memory = 12;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId) &&
-      s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId) &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId),
     );
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
@@ -52,9 +58,9 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
     // Install the static play-cost modifier (recompute scans hand cards) before playing.
     await s.engine.recomputeContinuousEffects();
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({
+      ok: true,
+    });
 
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT6-112"));
 

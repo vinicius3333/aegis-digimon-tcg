@@ -35,7 +35,12 @@ describe("BT4-084 NeoDevimon", () => {
   it("gains only 1 memory when multiple opposing Tamers suspend together", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT4-085", as: "host", under: ["BT4-084"] }] },
-      1: { battleArea: [{ card: "BT1-085", as: "first" }, { card: "BT1-085", as: "second" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-085", as: "first" },
+          { card: "BT1-085", as: "second" },
+        ],
+      },
     });
     s.state.turnSeat = 1;
     s.state.memory = 0;

@@ -26,17 +26,19 @@ describe("P-101 Raremon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("raremon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => [s.inst("drawOne"), s.inst("drawTwo")].every((drawn) =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === drawn.instanceId)
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("raremon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      [s.inst("drawOne"), s.inst("drawTwo")].every((drawn) =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === drawn.instanceId),
+      ),
+    );
 
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === s.inst("fodder").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -60,19 +62,21 @@ describe("P-101 Raremon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("raremon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => ["evolutionDraw", "effectDrawOne", "effectDrawTwo"].every((alias) =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst(alias).instanceId)
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("raremon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      ["evolutionDraw", "effectDrawOne", "effectDrawTwo"].every((alias) =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst(alias).instanceId),
+      ),
+    );
 
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("raremon").instanceId);
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === s.inst("fodder").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId)).toBe(true);
     expect(s.state.memory).toBe(7);
     assertNoLoudGap(s);
   });
@@ -93,18 +97,16 @@ describe("P-101 Raremon", () => {
     );
     const targetId = s.perm("level3").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some(
-      (permanent) => permanent.permanentId === targetId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === s.inst("fodder").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

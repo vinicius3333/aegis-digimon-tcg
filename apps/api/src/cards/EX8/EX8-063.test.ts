@@ -9,11 +9,17 @@ describe("EX8-063", () => {
     expect(compiled.effects.filter((entry) => entry.frequency === "OncePerTurn")).toHaveLength(3);
   });
   it("registers the once-per-turn opponent-hand-trash security watcher", () => {
-    expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenHandTrashed" }] });
+    expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenHandTrashed" }],
+    });
   });
   it("trashes an opponent hand card on the digivolving branch", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX8-063", as: "source" }] }, 1: { hand: [{ card: "BT1-010", as: "opponentCard" }] } },
+      {
+        0: { battleArea: [{ card: "EX8-063", as: "source" }] },
+        1: { hand: [{ card: "BT1-010", as: "opponentCard" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const opponent = s.state.players[1] as PlayerState;

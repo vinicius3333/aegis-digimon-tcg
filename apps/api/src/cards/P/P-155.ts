@@ -7,111 +7,103 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Pawn Device"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you don't have [Pawn Device]"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Option"
-                ],
-                "excludeColors": [
-                  "Red"
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 of your non-red option cards in your battle area"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+                  tokens: ["Pawn Device"],
+                  match: "name",
+                },
               ],
-              "dp": {
-                "op": "lte",
-                "value": 11000
-              }
             },
-            "count": 1
-          }
+            raw: "you don't have [Pawn Device]",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Option"],
+                excludeColors: ["Red"],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 of your non-red option cards in your battle area",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 11000,
+              },
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-155", compiled);

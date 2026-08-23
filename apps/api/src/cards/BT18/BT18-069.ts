@@ -9,12 +9,29 @@ export const compiled: CompiledCard = {
       trigger: "EndOfOpponentsTurn",
       optional: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "Attack", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, mandatory: true, attackPlayer: true }],
+      actions: [
+        {
+          kind: "Attack",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          mandatory: true,
+          attackPlayer: true,
+        },
+      ],
     },
     {
       trigger: "AllTurns",
       isInherited: true,
-      actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }] }, count: "all" }, amount: 2000, duration: "permanent" }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }] },
+            count: "all",
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
     },
   ],
   coverage: "full",

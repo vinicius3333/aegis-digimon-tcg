@@ -18,225 +18,199 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": "all"
-          }
+            count: "all",
+          },
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          to: "deckBottom",
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "unit": "colors"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
-            },
-            "count": "all"
-          }
+            unit: "colors",
+          },
         },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "to": "deckBottom",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "unit": "colors"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
-              },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "sourceHasTrait",
-                "trait": "ADVENTURE",
-                "raw": "if any of them have the [ADVENTURE] trait"
-              }
-            },
-            {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "withoutSuspending": false,
-              "optional": true
-            }
-          ]
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
-              },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "sourceHasTrait",
-                "trait": "ADVENTURE",
-                "raw": "if any of them have the [ADVENTURE] trait"
-              }
-            },
-            {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "withoutSuspending": false,
-              "optional": true
-            }
-          ]
-        }
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    }
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
+            },
+            count: "all",
+          },
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+            },
+            unit: "colors",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
+              },
+              duration: "forTheTurn",
+              condition: {
+                kind: "sourceHasTrait",
+                trait: "ADVENTURE",
+                raw: "if any of them have the [ADVENTURE] trait",
+              },
+            },
+            {
+              kind: "Attack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              withoutSuspending: false,
+              optional: true,
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
+              },
+              duration: "forTheTurn",
+              condition: {
+                kind: "sourceHasTrait",
+                trait: "ADVENTURE",
+                raw: "if any of them have the [ADVENTURE] trait",
+              },
+            },
+            {
+              kind: "Attack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              withoutSuspending: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "ADVENTURE"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["ADVENTURE"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST21-09", compiled);

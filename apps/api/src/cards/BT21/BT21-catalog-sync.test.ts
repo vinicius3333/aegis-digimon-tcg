@@ -6,9 +6,7 @@ import { compiled as bt21093 } from "./BT21-093.js";
 import { compiled as bt21094 } from "./BT21-094.js";
 import { compiled as bt21097 } from "./BT21-097.js";
 
-const effectsPath = fileURLToPath(
-  new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url),
-);
+const effectsPath = fileURLToPath(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url));
 const catalog = JSON.parse(readFileSync(effectsPath, "utf8")) as CompiledEffects;
 
 describe("BT21 persisted IR", () => {

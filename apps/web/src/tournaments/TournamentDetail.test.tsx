@@ -37,22 +37,38 @@ const DETAIL: TournamentDetailPayload = {
   ],
 };
 
-function mockDetail(payload: Partial<TournamentDetailPayload> = {}, extra: Record<string, { status?: number; body: unknown }> = {}) {
+function mockDetail(
+  payload: Partial<TournamentDetailPayload> = {},
+  extra: Record<string, { status?: number; body: unknown }> = {},
+) {
   const routes: Record<string, { status?: number; body: unknown }> = {
     "GET /tournaments/t-1": { body: { ...DETAIL, ...payload } },
     ...extra,
   };
-  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-    const key = `${init?.method ?? "GET"} ${new URL(String(input)).pathname}`;
-    const route = routes[key] ?? { status: 404, body: { error: "tournament_not_found" } };
-    return new Response(JSON.stringify(route.body), { status: route.status ?? 200, headers: { "Content-Type": "application/json", Date: new Date().toUTCString() } });
-  }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const key = `${init?.method ?? "GET"} ${new URL(String(input)).pathname}`;
+      const route = routes[key] ?? { status: 404, body: { error: "tournament_not_found" } };
+      return new Response(JSON.stringify(route.body), {
+        status: route.status ?? 200,
+        headers: { "Content-Type": "application/json", Date: new Date().toUTCString() },
+      });
+    }),
+  );
 }
 
 function renderDetail(accountId?: string, accountDisplayName?: string, accountIsAdmin = false) {
   return render(
     <I18nProvider>
-      <TournamentDetail id="t-1" accountId={accountId} accountDisplayName={accountDisplayName} accountIsAdmin={accountIsAdmin} decks={[{ id: "deck-1", name: "Red aggro", mainDeck: [], eggDeck: [], color: "Red", blurb: "" }]} onBack={() => undefined} />
+      <TournamentDetail
+        id="t-1"
+        accountId={accountId}
+        accountDisplayName={accountDisplayName}
+        accountIsAdmin={accountIsAdmin}
+        decks={[{ id: "deck-1", name: "Red aggro", mainDeck: [], eggDeck: [], color: "Red", blurb: "" }]}
+        onBack={() => undefined}
+      />
     </I18nProvider>,
   );
 }
@@ -80,7 +96,9 @@ describe("tournament detail", () => {
     mockDetail();
     renderDetail("acc-player");
 
-    const banlist = (await screen.findByRole("heading", { name: "Banned cards in this event" })).closest(".aegis-panel") as HTMLElement;
+    const banlist = (await screen.findByRole("heading", { name: "Banned cards in this event" })).closest(
+      ".aegis-panel",
+    ) as HTMLElement;
     // Names, not bare ids: resolved through the shared card data.
     expect(within(banlist).getByText("Argomon")).toBeTruthy();
     expect(within(banlist).getByText("Mega Digimon Fusion!")).toBeTruthy();
@@ -104,7 +122,9 @@ describe("tournament detail", () => {
   it("lists participants with their status and marks bots", async () => {
     mockDetail();
     renderDetail("acc-player");
-    const participants = (await screen.findByRole("heading", { name: "Players" })).closest(".aegis-panel") as HTMLElement;
+    const participants = (await screen.findByRole("heading", { name: "Players" })).closest(
+      ".aegis-panel",
+    ) as HTMLElement;
     expect(within(participants).getByText("Tamer One")).toBeTruthy();
     expect(within(participants).getByText("Checked in")).toBeTruthy();
     expect(within(participants).getByText("Bot")).toBeTruthy();
@@ -118,9 +138,25 @@ describe("tournament detail", () => {
   });
 
   it("renders standings when a later slice starts sending them", async () => {
-    mockDetail({ standings: [{ participantId: "p-1", rank: 1, points: 9, matchWinRate: 1, opponentMatchWinRate: 0.5, wins: 3, losses: 0, draws: 0, byes: 0 }] });
+    mockDetail({
+      standings: [
+        {
+          participantId: "p-1",
+          rank: 1,
+          points: 9,
+          matchWinRate: 1,
+          opponentMatchWinRate: 0.5,
+          wins: 3,
+          losses: 0,
+          draws: 0,
+          byes: 0,
+        },
+      ],
+    });
     renderDetail("acc-player");
-    const standings = (await screen.findByRole("heading", { name: "Standings" })).closest(".aegis-panel") as HTMLElement;
+    const standings = (await screen.findByRole("heading", { name: "Standings" })).closest(
+      ".aegis-panel",
+    ) as HTMLElement;
     expect(within(standings).getByText("Tamer One")).toBeTruthy();
     expect(within(standings).getByText("9 points")).toBeTruthy();
   });
@@ -148,7 +184,10 @@ describe("tournament detail", () => {
   });
 
   it("renders a participant failure code when registration is refused", async () => {
-    mockDetail({ status: "registration", participants: [] }, { "POST /tournaments/t-1/participants": { status: 409, body: { error: "tournament_full" } } });
+    mockDetail(
+      { status: "registration", participants: [] },
+      { "POST /tournaments/t-1/participants": { status: 409, body: { error: "tournament_full" } } },
+    );
     renderDetail("acc-player");
     fireEvent.click(await screen.findByRole("button", { name: "Sign up" }));
     await waitFor(() => expect(screen.getByText("This event is full.")).toBeTruthy());
@@ -156,7 +195,10 @@ describe("tournament detail", () => {
 
   it("offers only the entry actions the published state supports", async () => {
     // check_in with the player already checked in: nothing to register, nothing to check into.
-    mockDetail({ status: "check_in", participants: [{ id: "p-1", kind: "human", displayName: "Tamer One", status: "checked_in", seed: 1 }] });
+    mockDetail({
+      status: "check_in",
+      participants: [{ id: "p-1", kind: "human", displayName: "Tamer One", status: "checked_in", seed: 1 }],
+    });
     const checkedIn = renderDetail("acc-player", "Tamer One");
     await screen.findByRole("heading", { name: "Your entry" });
     expect(screen.queryByRole("button", { name: "Sign up" })).toBeNull();
@@ -177,25 +219,34 @@ describe("tournament detail", () => {
 
   it("still offers the action when the display name cannot identify the player", async () => {
     // Two humans share a name, so the payload cannot prove membership: the server decides.
-    mockDetail({ status: "registration", participants: [
-      { id: "p-1", kind: "human", displayName: "Twin", status: "registered", seed: null },
-      { id: "p-2", kind: "human", displayName: "Twin", status: "registered", seed: null },
-    ] });
+    mockDetail({
+      status: "registration",
+      participants: [
+        { id: "p-1", kind: "human", displayName: "Twin", status: "registered", seed: null },
+        { id: "p-2", kind: "human", displayName: "Twin", status: "registered", seed: null },
+      ],
+    });
     renderDetail("acc-player", "Twin");
     expect(await screen.findByRole("button", { name: "Sign up" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Check in" })).toBeTruthy();
   });
 
   it("translates deck-legality violations instead of printing raw kinds", async () => {
-    mockDetail({ status: "registration", participants: [] }, {
-      "POST /tournaments/t-1/participants": {
-        status: 409,
-        body: { error: "deck_illegal", violations: [
-          { kind: "main_deck_size", size: 48, required: 50 },
-          { kind: "over_copy_limit", cardId: "BT2-047", copies: 3, allowed: 1 },
-        ] },
+    mockDetail(
+      { status: "registration", participants: [] },
+      {
+        "POST /tournaments/t-1/participants": {
+          status: 409,
+          body: {
+            error: "deck_illegal",
+            violations: [
+              { kind: "main_deck_size", size: 48, required: 50 },
+              { kind: "over_copy_limit", cardId: "BT2-047", copies: 3, allowed: 1 },
+            ],
+          },
+        },
       },
-    });
+    );
     renderDetail("acc-player", "Tamer One");
     fireEvent.click(await screen.findByRole("button", { name: "Sign up" }));
     await waitFor(() => expect(screen.getByText("Your main deck has 48 cards. It needs exactly 50.")).toBeTruthy());
@@ -211,7 +262,17 @@ describe("tournament detail", () => {
 
   it("marks presence, score and join deadline as pending when the payload carries no series", async () => {
     mockDetail({
-      matches: [{ id: "m-1", round: 2, position: 0, player0AccountId: "acc-player", player1AccountId: "acc-rival", winnerAccountId: null, status: "pending" }],
+      matches: [
+        {
+          id: "m-1",
+          round: 2,
+          position: 0,
+          player0AccountId: "acc-player",
+          player1AccountId: "acc-rival",
+          winnerAccountId: null,
+          status: "pending",
+        },
+      ],
     });
     renderDetail("acc-player");
     const panel = (await screen.findByRole("heading", { name: "My match" })).closest(".aegis-panel") as HTMLElement;

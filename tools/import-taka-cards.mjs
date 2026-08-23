@@ -76,13 +76,7 @@ function parseEvoCosts(conds) {
 }
 
 // Special-digivolution headers printed above the effect box, in card order.
-const DIGIVOLVE_HEADER_FIELDS = [
-  "specialDigivolve",
-  "dnaDigivolve",
-  "digiXros",
-  "burstDigivolve",
-  "assembly",
-];
+const DIGIVOLVE_HEADER_FIELDS = ["specialDigivolve", "dnaDigivolve", "digiXros", "burstDigivolve", "assembly"];
 
 function buildEffectText(t) {
   const parts = [];
@@ -120,7 +114,10 @@ function convert(t) {
     cardId,
     set: cardId.split("-")[0],
     nameEn: sep > 0 ? printedName.slice(0, sep).trim() : printedName,
-    colors: clean(t.color).split("/").map((c) => c.trim()).filter(Boolean),
+    colors: clean(t.color)
+      .split("/")
+      .map((c) => c.trim())
+      .filter(Boolean),
     kinds,
     playCost: isBlank(t.playCost) ? -1 : Number(t.playCost),
     dp: isBlank(t.dp) ? 0 : Number(t.dp),
@@ -189,7 +186,10 @@ if (validateSet) {
   // `--ids` narrows validation to an explicit cardId list instead of a whole
   // set prefix — needed for batches that don't fill a set on their own (e.g.
   // the 6 promo cards P-239..P-244 imported alongside EX12).
-  const validateIds = (getOpt("--ids") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const validateIds = (getOpt("--ids") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const inScope = validateIds.length
     ? (cardId) => validateIds.includes(cardId)
     : (cardId) => bySet(cardId) === validateSet;
@@ -220,16 +220,21 @@ if (validateSet) {
     // doesn't flood the terminal; use --json for a complete, uncapped diff.
     for (const d of diffs.slice(0, 12)) {
       console.log(`DIFF ${d.cardId}: ${d.fields.map((f) => f.field).join(", ")}`);
-      for (const f of d.fields) console.log(`   ${f.field}: ours=${JSON.stringify(f.ours)} conv=${JSON.stringify(f.conv)}`);
+      for (const f of d.fields)
+        console.log(`   ${f.field}: ours=${JSON.stringify(f.ours)} conv=${JSON.stringify(f.conv)}`);
     }
     console.log(`\n${validateSet}: ${src.length} source / ${ours.size} ours / ${diffs.length} cards differ`);
   }
 } else {
-  const sets = (getOpt("--sets") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  const ids = (getOpt("--ids") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  const wanted = taka.filter(
-    (t) => sets.includes(bySet(t.cardNumber)) || ids.includes(t.cardNumber),
-  );
+  const sets = (getOpt("--sets") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const ids = (getOpt("--ids") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const wanted = taka.filter((t) => sets.includes(bySet(t.cardNumber)) || ids.includes(t.cardNumber));
   // The community DB carries a few placeholder/non-card rows (empty cardType,
   // MediaWiki template names). Drop anything whose cardType we don't recognize.
   const skipped = wanted.filter((t) => !KIND_MAP[t.cardType]);

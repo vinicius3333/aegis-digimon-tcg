@@ -3,112 +3,112 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "bindResultAs": "rasielmonTarget"
+          bindResultAs: "rasielmonTarget",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": { "boundRef": "rasielmonTarget" },
-            "count": 1
+          kind: "Restrict",
+          target: {
+            filter: { boundRef: "rasielmonTarget" },
+            count: 1,
           },
-          "restriction": "cannotActivateWhenDigivolving",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "cannotActivateWhenDigivolving",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": { "boundRef": "rasielmonTarget" },
-            "count": 1
+          kind: "Restrict",
+          target: {
+            filter: { boundRef: "rasielmonTarget" },
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "bindResultAs": "rasielmonTarget"
+          bindResultAs: "rasielmonTarget",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": { "boundRef": "rasielmonTarget" },
-            "count": 1
+          kind: "Restrict",
+          target: {
+            filter: { boundRef: "rasielmonTarget" },
+            count: 1,
           },
-          "restriction": "cannotActivateWhenDigivolving",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "cannotActivateWhenDigivolving",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": { "boundRef": "rasielmonTarget" },
-            "count": 1
+          kind: "Restrict",
+          target: {
+            filter: { boundRef: "rasielmonTarget" },
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "toTop": false
-        }
-      ]
-    }
+          toTop: false,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": ["Angel", "Archangel"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Angel", "Archangel"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 registerIrCard("LM-042", compiled);

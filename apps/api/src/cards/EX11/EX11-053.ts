@@ -41,10 +41,7 @@ const module: EffectModule = {
             const kingDrasilPerms = Array.from(owner.battleArea).filter(
               (p) => p.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(p.topCard)),
             );
-            if (
-              owner.breeding?.topCard !== undefined &&
-              isKingDrasil(ctx.game.definitionOf(owner.breeding.topCard))
-            ) {
+            if (owner.breeding?.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(owner.breeding.topCard))) {
               kingDrasilPerms.push(owner.breeding);
             }
             if (kingDrasilPerms.length === 0) return;

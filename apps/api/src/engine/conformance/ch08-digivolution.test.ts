@@ -345,8 +345,7 @@ describe("§8-2-3-1 DNA Digivolution Rules (comprehensive-0130)", () => {
   it("8-2-3-2: the DNA digivolution cost is paid off the shared memory gauge", async () => {
     cite(
       "comprehensive-0130",
-      "8-2-3-2 the digivolution cost specified in the chosen DNA digivolution " +
-        "requirement is paid",
+      "8-2-3-2 the digivolution cost specified in the chosen DNA digivolution " + "requirement is paid",
     );
 
     const s = setup();
@@ -369,34 +368,31 @@ describe("§8-2-3-1 DNA Digivolution Rules (comprehensive-0130)", () => {
     expect(s.state.memory).toBe(memoryBefore);
   });
 
-  it(
-    "NOW MET: the DNA digivolution procedure should draw the player 1 card",
-    async () => {
-      const s = setup();
-      const p0 = s.state.players[0]!;
-      // A non-empty deck, so a real draw would be observable.
-      p0.deck.push(instance("AD1-001", 0, false));
-      const material1 = digimon(0, 5000, "AD1-010");
-      const material2 = digimon(0, 4000, "BT1-069");
-      p0.battleArea.push(material1, material2);
-      const result = instance("ST9-05", 0, false);
-      p0.hand.push(result);
-      const handSizeBefore = p0.hand.length;
+  it("NOW MET: the DNA digivolution procedure should draw the player 1 card", async () => {
+    const s = setup();
+    const p0 = s.state.players[0]!;
+    // A non-empty deck, so a real draw would be observable.
+    p0.deck.push(instance("AD1-001", 0, false));
+    const material1 = digimon(0, 5000, "AD1-010");
+    const material2 = digimon(0, 4000, "BT1-069");
+    p0.battleArea.push(material1, material2);
+    const result = instance("ST9-05", 0, false);
+    p0.hand.push(result);
+    const handSizeBefore = p0.hand.length;
 
-      const perm = await primitivesOf(s).dnaDigivolveInto(
-        [material1.permanentId, material2.permanentId],
-        result.instanceId,
-      );
-      expect(perm).toBeDefined();
+    const perm = await primitivesOf(s).dnaDigivolveInto(
+      [material1.permanentId, material2.permanentId],
+      result.instanceId,
+    );
+    expect(perm).toBeDefined();
 
-      // DIVERGENCE: `dnaDigivolveInto` (effects/primitives.ts) never calls the draw primitive —
-      // unlike the standard `digivolve` action (`applyDigivolve` step 6, `deps.draw(state, seat, 1)`).
-      // Rule 8-2-3-3: "The player places the Digimon for the DNA digivolution on top of the
-      // stack, draws 1 card, and the DNA digivolution process is resolved." Today: hand size drops
-      // by exactly 1 (the played result card leaving hand), with NO offsetting draw.
-      expect(p0.hand.length).toBe(handSizeBefore); // -1 (played) +1 (drawn) = net 0
-    },
-  );
+    // DIVERGENCE: `dnaDigivolveInto` (effects/primitives.ts) never calls the draw primitive —
+    // unlike the standard `digivolve` action (`applyDigivolve` step 6, `deps.draw(state, seat, 1)`).
+    // Rule 8-2-3-3: "The player places the Digimon for the DNA digivolution on top of the
+    // stack, draws 1 card, and the DNA digivolution process is resolved." Today: hand size drops
+    // by exactly 1 (the played result card leaving hand), with NO offsetting draw.
+    expect(p0.hand.length).toBe(handSizeBefore); // -1 (played) +1 (drawn) = net 0
+  });
 });
 
 describe("§8-3 Burst Digivolve (comprehensive-0131..0133)", () => {
@@ -447,33 +443,30 @@ describe("§8-3 Burst Digivolve (comprehensive-0131..0133)", () => {
     expect(base.stack.some((c) => c.cardId === "BT4-020")).toBe(true); // the prior top is now stacked
   });
 
-  it(
-    "NOW MET: the top stacked card of a burst-digivolved Digimon should be trashed at the end of the turn",
-    async () => {
-      const { s, base, burstCard } = layBurstScenario();
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: base.permanentId,
-        instanceId: burstCard.instanceId,
-        useAlternateCost: true,
-      });
-      await settle(() => base.topCard?.cardId === "BT13-020");
-      const stackedTopId = base.stack[base.stack.length - 1]?.instanceId;
-      expect(stackedTopId).toBeDefined();
+  it("NOW MET: the top stacked card of a burst-digivolved Digimon should be trashed at the end of the turn", async () => {
+    const { s, base, burstCard } = layBurstScenario();
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: burstCard.instanceId,
+      useAlternateCost: true,
+    });
+    await settle(() => base.topCard?.cardId === "BT13-020");
+    const stackedTopId = base.stack[base.stack.length - 1]?.instanceId;
+    expect(stackedTopId).toBeDefined();
 
-      // Fire the real End-of-Turn window directly (the private seam GameEngine's own turn
-      // loop uses) — Comprehensive Rules 8-3-2-1 is pending processing that should trigger here.
-      await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
-        EffectTiming.OnEndTurn,
-      );
+    // Fire the real End-of-Turn window directly (the private seam GameEngine's own turn
+    // loop uses) — Comprehensive Rules 8-3-2-1 is pending processing that should trigger here.
+    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
+      EffectTiming.OnEndTurn,
+    );
 
-      // DIVERGENCE: there is no engine-level tracking of "this permanent was burst-digivolved
-      // this turn" anywhere (no field on Permanent, no pending-processing queue consulted at
-      // OnEndTurn) — grep for pendingProcessing/burstDigivolve-at-end-of-turn across
-      // apps/api/src/engine returns zero hits. Today the stacked card survives end of turn.
-      expect(base.stack.some((c) => c.instanceId === stackedTopId)).toBe(false);
-    },
-  );
+    // DIVERGENCE: there is no engine-level tracking of "this permanent was burst-digivolved
+    // this turn" anywhere (no field on Permanent, no pending-processing queue consulted at
+    // OnEndTurn) — grep for pendingProcessing/burstDigivolve-at-end-of-turn across
+    // apps/api/src/engine returns zero hits. Today the stacked card survives end of turn.
+    expect(base.stack.some((c) => c.instanceId === stackedTopId)).toBe(false);
+  });
 });
 
 describe("§8-4 App Fusion (comprehensive-0134)", () => {
@@ -554,27 +547,24 @@ describe("§8-4-2 App Fusion Rules (comprehensive-0135)", () => {
     expect(s.state.memory).toBe(memoryBefore); // AD1-005's requirement prints Cost 0
   });
 
-  it(
-    "NOW MET: the App Fusion procedure should draw the player 1 card",
-    async () => {
-      const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-      const p0 = s.state.players[0]!;
-      p0.deck.push(instance("AD1-001", 0, false)); // non-empty deck: a real draw would be observable
-      const fuser = digimon(0, 10000, "BT21-023");
-      fuser.linked.push(instance("BT21-073", 0, true));
-      p0.battleArea.push(fuser);
-      const gaiamon = instance("AD1-005", 0, false);
-      p0.hand.push(gaiamon);
-      const handSizeBefore = p0.hand.length;
+  it("NOW MET: the App Fusion procedure should draw the player 1 card", async () => {
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0]!;
+    p0.deck.push(instance("AD1-001", 0, false)); // non-empty deck: a real draw would be observable
+    const fuser = digimon(0, 10000, "BT21-023");
+    fuser.linked.push(instance("BT21-073", 0, true));
+    p0.battleArea.push(fuser);
+    const gaiamon = instance("AD1-005", 0, false);
+    p0.hand.push(gaiamon);
+    const handSizeBefore = p0.hand.length;
 
-      const perm = await primitivesOf(s).appFuseInto(fuser.permanentId, gaiamon.instanceId);
-      expect(perm).toBeDefined();
+    const perm = await primitivesOf(s).appFuseInto(fuser.permanentId, gaiamon.instanceId);
+    expect(perm).toBeDefined();
 
-      // DIVERGENCE: `appFuseInto` (effects/primitives.ts) never calls the draw primitive, unlike
-      // the standard `digivolve` action. Rule 8-4-3-3: "...places it on top of the Digimon card
-      // to app fuse, draws 1 card, and the app fusion process is resolved." Today: hand size
-      // drops by exactly 1 (the played fusion-target leaving hand), with no offsetting draw.
-      expect(p0.hand.length).toBe(handSizeBefore);
-    },
-  );
+    // DIVERGENCE: `appFuseInto` (effects/primitives.ts) never calls the draw primitive, unlike
+    // the standard `digivolve` action. Rule 8-4-3-3: "...places it on top of the Digimon card
+    // to app fuse, draws 1 card, and the app fusion process is resolved." Today: hand size
+    // drops by exactly 1 (the played fusion-target leaving hand), with no offsetting draw.
+    expect(p0.hand.length).toBe(handSizeBefore);
+  });
 });

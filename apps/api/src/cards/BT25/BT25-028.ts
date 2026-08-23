@@ -6,230 +6,203 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 5,
-              "raw": "reduce the cost by 5",
-              "condition": {
-                "kind": "opponentHas",
-                "filter": {
-                  "controllerDefault": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "gte",
-                    "value": 6
-                  }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 5,
+              raw: "reduce the cost by 5",
+              condition: {
+                kind: "opponentHas",
+                filter: {
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "gte",
+                    value: 6,
+                  },
                 },
-                "raw": "your opponent has a level 6 or higher Digimon"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "digivolutionCardsAtMost": 1,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "digivolutionCardsAtMost": 1,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "any",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "digivolutionCards": "hasAny"
-                },
-                "count": 1
+                raw: "your opponent has a level 6 or higher Digimon",
               },
-              "amount": 4,
-              "scope": "acrossDigimon",
-              "optional": true
-            }
-          ]
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenAnyDigivolves",
-          "sourceFilter": {
-            "controllerDefault": "any",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "digivolutionCards": "hasAny"
-                },
-                "count": 1
-              },
-              "amount": 4,
-              "scope": "acrossDigimon",
-              "optional": true
-            }
-          ]
-        },
-        {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
             },
-            "count": 2
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              digivolutionCardsAtMost: 1,
+              kind: ["Digimon"],
+            },
+            count: "all",
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              digivolutionCardsAtMost: 1,
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "any",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
+                },
+                count: 1,
+              },
+              amount: 4,
+              scope: "acrossDigimon",
+              optional: true,
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenAnyDigivolves",
+          sourceFilter: {
+            controllerDefault: "any",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
+                },
+                count: 1,
+              },
+              amount: 4,
+              scope: "acrossDigimon",
+              optional: true,
+            },
+          ],
+        },
+        {
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "GraceNovamon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["GraceNovamon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        }
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "TS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["TS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-028", compiled);

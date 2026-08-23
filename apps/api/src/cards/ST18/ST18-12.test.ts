@@ -11,9 +11,7 @@ describe("ST18-12 Zephagamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "ST18-10", as: "base", suspended: true },
-          ],
+          battleArea: [{ card: "ST18-10", as: "base", suspended: true }],
           hand: [{ card: "ST18-12", as: "zephagamon" }],
         },
         1: { battleArea: [{ card: "ST18-03", as: "opponentTarget" }] },
@@ -23,25 +21,31 @@ describe("ST18-12 Zephagamon", () => {
     const zephagamon = s.inst("zephagamon");
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: zephagamon.instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: zephagamon.instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const suspendDecision = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: suspendDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("opponentTarget").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponentTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("opponentTarget").isSuspended && s.state.pendingDecision?.kind === "chooseTargets");
     const unsuspendDecision = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: unsuspendDecision.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [s.perm("base").permanentId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: unsuspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("base").permanentId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").isSuspended === false);
 
     expect(s.perm("opponentTarget").isSuspended).toBe(true);
@@ -65,20 +69,32 @@ describe("ST18-12 Zephagamon", () => {
   });
 
   it("publishes Vortex, the unrestricted Digimon targets, and the Bird Dragon rule trait", () => {
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "Static",
-      keywords: [expect.objectContaining({ keyword: "Vortex" })],
-    }));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "WhenDigivolving",
-      actions: expect.arrayContaining([
-        expect.objectContaining({ kind: "Suspend", target: expect.objectContaining({ filter: expect.objectContaining({ controllerDefault: "any" }) }) }),
-        expect.objectContaining({ kind: "Unsuspend", target: expect.objectContaining({ filter: expect.objectContaining({ controllerDefault: "any" }) }) }),
-      ]),
-    }));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "Rule",
-      actions: [expect.objectContaining({ grant: "trait", tokens: ["Bird Dragon"] })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        keywords: [expect.objectContaining({ keyword: "Vortex" })],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: expect.arrayContaining([
+          expect.objectContaining({
+            kind: "Suspend",
+            target: expect.objectContaining({ filter: expect.objectContaining({ controllerDefault: "any" }) }),
+          }),
+          expect.objectContaining({
+            kind: "Unsuspend",
+            target: expect.objectContaining({ filter: expect.objectContaining({ controllerDefault: "any" }) }),
+          }),
+        ]),
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Rule",
+        actions: [expect.objectContaining({ grant: "trait", tokens: ["Bird Dragon"] })],
+      }),
+    );
   });
 });

@@ -6,126 +6,116 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "grant": "tokenEffect",
-          "tokens": [
-            "GRANTEFFECT23TOKEN"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          grant: "tokenEffect",
+          tokens: ["GRANTEFFECT23TOKEN"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "grant": "tokenEffect",
-          "tokens": [
-            "GRANTEFFECT23TOKEN"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          grant: "tokenEffect",
+          tokens: ["GRANTEFFECT23TOKEN"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenBattleWon",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenBattleWon",
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Callismon", "Marsmon"],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Callismon", "Marsmon"],
+                    match: "name",
+                  },
+                ],
               },
-              "payCost": false,
-              "from": ["hand"],
-              "optional": true
-            }
-          ]
-        }
-      ]
+              payCost: false,
+              from: ["hand"],
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "TS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["TS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-054", compiled);

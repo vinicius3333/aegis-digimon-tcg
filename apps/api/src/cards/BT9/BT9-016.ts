@@ -7,74 +7,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "sourceFilter": {
-            "controller": "opponent"
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          sourceFilter: {
+            controller: "opponent",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
-      ]
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackMatchesFilter",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackMatchesFilter",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "WarGreymon",
-                    "X Antibody"
-                  ],
-                  "match": "nameExact"
-                }
-              ]
+                  tokens: ["WarGreymon", "X Antibody"],
+                  match: "nameExact",
+                },
+              ],
             },
-            "raw": "[WarGreymon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
+            raw: "[WarGreymon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "WarGreymon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["WarGreymon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-016", compiled);

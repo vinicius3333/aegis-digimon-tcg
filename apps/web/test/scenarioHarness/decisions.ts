@@ -12,10 +12,7 @@ import type { DecisionRequest } from "@aegis/shared";
  * for the visually similar ordering overlay.
  */
 export async function resolveNextTriggerThroughUi(opponent: HeadlessOpponent): Promise<boolean> {
-  await waitFor(
-    () => expect(opponent.room.state.pendingDecision?.kind).toBe("orderTriggers"),
-    { timeout: 10_000 },
-  );
+  await waitFor(() => expect(opponent.room.state.pendingDecision?.kind).toBe("orderTriggers"), { timeout: 10_000 });
 
   const pending = opponent.room.state.pendingDecision;
   if (pending?.kind !== "orderTriggers") return false;
@@ -33,10 +30,9 @@ export async function resolveNextTriggerThroughUi(opponent: HeadlessOpponent): P
 
   fireEvent.click(triggerButton);
   fireEvent.click(resolveButton);
-  await waitFor(
-    () => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId),
-    { timeout: 10_000 },
-  );
+  await waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId), {
+    timeout: 10_000,
+  });
   return true;
 }
 
@@ -75,19 +71,19 @@ export async function resolveIncidentalDecisionsThroughUi(opponent: HeadlessOppo
       throw new Error(`unsupported incidental UI decision: ${request.kind}`);
     }
 
-    await waitFor(
-      () => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId),
-      { timeout: 10_000 },
-    );
+    await waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId), {
+      timeout: 10_000,
+    });
   }
   throw new Error("incidental UI decisions did not settle within 10 rounds");
 }
 
 /** Keep the non-rendered seat moving while a scenario exercises the protagonist UI. */
 export function respondToHeadlessDecision(opponent: HeadlessOpponent, request: DecisionRequest): boolean {
-  const candidates = request.kind === "orderCards"
-    ? request.options?.visibleInstanceIds ?? request.options?.candidateInstanceIds ?? []
-    : request.options?.candidateInstanceIds ?? request.options?.visibleInstanceIds ?? [];
+  const candidates =
+    request.kind === "orderCards"
+      ? (request.options?.visibleInstanceIds ?? request.options?.candidateInstanceIds ?? [])
+      : (request.options?.candidateInstanceIds ?? request.options?.visibleInstanceIds ?? []);
   const min = request.options?.min ?? 1;
   if (request.kind === "orderTriggers") {
     opponent.respondDecision(request.decisionId, {

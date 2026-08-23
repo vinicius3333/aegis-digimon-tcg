@@ -23,9 +23,7 @@ describe("BT9-002 whenEffectAddsToHand -> +1000 DP for the turn", () => {
   it("an effect-driven returnToHand fires the watcher and grants +1000 DP", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT1-028", dp: 5000, as: "host", under: [{ card: "BT9-002", as: "bt9002" }] },
-        ],
+        battleArea: [{ card: "BT1-028", dp: 5000, as: "host", under: [{ card: "BT9-002", as: "bt9002" }] }],
         trash: [{ card: "BT1-028", as: "trashedCard" }],
       },
     });
@@ -43,9 +41,7 @@ describe("BT9-002 whenEffectAddsToHand -> +1000 DP for the turn", () => {
   it("does NOT fire for the OPPONENT's hand addition (seat-direction control)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT1-028", dp: 5000, as: "host", under: [{ card: "BT9-002", as: "bt9002" }] },
-        ],
+        battleArea: [{ card: "BT1-028", dp: 5000, as: "host", under: [{ card: "BT9-002", as: "bt9002" }] }],
       },
       1: {
         trash: [{ card: "BT1-028", as: "oppTrashedCard" }],

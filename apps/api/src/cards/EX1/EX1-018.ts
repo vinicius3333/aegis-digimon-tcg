@@ -11,46 +11,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     RestrictedVortex: can attack unsuspended opponent Digimon that have NO divi cards.
 //     This is a new capability — see historical migration ledger CAP-LB-01.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "fromTop": false
-        }
-      ]
+          amount: 1,
+          fromTop: false,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GrantCanAttackUnsuspended",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantCanAttackUnsuspended",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "permanent",
-          "noDigivolutionCards": true
-        }
-      ]
-    }
+          duration: "permanent",
+          noDigivolutionCards: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX1-018", compiled);

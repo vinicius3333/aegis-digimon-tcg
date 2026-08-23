@@ -41,19 +41,22 @@ describe("BT26-004 Pagumon", () => {
   });
 
   it("places under a controller-owned Glowing Dawn Tamer and not an opponent or plain Tamer", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-009", as: "attacker", under: [CARD_ID] },
-          { card: "BT25-088", as: "first" },
-          { card: "BT26-089", as: "second" },
-          { card: "BT1-089", as: "plainTamer" },
-        ],
-        hand: [{ card: "BT1-009", as: "cost" }],
-        deck: ["BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", under: [CARD_ID] },
+            { card: "BT25-088", as: "first" },
+            { card: "BT26-089", as: "second" },
+            { card: "BT1-089", as: "plainTamer" },
+          ],
+          hand: [{ card: "BT1-009", as: "cost" }],
+          deck: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT25-088", as: "opponentTamer" }] },
       },
-      1: { battleArea: [{ card: "BT25-088", as: "opponentTamer" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
       attackerPermanentId: s.perm("attacker").permanentId,
@@ -91,16 +94,19 @@ describe("BT26-004 Pagumon", () => {
   });
 
   it("does not pay the hand-card cost or draw without an own Glowing Dawn Tamer", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-009", as: "attacker", under: [CARD_ID] },
-          { card: "BT1-089", as: "plainTamer" },
-        ],
-        hand: [{ card: "BT1-010", as: "cost" }],
-        deck: [{ card: "BT1-011", as: "notDrawn" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", under: [CARD_ID] },
+            { card: "BT1-089", as: "plainTamer" },
+          ],
+          hand: [{ card: "BT1-010", as: "cost" }],
+          deck: [{ card: "BT1-011", as: "notDrawn" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {

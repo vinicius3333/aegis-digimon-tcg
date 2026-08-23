@@ -27,42 +27,39 @@ describe("P-101/P-102 purple value line — mixed archetype flow", () => {
     const skullGreymonInstanceId = s.perm("skullGreymon").topCard.instanceId;
     const raremonInstanceId = s.perm("skullGreymon").stack[0]!.instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: skullGreymonId,
-      target: { kind: "permanent", permanentId: battleTargetId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.some(
-        (card) => card.instanceId === s.inst("recycledRookie").instanceId,
-      ) &&
-      !s.state.players[1]!.battleArea.some(
-        (permanent) => permanent.permanentId === battleTargetId,
-      ) &&
-      !s.state.players[1]!.battleArea.some(
-        (permanent) => permanent.permanentId === levelThreeTargetId,
-      )
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: skullGreymonId,
+        target: { kind: "permanent", permanentId: battleTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("recycledRookie").instanceId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelThreeTargetId),
     );
 
     // Raremon paid its inherited attack cost with the rookie, so SkullGreymon's
     // later On Deletion can recover that exact card rather than a pre-seeded target.
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("counterAttacker").permanentId,
-      target: { kind: "permanent", permanentId: skullGreymonId },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.instanceId === s.inst("recycledRookie").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("counterAttacker").permanentId,
+        target: { kind: "permanent", permanentId: skullGreymonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("recycledRookie").instanceId,
+      ),
+    );
 
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === skullGreymonInstanceId,
-    )).toBe(true);
-    expect(s.state.players[0]!.trash.some(
-      (card) => card.instanceId === raremonInstanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === skullGreymonInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === raremonInstanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

@@ -6,40 +6,36 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // printed DNA Digivolution requirement; dnaDigivolveInto enforces the exact
 // material/result legality from that requirement.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "excludeSelf": true
+          kind: "DnaDigivolve",
+          materials: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              excludeSelf: true,
             },
-            "count": 2,
-            "includeRef": "self"
+            count: 2,
+            includeRef: "self",
           },
-          "into": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "zone": "hand",
-            "hasDnaDigivolutionRequirement": true
+          into: {
+            controller: "mine",
+            kind: ["Digimon"],
+            zone: "hand",
+            hasDnaDigivolutionRequirement: true,
           },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-020", compiled);

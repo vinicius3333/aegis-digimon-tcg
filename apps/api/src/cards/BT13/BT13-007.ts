@@ -34,155 +34,141 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      loose-card-only default path, which silently no-ops on a battleArea-zoned permanent
 //      target (see runPlaceUnder's own comment on the "loud gap" this flag closes).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "restriction": "digivolve",
-          "duration": "permanent"
-        }
+          restriction: "digivolve",
+          duration: "permanent",
+        },
       ],
-      "isBreeding": true
+      isBreeding: true,
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Royal Knight"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Royal Knight"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4",
-              "optional": true
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+              optional: true,
             },
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "Further reduce it by 1",
-              "scaling": {
-                "per": 1,
-                "filter": {},
-                "unit": "digivolutionCards"
-              }
-            }
-          ]
-        }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "Further reduce it by 1",
+              scaling: {
+                per: 1,
+                filter: {},
+                unit: "digivolutionCards",
+              },
+            },
+          ],
+        },
       ],
-      "isBreeding": true,
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      isBreeding: true,
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "fromEggDeck": true,
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          fromEggDeck: true,
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
+            count: 1,
+            isSelf: true,
+          },
         },
         {
-          "kind": "PlaceUnder",
-          "targetIsPermanent": true,
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "battleArea",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          targetIsPermanent: true,
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "battleArea",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Royal Knight"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Royal Knight"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "underFilter": {
-            "isSelfRef": true
+          underFilter: {
+            isSelfRef: true,
           },
-          "position": "bottom"
-        }
+          position: "bottom",
+        },
       ],
-      "isBreeding": true
+      isBreeding: true,
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Option"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenOptionPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Option"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Royal Knight"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Royal Knight"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
+              kind: "GainMemory",
+              amount: 1,
+            },
           ],
-          "raw": "When an Option card with the [Royal Knight] trait is placed in the battle area, gain 1 memory"
-        }
+          raw: "When an Option card with the [Royal Knight] trait is placed in the battle area, gain 1 memory",
+        },
       ],
-      "isInherited": true,
-      "isBreeding": true,
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-1"
-    }
+      isInherited: true,
+      isBreeding: true,
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-1",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-007", compiled);

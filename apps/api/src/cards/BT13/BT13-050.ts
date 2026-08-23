@@ -6,109 +6,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Fairy"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+                tokens: ["Fairy"],
+                match: "trait",
               },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "By suspending this Digimon"
+            ],
           },
-          "abortOnDecline": true
+          from: ["hand"],
+          optional: true,
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "By suspending this Digimon",
+          },
+          abortOnDecline: true,
         },
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 2,
-              "raw": "reduce the digivolution cost by 2"
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the digivolution cost by 2",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1",
-              "condition": {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ],
-                  "colors": [
-                    "Green"
-                  ]
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                  colors: ["Green"],
                 },
-                "raw": "you have a green Tamer"
-              }
-            }
-          ]
-        }
+                raw: "you have a green Tamer",
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-050", compiled);

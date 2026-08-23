@@ -30,5 +30,6 @@ describe("RB1-032 Hiro Amanokawa", () => {
     expect(s.perm("host").stack.some((card) => card.instanceId === gammamonInstanceId)).toBe(true);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === gammamonInstanceId)).toBe(false);
+    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
   });
 });

@@ -10,7 +10,10 @@ describe("BT25-098 Cyber Engage", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ trigger: "Static", actions: [expect.objectContaining({ kind: "WaiveColorRequirement" })] }),
+        expect.objectContaining({
+          trigger: "Static",
+          actions: [expect.objectContaining({ kind: "WaiveColorRequirement" })],
+        }),
         expect.objectContaining({
           trigger: "Main",
           actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 3 }), { kind: "PlaceInBattleAreaSelf" }],
@@ -20,22 +23,36 @@ describe("BT25-098 Cyber Engage", () => {
           keywords: [{ keyword: "Delay" }],
           actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: true, reduceCostBy: 3 })],
         }),
-        expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlaceInBattleAreaSelf" }] }),
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "PlaceInBattleAreaSelf" }],
+        }),
       ]),
     );
   });
 
   it("reveals three, adds only an Appmon, trashes the rest, and places itself", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT25-098", as: "option" }], battleArea: [{ card: "BT25-089", as: "appmon" }], deck: ["BT1-001", { card: "BT25-061", as: "revealedAppmon" }, "BT1-002"] } },
+      {
+        0: {
+          hand: [{ card: "BT25-098", as: "option" }],
+          battleArea: [{ card: "BT25-089", as: "appmon" }],
+          deck: ["BT1-001", { card: "BT25-061", as: "revealedAppmon" }, "BT1-002"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
     await s.engine.recomputeContinuousEffects();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-098"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("revealedAppmon").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002"]),
+    );
   });
 
   it("consumes Delay and pays printed Appmon cost reduced by exactly 3", async () => {

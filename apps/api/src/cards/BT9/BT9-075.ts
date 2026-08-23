@@ -7,114 +7,103 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Dex",
-                      "DeathX"
-                    ],
-                    "match": "name"
+                    tokens: ["Dex", "DeathX"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "X Antibody"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["X Antibody"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 card with [Dex] or [DeathX] in its name or [X Antibody] in its traits in your hand"
+            raw: "by trashing 1 card with [Dex] or [DeathX] in its name or [X Antibody] in its traits in your hand",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "selfHasInDigivolutionCards",
-                "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "nameExact" }]
+                kind: "selfHasInDigivolutionCards",
+                nameOrTrait: [{ tokens: ["Dorugamon"], match: "nameExact" }],
               },
-              { "kind": "digivolvedFromZone", "zone": "trash" }
-            ]
-          }
+              { kind: "digivolvedFromZone", zone: "trash" },
+            ],
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "selfHasInDigivolutionCards",
-                "nameOrTrait": [{ "tokens": ["Dorugamon"], "match": "nameExact" }]
+                kind: "selfHasInDigivolutionCards",
+                nameOrTrait: [{ tokens: ["Dorugamon"], match: "nameExact" }],
               },
-              { "kind": "digivolvedFromZone", "zone": "trash" }
-            ]
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Dorugamon"
+              { kind: "digivolvedFromZone", zone: "trash" },
+            ],
+          },
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Dorugamon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-075", compiled);

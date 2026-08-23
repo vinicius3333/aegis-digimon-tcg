@@ -27,7 +27,10 @@ describe("BT12-073 Impmon (X Antibody)", () => {
 
   it("trashes two deck cards from its inherited attack effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-073"] }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-073"] }],
+        deck: ["BT1-010", "BT1-011", "BT1-012"],
+      },
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));

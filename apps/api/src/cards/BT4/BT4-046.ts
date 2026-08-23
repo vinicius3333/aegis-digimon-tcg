@@ -6,87 +6,83 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 2
+            count: 2,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
               },
-              "count": 2
+              count: 2,
             },
-            "raw": "＜Digi-Burst 2＞"
-          }
+            raw: "＜Digi-Burst 2＞",
+          },
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
+          amount: -4000,
+          duration: "forTheTurn",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "DigiBurst",
-          "amount": 2,
-          "raw": "＜Digi-Burst 2＞"
-        }
-      ]
+          keyword: "DigiBurst",
+          amount: 2,
+          raw: "＜Digi-Burst 2＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "security",
-            "op": "lte",
-            "value": 3,
-            "raw": "you have 3 or fewer security cards"
-          }
-        }
+          while: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 3,
+            raw: "you have 3 or fewer security cards",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-046", compiled);

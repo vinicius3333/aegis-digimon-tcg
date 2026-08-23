@@ -6,85 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 6,
             },
-            "nameOrTrait": [
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Greymon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Greymon"],
+                match: "name",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "optional": true
+          from: ["hand"],
+          optional: true,
         },
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 2,
-              "raw": "reduce the digivolution cost by 2"
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the digivolution cost by 2",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
-        }
+            count: 1,
+            isSelf: true,
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-043", compiled);

@@ -19,7 +19,9 @@ describe("P-024 Tai's Growing Up!", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const agumonId = s.perm("agumon").topCard.instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 3);
 
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === agumonId)).toBe(true);
@@ -38,7 +40,9 @@ describe("P-024 Tai's Growing Up!", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const expertId = s.perm("expert").permanentId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === expertId)).toBe(true);
@@ -83,11 +87,13 @@ describe("P-024 Tai's Growing Up!", () => {
     expect(request.options?.timing).toBe("OnUseOption");
     expect(request.options?.effectText).toContain("[Main] If you have [Tai Kamiya]");
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: request.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === agumonPermanentId)).toBe(true);
@@ -106,11 +112,13 @@ describe("P-024 [Security]", () => {
     const optionId = s.inst("option").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === optionId), 5000);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(true);

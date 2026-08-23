@@ -34,20 +34,21 @@ describe("P-089 Amphimon", () => {
     const redId = s.inst("red-control").instanceId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("amphimon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      blueIds.every((id) => s.state.players[0]!.trash.some((card) => card.instanceId === id)) &&
-      s.perm("stackedTarget").stack.length === 1 &&
-      observe(s.engine).isRestricted(s.perm("sourceLessTarget"), "beSuspended")
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("amphimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        blueIds.every((id) => s.state.players[0]!.trash.some((card) => card.instanceId === id)) &&
+        s.perm("stackedTarget").stack.length === 1 &&
+        observe(s.engine).isRestricted(s.perm("sourceLessTarget"), "beSuspended"),
     );
 
-    expect(blueIds.every(
-      (id) => s.state.players[0]!.trash.some((card) => card.instanceId === id),
-    )).toBe(true);
+    expect(blueIds.every((id) => s.state.players[0]!.trash.some((card) => card.instanceId === id))).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === redId)).toBe(true);
     expect(s.perm("stackedTarget").stack).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("sourceLessTarget"), "beSuspended")).toBe(true);
@@ -69,28 +70,24 @@ describe("P-089 Amphimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const returnedIds = ["jellymon", "jellymon-bt9", "teslaJellymon"].map(
-      (alias) => s.inst(alias).instanceId,
-    );
+    const returnedIds = ["jellymon", "jellymon-bt9", "teslaJellymon"].map((alias) => s.inst(alias).instanceId);
     const securityId = s.inst("security").instanceId;
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => returnedIds.every(
-      (id) => s.state.players[0]!.deck.some((card) => card.instanceId === id),
-    ));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => returnedIds.every((id) => s.state.players[0]!.deck.some((card) => card.instanceId === id)));
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([securityId]);
-    expect(s.decisions.filter(({ req }) =>
-      req.kind === "optional" && req.sourceCardId === "P-089"
-    )).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "P-089")).toHaveLength(1);
     assertNoLoudGap(s);
   });
 });

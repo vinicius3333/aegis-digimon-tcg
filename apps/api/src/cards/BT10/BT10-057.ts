@@ -2,7 +2,12 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const bloom = { controllerDefault: "mine", kind: ["Digimon"], suspended: true, nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Fairy"], match: "trait" }] };
+const bloom = {
+  controllerDefault: "mine",
+  kind: ["Digimon"],
+  suspended: true,
+  nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Fairy"], match: "trait" }],
+};
 const suspendedDigimon = { controllerDefault: "mine", kind: ["Digimon"], suspended: true };
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const compiled: CompiledCard = {
@@ -10,7 +15,11 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Suspend", target: { filter: { controller: "mine", kind: ["Digimon"], unsuspended: true }, count: 1 }, optional: true },
+        {
+          kind: "Suspend",
+          target: { filter: { controller: "mine", kind: ["Digimon"], unsuspended: true }, count: 1 },
+          optional: true,
+        },
         { kind: "GainMemory", amount: 1, scaling: { per: 1, unit: "cards", filter: bloom } },
         {
           kind: "ConditionalBranch",
@@ -25,8 +34,20 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       actions: [
-        { kind: "ModifyDP", target: self, amount: 2000, duration: "untilEachTurnEnd", scaling: { per: 2, unit: "cards", filter: suspendedDigimon } },
-        { kind: "GainKeyword", target: self, keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "untilEachTurnEnd", scaling: { per: 2, unit: "cards", filter: suspendedDigimon } },
+        {
+          kind: "ModifyDP",
+          target: self,
+          amount: 2000,
+          duration: "untilEachTurnEnd",
+          scaling: { per: 2, unit: "cards", filter: suspendedDigimon },
+        },
+        {
+          kind: "GainKeyword",
+          target: self,
+          keyword: { keyword: "SecurityAttack", amount: 1 },
+          duration: "untilEachTurnEnd",
+          scaling: { per: 2, unit: "cards", filter: suspendedDigimon },
+        },
       ],
     },
   ],

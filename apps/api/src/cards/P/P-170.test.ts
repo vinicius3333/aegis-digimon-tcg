@@ -10,8 +10,8 @@ describe("P-170 AvengeKidmon", () => {
   });
 
   it("returns three text-matching cards to reduce its play cost by six", () => {
-    const replacement = runtimeCompiledCard("P-170")!.effects
-      .flatMap((effect) => effect.actions)
+    const replacement = runtimeCompiledCard("P-170")!
+      .effects.flatMap((effect) => effect.actions)
       .find((action) => action.kind === "Replacement")!;
 
     expect(replacement).toMatchObject({
@@ -35,11 +35,13 @@ describe("P-170 AvengeKidmon", () => {
 
   it("encodes Raid, Blocker, Retaliation, and the conditional deletion play effect", () => {
     const card = runtimeCompiledCard("P-170")!;
-    expect(card.effects.filter((effect) => effect.keywords?.length === 1).flatMap((effect) => effect.keywords)).toEqual([
-      { keyword: "Raid", raw: "＜Raid＞" },
-      { keyword: "Blocker", raw: "＜Blocker＞" },
-      { keyword: "Retaliation", raw: "＜Retaliation＞" },
-    ]);
+    expect(card.effects.filter((effect) => effect.keywords?.length === 1).flatMap((effect) => effect.keywords)).toEqual(
+      [
+        { keyword: "Raid", raw: "＜Raid＞" },
+        { keyword: "Blocker", raw: "＜Blocker＞" },
+        { keyword: "Retaliation", raw: "＜Retaliation＞" },
+      ],
+    );
 
     expect(card.effects.find((effect) => effect.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",

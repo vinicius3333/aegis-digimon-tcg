@@ -6,145 +6,131 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Belphemon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Belphemon"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "CostModifier",
-              "mode": "reduce",
-              "costType": "play",
-              "amount": null,
-              "dynamicFrom": "deletedDigimonPlayCost",
-              "cost": {
-                "kind": "deleteOwn",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "nameOrTrait": [
+              kind: "CostModifier",
+              mode: "reduce",
+              costType: "play",
+              amount: null,
+              dynamicFrom: "deletedDigimonPlayCost",
+              cost: {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Gizmon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
+                        tokens: ["Gizmon"],
+                        match: "name",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "raw": "by deleting 1 of your Digimon with [Gizmon] in its name"
+                raw: "by deleting 1 of your Digimon with [Gizmon] in its name",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
+      trigger: "EndOfOpponentsTurn",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                6
-              ]
-            },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [6],
             },
-            "raw": "by placing this Tamer as the bottom digivolution card of 1 of your Digimon with [Belphemon] in its name",
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+            count: 1,
+          },
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by placing this Tamer as the bottom digivolution card of 1 of your Digimon with [Belphemon] in its name",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Belphemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Belphemon"],
+                  match: "name",
+                },
+              ],
             },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target"
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-103", compiled);

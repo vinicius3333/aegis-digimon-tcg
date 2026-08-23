@@ -5,10 +5,22 @@ import "./EX1-040.js";
 
 describe("EX1-040 MegaKabuterimon", () => {
   it("can digivolve into an Insectoid or Ancient Insect while attacking", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-081", as: "evo" }] }, 1: { security: ["BT1-001", "BT1-001"] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-081", as: "evo" }] },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 5;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("mega").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mega").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("mega").topCard.cardId === "BT1-081");
     expect(s.perm("mega").topCard.instanceId).toBe(s.inst("evo").instanceId);
     expect(s.state.memory).toBe(2);

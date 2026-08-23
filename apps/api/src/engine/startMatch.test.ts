@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-  GameState,
-  Phase,
-  type Seat,
-  type ServerEvent,
-  type DecisionRequest,
-} from "@aegis/shared";
+import { GameState, Phase, type Seat, type ServerEvent, type DecisionRequest } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "./GameEngine.js";
 import { RED_DECK, BLUE_DECK, MAIN_DECK_SIZE } from "./testDecks.js";
 import { OPENING_HAND_SIZE, SECURITY_STACK_SIZE } from "./setup.js";

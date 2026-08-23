@@ -16,12 +16,25 @@ const enter: any[] = [
     condition: { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMin: 2 },
   },
 ];
-const stackCost = { kind: "trash", target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, count: 1 } };
+const stackCost = {
+  kind: "trash",
+  target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, count: 1 },
+};
 const watch = (event: string) => ({
   kind: "SubTrigger",
   event,
   sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-  actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1, cost: stackCost, optional: true, abortOnDecline: true }],
+  actions: [
+    {
+      kind: "SecurityManipulation",
+      op: "trashTop",
+      controller: "opponent",
+      amount: 1,
+      cost: stackCost,
+      optional: true,
+      abortOnDecline: true,
+    },
+  ],
 });
 const compiled: CompiledCard = {
   effects: [

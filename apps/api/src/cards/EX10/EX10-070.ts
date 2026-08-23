@@ -11,127 +11,116 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The Link action targets 1 [Appmon] from trash onto the Digimon whose link card was trashed
 // (sourceRef — the Digimon that triggered the event).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Appmon"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Appmon"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a Digimon or Tamer with the [Appmon] trait on the field"
-          }
-        }
-      ]
+            raw: "you have a Digimon or Tamer with the [Appmon] trait on the field",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinkTrashed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenLinkTrashed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
               },
-              "duration": "untilActivated"
+              duration: "untilActivated",
             },
             {
-              "kind": "Link",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "trash",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "Link",
+              target: {
+                filter: {
+                  controller: "mine",
+                  zone: "trash",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Appmon"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Appmon"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "onto": {
-                "filter": {
-                  "isSourceRef": true
-                }
+              onto: {
+                filter: {
+                  isSourceRef: true,
+                },
               },
-              "payCost": false,
-              "optional": true,
-              "delayedEffect": true
-            }
-          ]
-        }
-      ]
+              payCost: false,
+              optional: true,
+              delayedEffect: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX10-070", compiled);

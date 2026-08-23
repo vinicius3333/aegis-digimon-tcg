@@ -9,92 +9,78 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //           (KB Q1913: digivolution requirements still apply; Q1914: cost reductions apply.)
 // [Security] Add this card to its owner's hand.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a Digimon with [X Antibody] in its traits in play"
-          }
-        }
-      ]
+            raw: "you have a Digimon with [X Antibody] in its traits in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Dex"
-                ],
-                "match": "name"
+                tokens: ["Dex"],
+                match: "name",
               },
               {
-                "tokens": [
-                  "DeathX"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["DeathX"],
+                match: "name",
+              },
+            ],
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": true
-        }
-      ]
+          from: ["trash"],
+          payCost: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-106", compiled);

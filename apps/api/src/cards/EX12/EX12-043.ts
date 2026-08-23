@@ -6,87 +6,78 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "labels": ["Play a matching card", "Use a matching Option"],
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          labels: ["Play a matching card", "Use a matching Option"],
+          options: [
             [
               {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer",
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "SW"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-              }
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon", "Tamer"],
+                    nameOrTrait: [
+                      {
+                        tokens: ["SW"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                  count: 1,
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
             ],
             [
               {
-                "kind": "UseOptionWithoutCost",
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Option"],
-                  "nameOrTrait": [{ "tokens": ["SW"], "match": "trait" }]
+                kind: "UseOptionWithoutCost",
+                filter: {
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["SW"], match: "trait" }],
                 },
-                "from": ["hand"],
-                "payCost": true,
-                "reduceCostBy": 2,
-                "optional": true
-              }
-            ]
-          ]
-        }
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
+            ],
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "traits": [
-        "Shambala"
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      traits: ["Shambala"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-043", compiled);

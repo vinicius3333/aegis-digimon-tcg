@@ -46,9 +46,9 @@ describe("BT16-052", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "TOKEN-KoHagurumon-Token"),
     );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "TOKEN-KoHagurumon-Token")).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "TOKEN-KoHagurumon-Token"),
+    ).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("blockerHost"), "Blocker")).toBe(true);
   });
 });

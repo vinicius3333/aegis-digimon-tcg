@@ -10,12 +10,14 @@ const compiled: CompiledCard = {
         {
           kind: "RevealAdd",
           revealCount: 3,
-          add: [{
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
-            count: 1,
-            to: "placeUnder",
-            asTop: false,
-          }],
+          add: [
+            {
+              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+              count: 1,
+              to: "placeUnder",
+              asTop: false,
+            },
+          ],
           rest: "trash",
         },
         {
@@ -31,34 +33,38 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OpponentsTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenOpponentAttacks",
-        actions: [{
-          kind: "RedirectAttack",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          cost: {
-            kind: "return",
-            target: {
-              filter: {
-                zone: "digivolutionCards",
-                controller: "mine",
-                nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
-                hostFilter: {
-                  controller: "mine",
-                  nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              cost: {
+                kind: "return",
+                target: {
+                  filter: {
+                    zone: "digivolutionCards",
+                    controller: "mine",
+                    nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+                    hostFilter: {
+                      controller: "mine",
+                      nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }],
+                    },
+                    sameHost: true,
+                  },
+                  count: 2,
                 },
-                sameHost: true,
+                to: "deckBottom",
+                raw: "place 2 [Vemmon] from 1 of your [Galacticmon]'s digivolution cards at the bottom of their owners' decks",
               },
-              count: 2,
+              optional: true,
+              abortOnDecline: true,
             },
-            to: "deckBottom",
-            raw: "place 2 [Vemmon] from 1 of your [Galacticmon]'s digivolution cards at the bottom of their owners' decks",
-          },
-          optional: true,
-          abortOnDecline: true,
-        }],
-      }],
+          ],
+        },
+      ],
       isInherited: true,
       frequency: "OncePerTurn",
     },

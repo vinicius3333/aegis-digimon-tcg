@@ -6,54 +6,51 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "NSp"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
+                tokens: ["NSp"],
+                match: "trait",
               },
-              "withoutSuspending": false,
-              "optional": true,
-              "condition": {
-                "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["NSp"], "match": "trait"}]},
-                "raw": "this Digimon has the [NSp] trait"
-              }
-            }
-          ]
-        }
+            ],
+          },
+          actions: [
+            {
+              kind: "Attack",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              withoutSuspending: false,
+              optional: true,
+              condition: {
+                kind: "selfHasTrait",
+                filter: { nameOrTrait: [{ tokens: ["NSp"], match: "trait" }] },
+                raw: "this Digimon has the [NSp] trait",
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX8-004", compiled);

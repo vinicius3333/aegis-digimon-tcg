@@ -6,118 +6,98 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "beDeleted",
-          "duration": "untilOpponentTurnEnd",
-          "byOpponentEffectsOnly": true
-        }
-      ]
+          restriction: "beDeleted",
+          duration: "untilOpponentTurnEnd",
+          byOpponentEffectsOnly: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Yellow",
-              "Black"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Yellow", "Black"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Hybrid"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 1,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "hasInheritedEffects": true,
-                  "controller": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
-                },
-                "count": 1
+                tokens: ["Hybrid"],
+                match: "trait",
               },
-              "from": [
-                "digivolutionCards"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+            ],
+          },
+          from: ["hand"],
+          reduceCost: 1,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "J.P. Shibayama"
-      ],
-      "cost": 2,
-      "isAlternate": true
     },
     {
-      "names": [
-        "MetalKabuterimon"
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  hasInheritedEffects: true,
+                  controller: "mine",
+                  kind: ["Tamer"],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["J.P. Shibayama"],
+      cost: 2,
+      isAlternate: true,
+    },
+    {
+      names: ["MetalKabuterimon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-063", compiled);

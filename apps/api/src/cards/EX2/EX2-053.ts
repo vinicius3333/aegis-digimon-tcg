@@ -10,104 +10,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // digivolutionCardsAtLeast is the canonical engine capability for this threshold.
 // rest:"deckTop" matches the errata (after text says "top of your deck").
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "playCostLte": 10,
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                playCostLte: 10,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "D-Reaper"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["D-Reaper"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
-          ],
-          "rest": "deckTop",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Mother D-Reaper"
-                  ],
-                  "match": "name"
-                }
-              ],
-              "digivolutionCardsAtLeast": 5
+              count: 1,
+              to: "play",
+              optional: true,
             },
-            "raw": "one of your [Mother D-Reaper]s has 5 or more digivolution cards"
-          }
-        }
+          ],
+          rest: "deckTop",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Mother D-Reaper"],
+                  match: "name",
+                },
+              ],
+              digivolutionCardsAtLeast: 5,
+            },
+            raw: "one of your [Mother D-Reaper]s has 5 or more digivolution cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "playCostLte": 10,
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                playCostLte: 10,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "D-Reaper"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["D-Reaper"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
-          ],
-          "rest": "deckTop",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Mother D-Reaper"
-                  ],
-                  "match": "name"
-                }
-              ],
-              "digivolutionCardsAtLeast": 5
+              count: 1,
+              to: "play",
+              optional: true,
             },
-            "raw": "one of your [Mother D-Reaper]s has 5 or more digivolution cards"
-          }
-        }
+          ],
+          rest: "deckTop",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Mother D-Reaper"],
+                  match: "name",
+                },
+              ],
+              digivolutionCardsAtLeast: 5,
+            },
+            raw: "one of your [Mother D-Reaper]s has 5 or more digivolution cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    }
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-053", compiled);

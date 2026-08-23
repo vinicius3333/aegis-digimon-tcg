@@ -27,11 +27,16 @@ describe("BT10-077 MadLeomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT10-077",
-            as: "madleomon",
-            under: [{ card: "BT10-071", as: "cost1" }, { card: "BT10-073", as: "cost2" }],
-          }],
+          battleArea: [
+            {
+              card: "BT10-077",
+              as: "madleomon",
+              under: [
+                { card: "BT10-071", as: "cost1" },
+                { card: "BT10-073", as: "cost2" },
+              ],
+            },
+          ],
         },
         1: {
           hand: [
@@ -67,18 +72,17 @@ describe("BT10-077 MadLeomon", () => {
   });
 
   it("gains owner memory when its inherited source is trashed on the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-081", as: "host", under: [{ card: "BT10-077", as: "source" }] }] },
-    }, { autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT10-081", as: "host", under: [{ card: "BT10-077", as: "source" }] }] },
+      },
+      { autoOrderTriggers: true },
+    );
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("source").instanceId],
-      1,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("source").instanceId], 1);
     await settle(() => s.state.memory !== 0);
 
     expect(s.state.memory).toBe(-1);

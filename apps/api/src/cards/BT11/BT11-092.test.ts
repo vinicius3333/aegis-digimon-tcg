@@ -48,11 +48,13 @@ describe("BT11-092 Analogman", () => {
     s.state.turnSeat = 1;
     const machineId = s.perm("machine").permanentId;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== machineId));
 
     expect(s.perm("analogman").isSuspended).toBe(true);

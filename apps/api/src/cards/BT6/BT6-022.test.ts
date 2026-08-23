@@ -10,7 +10,13 @@ describe("BT6-022 Strabimon", () => {
     });
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("hybrid").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("hybrid").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);

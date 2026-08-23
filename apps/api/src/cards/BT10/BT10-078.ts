@@ -6,83 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Retaliation",
-              "raw": "＜Retaliation＞"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Retaliation",
+              raw: "＜Retaliation＞",
+            },
           },
-          "while": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gammamon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a card with [Gammamon] in its name is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "a card with [Gammamon] in its name is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Gammamon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "suspended": true,
-          "optional": true
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Gammamon"
+          from: ["trash"],
+          payCost: false,
+          suspended: true,
+          optional: true,
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Gammamon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT10-078", compiled);

@@ -7,108 +7,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onAddDigivolutionCards",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "bySourceController": "mine",
-          "actions": [
+          bySourceController: "mine",
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "amount": 3000,
-              "duration": "forTheTurn"
+              amount: 3000,
+              duration: "forTheTurn",
             },
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": 1,
-                "raw": "＜Security Attack +1＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: 1,
+                raw: "＜Security Attack +1＞",
               },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "playCostLte": 7,
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Legend-Arms"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
+              duration: "forTheTurn",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+        },
+      ],
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                playCostLte: 7,
+                nameOrTrait: [
+                  {
+                    tokens: ["Legend-Arms"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+              to: "play",
+              optional: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "noSecurityOptionEffects",
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfHasName", "names": ["RagnaLoardmon"],
-            "raw": "this Digimon is [RagnaLoardmon]"
-          }
-        }
+          ],
+          rest: "deckBottom",
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "noSecurityOptionEffects",
+          duration: "permanent",
+          condition: {
+            kind: "selfHasName",
+            names: ["RagnaLoardmon"],
+            raw: "this Digimon is [RagnaLoardmon]",
+          },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST13-05", compiled);

@@ -26,13 +26,19 @@ describe("ST17-10 Henry Wong", () => {
   });
 
   it("places Henry, Gargomon, and Rapidmon under one Terriermon before the free MegaGargomon digivolution", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST17-02", as: "terriermon" }, { card: "ST17-10", as: "henry" }],
-        trash: [{ card: "ST17-05" }, { card: "ST17-07" }],
-        hand: [{ card: "ST17-08", as: "mega" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST17-02", as: "terriermon" },
+            { card: "ST17-10", as: "henry" },
+          ],
+          trash: [{ card: "ST17-05" }, { card: "ST17-07" }],
+          hand: [{ card: "ST17-08", as: "mega" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
     await s.ready();
 

@@ -17,7 +17,11 @@ const compiled: CompiledCard = {
               mode: "reduceCost",
               amount: 1,
               raw: "reduce the cost by 1",
-              condition: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Yellow"] }, raw: "you have a yellow Tamer in play" },
+              condition: {
+                kind: "youHave",
+                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Yellow"] },
+                raw: "you have a yellow Tamer in play",
+              },
             },
           ],
         },
@@ -26,8 +30,18 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 }, amount: -5000, duration: "untilOpponentTurnEnd" },
-        { kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3, sameTarget: true }, keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" }, duration: "untilOpponentTurnEnd" },
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 },
+          amount: -5000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3, sameTarget: true },
+          keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
+          duration: "untilOpponentTurnEnd",
+        },
       ],
     },
     { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },

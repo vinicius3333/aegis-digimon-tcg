@@ -76,11 +76,9 @@ describe("BT9-083 Omnimon: Merciful Mode", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mercifulMode"));
 
-    expect(new Set(s.state.players[1]!.deck.map((card) => card.instanceId))).toEqual(new Set([
-      s.inst("existing").instanceId,
-      s.inst("firstDigimon").instanceId,
-      s.inst("secondDigimon").instanceId,
-    ]));
+    expect(new Set(s.state.players[1]!.deck.map((card) => card.instanceId))).toEqual(
+      new Set([s.inst("existing").instanceId, s.inst("firstDigimon").instanceId, s.inst("secondDigimon").instanceId]),
+    );
     expect(s.state.players[1]!.eggDeck.map((card) => card.instanceId)).toEqual([s.inst("egg").instanceId]);
   });
 });

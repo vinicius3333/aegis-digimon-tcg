@@ -1,7 +1,17 @@
 /* Aegis shared chrome: the letterboxed 16:9 Stage, UI primitives, and the top nav.
    maintained as part of the Aegis design system. Presentational only. */
 
-import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type InputHTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type InputHTMLAttributes,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { COLORS, colorKey } from "./theme";
 import { Icons, type IconComponent } from "./icons";
@@ -21,21 +31,15 @@ export interface PlayerIdentity {
 }
 
 /** A screen key in the client router. */
-export type Screen =
-  | "onboarding"
-  | "home"
-  | "lobby"
-  | "deck"
-  | "collection"
-  | "tournaments"
-  | "settings"
-  | "game";
+export type Screen = "onboarding" | "home" | "lobby" | "deck" | "collection" | "tournaments" | "settings" | "game";
 
 export function Stage({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   return (
     <div id="aegis-stage" className="aegis-stage">
-      <a className="aegis-skip-link" href="#aegis-main">{t("nav.skipToContent")}</a>
+      <a className="aegis-skip-link" href="#aegis-main">
+        {t("nav.skipToContent")}
+      </a>
       <div className="aegis-stage__content">{children}</div>
     </div>
   );
@@ -72,7 +76,14 @@ export function Button({
       {...buttonProps}
       type={type}
       className={`aegis-button aegis-button--${variant} aegis-button--${size}${full ? " aegis-button--full" : ""}${className ? ` ${className}` : ""}`}
-      onClick={disabled ? undefined : () => { if (sound) playSound(sound); onClick?.(); }}
+      onClick={
+        disabled
+          ? undefined
+          : () => {
+              if (sound) playSound(sound);
+              onClick?.();
+            }
+      }
       disabled={disabled}
       style={style}
     >
@@ -116,7 +127,17 @@ export function Panel({
 
 export type BadgeTone = "neutral" | "primary" | "success" | "warning" | "danger";
 
-export function Badge({ children, className, tone = "neutral", style }: { children: ReactNode; className?: string; tone?: BadgeTone; style?: CSSProperties }) {
+export function Badge({
+  children,
+  className,
+  tone = "neutral",
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  tone?: BadgeTone;
+  style?: CSSProperties;
+}) {
   return (
     <span className={`aegis-badge${className ? ` ${className}` : ""}`} data-tone={tone} style={style}>
       {children}
@@ -124,7 +145,12 @@ export function Badge({ children, className, tone = "neutral", style }: { childr
   );
 }
 
-export function IconButton({ label, className, children, ...props }: Omit<AegisButtonProps, "children" | "icon"> & { label: string; children: ReactNode }) {
+export function IconButton({
+  label,
+  className,
+  children,
+  ...props
+}: Omit<AegisButtonProps, "children" | "icon"> & { label: string; children: ReactNode }) {
   return (
     <Button {...props} className={`aegis-icon-action${className ? ` ${className}` : ""}`} aria-label={label}>
       {children}
@@ -134,9 +160,23 @@ export function IconButton({ label, className, children, ...props }: Omit<AegisB
 
 export type AlertTone = "neutral" | "info" | "success" | "warning" | "danger";
 
-export function Alert({ children, className, title, tone = "neutral" }: { children?: ReactNode; className?: string; title?: ReactNode; tone?: AlertTone }) {
+export function Alert({
+  children,
+  className,
+  title,
+  tone = "neutral",
+}: {
+  children?: ReactNode;
+  className?: string;
+  title?: ReactNode;
+  tone?: AlertTone;
+}) {
   return (
-    <div className={`aegis-alert${className ? ` ${className}` : ""}`} data-tone={tone} role={tone === "danger" ? "alert" : "status"}>
+    <div
+      className={`aegis-alert${className ? ` ${className}` : ""}`}
+      data-tone={tone}
+      role={tone === "danger" ? "alert" : "status"}
+    >
       {title ? <strong className="aegis-alert__title">{title}</strong> : null}
       {children ? <div className="aegis-alert__body">{children}</div> : null}
     </div>
@@ -155,26 +195,69 @@ export function Field({ className, error, hint, id: providedId, label, ...inputP
   const messageId = hint || error ? `${id}-message` : undefined;
   return (
     <div className={`aegis-field${className ? ` ${className}` : ""}`}>
-      <label className="aegis-field__label" htmlFor={id}>{label}</label>
-      <input {...inputProps} id={id} className="aegis-field__control" aria-describedby={messageId} aria-invalid={error ? true : undefined} />
-      {error || hint ? <span id={messageId} className="aegis-field__message" data-error={error ? true : undefined}>{error ?? hint}</span> : null}
+      <label className="aegis-field__label" htmlFor={id}>
+        {label}
+      </label>
+      <input
+        {...inputProps}
+        id={id}
+        className="aegis-field__control"
+        aria-describedby={messageId}
+        aria-invalid={error ? true : undefined}
+      />
+      {error || hint ? (
+        <span id={messageId} className="aegis-field__message" data-error={error ? true : undefined}>
+          {error ?? hint}
+        </span>
+      ) : null}
     </div>
   );
 }
 
-export function Switch({ checked, description, disabled, label, onChange }: { checked: boolean; description?: ReactNode; disabled?: boolean; label: ReactNode; onChange: (checked: boolean) => void }) {
+export function Switch({
+  checked,
+  description,
+  disabled,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  description?: ReactNode;
+  disabled?: boolean;
+  label: ReactNode;
+  onChange: (checked: boolean) => void;
+}) {
   return (
-    <button className="aegis-switch" type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}>
+    <button
+      className="aegis-switch"
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+    >
       <span className="aegis-switch__copy">
         <strong>{label}</strong>
         {description ? <small>{description}</small> : null}
       </span>
-      <span className="aegis-switch__track" aria-hidden="true"><span className="aegis-switch__thumb" /></span>
+      <span className="aegis-switch__track" aria-hidden="true">
+        <span className="aegis-switch__thumb" />
+      </span>
     </button>
   );
 }
 
-export function Dialog({ children, className, labelledBy, onClose }: { children: ReactNode; className?: string; labelledBy: string; onClose?: () => void }) {
+export function Dialog({
+  children,
+  className,
+  labelledBy,
+  onClose,
+}: {
+  children: ReactNode;
+  className?: string;
+  labelledBy: string;
+  onClose?: () => void;
+}) {
   const dialogRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -189,7 +272,9 @@ export function Dialog({ children, className, labelledBy, onClose }: { children:
       return;
     }
     if (event.key !== "Tab") return;
-    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])');
+    const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    );
     if (!focusable?.length) {
       event.preventDefault();
       dialogRef.current?.focus();
@@ -207,7 +292,16 @@ export function Dialog({ children, className, labelledBy, onClose }: { children:
   };
   const layer = (
     <div className="aegis-dialog-layer" onClick={onClose}>
-      <section ref={dialogRef} className={`aegis-dialog${className ? ` ${className}` : ""}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1} onKeyDown={handleKeyDown} onClick={(event) => event.stopPropagation()}>
+      <section
+        ref={dialogRef}
+        className={`aegis-dialog${className ? ` ${className}` : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        tabIndex={-1}
+        onKeyDown={handleKeyDown}
+        onClick={(event) => event.stopPropagation()}
+      >
         {children}
       </section>
     </div>
@@ -236,9 +330,28 @@ export function ColorDot({ color, size = 12, ring }: { color: string; size?: num
   );
 }
 
-export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatarUrl }: { name: string; color?: string; size?: number; ring?: boolean; avatarId?: DigimonWorldAvatarId | null; avatarUrl?: string | null }) {
+export function Avatar({
+  name,
+  color = "Blue",
+  size = 40,
+  ring,
+  avatarId,
+  avatarUrl,
+}: {
+  name: string;
+  color?: string;
+  size?: number;
+  ring?: boolean;
+  avatarId?: DigimonWorldAvatarId | null;
+  avatarUrl?: string | null;
+}) {
   const c = COLORS[colorKey(color)];
-  const initials = (name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const initials = (name || "?")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
   const imageSources = [avatarId ? digimonAvatarUrl(avatarId) : undefined, avatarUrl].filter(
     (source, index, sources): source is string => Boolean(source) && sources.indexOf(source) === index,
   );
@@ -288,7 +401,9 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
             imageRendering: isCardPortrait && size > 150 ? "pixelated" : "auto",
           }}
         />
-      ) : initials}
+      ) : (
+        initials
+      )}
     </div>
   );
 }
@@ -298,13 +413,7 @@ const AEGIS_MARK_SRC = "/branding/aegis-mark-tcg-inspired.png";
 /* Aegis crest rendered from the current brand mark. */
 export function AegisMark({ size = 32 }: { size?: number }) {
   return (
-    <img
-      src={AEGIS_MARK_SRC}
-      alt=""
-      width={size}
-      height={size}
-      style={{ display: "block", objectFit: "contain" }}
-    />
+    <img src={AEGIS_MARK_SRC} alt="" width={size} height={size} style={{ display: "block", objectFit: "contain" }} />
   );
 }
 
@@ -328,13 +437,36 @@ export function Logo({ size = 26, sub = true }: { size?: number; sub?: boolean }
         >
           AEGIS
         </div>
-        {sub ? <div className="aegis-logo__subtitle" style={{ fontFamily: "var(--ds-font-mono)", fontSize: 8.5, letterSpacing: "0.32em", color: "var(--ds-foreground-muted)", marginTop: 2 }}>{t("brand.subtitle")}</div> : null}
+        {sub ? (
+          <div
+            className="aegis-logo__subtitle"
+            style={{
+              fontFamily: "var(--ds-font-mono)",
+              fontSize: 8.5,
+              letterSpacing: "0.32em",
+              color: "var(--ds-foreground-muted)",
+              marginTop: 2,
+            }}
+          >
+            {t("brand.subtitle")}
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function NavItem({ item, active, onSelect, compact = false }: { item: { label: string; icon: IconComponent }; active: boolean; onSelect: () => void; compact?: boolean }) {
+function NavItem({
+  item,
+  active,
+  onSelect,
+  compact = false,
+}: {
+  item: { label: string; icon: IconComponent };
+  active: boolean;
+  onSelect: () => void;
+  compact?: boolean;
+}) {
   return (
     <button
       className={`aegis-nav-item${compact ? " aegis-nav-item--compact" : ""}`}
@@ -348,9 +480,22 @@ function NavItem({ item, active, onSelect, compact = false }: { item: { label: s
 }
 
 /* ---- Top nav (persistent app chrome) ---- */
-export function TopNav({ screen, onNav, player, actions }: { screen: Screen; onNav: (s: Screen) => void; player: PlayerIdentity; actions?: ReactNode }) {
+export function TopNav({
+  screen,
+  onNav,
+  player,
+  actions,
+}: {
+  screen: Screen;
+  onNav: (s: Screen) => void;
+  player: PlayerIdentity;
+  actions?: ReactNode;
+}) {
   const { t } = useTranslation();
-  const navTo = (s: Screen) => { playSound("nav"); onNav(s); };
+  const navTo = (s: Screen) => {
+    playSound("nav");
+    onNav(s);
+  };
   const items: { key: Screen; label: string; icon: IconComponent }[] = [
     { key: "home", label: t("nav.home"), icon: Icons.LayoutDashboard },
     { key: "lobby", label: t("nav.play"), icon: Icons.Swords },
@@ -360,48 +505,81 @@ export function TopNav({ screen, onNav, player, actions }: { screen: Screen; onN
   ];
   return (
     <>
-    <header className="aegis-top-nav">
-      <div className="aegis-top-nav__primary">
-        <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}><Logo size={46} /></button>
-        <nav className="aegis-top-nav__links" aria-label={t("nav.primaryAria")}>
-          {items.map((it) => {
-            const active = screen === it.key || (it.key === "deck" && screen === "deck");
-            return <NavItem key={it.key} item={it} active={active} onSelect={() => navTo(it.key)} />;
-          })}
-        </nav>
-      </div>
-      <div className="aegis-top-nav__account">
-        {actions}
-        <button
-          className="aegis-icon-button"
-          onClick={() => navTo("settings")}
-          aria-label={t("menu.settings")}
-          aria-current={screen === "settings" ? "page" : undefined}
-        >
-          <Icons.Settings size={18} />
+      <header className="aegis-top-nav">
+        <div className="aegis-top-nav__primary">
+          <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}>
+            <Logo size={46} />
+          </button>
+          <nav className="aegis-top-nav__links" aria-label={t("nav.primaryAria")}>
+            {items.map((it) => {
+              const active = screen === it.key || (it.key === "deck" && screen === "deck");
+              return <NavItem key={it.key} item={it} active={active} onSelect={() => navTo(it.key)} />;
+            })}
+          </nav>
+        </div>
+        <div className="aegis-top-nav__account">
+          {actions}
+          <button
+            className="aegis-icon-button"
+            onClick={() => navTo("settings")}
+            aria-label={t("menu.settings")}
+            aria-current={screen === "settings" ? "page" : undefined}
+          >
+            <Icons.Settings size={18} />
+          </button>
+          <div className="aegis-player-chip">
+            <span>{player.name}</span>
+            <button
+              className="aegis-profile-avatar-button"
+              onClick={() => navTo("settings")}
+              aria-label={t("menu.settings")}
+              aria-current={screen === "settings" ? "page" : undefined}
+            >
+              <Avatar
+                name={player.name}
+                color={player.color}
+                avatarId={player.avatarId}
+                avatarUrl={player.avatarUrl}
+                size={36}
+              />
+            </button>
+          </div>
+        </div>
+      </header>
+      <header className="aegis-mobile-bar">
+        <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}>
+          <AegisMark size={30} />
         </button>
-        <div className="aegis-player-chip">
+        <div className="aegis-mobile-bar__actions">{actions}</div>
+        <div className="aegis-player-chip aegis-player-chip--mobile">
           <span>{player.name}</span>
-          <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-            <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={36} />
+          <button
+            className="aegis-profile-avatar-button"
+            onClick={() => navTo("settings")}
+            aria-label={t("menu.settings")}
+            aria-current={screen === "settings" ? "page" : undefined}
+          >
+            <Avatar
+              name={player.name}
+              color={player.color}
+              avatarId={player.avatarId}
+              avatarUrl={player.avatarUrl}
+              size={32}
+            />
           </button>
         </div>
-      </div>
-    </header>
-    <header className="aegis-mobile-bar">
-      <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}><AegisMark size={30} /></button>
-      <div className="aegis-mobile-bar__actions">{actions}</div>
-      <div className="aegis-player-chip aegis-player-chip--mobile">
-        <span>{player.name}</span>
-        <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-          <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={32} />
-        </button>
-      </div>
-    </header>
-    <nav className="aegis-bottom-nav" aria-label={t("nav.primaryAria")}>
-      {items.map((it) => <NavItem key={it.key} item={it} active={screen === it.key} onSelect={() => navTo(it.key)} compact />)}
-      <NavItem item={{ label: t("menu.settings"), icon: Icons.Settings }} active={screen === "settings"} onSelect={() => navTo("settings")} compact />
-    </nav>
+      </header>
+      <nav className="aegis-bottom-nav" aria-label={t("nav.primaryAria")}>
+        {items.map((it) => (
+          <NavItem key={it.key} item={it} active={screen === it.key} onSelect={() => navTo(it.key)} compact />
+        ))}
+        <NavItem
+          item={{ label: t("menu.settings"), icon: Icons.Settings }}
+          active={screen === "settings"}
+          onSelect={() => navTo("settings")}
+          compact
+        />
+      </nav>
     </>
   );
 }

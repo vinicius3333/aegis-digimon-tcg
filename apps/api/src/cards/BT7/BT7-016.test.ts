@@ -13,17 +13,33 @@ describe("BT7-016 EmperorGreymon", () => {
     });
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("emperor").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("emperor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("emperor").isSuspended && s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });
 
   it("gains Blitz when digivolving", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "BT7-016", as: "evolving" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "BT7-016", as: "evolving" }] },
+    });
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Blitz"));
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blitz")).toBe(true);
   });

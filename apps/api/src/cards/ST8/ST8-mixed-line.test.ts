@@ -9,24 +9,30 @@ import "./ST8-10.js";
 
 describe("ST8 mixed UlforceVeedramon line", () => {
   it("can resolve Veemon's draw before UlforceVeedramon's 8-card unsuspend gate", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST8-10", as: "ulforce", under: ["ST8-04"] }],
-        hand: Array.from({ length: 7 }, () => "ST8-02"),
-        deck: [{ card: "ST8-03", as: "drawn" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST8-10", as: "ulforce", under: ["ST8-04"] }],
+          hand: Array.from({ length: 7 }, () => "ST8-02"),
+          deck: [{ card: "ST8-03", as: "drawn" }],
+        },
+        1: { security: ["ST8-01", "ST8-01"] },
       },
-      1: { security: ["ST8-01", "ST8-01"] },
-    }, { autoOrderTriggers: true });
+      { autoOrderTriggers: true },
+    );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ulforce").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId) &&
-      !s.perm("ulforce").isSuspended,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ulforce").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId) &&
+        !s.perm("ulforce").isSuspended,
     );
 
     expect(s.state.players[0]!.hand).toHaveLength(8);
@@ -45,11 +51,13 @@ describe("ST8 mixed UlforceVeedramon line", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("veemon").permanentId,
-      instanceId: s.inst("ulforce").instanceId,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("ulforce").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
     assertNoLoudGap(s);
   });
 
@@ -96,9 +104,7 @@ describe("ST8 mixed UlforceVeedramon line", () => {
     );
 
     expect(s.perm("ulforce").currentDP).toBe(14000);
-    expect(s.state.players[1]!.hand.some(({ instanceId }) => instanceId === returnedInstanceId)).toBe(
-      true,
-    );
+    expect(s.state.players[1]!.hand.some(({ instanceId }) => instanceId === returnedInstanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("ulforce").isSuspended).toBe(false);
     assertNoLoudGap(s);
@@ -129,10 +135,7 @@ describe("ST8 mixed UlforceVeedramon line", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.state.players[0]!.hand.length === 8 && s.perm("ulforce").currentDP === 13000,
-      3000,
-    );
+    await settle(() => s.state.players[0]!.hand.length === 8 && s.perm("ulforce").currentDP === 13000, 3000);
 
     expect(s.state.players[0]!.hand).toHaveLength(8);
     expect(s.perm("ulforce").currentDP).toBe(13000);

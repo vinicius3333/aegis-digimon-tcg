@@ -17,11 +17,13 @@ describe("deployment manifest", () => {
   });
 
   it("parses an active slot and a distinct draining slot", () => {
-    expect(parseDeploymentManifest({
-      version: 1,
-      active: { slot: "green", revision: "new-sha" },
-      draining: [{ slot: "blue", revision: "old-sha" }],
-    })).toEqual({
+    expect(
+      parseDeploymentManifest({
+        version: 1,
+        active: { slot: "green", revision: "new-sha" },
+        draining: [{ slot: "blue", revision: "old-sha" }],
+      }),
+    ).toEqual({
       version: 1,
       active: { slot: "green", revision: "new-sha" },
       draining: [{ slot: "blue", revision: "old-sha" }],
@@ -40,11 +42,17 @@ describe("deployment manifest", () => {
   });
 
   it("fetches the manifest without allowing a cached rollout decision", async () => {
-    const fetcher = vi.fn(async () => new Response(JSON.stringify({
-      version: 1,
-      active: { slot: "blue", revision: "sha" },
-      draining: [],
-    }), { status: 200, headers: { "content-type": "application/json" } }));
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            version: 1,
+            active: { slot: "blue", revision: "sha" },
+            draining: [],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+    );
 
     await expect(loadDeploymentManifest(fetcher)).resolves.toMatchObject({ active: { slot: "blue" } });
     expect(fetcher).toHaveBeenCalledWith("/deployment/manifest.json", {
@@ -56,33 +64,49 @@ describe("deployment manifest", () => {
 
   it("aborts a new-room manifest load after scheduling a stale-bundle refresh", async () => {
     const replace = vi.fn();
-    const fetcher = vi.fn(async () => new Response(JSON.stringify({
-      version: 1,
-      active: { slot: "green", revision: "new-sha" },
-      draining: [],
-    }), { status: 200, headers: { "content-type": "application/json" } }));
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            version: 1,
+            active: { slot: "green", revision: "new-sha" },
+            draining: [],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+    );
 
-    await expect(loadCurrentDeploymentManifest({
-      bundleRevision: "old-sha",
-      fetcher,
-      navigation: { href: "https://aegis-digi.online/lobby", replace },
-    })).rejects.toBeInstanceOf(DeploymentRefreshScheduledError);
+    await expect(
+      loadCurrentDeploymentManifest({
+        bundleRevision: "old-sha",
+        fetcher,
+        navigation: { href: "https://aegis-digi.online/lobby", replace },
+      }),
+    ).rejects.toBeInstanceOf(DeploymentRefreshScheduledError);
     expect(replace).toHaveBeenCalledOnce();
   });
 
   it("does not loop when the requested revision was already cache-busted", async () => {
     const replace = vi.fn();
-    const fetcher = vi.fn(async () => new Response(JSON.stringify({
-      version: 1,
-      active: { slot: "green", revision: "new-sha" },
-      draining: [],
-    }), { status: 200, headers: { "content-type": "application/json" } }));
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            version: 1,
+            active: { slot: "green", revision: "new-sha" },
+            draining: [],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+    );
 
-    await expect(synchronizeDeploymentRevision({
-      bundleRevision: "old-sha",
-      fetcher,
-      navigation: { href: "https://aegis-digi.online/?aegis-revision=new-sha", replace },
-    })).rejects.toThrow("does not match");
+    await expect(
+      synchronizeDeploymentRevision({
+        bundleRevision: "old-sha",
+        fetcher,
+        navigation: { href: "https://aegis-digi.online/?aegis-revision=new-sha", replace },
+      }),
+    ).rejects.toThrow("does not match");
     expect(replace).not.toHaveBeenCalled();
   });
 
@@ -96,22 +120,28 @@ describe("deployment manifest", () => {
 
   it("replaces a stale bundle navigation with the active revision", async () => {
     const replace = vi.fn();
-    const fetcher = vi.fn(async () => new Response(JSON.stringify({
-      version: 1,
-      active: { slot: "green", revision: "new-sha" },
-      draining: [{ slot: "blue", revision: "old-sha" }],
-    }), { status: 200, headers: { "content-type": "application/json" } }));
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            version: 1,
+            active: { slot: "green", revision: "new-sha" },
+            draining: [{ slot: "blue", revision: "old-sha" }],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+    );
 
-    await expect(synchronizeDeploymentRevision({
-      bundleRevision: "old-sha",
-      fetcher,
-      navigation: { href: "https://aegis-digi.online/lobby", replace },
-    })).resolves.toBe(false);
+    await expect(
+      synchronizeDeploymentRevision({
+        bundleRevision: "old-sha",
+        fetcher,
+        navigation: { href: "https://aegis-digi.online/lobby", replace },
+      }),
+    ).resolves.toBe(false);
 
     expect(replace).toHaveBeenCalledOnce();
-    expect(replace).toHaveBeenCalledWith(
-      "https://aegis-digi.online/lobby?aegis-revision=new-sha",
-    );
+    expect(replace).toHaveBeenCalledWith("https://aegis-digi.online/lobby?aegis-revision=new-sha");
     expect(fetcher).toHaveBeenCalledWith("/deployment/manifest.json", {
       cache: "no-store",
       signal: expect.any(AbortSignal),
@@ -124,17 +154,25 @@ describe("deployment manifest", () => {
 
   it("keeps rendering when the bundle already matches the active revision", async () => {
     const replace = vi.fn();
-    const fetcher = vi.fn(async () => new Response(JSON.stringify({
-      version: 1,
-      active: { slot: "green", revision: "same-sha" },
-      draining: [],
-    }), { status: 200, headers: { "content-type": "application/json" } }));
+    const fetcher = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            version: 1,
+            active: { slot: "green", revision: "same-sha" },
+            draining: [],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+    );
 
-    await expect(synchronizeDeploymentRevision({
-      bundleRevision: "same-sha",
-      fetcher,
-      navigation: { href: "https://aegis-digi.online/", replace },
-    })).resolves.toBe(true);
+    await expect(
+      synchronizeDeploymentRevision({
+        bundleRevision: "same-sha",
+        fetcher,
+        navigation: { href: "https://aegis-digi.online/", replace },
+      }),
+    ).resolves.toBe(true);
     expect(replace).not.toHaveBeenCalled();
   });
 });

@@ -14,7 +14,9 @@ describe("ST8-06 Coredramon", () => {
   });
 
   it("plays itself from security and resolves Draw 2", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST8-06", as: "core", faceUp: true }], deck: ["ST8-01", "ST8-02"] } });
+    const s = setupEngine({
+      0: { security: [{ card: "ST8-06", as: "core", faceUp: true }], deck: ["ST8-01", "ST8-02"] },
+    });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("core"));
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("core").instanceId)).toBe(true);

@@ -23,40 +23,50 @@ describe("BT12-075 Psychemon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT10-008");
   });
 
-it("does not recover a Save Digimon under a Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["BT10-008"] }],
-        hand: [{ card: "BT12-075", as: "psyche" }],
+  it("does not recover a Save Digimon under a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT10-008"] }],
+          hand: [{ card: "BT12-075", as: "psyche" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("psyche").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("psyche").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-075"));
-  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT10-008");
-});
-
-it("saves itself under a Tamer when deleted", async () => {
-  const s = setupEngine(
-    {
-      0: { battleArea: [{ card: "BT12-075", as: "psyche" }, { card: "BT12-094", as: "tamer" }] },
-    },
-    { autoAcceptOptional: true, autoSelectCards: true },
-  );
-  const sourceId = s.perm("psyche").topCard.instanceId;
-  await s.ready();
-  await advance(s.engine).verb.deletePermanent([s.perm("psyche").permanentId]);
-  await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId));
-  expect(s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId)).toBe(true);
-});
-
-it("draws from its inherited Save attack effect at most once per turn", async () => {
-  const s = setupEngine({
-    0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-075"] }], deck: ["BT1-010", "BT1-011"] },
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT10-008");
   });
-  await s.ready();
-  await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
-  await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
-  expect(s.state.players[0]!.hand).toHaveLength(1);
-});
+
+  it("saves itself under a Tamer when deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-075", as: "psyche" },
+            { card: "BT12-094", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sourceId = s.perm("psyche").topCard.instanceId;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("psyche").permanentId]);
+    await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId));
+    expect(s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId)).toBe(true);
+  });
+
+  it("draws from its inherited Save attack effect at most once per turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-075"] }], deck: ["BT1-010", "BT1-011"] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
 });

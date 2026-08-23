@@ -18,102 +18,102 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    abortOnDecline:true so declining prevents the ModifyDP from executing.
 // 3. Added missing [When Attacking] inherited effect.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Hand",
-      "actions": [
+      trigger: "Hand",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "isSelf": true
+          kind: "PlaceUnder",
+          target: {
+            isSelf: true,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": ["Justimon", "Raidenmon"],
-                "match": "name"
-              }
-            ]
+                tokens: ["Justimon", "Raidenmon"],
+                match: "name",
+              },
+            ],
           },
-          "position": "bottom",
-          "payCost": 1,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          position: "bottom",
+          payCost: 1,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Justimon", "Raidenmon"],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Justimon", "Raidenmon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you have a Digimon in play with [Justimon] or [Raidenmon] in its name"
+            raw: "you have a Digimon in play with [Justimon] or [Raidenmon] in its name",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "zone": "hand",
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "Trash",
+          target: {
+            filter: {
+              zone: "hand",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Machine", "Cyborg"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Machine", "Cyborg"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
-      ]
+          amount: -4000,
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
+          amount: -4000,
+          duration: "forTheTurn",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-042", compiled);

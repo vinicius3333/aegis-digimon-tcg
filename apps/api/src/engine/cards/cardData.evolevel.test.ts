@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { CardColor, CardKind, type CardDefinition } from "@aegis/shared";
-import {
-  matchingEvoCost,
-  matchingEvoCostIgnoringColor,
-  canDigivolveOnto,
-} from "./cardData.js";
+import { matchingEvoCost, matchingEvoCostIgnoringColor, canDigivolveOnto } from "./cardData.js";
 
 // A3 (BLK-05.1): the digivolve EvoCost level test is EXACT equality, mirroring the
 // documented behavior oracle `targetPermanent.Level == evoCost.Level` (documented behavior), NOT the

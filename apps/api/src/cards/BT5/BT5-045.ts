@@ -6,73 +6,65 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow"
-              ],
-              "or": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow"],
+              or: [
                 {
-                  "levels": [3]
+                  levels: [3],
                 },
                 {
-                  "nameOrTrait": [{ "tokens": ["Warrior"], "match": "trait" }]
-                }
-              ]
+                  nameOrTrait: [{ tokens: ["Warrior"], match: "trait" }],
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "continuous": true,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "battleArea",
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          amount: 1000,
+          duration: "permanent",
+          continuous: true,
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "battleArea",
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
-    }
+            unit: "cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-045", compiled);

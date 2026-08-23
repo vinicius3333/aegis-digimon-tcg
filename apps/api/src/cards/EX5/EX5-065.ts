@@ -45,15 +45,22 @@ if (startOfOpponentsTurn !== undefined) {
 // Replace the parser residual with the concrete add-digivolution watcher.
 const yourTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn");
 if (yourTurn) {
-  yourTurn.actions = [{
-    kind: "SubTrigger",
-    event: "onAddDigivolutionCards",
-    sourceFilter: { controller: "mine", kind: ["Digimon"] },
-    actions: [
-      { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true, abortOnDecline: true },
-      { kind: "GainMemory", amount: 1 },
-    ],
-  }];
+  yourTurn.actions = [
+    {
+      kind: "SubTrigger",
+      event: "onAddDigivolutionCards",
+      sourceFilter: { controller: "mine", kind: ["Digimon"] },
+      actions: [
+        {
+          kind: "Suspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          optional: true,
+          abortOnDecline: true,
+        },
+        { kind: "GainMemory", amount: 1 },
+      ],
+    },
+  ];
 }
 compiled.coverage = "full";
 compiled.residual = [];

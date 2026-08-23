@@ -56,9 +56,7 @@ describe("BT24-069 Vilemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("vilemon").instanceId);
-    await settle(() =>
-      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId),
-    );
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId));
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);

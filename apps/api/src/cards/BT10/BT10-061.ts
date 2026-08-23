@@ -6,110 +6,95 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Knightmon"
-                    ],
-                    "match": "name"
+                    tokens: ["Knightmon"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "DeadlyAxemon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["DeadlyAxemon"],
+                    match: "name",
+                  },
+                ],
               },
-              "orFilters": [
+              orFilters: [
                 {
-                  "controllerDefault": "mine",
-                  "nameOrTrait": [
+                  controllerDefault: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Nene Amano"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                }
+                      tokens: ["Nene Amano"],
+                      match: "name",
+                    },
+                  ],
+                },
               ],
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
+          rest: "trash",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 4
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 4,
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "digiXrosCount",
-            "minimum": 2
-          }
-        }
-      ]
+          condition: {
+            kind: "digiXrosCount",
+            minimum: 2,
+          },
+        },
+      ],
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "SkullKnightmon",
-            "DeadlyAxemon"
-          ]
-        }
-      ]
-    }
+          grant: "name",
+          tokens: ["SkullKnightmon", "DeadlyAxemon"],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "names": [
-            "SkullKnightmon"
-          ]
+          names: ["SkullKnightmon"],
         },
         {
-          "names": [
-            "DeadlyAxemon"
-          ]
-        }
+          names: ["DeadlyAxemon"],
+        },
       ],
-      "count": 1
-    }
-  ]
+      count: 1,
+    },
+  ],
 };
 
 registerIrCard("BT10-061", compiled);

@@ -59,9 +59,8 @@ async function chooseOneTrashMaterial(
 async function resolveHandMain(ctx: EffectContext, source: CardSource): Promise<void> {
   const hosts = takuyaHosts(ctx, source);
   if (hosts.length === 0) return;
-  const [hostPermanentId] = hosts.length === 1
-    ? hosts
-    : await ctx.ask.chooseTargets(ctx, { candidates: hosts, min: 1, max: 1 });
+  const [hostPermanentId] =
+    hosts.length === 1 ? hosts : await ctx.ask.chooseTargets(ctx, { candidates: hosts, min: 1, max: 1 });
   if (hostPermanentId === undefined) return;
 
   const agunimon = await chooseOneTrashMaterial(ctx, source, AGUNIMON);
@@ -70,15 +69,16 @@ async function resolveHandMain(ctx: EffectContext, source: CardSource): Promise<
   if (burningGreymon === undefined) return;
 
   const selected = [agunimon, burningGreymon];
-  const ordered = ctx.ask.orderCards === undefined
-    ? selected
-    : await ctx.ask.orderCards(ctx, {
-        candidates: selected,
-        visibleCards: Array.from(ctx.game.player(source.ownerSeat).trash)
-          .filter(({ instanceId }) => selected.includes(instanceId))
-          .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
-        destination: "stackBottom",
-      });
+  const ordered =
+    ctx.ask.orderCards === undefined
+      ? selected
+      : await ctx.ask.orderCards(ctx, {
+          candidates: selected,
+          visibleCards: Array.from(ctx.game.player(source.ownerSeat).trash)
+            .filter(({ instanceId }) => selected.includes(instanceId))
+            .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+          destination: "stackBottom",
+        });
   if (ordered.length !== 2) return;
 
   const placed = await ctx.fx.placeUnder(hostPermanentId, ordered, { belowTop: true });
@@ -94,36 +94,45 @@ const module: EffectModule = {
   cardId,
   effectsForTiming(timing, source): Effect[] {
     if (timing === EffectTiming.OnDeclaration) {
-      return [activated({
-        source,
-        effectKey: `${cardId}/hand-main-stack-and-digivolve`,
-        description:
-          "[Hand][Main] Place Agunimon and BurningGreymon from trash under Takuya, " +
-          "then digivolve into Aldamon for the digivolution cost.",
-        isFromHand: true,
-        canActivate: (ctx) => canActivateHandMain(ctx, source),
-        resolve: (ctx) => resolveHandMain(ctx, source),
-      })];
+      return [
+        activated({
+          source,
+          effectKey: `${cardId}/hand-main-stack-and-digivolve`,
+          description:
+            "[Hand][Main] Place Agunimon and BurningGreymon from trash under Takuya, " +
+            "then digivolve into Aldamon for the digivolution cost.",
+          isFromHand: true,
+          canActivate: (ctx) => canActivateHandMain(ctx, source),
+          resolve: (ctx) => resolveHandMain(ctx, source),
+        }),
+      ];
     }
     if (timing === EffectTiming.OnDestroyedAnyone) {
-      return [onDeletion({
-        source,
-        effectKey: `${cardId}/return-takuya`,
-        description: "[On Deletion] Return Takuya Kanbara from trash to hand.",
-        resolve: async (ctx) => {
-          const cards = ctx.game.player(source.ownerSeat).trash.filter((card) =>
-            isTamer(ctx.game.definitionOf(card)) && ctx.game.definitionOf(card).nameEn.includes(TAKUYA)
-          );
-          if (cards.length === 0) return;
-          const selected = await ctx.ask.selectCards(ctx, {
-            candidates: cards.map(({ instanceId }) => instanceId),
-            min: 1,
-            max: 1,
-            visibleCards: cards.map(({ instanceId, cardId: visibleCardId }) => ({ instanceId, cardId: visibleCardId })),
-          });
-          if (selected.length > 0) await ctx.fx.returnToHand(selected);
-        },
-      })];
+      return [
+        onDeletion({
+          source,
+          effectKey: `${cardId}/return-takuya`,
+          description: "[On Deletion] Return Takuya Kanbara from trash to hand.",
+          resolve: async (ctx) => {
+            const cards = ctx.game
+              .player(source.ownerSeat)
+              .trash.filter(
+                (card) => isTamer(ctx.game.definitionOf(card)) && ctx.game.definitionOf(card).nameEn.includes(TAKUYA),
+              );
+            if (cards.length === 0) return;
+            const selected = await ctx.ask.selectCards(ctx, {
+              candidates: cards.map(({ instanceId }) => instanceId),
+              min: 1,
+              max: 1,
+              visibleCards: cards.map(({ instanceId, cardId: visibleCardId }) => ({
+                instanceId,
+                cardId: visibleCardId,
+              })),
+            });
+            if (selected.length > 0) await ctx.fx.returnToHand(selected);
+          },
+        }),
+      ];
     }
     return [];
   },

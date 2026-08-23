@@ -22,27 +22,41 @@ describe("BT17-057 Chaosdramon", () => {
       kind: "Replacement",
       event: "wouldLeavePlay",
       leaveCause: "byOpponentEffect",
-      actions: [{ kind: "Prevent", cost: { kind: "trash", target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, count: 2 } }, optional: true }],
+      actions: [
+        {
+          kind: "Prevent",
+          cost: {
+            kind: "trash",
+            target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, count: 2 },
+          },
+          optional: true,
+        },
+      ],
     });
   });
 
   it("places a qualifying trash card underneath before deleting within budget", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT17-057", as: "chaosdramon" }],
-        trash: [{ card: "BT17-052", as: "placedSource" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT17-057", as: "chaosdramon" }],
+          trash: [{ card: "BT17-052", as: "placedSource" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT17-052", as: "costThree" },
+            { card: "BT17-054", as: "costFour" },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT17-052", as: "costThree" },
-          { card: "BT17-054", as: "costFour" },
-        ],
-      },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 12;
     const placedSourceId = s.inst("placedSource").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaosdramon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaosdramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     const chaosdramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-057")!;
@@ -50,12 +64,15 @@ describe("BT17-057 Chaosdramon", () => {
   });
 
   it("trashes two qualifying sources from itself to prevent opponent-effect deletion", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT17-057", under: ["BT17-052", "BT17-056", "BT17-055"], as: "chaosdramon" }],
-        hand: [{ card: "BT17-052", as: "unrelatedHandCard" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-057", under: ["BT17-052", "BT17-056", "BT17-055"], as: "chaosdramon" }],
+          hand: [{ card: "BT17-052", as: "unrelatedHandCard" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
     const chaosId = s.perm("chaosdramon").permanentId;
     const unrelatedId = s.inst("unrelatedHandCard").instanceId;

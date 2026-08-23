@@ -14,11 +14,13 @@ describe("BT11-076 Ignitemon", () => {
     });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("xrosHeartEgg").permanentId,
-      instanceId: s.inst("ignitemon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("xrosHeartEgg").permanentId,
+        instanceId: s.inst("ignitemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("xrosHeartEgg").topCard.cardId === "BT11-076");
 
     expect(s.state.memory).toBe(3);

@@ -30,18 +30,22 @@ describe("EX1 Machinedramon with Omnimon techs", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("machine").permanentId,
-      instanceId: s.inst("alterS").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("machine").permanentId,
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").topCard.cardId === "BT3-112");
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("machine").permanentId,
-      instanceId: s.inst("omnimonX").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("machine").permanentId,
+        instanceId: s.inst("omnimonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("machine").topCard.cardId === "BT5-111");
 
     expect(s.state.memory).toBe(1);
@@ -51,15 +55,14 @@ describe("EX1 Machinedramon with Omnimon techs", () => {
     await s.engine.recomputeContinuousEffects();
     const combat = s.engine as unknown as { combat: { isAttacking: boolean } };
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(
-      () => !combat.combat.isAttacking && s.perm("machine").stack.length === 2,
-      5000,
-    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !combat.combat.isAttacking && s.perm("machine").stack.length === 2, 5000);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(2);

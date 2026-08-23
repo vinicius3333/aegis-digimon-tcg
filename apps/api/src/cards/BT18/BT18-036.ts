@@ -6,86 +6,82 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine"
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing the top card of your security stack"
+            raw: "By trashing the top card of your security stack",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          kind: "GainMemory",
+          amount: 1,
+          optional: false,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if you trashed your top security card for this effect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Yellow"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Yellow"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Data",
-                  "Witchelny"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Prevent",
-              "mode": "leavePlay",
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "zone": "security"
-                  },
-                  "count": 1
-                },
-                "raw": "by trashing your top security card"
+                tokens: ["Data", "Witchelny"],
+                match: "trait",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+            ],
+          },
+          actions: [
+            {
+              kind: "Prevent",
+              mode: "leavePlay",
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "security",
+                  },
+                  count: 1,
+                },
+                raw: "by trashing your top security card",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT18-036", compiled);

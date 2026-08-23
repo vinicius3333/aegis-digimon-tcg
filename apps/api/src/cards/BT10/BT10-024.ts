@@ -6,78 +6,72 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "MaterialSave",
-          "amount": 2,
-          "raw": "＜Material Save 2＞"
-        }
-      ]
+          keyword: "MaterialSave",
+          amount: 2,
+          raw: "＜Material Save 2＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCardsCompareToSource": "lte"
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCardsCompareToSource: "lte",
             },
-            "count": 3
+            count: 3,
           },
-          "restriction": "attackOrBlock",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "digiXrosCount",
-            "minimum": 1,
-            "raw": "DigiXrosing"
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
-    {
-      "materials": [
-        {
-          "names": [
-            "Greymon"
-          ]
+          restriction: "attackOrBlock",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "digiXrosCount",
+            minimum: 1,
+            raw: "DigiXrosing",
+          },
         },
-        {
-          "names": [
-            "MailBirdramon"
-          ]
-        }
       ],
-      "count": 2
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          names: ["Greymon"],
+        },
+        {
+          names: ["MailBirdramon"],
+        },
+      ],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT10-024", compiled);

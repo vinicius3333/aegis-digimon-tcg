@@ -30,7 +30,9 @@ describe("BT11-070 Destromon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("destromon").stack.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(5);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-010"]),
+    );
   });
 
   it("digivolves for 6 from Vemmon", async () => {
@@ -42,11 +44,13 @@ describe("BT11-070 Destromon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("vemmon").permanentId,
-      instanceId: s.inst("destromon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("vemmon").permanentId,
+        instanceId: s.inst("destromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("vemmon").topCard.cardId === "BT11-070");
 
     expect(s.state.memory).toBe(4);
@@ -65,11 +69,13 @@ describe("BT11-070 Destromon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.deck.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(2);

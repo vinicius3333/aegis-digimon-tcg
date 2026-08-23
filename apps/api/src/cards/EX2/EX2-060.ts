@@ -40,9 +40,7 @@ function isPlugInOption(def: CardDefinition): boolean {
 }
 
 function plugInCandidates(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) =>
-    isPlugInOption(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) => isPlugInOption(ctx.game.definitionOf(c)));
 }
 
 const module: EffectModule = {
@@ -140,18 +138,42 @@ const module: EffectModule = {
 
 const compiled: CompiledCard = {
   effects: [
-    { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }] },
+    {
+      trigger: "StartOfYourTurn",
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
+    },
     {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenAttacking", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [
-        { tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" },
-      ] }, actions: [
-        { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
-        { kind: "UseOptionWithoutCost", filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, from: ["hand"], payCost: false, condition: { kind: "selfIsSuspended", raw: "after suspending this Tamer" } },
-      ] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" }],
+          },
+          actions: [
+            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
+            {
+              kind: "UseOptionWithoutCost",
+              filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] },
+              from: ["hand"],
+              payCost: false,
+              condition: { kind: "selfIsSuspended", raw: "after suspending this Tamer" },
+            },
+          ],
+        },
+      ],
     },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }] },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

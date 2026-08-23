@@ -7,75 +7,69 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Alphamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Alphamon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "X Antibody"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["X Antibody"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "placeUnder"
-            }
+              count: 1,
+              to: "placeUnder",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
+          rest: "trash",
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 5
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 5,
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfHasNameContaining",
-            "names": ["Alphamon"]
-          }
-        }
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Alphamon"],
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT9-064", compiled);

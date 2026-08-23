@@ -15,7 +15,9 @@ describe("ST18-15 Anemoi Embrace", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === "ST18-03"));
     await settle(() => !s.perm("ownTarget").isSuspended);
 
@@ -25,10 +27,13 @@ describe("ST18-15 Anemoi Embrace", () => {
   });
 
   it("returns a suspended opponent Digimon to deck bottom from Security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "ST18-15", as: "option", faceUp: true }] },
-      1: { battleArea: [{ card: "ST18-03", as: "opponentTarget", suspended: true }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "ST18-15", as: "option", faceUp: true }] },
+        1: { battleArea: [{ card: "ST18-03", as: "opponentTarget", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === "ST18-03"));

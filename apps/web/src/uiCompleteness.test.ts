@@ -49,7 +49,9 @@ describe("client intent reachability", () => {
   const wrapperNames = extractIntentWrapperNames();
   const allFiles = listFilesRecursively(srcDir);
   const netFiles = allFiles.filter((f) => f.includes(`${srcDir}/net/`));
-  const nonNetFiles = allFiles.filter((f) => !f.includes(`${srcDir}/net/`) && f !== join(srcDir, "uiCompleteness.test.ts"));
+  const nonNetFiles = allFiles.filter(
+    (f) => !f.includes(`${srcDir}/net/`) && f !== join(srcDir, "uiCompleteness.test.ts"),
+  );
 
   it("found intent wrappers to check", () => {
     expect(wrapperNames.length).toBeGreaterThan(0);

@@ -9,129 +9,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // purple AND named Mervamon. Uses `orFilters` for the alternative, same as
 // BT17-074.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Retaliation"
+          keyword: {
+            keyword: "Retaliation",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "colors": [
-                    "Purple"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Purple"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "trash"
-              ],
-              "payCost": false,
-              "suppressOnPlayEffects": true,
-              "optional": true
-            }
+              from: ["trash"],
+              payCost: false,
+              suppressOnPlayEffects: true,
+              optional: true,
+            },
           ],
-          "raw": "whenPlayed"
-        }
-      ]
+          raw: "whenPlayed",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "orFilters": [
+            orFilters: [
               {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Mervamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              }
+                    tokens: ["Mervamon"],
+                    match: "name",
+                  },
+                ],
+              },
             ],
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "battleArea",
-            "op": "lte",
-            "value": 2,
-            "filter": {
-              "kind": ["Digimon"]
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "battleArea",
+            op: "lte",
+            value: 2,
+            filter: {
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has 2 or fewer Digimon in play"
+            raw: "your opponent has 2 or fewer Digimon in play",
           },
-          "optional": true
-        }
-      ]
-    }
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-083", compiled);

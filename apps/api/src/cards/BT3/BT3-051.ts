@@ -8,48 +8,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // level is found if both aren't revealed. KB Q2827: this card treated as both
 // Lv5 and Lv6, so two copies may be added.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levels": [
-                  5
-                ]
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                levels: [5],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levels": [
-                  6
-                ]
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                levels: [6],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "trash"
-        }
-      ]
-    }
+          rest: "trash",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-051", compiled);

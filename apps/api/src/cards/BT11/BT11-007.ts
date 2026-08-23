@@ -11,7 +11,16 @@ export const compiled: CompiledCard = {
           kind: "RevealAdd",
           revealCount: 3,
           add: [
-            { filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Red"], nameOrTrait: [{ tokens: ["Vaccine"], match: "trait" }] }, count: 1, to: "hand" },
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Red"],
+                nameOrTrait: [{ tokens: ["Vaccine"], match: "trait" }],
+              },
+              count: 1,
+              to: "hand",
+            },
             { filter: { controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] }, count: 1, to: "hand" },
           ],
           rest: "deckBottom",
@@ -20,7 +29,17 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
-      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] }, raw: "you have a red Tamer in play" } }],
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "youHave",
+            filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] },
+            raw: "you have a red Tamer in play",
+          },
+        },
+      ],
       isInherited: true,
     },
   ],

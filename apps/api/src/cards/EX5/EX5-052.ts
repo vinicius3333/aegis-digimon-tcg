@@ -6,97 +6,87 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Deva"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "breeding": true,
-          "notSameNameAs": [
-            "battleArea",
-            "trash"
-          ],
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Tamer"
+                  tokens: ["Deva"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 2
             },
-            "count": "all"
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "permanent"
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          breeding: true,
+          notSameNameAs: ["battleArea", "trash"],
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Tamer"],
+              playCostLte: 2,
             },
-            "count": 1,
-            "isSelf": true
+            count: "all",
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
-            }
-          },
-          "while": {
-            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Four Sovereigns","God Beast"], "match": "trait"}]},
-            "raw": "this Digimon has the [Four Sovereigns]/[God Beast] trait"
-          }
-        }
+          restriction: "suspend",
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Blocker",
+              raw: "＜Blocker＞",
+            },
+          },
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] },
+            raw: "this Digimon has the [Four Sovereigns]/[God Beast] trait",
+          },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-052", compiled);

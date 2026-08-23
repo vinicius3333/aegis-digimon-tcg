@@ -22,117 +22,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   Then this Digimon digivolves into a 2-color green from hand, cost reduced by 2.
 //   (CAP-C-17 bySourceKeyword gate — faithfully encoded, engine build needed.)
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "Terriermon"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "amount": 4000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "bySourceKeyword": "Alliance",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "multicolor": true,
-                "colors": [
-                  "Green"
-                ]
-              },
-              "from": [
-                "hand"
-              ],
-              "payCost": true,
-              "optional": true
-            },
-            {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "sourceFilter": {
-                "isSelfRef": true
-              },
-              "actions": [
-                {
-                  "kind": "Replacement",
-                  "event": "wouldDigivolve",
-                  "mode": "reduceCost",
-                  "amount": 2,
-                  "raw": "reduce the cost by 2"
-                }
-              ]
-            }
-          ]
-        }
+          grant: "name",
+          tokens: ["Terriermon"],
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              amount: 4000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          bySourceKeyword: "Alliance",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                multicolor: true,
+                colors: ["Green"],
+              },
+              from: ["hand"],
+              payCost: true,
+              optional: true,
+            },
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              sourceFilter: {
+                isSelfRef: true,
+              },
+              actions: [
+                {
+                  kind: "Replacement",
+                  event: "wouldDigivolve",
+                  mode: "reduceCost",
+                  amount: 2,
+                  raw: "reduce the cost by 2",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-033", compiled);

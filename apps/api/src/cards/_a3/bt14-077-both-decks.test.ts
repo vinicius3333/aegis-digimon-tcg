@@ -92,9 +92,15 @@ function makeContext(opts: {
       opts.recorder.calls.push({ verb: "fireWhenTrashedFromDeck", args });
     },
     // Any other primitive call is unexpected.
-    returnToHand: (...a: unknown[]) => { throw new Error(`Unexpected returnToHand(${JSON.stringify(a)})`); },
-    returnToDeck: (...a: unknown[]) => { throw new Error(`Unexpected returnToDeck(${JSON.stringify(a)})`); },
-    gainMemory: (...a: unknown[]) => { throw new Error(`Unexpected gainMemory(${JSON.stringify(a)})`); },
+    returnToHand: (...a: unknown[]) => {
+      throw new Error(`Unexpected returnToHand(${JSON.stringify(a)})`);
+    },
+    returnToDeck: (...a: unknown[]) => {
+      throw new Error(`Unexpected returnToDeck(${JSON.stringify(a)})`);
+    },
+    gainMemory: (...a: unknown[]) => {
+      throw new Error(`Unexpected gainMemory(${JSON.stringify(a)})`);
+    },
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
@@ -141,8 +147,8 @@ describe("BT14-077 both-decks mill A3", () => {
 
     // Both seats must have been revealed.
     const seats = revealedSeats(recorder);
-    expect(seats).toContain(0 as Seat);  // owner seat
-    expect(seats).toContain(1 as Seat);  // opponent seat
+    expect(seats).toContain(0 as Seat); // owner seat
+    expect(seats).toContain(1 as Seat); // opponent seat
 
     // Owner's top 2 cards must be trashed.
     const trashed = trashedIds(recorder);
@@ -155,14 +161,8 @@ describe("BT14-077 both-decks mill A3", () => {
   });
 
   it("[When Digivolving] mills top 2 from BOTH players' decks", async () => {
-    const ownerDeck = [
-      fakeCardInstance("P1-CARD-A", "p1-a2"),
-      fakeCardInstance("P1-CARD-B", "p1-b2"),
-    ];
-    const opponentDeck = [
-      fakeCardInstance("P2-CARD-A", "p2-a2"),
-      fakeCardInstance("P2-CARD-B", "p2-b2"),
-    ];
+    const ownerDeck = [fakeCardInstance("P1-CARD-A", "p1-a2"), fakeCardInstance("P1-CARD-B", "p1-b2")];
+    const opponentDeck = [fakeCardInstance("P2-CARD-A", "p2-a2"), fakeCardInstance("P2-CARD-B", "p2-b2")];
 
     const recorder: Recorder = { calls: [] };
     const ctx = makeContext({ ownerDeck, opponentDeck, recorder });

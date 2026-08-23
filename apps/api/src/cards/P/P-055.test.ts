@@ -19,7 +19,13 @@ describe("P-055 HerculesKabuterimon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
   });
@@ -27,13 +33,23 @@ describe("P-055 HerculesKabuterimon", () => {
   it("does not suspend an opponent Digimon without a Tamer", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-011", as: "base" }], hand: [{ card: "P-055", as: "source" }], deck: ["BT1-009"] },
+        0: {
+          battleArea: [{ card: "AD1-011", as: "base" }],
+          hand: [{ card: "P-055", as: "source" }],
+          deck: ["BT1-009"],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.perm("target").isSuspended).toBe(false);
   });
@@ -47,11 +63,19 @@ describe("P-055 HerculesKabuterimon", () => {
     s.state.memory = 5;
     const victimId = s.perm("victim").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: victimId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId));
     await settle(() => s.state.memory === 6);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
+    ).toBe(true);
     expect(s.state.memory).toBe(6);
   });
 
@@ -69,7 +93,13 @@ describe("P-055 HerculesKabuterimon", () => {
     s.state.memory = 5;
     const victimId = s.perm("victim").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: victimId } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId));
     await settle();
 
@@ -86,14 +116,17 @@ describe("P-055 HerculesKabuterimon", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attackerId,
-      target: { kind: "permanent", permanentId: victimId },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId) &&
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId),
     );
 
     expect(s.state.memory).toBe(5);

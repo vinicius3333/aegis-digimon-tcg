@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { GameState, PlayerState, Permanent, CardInstance, EffectTiming, type Seat, type ServerEvent } from "@aegis/shared";
+import {
+  GameState,
+  PlayerState,
+  Permanent,
+  CardInstance,
+  EffectTiming,
+  type Seat,
+  type ServerEvent,
+} from "@aegis/shared";
 import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { GameStateAccess } from "../state/access.js";
@@ -129,10 +137,7 @@ describe("§14 Battles (comprehensive-0155)", () => {
   });
 
   it("14-2-3: a Security Digimon that loses a battle is NOT deleted the way a battle-area permanent is — it's simply trashed as a loose card", async () => {
-    cite(
-      "comprehensive-0155",
-      "14-2-3 Security Digimon aren't deleted even when they lose a battle",
-    );
+    cite("comprehensive-0155", "14-2-3 Security Digimon aren't deleted even when they lose a battle");
 
     const ATTACKER_ID = "sec-attacker";
     const card = makeSecurityCard(1, 0, "AD1-002");
@@ -185,40 +190,37 @@ describe("§14 Battles (comprehensive-0155)", () => {
     expect(idxDestroyed).toBeLessThan(idxEndAttack); // the battle's own trigger resolves BEFORE the next action
   });
 
-  it(
-    "NOW MET: a card's own '[When this Digimon wins/ends a battle]' clause filed at EffectTiming.OnEndBattle should actually fire when a battle ends",
-    async () => {
-      cite(
-        "comprehensive-0155",
-        "DIVERGENCE: §14-2-5 'If an effect is triggered by the end of the battle timing when a " +
-          "battle ends, that effect is to be resolved.' `EffectTiming.OnEndBattle` is a real " +
-          "enum member (schema/enums.ts) and a real card files an ability under it — BT11-059's " +
-          "'[All Turns][Once Per Turn] When this Digimon deletes an opponent's Digimon in " +
-          "battle, unsuspend this Digimon' (cards/BT11/BT11-059.ts:95, " +
-          "`if (timing === EffectTiming.OnEndBattle)`). But `CombatController.resolveDigimonBattle` " +
-          "(combat/controller.ts) never calls `fireTiming(EffectTiming.OnEndBattle, ...)` " +
-          "anywhere — the only post-battle-win timing it fires for a surviving attacker that " +
-          "deleted the defender is `EffectTiming.OnBattleDeleteOpponent` (a DIFFERENT enum " +
-          "member). BT11-059's own A3 test (cards/BT11/BT11-059.test.ts) only exercises its " +
-          "OTHER (evo-cost-reduction) clause — nothing anywhere drives its OnEndBattle unsuspend " +
-          "ability through a real battle, because there is no code path that ever would.",
-      );
+  it("NOW MET: a card's own '[When this Digimon wins/ends a battle]' clause filed at EffectTiming.OnEndBattle should actually fire when a battle ends", async () => {
+    cite(
+      "comprehensive-0155",
+      "DIVERGENCE: §14-2-5 'If an effect is triggered by the end of the battle timing when a " +
+        "battle ends, that effect is to be resolved.' `EffectTiming.OnEndBattle` is a real " +
+        "enum member (schema/enums.ts) and a real card files an ability under it — BT11-059's " +
+        "'[All Turns][Once Per Turn] When this Digimon deletes an opponent's Digimon in " +
+        "battle, unsuspend this Digimon' (cards/BT11/BT11-059.ts:95, " +
+        "`if (timing === EffectTiming.OnEndBattle)`). But `CombatController.resolveDigimonBattle` " +
+        "(combat/controller.ts) never calls `fireTiming(EffectTiming.OnEndBattle, ...)` " +
+        "anywhere — the only post-battle-win timing it fires for a surviving attacker that " +
+        "deleted the defender is `EffectTiming.OnBattleDeleteOpponent` (a DIFFERENT enum " +
+        "member). BT11-059's own A3 test (cards/BT11/BT11-059.test.ts) only exercises its " +
+        "OTHER (evo-cost-reduction) clause — nothing anywhere drives its OnEndBattle unsuspend " +
+        "ability through a real battle, because there is no code path that ever would.",
+    );
 
-      const h = controllerHarness({
-        fireTiming: async (timing) => {
-          h.firedTimings.push(timing);
-        },
-      });
-      const attacker = makePermanent(0, 9000, { cardId: "BT11-059" });
-      const defender = makePermanent(1, 4000, { suspended: true });
-      h.state.players[0]!.battleArea.push(attacker);
-      h.state.players[1]!.battleArea.push(defender);
+    const h = controllerHarness({
+      fireTiming: async (timing) => {
+        h.firedTimings.push(timing);
+      },
+    });
+    const attacker = makePermanent(0, 9000, { cardId: "BT11-059" });
+    const defender = makePermanent(1, 4000, { suspended: true });
+    h.state.players[0]!.battleArea.push(attacker);
+    h.state.players[1]!.battleArea.push(defender);
 
-      await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
 
-      // EXPECTED (per §14-2-5): the end-of-battle timing fires so BT11-059's own filed ability
-      // has a real chance to activate.
-      expect(h.firedTimings).toContain(EffectTiming.OnEndBattle);
-    },
-  );
+    // EXPECTED (per §14-2-5): the end-of-battle timing fires so BT11-059's own filed ability
+    // has a real chance to activate.
+    expect(h.firedTimings).toContain(EffectTiming.OnEndBattle);
+  });
 });

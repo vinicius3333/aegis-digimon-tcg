@@ -7,81 +7,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
-          }
+            count: 1,
+            isSelf: true,
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker"
+          keyword: {
+            keyword: "Blocker",
           },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenUnsuspended",
-          "sourceFilter": { "isSelfRef": true },
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenUnsuspended",
+          sourceFilter: { isSelfRef: true },
+          actions: [
             {
-              "kind": "Return",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "superlative": "lowestLevel"
+              kind: "Return",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  superlative: "lowestLevel",
                 },
-                "count": "all"
+                count: "all",
               },
-              "to": "hand",
-              "condition": {
-                "kind": "selfHasInDigivolutionCards",
-                "nameOrTrait": [
-                  { "tokens": ["MetalGarurumon", "X Antibody"], "match": "nameExact" }
-                ]
-              }
-            }
-          ]
-        }
+              to: "hand",
+              condition: {
+                kind: "selfHasInDigivolutionCards",
+                nameOrTrait: [{ tokens: ["MetalGarurumon", "X Antibody"], match: "nameExact" }],
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "MetalGarurumon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["MetalGarurumon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-031", compiled);

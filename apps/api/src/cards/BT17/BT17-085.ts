@@ -6,148 +6,150 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "raw": "your opponent has a Digimon"
-          }
-        }
-      ]
+            raw: "your opponent has a Digimon",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Sakuyamon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 4,
-          "ignoreRequirements": true,
-          "optional": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+                tokens: ["Sakuyamon"],
+                match: "name",
               },
-              "count": 1,
-              "isSelf": true,
-              "from": [
-                "trash"
-              ]
-            },
-            "raw": "By placing this Tamer and 1 [Kyubimon] and 1 [Taomon] from your trash in any order as the bottom digivolution cards of one of your [Renamon]",
-            "underFilter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Renamon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "target"
+            ],
           },
-          "abortOnDecline": true,
-          "additionalCosts": [
+          payCost: true,
+          from: ["hand"],
+          costOverride: 4,
+          ignoreRequirements: true,
+          optional: true,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+              from: ["trash"],
+            },
+            raw: "By placing this Tamer and 1 [Kyubimon] and 1 [Taomon] from your trash in any order as the bottom digivolution cards of one of your [Renamon]",
+            underFilter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Renamon"],
+                  match: "name",
+                },
+              ],
+            },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+          },
+          abortOnDecline: true,
+          additionalCosts: [
             {
-              "kind": "place",
-              "target": { "filter": { "zone": "trash", "controller": "mine", "nameOrTrait": [{ "tokens": ["Kyubimon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
-              "underFilter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }] },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target"
+              kind: "place",
+              target: {
+                filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Kyubimon"], match: "name" }] },
+                count: 1,
+                from: ["trash"],
+              },
+              underFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
+              },
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "target",
             },
             {
-              "kind": "place",
-              "target": { "filter": { "zone": "trash", "controller": "mine", "nameOrTrait": [{ "tokens": ["Taomon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
-              "underFilter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }] },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target"
-            }
-          ]
+              kind: "place",
+              target: {
+                filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Taomon"], match: "name" }] },
+                count: 1,
+                from: ["trash"],
+              },
+              underFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
+              },
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "target",
+            },
+          ],
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Option"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Option"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "condition": {
-            "kind": "ifThisEffectDigivolved",
-            "raw": "digivolved by this effect"
+          to: "hand",
+          condition: {
+            kind: "ifThisEffectDigivolved",
+            raw: "digivolved by this effect",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-085", compiled);

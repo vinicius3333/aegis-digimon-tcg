@@ -5,7 +5,14 @@ import "./BT8-016.js";
 
 describe("BT8-016 MasterTyrannomon", () => {
   it("grants Security Attack +1 to every Tyrannomon during your turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-016", as: "master" }, { card: "BT2-044", as: "tyrannomon" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT8-016", as: "master" },
+          { card: "BT2-044", as: "tyrannomon" },
+        ],
+      },
+    });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("master"), "SecurityAttack")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("tyrannomon"), "SecurityAttack")).toBe(true);
@@ -19,11 +26,13 @@ describe("BT8-016 MasterTyrannomon", () => {
 
   it("does not grant its main effect to non-Tyrannomon, opposing Digimon, or during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [
-        { card: "BT8-016", as: "master" },
-        { card: "BT2-044", as: "tyrannomon" },
-        { card: "BT8-017", as: "nonTyrannomon" },
-      ] },
+      0: {
+        battleArea: [
+          { card: "BT8-016", as: "master" },
+          { card: "BT2-044", as: "tyrannomon" },
+          { card: "BT8-017", as: "nonTyrannomon" },
+        ],
+      },
       1: { battleArea: [{ card: "BT2-044", as: "opposingTyrannomon" }] },
     });
     s.state.turnSeat = 1;
@@ -42,7 +51,13 @@ describe("BT8-016 MasterTyrannomon", () => {
     });
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.security).toHaveLength(0);

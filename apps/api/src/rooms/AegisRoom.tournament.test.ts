@@ -143,7 +143,10 @@ beforeEach(async () => {
      VALUES ($1,$2,1,0,$3,$4,'pending')`,
     [matchId, tournamentId, alice, bob],
   );
-  for (const [accountId, displayName] of [[alice, "Registered Alice"], [bob, "Registered Bob"]] as const)
+  for (const [accountId, displayName] of [
+    [alice, "Registered Alice"],
+    [bob, "Registered Bob"],
+  ] as const)
     await accounts.pool.query(
       `INSERT INTO tournament_participants (id, tournament_id, kind, account_id, display_name, status, deck_snapshot, created_at)
        VALUES ($1,$2,'human',$3,$4,'active',$5,1)`,

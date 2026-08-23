@@ -16,88 +16,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // beyond the levelComparison relativeTo lastDeleted.
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "relativeTo": "lastDeleted"
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Ten Warriors",
-                      "Hybrid"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                relativeTo: "lastDeleted",
               },
-              "count": 1
             },
-            "raw": "by deleting 1 of your Digimon with [Ten Warriors] or [Hybrid] in its traits"
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Ten Warriors", "Hybrid"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 1,
+            },
+            raw: "by deleting 1 of your Digimon with [Ten Warriors] or [Hybrid] in its traits",
+          },
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "colors": [
-                "Purple"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              colors: ["Purple"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hybrid"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-078", compiled);

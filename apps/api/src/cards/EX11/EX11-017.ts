@@ -6,271 +6,231 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "IceClad",
-          "raw": "＜Ice Clad＞"
-        }
-      ]
+          keyword: "IceClad",
+          raw: "＜Ice Clad＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "or": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              or: [
                 {
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Suzune Kazuki"
-                      ],
-                      "match": "any"
-                    }
-                  ]
+                      tokens: ["Suzune Kazuki"],
+                      match: "any",
+                    },
+                  ],
                 },
                 {
-                  "levels": [
-                    4
-                  ]
-                }
+                  levels: [4],
+                },
               ],
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ice-Snow"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Ice-Snow"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "or": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              or: [
                 {
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Suzune Kazuki"
-                      ],
-                      "match": "any"
-                    }
-                  ]
+                      tokens: ["Suzune Kazuki"],
+                      match: "any",
+                    },
+                  ],
                 },
                 {
-                  "levels": [
-                    4
-                  ]
-                }
+                  levels: [4],
+                },
               ],
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ice-Snow"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Ice-Snow"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "or": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              or: [
                 {
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Suzune Kazuki"
-                      ],
-                      "match": "any"
-                    }
-                  ]
+                      tokens: ["Suzune Kazuki"],
+                      match: "any",
+                    },
+                  ],
                 },
                 {
-                  "levels": [
-                    4
-                  ]
-                }
+                  levels: [4],
+                },
               ],
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ice-Snow"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Ice-Snow"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "digivolutionCards": "hasAny"
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 3
+              amount: 3,
             },
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "digivolutionCards": "none",
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
+              kind: "Restrict",
+              target: {
+                filter: {
+                  digivolutionCards: "none",
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "restriction": "suspend",
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
+              restriction: "suspend",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenAnyDigivolves",
-          "sourceFilter": {
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenAnyDigivolves",
+          sourceFilter: {
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "digivolutionCards": "hasAny"
+              kind: "TrashDigivolution",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasAny",
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 3
+              amount: 3,
             },
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "digivolutionCards": "none",
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
+              kind: "Restrict",
+              target: {
+                filter: {
+                  digivolutionCards: "none",
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "restriction": "suspend",
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
+              restriction: "suspend",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "Ice-Snow"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Ice-Snow"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX11-017", compiled);

@@ -8,49 +8,42 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited [All Turns] Replacement cost: "1 of your Tokens OR other [Puppet] trait Digimon"
 //   — or-filter combining isToken:true and Puppet-trait Digimon (excludeSelf handles "other").
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Scapegoat",
-          "raw": "＜Scapegoat＞"
-        }
-      ]
+          keyword: "Scapegoat",
+          raw: "＜Scapegoat＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 4000
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Puppet"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Puppet"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
           // "At turn end, delete the Digimon this effect played" (KB Q5809/Q5810). `DelayedDelete`
@@ -59,43 +52,36 @@ const compiled: CompiledCard = {
           // Delete carried the never-read `playedByThisEffect` filter — that filter matched EVERY
           // permanent, so the watcher wiped the board at turn end. documented behavior
           // (AddSelfDeleteEffect on the played permanent).
-          "kind": "DelayedDelete",
-          "raw": "at turn end, delete the Digimon this effect played"
-        }
-      ]
+          kind: "DelayedDelete",
+          raw: "at turn end, delete the Digimon this effect played",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 4000
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Puppet"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Puppet"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
           // "At turn end, delete the Digimon this effect played" (KB Q5809/Q5810). `DelayedDelete`
@@ -104,72 +90,63 @@ const compiled: CompiledCard = {
           // Delete carried the never-read `playedByThisEffect` filter — that filter matched EVERY
           // permanent, so the watcher wiped the board at turn end. documented behavior
           // (AddSelfDeleteEffect on the played permanent).
-          "kind": "DelayedDelete",
-          "raw": "at turn end, delete the Digimon this effect played"
-        }
-      ]
+          kind: "DelayedDelete",
+          raw: "at turn end, delete the Digimon this effect played",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [],
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "or": [
+          actions: [],
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                or: [
                   {
-                    "isToken": true
+                    isToken: true,
                   },
                   {
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "nameOrTrait": [
+                    kind: ["Digimon"],
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Puppet"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
-                  }
-                ]
+                        tokens: ["Puppet"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by deleting 1 of your Tokens or other [Puppet] trait Digimon, it doesn't leave"
-          }
-        }
+            raw: "by deleting 1 of your Tokens or other [Puppet] trait Digimon, it doesn't leave",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "Puppet"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "baseColors": [
-        "Yellow",
-        "Purple"
-      ]
-    }
-  ]
+      level: 4,
+      traits: ["Puppet"],
+      cost: 3,
+      isAlternate: true,
+      baseColors: ["Yellow", "Purple"],
+    },
+  ],
 };
 
 registerIrCard("EX11-022", compiled);

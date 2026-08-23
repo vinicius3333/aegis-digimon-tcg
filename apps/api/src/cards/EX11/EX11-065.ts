@@ -19,6 +19,13 @@ async function placeUnderFromHandOrTrash(
 ): Promise<void> {
   const selfPerm = source.permanent();
   if (selfPerm === undefined || selfPerm.isSuspended) return;
+  // "by suspending this Tamer" is a cost, and paying a cost is the controller's
+  // choice: ask before suspending, and leave the Tamer untouched on a decline.
+  const willSuspend = await ctx.ask.optional(
+    ctx,
+    "Suspend Close to place 1 [Mineral] or [Rock] trait card as a bottom digivolution card?",
+  );
+  if (!willSuspend) return;
   const paid = ctx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
   if (!paid) return;
   const owner = ctx.game.player(source.ownerSeat);
@@ -48,7 +55,7 @@ const module: EffectModule = {
             "[Start of Your Main Phase] By trashing 1 [Mineral] or [Rock] trait card from " +
             "your hand or your Digimon's digivolution cards, gain 1 memory.",
           optional: true,
-          when: (_ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const mineralCards = Array.from(owner.hand).filter((c) => hasMineralOrRock(ctx.game.definitionOf(c)));
@@ -60,9 +67,6 @@ const module: EffectModule = {
               });
               if (chosen.length > 0) {
                 await ctx.fx.trash(chosen);
-                // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-                // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-                // Tamer's owner explicitly rather than the turn player.
                 ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
               }
             }

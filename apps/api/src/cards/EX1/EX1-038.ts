@@ -8,12 +8,20 @@ const compiled: CompiledCard = {
     {
       trigger: "YourTurn",
       isInherited: true,
-      actions: [{
-        kind: "Aura",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
-        while: { kind: "anyOf", conditions: [{ kind: "selfHasNameContaining", names: ["Imperialdramon"] }, { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } }] },
-      }],
+      actions: [
+        {
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
+          while: {
+            kind: "anyOf",
+            conditions: [
+              { kind: "selfHasNameContaining", names: ["Imperialdramon"] },
+              { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } },
+            ],
+          },
+        },
+      ],
     },
   ],
   coverage: "full",

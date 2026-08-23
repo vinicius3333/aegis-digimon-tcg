@@ -6,9 +6,7 @@ import "./P-233.js";
 describe("P-233 Eri Karan", () => {
   it("exposes On Play and Security effects", () => {
     const source = { isOnBattleArea: () => true } as any;
-    expect(getEffectModule("P-233")!.effectsForTiming(EffectTiming.OnPlay, source)[0]!.effectKey).toBe(
-      "P-233/on-play",
-    );
+    expect(getEffectModule("P-233")!.effectsForTiming(EffectTiming.OnPlay, source)[0]!.effectKey).toBe("P-233/on-play");
     expect(getEffectModule("P-233")!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]!.effectKey).toBe(
       "P-233/security",
     );

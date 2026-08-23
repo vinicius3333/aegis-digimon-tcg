@@ -7,68 +7,64 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
+          amount: 1,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 3000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 3000,
+              },
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GrantCanAttackUnsuspended",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantCanAttackUnsuspended",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfHasTrait",
-            "filter": {
-              "nameOrTrait": [{ "tokens": ["Dragonkin", "Machine"], "match": "trait" }]
+          duration: "permanent",
+          condition: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["Dragonkin", "Machine"], match: "trait" }],
             },
-            "raw": "this Digimon has [Dragonkin] or [Machine] in its traits"
-          }
-        }
+            raw: "this Digimon has [Dragonkin] or [Machine] in its traits",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-067", compiled);

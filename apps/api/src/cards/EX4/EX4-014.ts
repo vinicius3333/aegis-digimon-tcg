@@ -14,68 +14,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Remove controllerDefault "mine" — both players' plays count
 //   - Add second SubTrigger for [Twilight] trait play → return from trash
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Blue Flare"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Blue Flare"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            }
-          ]
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Twilight"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Return",
-              "target": {
-                "filter": {
-                  "zone": "trash",
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "hasDigiXrosRequirements": true
-                },
-                "count": 1
+                tokens: ["Twilight"],
+                match: "trait",
               },
-              "to": "hand"
-            }
-          ]
-        }
+            ],
+          },
+          actions: [
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  hasDigiXrosRequirements: true,
+                },
+                count: 1,
+              },
+              to: "hand",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-014", compiled);

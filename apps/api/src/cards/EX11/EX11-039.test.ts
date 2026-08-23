@@ -11,8 +11,19 @@ describe("EX11-039 HoverEspimon", () => {
       { level: 3, traits: ["Cyborg", "Machine"], cost: 2, isAlternate: true },
     ]);
     const effect = compiled.effects.find((candidate) => candidate.trigger === "WhenDigivolving")!;
-    expect(effect.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand"], payCost: false, condition: { kind: "permanentCount", op: "lte", value: 1, filter: { kind: ["Tamer"] } } });
+    expect(effect.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["hand"],
+      payCost: false,
+      condition: { kind: "permanentCount", op: "lte", value: 1, filter: { kind: ["Tamer"] } },
+    });
     expect(irNode(effect.actions[0]!).target.filter.nameOrTrait).toEqual([{ tokens: ["Altea"], match: "name" }]);
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Static", isInherited: true, keywords: [expect.objectContaining({ keyword: "Jamming" })] }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        isInherited: true,
+        keywords: [expect.objectContaining({ keyword: "Jamming" })],
+      }),
+    );
   });
 });

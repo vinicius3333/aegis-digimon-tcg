@@ -20,118 +20,100 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // digivolutionRequirement: 'w/o [X Antibody] trait' exclusion via DigivolutionRequirement.excludeTraits.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": [
-            "Uka no Mitama"
-          ],
-          "count": 1,
-          "payCost": false,
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          kind: "PlayToken",
+          tokens: ["Uka no Mitama"],
+          count: 1,
+          payCost: false,
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "selfDigivolutionStackCountAtLeast",
-                "count": 1,
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackCountAtLeast",
+                count: 1,
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Sakuyamon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                }
+                      tokens: ["Sakuyamon"],
+                      match: "name",
+                    },
+                  ],
+                },
               },
               {
-                "kind": "selfDigivolutionStackCountAtLeast",
-                "count": 1,
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackCountAtLeast",
+                count: 1,
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "X Antibody"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ]
+                      tokens: ["X Antibody"],
+                      match: "trait",
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "UseOptionWithoutCost",
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Option"
-                ]
+              kind: "UseOptionWithoutCost",
+              filter: {
+                controller: "mine",
+                kind: ["Option"],
               },
-              "payCost": false,
-              "from": [
-                "hand"
-              ],
-              "optional": true,
-              "raw": "you may use 1 1-color Option card with a use cost of 5 or less from your hand without paying the cost"
+              payCost: false,
+              from: ["hand"],
+              optional: true,
+              raw: "you may use 1 1-color Option card with a use cost of 5 or less from your hand without paying the cost",
             },
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "condition": {
-                "kind": "ifThisEffectUsed",
-                "raw": "if you did (used an Option), 1 of your Digimon unsuspends (mandatory; KB Q4737)"
-              }
-            }
+              condition: {
+                kind: "ifThisEffectUsed",
+                raw: "if you did (used an Option), 1 of your Digimon unsuspends (mandatory; KB Q4737)",
+              },
+            },
           ],
-          "raw": "when one of your Digimon attacks"
-        }
+          raw: "when one of your Digimon attacks",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 6,
-      "names": [
-        "Sakuyamon"
-      ],
-      "excludeTraits": [
-        "X Antibody"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
+      level: 6,
+      names: ["Sakuyamon"],
+      excludeTraits: ["X Antibody"],
+      cost: 1,
+      isAlternate: true,
+    },
   ],
 };
 

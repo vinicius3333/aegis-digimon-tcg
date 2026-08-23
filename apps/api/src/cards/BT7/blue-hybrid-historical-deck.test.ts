@@ -11,15 +11,17 @@ describe("BT7 Blue Hybrid historical deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT7-029",
-            as: "magnaGarurumon",
-            under: [
-              { card: "BT7-086", as: "tommy" },
-              { card: "BT7-021", as: "kumamon" },
-              { card: "BT7-025", as: "beowolfmon" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "BT7-029",
+              as: "magnaGarurumon",
+              under: [
+                { card: "BT7-086", as: "tommy" },
+                { card: "BT7-021", as: "kumamon" },
+                { card: "BT7-025", as: "beowolfmon" },
+              ],
+            },
+          ],
         },
         1: {
           battleArea: [
@@ -46,38 +48,36 @@ describe("BT7 Blue Hybrid historical deck", () => {
     const secondLevelFiveId = s.perm("secondLevelFive").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("magnaGarurumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) =>
-        card.instanceId === s.inst("beowolfmon").instanceId
-      ) &&
-      s.state.players[1]!.hand.some((card) =>
-        card.instanceId === matchingLevelFiveInstanceId
-      ) &&
-      !s.perm("magnaGarurumon").isSuspended
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magnaGarurumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("beowolfmon").instanceId) &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === matchingLevelFiveInstanceId) &&
+        !s.perm("magnaGarurumon").isSuspended,
     );
     await settle();
 
-    expect(s.state.players[1]!.trash.some((card) =>
-      card.instanceId === s.inst("trashedSource").instanceId
-    )).toBe(true);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("magnaGarurumon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 1 &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("trashedSource").instanceId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magnaGarurumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
-    expect(s.state.players[1]!.battleArea.some((permanent) =>
-      permanent.permanentId === secondLevelFiveId
-    )).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondLevelFiveId)).toBe(true);
     expect(s.perm("magnaGarurumon").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });

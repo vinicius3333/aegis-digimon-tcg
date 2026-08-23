@@ -6,75 +6,71 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Angoramon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Angoramon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a Digimon card with [Angoramon] in its name is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "a Digimon card with [Angoramon] in its name is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("RB1-024", compiled);

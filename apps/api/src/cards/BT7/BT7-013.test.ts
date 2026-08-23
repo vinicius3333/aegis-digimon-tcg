@@ -7,7 +7,12 @@ describe("BT7-013 MetalGreymon", () => {
   it("gains only 1 memory per turn when an opposing Digimon is deleted as an inherited effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT7-014", under: ["BT7-013"], as: "host" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-014", as: "second" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-014", as: "second" },
+        ],
+      },
     });
     s.state.memory = 0;
     await s.ready();
@@ -19,9 +24,13 @@ describe("BT7-013 MetalGreymon", () => {
   });
 
   it("gains two memory when its owner has a Tamer in play", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT7-013", as: "source" }], battleArea: [{ card: "BT7-085", as: "tamer" }] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "BT7-013", as: "source" }], battleArea: [{ card: "BT7-085", as: "tamer" }] },
+    });
     s.state.memory = 7;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });

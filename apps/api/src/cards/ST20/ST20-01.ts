@@ -7,37 +7,35 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfTopHasText",
-            "filter": {
-              "nameOrTrait": [
-                { "tokens": ["ADVENTURE"], "match": "trait" }
-              ]
+          amount: 1000,
+          duration: "permanent",
+          condition: {
+            kind: "selfTopHasText",
+            filter: {
+              nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
             },
-            "raw": "this Digimon has the [ADVENTURE] trait"
-          }
-        }
+            raw: "this Digimon has the [ADVENTURE] trait",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST20-01", compiled);

@@ -30,7 +30,15 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Purple"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              levelComparison: { op: "lte", value: 4 },
+            },
+            count: 1,
+          },
           from: ["trash"],
           payCost: false,
           optional: true,

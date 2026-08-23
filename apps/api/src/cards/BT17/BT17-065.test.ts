@@ -10,7 +10,9 @@ describe("BT17-065 DexDorugamon", () => {
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBeDeleted",
-      target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Dorugamon"], match: "name" }] } },
+      target: {
+        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Dorugamon"], match: "name" }] },
+      },
       actions: [
         { kind: "Digivolve", target: { sourceRef: "triggerSubject" }, from: ["trash"], payCost: false },
         { kind: "Prevent", condition: { kind: "bindingExists", ref: "digivolvedToPreventDeletion" } },
@@ -21,21 +23,35 @@ describe("BT17-065 DexDorugamon", () => {
 
   it("trashes one hand card, then branches to draw or play-cost deletion", () => {
     const actions = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")?.actions;
-    expect(actions?.[0]).toMatchObject({ kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } });
-    expect(actions?.[1]).toMatchObject({ kind: "Draw", amount: 1, condition: { kind: "not", condition: { kind: "anyOf" } } });
-    expect(actions?.[2]).toMatchObject({ kind: "Delete", target: { filter: { controller: "opponent", playCostLte: 4 }, count: 1 }, condition: { kind: "anyOf" } });
+    expect(actions?.[0]).toMatchObject({
+      kind: "Trash",
+      target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+    });
+    expect(actions?.[1]).toMatchObject({
+      kind: "Draw",
+      amount: 1,
+      condition: { kind: "not", condition: { kind: "anyOf" } },
+    });
+    expect(actions?.[2]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { controller: "opponent", playCostLte: 4 }, count: 1 },
+      condition: { kind: "anyOf" },
+    });
   });
 
   it("digivolves from trash to prevent Dorugamon's deletion, then trashes and deletes instead of drawing", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT7-062", as: "dorugamon" }],
-        trash: [{ card: "BT17-065", as: "dexDorugamon" }],
-        hand: [{ card: "BT1-001", as: "discarded" }],
-        deck: [{ card: "BT1-011", as: "notDrawn" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-062", as: "dorugamon" }],
+          trash: [{ card: "BT17-065", as: "dexDorugamon" }],
+          hand: [{ card: "BT1-001", as: "discarded" }],
+          deck: [{ card: "BT1-011", as: "notDrawn" }],
+        },
+        1: { battleArea: [{ card: "BT17-025", as: "target" }] },
       },
-      1: { battleArea: [{ card: "BT17-025", as: "target" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const dorugamonId = s.perm("dorugamon").permanentId;
     const targetId = s.perm("target").permanentId;
 

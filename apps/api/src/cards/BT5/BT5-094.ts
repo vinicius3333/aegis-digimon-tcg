@@ -3,64 +3,56 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Red"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Red"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1,
-            "from": [
-              "hand"
-            ]
+            count: 1,
+            from: ["hand"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "position": "bottom",
-          "optional": true,
-          "abortOnDecline": true
+          position: "bottom",
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if you do"
-          }
-        }
-      ]
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if you do",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-094", compiled);

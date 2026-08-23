@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type CardInstance, type GameState, type Permanent, type Seat } from "@aegis/shared";
+import {
+  EffectTiming,
+  type CardDefinition,
+  type CardInstance,
+  type GameState,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -71,10 +78,7 @@ function makeSource(opts: { isOnBattleArea?: boolean } = {}): CardSource {
   };
 }
 
-function makeContext(opts: {
-  recorder: Recorder;
-  opponentDigimon?: Permanent[];
-}): EffectContext {
+function makeContext(opts: { recorder: Recorder; opponentDigimon?: Permanent[] }): EffectContext {
   const players = [
     { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] },
     { seat: 1, battleArea: opts.opponentDigimon ?? [], security: [], hand: [], deck: [], trash: [] },
@@ -130,80 +134,62 @@ describe("BT7-112 (Susanoomon)", () => {
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
   });
 
-  it(
-    "[When Digivolving] deletes 1 opponent Digimon when one is available",
-    async () => {
-      // Q1684: the effect fires when there is an opponent Digimon to target; the documented behavior
-      // coroutine calls Destroy. Now PASSES: the IR override gates the Delete with
-      // kind:"opponentHas" (was the runtime record's contradictory kind:"youHave" +
-      // controller:"opponent", which evaluateCondition collapsed to controller:"mine").
-      const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-      const deleteEffect = effects.find((e) => e.description.includes("Delete"));
-      expect(deleteEffect, "WhenDigivolving Delete effect must exist").toBeDefined();
-      const recorder: Recorder = { calls: [] };
-      const opponentDigimon = [makeOpponentDigimon("PERM#OPP-1")];
-      const ctx = makeContext({ recorder, opponentDigimon });
-      await deleteEffect!.resolve(ctx);
-      const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-      expect(deleteCalls).toHaveLength(1);
-      expect((deleteCalls[0]!.args[0] as string[])).toContain("PERM#OPP-1");
-    },
-  );
+  it("[When Digivolving] deletes 1 opponent Digimon when one is available", async () => {
+    // Q1684: the effect fires when there is an opponent Digimon to target; the documented behavior
+    // coroutine calls Destroy. Now PASSES: the IR override gates the Delete with
+    // kind:"opponentHas" (was the runtime record's contradictory kind:"youHave" +
+    // controller:"opponent", which evaluateCondition collapsed to controller:"mine").
+    const source = makeSource();
+    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
+    const deleteEffect = effects.find((e) => e.description.includes("Delete"));
+    expect(deleteEffect, "WhenDigivolving Delete effect must exist").toBeDefined();
+    const recorder: Recorder = { calls: [] };
+    const opponentDigimon = [makeOpponentDigimon("PERM#OPP-1")];
+    const ctx = makeContext({ recorder, opponentDigimon });
+    await deleteEffect!.resolve(ctx);
+    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
+    expect(deleteCalls).toHaveLength(1);
+    expect(deleteCalls[0]!.args[0] as string[]).toContain("PERM#OPP-1");
+  });
 
-  it(
-    "[When Digivolving] deletes exactly 1 (not 2) when opponent has multiple Digimon",
-    async () => {
-      // The effect card text says "Delete 1" — exactly 1. Now PASSES with the
-      // kind:"opponentHas" gate fix (same root cause as above).
-      const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-      const deleteEffect = effects.find((e) => e.description.includes("Delete"));
-      expect(deleteEffect).toBeDefined();
-      const recorder: Recorder = { calls: [] };
-      const opponentDigimon = [makeOpponentDigimon("PERM#OPP-1"), makeOpponentDigimon("PERM#OPP-2")];
-      const ctx = makeContext({ recorder, opponentDigimon });
-      await deleteEffect!.resolve(ctx);
-      const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-      expect(deleteCalls).toHaveLength(1);
-      // Exactly one permanent id was passed.
-      expect((deleteCalls[0]!.args[0] as string[])).toHaveLength(1);
-    },
-  );
+  it("[When Digivolving] deletes exactly 1 (not 2) when opponent has multiple Digimon", async () => {
+    // The effect card text says "Delete 1" — exactly 1. Now PASSES with the
+    // kind:"opponentHas" gate fix (same root cause as above).
+    const source = makeSource();
+    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
+    const deleteEffect = effects.find((e) => e.description.includes("Delete"));
+    expect(deleteEffect).toBeDefined();
+    const recorder: Recorder = { calls: [] };
+    const opponentDigimon = [makeOpponentDigimon("PERM#OPP-1"), makeOpponentDigimon("PERM#OPP-2")];
+    const ctx = makeContext({ recorder, opponentDigimon });
+    await deleteEffect!.resolve(ctx);
+    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
+    expect(deleteCalls).toHaveLength(1);
+    // Exactly one permanent id was passed.
+    expect(deleteCalls[0]!.args[0] as string[]).toHaveLength(1);
+  });
 
-  it(
-    "[Static] first clause should be an alternate digivolution path, not a cost reduction",
-    async () => {
-      // Q1681, Q1684: the first effect is a gated ALTERNATE digivolution path
-      // (return 10 Tamer/Hybrid cards unlocks digivolving from a Tamer treated as Lv6).
-      // The runtime record incorrectly modelled this as Replacement/reduceCost:"wouldDigivolve"
-      // at Static timing. The hand-fixed IR removes that wrong Replacement action; the
-      // alternate path is represented by `digivolutionRequirement: [{ isAlternate: true }]`.
-      // The assertion below checks that there is NO Replacement action in the Static
-      // (None) effects.
-      const source = makeSource();
-      const noneEffects = module!.effectsForTiming(EffectTiming.None, source);
-      // A correct port has NO Replacement at None (only SecurityAttack keyword grant).
-      const hasReplacementAtNone = noneEffects.some((e) =>
-        e.description.toLowerCase().includes("replacement"),
-      );
-      expect(hasReplacementAtNone).toBe(false);
-    },
-  );
+  it("[Static] first clause should be an alternate digivolution path, not a cost reduction", async () => {
+    // Q1681, Q1684: the first effect is a gated ALTERNATE digivolution path
+    // (return 10 Tamer/Hybrid cards unlocks digivolving from a Tamer treated as Lv6).
+    // The runtime record incorrectly modelled this as Replacement/reduceCost:"wouldDigivolve"
+    // at Static timing. The hand-fixed IR removes that wrong Replacement action; the
+    // alternate path is represented by `digivolutionRequirement: [{ isAlternate: true }]`.
+    // The assertion below checks that there is NO Replacement action in the Static
+    // (None) effects.
+    const source = makeSource();
+    const noneEffects = module!.effectsForTiming(EffectTiming.None, source);
+    // A correct port has NO Replacement at None (only SecurityAttack keyword grant).
+    const hasReplacementAtNone = noneEffects.some((e) => e.description.toLowerCase().includes("replacement"));
+    expect(hasReplacementAtNone).toBe(false);
+  });
 
   it("uses five hand and five trash Hybrids to evolve a Tamer and check three security", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT7-085", as: "takuya" }],
-          hand: [
-            { card: "BT7-112", as: "susanoomon" },
-            "BT4-011",
-            "BT4-025",
-            "BT7-021",
-            "BT7-038",
-            "BT7-046",
-          ],
+          hand: [{ card: "BT7-112", as: "susanoomon" }, "BT4-011", "BT4-025", "BT7-021", "BT7-038", "BT7-046"],
           trash: ["BT4-011", "BT4-025", "BT7-021", "BT7-038", "BT7-046"],
           deck: ["BT1-001"],
         },
@@ -228,9 +214,7 @@ describe("BT7-112 (Susanoomon)", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () =>
-        s.perm("takuya").topCard.cardId === "BT7-112" &&
-        s.state.players[1]!.battleArea.length === 0,
+      () => s.perm("takuya").topCard.cardId === "BT7-112" && s.state.players[1]!.battleArea.length === 0,
       5000,
     );
 

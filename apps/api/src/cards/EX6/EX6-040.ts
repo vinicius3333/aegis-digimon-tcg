@@ -6,152 +6,136 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "fromSelectionRef": "digivolveHost"
+            count: 1,
+            fromSelectionRef: "digivolveHost",
           },
-          "amount": 2000,
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "place",
-            "destination": "digivolutionStack",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          amount: 2000,
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "place",
+            destination: "digivolutionStack",
+            target: {
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "from": [
-                "hand"
-              ]
+              count: 1,
+              from: ["hand"],
             },
-            "host": "target",
-            "underFilter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
+            host: "target",
+            underFilter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              orFilters: [
+                {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  levels: [4],
+                },
+                {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  traits: ["Legend-Arms"],
+                },
               ],
-              "orFilters": [
-                {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    4
-                  ]
-                },
-                {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "traits": [
-                    "Legend-Arms"
-                  ]
-                }
-              ]
             },
-            "position": "bottom",
-            "bindHostAs": "digivolveHost",
-            "raw": "By placing this card as the bottom digivolution card of 1 of your Digimon that's level 4 or has the [Legend-Arms] trait"
+            position: "bottom",
+            bindHostAs: "digivolveHost",
+            raw: "By placing this card as the bottom digivolution card of 1 of your Digimon that's level 4 or has the [Legend-Arms] trait",
           },
-          "additionalCost": {
-            "kind": "payMemory",
-            "memory": 1,
-            "raw": "By paying 1 cost"
+          additionalCost: {
+            kind: "payMemory",
+            memory: 1,
+            raw: "By paying 1 cost",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isFromHand": true
+      isFromHand: true,
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onAddDigivolutionCards",
-          "actions": [
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Blocker",
-                "raw": "＜Blocker＞"
+              keyword: {
+                keyword: "Blocker",
+                raw: "＜Blocker＞",
               },
-              "duration": "untilOpponentTurnEnd"
+              duration: "untilOpponentTurnEnd",
             },
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Reboot",
-                "raw": "＜Reboot＞"
+              keyword: {
+                keyword: "Reboot",
+                raw: "＜Reboot＞",
               },
-              "duration": "untilOpponentTurnEnd"
-            }
+              duration: "untilOpponentTurnEnd",
+            },
           ],
-          "raw": "onAddDigivolutionCards"
-        }
+          raw: "onAddDigivolutionCards",
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Legend-Arms"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Legend-Arms"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX6-040", compiled);

@@ -19,111 +19,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4905 confirms the AllTurns triggers simultaneously with other leave-prevention
 // effects and the player chooses activation order.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Cool Boy"],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Cool Boy"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Royal Knight", "X Antibody"],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Royal Knight", "X Antibody"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "keywords": [
+      trigger: "AllTurns",
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
       ],
-      "actions": [
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "mode": "prevent",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": ["Omnimon"],
-                "match": "name"
-              }
-            ]
+                tokens: ["Omnimon"],
+                match: "name",
+              },
+            ],
           },
-          "target": {
-            "filter": {
-              "useTriggerSource": true
+          target: {
+            filter: {
+              useTriggerSource: true,
             },
-            "count": 1
+            count: 1,
           },
-          "actions": []
-        }
-      ]
+          actions: [],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": ["Omekamon", "Cool Boy"],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Omekamon", "Cool Boy"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["hand", "trash"],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-100", compiled);

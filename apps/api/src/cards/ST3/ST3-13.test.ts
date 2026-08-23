@@ -7,14 +7,21 @@ import "./ST3-13.js";
 
 describe("ST3-13 Heaven's Gate", () => {
   it("gives one Digimon +3000 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST3-07", as: "target" }], hand: [{ card: "ST3-13", as: "option" }] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "ST3-07", as: "target" }], hand: [{ card: "ST3-13", as: "option" }] } },
+      { autoSelectCards: true },
+    );
     s.state.memory = 2;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 9000);
     expect(s.perm("target").currentDP).toBe(9000);
   });
   it("gives all own Digimon +5000 DP and adds itself to hand from security", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST3-07", as: "target" }], security: [{ card: "ST3-13", as: "option", faceUp: true }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST3-07", as: "target" }], security: [{ card: "ST3-13", as: "option", faceUp: true }] },
+    });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(s.perm("target").currentDP).toBe(11000);
     expect(observe(s.engine).securityDp(0)).toBe(5000);

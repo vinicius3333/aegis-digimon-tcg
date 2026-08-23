@@ -16,7 +16,10 @@ describe("ST14-01 Yaamon", () => {
 
   it("does not mill twice from the inherited once-per-turn effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT10-010", as: "host", under: ["ST14-01"] }], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+      0: {
+        battleArea: [{ card: "BT10-010", as: "host", under: ["ST14-01"] }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));

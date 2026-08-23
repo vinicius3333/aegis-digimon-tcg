@@ -6,102 +6,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          into: {
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Rasenmon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "mine",
-          "amount": 1
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDigiBurstCardDiscarded",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "effectSourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Rasenmon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"]
+                  tokens: ["Rasenmon"],
+                  match: "name",
                 },
-                "count": 1,
-                "bindAs": "unsuspendedTarget"
-              }
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "EndOfYourTurn",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          amount: 1,
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigiBurstCardDiscarded",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          effectSourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
+              {
+                tokens: ["Rasenmon"],
+                match: "name",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+                bindAs: "unsuspendedTarget",
+              },
             },
             {
-              "kind": "ModifyDP",
-              "target": {
-              "filter": {},
-              "count": 1,
-                "fromSelectionRef": "unsuspendedTarget"
+              kind: "ModifyDP",
+              target: {
+                filter: {},
+                count: 1,
+                fromSelectionRef: "unsuspendedTarget",
               },
-              "amount": 3000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              amount: 3000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT8-081", compiled);

@@ -23,11 +23,15 @@ describe("BT11-017 Marsmon", () => {
     });
     s.state.memory = 0;
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: s.perm("marsmon").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("marsmon").permanentId,
+    });
     expect(s.perm("marsmon").isSuspended).toBe(false);
     expect(s.state.memory).toBe(2);
 
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: s.perm("marsmon").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("marsmon").permanentId,
+    });
     expect(s.state.memory).toBe(2);
   });
 });

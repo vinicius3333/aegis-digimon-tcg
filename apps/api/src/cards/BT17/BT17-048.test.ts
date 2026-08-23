@@ -25,7 +25,12 @@ const ARGOMON_LV6 = "BT17-051";
 describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () => {
   it("prevents all opposing Tamers from unsuspending during the opponent's turn", async () => {
     const { compiled } = await import("./BT17-048.js");
-    expect(compiled.effects.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({ kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: "all" }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" });
+    expect(compiled.effects.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({
+      kind: "Restrict",
+      target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: "all" },
+      restriction: "unsuspend",
+      duration: "untilOpponentTurnEnd",
+    });
   });
 
   it("with 3 Argomon in trash before deletion, the deleted card counts → 4 total, condition met", async () => {
@@ -67,26 +72,20 @@ describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () =
     });
     expect(res.ok).toBe(true);
 
-    await settle(
-      () => {
-        // Wait until: Argomon no longer in battle area.
-        const argomonInField = p0.battleArea.some((perm) => perm.permanentId === argomonPermId);
-        return !argomonInField;
-      },
-      600,
-    );
+    await settle(() => {
+      // Wait until: Argomon no longer in battle area.
+      const argomonInField = p0.battleArea.some((perm) => perm.permanentId === argomonPermId);
+      return !argomonInField;
+    }, 600);
 
     // Argomon was deleted — KB Q2800: the 4 in trash (3 pre-existing + 1 just deleted)
     // should trigger the [On Deletion] to offer playing the Lv.6 Argomon.
     // With auto-accept, the Lv.6 Argomon should be on the field.
-    await settle(
-      () => {
-        const lv6InField = p0.battleArea.some((perm) => perm.topCard?.cardId === ARGOMON_LV6);
-        const lv6InHand = p0.hand.some((c) => c.instanceId === lv6ArgomonId);
-        return lv6InField || !lv6InHand;
-      },
-      600,
-    );
+    await settle(() => {
+      const lv6InField = p0.battleArea.some((perm) => perm.topCard?.cardId === ARGOMON_LV6);
+      const lv6InHand = p0.hand.some((c) => c.instanceId === lv6ArgomonId);
+      return lv6InField || !lv6InHand;
+    }, 600);
 
     const lv6IsOnField = p0.battleArea.some((perm) => perm.topCard?.cardId === ARGOMON_LV6);
     expect(lv6IsOnField).toBe(true);

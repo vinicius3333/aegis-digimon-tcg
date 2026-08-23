@@ -52,10 +52,7 @@ export function useOpponentActionFeed({
 
     const previous = previousEventSignaturesRef.current;
     let overlap = Math.min(previous.length, signatures.length);
-    while (
-      overlap > 0
-      && !previous.slice(-overlap).every((signature, index) => signature === signatures[index])
-    ) {
+    while (overlap > 0 && !previous.slice(-overlap).every((signature, index) => signature === signatures[index])) {
       overlap -= 1;
     }
     previousEventSignaturesRef.current = signatures;
@@ -65,11 +62,7 @@ export function useOpponentActionFeed({
     const fresh = events.slice(overlap);
     const items = fresh.flatMap((event) => {
       sequenceRef.current += 1;
-      const item = opponentActionFromEvent(
-        event,
-        viewerSeat,
-        `${matchKey}:${sequenceRef.current}`,
-      );
+      const item = opponentActionFromEvent(event, viewerSeat, `${matchKey}:${sequenceRef.current}`);
       return item ? [item] : [];
     });
     if (items.length > 0) setState((current) => enqueueOpponentActions(current, items, trailCapacity));
@@ -95,10 +88,7 @@ export function useOpponentActionFeed({
     return () => {
       window.clearTimeout(timer);
       if (clockRef.current.itemId === current.id) {
-        clockRef.current.remainingMs = Math.max(
-          0,
-          clockRef.current.remainingMs - (Date.now() - startedAt),
-        );
+        clockRef.current.remainingMs = Math.max(0, clockRef.current.remainingMs - (Date.now() - startedAt));
       }
     };
   }, [paused, state.current?.id, trailCapacity]);

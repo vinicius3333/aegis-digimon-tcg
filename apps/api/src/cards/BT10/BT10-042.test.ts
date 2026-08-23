@@ -44,12 +44,7 @@ function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   };
 }
 
-function makePermanent(
-  permanentId: string,
-  seat: Seat,
-  cardId: string,
-  _effectText?: string,
-): Permanent {
+function makePermanent(permanentId: string, seat: Seat, cardId: string, _effectText?: string): Permanent {
   return {
     permanentId,
     controllerSeat: seat,
@@ -116,48 +111,132 @@ function makeContext(opts: {
     restrict: record("restrict"),
     restrictAttackTarget: record("restrictAttackTarget"),
     disableTimingEffect: record("disableTimingEffect"),
-    draw: () => { throw new Error("unexpected draw"); },
-    gainMemory: () => { throw new Error("unexpected gainMemory"); },
-    gainMemoryForSeat: () => { throw new Error("unexpected gainMemoryForSeat"); },
-    restrictMemoryGain: () => { throw new Error("unexpected restrictMemoryGain"); },
-    restrictCostReduction: () => { throw new Error("unexpected restrictCostReduction"); },
-    declareWinner: () => { throw new Error("unexpected declareWinner"); },
-    setMemory: () => { throw new Error("unexpected setMemory"); },
-    modifyDP: () => { throw new Error("unexpected modifyDP"); },
-    playFromHand: () => { throw new Error("unexpected playFromHand"); },
-    playFromSecurity: () => { throw new Error("unexpected playFromSecurity"); },
-    playInstances: () => { throw new Error("unexpected playInstances"); },
-    digivolveFromInstance: () => { throw new Error("unexpected digivolveFromInstance"); },
-    dnaDigivolveInto: () => { throw new Error("unexpected dnaDigivolveInto"); },
-    deDigivolve: () => { throw new Error("unexpected deDigivolve"); },
-    placeUnder: () => { throw new Error("unexpected placeUnder"); },
-    relocatePermanent: () => { throw new Error("unexpected relocatePermanent"); },
-    link: () => { throw new Error("unexpected link"); },
-    trash: () => { throw new Error("unexpected trash"); },
-    trashFromSecurity: () => { throw new Error("unexpected trashFromSecurity"); },
-    deletePermanent: () => { throw new Error("unexpected deletePermanent"); },
-    suspend: () => { throw new Error("unexpected suspend"); },
-    unsuspend: () => { throw new Error("unexpected unsuspend"); },
-    returnToHand: () => { throw new Error("unexpected returnToHand"); },
-    returnToDeck: () => { throw new Error("unexpected returnToDeck"); },
-    reveal: () => { throw new Error("unexpected reveal"); },
-    searchDeck: () => { throw new Error("unexpected searchDeck"); },
-    addSecurity: () => { throw new Error("unexpected addSecurity"); },
-    grantPierce: () => { throw new Error("unexpected grantPierce"); },
-    changeEvoCost: () => { throw new Error("unexpected changeEvoCost"); },
-    changePlayCost: () => { throw new Error("unexpected changePlayCost"); },
-    grantNameTrait: () => { throw new Error("unexpected grantNameTrait"); },
-    waiveColorRequirement: () => { throw new Error("unexpected waiveColorRequirement"); },
-    shuffleSecurity: () => { throw new Error("unexpected shuffleSecurity"); },
-    securityToHand: () => { throw new Error("unexpected securityToHand"); },
-    recoverToSecurity: () => { throw new Error("unexpected recoverToSecurity"); },
-    forceAttack: () => { throw new Error("unexpected forceAttack"); },
-    redirectAttack: () => { throw new Error("unexpected redirectAttack"); },
-    subscribeSubTrigger: () => { throw new Error("unexpected subscribeSubTrigger"); },
-    subscribeReplacement: () => { throw new Error("unexpected subscribeReplacement"); },
-    conferStackEffects: () => { throw new Error("unexpected conferStackEffects"); },
-    playToken: () => { throw new Error("unexpected playToken"); },
-    modifySecurityDp: () => { throw new Error("unexpected modifySecurityDp"); },
+    draw: () => {
+      throw new Error("unexpected draw");
+    },
+    gainMemory: () => {
+      throw new Error("unexpected gainMemory");
+    },
+    gainMemoryForSeat: () => {
+      throw new Error("unexpected gainMemoryForSeat");
+    },
+    restrictMemoryGain: () => {
+      throw new Error("unexpected restrictMemoryGain");
+    },
+    restrictCostReduction: () => {
+      throw new Error("unexpected restrictCostReduction");
+    },
+    declareWinner: () => {
+      throw new Error("unexpected declareWinner");
+    },
+    setMemory: () => {
+      throw new Error("unexpected setMemory");
+    },
+    modifyDP: () => {
+      throw new Error("unexpected modifyDP");
+    },
+    playFromHand: () => {
+      throw new Error("unexpected playFromHand");
+    },
+    playFromSecurity: () => {
+      throw new Error("unexpected playFromSecurity");
+    },
+    playInstances: () => {
+      throw new Error("unexpected playInstances");
+    },
+    digivolveFromInstance: () => {
+      throw new Error("unexpected digivolveFromInstance");
+    },
+    dnaDigivolveInto: () => {
+      throw new Error("unexpected dnaDigivolveInto");
+    },
+    deDigivolve: () => {
+      throw new Error("unexpected deDigivolve");
+    },
+    placeUnder: () => {
+      throw new Error("unexpected placeUnder");
+    },
+    relocatePermanent: () => {
+      throw new Error("unexpected relocatePermanent");
+    },
+    link: () => {
+      throw new Error("unexpected link");
+    },
+    trash: () => {
+      throw new Error("unexpected trash");
+    },
+    trashFromSecurity: () => {
+      throw new Error("unexpected trashFromSecurity");
+    },
+    deletePermanent: () => {
+      throw new Error("unexpected deletePermanent");
+    },
+    suspend: () => {
+      throw new Error("unexpected suspend");
+    },
+    unsuspend: () => {
+      throw new Error("unexpected unsuspend");
+    },
+    returnToHand: () => {
+      throw new Error("unexpected returnToHand");
+    },
+    returnToDeck: () => {
+      throw new Error("unexpected returnToDeck");
+    },
+    reveal: () => {
+      throw new Error("unexpected reveal");
+    },
+    searchDeck: () => {
+      throw new Error("unexpected searchDeck");
+    },
+    addSecurity: () => {
+      throw new Error("unexpected addSecurity");
+    },
+    grantPierce: () => {
+      throw new Error("unexpected grantPierce");
+    },
+    changeEvoCost: () => {
+      throw new Error("unexpected changeEvoCost");
+    },
+    changePlayCost: () => {
+      throw new Error("unexpected changePlayCost");
+    },
+    grantNameTrait: () => {
+      throw new Error("unexpected grantNameTrait");
+    },
+    waiveColorRequirement: () => {
+      throw new Error("unexpected waiveColorRequirement");
+    },
+    shuffleSecurity: () => {
+      throw new Error("unexpected shuffleSecurity");
+    },
+    securityToHand: () => {
+      throw new Error("unexpected securityToHand");
+    },
+    recoverToSecurity: () => {
+      throw new Error("unexpected recoverToSecurity");
+    },
+    forceAttack: () => {
+      throw new Error("unexpected forceAttack");
+    },
+    redirectAttack: () => {
+      throw new Error("unexpected redirectAttack");
+    },
+    subscribeSubTrigger: () => {
+      throw new Error("unexpected subscribeSubTrigger");
+    },
+    subscribeReplacement: () => {
+      throw new Error("unexpected subscribeReplacement");
+    },
+    conferStackEffects: () => {
+      throw new Error("unexpected conferStackEffects");
+    },
+    playToken: () => {
+      throw new Error("unexpected playToken");
+    },
+    modifySecurityDp: () => {
+      throw new Error("unexpected modifySecurityDp");
+    },
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
@@ -193,10 +272,7 @@ describe("BT10-042 (Venusmon)", () => {
     const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
 
-    const opponentDigimon = [
-      makePermanent("opp-p1", 1, "BT1-010"),
-      makePermanent("opp-p2", 1, "BT1-011"),
-    ];
+    const opponentDigimon = [makePermanent("opp-p1", 1, "BT1-010"), makePermanent("opp-p2", 1, "BT1-011")];
     const recorder: Recorder = { calls: [] };
     // Venusmon itself is the source permanent on owner's side (seat 0);
     // two opponent Digimon on seat 1.
@@ -222,43 +298,40 @@ describe("BT10-042 (Venusmon)", () => {
     }
   });
 
-  it(
-    "[Opponent's Turn] Static restrict must target ONLY Digimon with SecurityAttack, not all opponent Digimon",
-    async () => {
-      // Q1965: "Digimon with <Security Attack>" = only those affected by SA+ or SA-.
-      // Q1966: even +1/-1 combo still "has" SecurityAttack and is restricted.
-      // documented behavior L58-62: AttackerCondition gates on permanent.HasSecurityAttackChanges;
-      //   a Digimon without SecurityAttack changes is NOT in the restricted set.
-      //
-      // The hand-fixed IR adds a keywords:["SecurityAttack"] filter to the restrict
-      // target, so a Digimon without SecurityAttack (printed or granted) is not in the
-      // restricted set.
-      const source = makeSource();
-      const staticEffects = module!.effectsForTiming(EffectTiming.None, source);
-      expect(staticEffects.length).toBeGreaterThanOrEqual(1);
+  it("[Opponent's Turn] Static restrict must target ONLY Digimon with SecurityAttack, not all opponent Digimon", async () => {
+    // Q1965: "Digimon with <Security Attack>" = only those affected by SA+ or SA-.
+    // Q1966: even +1/-1 combo still "has" SecurityAttack and is restricted.
+    // documented behavior L58-62: AttackerCondition gates on permanent.HasSecurityAttackChanges;
+    //   a Digimon without SecurityAttack changes is NOT in the restricted set.
+    //
+    // The hand-fixed IR adds a keywords:["SecurityAttack"] filter to the restrict
+    // target, so a Digimon without SecurityAttack (printed or granted) is not in the
+    // restricted set.
+    const source = makeSource();
+    const staticEffects = module!.effectsForTiming(EffectTiming.None, source);
+    expect(staticEffects.length).toBeGreaterThanOrEqual(1);
 
-      // Opponent has ONE Digimon with NO SecurityAttack in its text/effects.
-      const plainDigimon = makePermanent("opp-plain", 1, "BT1-001");
+    // Opponent has ONE Digimon with NO SecurityAttack in its text/effects.
+    const plainDigimon = makePermanent("opp-plain", 1, "BT1-001");
 
-      const recorder: Recorder = { calls: [] };
-      const venusmonPermanent = makePermanent("self-v", 0, "BT10-042");
-      const ctx = makeContext({
-        recorder,
-        ownerBattleArea: [venusmonPermanent],
-        opponentBattleArea: [plainDigimon],
-      });
-      const ctxWithSource = { ...ctx, source: makeSource({ permanent: () => venusmonPermanent }) };
+    const recorder: Recorder = { calls: [] };
+    const venusmonPermanent = makePermanent("self-v", 0, "BT10-042");
+    const ctx = makeContext({
+      recorder,
+      ownerBattleArea: [venusmonPermanent],
+      opponentBattleArea: [plainDigimon],
+    });
+    const ctxWithSource = { ...ctx, source: makeSource({ permanent: () => venusmonPermanent }) };
 
-      for (const effect of staticEffects) {
-        await effect.resolve(ctxWithSource);
-      }
+    for (const effect of staticEffects) {
+      await effect.resolve(ctxWithSource);
+    }
 
-      // KB-correct: restrict() should NOT be called for a Digimon without SecurityAttack.
-      // Today the IR calls restrict() for ALL opponent Digimon, so this assertion fails.
-      const restrictCalls = recorder.calls.filter((c) => c.verb === "restrict");
-      expect(restrictCalls).toHaveLength(0);
-    },
-  );
+    // KB-correct: restrict() should NOT be called for a Digimon without SecurityAttack.
+    // Today the IR calls restrict() for ALL opponent Digimon, so this assertion fails.
+    const restrictCalls = recorder.calls.filter((c) => c.verb === "restrict");
+    expect(restrictCalls).toHaveLength(0);
+  });
 
   it("scopes the attack prohibition to Venusmon itself instead of disabling every attack", async () => {
     const affected = makePermanent("opp-security-attack", 1, "BT10-013");
@@ -268,9 +341,14 @@ describe("BT10-042 (Venusmon)", () => {
       recorder,
       ownerBattleArea: [venusmon],
       opponentBattleArea: [affected],
-      definitionOverrides: new Map([["BT10-013", {
-        effectText: "＜Security Attack +1＞",
-      }]]),
+      definitionOverrides: new Map([
+        [
+          "BT10-013",
+          {
+            effectText: "＜Security Attack +1＞",
+          },
+        ],
+      ]),
     });
     const staticEffects = module!.effectsForTiming(EffectTiming.None, makeSource());
 
@@ -283,10 +361,7 @@ describe("BT10-042 (Venusmon)", () => {
 
     const scoped = recorder.calls.filter(({ verb }) => verb === "restrictAttackTarget");
     expect(scoped).toHaveLength(1);
-    expect(scoped[0]!.args.slice(0, 2)).toEqual([
-      affected.permanentId,
-      venusmon.permanentId,
-    ]);
+    expect(scoped[0]!.args.slice(0, 2)).toEqual([affected.permanentId, venusmon.permanentId]);
     expect(recorder.calls.filter(({ verb }) => verb === "restrict")).toHaveLength(0);
   });
 });

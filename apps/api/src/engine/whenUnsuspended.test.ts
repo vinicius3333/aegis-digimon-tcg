@@ -39,16 +39,14 @@ function ledger(s: Setup): LedgerReader {
 
 /** ＜Piercing＞ has its own dedicated store (modifiers.ts), not the generic keyword ledger. */
 function hasPierce(s: Setup, permanentId: string): boolean {
-  return (
-    s.engine as unknown as { modifiers: { hasPierce(id: string): boolean } }
-  ).modifiers.hasPierce(permanentId);
+  return (s.engine as unknown as { modifiers: { hasPierce(id: string): boolean } }).modifiers.hasPierce(permanentId);
 }
 
 /** Drive the private turn-start unsuspend seam directly (mirrors mechanic.test.ts's BT14-047 test). */
 async function unsuspendForActivePhase(s: Setup, seat: Seat): Promise<string[]> {
-  return (
-    s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
-  ).unsuspendForActivePhase(seat);
+  return (s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }).unsuspendForActivePhase(
+    seat,
+  );
 }
 
 /**
@@ -58,9 +56,7 @@ async function unsuspendForActivePhase(s: Setup, seat: Seat): Promise<string[]> 
  * by the test (no play) does not.
  */
 async function recomputeContinuous(s: Setup): Promise<void> {
-  await (
-    s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }
-  ).recomputeContinuousEffects();
+  await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
 }
 
 describe("whenUnsuspended SubTrigger fires at every unsuspend seam", () => {

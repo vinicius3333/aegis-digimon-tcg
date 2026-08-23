@@ -43,7 +43,10 @@ function parseColor(raw: string, fallback: Rgb): Rgb {
   }
   const fn = /^rgba?\(([^)]+)\)$/i.exec(value);
   if (fn) {
-    const parts = fn[1]!.split(/[\s,/]+/).filter(Boolean).map(Number);
+    const parts = fn[1]!
+      .split(/[\s,/]+/)
+      .filter(Boolean)
+      .map(Number);
     if (parts.length >= 3 && parts.slice(0, 3).every((n) => Number.isFinite(n))) {
       return [parts[0]!, parts[1]!, parts[2]!];
     }
@@ -261,10 +264,6 @@ export function CursorParticles() {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden
-      style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999 }}
-    />
+    <canvas ref={canvasRef} aria-hidden style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9999 }} />
   );
 }

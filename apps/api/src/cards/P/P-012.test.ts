@@ -16,12 +16,16 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
     const drawnId = s.inst("drawn").instanceId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("tai").topCard.instanceId,
-      effectKey: "P-012/main",
-    })).toEqual({ ok: true });
-    await settle(() => s.perm("tai").isSuspended && s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("tai").topCard.instanceId,
+        effectKey: "P-012/main",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("tai").isSuspended && s.state.players[0]!.hand.some((card) => card.instanceId === drawnId),
+    );
 
     expect(s.perm("tai").isSuspended).toBe(true);
   });
@@ -31,24 +35,28 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "P-011" },
-            { card: "BT1-010", as: "recipient" },
-            { card: "P-012", as: "tai" },
-          ],
+          battleArea: [{ card: "P-011" }, { card: "BT1-010", as: "recipient" }, { card: "P-012", as: "tai" }],
         },
       },
-      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        preferOptionIndex: 1,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.perm("recipient").permanentId);
     const baseDP = s.perm("recipient").baseDP;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("tai").topCard.instanceId,
-      effectKey: "P-012/main",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("tai").topCard.instanceId,
+        effectKey: "P-012/main",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("recipient").currentDP === baseDP + 1000);
 
     expect(s.perm("recipient").currentDP).toBe(baseDP + 1000);
@@ -63,11 +71,13 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
     });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("tai").topCard.instanceId,
-      effectKey: "P-012/main",
-    })).toEqual({ ok: false, reason: "illegal-target" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("tai").topCard.instanceId,
+        effectKey: "P-012/main",
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.perm("tai").isSuspended).toBe(false);
   });
 
@@ -83,18 +93,22 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("tai").topCard.instanceId,
-      effectKey: "P-012/main",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("tai").topCard.instanceId,
+        effectKey: "P-012/main",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
     expect(s.perm("tai").isSuspended).toBe(false);
@@ -110,11 +124,13 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
     const taiId = s.inst("tai").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === taiId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === taiId)).toBe(true);

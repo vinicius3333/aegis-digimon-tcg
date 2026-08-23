@@ -60,10 +60,14 @@ describe("BT22-053 Keramon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("keramon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("keramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT22-057", "BT22-091"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT22-057", "BT22-091"]),
+    );
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.deck[0]!.cardId).toBe("BT1-009");
   });

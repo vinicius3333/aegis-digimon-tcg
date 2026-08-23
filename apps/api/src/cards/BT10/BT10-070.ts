@@ -9,83 +9,81 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Rush",
-          "raw": "＜Rush＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "Blitz",
-            "raw": "＜Blitz＞"
-          },
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfDigivolutionCountAtLeast",
-            "value": 3
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OpponentsTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
-            {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
-                },
-                "count": 1
-              },
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                  "zone": "digivolutionCards",
-                  "isSelfRef": true
-                  },
-                  "count": 1
-                },
-                "raw": "by trashing 1 of this Digimon's digivolution cards"
-              }
-            }
-          ]
-        }
+          keyword: "Rush",
+          raw: "＜Rush＞",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "Blitz",
+            raw: "＜Blitz＞",
+          },
+          duration: "permanent",
+          condition: {
+            kind: "selfDigivolutionCountAtLeast",
+            value: 3,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
+                },
+                count: 1,
+              },
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "digivolutionCards",
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                },
+                raw: "by trashing 1 of this Digimon's digivolution cards",
+              },
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-070", compiled);

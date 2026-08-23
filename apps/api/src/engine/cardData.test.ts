@@ -14,15 +14,9 @@ import { getCardDefinition } from "@aegis/shared";
 describe("DATA-01 OptionCardColorRequirements is sourced from lists[], not fields.*", () => {
   it("decodes the dual-color requirement for both fixtures", () => {
     // BT25-104 raw 0000000002000000 -> [0,2] -> [Red, Yellow]
-    expect(getCardDefinition("BT25-104")?.optionColorRequirements).toEqual([
-      "Red",
-      "Yellow",
-    ]);
+    expect(getCardDefinition("BT25-104")?.optionColorRequirements).toEqual(["Red", "Yellow"]);
     // ST24-07 raw 0200000000000000 -> [2,0] -> [Yellow, Red]
-    expect(getCardDefinition("ST24-07")?.optionColorRequirements).toEqual([
-      "Yellow",
-      "Red",
-    ]);
+    expect(getCardDefinition("ST24-07")?.optionColorRequirements).toEqual(["Yellow", "Red"]);
   });
 
   it("omits the field for an Option with no color requirement", () => {

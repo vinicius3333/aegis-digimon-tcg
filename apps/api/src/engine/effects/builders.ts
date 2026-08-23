@@ -416,11 +416,11 @@ export const securityStatic = (opts: BuilderOptions): Effect =>
           fx: {
             ...ctx.fx,
             modifyDP: (
-        permanentId: Parameters<EffectContext["fx"]["modifyDP"]>[0],
-        delta: Parameters<EffectContext["fx"]["modifyDP"]>[1],
-        duration: Parameters<EffectContext["fx"]["modifyDP"]>[2],
-        modifyOpts: Parameters<EffectContext["fx"]["modifyDP"]>[3],
-      ) =>
+              permanentId: Parameters<EffectContext["fx"]["modifyDP"]>[0],
+              delta: Parameters<EffectContext["fx"]["modifyDP"]>[1],
+              duration: Parameters<EffectContext["fx"]["modifyDP"]>[2],
+              modifyOpts: Parameters<EffectContext["fx"]["modifyDP"]>[3],
+            ) =>
               ctx.fx.modifyDP(permanentId, delta, duration, {
                 ...modifyOpts,
                 continuous: true,

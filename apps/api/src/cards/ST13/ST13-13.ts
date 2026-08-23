@@ -5,68 +5,64 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "beDeleted",
-          "byOpponentEffectsOnly": true,
-          "duration": "permanent"
-        }
-      ]
+          restriction: "beDeleted",
+          byOpponentEffectsOnly: true,
+          duration: "permanent",
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": [
+          kind: "DnaDigivolve",
+          materials: [
             {
-              "filter": {
-                "isSelfRef": true
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
             {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "excludeSelf": true
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                excludeSelf: true,
               },
-              "count": 1
-            }
+              count: 1,
+            },
           ],
-          "into": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "hasDnaDigivolutionRequirement": true,
-              "zone": "hand"
+          into: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              hasDnaDigivolutionRequirement: true,
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 registerIrCard("ST13-13", compiled);

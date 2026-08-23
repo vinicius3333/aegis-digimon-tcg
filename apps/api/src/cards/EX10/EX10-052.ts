@@ -3,143 +3,132 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "controller": "opponent",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          optional: true,
+          controller: "opponent",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card in your hand"
+            raw: "By trashing 1 card in your hand",
           },
-          "abortOnDecline": true
+          abortOnDecline: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "controller": "opponent",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          optional: true,
+          controller: "opponent",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card in your hand"
+            raw: "By trashing 1 card in your hand",
           },
-          "abortOnDecline": true
+          abortOnDecline: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this effect didn't delete",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ]
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon", "Tamer"],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true,
-              "controller": "opponent"
-            }
-          ]
+              optional: true,
+              controller: "opponent",
+            },
+          ],
         },
         {
-          "kind": "Prevent",
-          "mode": "leavePlay",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
-        }
+          kind: "Prevent",
+          mode: "leavePlay",
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this effect didn't delete",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Lucemon"
-      ],
-      "cost": 5,
-      "isAlternate": true
-    }
-  ]
+      names: ["Lucemon"],
+      cost: 5,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX10-052", compiled);

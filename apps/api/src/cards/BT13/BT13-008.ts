@@ -35,7 +35,10 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "Delete",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } }, count: 1 },
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
+                count: 1,
+              },
               optional: true,
             },
           ],

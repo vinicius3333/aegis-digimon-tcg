@@ -11,105 +11,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited: the printed "[Beelzemon] in its name" gate is a substring match, so it
 // also applies to forms such as Beelzemon: Blast Mode.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenTrashedFromDeck",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenTrashedFromDeck",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "excludeSelfEffect": true,
-          "actions": [
+          excludeSelfEffect: true,
+          actions: [
             {
-              "kind": "TrashTopDeck",
-              "controller": "mine",
-              "amount": 3,
-              "upTo": true,
-              "minimum": 1,
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Beelzemon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "hand"
+              kind: "TrashTopDeck",
+              controller: "mine",
+              amount: 3,
+              upTo: true,
+              minimum: 1,
+              optional: true,
+              abortOnDecline: true,
             },
-            {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Ai & Mako"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "count": 1,
-              "to": "hand"
-            }
           ],
-          "rest": "deckBottom"
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Beelzemon"],
+                    match: "name",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 3000
-          },
-          "while": {
-            "kind": "selfHasNameContaining",
-            "names": [
-              "Beelzemon"
-            ]
-          }
-        }
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Ai & Mako"],
+                    match: "name",
+                  },
+                ],
+              },
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "modifyDP",
+            amount: 3000,
+          },
+          while: {
+            kind: "selfHasNameContaining",
+            names: ["Beelzemon"],
+          },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX2-039", compiled);

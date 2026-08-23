@@ -31,8 +31,12 @@ describe("ST15-02 Agumon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
     });
     s.state.memory = 0;
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: s.perm("opponent").permanentId });
-    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", { attackerPermanentId: s.perm("opponent").permanentId });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("opponent").permanentId,
+    });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("opponent").permanentId,
+    });
     expect(s.state.memory).toBe(1);
   });
 });

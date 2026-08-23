@@ -24,24 +24,29 @@ describe("V-Tamer/Veedramon SEC and promo deck", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("tai").topCard.instanceId,
-      effectKey: "P-012/main",
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("tai").topCard.instanceId,
+        effectKey: "P-012/main",
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("tai").isSuspended && s.state.players[0]!.deck.length === 1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("veedramon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("rina").isSuspended &&
-      !s.perm("veedramon").isSuspended &&
-      s.state.players[1]!.security.length === 1 &&
-      s.state.players[0]!.trash.length === 0 &&
-      s.state.players[0]!.deck.length === 3,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("veedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("rina").isSuspended &&
+        !s.perm("veedramon").isSuspended &&
+        s.state.players[1]!.security.length === 1 &&
+        s.state.players[0]!.trash.length === 0 &&
+        s.state.players[0]!.deck.length === 3,
     );
 
     expect(s.perm("veedramon").currentDP).toBe(11_000);
@@ -62,15 +67,14 @@ describe("V-Tamer/Veedramon SEC and promo deck", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("zero").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.trash.length === 3 &&
-      s.perm("zero").currentDP === 7000,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zero").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 3 && s.perm("zero").currentDP === 7000);
 
     expect(s.perm("zero").currentDP).toBe(7000);
     expect(s.state.players[0]!.deck).toHaveLength(1);

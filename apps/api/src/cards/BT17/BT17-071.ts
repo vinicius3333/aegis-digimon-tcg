@@ -6,115 +6,98 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ornismon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Ornismon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          from: ["trash"],
+          payCost: false,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Darcmon",
-                    "HippoGryphonmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Darcmon", "HippoGryphonmon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "[Darcmon] and [HippoGryphonmon] are in this Digimon's digivolution cards"
+            raw: "[Darcmon] and [HippoGryphonmon] are in this Digimon's digivolution cards",
           },
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by deleting 1 of your other Digimon"
+            raw: "by deleting 1 of your other Digimon",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levelComparison": {
-                    "op": "lte",
-                    "relativeTo": "lastDeleted"
-                  }
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: {
+                    op: "lte",
+                    relativeTo: "lastDeleted",
+                  },
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+                count: 1,
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Darcmon"
-      ],
-      "minNameStackCount": 1,
-      "minNameStackNames": [
-        "HippoGryphonmon"
-      ],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      names: ["Darcmon"],
+      minNameStackCount: 1,
+      minNameStackNames: ["HippoGryphonmon"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-071", compiled);

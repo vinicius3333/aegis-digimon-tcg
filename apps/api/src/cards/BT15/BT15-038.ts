@@ -44,8 +44,9 @@ async function resolveModifyDP(ctx: EffectContext, ownerSeat: 0 | 1): Promise<vo
   if (trashed.length === 0) return;
 
   const oppSeat = ctx.game.opponentOf(ownerSeat);
-  const oppDigimon = ctx.game.player(oppSeat).battleArea
-    .filter((p) => {
+  const oppDigimon = ctx.game
+    .player(oppSeat)
+    .battleArea.filter((p) => {
       if (p.inBreeding || p.topCard === undefined) return false;
       return isDigimon(ctx.game.definitionOf(p.topCard));
     })

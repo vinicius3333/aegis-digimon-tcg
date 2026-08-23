@@ -23,10 +23,13 @@ describe("BT12-108 handwritten module", () => {
 });
 
 it("deletes a chosen Machine and an opposing Digimon within its DP", async () => {
-  const s = setupEngine({
-    0: { hand: [{ card: "BT12-108", as: "option" }], battleArea: [{ card: "BT12-072", as: "machine" }] },
-    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
-  }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-108", as: "option" }], battleArea: [{ card: "BT12-072", as: "machine" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
   await s.ready();
   s.state.memory = 2;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
@@ -42,13 +45,16 @@ it("registers its printed Security trash-and-delete effect", () => {
 });
 
 it("trashes a Machine from hand and deletes an opposing Digimon within its play cost", async () => {
-  const s = setupEngine({
-    0: {
-      security: [{ card: "BT12-108", as: "option", faceUp: true }],
-      hand: [{ card: "BT12-072", as: "machine" }],
+  const s = setupEngine(
+    {
+      0: {
+        security: [{ card: "BT12-108", as: "option", faceUp: true }],
+        hand: [{ card: "BT12-072", as: "machine" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     },
-    1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-  }, { autoSelectCards: true });
+    { autoSelectCards: true },
+  );
   await s.ready();
   await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT12-072");

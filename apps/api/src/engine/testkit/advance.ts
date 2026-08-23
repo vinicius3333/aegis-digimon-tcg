@@ -20,11 +20,7 @@ export function advance(engine: GameEngine) {
   return {
     /** Wait until the requested seat's production Main controller is authoritatively open. */
     async waitForMainPhase(seat: Seat): Promise<void> {
-      for (
-        let i = 0;
-        i < 500 && !(internals.mainPhase.seat === seat && internals.state.phase === Phase.Main);
-        i += 1
-      ) {
+      for (let i = 0; i < 500 && !(internals.mainPhase.seat === seat && internals.state.phase === Phase.Main); i += 1) {
         await Promise.resolve();
       }
       if (internals.mainPhase.seat !== seat || internals.state.phase !== Phase.Main) {

@@ -38,7 +38,9 @@ describe("BT11-100 Megalo Spark", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 2000);
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();

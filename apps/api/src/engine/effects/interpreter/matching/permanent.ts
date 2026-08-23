@@ -382,8 +382,7 @@ export function permanentMatchesFilter(
   }
   if (filter.playCostLteTriggerSource === true) {
     const triggerPermanentId = ctx.trigger.suspendedPermanentId ?? ctx.trigger.subjectPermanentId;
-    const triggerPermanent =
-      triggerPermanentId === undefined ? undefined : ctx.game.permanentById(triggerPermanentId);
+    const triggerPermanent = triggerPermanentId === undefined ? undefined : ctx.game.permanentById(triggerPermanentId);
     const triggerDefinition =
       triggerPermanent?.topCard === undefined ? undefined : ctx.game.definitionOf(triggerPermanent.topCard);
     const bound = ctx.trigger.playedPlayCost ?? triggerDefinition?.playCost;

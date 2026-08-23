@@ -159,14 +159,18 @@ describe("BT11-097 Crimson Flare [Main]", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("crimsonFlare").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("crimsonFlare").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.memory).toBe(5);
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("biyomon").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("biyomon").permanentId),
+    ).toBe(true);
   });
 
   it("calls deletePermanent on the chosen opponent Digimon with ≤8000 DP", async () => {

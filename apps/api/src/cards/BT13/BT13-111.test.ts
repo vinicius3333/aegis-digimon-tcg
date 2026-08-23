@@ -33,7 +33,9 @@ describe("BT13-111 Gallantmon", () => {
     expect(
       blocked.engine.applyIntent(0, { type: "playCard", instanceId: blocked.inst("gallantmon").instanceId }),
     ).toEqual({ ok: true });
-    await settle(() => blocked.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-111"));
+    await settle(() =>
+      blocked.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-111"),
+    );
     expect(blocked.state.memory).toBe(-1);
     expect(blocked.state.players[0]!.hand.some((card) => card.cardId === "BT13-111")).toBe(false);
   });

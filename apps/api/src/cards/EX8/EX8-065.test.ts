@@ -24,10 +24,19 @@ describe("EX8-065", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     }));
   it("plays the exact face-up security card into the battle area without cost", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "EX8-065", as: "securityCard" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+      1: { security: [{ card: "EX8-065", as: "securityCard" }] },
+    });
     const instanceId = s.inst("securityCard").instanceId;
     const memoryBeforeSecurityEffect = s.state.memory;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
@@ -36,7 +45,13 @@ describe("EX8-065", () => {
   it("suspends this Tamer to digivolve a real Tyrannomon attacker from hand", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-016", as: "attacker" }, { card: "EX8-065", as: "tamer" }], hand: [{ card: "BT1-024", as: "tyrannomon" }] },
+        0: {
+          battleArea: [
+            { card: "BT1-016", as: "attacker" },
+            { card: "EX8-065", as: "tamer" },
+          ],
+          hand: [{ card: "BT1-024", as: "tyrannomon" }],
+        },
         1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -45,11 +60,13 @@ describe("EX8-065", () => {
     s.state.turnSeat = 0;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard?.cardId === "BT1-024");
 
     expect(s.perm("attacker").topCard?.cardId).toBe("BT1-024");

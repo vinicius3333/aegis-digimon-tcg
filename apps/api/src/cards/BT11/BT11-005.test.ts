@@ -30,10 +30,7 @@ describe("BT11-005 Koromon", () => {
     });
     s.state.turnSeat = 1;
 
-    await advance(s.engine).verb.deletePermanent([
-      s.perm("host").permanentId,
-      s.perm("victim").permanentId,
-    ]);
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId, s.perm("victim").permanentId]);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });

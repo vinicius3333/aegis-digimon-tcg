@@ -6,82 +6,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCardsCompareToSource": "lte",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              digivolutionCardsCompareToSource: "lte",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
+          to: "hand",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCardsCompareToSource": "lte",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              digivolutionCardsCompareToSource: "lte",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand"
-        }
+          to: "hand",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "sourceFilter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCardsCompareToSource": "lte" },
-          "raw": "[Opponent's Turn] When an opponent's Digimon attacks, if [Plesiomon]/[X Antibody] is in this Digimon's digivolution cards, gain 2 memory.",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          sourceFilter: { controller: "opponent", kind: ["Digimon"], digivolutionCardsCompareToSource: "lte" },
+          raw: "[Opponent's Turn] When an opponent's Digimon attacks, if [Plesiomon]/[X Antibody] is in this Digimon's digivolution cards, gain 2 memory.",
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 2,
-              "condition": {
-                "kind": "selfHasInDigivolutionCards",
-                "nameOrTrait": [
+              kind: "GainMemory",
+              amount: 2,
+              condition: {
+                kind: "selfHasInDigivolutionCards",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Plesiomon",
-                      "X Antibody"
-                    ],
-                    "match": "name"
-                  }
+                    tokens: ["Plesiomon", "X Antibody"],
+                    match: "name",
+                  },
                 ],
-                "raw": "[Plesiomon]/[X Antibody] is in this Digimon's digivolution cards"
-              }
-            }
-          ]
-        }
-      ]
-    }
+                raw: "[Plesiomon]/[X Antibody] is in this Digimon's digivolution cards",
+              },
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-032", compiled);

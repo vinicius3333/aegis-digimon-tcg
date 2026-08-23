@@ -27,13 +27,7 @@ describe("BT24-070 Growlmon", () => {
         {
           0: {
             ...(entry === "digivolve" ? { battleArea: [{ card: "BT24-068", as: "base" }] } : {}),
-            hand: [
-              { card: "BT24-070", as: "growlmon" },
-              "BT1-001",
-              "BT1-002",
-              "BT1-003",
-              "BT1-004",
-            ],
+            hand: [{ card: "BT24-070", as: "growlmon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004"],
             trash: [{ card: "BT12-096", as: "tamer" }],
           },
         },
@@ -64,14 +58,7 @@ describe("BT24-070 Growlmon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [
-            { card: "BT24-070", as: "growlmon" },
-            "BT1-001",
-            "BT1-002",
-            "BT1-003",
-            "BT1-004",
-            "BT1-005",
-          ],
+          hand: [{ card: "BT24-070", as: "growlmon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
           trash: [{ card: "BT12-096", as: "tamer" }],
         },
       },

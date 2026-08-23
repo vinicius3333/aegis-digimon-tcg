@@ -6,17 +6,33 @@ import "./BT4-111.js";
 
 describe("BT4-111 Jack Raid", () => {
   it("gains exactly 1 memory for every complete 10 cards already in trash", async () => {
-    const s = setupEngine({ 0: { battleArea: ["BT4-076"], hand: [{ card: "BT4-111", as: "option" }], trash: Array.from({ length: 20 }, () => "BT4-077") } });
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT4-076"],
+        hand: [{ card: "BT4-111", as: "option" }],
+        trash: Array.from({ length: 20 }, () => "BT4-077"),
+      },
+    });
     s.state.memory = 0;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });
 
   it("does not count itself as the tenth trash card", async () => {
-    const s = setupEngine({ 0: { battleArea: ["BT4-076"], hand: [{ card: "BT4-111", as: "option" }], trash: Array.from({ length: 9 }, () => "BT4-077") } });
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT4-076"],
+        hand: [{ card: "BT4-111", as: "option" }],
+        trash: Array.from({ length: 9 }, () => "BT4-077"),
+      },
+    });
     s.state.memory = 0;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.length === 10);
     expect(s.state.memory).toBe(0);
   });

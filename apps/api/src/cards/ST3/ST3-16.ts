@@ -2,7 +2,12 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const main = { kind: "ModifyDP", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -10000, duration: "forTheTurn" };
+const main = {
+  kind: "ModifyDP",
+  target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 },
+  amount: -10000,
+  duration: "forTheTurn",
+};
 const compiled: CompiledCard = {
   effects: [
     { trigger: "Main", actions: [main] },

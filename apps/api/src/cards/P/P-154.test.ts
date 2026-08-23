@@ -7,19 +7,32 @@ describe("P-154 Maildramon", () => {
     const replacement = runtimeCompiledCard("P-154")!.effects[0]!;
     expect(replacement).toMatchObject({
       trigger: "AllTurns",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldLeavePlay",
-        sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"], nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }] },
-        causeFilter: { byOpponentEffect: true },
-        cost: { kind: "place", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-      }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }],
+          },
+          causeFilter: { byOpponentEffect: true },
+          cost: { kind: "place", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+        },
+      ],
     });
   });
 
   it("encodes inherited Blocker", () => {
-    expect(runtimeCompiledCard("P-154")!.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "Static", isInherited: true, keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] }),
-    ]));
+    expect(runtimeCompiledCard("P-154")!.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Static",
+          isInherited: true,
+          keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+        }),
+      ]),
+    );
   });
 });

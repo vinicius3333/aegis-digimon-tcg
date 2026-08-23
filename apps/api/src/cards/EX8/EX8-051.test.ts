@@ -6,12 +6,20 @@ import "./index.js";
 import { compiled } from "./EX8-051.js";
 
 describe("EX8-051", () => {
-  function primitivesOf(s: EngineSetup): Primitives { return (s.engine as unknown as { primitives: Primitives }).primitives; }
+  function primitivesOf(s: EngineSetup): Primitives {
+    return (s.engine as unknown as { primitives: Primitives }).primitives;
+  }
 
   it("inherits De-Digivolve 1 when trashed from a Mineral/Rock host", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "SubTrigger", event: "onDigivolutionCardsDiscardedBatch", actions: [{ kind: "DeDigivolve", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardsDiscardedBatch",
+          actions: [{ kind: "DeDigivolve", amount: 1 }],
+        },
+      ],
     }));
   it("has Collision, Piercing, and Fragment (3)", () =>
     expect(
@@ -41,16 +49,20 @@ describe("EX8-051", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("proganomon").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("proganomon").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("proganomon").stack.length === 0);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("proganomon").permanentId)).toBe(true);
     expect(s.perm("proganomon").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.filter((card) => ["EX8-050", "EX8-049", "EX8-048"].includes(card.cardId))).toHaveLength(3);
+    expect(
+      s.state.players[0]!.trash.filter((card) => ["EX8-050", "EX8-049", "EX8-048"].includes(card.cardId)),
+    ).toHaveLength(3);
   });
 
   it("de-digivolves an opposing Digimon when trashed from a qualifying host", async () => {
@@ -59,7 +71,9 @@ describe("EX8-051", () => {
       1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009", "BT1-010"] }] },
     });
     await s.ready();
-    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], { byEffectSeat: 0 });
+    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], {
+      byEffectSeat: 0,
+    });
     await settle(() => s.perm("target").stack.length === 1);
     expect(s.perm("target").stack).toHaveLength(1);
   });

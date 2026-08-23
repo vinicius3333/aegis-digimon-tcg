@@ -32,108 +32,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    trackCount:"returnedByEffect" (ctx.namedCounts), and the Delete gates on it
 //    via the namedCountAtLeast condition (count 7).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "CostModifier",
-          "mode": "reduce",
-          "costType": "memory",
-          "amount": 1,
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "memory",
+          amount: 1,
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "zone": "trash",
-              "kind": [
-                "Option"
-              ]
+          scaling: {
+            per: 1,
+            filter: {
+              zone: "trash",
+              kind: ["Option"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
+                },
+              ],
             },
-            "orFilters": [
+            orFilters: [
               {
-                "zone": "trash",
-                "kind": [
-                  "Option"
-                ]
-              }
+                zone: "trash",
+                kind: ["Option"],
+              },
             ],
-            "count": "all"
+            count: "all",
           },
-          "to": "deckBottom",
-          "trackCount": "returnedByEffect"
+          to: "deckBottom",
+          trackCount: "returnedByEffect",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
+                },
+              ],
             },
-            "orFilters": [
+            orFilters: [
               {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ],
-                "dp": {
-                  "op": "lte",
-                  "value": 8000
-                }
-              }
+                controller: "opponent",
+                kind: ["Digimon"],
+                dp: {
+                  op: "lte",
+                  value: 8000,
+                },
+              },
             ],
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "namedCountAtLeast",
-            "countSource": "returnedByEffect",
-            "count": 7,
-            "raw": "7 or more cards were returned using this effect"
-          }
-        }
-      ]
-    }
+          condition: {
+            kind: "namedCountAtLeast",
+            countSource: "returnedByEffect",
+            count: 7,
+            raw: "7 or more cards were returned using this effect",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-015", compiled);

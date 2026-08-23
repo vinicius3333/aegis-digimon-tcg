@@ -71,7 +71,9 @@ describe("BT10-069 — [When Digivolving] Return excludes its own name (non-[Dar
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("darkKnightX"));
 
     expect(s.perm("darkKnightX").isSuspended).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tamer").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tamer").permanentId),
+    ).toBe(true);
   });
 
   it("unsuspends even when no Tamer exists to delete (Q1991)", async () => {
@@ -85,14 +87,17 @@ describe("BT10-069 — [When Digivolving] Return excludes its own name (non-[Dar
   });
 
   it("must delete the only available Tamer before unsuspending (Q1992)", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-069", as: "darkKnightX", suspended: true, under: ["BT10-066"] },
-          { card: "BT10-088", as: "tamer" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-069", as: "darkKnightX", suspended: true, under: ["BT10-066"] },
+            { card: "BT10-088", as: "tamer" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     const tamerId = s.perm("tamer").permanentId;
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("darkKnightX"));

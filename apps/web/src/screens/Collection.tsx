@@ -45,7 +45,10 @@ export function Collection() {
   const shown = filter.filtered.slice(0, visibleCount);
 
   return (
-    <main className="collection-page" style={{ height: "calc(100% - var(--ds-nav-height-wide))", display: "flex", overflow: "hidden" }}>
+    <main
+      className="collection-page"
+      style={{ height: "calc(100% - var(--ds-nav-height-wide))", display: "flex", overflow: "hidden" }}
+    >
       <header className="collection-header">
         <div>
           <Eyebrow>{t("collection.eyebrow")}</Eyebrow>
@@ -58,11 +61,27 @@ export function Collection() {
 
       <div className="collection-results" style={{ flex: 1, overflowY: "auto", padding: "22px 26px" }}>
         {shown.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 60, color: "var(--ds-foreground-muted)" }}>{t("collection.empty")}</div>
+          <div style={{ textAlign: "center", padding: 60, color: "var(--ds-foreground-muted)" }}>
+            {t("collection.empty")}
+          </div>
         ) : (
-          <div className="collection-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 16, alignItems: "start" }}>
+          <div
+            className="collection-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+              gap: 16,
+              alignItems: "start",
+            }}
+          >
             {shown.map((c) => (
-              <CardFull key={c.cardId} cardId={c.cardId} width={150} selected={selected === c.cardId} onClick={() => setSelected((s) => (s === c.cardId ? null : c.cardId))} />
+              <CardFull
+                key={c.cardId}
+                cardId={c.cardId}
+                width={150}
+                selected={selected === c.cardId}
+                onClick={() => setSelected((s) => (s === c.cardId ? null : c.cardId))}
+              />
             ))}
           </div>
         )}

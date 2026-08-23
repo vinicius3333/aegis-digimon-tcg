@@ -20,7 +20,9 @@ describe("P-065 Gammamon", () => {
     const safeId = s.perm("safe").permanentId;
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === eligibleId));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === eligibleId)).toBe(false);

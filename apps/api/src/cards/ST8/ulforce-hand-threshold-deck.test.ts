@@ -28,11 +28,13 @@ describe("ST8 UlforceVeedramon hand-threshold deck gauntlet", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(7);
     expect(observe(s.engine).keywordAmount(ulforce, "SecurityAttack")).toBe(0);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: ulforce.permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ulforce.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
 
     // KB Q702/Q704: Veemon's [When Attacking] draw reaches eight before the other
     // effects resolve, so AeroVeedramon applies to this attack and Ulforce unsuspends.
@@ -50,15 +52,14 @@ describe("ST8 UlforceVeedramon hand-threshold deck gauntlet", () => {
     );
     expect(observe(s.engine).keywordAmount(ulforce, "SecurityAttack")).toBe(1);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: ulforce.permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(
-      () => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1,
-      3000,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ulforce.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1, 3000);
 
     expect(s.state.players[0]!.hand).toHaveLength(8);
     expect(s.state.players[1]!.security).toHaveLength(1);

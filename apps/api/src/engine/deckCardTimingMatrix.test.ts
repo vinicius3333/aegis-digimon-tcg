@@ -18,9 +18,9 @@ import "../cards/index.js";
 
 type TriggerName = string;
 
-const playableDeckCards = [...new Set(
-  [...ALL_FAMOUS_DECKS].flatMap((deck) => [...deck.decklist.mainDeck, ...deck.decklist.eggDeck]),
-)].filter((cardId) => {
+const playableDeckCards = [
+  ...new Set([...ALL_FAMOUS_DECKS].flatMap((deck) => [...deck.decklist.mainDeck, ...deck.decklist.eggDeck])),
+].filter((cardId) => {
   const definition = getCardDefinition(cardId);
   return (
     definition !== undefined &&
@@ -33,33 +33,25 @@ const playableDeckCards = [...new Set(
 function triggersFor(cardId: string): TriggerName[] {
   const compiled = getCompiledCard(cardId);
   if (compiled === undefined) return [];
-  return [...new Set(
-    compiled.effects.flatMap((effect) => {
-      const trigger = (effect as typeof effect & { trigger?: unknown }).trigger;
-      return Array.isArray(trigger) ? trigger.map(String) : [String(trigger)];
-    }),
-  )];
+  return [
+    ...new Set(
+      compiled.effects.flatMap((effect) => {
+        const trigger = (effect as typeof effect & { trigger?: unknown }).trigger;
+        return Array.isArray(trigger) ? trigger.map(String) : [String(trigger)];
+      }),
+    ),
+  ];
 }
 
 function board(cardId: string) {
-  const opponentBattleArea = cardId === "EX5-041"
-    ? []
-    : [{ card: "BT1-009", dp: 5000, as: "opponent" }];
+  const opponentBattleArea = cardId === "EX5-041" ? [] : [{ card: "BT1-009", dp: 5000, as: "opponent" }];
   return {
     0: {
       hand: [{ card: cardId, as: "source" }],
       deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
       trash: ["BT1-009", "BT1-009"],
       security: ["BT1-090", "BT1-090", "BT1-090"],
-      battleArea: [
-        "BT1-009",
-        "BT1-086",
-        "BT1-050",
-        "BT1-064",
-        "BT10-062",
-        "BT10-071",
-        "AD1-005",
-      ],
+      battleArea: ["BT1-009", "BT1-086", "BT1-050", "BT1-064", "BT10-062", "BT10-071", "AD1-005"],
     },
     1: {
       deck: ["BT1-009", "BT1-009", "BT1-009"],
@@ -101,12 +93,23 @@ describe("catalogued deck cards — declared trigger matrix", () => {
     const triggers = triggersFor(cardId);
     it(`${cardId} resolves its declared discrete timing windows`, async () => {
       for (const trigger of triggers) {
-        if (trigger === "OnPlay" || trigger === "Static" || trigger === "Rule" || trigger === "YourTurn" || trigger === "AllTurns" || trigger === "OpponentsTurn") continue;
+        if (
+          trigger === "OnPlay" ||
+          trigger === "Static" ||
+          trigger === "Rule" ||
+          trigger === "YourTurn" ||
+          trigger === "AllTurns" ||
+          trigger === "OpponentsTurn"
+        )
+          continue;
         if (trigger === "Security") {
-          const s = setupEngine({
-            0: { security: [{ card: cardId, as: "securitySource" }, "BT1-090", "BT1-090"] },
-            1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-          }, { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true });
+          const s = setupEngine(
+            {
+              0: { security: [{ card: cardId, as: "securitySource" }, "BT1-090", "BT1-090"] },
+              1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+            },
+            { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+          );
           await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securitySource"));
           assertNoLoudGap(s);
           continue;
@@ -121,14 +124,22 @@ describe("catalogued deck cards — declared trigger matrix", () => {
         if (trigger === "OnDeletion") {
           await advance(s.engine).verb.deletePermanent([permanent.permanentId]);
         } else {
-          const timing = trigger === "WhenDigivolving" ? EffectTiming.WhenDigivolving
-            : trigger === "WhenAttacking" ? EffectTiming.OnUseAttack
-              : trigger === "EndOfAttack" ? EffectTiming.OnEndAttack
-                : trigger === "WhenMoving" ? EffectTiming.OnMove
-                  : trigger === "StartOfYourMainPhase" ? EffectTiming.OnStartMainPhase
-                    : trigger === "StartOfYourTurn" || trigger === "StartOfOpponentsTurn" ? EffectTiming.OnStartTurn
-                      : trigger === "EndOfYourTurn" || trigger === "EndOfOpponentsTurn" || trigger === "EndOfAllTurns" ? EffectTiming.OnEndTurn
-                        : undefined;
+          const timing =
+            trigger === "WhenDigivolving"
+              ? EffectTiming.WhenDigivolving
+              : trigger === "WhenAttacking"
+                ? EffectTiming.OnUseAttack
+                : trigger === "EndOfAttack"
+                  ? EffectTiming.OnEndAttack
+                  : trigger === "WhenMoving"
+                    ? EffectTiming.OnMove
+                    : trigger === "StartOfYourMainPhase"
+                      ? EffectTiming.OnStartMainPhase
+                      : trigger === "StartOfYourTurn" || trigger === "StartOfOpponentsTurn"
+                        ? EffectTiming.OnStartTurn
+                        : trigger === "EndOfYourTurn" || trigger === "EndOfOpponentsTurn" || trigger === "EndOfAllTurns"
+                          ? EffectTiming.OnEndTurn
+                          : undefined;
           if (timing !== undefined) {
             await advance(s.engine).fireForPermanent(timing, permanent, {
               attackerPermanentId: permanent.permanentId,

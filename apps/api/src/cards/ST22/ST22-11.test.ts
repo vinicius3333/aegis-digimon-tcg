@@ -7,7 +7,10 @@ import "../index.js";
 describe("ST22-11 Defense Plug-In F", () => {
   it("de-digivolves two cards and returns itself to hand from security", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "ST22-11", as: "option", faceUp: true }] }, 1: { battleArea: [{ card: "BT1-020", as: "opponent", under: ["BT1-010", "BT1-015"] }] } },
+      {
+        0: { security: [{ card: "ST22-11", as: "option", faceUp: true }] },
+        1: { battleArea: [{ card: "BT1-020", as: "opponent", under: ["BT1-010", "BT1-015"] }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const option = s.inst("option").instanceId;

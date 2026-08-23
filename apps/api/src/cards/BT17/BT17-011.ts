@@ -6,148 +6,128 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Red"
-              ]
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Red"],
             },
-            "count": 1
+            count: 1,
           },
-          "asLevel": 3,
-          "from": "hand"
-        }
-      ]
+          asLevel: 3,
+          from: "hand",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "AncientGreymon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["AncientGreymon"],
+                match: "name",
+              },
+            ],
           },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 3,
-          "ignoreRequirements": true,
-          "optional": true,
-          "condition": {
-            "kind": "anyOf",
-            "conditions": [
+          payCost: true,
+          from: ["hand"],
+          costOverride: 3,
+          ignoreRequirements: true,
+          optional: true,
+          condition: {
+            kind: "anyOf",
+            conditions: [
               {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "BurningGreymon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["BurningGreymon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "raw": "[BurningGreymon] is in this Digimon's digivolution cards"
+                raw: "[BurningGreymon] is in this Digimon's digivolution cards",
               },
               {
-                "kind": "youHave",
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ],
-                  "colors": [
-                    "Blue",
-                    "Green"
-                  ]
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon", "Tamer"],
+                  colors: ["Blue", "Green"],
                 },
-                "raw": "you have a blue or green Digimon or Tamer"
-              }
+                raw: "you have a blue or green Digimon or Tamer",
+              },
             ],
-            "raw": "[BurningGreymon] is in this Digimon's digivolution cards or you have a blue or green Digimon or Tamer"
-          }
+            raw: "[BurningGreymon] is in this Digimon's digivolution cards or you have a blue or green Digimon or Tamer",
+          },
         },
         {
-          "kind": "DelayedDelete",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "DelayedDelete",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "ifThisEffectDigivolved",
-            "raw": "digivolved by this effect"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectDigivolved",
+            raw: "digivolved by this effect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Takuya Kanbara"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Takuya Kanbara"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "names": [
-        "BurningGreymon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["BurningGreymon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-011", compiled);

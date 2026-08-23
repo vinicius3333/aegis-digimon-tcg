@@ -6,38 +6,36 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "kind": [
-              "Digimon"
-            ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 4
-            }
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 4,
+            },
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Suspend",
-              "target": {
-                "filter": {},
-                "count": 1,
-                "sourceRef": "triggerSubject"
-              }
-            }
-          ]
-        }
-      ]
-    }
+              kind: "Suspend",
+              target: {
+                filter: {},
+                count: 1,
+                sourceRef: "triggerSubject",
+              },
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-060", compiled);

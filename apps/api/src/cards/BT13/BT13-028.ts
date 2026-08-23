@@ -6,107 +6,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Jellymon"],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": ["Thetismon"],
-                "match": "name"
-              }
-            ]
-          },
-          "from": ["hand"],
-          "payCost": true,
-          "costOverride": 3,
-          "ignoreRequirements": true,
-          "optional": true,
-          "additionalCosts": [
-            {
-              "kind": "place",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [
-                    {
-                      "tokens": ["TeslaJellymon"],
-                      "match": "name"
-                    }
-                  ]
+                  tokens: ["Jellymon"],
+                  match: "name",
                 },
-                "count": 1,
-                "from": ["hand"]
+              ],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
+              {
+                tokens: ["Thetismon"],
+                match: "name",
               },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target",
-              "raw": "by placing 1 [TeslaJellymon] from your hand under 1 of your [Jellymon]s"
-            }
-          ]
-        }
+            ],
+          },
+          from: ["hand"],
+          payCost: true,
+          costOverride: 3,
+          ignoreRequirements: true,
+          optional: true,
+          additionalCosts: [
+            {
+              kind: "place",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["TeslaJellymon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+                from: ["hand"],
+              },
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "target",
+              raw: "by placing 1 [TeslaJellymon] from your hand under 1 of your [Jellymon]s",
+            },
+          ],
+        },
       ],
-      "isFromHand": true
+      isFromHand: true,
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Jellymon"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Jellymon"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": 3
+              count: 3,
             },
-            "raw": "By returning 3 cards with [Jellymon] in their text from your trash at the bottom of the deck in any order"
+            raw: "By returning 3 cards with [Jellymon] in their text from your trash at the bottom of the deck in any order",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT13-028", compiled);

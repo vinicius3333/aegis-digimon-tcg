@@ -21,157 +21,131 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levelComparison": {
-              "op": "gte",
-              "value": 5
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "gte",
+              value: 5,
             },
-            "nameOrTrait": [
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Free"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Free"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 4,
-          "optional": true
+          from: ["hand"],
+          reduceCost: 4,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "leaveCause": "otherThanYourEffect",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          leaveCause: "otherThanYourEffect",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Free"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {},
-                "count": 1,
-                "sourceRef": "triggerSubject"
+                tokens: ["Free"],
+                match: "trait",
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+            ],
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {},
+                count: 1,
+                sourceRef: "triggerSubject",
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Imperialdramon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Imperialdramon"],
+                    match: "name",
+                  },
+                ],
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "bindResultAs": "digivolvedToPreventDeletion"
+              from: ["hand"],
+              payCost: false,
+              bindResultAs: "digivolvedToPreventDeletion",
             },
             {
-              "kind": "Prevent",
-              "condition": {
-                "kind": "bindingExists",
-                "ref": "digivolvedToPreventDeletion",
-                "raw": "digivolved that Digimon into [Imperialdramon]"
-              }
-            }
+              kind: "Prevent",
+              condition: {
+                kind: "bindingExists",
+                ref: "digivolvedToPreventDeletion",
+                raw: "digivolved that Digimon into [Imperialdramon]",
+              },
+            },
           ],
-          "raw": "wouldBeDeleted"
-        }
+          raw: "wouldBeDeleted",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Davis Motomiya",
-                    "Ken Ichijoji"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Davis Motomiya", "Ken Ichijoji"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-097", compiled);

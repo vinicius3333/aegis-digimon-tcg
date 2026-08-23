@@ -4,60 +4,54 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1,
-            "bindAs": "returnTarget"
-          }
+            count: 1,
+            bindAs: "returnTarget",
+          },
         },
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "returnTarget"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "returnTarget",
           },
-          "amount": 99,
-          "raw": "Trash all of the digivolution cards of that Digimon."
+          amount: 99,
+          raw: "Trash all of the digivolution cards of that Digimon.",
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {},
-            "count": 1,
-            "fromSelectionRef": "returnTarget"
+          kind: "Return",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "returnTarget",
           },
-          "to": "hand"
-        }
-      ]
-    }
+          to: "hand",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 3,
-      "isAlternate": true,
-      "baseIsTamer": true,
-      "baseColors": [
-        "Blue"
-      ]
-    }
-  ]
+      cost: 3,
+      isAlternate: true,
+      baseIsTamer: true,
+      baseColors: ["Blue"],
+    },
+  ],
 };
 
 registerIrCard("BT4-027", compiled);

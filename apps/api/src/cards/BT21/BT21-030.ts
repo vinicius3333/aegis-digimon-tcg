@@ -16,115 +16,113 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // DigiXros -1: ∞ Digimon cards with [Xros Heart] or [Blue Flare] trait & different card numbers.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 1,
-          "cost": {
-            "kind": "placeUnder",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Shoutmon"], "match": "name" }]
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 1,
+          cost: {
+            kind: "placeUnder",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Shoutmon"], match: "name" }],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by placing 1 of your [Shoutmon] under it"
+            raw: "by placing 1 of your [Shoutmon] under it",
           },
-          "additionalEffects": [
+          additionalEffects: [
             {
-              "kind": "AllowDigiXrosMaterialsFromTrash",
-              "raw": "cards in your trash can also be placed for DigiXros"
-            }
+              kind: "AllowDigiXrosMaterialsFromTrash",
+              raw: "cards in your trash can also be placed for DigiXros",
+            },
           ],
-          "raw": "When this card would be played, by placing 1 of your [Shoutmon] under it, reduce the play cost by 1 and cards in your trash can also be placed for DigiXros"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "amount": 10,
-          "fromTop": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "amount": 10,
-          "fromTop": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "digivolutionCards": "none"
-            },
-            "count": 1
-          },
-          "to": "deckBottom",
-          "optional": true
-        }
+          raw: "When this card would be played, by placing 1 of your [Shoutmon] under it, reduce the play cost by 1 and cards in your trash can also be placed for DigiXros",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 6,
-      "traits": ["Hero"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ],
-  "digiXrosRequirement": [
-    {
-      "materials": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": ["Digimon"],
-          "nameOrTrait": [
-            { "tokens": ["Xros Heart", "Blue Flare"], "match": "trait" }
-          ],
-          "differentCardNumbers": true
-        }
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 10,
+          fromTop: true,
+        },
       ],
-      "count": "∞",
-      "costReduction": 1
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 10,
+          fromTop: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "none",
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 6,
+      traits: ["Hero"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" }],
+          differentCardNumbers: true,
+        },
+      ],
+      count: "∞",
+      costReduction: 1,
+    },
   ],
 };
 

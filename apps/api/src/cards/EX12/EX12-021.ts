@@ -11,86 +11,78 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Cost is paid ONCE for the combined Draw+GainMemory effect; cost lives on the Draw action
 // only (the first action in the sequence). GainMemory has no cost.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Garurumon"
-                    ],
-                    "match": "name"
+                    tokens: ["Garurumon"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "VB"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["VB"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with [Garurumon] in its name or the [VB] trait from your hand"
-          }
+            raw: "By trashing 1 card with [Garurumon] in its name or the [VB] trait from your hand",
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if the draw cost was paid"
-          }
-        }
-      ]
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if the draw cost was paid",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "handAtMost",
-            "value": 7,
-            "raw": "your hand has 7 or fewer cards"
-          }
-        }
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "handAtMost",
+            value: 7,
+            raw: "your hand has 7 or fewer cards",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Tsunomon"
-      ],
-      "cost": 0,
-      "isAlternate": true
+      names: ["Tsunomon"],
+      cost: 0,
+      isAlternate: true,
     },
     {
-      "level": 2,
-      "traits": [
-        "VB"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["VB"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-021", compiled);

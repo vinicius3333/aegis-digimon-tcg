@@ -6,80 +6,76 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 3000
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 3000,
               },
-              "count": 1
             },
-            "raw": "By trashing 1 card in your hand"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card in your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "SoC"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["SoC"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "a Tamer card with the [SoC] trait is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "a Tamer card with the [SoC] trait is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "memoryAtLeast",
-            "controller": "opponent",
-            "value": 1,
-            "raw": "your opponent has 1 or more memory"
-          }
-        }
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "memoryAtLeast",
+            controller: "opponent",
+            value: 1,
+            raw: "your opponent has 1 or more memory",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT15-071", compiled);

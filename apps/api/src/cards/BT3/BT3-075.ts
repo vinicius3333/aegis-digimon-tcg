@@ -6,42 +6,40 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [],
-      "keywords": [
+      trigger: "AllTurns",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "keywords": ["Blocker"]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              keywords: ["Blocker"],
             },
-            "orFilters": [{ "controller": "mine", "kind": ["Digimon"], "stackKeywords": ["Blocker"] }],
-            "count": "all"
+            orFilters: [{ controller: "mine", kind: ["Digimon"], stackKeywords: ["Blocker"] }],
+            count: "all",
           },
-          "restriction": "beDeleted",
-          "duration": "permanent",
-          "byOpponentEffectsOnly": true
-        }
-      ]
-    }
+          restriction: "beDeleted",
+          duration: "permanent",
+          byOpponentEffectsOnly: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT3-075", compiled);

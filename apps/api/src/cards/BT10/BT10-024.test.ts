@@ -8,12 +8,14 @@ describe("BT10-024 MetalGreymon", () => {
   it("gains Rush on play", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT10-024", as: "source" }] } });
     s.state.memory = 7;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => {
-      const played = s.state.players[0]!.battleArea.find(p => p.topCard.cardId === "BT10-024");
+      const played = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT10-024");
       return played !== undefined && observe(s.engine).hasKeyword(played, "Rush");
     });
-    const played = s.state.players[0]!.battleArea.find(p => p.topCard.cardId === "BT10-024");
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT10-024");
     expect(played !== undefined && observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
   });
 
@@ -40,20 +42,22 @@ describe("BT10-024 MetalGreymon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("metalGreymon").instanceId,
-      digiXros: {
-        materialInstanceIds: [
-          s.perm("greymon").topCard.instanceId,
-          s.perm("mailbirdramon").topCard.instanceId,
-        ],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => ["zeroSources", "twoSources"].every((alias) =>
-      observe(s.engine).isRestricted(s.perm(alias), "attack") &&
-      observe(s.engine).isRestricted(s.perm(alias), "block"),
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.perm("greymon").topCard.instanceId, s.perm("mailbirdramon").topCard.instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      ["zeroSources", "twoSources"].every(
+        (alias) =>
+          observe(s.engine).isRestricted(s.perm(alias), "attack") &&
+          observe(s.engine).isRestricted(s.perm(alias), "block"),
+      ),
+    );
     await settle();
 
     expect(observe(s.engine).isRestricted(s.perm("zeroSources"), "attack")).toBe(true);
@@ -64,10 +68,7 @@ describe("BT10-024 MetalGreymon", () => {
     expect(observe(s.engine).isRestricted(s.perm("threeSources"), "block")).toBe(false);
 
     // Q1950: the selected Digimon stays restricted even after gaining more sources.
-    await advance(s.engine).verb.placeUnder(
-      s.perm("twoSources").permanentId,
-      [s.inst("newSource").instanceId],
-    );
+    await advance(s.engine).verb.placeUnder(s.perm("twoSources").permanentId, [s.inst("newSource").instanceId]);
     expect(s.perm("twoSources").stack).toHaveLength(3);
     expect(observe(s.engine).isRestricted(s.perm("twoSources"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("twoSources"), "block")).toBe(true);
@@ -85,20 +86,17 @@ describe("BT10-024 MetalGreymon", () => {
     });
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("metalGreymon").instanceId,
-      digiXros: {
-        materialInstanceIds: [
-          s.perm("greymonX").topCard.instanceId,
-          s.perm("mailbirdramon").topCard.instanceId,
-        ],
-      },
-    })).toEqual({ ok: false, reason: "invalid-material" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.perm("greymonX").topCard.instanceId, s.perm("mailbirdramon").topCard.instanceId],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
 
-    expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("metalGreymon").instanceId,
-    )).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
 
@@ -123,19 +121,12 @@ describe("BT10-024 MetalGreymon", () => {
     );
     const metalGreymonId = s.perm("metalGreymon").topCard.instanceId;
 
-    expect(await advance(s.engine).verb.deletePermanent([
-      s.perm("metalGreymon").permanentId,
-    ])).toBe(1);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("metalGreymon").permanentId])).toBe(1);
     await settle(() => s.perm("kiriha").stack.length === 2);
 
     expect(s.perm("kiriha").stack.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([
-        s.inst("greymon").instanceId,
-        s.inst("mailbirdramon").instanceId,
-      ]),
+      expect.arrayContaining([s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId]),
     );
-    expect(s.state.players[0]!.trash.some((card) =>
-      card.instanceId === metalGreymonId,
-    )).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === metalGreymonId)).toBe(true);
   });
 });

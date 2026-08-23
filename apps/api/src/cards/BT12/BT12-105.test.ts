@@ -35,7 +35,10 @@ describe('A3 BT12-105 — granted "[On Deletion] Trash the top card of your secu
           hand: [{ card: "BT12-105", as: "spikingStrike" }],
           battleArea: [{ card: "AD1-011", dp: 2000, as: "colorSource" }],
         },
-        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "recipient" }], security: ["BT1-001", "BT1-001", "BT1-001"] },
+        1: {
+          battleArea: [{ card: "BT1-009", dp: 3000, as: "recipient" }],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

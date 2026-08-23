@@ -11,7 +11,15 @@ describe("EX10-037 Impmon", () => {
           kind: "SubTrigger",
           event: "whenTrashedFromDeck",
           sourceFilter: { isSelfRef: true },
-          actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 } }],
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+                count: 1,
+              },
+            },
+          ],
         },
       ],
     });

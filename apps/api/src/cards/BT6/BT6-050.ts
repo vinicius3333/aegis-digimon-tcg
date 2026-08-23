@@ -7,52 +7,48 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
-          "keyword": {"keyword": "Piercing", "raw": "＜Piercing＞"},
-          "duration": "permanent"
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+          duration: "permanent",
         },
         {
-          "kind": "Digivolve",
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Green"
-              ]
+          kind: "Digivolve",
+          onto: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Green"],
             },
-            "count": 1
+            count: 1,
           },
-          "asLevel": 3,
-          "from": "hand"
-        }
+          asLevel: 3,
+          from: "hand",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
-    }
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 0,
-      "isAlternate": true,
-      "baseIsTamer": true,
-      "baseColors": ["Green"]
-    }
-  ]
+      cost: 0,
+      isAlternate: true,
+      baseIsTamer: true,
+      baseColors: ["Green"],
+    },
+  ],
 };
 
 registerIrCard("BT6-050", compiled);

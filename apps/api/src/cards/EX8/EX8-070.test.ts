@@ -25,29 +25,53 @@ describe("EX8-070", () => {
   });
   it("contains the printed main and Security effects", () => expect(compiled.effects).toHaveLength(2));
   it("deletes the exact lowest-play-cost opposing Digimon when revealed in security", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-001", as: "attacker" }, { card: "BT1-010", as: "lowest" }, { card: "AD1-001", as: "higher" }] },
-      1: { security: [{ card: "EX8-070", as: "option" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-001", as: "attacker" },
+            { card: "BT1-010", as: "lowest" },
+            { card: "AD1-001", as: "higher" },
+          ],
+        },
+        1: { security: [{ card: "EX8-070", as: "option" }] },
+      },
+      { autoSelectCards: true },
+    );
     const lowestInstanceId = s.perm("lowest").topCard!.instanceId;
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => (s.state.players[0] as PlayerState).trash.some((card) => card.instanceId === lowestInstanceId));
 
     expect((s.state.players[0] as PlayerState).trash.some((card) => card.instanceId === lowestInstanceId)).toBe(true);
-    expect((s.state.players[0] as PlayerState).battleArea.some((permanent) => permanent.topCard?.instanceId === s.perm("higher").topCard?.instanceId)).toBe(true);
+    expect(
+      (s.state.players[0] as PlayerState).battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.perm("higher").topCard?.instanceId,
+      ),
+    ).toBe(true);
   });
   it("applies all five Main grants to the selected Mineral host after paying the stack cost", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
-        hand: [{ card: "EX8-070", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+          hand: [{ card: "EX8-070", as: "option" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     s.state.memory = 10;
     const baseDP = s.perm("mineral").currentDP;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("mineral").stack.length === 0 && s.perm("mineral").currentDP === baseDP + 3000);
 
     expect(s.perm("mineral").stack).toHaveLength(0);

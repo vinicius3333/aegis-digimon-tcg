@@ -7,90 +7,81 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // which satisfies the ruling.
 // KB Q1812: "if no Digimon is deleted by this effect" = ifThisEffectDidNotDelete.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "if no Digimon is deleted by this effect"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "if no Digimon is deleted by this effect",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent",
-              "amount": 1,
-              "condition": {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+              condition: {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Gallantmon",
-                        "X Antibody"
-                      ],
-                      "match": "nameExact"
-                    }
-                  ]
+                      tokens: ["Gallantmon", "X Antibody"],
+                      match: "nameExact",
+                    },
+                  ],
                 },
-                "raw": "[Gallantmon] or [X Antibody] is in this Digimon's digivolution cards"
-              }
-            }
-          ]
-        }
+                raw: "[Gallantmon] or [X Antibody] is in this Digimon's digivolution cards",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Gallantmon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Gallantmon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-017", compiled);

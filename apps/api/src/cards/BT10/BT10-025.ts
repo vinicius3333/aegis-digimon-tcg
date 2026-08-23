@@ -16,112 +16,100 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "position": "bottom",
-          "underFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          position: "bottom",
+          underFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Blue Flare"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Blue Flare"],
+                match: "trait",
+              },
+            ],
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Blue Flare"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Blue Flare"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a Digimon with [Blue Flare] in its traits in play"
+            raw: "you have a Digimon with [Blue Flare] in its traits in play",
           },
-          "cost": {
-            "kind": "payMemory",
-            "memory": 3,
-            "raw": "by paying 3 memory"
+          cost: {
+            kind: "payMemory",
+            memory: 3,
+            raw: "by paying 3 memory",
           },
-          "abortOnDecline": true,
-          "bindHostAs": "bt10025PlaceHost"
+          abortOnDecline: true,
+          bindHostAs: "bt10025PlaceHost",
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "boundRef": "bt10025PlaceHost"
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              boundRef: "bt10025PlaceHost",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isFromHand": true
+      isFromHand: true,
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 1000
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
           },
-          "while": {
-            "kind": "opponentHas",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          while: {
+            kind: "opponentHas",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 2,
-            "raw": "your opponent has 2 or more Digimon in play"
-          }
-        }
+            count: 2,
+            raw: "your opponent has 2 or more Digimon in play",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-025", compiled);

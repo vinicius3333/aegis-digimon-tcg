@@ -40,7 +40,9 @@ describe("BT11-098 Maelstrom", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.deck.some(({ cardId }) => cardId === "BT1-015"));
 
     expect(s.perm("seadramon").stack).toHaveLength(1);

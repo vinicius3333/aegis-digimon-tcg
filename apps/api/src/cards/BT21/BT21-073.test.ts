@@ -57,9 +57,15 @@ describe("BT21-073 Charismon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("charismon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-070")));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-070")),
+    );
 
-    expect(Array.from(s.state.players[0]!.battleArea).some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-070"))).toBe(true);
+    expect(
+      Array.from(s.state.players[0]!.battleArea).some((permanent) =>
+        permanent.linked.some((card) => card.cardId === "BT21-070"),
+      ),
+    ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-070")).toBe(false);
   });
 });

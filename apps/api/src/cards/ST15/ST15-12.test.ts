@@ -12,20 +12,25 @@ describe("ST15-12 WarGreymon", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("field"), "Blocker")).toBe(true);
-    expect(registeredCompiledCards.get("ST15-12")?.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        trigger: "Counter",
-        isFromHand: true,
-        keywords: [expect.objectContaining({ keyword: "BlastDigivolve" })],
-      }),
-    ]));
+    expect(registeredCompiledCards.get("ST15-12")?.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Counter",
+          isFromHand: true,
+          keywords: [expect.objectContaining({ keyword: "BlastDigivolve" })],
+        }),
+      ]),
+    );
   });
 
   it("unsuspends itself when either player's security loses a card", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST15-12", as: "wargreymon", suspended: true }] },
-      1: { security: ["BT1-001"] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST15-12", as: "wargreymon", suspended: true }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
 
@@ -33,10 +38,13 @@ describe("ST15-12 WarGreymon", () => {
   });
 
   it("can activate only once per turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST15-12", as: "wargreymon", suspended: true }] },
-      1: { security: ["BT1-001", "BT1-001"] },
-    }, { autoAcceptOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST15-12", as: "wargreymon", suspended: true }] },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.perm("wargreymon").isSuspended).toBe(false);
@@ -47,10 +55,13 @@ describe("ST15-12 WarGreymon", () => {
   });
 
   it("does not unsuspend when the optional effect is declined", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "ST15-12", as: "wargreymon", suspended: true }] },
-      1: { security: ["BT1-001"] },
-    }, { autoDeclineOptional: true });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST15-12", as: "wargreymon", suspended: true }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true },
+    );
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
 

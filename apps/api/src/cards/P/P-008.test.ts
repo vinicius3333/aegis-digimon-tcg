@@ -18,11 +18,13 @@ describe("P-008 WereGarurumon", () => {
     await s.ready();
 
     expect(observe(s.engine).keywordAmount(s.perm("inheritedHost"), "SecurityAttack")).toBe(1);
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("exact").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("exact").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("exact").isSuspended);
     expect(s.perm("exact").isSuspended).toBe(false);
   });
@@ -33,11 +35,13 @@ describe("P-008 WereGarurumon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.perm("attacker").isSuspended).toBe(true);
   });

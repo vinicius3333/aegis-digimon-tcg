@@ -8,109 +8,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [End of Attack]: "You may add the top security card to hand TO unsuspend" —
 // the security add is the cost that enables the unsuspend (cost kind securityToHand).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "includeSecurityZone": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              includeSecurityZone: true,
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": -1000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "selfHasInDigivolutionCards",
-            "nameOrTrait": [
+          amount: -1000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Magnadramon",
-                  "X Antibody"
-                ],
-                "match": "nameExact"
-              }
+                tokens: ["Magnadramon", "X Antibody"],
+                match: "nameExact",
+              },
             ],
-            "raw": "[Magnadramon] or [X Antibody] is in this Digimon's digivolution cards"
+            raw: "[Magnadramon] or [X Antibody] is in this Digimon's digivolution cards",
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine"
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
             },
-            "unit": "security"
-          }
+            unit: "security",
+          },
         },
         {
-          "kind": "ModifySecurityDP",
-          "controller": "opponent",
-          "amount": -1000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "selfHasInDigivolutionCards",
-            "nameOrTrait": [
+          kind: "ModifySecurityDP",
+          controller: "opponent",
+          amount: -1000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Magnadramon",
-                  "X Antibody"
-                ],
-                "match": "nameExact"
-              }
+                tokens: ["Magnadramon", "X Antibody"],
+                match: "nameExact",
+              },
             ],
-            "raw": "[Magnadramon] or [X Antibody] is in this Digimon's digivolution cards"
+            raw: "[Magnadramon] or [X Antibody] is in this Digimon's digivolution cards",
           },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine"
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
             },
-            "unit": "security"
-          }
-        }
-      ]
+            unit: "security",
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "cost": {
-            "kind": "securityToHand",
-            "controller": "mine",
-            "amount": 1,
-            "fromTop": true,
-            "raw": "by adding the top card of your security stack to your hand"
+          cost: {
+            kind: "securityToHand",
+            controller: "mine",
+            amount: 1,
+            fromTop: true,
+            raw: "by adding the top card of your security stack to your hand",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Magnadramon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Magnadramon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT9-043", compiled);

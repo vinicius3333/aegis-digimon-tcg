@@ -33,19 +33,30 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
-      actions: [{
-        kind: "GainKeyword",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
-        duration: "permanent",
-      }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+          duration: "permanent",
+        },
+      ],
       isInherited: true,
     },
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 2, colors: ["Green"], cost: 1 }, { level: 2, colors: ["Purple"], cost: 1 }],
-  digiXrosRequirement: [{ materials: [{ kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] }], count: 1, costReduction: 2 }],
+  digivolutionRequirement: [
+    { level: 2, colors: ["Green"], cost: 1 },
+    { level: 2, colors: ["Purple"], cost: 1 },
+  ],
+  digiXrosRequirement: [
+    {
+      materials: [{ kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] }],
+      count: 1,
+      costReduction: 2,
+    },
+  ],
 };
 
 registerIrCard("EX10-015", compiled);

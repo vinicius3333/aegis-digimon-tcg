@@ -11,133 +11,133 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited [Your Turn]: when another [Eosmon] is played, this Digimon may digivolve
 // into [Eosmon] from hand (cost-3). KB Q4218: cannot ignore digivolution requirements.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Eosmon"],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Eosmon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand",
-              "mandatory": true
+              count: 1,
+              to: "hand",
+              mandatory: true,
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Menoa Bellucci"],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Menoa Bellucci"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand",
-              "mandatory": true
-            }
+              count: 1,
+              to: "hand",
+              mandatory: true,
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": ["Menoa Bellucci"],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Menoa Bellucci"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["hand"],
-          "payCost": false,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": { "isSelfRef": true },
-              "count": 1,
-              "isSelf": true
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "place",
+            target: {
+              filter: { isSelfRef: true },
+              count: 1,
+              isSelf: true,
             },
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "underFilter": {
-              "controller": "mine",
-              "nameOrTrait": [
+            destination: "digivolutionStack",
+            position: "bottom",
+            underFilter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": ["Eosmon"],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Eosmon"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "by placing this Digimon as 1 of your [Eosmon]'s bottom digivolution card"
+            raw: "by placing this Digimon as 1 of your [Eosmon]'s bottom digivolution card",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "excludeSelf": true,
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            excludeSelf: true,
+            nameOrTrait: [
               {
-                "tokens": ["Eosmon"],
-                "match": "name"
-              }
-            ]
+                tokens: ["Eosmon"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "Digivolve",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Eosmon"],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Eosmon"],
+                    match: "name",
+                  },
+                ],
               },
-              "from": ["hand"],
-              "reduceCost": 3,
-              "ignoreRequirements": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["hand"],
+              reduceCost: 3,
+              ignoreRequirements: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-112", compiled);

@@ -9,7 +9,20 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          cost: { kind: "place", target: { filter: { zone: "hand", controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" }] }, count: 1, from: ["hand"] }, raw: "By placing 1 Digimon card with [Xros Heart] or [Blue Flare] in its traits from your hand under this Tamer" },
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" }],
+              },
+              count: 1,
+              from: ["hand"],
+            },
+            raw: "By placing 1 Digimon card with [Xros Heart] or [Blue Flare] in its traits from your hand under this Tamer",
+          },
           optional: true,
           abortOnDecline: true,
         },
@@ -28,7 +41,11 @@ const compiled: CompiledCard = {
               kind: "PlaceUnder",
               target: { filter: { controller: "mine", kind: ["Digimon"], zone: "underTamer" }, count: 1 },
               underFilter: { controller: "mine", kind: ["Tamer"] },
-              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
               optional: true,
               abortOnDecline: true,
               asDigiXrosMaterial: true,
@@ -39,7 +56,9 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

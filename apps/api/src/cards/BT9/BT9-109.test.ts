@@ -1,18 +1,7 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type CardInstance,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT9-109.js";
 import { setupEngine, settle as harnessSettle, assertNoLoudGap } from "../../engine/testkit/harness.js";
@@ -170,21 +159,18 @@ describe("BT9-109 X Antibody (override)", () => {
     expect(mem[0]!.args[1]).toBe(1);
   });
 
-  it(
-    // Text: "[Security] Gain 1 memory, AND add this card to its owner's hand." The
-    // security resolver runs a [Security] effect while the revealed card is still in the
-    // security stack, so returnToHand moves it to hand before the resolver's trash sweep.
-    "[Security] adds this card to its owner's hand",
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder });
-      const effect = module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const toHand = recorder.calls.filter((c) => c.verb === "returnToHand");
-      expect(toHand).toHaveLength(1);
-      expect(toHand[0]!.args[0]).toEqual(["INST#XA"]);
-    },
-  );
+  it(// Text: "[Security] Gain 1 memory, AND add this card to its owner's hand." The
+  // security resolver runs a [Security] effect while the revealed card is still in the
+  // security stack, so returnToHand moves it to hand before the resolver's trash sweep.
+  "[Security] adds this card to its owner's hand", async () => {
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ recorder });
+    const effect = module!.effectsForTiming(EffectTiming.SecuritySkill, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const toHand = recorder.calls.filter((c) => c.verb === "returnToHand");
+    expect(toHand).toHaveLength(1);
+    expect(toHand[0]!.args[0]).toEqual(["INST#XA"]);
+  });
 
   it("[Main] places this card under an eligible Digimon (no [X Antibody] in its stack)", async () => {
     const recorder: Recorder = { calls: [] };
@@ -238,8 +224,7 @@ describe("BT9-109 [Security] — real engine: credits its OWNER, not the attacki
     // turnSeat, so reading a seat's own-perspective value must account for whose turn
     // it is -- asserting on the raw sign of state.memory would silently pass for
     // whichever seat happens to be turnSeat, which is exactly the bug being caught here.
-    const memoryFor = (seat: 0 | 1): number =>
-      (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
+    const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
     expect(memoryFor(0)).toBe(0);
     expect(memoryFor(1)).toBe(0);
 
@@ -267,22 +252,23 @@ describe("BT9-109 inherited effects — real engine", () => {
   it("protects only X Antibody from an effect that trashes multiple digivolution cards (Q1922)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{
-          card: "BT1-019",
-          as: "host",
-          under: [{ card: "BT1-009", as: "otherSource" }, { card: "BT9-109", as: "xAntibody" }],
-        }],
+        battleArea: [
+          {
+            card: "BT1-019",
+            as: "host",
+            under: [
+              { card: "BT1-009", as: "otherSource" },
+              { card: "BT9-109", as: "xAntibody" },
+            ],
+          },
+        ],
       },
     });
     const otherSourceId = s.inst("otherSource").instanceId;
     const xAntibodyId = s.inst("xAntibody").instanceId;
     await s.engine.recomputeContinuousEffects();
 
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [otherSourceId, xAntibodyId],
-      0,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [otherSourceId, xAntibodyId], 0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === otherSourceId)).toBe(true);
     expect(s.perm("host").stack.some((card) => card.instanceId === xAntibodyId)).toBe(true);
@@ -302,11 +288,13 @@ describe("BT9-109 inherited effects — real engine", () => {
     );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await harnessSettle(() => s.perm("host").topCard?.cardId === "BT9-012");
 
     expect(s.perm("host").topCard?.instanceId).toBe(s.inst("evolving").instanceId);
@@ -329,34 +317,33 @@ describe("BT9-109 [Main] — permanent decision contract", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: xAntibodyInstanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: xAntibodyInstanceId,
+      }),
+    ).toEqual({ ok: true });
     await harnessSettle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const decision = s.decisions.at(-1)!.req;
     expect(decision.sourceCardId).toBe("BT9-109");
-    expect(new Set(decision.options?.candidateInstanceIds)).toEqual(new Set([
-      s.perm("emptyHost").permanentId,
-      s.perm("stackedHost").permanentId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("stackedHost").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await harnessSettle(() => s.perm("stackedHost").stack.some(
-      ({ instanceId }) => instanceId === xAntibodyInstanceId,
-    ));
+    expect(new Set(decision.options?.candidateInstanceIds)).toEqual(
+      new Set([s.perm("emptyHost").permanentId, s.perm("stackedHost").permanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("stackedHost").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await harnessSettle(() => s.perm("stackedHost").stack.some(({ instanceId }) => instanceId === xAntibodyInstanceId));
 
     expect(s.perm("emptyHost").stack).toHaveLength(0);
-    expect(s.perm("stackedHost").stack[0]?.instanceId).toBe(
-      xAntibodyInstanceId,
-    );
+    expect(s.perm("stackedHost").stack[0]?.instanceId).toBe(xAntibodyInstanceId);
     assertNoLoudGap(s);
   });
 });

@@ -17,11 +17,15 @@ describe("P-173 RustTyrannomon", () => {
       { keyword: "Blocker", raw: "＜Blocker＞" },
     ]);
     expect(card.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
-      actions: [{ kind: "DeDigivolve", amount: 4, target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } }],
+      actions: [
+        { kind: "DeDigivolve", amount: 4, target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } },
+      ],
     });
     expect(card.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ actions: [{ kind: "Unsuspend" }], fireCondition: { kind: "triggerRemovalCause", removalCause: "byBattle" } }],
+      actions: [
+        { actions: [{ kind: "Unsuspend" }], fireCondition: { kind: "triggerRemovalCause", removalCause: "byBattle" } },
+      ],
     });
   });
 });

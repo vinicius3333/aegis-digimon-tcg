@@ -5,18 +5,18 @@ import "./BT6-061.js";
 
 describe("BT6-061 Gigadramon", () => {
   function effectiveColors(s: ReturnType<typeof setupEngine>, permanent: Permanent): string[] {
-    return (s.engine as unknown as {
-      effectiveColorsOf(target: Permanent): string[];
-    }).effectiveColorsOf(permanent);
+    return (
+      s.engine as unknown as {
+        effectiveColorsOf(target: Permanent): string[];
+      }
+    ).effectiveColorsOf(permanent);
   }
 
   it("Q1455 is also treated as red in the battle area", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT6-061", as: "gigadramon" }] } });
     await s.ready();
 
-    expect(effectiveColors(s, s.perm("gigadramon"))).toEqual(
-      expect.arrayContaining(["Black", "Red"]),
-    );
+    expect(effectiveColors(s, s.perm("gigadramon"))).toEqual(expect.arrayContaining(["Black", "Red"]));
   });
 
   it("Q1456 is not treated as red in the breeding area", async () => {

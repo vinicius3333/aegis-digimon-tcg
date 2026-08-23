@@ -15,11 +15,13 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT9-066",
-            as: "alphamon",
-            under: ["BT8-069", "BT9-109"],
-          }],
+          battleArea: [
+            {
+              card: "BT9-066",
+              as: "alphamon",
+              under: ["BT8-069", "BT9-109"],
+            },
+          ],
           hand: [{ card: "BT9-111", as: "ouryuken" }],
         },
         1: {
@@ -35,11 +37,13 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
     const ouryukenId = s.inst("ouryuken").instanceId;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("alphamon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alphamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => {
       const request = s.decisions.at(-1)?.req;
       return request?.kind === "optional" && request.sourceCardId === "BT9-109";
@@ -49,11 +53,13 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
     expect(optional.options?.effectText).toContain("[When Attacking]");
     expect(optional.options?.effectText).toContain("[X Antibody] in its traits");
     expect(optional.options?.effectText).not.toContain("[Main] Place this card under");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => {
       const request = s.decisions.at(-1)?.req;
@@ -69,9 +75,10 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
     });
     expect([true, "decision-pending"]).toContain(selectionResult.ok ? true : selectionResult.reason);
 
-    await settle(() =>
-      s.perm("alphamon").topCard.cardId === "BT9-111" &&
-      !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-047"),
+    await settle(
+      () =>
+        s.perm("alphamon").topCard.cardId === "BT9-111" &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-047"),
     );
     expect(s.perm("alphamon").topCard.instanceId).toBe(ouryukenId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
@@ -83,9 +90,7 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT6-111", as: "alphamon", under: ["BT8-069"] },
-          ],
+          battleArea: [{ card: "BT6-111", as: "alphamon", under: ["BT8-069"] }],
           hand: [{ card: "BT9-111", as: "ouryuken" }],
           deck: [{ card: "BT7-056", as: "revealedDorumon" }],
           security: [{ card: "P-070", as: "promoDorumon" }],
@@ -104,55 +109,55 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
     const revealedId = s.inst("revealedDorumon").instanceId;
     s.state.turnSeat = 1;
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some((card) => card.instanceId === promoId) &&
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard.instanceId === revealedId
-      ),
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === promoId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === revealedId),
     );
     await settle();
 
     s.state.turnSeat = 0;
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("alphamon").permanentId,
-      instanceId: s.inst("ouryuken").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("alphamon").topCard.cardId === "BT9-111" &&
-      !s.state.players[1]!.battleArea.some((permanent) =>
-        permanent.topCard.cardId === "BT2-047"
-      ),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("alphamon").permanentId,
+        instanceId: s.inst("ouryuken").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("alphamon").topCard.cardId === "BT9-111" &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-047"),
     );
 
     expect(s.perm("alphamon").topCard.cardId).toBe("BT9-111");
-    expect(s.state.players[0]!.battleArea.some((permanent) =>
-      permanent.topCard.instanceId === revealedId
-    )).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) =>
-      permanent.topCard.cardId === "BT1-015"
-    )).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === revealedId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-015")).toBe(true);
   });
 
   it("digivolves during the attack, then returns the protected X Antibody Option to keep the turn", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT9-066",
-            as: "alphamon",
-            under: [
-              { card: "BT8-069", as: "ouryumon" },
-              { card: "BT9-109", as: "xAntibodyOption" },
-            ],
-          }],
+          battleArea: [
+            {
+              card: "BT9-066",
+              as: "alphamon",
+              under: [
+                { card: "BT8-069", as: "ouryumon" },
+                { card: "BT9-109", as: "xAntibodyOption" },
+              ],
+            },
+          ],
           hand: [{ card: "BT9-111", as: "ouryuken" }],
           deck: ["BT1-063"],
         },
@@ -174,17 +179,17 @@ describe("Alphamon X Antibody SEC / promo deck", () => {
     const ouryumonId = s.inst("ouryumon").instanceId;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("alphamon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alphamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.perm("alphamon").topCard.cardId === "BT9-111" &&
-        !s.state.players[1]!.battleArea.some((permanent) =>
-          permanent.topCard.cardId === "BT2-047"
-        ) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-047") &&
         !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
       5000,
     );

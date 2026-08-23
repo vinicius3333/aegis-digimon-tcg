@@ -6,111 +6,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "unsuspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              unsuspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 2000
+          effect: {
+            kind: "modifyDP",
+            amount: 2000,
           },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                6
-              ]
+          while: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              levels: [6],
             },
-            "raw": "you have another level 6 Digimon"
-          }
+            raw: "you have another level 6 Digimon",
+          },
         },
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "SecurityAttack",
-              "amount": 1,
-              "raw": "＜Security Attack +1＞"
-            }
-          },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                6
-              ]
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "SecurityAttack",
+              amount: 1,
+              raw: "＜Security Attack +1＞",
             },
-            "raw": "you have another level 6 Digimon"
-          }
-        }
-      ]
-    }
+          },
+          while: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              levels: [6],
+            },
+            raw: "you have another level 6 Digimon",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-072", compiled);

@@ -21,7 +21,9 @@ describe("BT7-043 Gotsumon", () => {
     const greenDigimonId = s.inst("greenDigimon").instanceId;
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gotsumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gotsumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => player.deck[0]?.instanceId === greenDigimonId);
 
     expect(player.deck.map((card) => card.instanceId)).toEqual([greenDigimonId, s.inst("oldTop").instanceId]);

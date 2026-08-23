@@ -8,95 +8,89 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 3,
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": ["Option"],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 3,
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Option"],
+            nameOrTrait: [
               {
-                "tokens": ["Glowing Dawn"],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Glowing Dawn"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [],
-          "cost": {
-            "kind": "trashBottomFaceDownUnderTamer",
-            "controller": "mine",
-            "raw": "by trashing the bottom face-down card under any of your Tamers"
-          }
-        }
+          actions: [],
+          cost: {
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            raw: "by trashing the bottom face-down card under any of your Tamers",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "traits": [
-        "Glowing Dawn"
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      traits: ["Glowing Dawn"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-049", compiled);

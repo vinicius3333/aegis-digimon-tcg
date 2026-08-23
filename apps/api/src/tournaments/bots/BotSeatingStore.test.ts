@@ -153,8 +153,7 @@ describe("filling a short field", () => {
     expect(outcome.kind).toBe("seated");
     const seatedVersions = (await seating.bots(tournamentId)).map((bot) => bot.deckVersion);
     expect(seatedVersions).not.toContain(forbidden.deckVersion);
-    for (const bot of await seating.bots(tournamentId))
-      expect(bot.deckSnapshot!.mainDeck).not.toContain(bannedCard);
+    for (const bot of await seating.bots(tournamentId)) expect(bot.deckSnapshot!.mainDeck).not.toContain(bannedCard);
   });
 
   it("seats nobody when the frozen banlist forbids every deck of the block", async () => {

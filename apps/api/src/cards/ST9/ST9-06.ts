@@ -16,60 +16,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The effect-level optional flag provides the single accept/decline decision. Once accepted,
 // both non-optional actions resolve in sequence and therefore play every eligible slot.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "optional": true,
-      "actions": [
+      trigger: "WhenDigivolving",
+      optional: true,
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "colors": [
-                "Blue"
-              ]
+              colors: ["Blue"],
             },
-            "count": 1,
-            "source": "digivolutionCards"
+            count: 1,
+            source: "digivolutionCards",
           },
-          "from": ["digivolutionCards"],
-          "payCost": false
+          from: ["digivolutionCards"],
+          payCost: false,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "colors": [
-                "Green"
-              ]
+              colors: ["Green"],
             },
-            "count": 1,
-            "source": "digivolutionCards"
+            count: 1,
+            source: "digivolutionCards",
           },
-          "from": ["digivolutionCards"],
-          "payCost": false
-        }
-      ]
-    }
+          from: ["digivolutionCards"],
+          payCost: false,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST9-06", compiled);

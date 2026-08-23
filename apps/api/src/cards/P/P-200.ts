@@ -8,25 +8,25 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   by suspending this Tamer, reduce the digivolution cost by 1.
 // [Security] Place this card in the battle area.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 4
-          }
-        }
-      ]
+          condition: {
+            kind: "memoryAtMost",
+            value: 4,
+          },
+        },
+      ],
     },
     {
       // [Your Turn] When any of your Digimon would digivolve into a Digimon card
@@ -34,64 +34,64 @@ const compiled: CompiledCard = {
       // The outer Replacement intercepts the would-digivolve event, filtered by source
       // (my Digimon) and target card (must have [TS] trait). The cost is suspending this
       // Tamer; the effect is a nested reduceCost replacement.
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"]
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": ["TS"],
-                "match": "trait"
-              }
-            ]
+                tokens: ["TS"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ],
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": { "isSelfRef": true },
-              "count": 1,
-              "isSelf": true
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
             },
-            "raw": "by suspending this Tamer, reduce the digivolution cost by 1"
-          }
-        }
-      ]
+          ],
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: { isSelfRef: true },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer, reduce the digivolution cost by 1",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-200", compiled);

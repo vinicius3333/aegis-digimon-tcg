@@ -15,11 +15,13 @@ describe("BT7-075 Rhihimon", () => {
     s.state.memory = 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("rhihimon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rhihimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT7-075" && s.state.memory === 0);
 
     expect(s.state.memory).toBe(0);
@@ -30,24 +32,29 @@ describe("BT7-075 Rhihimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "BT7-075",
-            under: [{ card: "BT7-071", as: "hybrid" }, { card: "BT3-096", as: "tamer" }],
-            as: "rhihimon",
-          }],
+          battleArea: [
+            {
+              card: "BT7-075",
+              under: [
+                { card: "BT7-071", as: "hybrid" },
+                { card: "BT3-096", as: "tamer" },
+              ],
+              as: "rhihimon",
+            },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("rhihimon").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard?.instanceId === s.inst("tamer").instanceId,
-    ));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("tamer").instanceId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard?.instanceId === s.inst("tamer").instanceId,
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("tamer").instanceId),
+    ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
   });
 });

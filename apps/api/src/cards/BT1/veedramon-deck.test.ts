@@ -31,11 +31,13 @@ describe("BT1/ST8 Veedramon and UlforceVeedramon deck", () => {
     // blue Tamers do not stack the same inherited effect twice.
     expect(s.perm("ulforce").currentDP).toBe(13000);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("secVeedramon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secVeedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[1]!.security.length === 3 &&
@@ -44,16 +46,16 @@ describe("BT1/ST8 Veedramon and UlforceVeedramon deck", () => {
       5000,
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("ulforce").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ulforce").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[1]!.security.length === 2 &&
-        !s.perm("ulforce").isSuspended &&
-        !observe(s.engine).isAttacking(),
+        s.state.players[1]!.security.length === 2 && !s.perm("ulforce").isSuspended && !observe(s.engine).isAttacking(),
       5000,
     );
 

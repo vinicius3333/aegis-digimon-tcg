@@ -4,7 +4,9 @@ import "./EX5-070.js";
 
 describe("EX5-070 X Antibody Proto Form", () => {
   it("registers static color waiver, security return, and Main X Antibody evolution effects", () => {
-    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]?.kind).toBe("WaiveColorRequirement");
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]?.kind).toBe(
+      "WaiveColorRequirement",
+    );
     expect(compiled.effects.find((effect) => effect.trigger === "Security")?.actions[0]?.kind).toBe("AddToHandSelf");
     expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0]?.kind).toBe("Digivolve");
   });

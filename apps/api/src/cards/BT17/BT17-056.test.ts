@@ -10,7 +10,25 @@ describe("BT17-056 Locomon", () => {
     const effect = compiled.effects.find((entry) => entry.frequency === "OncePerTurn");
     expect(effect).toMatchObject({
       trigger: "AllTurns",
-      actions: [{ event: "whenAttackTargetSwitched", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "trash", add: [{ count: 1, to: "placeUnder", orFilters: [{ colors: ["Black"], levelComparison: { op: "lte", value: 5 } }] }] }] }],
+      actions: [
+        {
+          event: "whenAttackTargetSwitched",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              rest: "trash",
+              add: [
+                {
+                  count: 1,
+                  to: "placeUnder",
+                  orFilters: [{ colors: ["Black"], levelComparison: { op: "lte", value: 5 } }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
     });
   });
 
@@ -20,22 +38,33 @@ describe("BT17-056 Locomon", () => {
       kind: "SubTrigger",
       event: "onAddDigivolutionCards",
       sourceFilter: { isSelfRef: true },
-      actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, optional: true, into: { nameOrTrait: [{ tokens: ["GroundLocomon"], match: "name" }] } }],
+      actions: [
+        {
+          kind: "Digivolve",
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          into: { nameOrTrait: [{ tokens: ["GroundLocomon"], match: "name" }] },
+        },
+      ],
     });
   });
 
   it("places a revealed black card underneath, trashes the rest, and free-digivolves", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT17-056", as: "locomon" }],
-        hand: [{ card: "BT17-058", as: "groundLocomon" }],
-        deck: [
-          { card: "BT17-052", as: "eligible" },
-          { card: "BT1-087", as: "remainderOne" },
-          { card: "BT1-102", as: "remainderTwo" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-056", as: "locomon" }],
+          hand: [{ card: "BT17-058", as: "groundLocomon" }],
+          deck: [
+            { card: "BT17-052", as: "eligible" },
+            { card: "BT1-087", as: "remainderOne" },
+            { card: "BT1-102", as: "remainderTwo" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const eligibleId = s.inst("eligible").instanceId;
     const remainderIds = [s.inst("remainderOne").instanceId, s.inst("remainderTwo").instanceId];
     const groundLocomonId = s.inst("groundLocomon").instanceId;

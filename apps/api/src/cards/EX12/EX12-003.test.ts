@@ -55,7 +55,9 @@ describe("EX12-003 Kapurimon", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-017")).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("partner").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("partner").permanentId),
+    ).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-017")).toBe(true);
   });
 
@@ -102,7 +104,9 @@ describe("EX12-003 Kapurimon", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-017")).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("partner").permanentId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("partner").permanentId),
+    ).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-017")).toBe(true);
   });
 

@@ -6,205 +6,180 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [],
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
+          actions: [],
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Cyborg",
-                      "Ver.2"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Cyborg", "Ver.2"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by trashing 1 [Cyborg] or [Ver.2] trait card from your hand, reduce the play cost by 2"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1,
-            "upTo": false
+            raw: "by trashing 1 [Cyborg] or [Ver.2] trait card from your hand, reduce the play cost by 2",
           },
-          "amount": 1,
-          "position": "any",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
-            },
-            "raw": "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
-          },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "faceDown": true
-            },
-            "unit": "selfFaceDownDigivolutionCards"
-          }
         },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "to": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1,
-            "upTo": false
-          },
-          "amount": 1,
-          "position": "any",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
-            },
-            "raw": "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
-          },
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "faceDown": true
-            },
-            "unit": "selfFaceDownDigivolutionCards"
-          }
-        },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "to": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            upTo: false,
+          },
+          amount: 1,
+          position: "any",
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
+              },
+              count: 1,
+              from: ["trash"],
+            },
+            raw: "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
+          },
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              faceDown: true,
+            },
+            unit: "selfFaceDownDigivolutionCards",
+          },
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            upTo: false,
+          },
+          amount: 1,
+          position: "any",
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
+              },
+              count: 1,
+              from: ["trash"],
+            },
+            raw: "By placing 1 Digimon card from your trash face down as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
+          },
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              faceDown: true,
+            },
+            unit: "selfFaceDownDigivolutionCards",
+          },
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "EndOfYourTurn",
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Mamemon"
-      ],
-      "cost": 1,
-      "isAlternate": true
+      names: ["Mamemon"],
+      cost: 1,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "traits": [
-        "DM"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["DM"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 registerIrCard("EX9-018", compiled);

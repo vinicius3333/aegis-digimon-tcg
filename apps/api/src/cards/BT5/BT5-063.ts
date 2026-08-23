@@ -3,69 +3,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-validated effect IR for BT5-063 (Kurisarimon).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine"
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "nameOrTrait": [
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Arata Sanada"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Arata Sanada"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "you don't have an [Arata Sanada] card in play"
+            raw: "you don't have an [Arata Sanada] card in play",
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ],
-              "isSameName": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              isSameName: true,
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT5-063", compiled);

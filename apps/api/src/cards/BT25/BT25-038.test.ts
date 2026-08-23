@@ -12,7 +12,10 @@ describe("BT25-038 Shakkoumon", () => {
         controller: "mine",
         amount: 1,
         optional: true,
-        source: { location: ["hand", "digivolution"], filter: { trait: ["Angel", "Archangel", "Three Great Angels", "Iliad"] } },
+        source: {
+          location: ["hand", "digivolution"],
+          filter: { trait: ["Angel", "Archangel", "Three Great Angels", "Iliad"] },
+        },
       });
       expect(effect?.actions?.[1]).toMatchObject({
         kind: "SecurityManipulation",

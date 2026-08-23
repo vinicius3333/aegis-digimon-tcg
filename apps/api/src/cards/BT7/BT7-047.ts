@@ -9,74 +9,68 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "kind": ["Tamer"],
-              "color": "green"
+          kind: "Digivolve",
+          target: {
+            filter: {
+              kind: ["Tamer"],
+              color: "green",
             },
-            "count": 1,
-            "upTo": false,
-            "isSelf": false
+            count: 1,
+            upTo: false,
+            isSelf: false,
           },
-          "from": "hand",
-          "costSuffix": "2",
-          "asIf": {
-            "level": 3,
-            "color": "green"
+          from: "hand",
+          costSuffix: "2",
+          asIf: {
+            level: 3,
+            color: "green",
           },
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 6000
-              }
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 6000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hybrid"
-                  ],
-                  "match": "trait"
+                  tokens: ["Hybrid"],
+                  match: "trait",
                 },
                 {
-                  "tokens": [
-                    "J.P. Shibayama"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["J.P. Shibayama"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "a card with [Hybrid] in its traits or [J.P. Shibayama] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    }
+            raw: "a card with [Hybrid] in its traits or [J.P. Shibayama] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT7-047", compiled);

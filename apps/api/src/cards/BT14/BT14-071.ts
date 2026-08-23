@@ -6,75 +6,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Eiji Nagasumi"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Eiji Nagasumi"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash"
-              ]
+              count: 1,
+              from: ["hand", "trash"],
             },
-            "raw": "By placing 1 [Eiji Nagasumi] from your hand or trash as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
+            raw: "By placing 1 [Eiji Nagasumi] from your hand or trash as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Dark Animal",
-                  "SoC"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Dark Animal", "SoC"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT14-071", compiled);

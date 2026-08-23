@@ -70,6 +70,9 @@ const module: EffectModule = {
             "if it has a digivolution card with the same level as the digivolved Digimon, by " +
             "suspending this Tamer, that Digimon may digivolve into a Digimon card with the [CS] " +
             "trait in the hand without paying the cost.",
+          // "by suspending this Tamer" is a cost: the controller chooses whether to pay it,
+          // so the trigger must offer the decline before it suspends anything.
+          optional: true,
           when: (ctx) => {
             if (!source.isOnBattleArea()) return false;
             if (!source.isOwnersTurn()) return false;

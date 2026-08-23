@@ -43,7 +43,9 @@ describe("BT24-041 Minervamon", () => {
         instanceId: reduced.inst("minervamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => reduced.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-041"));
+    await settle(() =>
+      reduced.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-041"),
+    );
     expect(reduced.state.memory).toBe(5);
 
     const full = setupEngine({ 0: { hand: [{ card: "BT24-041", as: "minervamon" }] } });

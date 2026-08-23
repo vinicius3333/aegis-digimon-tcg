@@ -16,96 +16,90 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    place). Fix: add condition selfDigivolutionCountAtLeast: 1 to the Replacement.
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "condition": {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+              condition: {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Armor Form"
-                      ],
-                      "match": "trait"
+                      tokens: ["Armor Form"],
+                      match: "trait",
                     },
                     {
-                      "tokens": [
-                        "X Antibody"
-                      ],
-                      "match": "nameExact"
-                    }
-                  ]
+                      tokens: ["X Antibody"],
+                      match: "nameExact",
+                    },
+                  ],
                 },
-                "raw": "a card with [Armor Form] in its traits or [X Antibody] is in this Digimon's digivolution cards"
+                raw: "a card with [Armor Form] in its traits or [X Antibody] is in this Digimon's digivolution cards",
               },
-              "optional": true
-            }
-          ]
-        }
-      ]
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "mode": "prevent",
-          "optional": true,
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          mode: "prevent",
+          optional: true,
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "condition": {
-            "kind": "selfDigivolutionCountAtLeast",
-            "value": 1,
-            "raw": "this Digimon has at least 1 digivolution card"
+          condition: {
+            kind: "selfDigivolutionCountAtLeast",
+            value: 1,
+            raw: "this Digimon has at least 1 digivolution card",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "toTop": true,
-              "faceUp": false,
-              "detachPermanentTop": true
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Magnamon"
+              toTop: true,
+              faceUp: false,
+              detachPermanentTop: true,
+            },
+          ],
+        },
       ],
-      "cost": 4
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Magnamon"],
+      cost: 4,
+    },
+  ],
 };
 
 registerIrCard("BT9-044", compiled);

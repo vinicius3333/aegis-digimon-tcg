@@ -35,21 +35,29 @@ describe("BT12-062 Greymon", () => {
   });
 
   it("does not play another Tai Kamiya when one is already in play", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT10-058", as: "base" },
-          { card: "BT1-085", as: "existingTai" },
-        ],
-        hand: [{ card: "BT12-062", as: "evo" }, { card: "BT1-085", as: "extraTai" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-058", as: "base" },
+            { card: "BT1-085", as: "existingTai" },
+          ],
+          hand: [
+            { card: "BT12-062", as: "evo" },
+            { card: "BT1-085", as: "extraTai" },
+          ],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("base").permanentId,
-      instanceId: s.inst("evo").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT12-062");
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085")).toHaveLength(1);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("extraTai").instanceId)).toBe(true);

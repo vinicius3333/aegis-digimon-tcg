@@ -6,71 +6,67 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "or": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              or: [
                 {
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{"tokens": ["Hybrid", "Ten Warriors"], "match": "trait"}]
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
                 },
                 {
-                  "kind": ["Tamer"],
-                  "hasInheritedEffects": true
-                }
-              ]
+                  kind: ["Tamer"],
+                  hasInheritedEffects: true,
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
-        }
-      ]
+          to: "hand",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Takuya Kanbara"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Takuya Kanbara"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "names": [
-        "BurningGreymon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["BurningGreymon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT18-011", compiled);

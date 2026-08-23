@@ -7,13 +7,19 @@ describe("P-181 Royal Base", () => {
     expect(runtimeCompiledCard("P-181")!.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
       isSecurity: true,
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "Replacement",
-        event: "wouldDigivolve",
-        sourceFilter: { controller: "mine", kind: ["Digimon"] },
-        into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }] },
-        actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
-      }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+          },
+          actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
+        },
+      ],
     });
   });
 
@@ -29,7 +35,23 @@ describe("P-181 Royal Base", () => {
   it("optionally plays a level 5 or lower Royal Base Digimon from hand in Security", () => {
     expect(runtimeCompiledCard("P-181")!.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
-      actions: [{ kind: "PlayWithoutCost", optional: true, from: ["hand"], payCost: false, target: { count: 1, filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }] } } }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          optional: true,
+          from: ["hand"],
+          payCost: false,
+          target: {
+            count: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
+              nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+            },
+          },
+        },
+      ],
     });
   });
 });

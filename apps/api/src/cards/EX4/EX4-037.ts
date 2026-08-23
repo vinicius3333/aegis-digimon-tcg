@@ -10,13 +10,19 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] }, count: 2 },
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] },
+            count: 2,
+          },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
           duration: "untilOpponentTurnEnd",
         },
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] }, count: 2 },
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] },
+            count: 2,
+          },
           keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
           duration: "untilOpponentTurnEnd",
         },
@@ -30,7 +36,9 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenSuspended",
           sourceFilter: { kind: ["Digimon"], excludeSelf: true },
-          actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true }],
+          actions: [
+            { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
+          ],
         },
       ],
       frequency: "OncePerTurn",

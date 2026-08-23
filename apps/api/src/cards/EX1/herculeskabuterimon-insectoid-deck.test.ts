@@ -40,11 +40,13 @@ describe("EX1 HerculesKabuterimon Insectoid deck gauntlet", () => {
     s.state.memory = 5;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("megaKabuterimon").permanentId,
-      target: { kind: "permanent", permanentId: firstTargetId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("megaKabuterimon").permanentId,
+        target: { kind: "permanent", permanentId: firstTargetId },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.perm("megaKabuterimon").topCard.instanceId === classicHerculesId &&
@@ -55,26 +57,26 @@ describe("EX1 HerculesKabuterimon Insectoid deck gauntlet", () => {
     );
     await settle();
 
-    const evolutionChoice = s.decisions.find(({ req }) =>
-      req.kind === "selectCards" &&
-      req.sourceCardId === "EX1-040" &&
-      req.options?.candidateInstanceIds?.includes(classicHerculesId)
+    const evolutionChoice = s.decisions.find(
+      ({ req }) =>
+        req.kind === "selectCards" &&
+        req.sourceCardId === "EX1-040" &&
+        req.options?.candidateInstanceIds?.includes(classicHerculesId),
     )?.req;
     expect(new Set(evolutionChoice?.options?.candidateInstanceIds ?? [])).toEqual(
       new Set([classicHerculesId, alternateHerculesId]),
     );
-    expect(s.perm("megaKabuterimon").stack.map(({ cardId }) => cardId)).toEqual([
-      "EX1-035",
-      "EX1-040",
-    ]);
+    expect(s.perm("megaKabuterimon").stack.map(({ cardId }) => cardId)).toEqual(["EX1-035", "EX1-040"]);
     expect(s.perm("megaKabuterimon").currentDP).toBe(14000);
     expect(s.state.memory).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("megaKabuterimon").permanentId,
-      target: { kind: "permanent", permanentId: secondTargetId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("megaKabuterimon").permanentId,
+        target: { kind: "permanent", permanentId: secondTargetId },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondTargetId) &&

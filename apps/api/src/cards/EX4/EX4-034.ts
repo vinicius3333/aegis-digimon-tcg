@@ -3,99 +3,85 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 4,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 4,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "multicolor": true,
-                "colors": [
-                  "Green"
-                ]
+              filter: {
+                controllerDefault: "mine",
+                multicolor: true,
+                colors: ["Green"],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Shu-Chong Wong"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Shu-Chong Wong"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom",
-          "mandatory": true
-        }
-      ]
+          rest: "deckBottom",
+          mandatory: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onSuspend",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onSuspend",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "into": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "multicolor": true,
-                  "colors": [
-                    "Green"
-                  ]
+              into: {
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  multicolor: true,
+                  colors: ["Green"],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": true,
-              "costDelta": -2,
-              "optional": true
-            }
-          ]
-        }
+              from: ["hand"],
+              payCost: true,
+              costDelta: -2,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-034", compiled);

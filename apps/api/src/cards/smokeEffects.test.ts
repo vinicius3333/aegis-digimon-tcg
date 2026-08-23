@@ -17,9 +17,7 @@ import { allRegisteredModules } from "../engine/effects/registry.js";
  *   - canTrigger / canActivate / resolve errors (those require a full EffectContext)
  */
 
-const ALL_TIMINGS = Object.values(EffectTiming).filter(
-  (v): v is EffectTiming => typeof v === "number",
-);
+const ALL_TIMINGS = Object.values(EffectTiming).filter((v): v is EffectTiming => typeof v === "number");
 
 function makeSource(cardId = "X-000"): CardSource {
   const definition: CardDefinition = {
@@ -46,42 +44,34 @@ function makeSource(cardId = "X-000"): CardSource {
 }
 
 describe("smoke: effectsForTiming (all registered modules, all timings)", () => {
-  it(
-    "imports all card modules without collision",
-    async () => {
-      await expect(import("./index.js")).resolves.toBeDefined();
-    },
-    30_000,
-  );
+  it("imports all card modules without collision", async () => {
+    await expect(import("./index.js")).resolves.toBeDefined();
+  }, 30_000);
 
-  it(
-    "effectsForTiming does not throw for any card or timing",
-    async () => {
-      await import("./index.js");
+  it("effectsForTiming does not throw for any card or timing", async () => {
+    await import("./index.js");
 
-      const failures: string[] = [];
+    const failures: string[] = [];
 
-      for (const [cardId, module] of allRegisteredModules()) {
-        const source = makeSource(cardId);
-        for (const timing of ALL_TIMINGS) {
-          try {
-            module.effectsForTiming(timing, source);
-          } catch (err) {
-            const label = EffectTiming[timing] ?? String(timing);
-            failures.push(`${cardId} @ ${label}: ${err instanceof Error ? err.message : String(err)}`);
-          }
+    for (const [cardId, module] of allRegisteredModules()) {
+      const source = makeSource(cardId);
+      for (const timing of ALL_TIMINGS) {
+        try {
+          module.effectsForTiming(timing, source);
+        } catch (err) {
+          const label = EffectTiming[timing] ?? String(timing);
+          failures.push(`${cardId} @ ${label}: ${err instanceof Error ? err.message : String(err)}`);
         }
       }
+    }
 
-      if (failures.length > 0) {
-        // Report all failures at once rather than stopping at the first.
-        expect.fail(
-          `${failures.length} effectsForTiming failure(s):\n${failures.slice(0, 50).join("\n")}${
-            failures.length > 50 ? `\n… and ${failures.length - 50} more` : ""
-          }`,
-        );
-      }
-    },
-    60_000,
-  );
+    if (failures.length > 0) {
+      // Report all failures at once rather than stopping at the first.
+      expect.fail(
+        `${failures.length} effectsForTiming failure(s):\n${failures.slice(0, 50).join("\n")}${
+          failures.length > 50 ? `\n… and ${failures.length - 50} more` : ""
+        }`,
+      );
+    }
+  }, 60_000);
 });

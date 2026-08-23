@@ -11,7 +11,12 @@ describe("P-183 Gaiomon", () => {
     ]);
     expect(card.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
       actions: [
-        { kind: "GrantAuraToOpponents", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } }, effectText: "[Start of Your Main Phase] This Digimon attacks.", duration: "untilOpponentTurnEnd" },
+        {
+          kind: "GrantAuraToOpponents",
+          target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } },
+          effectText: "[Start of Your Main Phase] This Digimon attacks.",
+          duration: "untilOpponentTurnEnd",
+        },
         { kind: "Attack", optional: true, withoutSuspending: false, target: { isSelf: true, count: 1 } },
       ],
     });
@@ -20,7 +25,12 @@ describe("P-183 Gaiomon", () => {
   it("trashes the opponent's top security card once per turn when an attack target changes", () => {
     expect(runtimeCompiledCard("P-183")!.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ event: "whenAttackTargetSwitched", actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }] }],
+      actions: [
+        {
+          event: "whenAttackTargetSwitched",
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
+        },
+      ],
     });
   });
 });

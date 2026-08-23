@@ -6,18 +6,31 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 
 describe("EX9-018", () => {
   it("reduces its play cost by trashing a Cyborg or Ver.2 card and trashes one opposing digivolution card by placing a trash Digimon underneath", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({ kind: "Replacement", cost: { kind: "trash" } });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 1, cost: { kind: "place", destination: "digivolutionStack", faceDown: true } });
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[1]).toMatchObject({ kind: "Return", to: "deckBottom" });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
+      kind: "Replacement",
+      cost: { kind: "trash" },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
+      kind: "TrashDigivolution",
+      amount: 1,
+      cost: { kind: "place", destination: "digivolutionStack", faceDown: true },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[1]).toMatchObject({
+      kind: "Return",
+      to: "deckBottom",
+    });
   });
 
   it("uses one trash Digimon to trash one stack card, then bottoms an opposing Digimon with no stack", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-018", as: "source" }], trash: ["EX9-017"] },
-      1: {
-        battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-001"] }],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-018", as: "source" }], trash: ["EX9-017"] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-001"] }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 

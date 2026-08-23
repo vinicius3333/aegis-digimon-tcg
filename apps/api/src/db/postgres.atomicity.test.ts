@@ -250,7 +250,9 @@ describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () =>
     const swiss = new SwissProgram(accounts, series);
     try {
       const event = await startEvent(accounts, participants, swiss, 4);
-      const match = (await series.scoreViews(event.tournamentId)).find((view) => view.participant0Id && view.participant1Id)!;
+      const match = (await series.scoreViews(event.tournamentId)).find(
+        (view) => view.participant0Id && view.participant1Id,
+      )!;
       // Publishing round 1 audits itself, so the trail is not empty before the ruling below;
       // what must not change is its contents.
       const trailBefore = await readTournamentEvents(pool, event.tournamentId);

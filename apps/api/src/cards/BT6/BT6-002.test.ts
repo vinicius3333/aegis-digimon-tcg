@@ -7,7 +7,10 @@ import "./BT6-002.js";
 describe("BT6-002 Kyaromon", () => {
   it("draws once when an opponent's digivolution card is trashed on your turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-025", under: ["BT6-002"], as: "host" }], deck: [{ card: "BT1-010", as: "drawn" }] },
+      0: {
+        battleArea: [{ card: "BT6-025", under: ["BT6-002"], as: "host" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
       1: { battleArea: [{ card: "BT2-047", under: [{ card: "BT1-011", as: "source" }], as: "target" }] },
     });
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("host"));
@@ -23,12 +26,17 @@ describe("BT6-002 Kyaromon", () => {
           { card: "BT6-025", under: ["BT6-002"], as: "host" },
           { card: "BT2-047", under: [{ card: "BT1-011", as: "ownSource" }], as: "ownTarget" },
         ],
-        deck: [{ card: "BT1-010", as: "firstDraw" }, { card: "BT1-012", as: "secondDraw" }],
+        deck: [
+          { card: "BT1-010", as: "firstDraw" },
+          { card: "BT1-012", as: "secondDraw" },
+        ],
       },
-      1: { battleArea: [
-        { card: "BT2-047", under: [{ card: "BT1-013", as: "oppSourceA" }], as: "oppA" },
-        { card: "BT2-047", under: [{ card: "BT1-014", as: "oppSourceB" }], as: "oppB" },
-      ] },
+      1: {
+        battleArea: [
+          { card: "BT2-047", under: [{ card: "BT1-013", as: "oppSourceA" }], as: "oppA" },
+          { card: "BT2-047", under: [{ card: "BT1-014", as: "oppSourceB" }], as: "oppB" },
+        ],
+      },
     });
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("host"));
 
@@ -51,12 +59,8 @@ describe("BT6-002 Kyaromon", () => {
       0,
     );
 
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
-      s.inst("firstDraw").instanceId,
-    ]);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
-      s.inst("secondDraw").instanceId,
-    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("firstDraw").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("secondDraw").instanceId]);
   });
 
   it("does not draw when a bounce discards the opponent stack by rule (Q1399)", async () => {
@@ -66,9 +70,7 @@ describe("BT6-002 Kyaromon", () => {
         deck: [{ card: "BT1-010", as: "notDrawn" }],
       },
       1: {
-        battleArea: [
-          { card: "BT2-047", under: [{ card: "BT1-011", as: "source" }], as: "target" },
-        ],
+        battleArea: [{ card: "BT2-047", under: [{ card: "BT1-011", as: "source" }], as: "target" }],
       },
     });
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("host"));
@@ -76,11 +78,7 @@ describe("BT6-002 Kyaromon", () => {
     await advance(s.engine).verb.returnToHand([s.perm("target").topCard.instanceId]);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
-      s.inst("notDrawn").instanceId,
-    ]);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(
-      s.inst("source").instanceId,
-    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawn").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
   });
 });

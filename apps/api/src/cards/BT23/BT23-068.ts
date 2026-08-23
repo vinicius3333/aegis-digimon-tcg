@@ -10,161 +10,134 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // delete ALL of your opponent's lowest-level Digimon.
 // KB Q5336: also triggers when digivolving into this card itself from the trash.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 6,
             },
-            "nameOrTrait": [
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Undead",
-                  "Dark Animal"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "payCost": false,
-          "from": [
-            "trash"
-          ],
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
+                tokens: ["Undead", "Dark Animal"],
+                match: "trait",
+              },
             ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
+          },
+          payCost: false,
+          from: ["trash"],
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "nameOrTrait": [
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 6,
+            },
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Undead",
-                  "Dark Animal"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Undead", "Dark Animal"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "trash"
-          ],
-          "optional": true
-        }
-      ]
+          payCost: false,
+          from: ["trash"],
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Purple"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"]
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          "fromZone": "trash",
-          "actions": [
+          fromZone: "trash",
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"],
-                  "superlative": "lowestLevel"
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  superlative: "lowestLevel",
                 },
-                "count": "all"
-              }
-            }
+                count: "all",
+              },
+            },
           ],
-          "raw": "When any of your Digimon digivolve from the trash, delete all of your opponent's lowest level Digimon"
-        }
+          raw: "When any of your Digimon digivolve from the trash, delete all of your opponent's lowest level Digimon",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "Undead",
-        "CS"
-      ],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Undead", "CS"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-068", compiled);

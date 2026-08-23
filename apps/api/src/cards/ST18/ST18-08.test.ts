@@ -7,15 +7,19 @@ import { compiled } from "./ST18-08.js";
 
 describe("ST18-08 Galemon", () => {
   it("publishes Vortex and the inherited +2000 DP clause", () => {
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      trigger: "Static",
-      keywords: [expect.objectContaining({ keyword: "Vortex" })],
-    }));
-    expect(compiled.effects).toContainEqual(expect.objectContaining({
-      isInherited: true,
-      trigger: "YourTurn",
-      actions: [expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "permanent" })],
-    }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        keywords: [expect.objectContaining({ keyword: "Vortex" })],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        isInherited: true,
+        trigger: "YourTurn",
+        actions: [expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "permanent" })],
+      }),
+    );
   });
 
   it("may play a LIBERATOR card costing four or less from hand when revealed in security", async () => {

@@ -6,18 +6,14 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-025.js";
 
-
 const CYBERDRAMON = "BT10-025";
 const BLUE_FLARE_HOST = "BT10-024"; // MetalGreymon — in-cutoff Digimon with the [Blue Flare] trait
 
 /** The OnDeclaration effectKey BT10-025 surfaces for its [Hand][Main] clause, if any. */
 function handMainEffectKey(s: EngineSetup, instance: CardInstance): string | undefined {
-  const source = (
-    s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }
-  ).cardSourceOf(instance);
-  return effectsOf(EffectTiming.OnDeclaration, source).find((e) =>
-    e.effectKey.startsWith(`${CYBERDRAMON}/`),
-  )?.effectKey;
+  const source = (s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }).cardSourceOf(instance);
+  return effectsOf(EffectTiming.OnDeclaration, source).find((e) => e.effectKey.startsWith(`${CYBERDRAMON}/`))
+    ?.effectKey;
 }
 
 describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR §15-14-2-1)", () => {
@@ -44,16 +40,12 @@ describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: cyber.instanceId, effectKey: effectKey! }),
     ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.perm("host").stack.some((c) => c.instanceId === cyber.instanceId) &&
-      !s.perm("host").isSuspended,
+    await settle(
+      () => s.perm("host").stack.some((c) => c.instanceId === cyber.instanceId) && !s.perm("host").isSuspended,
     );
 
     expect(s.perm("host").stack.some((c) => c.instanceId === cyber.instanceId)).toBe(true);
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([
-      CYBERDRAMON,
-      "BT10-019",
-    ]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CYBERDRAMON, "BT10-019"]);
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === cyber.instanceId)).toBe(false);
     expect(s.state.memory).toBe(0); // "by paying 3 memory"
@@ -73,11 +65,13 @@ describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR
     expect(effectKey).toBeDefined();
     expect(cyber.activatableEffectsJson).toBe("");
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: cyber.instanceId,
-      effectKey: effectKey!,
-    }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: cyber.instanceId,
+        effectKey: effectKey!,
+      }).ok,
+    ).toBe(false);
     await settle();
 
     expect(s.state.memory).toBe(3);
@@ -100,11 +94,13 @@ describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR
     expect(effectKey).toBeDefined();
     expect(cyber.activatableEffectsJson).toBe("");
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: cyber.instanceId,
-      effectKey: effectKey!,
-    }).ok).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: cyber.instanceId,
+        effectKey: effectKey!,
+      }).ok,
+    ).toBe(false);
     await settle();
 
     expect(s.state.memory).toBe(-8);

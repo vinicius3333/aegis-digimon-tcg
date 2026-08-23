@@ -26,14 +26,17 @@ describe("BT16-018", () => {
 
   it("prevents the chosen Digimon from being deleted in battle after On Play", async () => {
     const preferredIds: string[] = [];
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT16-018", as: "source" },
-          { card: "BT16-017", as: "ally" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-018", as: "source" },
+            { card: "BT16-017", as: "ally" },
+          ],
+        },
       },
-    }, { autoSelectCards: true, preferInstanceIds: preferredIds });
+      { autoSelectCards: true, preferInstanceIds: preferredIds },
+    );
     preferredIds.push(s.perm("ally").permanentId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));

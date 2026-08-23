@@ -19,18 +19,22 @@ describe("BT7-085 Takuya Kanbara", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("takuya").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
-      .find((effect) => effect.effectKey === "BT7-085/main-digivolve")!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find(
+      (effect) => effect.effectKey === "BT7-085/main-digivolve",
+    )!.effectKey;
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("takuya").topCard!.instanceId,
-      effectKey,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("takuya").topCard?.instanceId === s.inst("emperor").instanceId &&
-      observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack") === 1,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("takuya").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("takuya").topCard?.instanceId === s.inst("emperor").instanceId &&
+        observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack") === 1,
     );
 
     expect(s.state.memory).toBe(1);
@@ -57,35 +61,43 @@ describe("BT7-085 Takuya Kanbara", () => {
       { autoOrderCards: false },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("takuya").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
-      .find((effect) => effect.effectKey === "BT7-085/main-digivolve")!.effectKey;
-    const hybrids = ["hybridOne", "hybridTwo", "hybridThree", "hybridFour", "hybridFive"]
-      .map((alias) => s.inst(alias).instanceId);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find(
+      (effect) => effect.effectKey === "BT7-085/main-digivolve",
+    )!.effectKey;
+    const hybrids = ["hybridOne", "hybridTwo", "hybridThree", "hybridFour", "hybridFive"].map(
+      (alias) => s.inst(alias).instanceId,
+    );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.perm("takuya").topCard.instanceId,
-      effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("takuya").topCard.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const placeHybrids = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: placeHybrids.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placeHybrids.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const materials = s.decisions.at(-1)!.req;
     expect(materials.sourceCardId).toBe("BT7-085");
     expect(materials.options?.timing).toBe("Main");
     expect(materials.options?.effectText).toContain("[Main][Once Per Turn]");
     expect(materials.options?.effectText).not.toContain("[Inherited]");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: materials.decisionId,
-      response: { kind: "selectCards", instanceIds: hybrids },
-    })).toMatchObject({ ok: false, reason: "decision-pending" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: materials.decisionId,
+        response: { kind: "selectCards", instanceIds: hybrids },
+      }),
+    ).toMatchObject({ ok: false, reason: "decision-pending" });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const ordering = s.decisions.at(-1)!.req;
     expect(ordering.options?.orderDestination).toBe("stackBottom");
@@ -95,9 +107,9 @@ describe("BT7-085 Takuya Kanbara", () => {
       response: { kind: "orderCards", order: hybrids },
     });
     expect([true, "decision-pending"]).toContain(orderingResult.ok ? true : orderingResult.reason);
-    await settle(() =>
-      s.state.pendingDecision?.kind === "optional" &&
-      s.state.pendingDecision.decisionId !== placeHybrids.decisionId,
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== placeHybrids.decisionId,
     );
     const evolve = s.decisions.at(-1)!.req;
     const declineResult = s.engine.applyIntent(0, {

@@ -21,7 +21,10 @@ describe("EX8-057", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Draw", amount: 1 }, { kind: "Trash", target: { count: 1 } }],
+      actions: [
+        { kind: "Draw", amount: 1 },
+        { kind: "Trash", target: { count: 1 } },
+      ],
     }));
   it("adds one NSo and one Fallen Angel from the revealed top three", async () => {
     const s = setupEngine(
@@ -30,13 +33,21 @@ describe("EX8-057", () => {
     );
     const player = s.state.players[0] as PlayerState;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => player.hand.some((card) => card.cardId === "BT26-062") && player.hand.some((card) => card.cardId === "BT11-080"));
+    await settle(
+      () =>
+        player.hand.some((card) => card.cardId === "BT26-062") &&
+        player.hand.some((card) => card.cardId === "BT11-080"),
+    );
     expect(player.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT26-062", "BT11-080"]));
   });
   it("draws one and trashes one card when the inherited host attacks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-057"] }], hand: [{ card: "BT1-010", as: "filler" }], deck: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-057"] }],
+          hand: [{ card: "BT1-010", as: "filler" }],
+          deck: ["BT1-001"],
+        },
         1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -45,11 +56,13 @@ describe("EX8-057", () => {
     s.state.turnSeat = 0;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => player.trash.length === 1 && player.hand.length === 1);
 
     expect(player.hand).toHaveLength(1);

@@ -5,114 +5,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "noFaceUpSecurity",
-            "raw": "you have no face-up security cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": "all"
+          condition: {
+            kind: "noFaceUpSecurity",
+            raw: "you have no face-up security cards",
           },
-          "amount": 1000,
-          "duration": "permanent",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "faceDown": true
-            },
-            "unit": "targetFaceDownDigivolutionCards"
-          }
-        }
+        },
       ],
-      "isSecurity": true
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": false
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["DM"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          amount: 1000,
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              faceDown: true,
+            },
+            unit: "targetFaceDownDigivolutionCards",
+          },
+        },
+      ],
+      isSecurity: true,
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: false,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "toTop": false,
-          "faceUp": true
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          toTop: false,
+          faceUp: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 5,
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 5,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DM"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["DM"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX9-072", compiled);

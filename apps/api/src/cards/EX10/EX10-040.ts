@@ -6,52 +6,52 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 2,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "trash",
-            "op": "lte",
-            "value": 10,
-            "raw": "your opponent has 10 or fewer cards in their trash"
-          }
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 2,
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "lte",
+            value: 10,
+            raw: "your opponent has 10 or fewer cards in their trash",
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "opponent",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "they have 10 or more cards in their trash"
-          }
-        }
-      ]
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "they have 10 or more cards in their trash",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "TrashTopDeck",
-          "controller": "both",
-          "amount": 1
-        }
+          kind: "TrashTopDeck",
+          controller: "both",
+          amount: 1,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX10-040", compiled);

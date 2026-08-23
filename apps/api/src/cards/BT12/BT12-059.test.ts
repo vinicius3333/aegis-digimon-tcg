@@ -43,7 +43,9 @@ describe("BT12-059 Agumon", () => {
       { autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-015"));
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-015");
   });

@@ -20,8 +20,7 @@ const STATIC_NAME_ALIASES_BY_CARD_ID: Record<string, string[]> = {
 function parsedStaticNameAliases(def: CardDefinition): string[] {
   const text = def.effectText ?? "";
   const aliases: string[] = [];
-  const aliasPhrases =
-    text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? [];
+  const aliasPhrases = text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? [];
   for (const phrase of aliasPhrases) {
     for (const match of phrase.matchAll(/\[([^\]]+)\]/g)) {
       aliases.push(match[1]!.trim());
@@ -36,10 +35,6 @@ function parsedStaticNameAliases(def: CardDefinition): string[] {
  * highlighting both read this so they cannot disagree about which bases a name gate accepts.
  */
 export function effectiveStaticNames(def: CardDefinition): string[] {
-  const names = [
-    def.nameEn,
-    ...(STATIC_NAME_ALIASES_BY_CARD_ID[def.cardId] ?? []),
-    ...parsedStaticNameAliases(def),
-  ];
+  const names = [def.nameEn, ...(STATIC_NAME_ALIASES_BY_CARD_ID[def.cardId] ?? []), ...parsedStaticNameAliases(def)];
   return [...new Set(names.filter((name) => name.length > 0))];
 }

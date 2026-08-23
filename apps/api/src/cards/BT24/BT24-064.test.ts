@@ -30,39 +30,44 @@ describe("BT24-064 Ouryumon", () => {
     ["normal black level-5 requirement", "BT10-064", false, 4],
     ["normal green level-5 requirement", "BT1-075", false, 4],
     ["alternate DigiPolice/SEEKERS requirement", "BT24-060", true, 3],
-  ])("uses the %s and plays a revealed cost-7 DigiPolice card", async (_label, baseCard, useAlternateCost, expectedCost) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: baseCard, as: "base" }],
-          hand: [{ card: "BT24-064", as: "ouryumon" }],
-          deck: [
-            { card: "BT24-060", as: "played" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
-          ],
+  ])(
+    "uses the %s and plays a revealed cost-7 DigiPolice card",
+    async (_label, baseCard, useAlternateCost, expectedCost) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: baseCard, as: "base" }],
+            hand: [{ card: "BT24-064", as: "ouryumon" }],
+            deck: [
+              { card: "BT24-060", as: "played" },
+              { card: "BT1-001", as: "miss1" },
+              { card: "BT1-002", as: "miss2" },
+            ],
+          },
         },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
-    );
-    s.state.memory = 5;
-    await s.ready();
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("ouryumon").instanceId,
-        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("ouryumon").instanceId);
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId),
-    );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("ouryumon").instanceId,
+          ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === s.inst("ouryumon").instanceId);
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("played").instanceId,
+        ),
+      );
 
-    expect(s.state.memory).toBe(5 - expectedCost);
-  });
+      expect(s.state.memory).toBe(5 - expectedCost);
+    },
+  );
 
   it("De-Digivolves 2 after either player's Tamer suspends, only once per turn", async () => {
     const preferred: string[] = [];

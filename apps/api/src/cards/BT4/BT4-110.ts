@@ -4,46 +4,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Hand-audited: D-Brigade raises the deletion target's play-cost ceiling; it does not
 // reduce the Option's own play cost (KB Q1277).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 3,
-              "playCostLteScaling": {
-                "per": 1,
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["D-Brigade"], "match": "trait" }]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 3,
+              playCostLteScaling: {
+                per: 1,
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["D-Brigade"], match: "trait" }],
                 },
-                "unit": "cards"
-              }
+                unit: "cards",
+              },
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT4-110", compiled);

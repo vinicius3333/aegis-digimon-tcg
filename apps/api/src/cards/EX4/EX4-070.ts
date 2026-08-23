@@ -22,106 +22,95 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 3. GainMemory must be scoped: if opponent did not trash, you gain 2 memory. Encoded as a
 //    conditional action via ifThisEffectDidNotAct (reads the prior Trash's lastEffectActed).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "battleArea",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "colors": [
-                "Green"
-              ]
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Digimon", "Tamer"],
+              colors: ["Green"],
             },
-            "raw": "you have a green Digimon or Tamer in play"
-          }
-        }
-      ]
+            raw: "you have a green Digimon or Tamer in play",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "keywords": [
+      trigger: "Main",
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
       ],
-      "actions": [
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand",
-              "kind": [
-                "Option"
-              ]
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
+              kind: ["Option"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "controller": "opponent"
+          optional: true,
+          controller: "opponent",
         },
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "condition": {
-            "kind": "ifThisEffectDidNotAct",
-            "raw": "if opponent did not trash an Option card"
-          }
-        }
-      ]
+          kind: "GainMemory",
+          amount: 2,
+          condition: {
+            kind: "ifThisEffectDidNotAct",
+            raw: "if opponent did not trash an Option card",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX4-070", compiled);

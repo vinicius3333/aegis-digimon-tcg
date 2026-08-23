@@ -1,4 +1,3 @@
-
 // HAND-AUTHORED OVERRIDE (no AUTO-GENERATED header => the generator preserves this file).
 //
 // (documented behavior) and the KB (node tools/kb/query.mjs card BT8-059, Q1738-Q1743).

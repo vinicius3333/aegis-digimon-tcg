@@ -18,13 +18,33 @@ describe("P-185 EmperorGreymon", () => {
 
   it("encodes Blocker, DP-relative deletion, color scaling, and end-of-turn unsuspend", () => {
     const card = runtimeCompiledCard("P-185")!;
-    expect(card.effects.find((effect) => effect.trigger === "Static")).toMatchObject({ keywords: [{ keyword: "Blocker" }] });
+    expect(card.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
+      keywords: [{ keyword: "Blocker" }],
+    });
     expect(card.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
-      actions: [{ kind: "Delete", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } } } }],
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            count: 1,
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
+          },
+        },
+      ],
     });
     expect(card.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
-      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent", scaling: { per: 1, unit: "colors", filter: { controllerDefault: "mine" } } }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          amount: 1000,
+          duration: "permanent",
+          scaling: { per: 1, unit: "colors", filter: { controllerDefault: "mine" } },
+        },
+      ],
     });
-    expect(card.effects.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "Unsuspend", target: { isSelf: true } }] });
+    expect(card.effects.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Unsuspend", target: { isSelf: true } }],
+    });
   });
 });

@@ -7,94 +7,82 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     underMyTamers zone is defined in CAPABILITIES-BACKLOG.md CAP-A7.
 // (2) digivolutionRequirement already has both entries (Psychemon cost 5 + Lv4/Save cost 3).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 4,
-              "keywords": [
-                "Save"
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 4,
+              keywords: ["Save"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "underMyTamers"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["underMyTamers"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 4,
-              "keywords": [
-                "Save"
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 4,
+              keywords: ["Save"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "underMyTamers"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["underMyTamers"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
-    }
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Psychemon"
-      ],
-      "cost": 5,
-      "isAlternate": true
+      names: ["Psychemon"],
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "texts": [
-        "Save"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      texts: ["Save"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 export { compiled };

@@ -63,12 +63,14 @@ describe("BT22-041 Kentaurosmon", () => {
     );
     s.state.memory = 3;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("chirinmon").permanentId,
-      instanceId: s.inst("kentaurosmon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("chirinmon").permanentId,
+        instanceId: s.inst("kentaurosmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT22-029"));
     await settle();
 

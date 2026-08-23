@@ -112,9 +112,7 @@ describe("BT12-063 Damemon", () => {
     expect(card.residual).toEqual([]);
     expect(JSON.stringify(card)).not.toContain("RawUnparsed");
     expect(card.effects).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ trigger: "OpponentsTurn", isInherited: true }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ trigger: "OpponentsTurn", isInherited: true })]),
     );
     expect(card.effects).not.toEqual(expect.arrayContaining([expect.objectContaining({ trigger: "Static" })]));
   });

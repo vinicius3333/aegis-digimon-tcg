@@ -4,7 +4,12 @@ import { Zone } from "@aegis/shared";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 
 describe("EX7-003 Kyaromon", () => {
-  it("inherits -2000 DP to the opposing security Digimon battle value on your turn", () => expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifySecurityDP", amount: -2000, duration: "permanent" }] }));
+  it("inherits -2000 DP to the opposing security Digimon battle value on your turn", () =>
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [{ kind: "ModifySecurityDP", amount: -2000, duration: "permanent" }],
+    }));
 
   it("applies -2000 only to the opposing security Digimon, not an opposing battle-area Digimon", async () => {
     const s = setupEngine({
@@ -20,11 +25,13 @@ describe("EX7-003 Kyaromon", () => {
     // 1000 DP (3000 - 2000), while the unrelated battle-area target remains exactly 3000 DP.
     expect(battleTarget.currentDP).toBe(3000);
     const attacker = s.putOnBoard(0, { card: "AD1-001", dp: 4000 });
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: attacker.permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false);
     assertNoLoudGap(s);
 

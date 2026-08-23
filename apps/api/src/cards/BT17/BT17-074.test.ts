@@ -8,7 +8,10 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
       {
         0: {
           battleArea: [{ card: "BT17-044", as: "morphomon" }],
-          hand: [{ card: "BT17-074", as: "eosmon" }, { card: "BT17-092", as: "tamer" }],
+          hand: [
+            { card: "BT17-074", as: "eosmon" },
+            { card: "BT17-092", as: "tamer" },
+          ],
         },
         1: {},
       },
@@ -20,7 +23,9 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
     const eosmonId = s.inst("eosmon").instanceId;
     const tamerId = s.inst("tamer").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", instanceId: eosmonId, permanentId: morphomonId }).ok).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "digivolve", instanceId: eosmonId, permanentId: morphomonId }).ok).toBe(
+      true,
+    );
     await settle(() => !s.state.players[0]?.hand.some((card) => card.instanceId === tamerId), 800);
 
     expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.instanceId === tamerId)).toBe(true);
