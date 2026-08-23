@@ -404,6 +404,11 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT24-059: "[Aqua] or [Sea Animal] in any trait" is substring matching, not exact traits.
+  "BT24-059": [
+    { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
+    { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
+  ],
   // BT19-102: the Nene path requires a Shademon card already under that Tamer.
   "BT19-102": [
     { names: ["Luminamon"], cost: 2, isAlternate: true },

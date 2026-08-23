@@ -81,6 +81,7 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",
@@ -107,15 +108,9 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      traits: ["Aqua"],
+      traitSubstrings: ["Aqua", "Sea Animal"],
       cost: 3,
       isAlternate: true,
-    },
-    {
-      traits: ["Sea Animal"],
-      cost: 3,
-      isAlternate: true,
-      level: 4,
     },
     {
       traits: ["TS"],
