@@ -159,41 +159,6 @@ async function revealSave(ctx: EffectContext, source: CardSource, count: number,
   if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
 }
 
-async function placeSaveFromHand(ctx: EffectContext, source: CardSource): Promise<boolean> {
-  const cards = ctx.game
-    .player(source.ownerSeat)
-    .hand.filter((card) => isDigimon(ctx.game.definitionOf(card)) && hasText(ctx.game.definitionOf(card), "save"));
-  const picked = await chooseCard(ctx, cards);
-  const self = source.permanent();
-  if (picked === undefined || self === undefined) return false;
-  return (await ctx.fx.placeUnder(self.permanentId, [picked])).length === 1;
-}
-
-function saveTamerStart(cardId: string, source: CardSource, result: "draw" | "memory" | "buff" | "debuff"): Effect {
-  return turnTiming({
-    source,
-    effectKey: `${cardId}/start-main`,
-    description:
-      "[Start of Your Main Phase] Place a Save Digimon from hand under this Tamer to apply this card's effect.",
-    resolve: async (ctx) => {
-      if (!(await placeSaveFromHand(ctx, source))) return;
-      if (result === "draw") await ctx.fx.draw(source.ownerSeat, 1);
-      if (result === "memory") ctx.fx.gainMemory(1);
-      if (result === "buff") {
-        const id = await choosePermanent(
-          ctx,
-          myPermanents(ctx, source, (d) => isDigimon(d)),
-        );
-        if (id) ctx.fx.modifyDP(id, 2000, EffectDuration.UntilEachTurnEnd);
-      }
-      if (result === "debuff") {
-        const id = await choosePermanent(ctx, opposingDigimon(ctx, source));
-        if (id) ctx.fx.modifyDP(id, -2000, EffectDuration.UntilEachTurnEnd);
-      }
-    },
-  });
-}
-
 function saveTamerDigivolveReducer(cardId: string, source: CardSource): Effect {
   return staticModifier({
     source,
@@ -219,7 +184,10 @@ function saveTamerDigivolveReducer(cardId: string, source: CardSource): Effect {
             cards.push(...permanent.stack);
           }
           if (self.isSuspended || cards.length === 0) return false;
-          const picked = await chooseCard(runtimeCtx, cards);
+          // Suspending this Tamer is a cost, and the printed reduction is a "may": the engine
+          // activates every eligible interactive reduction on its own, so the decline has to
+          // live here. An empty pick means "don't use it" and leaves the Tamer unsuspended.
+          const picked = await chooseCard(runtimeCtx, cards, true);
           if (!picked || runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") !== true) return false;
           return (await runtimeCtx.fx.placeUnder(target.permanentId, [picked])).length === 1;
         },
@@ -501,28 +469,6 @@ export function lateBt12Module(cardId: string): EffectModule {
             ];
           return [];
         }
-        case "BT12-087":
-        case "BT12-091":
-        case "BT12-093":
-        case "BT12-094": {
-          if (timing === EffectTiming.None) return [saveTamerDigivolveReducer(cardId, source)];
-          if (timing === EffectTiming.OnStartMainPhase)
-            return [
-              saveTamerStart(
-                cardId,
-                source,
-                cardId === "BT12-087"
-                  ? "draw"
-                  : cardId === "BT12-091"
-                    ? "debuff"
-                    : cardId === "BT12-093"
-                      ? "buff"
-                      : "memory",
-              ),
-            ];
-          if (timing === EffectTiming.SecuritySkill) return [tamerSecurity(source, cardId)];
-          return [];
-        }
         case "BT12-089": {
           if (timing === EffectTiming.OnStartTurn)
             return [
@@ -699,23 +645,6 @@ export function lateBt12Module(cardId: string): EffectModule {
             ];
           return [];
         }
-        case "BT12-096": {
-          if (timing === EffectTiming.None) return [saveTamerDigivolveReducer(cardId, source)];
-          if (timing === EffectTiming.OnStartTurn)
-            return [
-              turnTiming({
-                source,
-                effectKey: `${cardId}/memory-setter`,
-                description: "Set memory to 3 when at 2 or less.",
-                when: () => source.isOwnersTurn(),
-                resolve: async (ctx) => {
-                  if (ctx.game.state.memory <= 2) ctx.fx.setMemory(3);
-                },
-              }),
-            ];
-          if (timing === EffectTiming.SecuritySkill) return [tamerSecurity(source, cardId)];
-          return [];
-        }
         case "BT12-097": {
           if (timing === EffectTiming.None) return [saveTamerDigivolveReducer(cardId, source)];
           if (timing === EffectTiming.OnStartMainPhase)
@@ -738,60 +667,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                       ),
                   );
                   if (card) await ctx.fx.placeUnder(self.permanentId, [card]);
-                },
-              }),
-            ];
-          if (timing === EffectTiming.SecuritySkill) return [tamerSecurity(source, cardId)];
-          return [];
-        }
-        case "BT12-098": {
-          if (timing === EffectTiming.OnPlay)
-            return [
-              onPlay({
-                source,
-                effectKey: `${cardId}/reveal`,
-                description: "Reveal 3; add a Save Digimon and a Hunter card.",
-                resolve: async (ctx) => {
-                  const revealed = await ctx.fx.reveal(source.ownerSeat, 3);
-                  const save = await chooseCard(
-                    ctx,
-                    revealed.filter(
-                      (card) => isDigimon(ctx.game.definitionOf(card)) && hasText(ctx.game.definitionOf(card), "save"),
-                    ),
-                    true,
-                  );
-                  const hunter = await chooseCard(
-                    ctx,
-                    revealed.filter(
-                      (card) => card.instanceId !== save && cardHasTrait(ctx.game.definitionOf(card), "Hunter"),
-                    ),
-                    true,
-                  );
-                  const selected = [save, hunter].filter((id): id is string => id !== undefined);
-                  if (selected.length) await ctx.fx.returnToHand(selected);
-                  const rest = revealed.map(({ instanceId }) => instanceId).filter((id) => !selected.includes(id));
-                  if (rest.length) await ctx.fx.returnToDeck(rest, { toTop: false });
-                },
-              }),
-            ];
-          if (timing === EffectTiming.OnUseOption)
-            return [
-              activated({
-                source,
-                effectKey: `${cardId}/main-sa`,
-                description: "Suspend this Tamer to give a Save Digimon Security Attack +1.",
-                maxPerTurn: 1,
-                canActivate: (ctx) =>
-                  myPermanents(ctx, source, (d) => isTamer(d)).length >= 4 && source.permanent()?.isSuspended === false,
-                resolve: async (ctx) => {
-                  const self = source.permanent();
-                  if (!self) return;
-                  await ctx.fx.suspend([self.permanentId]);
-                  const id = await choosePermanent(
-                    ctx,
-                    myPermanents(ctx, source, (d) => isDigimon(d) && hasText(d, "save")),
-                  );
-                  if (id) ctx.fx.grantKeyword(id, "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1);
                 },
               }),
             ];
@@ -943,113 +818,6 @@ export function lateBt12Module(cardId: string): EffectModule {
             ];
           return [];
         }
-        case "BT12-103": {
-          if (timing === EffectTiming.None)
-            return [
-              colorWaiverStatic({
-                source,
-                effectKey: `${cardId}/hunter-color-waiver`,
-                description: "A Hunter Tamer waives this Option's color requirement.",
-                when: (ctx) =>
-                  myPermanents(ctx, source, (definition) => isTamer(definition) && cardHasTrait(definition, "Hunter"))
-                    .length > 0,
-                resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
-              }),
-            ];
-          const resolve = async (ctx: EffectContext) => {
-            const first = await choosePermanent(ctx, opposingDigimon(ctx, source));
-            if (first) await ctx.fx.modifyDP(first, -4000, EffectDuration.UntilEachTurnEnd);
-            if (myPermanents(ctx, source, (d, p) => isDigimon(d) && p.stack.length - 1 >= 4).length) {
-              const second = await choosePermanent(ctx, opposingDigimon(ctx, source));
-              if (second) ctx.fx.grantKeyword(second, "SecurityAttack", EffectDuration.UntilEachTurnEnd, -1);
-            }
-          };
-          if (timing === EffectTiming.OnUseOption)
-            return [
-              activated({
-                source,
-                effectKey: `${cardId}/main`,
-                description: "Give -4000 DP, then possibly Security Attack -1.",
-                resolve,
-              }),
-            ];
-          return [];
-        }
-        case "BT12-104": {
-          const resolve = async (ctx: EffectContext) => {
-            const marcus = await chooseCard(
-              ctx,
-              ctx.game
-                .player(source.ownerSeat)
-                .hand.filter((item) => ctx.game.definitionOf(item).nameEn === "Marcus Damon"),
-              true,
-            );
-            if (marcus) await ctx.fx.playInstances([marcus], { payCost: false });
-            const tamers = myPermanents(
-              ctx,
-              source,
-              (d) => isTamer(d) && (d.colors.includes("Yellow" as never) || d.colors.includes("Red" as never)),
-            ).length;
-            const candidates = opposingDigimon(ctx, source);
-            const targets = await ctx.ask.chooseTargets(ctx, {
-              candidates: candidates.map(({ permanentId }) => permanentId),
-              min: Math.min(3, candidates.length),
-              max: Math.min(3, candidates.length),
-            });
-            for (const target of targets) ctx.fx.modifyDP(target, -2000 * tamers, EffectDuration.UntilEachTurnEnd);
-          };
-          if (timing === EffectTiming.OnUseOption)
-            return [
-              activated({
-                source,
-                effectKey: `${cardId}/main`,
-                description: "Play Marcus, then reduce up to 3 opposing Digimon per yellow/red Tamer.",
-                resolve,
-              }),
-            ];
-          return [];
-        }
-        case "BT12-105": {
-          const resolve = async (ctx: EffectContext) => {
-            const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
-            const permanent = target ? ctx.game.permanentById(target) : undefined;
-            if (permanent?.topCard)
-              ctx.fx.grantCustomEffect?.(
-                permanent.topCard.instanceId,
-                source.ownerSeat,
-                "[On Deletion] Trash the top card of your security stack.",
-                EffectDuration.UntilOpponentTurnEnd,
-              );
-            const blue =
-              myPermanents(ctx, source, (d) => isDigimon(d) && d.colors.includes("Blue" as never)).length > 0;
-            if (blue) {
-              const card = await chooseCard(
-                ctx,
-                ctx.game.player(source.ownerSeat).hand.filter((item) => {
-                  const d = ctx.game.definitionOf(item);
-                  return (
-                    isDigimon(d) &&
-                    (d.level ?? Infinity) <= 4 &&
-                    d.colors.includes("Green" as never) &&
-                    cardHasTrait(d, "Free")
-                  );
-                }),
-                true,
-              );
-              if (card) await ctx.fx.playInstances([card], { payCost: false });
-            }
-          };
-          if (timing === EffectTiming.OnUseOption)
-            return [
-              activated({
-                source,
-                effectKey: `${cardId}/main`,
-                description: "Grant an On Deletion security-trash effect, then possibly play a green Free Digimon.",
-                resolve,
-              }),
-            ];
-          return [];
-        }
         case "BT12-106": {
           if (timing === EffectTiming.None)
             return [
@@ -1107,29 +875,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve: suspendOpponents,
               }),
             ];
-          return [];
-        }
-        case "BT12-107": {
-          if (timing === EffectTiming.OnUseOption)
-            return [
-              activated({
-                source,
-                effectKey: `${cardId}/main`,
-                description: "Grant an opposing Digimon a forced attack at the start of its main phase.",
-                resolve: async (ctx) => {
-                  const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
-                  const p = target ? ctx.game.permanentById(target) : undefined;
-                  if (p?.topCard)
-                    ctx.fx.grantCustomEffect?.(
-                      p.topCard.instanceId,
-                      source.ownerSeat,
-                      "[Start of Your Main Phase] Attack with this Digimon.",
-                      EffectDuration.UntilOpponentTurnEnd,
-                    );
-                },
-              }),
-            ];
-          if (timing === EffectTiming.SecuritySkill) return [_addSelfSecurity(source, cardId)];
           return [];
         }
         case "BT12-108": {
