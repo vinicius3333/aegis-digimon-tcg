@@ -76,7 +76,9 @@ async function renderBondState({ decision }: { decision?: (s: ReturnType<typeof 
 it("exposes Tai's Bond warp as an activatable Main action", async () => {
   const s = await renderBondState();
 
-  fireEvent.click(screen.getByRole("button", { name: /main/i }));
+  // The button reads "Main" but names itself after the effect it activates, the
+  // convention permanentView.test.tsx pins: "Activate effect: <description>".
+  fireEvent.click(screen.getByRole("button", { name: /^activate effect: .*digivolve/i }));
 
   expect(mocked.activateEffect).toHaveBeenCalledWith(
     mocked.room,

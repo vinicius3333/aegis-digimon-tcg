@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -79,8 +80,7 @@ scenario("play-tamer", () => {
       // and play it via the action bar (labelled "Play Digimon" for any non-Option,
       // non-egg card — Tamers included — see GameScreen.tsx's ActionBar).
       const tamerImg = await screen.findByRole("img", { name: /tai kamiya/i });
-      fireEvent.pointerDown(tamerImg, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(tamerImg);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
       // The Tamer now renders in the battle area (only the opponent's side is still

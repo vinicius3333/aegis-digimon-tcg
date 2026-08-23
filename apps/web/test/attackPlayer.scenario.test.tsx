@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -77,8 +78,7 @@ scenario("attack-player", () => {
       await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
       const [biyomonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^biyomon$/i });
-      fireEvent.pointerDown(biyomonImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(biyomonImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
       await vi.waitFor(
@@ -109,8 +109,7 @@ scenario("attack-player", () => {
       const biyomonPermEl = within(yourBattleArea())
         .getByRole("img", { name: /^biyomon$/i })
         .closest('[data-drop="perm-you"]') as HTMLElement;
-      fireEvent.pointerDown(biyomonPermEl, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(biyomonPermEl);
       fireEvent.click(await screen.findByRole("button", { name: /^attack$/i }, { timeout: 10_000 }));
 
       // With an attacker selected, the opponent's security pile becomes the

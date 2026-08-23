@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
@@ -90,8 +91,7 @@ scenario("trigger-order", () => {
         const heading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
         fireEvent.click(within(heading.parentElement!).getByRole("button", { name: /^end phase$/i }));
         const [tamerImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: names[i]! });
-        fireEvent.pointerDown(tamerImg!, { clientX: 100, clientY: 100 });
-        fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+        tap(tamerImg!);
         fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
         await vi.waitFor(
           () => expect(within(yourBattleArea()).getAllByRole("img", { name: names[i]! }).length).toBe(1),

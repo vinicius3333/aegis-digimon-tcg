@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import { Client, type Room } from "colyseus.js";
 import type { GameState } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
@@ -99,8 +100,7 @@ scenario("reconnect-decision", () => {
       fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
 
       const yuukiImg = await screen.findByRole("img", { name: /yuuki/i }, { timeout: 10_000 });
-      fireEvent.pointerDown(yuukiImg, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(yuukiImg);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
       // A real pendingDecision is now open on the protagonist's seat — proven both by

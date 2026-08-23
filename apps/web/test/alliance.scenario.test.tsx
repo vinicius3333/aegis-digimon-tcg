@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
@@ -93,8 +94,7 @@ scenario("alliance", () => {
       await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
       const [agumonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
-      fireEvent.pointerDown(agumonImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(agumonImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
       await screen.findByRole("dialog", {}, { timeout: 10_000 });
       await resolveIncidentalDecisionsThroughUi(opponent);
@@ -116,8 +116,7 @@ scenario("alliance", () => {
       );
 
       const [seadramonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^seadramon$/i });
-      fireEvent.pointerDown(seadramonImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(seadramonImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
       await vi.waitFor(
         () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^seadramon$/i })).toHaveLength(1),
@@ -140,8 +139,7 @@ scenario("alliance", () => {
       const seadramonPermEl = within(yourBattleArea())
         .getByRole("img", { name: /^seadramon$/i })
         .closest('[data-drop="perm-you"]') as HTMLElement;
-      fireEvent.pointerDown(seadramonPermEl, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(seadramonPermEl);
       fireEvent.click(await screen.findByRole("button", { name: /^attack$/i }, { timeout: 10_000 }));
       fireEvent.click(oppSecurity());
 

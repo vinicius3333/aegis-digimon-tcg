@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -72,8 +73,7 @@ scenario("use-option", () => {
 
       const yourBreedingSlot = () => document.querySelector('[data-drop="breeding-you"]') as HTMLElement;
       const [rookieImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /monodramon|biyomon/i });
-      fireEvent.pointerDown(rookieImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(rookieImg!);
       fireEvent.click(yourBreedingSlot());
       await vi.waitFor(
         () => expect(within(yourBreedingSlot()).getByRole("img", { name: /monodramon|biyomon/i })).toBeTruthy(),
@@ -84,8 +84,7 @@ scenario("use-option", () => {
       // Option is labelled "Play card" (not "Play Digimon") on the action bar
       // (GameScreen.tsx's ActionBar: `Play {isOption ? "card" : "Digimon"}`).
       const [gravityCrushImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /gravity crush/i });
-      fireEvent.pointerDown(gravityCrushImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(gravityCrushImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
       // Gravity Crush has playCost 0, so the memory gauge shows only its own

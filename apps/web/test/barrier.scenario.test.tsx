@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
@@ -90,8 +91,7 @@ scenario("barrier", () => {
       await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
       const [unimonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^unimon$/i });
-      fireEvent.pointerDown(unimonImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(unimonImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
       await vi.waitFor(
         () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^unimon$/i })).toHaveLength(1),
@@ -123,8 +123,7 @@ scenario("barrier", () => {
       const unimonPermEl = within(yourBattleArea())
         .getByRole("img", { name: /^unimon$/i })
         .closest('[data-drop="perm-you"]') as HTMLElement;
-      fireEvent.pointerDown(unimonPermEl, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(unimonPermEl);
       fireEvent.click(await screen.findByRole("button", { name: /^attack$/i }, { timeout: 10_000 }));
       fireEvent.click(oppSecurity());
       await vi.waitFor(

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import { getCardDefinition, isDigimon, type CardDefinition, type CardInstance } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -111,8 +112,7 @@ scenario("activate-main", () => {
 
       // Play BT15-009 (Meramon) from hand into the battle area.
       const [meramonImg] = await screen.findAllByRole("img", { name: /meramon/i }, { timeout: 10_000 });
-      fireEvent.pointerDown(meramonImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(meramonImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
       await vi.waitFor(() => expect(opponent.room.state.players[0]!.battleArea.length).toBe(1), { timeout: 10_000 });
 

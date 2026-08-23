@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -91,8 +92,7 @@ scenario("breeding", () => {
       // breeding area with it (free — memory cost 0) by clicking the breeding slot,
       // the same click-routing the battle area uses for on-field digivolution.
       const [biyomonImg] = await screen.findAllByRole("img", { name: /biyomon/i });
-      fireEvent.pointerDown(biyomonImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(biyomonImg!);
       fireEvent.click(yourBreedingSlot());
 
       await vi.waitFor(

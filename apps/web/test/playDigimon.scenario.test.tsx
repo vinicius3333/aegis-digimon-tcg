@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -75,17 +76,16 @@ scenario("play-digimon", () => {
       expect(screen.getAllByText(/no digimon in play/i)).toHaveLength(2); // both empty battle areas
 
       // Select the first "Biyomon" in hand (the dealt hand has two) with a tap
-      // (pointerdown+pointerup below the drag threshold — the gesture the real Hand
-      // component treats as click-to-select) and play it via the action bar's
+      // (the gesture the real Hand component treats as click-to-select) and play it
+      // via the action bar's
       // "Play Digimon" button.
       const [biyomonImg] = await screen.findAllByRole("img", { name: /biyomon/i });
-      fireEvent.pointerDown(biyomonImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(biyomonImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
       // The Digimon now renders in the battle area (only the opponent's side is
       // still empty) and the memory gauge reflects its printed cost (3).
-      await screen.findByText(/memory -3/i, {}, { timeout: 10_000 });
+      await screen.findAllByRole("img", { name: /memory: -3/i }, { timeout: 10_000 });
       expect(screen.getAllByText(/no digimon in play/i)).toHaveLength(1);
       expect(screen.getAllByRole("img", { name: /biyomon/i }).length).toBeGreaterThan(0);
 

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
@@ -97,8 +98,7 @@ scenario("target-decision", () => {
           fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
         }
         const [monodramonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /monodramon/i });
-        fireEvent.pointerDown(monodramonImg!, { clientX: 100, clientY: 100 });
-        fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+        tap(monodramonImg!);
         fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
         await vi.waitFor(
           () => expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i }).length).toBe(i + 1),
@@ -115,8 +115,7 @@ scenario("target-decision", () => {
       fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
 
       const [braveShieldImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /brave shield/i });
-      fireEvent.pointerDown(braveShieldImg!, { clientX: 100, clientY: 100 });
-      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      tap(braveShieldImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
       // Brave Shield's [Main] Unsuspend target can't auto-resolve (2 Monodramon in
