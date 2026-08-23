@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["System", "Life", "Transmutation (App Name)"],
+                  tokens: ["System", "Life", "Transmutation"],
                   match: "trait",
                 },
               ],
@@ -45,7 +45,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["System", "Life", "Transmutation (App Name)"],
+                  tokens: ["System", "Life", "Transmutation"],
                   match: "trait",
                 },
               ],

@@ -14,7 +14,7 @@ describe("BT24-071 Raidramon", () => {
         keyword: { keyword: "SecurityAttack", amount: 1 },
         duration: "forTheTurn",
         target: {
-          filter: { nameOrTrait: [{ tokens: ["System", "Life", "Transmutation (App Name)"], match: "trait" }] },
+          filter: { nameOrTrait: [{ tokens: ["System", "Life", "Transmutation"], match: "trait" }] },
           count: 1,
         },
       });
@@ -40,6 +40,97 @@ describe("BT24-071 Raidramon", () => {
         },
       ],
     });
+  });
+
+  it("public play pays 6 and grants Security Attack +1 to a Life-trait Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-038", as: "life" }],
+          hand: [{ card: "BT24-071", as: "raidramon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("raidramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("life"), "SecurityAttack") === 1);
+
+    expect(s.state.memory).toBe(1);
+  });
+
+  it.each([
+    ["normal purple level-3 requirement", "BT24-068"],
+    ["normal red level-3 requirement", "BT1-009"],
+  ])("uses the %s for cost 3", async (_label, baseCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: baseCard, as: "base" },
+            { card: "BT24-038", as: "life" },
+          ],
+          hand: [{ card: "BT24-071", as: "raidramon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("raidramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("raidramon").instanceId);
+    await settle(() => observe(s.engine).keywordAmount(s.perm("life"), "SecurityAttack") === 1);
+
+    expect(s.state.memory).toBe(2);
+  });
+
+  it.each([
+    ["BT24-067", "BT24-053"],
+    ["BT24-067", "BT24-032"],
+    ["BT24-053", "BT24-067"],
+    ["BT24-053", "BT24-032"],
+    ["BT24-032", "BT24-067"],
+    ["BT24-032", "BT24-053"],
+  ])("Q5647: App Fuses from %s linked with %s", async (hostCard, linkCard) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: hostCard, as: "host" },
+          ],
+          hand: [{ card: linkCard, as: "link" }],
+          trash: [{ card: "BT24-071", as: "fusion" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("host").topCard.instanceId, s.inst("fusion").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("fusion").instanceId);
+
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain(hostCard);
   });
 
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
