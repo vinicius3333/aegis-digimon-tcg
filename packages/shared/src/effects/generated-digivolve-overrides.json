@@ -105,6 +105,15 @@
       "isAlternate": true
     }
   ],
+  "BT24-078": [
+    {
+      "namesExact": [
+        "Creepymon"
+      ],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
   "BT25-045": [
     {
       "level": 2,
