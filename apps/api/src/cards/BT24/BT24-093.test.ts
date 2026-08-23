@@ -31,7 +31,7 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
           kind: "SecurityManipulation",
           op: "addTop",
           fromDigivolutionTop: true,
-          source: { filter: { namesExact: ["Aegiochusmon", "Jupitermon"] } },
+          source: { filter: { nameOrTrait: [{ tokens: ["Aegiochusmon", "Jupitermon"], match: "nameExact" }] } },
         },
       ],
     });

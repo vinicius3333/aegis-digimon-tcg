@@ -11,9 +11,9 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
+        { kind: "PlaceInBattleAreaSelf" },
         { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: true },
         { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck" },
-        { kind: "PlaceInBattleAreaSelf" },
       ],
     },
     {
@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
                 filter: {
                   controllerDefault: "mine",
                   kind: ["Digimon"],
-                  namesExact: ["Aegiochusmon", "Jupitermon"],
+                  nameOrTrait: [{ tokens: ["Aegiochusmon", "Jupitermon"], match: "nameExact" }],
                   excludeSelf: false,
                 },
                 count: 1,
