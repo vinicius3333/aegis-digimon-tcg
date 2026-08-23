@@ -50,7 +50,7 @@ describe("BT13-107 Vulcan Crusher", () => {
       0: { security: [{ card: "BT13-107", as: "vulcan", faceUp: true }] },
       1: { battleArea: [{ card: "BT1-012", as: "target" }] },
     });
-    await advance(s.engine).fire(EffectTiming.SecuritySkill, s.inst("vulcan"));
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("vulcan"));
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("vulcan").instanceId)).toBe(true);
   });

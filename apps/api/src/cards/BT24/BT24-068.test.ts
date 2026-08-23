@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_068 } from "./BT24-068.js";
 import "../index.js";
@@ -104,7 +105,7 @@ describe("BT24-068 DemiDevimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("mineFirst").instanceId));
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("mineFirst").instanceId);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("theirFirst").instanceId);

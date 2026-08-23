@@ -66,7 +66,7 @@ describe("ST16-15 Lament of Friendship", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("garurumon").topCard.cardId === "BT10-079");
 
-    await advance(s.engine).verb.deletePermanent([s.perm("garurumon").permanentId], "effect");
+    await advance(s.engine).verb.deletePermanent([s.perm("garurumon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-079"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-079")).toBe(true);

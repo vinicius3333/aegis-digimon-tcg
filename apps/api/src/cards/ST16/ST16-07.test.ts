@@ -8,7 +8,7 @@ describe("ST16-07 Meramon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST16-07", as: "meramon" }] } });
     s.state.memory = 0;
 
-    await advance(s.engine).verb.deletePermanent([s.perm("meramon").permanentId], "effect");
+    await advance(s.engine).verb.deletePermanent([s.perm("meramon").permanentId], "byEffect");
     await settle(() => s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);

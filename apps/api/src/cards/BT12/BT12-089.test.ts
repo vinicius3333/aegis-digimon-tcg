@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -38,7 +39,7 @@ describe("BT12-089 handwritten module", () => {
     expect(s.state.memory).toBe(3);
 
     const module = getEffectModule("BT12-089");
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, s.perm("takato"))).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, observe(s.engine).cardSource(s.perm("takato")))).toHaveLength(1);
   });
 
   it("places the required cards under Guilmon, digivolves to Gallantmon, and grants +2000 DP", async () => {

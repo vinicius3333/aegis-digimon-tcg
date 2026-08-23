@@ -84,7 +84,7 @@ describe("EX12-030 Thetismon", () => {
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenSuspended", {
-      permanentId: s.perm("host").permanentId,
+      suspendedPermanentId: s.perm("host").permanentId,
     });
     await settle(() => !s.perm("host").isSuspended);
 
@@ -93,7 +93,7 @@ describe("EX12-030 Thetismon", () => {
 
     s.perm("host").isSuspended = true;
     await advance(s.engine).fireSubTrigger("whenSuspended", {
-      permanentId: s.perm("host").permanentId,
+      suspendedPermanentId: s.perm("host").permanentId,
     });
     await settle();
 

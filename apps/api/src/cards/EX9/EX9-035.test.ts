@@ -12,10 +12,10 @@ describe("EX9-035", () => {
   it("adds a DM and places the Ver.4 reveal face-down under a DM Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-035", as: "source" }, { card: "EX9-034", as: "host" }], deck: ["EX9-034", "EX9-035", "EX9-035", "BT1-009"] } }, { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0].battleArea.some((permanent) => permanent.stack.some((card) => card.faceUp === false)));
-    expect(s.state.players[0].hand.some((card) => card.cardId === "EX9-034")).toBe(true);
-    expect(s.state.players[0].battleArea.some((permanent) => permanent.stack.some((card) => card.faceUp === false))).toBe(true);
-    expect(s.state.players[0].deck[0]?.cardId).toBe("BT1-009");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.faceUp === false)));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-034")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.faceUp === false))).toBe(true);
+    expect(s.state.players[0]!.deck[0]?.cardId).toBe("BT1-009");
   });
 
   it("suspends one opposing Digimon from the inherited attack effect", async () => {

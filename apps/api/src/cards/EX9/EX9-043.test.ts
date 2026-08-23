@@ -45,7 +45,7 @@ describe("EX9-043", () => {
     await settle(() => opponent.battleArea.length === 0);
     const played = (s.state.players[0] as PlayerState).battleArea[0];
     expect(played).toBeDefined();
-    expect(played.stack.some((card) => card.cardId === "BT1-012" && !card.faceUp)).toBe(true);
+    expect(played!.stack.some((card) => card.cardId === "BT1-012" && !card.faceUp)).toBe(true);
     expect(opponent.battleArea).toHaveLength(0);
   });
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX11-044.js";
 
@@ -13,7 +14,7 @@ describe("EX11-044 Pyramidimon", () => {
     }
     const recovery = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
     expect(recovery.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenDigivolutionTrashed" });
-    expect(recovery.actions[0].actions[0]).toMatchObject({ kind: "PlaceUnder", position: "bottom" });
-    expect(recovery.actions[0].actions[0].target).toMatchObject({ from: ["trash"], count: 3, upTo: true });
+    expect(irNode(recovery.actions[0]!).actions[0]).toMatchObject({ kind: "PlaceUnder", position: "bottom" });
+    expect(irNode(recovery.actions[0]!).actions[0]!.target).toMatchObject({ from: ["trash"], count: 3, upTo: true });
   });
 });

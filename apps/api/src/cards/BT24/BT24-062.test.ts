@@ -93,7 +93,7 @@ describe("BT24-062 MasterBlimpmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
     const masterStackAfterFirst = s.perm("master").stack.length;
     const neighborStackAfterFirst = s.perm("neighbor").stack.length;
 

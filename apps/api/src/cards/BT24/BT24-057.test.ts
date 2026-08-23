@@ -123,7 +123,7 @@ describe("BT24-057 Docmon", () => {
     const docmonId = s.perm("docmon").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([docmonId], "effect");
+    await advance(s.engine).verb.deletePermanent([docmonId], "byEffect");
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === docmonId)).toBe(false);
@@ -156,7 +156,7 @@ describe("BT24-057 Docmon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("host").currentDP).toBe(hostDp + 3000);
 
-    await advance(s.engine).verb.deletePermanent([hostId], "effect");
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     await settle(() => s.perm("target").topCard.cardId === "BT24-050");
 
     expect(s.perm("target").stack).toHaveLength(0);

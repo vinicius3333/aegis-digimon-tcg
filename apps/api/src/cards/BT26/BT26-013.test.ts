@@ -80,7 +80,7 @@ describe("BT26-013 Musyamon", () => {
 
   it("applies inherited +2000 DP only on the owner's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT26-014", as: "host", under: [{ card: "BT26-013", as: "source" }] }] } });
-    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"), { attackerPermanentId: s.perm("host").permanentId });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), { attackerPermanentId: s.perm("host").permanentId });
     expect(s.perm("host").currentDP).toBe(9000);
 
     const opponentTurn = setupEngine({

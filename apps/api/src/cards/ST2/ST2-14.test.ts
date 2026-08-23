@@ -17,7 +17,7 @@ describe("ST2-14 Sorrow Blue", () => {
         trigger: "Main",
         actions: [{
           kind: "Restrict",
-          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true }, count: 1 },
+          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], digivolutionCards: "hasNone" }, count: 1 },
           restriction: "attackOrBlock",
           duration: "untilEndOfOpponentNextTurn",
         }],
@@ -26,7 +26,7 @@ describe("ST2-14 Sorrow Blue", () => {
         trigger: "Security",
         actions: [{
           kind: "Restrict",
-          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], noDigivolutionCards: true }, count: 1 },
+          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], digivolutionCards: "hasNone" }, count: 1 },
           restriction: "attackOrBlock",
           duration: "untilEndOfYourNextTurn",
         }],

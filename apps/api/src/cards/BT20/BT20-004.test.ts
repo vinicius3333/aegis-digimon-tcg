@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT20-004.js";
 
 describe("BT20-004 Pinamon", () => {
@@ -11,7 +12,7 @@ describe("BT20-004 Pinamon", () => {
       event: "whenPlayed",
       sourceFilter: { nameOrTrait: [{ tokens: ["ACCEL"], match: "trait" }] },
     });
-    expect(watcher?.actions[0]).toMatchObject({
+    expect(irNode(watcher)?.actions[0]).toMatchObject({
       kind: "Digivolve",
       optional: true,
       reduceCost: 2,

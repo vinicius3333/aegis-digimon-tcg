@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -20,7 +21,7 @@ describe("BT26-095 compiled fidelity", () => {
     ]);
     const watcher = card?.effects?.find((effect) => effect.trigger === "AllTurns")?.actions?.[0];
     expect(watcher).toMatchObject({ kind: "SubTrigger", event: "onDeletionOf", sourceFilter: { kind: ["Digimon"] } });
-    expect(watcher?.actions).toMatchObject([
+    expect(irNode(watcher)?.actions).toMatchObject([
       { kind: "Draw", amount: 1, cost: { kind: "suspend" } },
       { kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } },
       { kind: "PlaceUnder", faceDown: true },

@@ -1,4 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -42,7 +43,7 @@ describe("EX12-071 Saneiketsu Invitation", () => {
         },
       ],
     });
-    expect(delay?.actions[0]?.actions[0]).not.toHaveProperty("ignoreRequirements");
+    expect(irNode(delay?.actions[0])?.actions[0]).not.toHaveProperty("ignoreRequirements");
     expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
       actions: [{ kind: "ActivateMain" }],

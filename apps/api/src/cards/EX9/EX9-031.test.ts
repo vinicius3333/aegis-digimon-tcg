@@ -20,10 +20,10 @@ describe("EX9-031", () => {
     s.state.turnSeat = 0;
     const source = s.perm("source");
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: source.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.state.players[0].security.length === 2);
+    await settle(() => s.state.players[0]!.security.length === 2);
     expect(source.stack).toHaveLength(0);
-    expect(s.state.players[0].security).toHaveLength(2);
-    expect(s.state.players[0].deck).toHaveLength(0);
-    expect(s.state.players[0].trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 });

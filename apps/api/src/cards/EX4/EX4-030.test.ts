@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./EX4-030.js";
@@ -23,7 +24,7 @@ describe("EX4-030 Kuzuhamon", () => {
   it("fires the once-per-turn cost-2 watcher and plays an eligible stack Digimon", () => {
     const effect = runtimeCompiledCard("EX4-030")?.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(effect).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOptionUsed" }] });
-    expect(effect?.actions?.[0]?.actions?.[0]).toMatchObject({
+    expect(irNode(effect?.actions?.[0])?.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["digivolutionCards"],
       payCost: false,

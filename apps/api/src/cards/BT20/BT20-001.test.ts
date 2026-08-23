@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT20-001.js";
 
 describe("BT20-001 DemiVeemon", () => {
@@ -16,6 +17,6 @@ describe("BT20-001 DemiVeemon", () => {
         value: 4,
       },
     });
-    expect(action?.target).toMatchObject({ count: 1, isSelf: true });
+    expect(irNode(action)?.target).toMatchObject({ count: 1, isSelf: true });
   });
 });

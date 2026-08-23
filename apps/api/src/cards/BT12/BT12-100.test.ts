@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -48,7 +49,7 @@ it("can decline the optional player attack after unsuspending Shoutmon X7", asyn
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
   await settle(() => s.perm("shoutmon").isSuspended === false);
   expect(s.perm("shoutmon").isSuspended).toBe(false);
-  expect(s.engine.combat.isAttacking).toBe(false);
+  expect(observe(s.engine).isAttacking()).toBe(false);
 });
 
 it("deletes an opposing Digimon and lets a Shoutmon X7: Superior Mode attack", async () => {
@@ -59,8 +60,8 @@ it("deletes an opposing Digimon and lets a Shoutmon X7: Superior Mode attack", a
   await s.ready();
   s.state.memory = 9;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[1]!.battleArea.length === 0 && s.engine.combat.isAttacking);
+  await settle(() => s.state.players[1]!.battleArea.length === 0 && observe(s.engine).isAttacking());
   expect(s.state.players[1]!.battleArea).toHaveLength(0);
-  expect(s.engine.combat.isAttacking).toBe(true);
+  expect(observe(s.engine).isAttacking()).toBe(true);
   expect(s.decisions.some(({ req }) => req.sourceCardId === "BT12-100")).toBe(true);
 });

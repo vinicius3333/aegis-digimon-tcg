@@ -15,7 +15,7 @@ describe("EX9-004", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 5;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.None, s.perm("host"));
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-038"));

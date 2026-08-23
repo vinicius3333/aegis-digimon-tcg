@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-049.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -15,7 +16,7 @@ describe("BT26-049 Rosemon", () => {
       { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "Modal", choose: 1, options: [[{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }], [{ kind: "UseOptionWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }]] }] },
       { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "Modal", choose: 1 }] },
     ] });
-    expect(compiled.effects?.[2]?.actions?.[0]?.actions?.[0]?.options?.[0]?.[0]?.target?.filter).not.toHaveProperty("playCostLte");
+    expect(irNode(compiled.effects?.[2]?.actions?.[0])?.actions?.[0]?.options?.[0]?.[0]?.target?.filter).not.toHaveProperty("playCostLte");
   });
 
   it("uses an Option after two opposing suspensions raise the DATA SQUAD ceiling to five", async () => {

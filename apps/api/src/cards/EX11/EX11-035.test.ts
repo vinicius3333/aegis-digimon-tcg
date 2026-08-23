@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX11-035.js";
 
@@ -14,6 +15,6 @@ describe("EX11-035 Zephagamon", () => {
     const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
     expect(allTurns.actions).toHaveLength(1);
     expect(allTurns.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenSuspended" });
-    expect(allTurns.actions[0].actions[0]).toMatchObject({ kind: "PlayWithoutCost", dpCeilingModifier: { mode: "raiseCeiling", amount: 2000 } });
+    expect(irNode(allTurns.actions[0]!).actions[0]).toMatchObject({ kind: "PlayWithoutCost", dpCeilingModifier: { mode: "raiseCeiling", amount: 2000 } });
   });
 });

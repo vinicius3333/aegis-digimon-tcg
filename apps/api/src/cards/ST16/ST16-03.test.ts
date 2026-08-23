@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { Phase, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST16-03.js";
@@ -60,7 +60,7 @@ describe("ST16-03 Gabumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
-    await settle(() => s.state.players[0]!.trash.length === 1 && s.state.phase === "main");
+    await settle(() => s.state.players[0]!.trash.length === 1 && s.state.phase === Phase.Main);
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
 
     expect(

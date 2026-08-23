@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import module from "./EX11-004.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
+import "./EX11-004.js";
 
 describe("EX11-004 Kapurimon", () => {
   it("subscribes to face-up cards added to the opponent's security", async () => {
@@ -11,7 +12,7 @@ describe("EX11-004 Kapurimon", () => {
       isOnBattleArea: () => true,
       isOwnersTurn: () => true,
     } as any;
-    const effect = module.effectsForTiming(EffectTiming.None, source)[0]!;
+    const effect = getEffectModule("EX11-004")!.effectsForTiming(EffectTiming.None, source)[0]!;
     await effect.resolve({
       source,
       fx: { subscribeSubTrigger: (subscription: any) => subscriptions.push(subscription) },

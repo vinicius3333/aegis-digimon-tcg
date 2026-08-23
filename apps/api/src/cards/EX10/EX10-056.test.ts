@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import compiled from "./EX10-056.js";
 
 describe("EX10-056 Bagramon compiled contract", () => {
@@ -13,6 +14,6 @@ describe("EX10-056 Bagramon compiled contract", () => {
       ]) }),
     ]));
     expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({ targetIsPermanent: true });
-    expect(compiled.effects?.[2]?.actions?.[0]?.actions?.[0]).toMatchObject({ kind: "trashSecurityTop", controller: "opponent", count: 1, cost: { kind: "trash" } });
+    expect(irNode(compiled.effects?.[2]?.actions?.[0])?.actions?.[0]).toMatchObject({ kind: "trashSecurityTop", controller: "opponent", count: 1, cost: { kind: "trash" } });
   });
 });

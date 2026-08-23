@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_060 } from "./BT24-060.js";
@@ -60,7 +61,7 @@ describe("BT24-060 Hisyaryumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("hisyaryumon").topCard.instanceId === s.inst("ouryumon").instanceId);
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.memory).toBe(3);
   });
@@ -85,7 +86,7 @@ describe("BT24-060 Hisyaryumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT24-064", "BT1-001", "BT1-002"]);
   });
@@ -152,7 +153,7 @@ describe("BT24-060 Hisyaryumon", () => {
 
     await advance(s.engine).verb.placeUnder(s.perm("hisyaryumon").permanentId, [s.inst("shuu").instanceId]);
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== targetId));
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
     expect(s.perm("hisyaryumon").isSuspended).toBe(true);
@@ -174,7 +175,7 @@ describe("BT24-060 Hisyaryumon", () => {
     const otherId = s.perm("other").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([hostId, otherId], "effect");
+    await advance(s.engine).verb.deletePermanent([hostId, otherId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-087"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);

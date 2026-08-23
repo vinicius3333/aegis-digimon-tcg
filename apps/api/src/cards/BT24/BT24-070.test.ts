@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_070 } from "./BT24-070.js";
 import "../index.js";
@@ -112,7 +113,7 @@ describe("BT24-070 Growlmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("firstLevel3").instanceId));
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual(
       expect.arrayContaining([s.perm("secondLevel3").permanentId, s.perm("level4").permanentId]),

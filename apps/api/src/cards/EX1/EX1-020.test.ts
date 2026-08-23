@@ -13,7 +13,7 @@ describe("EX1-020 Plesiomon", () => {
     });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("plesiomon"));
+    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
 
     expect(observe(s.engine).canAttackUnsuspended(s.perm("plesiomon"))).toBe(true);
     expect(s.engine.applyIntent(0, {
@@ -34,7 +34,7 @@ describe("EX1-020 Plesiomon", () => {
     await s.ready();
     const before = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("plesiomon"));
+    await advance(s.engine).fire(EffectTiming.None, s.perm("plesiomon"));
     await advance(s.engine).verb.trashDigivolutionCards(
       s.perm("opponent").permanentId,
       [s.perm("opponent").stack[0]!.instanceId],

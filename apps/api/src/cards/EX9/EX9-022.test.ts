@@ -18,7 +18,7 @@ describe("EX9-022", () => {
     }, { autoSelectCards: true, autoOrderTriggers: true });
     const battle = s.perm("battle");
 
-    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.None, s.perm("host"));
 
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
     expect(battle.currentDP).toBe(battle.baseDP);

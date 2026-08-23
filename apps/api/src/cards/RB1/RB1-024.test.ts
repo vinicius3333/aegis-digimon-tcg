@@ -10,7 +10,7 @@ describe("RB1-024 Lamortmon", () => {
       {
         0: {
           battleArea: [
-            { card: "RB1-025", as: "host", under: [{ card: "RB1-024", as: "lamort", under: [{ card: "RB1-020" }] }] },
+            { card: "RB1-025", as: "host", under: [{ card: "RB1-020" }, { card: "RB1-024", as: "lamort" }] },
           ],
         },
         1: { battleArea: [{ card: "EX2-045", as: "target" }] },
@@ -38,7 +38,7 @@ describe("RB1-024 Lamortmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "RB1-025", as: "host", under: [{ card: "RB1-024", as: "lamort", under: [{ card: "RB1-020" }] }] },
+          { card: "RB1-025", as: "host", under: [{ card: "RB1-020" }, { card: "RB1-024", as: "lamort" }] },
         ],
       },
       1: { battleArea: [{ card: "EX2-045", as: "target", suspended: true }], security: ["BT1-009"] },

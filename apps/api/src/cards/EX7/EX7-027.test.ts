@@ -16,7 +16,7 @@ describe("EX7-027", () => {
     const s = setupEngine({ 0: { hand: ["EX7-024"], battleArea: [{ card: "EX7-027", as: "chap" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("chap"));
-    await settle(() => s.state.players[0].battleArea.some((permanent) => permanent.topCard.cardId === "EX7-024"));
-    expect(s.state.players[0].battleArea.some((permanent) => permanent.topCard.cardId === "EX7-024")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-024"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-024")).toBe(true);
   });
 });

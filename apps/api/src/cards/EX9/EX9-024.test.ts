@@ -15,7 +15,7 @@ describe("EX9-024", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 
-    expect(s.state.players[0].hand.some((card) => card.cardId === "BT1-001")).toBe(false);
-    expect(s.state.players[0].hand.some((card) => card.cardId === "EX9-024")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-024")).toBe(true);
   });
 });

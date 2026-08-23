@@ -112,7 +112,7 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     const costId = s.perm("cost").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([hostId], "effect");
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(false);
@@ -134,7 +134,7 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     const costId = s.perm("cost").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([hostId], "effect");
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(true);
@@ -157,7 +157,7 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     const costId = s.perm("cost").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([neighborId], "effect");
+    await advance(s.engine).verb.deletePermanent([neighborId], "byEffect");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === neighborId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(true);
@@ -179,10 +179,10 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     const hostId = s.perm("host").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([hostId], "effect");
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
 
-    await advance(s.engine).verb.deletePermanent([hostId], "effect");
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT17-059")).toHaveLength(
       1,

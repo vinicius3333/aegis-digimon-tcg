@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
@@ -115,7 +116,7 @@ describe("EX12-003 Kapurimon", () => {
       leaveCause: "otherThanYourEffect",
       sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["ME"] }] },
     });
-    expect(effect.actions[0]!.actions[0]).toMatchObject({
+    expect(irNode(effect.actions[0]!).actions[0]).toMatchObject({
       kind: "DnaDigivolve",
       materials: { count: 2, includeRef: "triggerSubject" },
       into: { kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["ME"] }] },

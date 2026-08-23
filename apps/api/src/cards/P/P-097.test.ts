@@ -62,7 +62,7 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
       decisionId: activation.decisionId,
       response: { kind: "optional", accept: true },
     })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.options?.choices?.includes("Top of deck") === true, 2_000);
+    await settle(() => s.decisions.some(({ req }) => req.options?.choices?.includes("Top of deck") === true), 2_000);
 
     const destination = s.decisions.findLast(({ req }) => req.options?.choices?.includes("Top of deck"))!.req;
     expect(destination.sourceCardId).toBe("P-097");

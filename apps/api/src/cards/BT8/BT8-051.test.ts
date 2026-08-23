@@ -30,7 +30,7 @@ describe("BT8-051 Digmon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("armadillomon").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
     await settle(() => s.perm("armadillomon").topCard.instanceId === armadillomonId);
 

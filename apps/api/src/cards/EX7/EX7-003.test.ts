@@ -30,8 +30,8 @@ describe("EX7-003 Kyaromon", () => {
 
     // A 4000 attacker survives the exact opposing 3000-DP security Digimon only because
     // EX7-003 reduced that security battle value by 2000; the battle-area target was untouched.
-    expect(opponent.security).toHaveLength(0);
-    expect(s.state.players[0].battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true);
+    expect(opponent!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true);
     expect(battleTarget.currentDP).toBe(3000);
   });
 });

@@ -23,7 +23,7 @@ describe("EX9-030", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.perm("target").currentDP !== 5000);
-    const source = s.state.players[0].battleArea[0]!;
+    const source = s.state.players[0]!.battleArea[0]!;
     expect(source.stack).toHaveLength(1);
     expect(source.stack[0]!.faceUp).toBe(false);
     expect(s.perm("target").currentDP).toBe(2000);

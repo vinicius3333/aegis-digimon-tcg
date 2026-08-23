@@ -21,7 +21,7 @@ describe("EX7-010 Deputymon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("deputy"));
-    await settle(() => !s.state.players[0].battleArea[0]!.stack.some((card) => card.cardId === "EX7-071"));
-    expect(s.state.players[0].battleArea[0]!.stack.some((card) => card.cardId === "EX7-071")).toBe(false);
+    await settle(() => !s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071"));
+    expect(s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071")).toBe(false);
   });
 });

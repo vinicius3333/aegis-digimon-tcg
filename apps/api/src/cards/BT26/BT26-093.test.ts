@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -21,7 +22,7 @@ describe("BT26-093 compiled fidelity", () => {
     ]);
     const watcher = card?.effects?.find((effect) => effect.trigger === "AllTurns")?.actions?.[0];
     expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenAttacking" });
-    expect(watcher?.actions).toMatchObject([
+    expect(irNode(watcher)?.actions).toMatchObject([
       { kind: "Suspend", target: { isSelf: true } },
       { kind: "PlaceUnder", fromDeckTop: true, faceDown: true },
       { kind: "GainKeyword", keyword: { keyword: "Collision" } },

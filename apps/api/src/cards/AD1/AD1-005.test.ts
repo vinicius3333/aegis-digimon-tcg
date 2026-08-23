@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { Zone, EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -47,7 +47,7 @@ describe("AD1-005 Gaiamon", () => {
     expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("stackLink").instanceId, s.inst("handLink").instanceId]));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidNoLink").instanceId)).toBe(true);
 
-    const lateLink = s.give(0, "hand", { card: "P-190", as: "lateLink" });
+    const lateLink = s.give(0, Zone.Hand, { card: "P-190", as: "lateLink" });
     await advance(s.engine).fire(EffectTiming.OnUseAttack, gaiamon);
 
     expect(gaiamon.linked).toHaveLength(2);

@@ -27,7 +27,7 @@ describe("BT8-048 Shurimon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("hawkmon").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
     await settle(() => s.perm("hawkmon").topCard.instanceId === hawkmonId);
 

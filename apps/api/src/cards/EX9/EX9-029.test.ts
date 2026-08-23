@@ -21,10 +21,10 @@ describe("EX9-029", () => {
     const source = s.perm("source");
     const target = s.perm("target");
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: source.permanentId, target: { kind: "permanent", permanentId: target.permanentId } })).toEqual({ ok: true });
-    await settle(() => s.state.players[0].security.length === 1);
+    await settle(() => s.state.players[0]!.security.length === 1);
     expect(source.stack).toHaveLength(1);
     expect(source.stack[0]!.faceUp).toBe(false);
-    expect(s.state.players[0].deck).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(target.currentDP).toBe(5000);
   });
 });

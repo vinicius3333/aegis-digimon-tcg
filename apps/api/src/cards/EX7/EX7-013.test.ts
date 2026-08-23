@@ -15,7 +15,7 @@ describe("EX7-013 MagnaKidmon", () => {
     const s = setupEngine({ 0: { hand: ["BT1-009"], deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"], battleArea: [{ card: "EX7-013", as: "magna" }] } }, { autoDeclineOptional: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magna"));
-    await settle(() => s.state.players[0].hand.length === 6);
-    expect(s.state.players[0].hand).toHaveLength(6);
+    await settle(() => s.state.players[0]!.hand.length === 6);
+    expect(s.state.players[0]!.hand).toHaveLength(6);
   });
 });

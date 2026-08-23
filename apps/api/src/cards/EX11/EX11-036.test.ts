@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX11-036.js";
 
@@ -15,7 +16,7 @@ describe("EX11-036 Dalphomon", () => {
     const inherited = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(inherited.actions).toHaveLength(1);
     expect(inherited.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked" });
-    expect(inherited.actions[0].actions).toEqual(expect.arrayContaining([
+    expect(irNode(inherited.actions[0]!).actions).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: "Suspend" }),
       expect.objectContaining({ kind: "Attack", optional: true }),
     ]));

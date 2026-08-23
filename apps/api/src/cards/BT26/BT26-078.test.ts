@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -26,7 +27,7 @@ describe("BT26-078 compiled behavior", () => {
       { tokens: ["Chronomon"], match: "text" },
       { tokens: ["Titan"], match: "trait" },
     ] }, fireCondition: { kind: "allOf", conditions: [{ kind: "isYourTurn" }, { kind: "memoryAtLeast", value: 5, controller: "opponent" }] } }] });
-    expect(effect.actions[0].actions).toEqual([
+    expect(irNode(effect.actions[0]!).actions).toEqual([
       expect.objectContaining({ kind: "Return", to: "deckBottom", target: expect.objectContaining({ isSelf: true }), optional: true }),
       expect.objectContaining({ kind: "GainKeyword", target: expect.objectContaining({ sourceRef: "triggerSubject" }), keyword: { keyword: "Rush" }, duration: "untilEachTurnEnd" }),
       expect.objectContaining({ kind: "GainKeyword", target: expect.objectContaining({ sourceRef: "triggerSubject" }), keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" }),

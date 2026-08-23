@@ -139,7 +139,7 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
     const attacker = makePermanent(0, 9000);
     const blocker = makePermanent(1, 1000, { cardId: BLOCKER_CARD });
     state.players[1]!.battleArea.push(blocker);
-    // Deliberately NOT pushed to state.players[0].battleArea — the attacker is not (or is no
+    // Deliberately NOT pushed to state.players[0]!.battleArea — the attacker is not (or is no
     // longer) a live battle-area Digimon.
     expect(canBlock(access, attacker, blocker)).toBe("illegal-target");
 

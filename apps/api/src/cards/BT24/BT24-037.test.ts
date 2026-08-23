@@ -1,4 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -36,7 +37,7 @@ describe("BT24-037 Silphymon", () => {
         // a "raw" kind would be treated as unmet and the bonus would never apply.
         condition: { kind: "isDnaDigivolving", raw: "DNA digivolving" },
       });
-      expect(actions[3].target).toMatchObject({ sameTarget: true });
+      expect(irNode(actions[3]!).target).toMatchObject({ sameTarget: true });
     }
   });
 

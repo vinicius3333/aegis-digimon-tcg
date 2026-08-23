@@ -31,7 +31,7 @@ describe("BT13-008 Agumon", () => {
 
     expect(s.perm("marcus").currentDP).toBe(3000);
     expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("marcus").permanentId, target: { kind: "player", seat: 1 } })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("marcus").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
   });
 
   it("once per turn may delete only an opposing Digimon with 3000 DP or less when a red or yellow Tamer suspends", async () => {

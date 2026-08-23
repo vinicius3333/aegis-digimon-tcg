@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -10,9 +11,9 @@ describe("ST21-10", () => {
     );
     const action = effect?.actions[0];
     expect(action).toMatchObject({ kind: "Digivolve", payCost: true, from: ["hand"] });
-    expect(action.into.nameOrTrait).toEqual([{ tokens: ["MetalGarurumon"], match: "name" }]);
-    expect(action.condition).toMatchObject({ kind: "orConditions" });
-    expect(action.condition.conditions).toEqual(
+    expect(irNode(action).into.nameOrTrait).toEqual([{ tokens: ["MetalGarurumon"], match: "name" }]);
+    expect(action!.condition).toMatchObject({ kind: "orConditions" });
+    expect(action!.condition!.conditions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "opponentHas" }),
         expect.objectContaining({ kind: "zoneColorCount", value: 3 }),
@@ -72,12 +73,12 @@ describe("ST21-10", () => {
     const source = s.perm("gabumon");
     const [effect] = observe(s.engine).activatableEffects(source) as { effectKey: string; description: string }[];
     expect(effect).toBeDefined();
-    expect(effect.description).toContain("[YourTurn] Digivolve");
+    expect(effect!.description).toContain("[YourTurn] Digivolve");
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: source.topCard!.instanceId,
-        effectKey: effect.effectKey,
+        effectKey: effect!.effectKey,
       }),
     ).toEqual({ ok: true });
     await settle();

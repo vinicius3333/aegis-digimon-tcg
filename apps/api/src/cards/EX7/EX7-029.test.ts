@@ -26,9 +26,9 @@ describe("EX7-029", () => {
     expect(s.perm("first").permanentId).not.toBe(s.perm("second").permanentId);
     const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("saber"));
     await resolution;
-    await settle(() => s.state.players[1].battleArea[0]!.currentDP === 4000 && s.state.players[1].battleArea[1]!.currentDP === 5000);
-    expect(s.state.players[1].battleArea[0]!.currentDP).toBe(4000);
-    expect(s.state.players[1].battleArea[1]!.currentDP).toBe(5000);
+    await settle(() => s.state.players[1]!.battleArea[0]!.currentDP === 4000 && s.state.players[1]!.battleArea[1]!.currentDP === 5000);
+    expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(4000);
+    expect(s.state.players[1]!.battleArea[1]!.currentDP).toBe(5000);
   });
 
   it("reduces two distinct suspended opposing Digimon by 8000 DP when digivolving", async () => {
@@ -40,9 +40,9 @@ describe("EX7-029", () => {
     expect(s.perm("first").permanentId).not.toBe(s.perm("second").permanentId);
     const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("saber"));
     await resolution;
-    await settle(() => s.state.players[1].battleArea[0]!.currentDP === 4000 && s.state.players[1].battleArea[1]!.currentDP === 5000);
-    expect(s.state.players[1].battleArea[0]!.currentDP).toBe(4000);
-    expect(s.state.players[1].battleArea[1]!.currentDP).toBe(5000);
+    await settle(() => s.state.players[1]!.battleArea[0]!.currentDP === 4000 && s.state.players[1]!.battleArea[1]!.currentDP === 5000);
+    expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(4000);
+    expect(s.state.players[1]!.battleArea[1]!.currentDP).toBe(5000);
   });
 
 });

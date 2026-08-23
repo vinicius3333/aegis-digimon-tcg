@@ -19,7 +19,7 @@ describe("BT17-015", () => {
 
   it("trashes one security card when an Omnimon host attacks", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT17-078", as: "host", under: ["BT17-015"] }] }, 1: { security: ["BT1-009", "BT1-009"] } });
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player", seat: 1 } })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

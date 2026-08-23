@@ -72,7 +72,7 @@ describe("BT12-095 handwritten module", () => {
     await s.ready();
     const before = s.perm("agumon").currentDP;
 
-    await advance(s.engine).verb.playInstances([s.inst("tai").instanceId], { payCost: false });
+    await advance(s.engine).verb.playInstances([s.inst("tai").instanceId]);
 
     expect(s.perm("agumon").currentDP).toBe(before + 1000);
     expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Blocker")).toBe(true);

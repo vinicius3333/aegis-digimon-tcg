@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_059 } from "./BT24-059.js";
@@ -51,7 +52,7 @@ describe("BT24-059 Sharkmon", () => {
     await s.ready();
     const sharkmonId = s.perm("sharkmon").permanentId;
 
-    await advance(s.engine).verb.deletePermanent([sharkmonId], "effect");
+    await advance(s.engine).verb.deletePermanent([sharkmonId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("ts").instanceId),
     );
@@ -127,7 +128,7 @@ describe("BT24-059 Sharkmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").stack.some((card) => card.cardId === "BT1-010"));
     await settle(() => s.state.players[1]!.security.length === 0);
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT1-010");

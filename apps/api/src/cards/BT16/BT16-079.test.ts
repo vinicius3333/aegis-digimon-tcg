@@ -49,7 +49,7 @@ describe("BT16-079", () => {
             { card: "BT16-042", as: "otherTwo" },
           ],
         },
-        1: { battleArea: [{ card: "BT16-079", as: "target", level: 6 }] },
+        1: { battleArea: [{ card: "BT16-079", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

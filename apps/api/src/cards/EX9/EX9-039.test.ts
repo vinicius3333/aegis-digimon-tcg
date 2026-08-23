@@ -17,7 +17,7 @@ describe("EX9-039", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("source").stack.map((card) => card.faceUp)).toEqual([false, false]);
-    expect(s.state.players[0].hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("opponent").isSuspended).toBe(true);
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT16-073.js";
 import "../index.js";
 
@@ -38,7 +39,7 @@ describe("BT16-073", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await s.engine.deletePermanent(s.perm("mummy").permanentId, { byEffect: true });
+    await advance(s.engine).verb.deletePermanent([s.perm("mummy").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-087"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-087")).toBe(true);

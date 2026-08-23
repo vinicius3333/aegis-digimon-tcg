@@ -73,7 +73,7 @@ describe("BT21-011 compiled implementation", () => {
     });
 
     s.state.turnSeat = 0;
-    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("shoutmon"));
+    await advance(s.engine).fire(EffectTiming.None, s.perm("shoutmon"));
     expect(observe(s.engine).hasKeyword(s.perm("shoutmon"), "Rush")).toBe(true);
   });
 });

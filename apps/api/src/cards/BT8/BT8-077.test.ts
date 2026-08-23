@@ -31,7 +31,7 @@ describe("BT8-077 BlackGatomon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: hostId,
-      target: { kind: "digimon", permanentId: defenderId },
+      target: { kind: "permanent", permanentId: defenderId },
     })).toEqual({ ok: true });
     await settle(() =>
       !s.state.players[0]!.battleArea.some(permanent => permanent.permanentId === hostId) &&

@@ -18,8 +18,8 @@ describe("EX7-007 Hina Kurihara", () => {
     }, { autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("vorvomon"));
-    await settle(() => s.state.players[0].hand.some((card) => card.cardId === "BT2-011") && s.state.players[0].hand.some((card) => card.cardId === "EX3-065"));
-    expect(s.state.players[0].hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT2-011", "EX3-065"]));
-    expect(s.state.players[0].deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT2-011") && s.state.players[0]!.hand.some((card) => card.cardId === "EX3-065"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT2-011", "EX3-065"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 });

@@ -22,7 +22,7 @@ describe("EX7-009 Hina Kurihara", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lavorvomon"));
-    await settle(() => s.state.players[0].hand.some((card) => card.cardId === "EX7-042"));
-    expect(s.state.players[0].hand.some((card) => card.cardId === "EX7-042")).toBe(true);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX7-042"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX7-042")).toBe(true);
   });
 });

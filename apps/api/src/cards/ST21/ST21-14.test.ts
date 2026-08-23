@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -6,7 +7,7 @@ describe("ST21-14", () => {
   it("reveals three, adds one ADVENTURE card, bottoms the rest, and places itself", () => {
     const main = (runtimeCompiledCard("ST21-14")?.effects ?? []).find((effect) => effect.trigger === "Main");
     expect(main?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
-    expect(main?.actions[0].add[0].filter.nameOrTrait).toEqual([{ tokens: ["ADVENTURE"], match: "trait" }]);
+    expect(irNode(main?.actions[0]!).add[0]!.filter.nameOrTrait).toEqual([{ tokens: ["ADVENTURE"], match: "trait" }]);
     expect(main?.actions[1]).toMatchObject({ kind: "PlaceInBattleAreaSelf" });
   });
   it("keeps Delay memory and security placement", () => {

@@ -32,9 +32,9 @@ describe("EX8-043", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
-    await settle(() => player.battleArea.some((p) => p.topCard?.cardId === "EX8-043") && s.state.players[1].battleArea[0]?.isSuspended === true);
+    await settle(() => player.battleArea.some((p) => p.topCard?.cardId === "EX8-043") && s.state.players[1]!.battleArea[0]?.isSuspended === true);
 
-    expect(s.state.players[1].battleArea[0]?.isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea[0]?.isSuspended).toBe(true);
   });
   it("trashes the opponent's top security when its host deletes in battle", async () => {
     const s = setupEngine({

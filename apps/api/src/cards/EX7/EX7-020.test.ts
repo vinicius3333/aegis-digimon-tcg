@@ -16,7 +16,7 @@ describe("EX7-020 Paledramon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX7-020", as: "pale" }] }, 1: { battleArea: [{ card: "BT1-009", under: ["BT1-010", "BT1-011"] }] } });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("pale"));
-    await settle(() => s.state.players[1].battleArea[0]!.stack.length === 0);
-    expect(s.state.players[1].battleArea[0]!.stack).toHaveLength(0);
+    await settle(() => s.state.players[1]!.battleArea[0]!.stack.length === 0);
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(0);
   });
 });

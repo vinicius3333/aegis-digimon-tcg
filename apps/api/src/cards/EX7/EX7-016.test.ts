@@ -16,8 +16,8 @@ describe("EX7-016 Bulucomon", () => {
     const s = setupEngine({ 0: { deck: ["BT5-025", "EX7-017", "BT1-009"], battleArea: [{ card: "EX7-016", as: "bulu" }] } }, { autoSelectCards: true, autoChooseOption: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("bulu"));
-    await settle(() => s.state.players[0].hand.some((card) => card.cardId === "BT5-025") && s.state.players[0].hand.some((card) => card.cardId === "EX7-017"));
-    expect(s.state.players[0].hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT5-025", "EX7-017"]));
-    expect(s.state.players[0].deck.at(-1)?.cardId).toBe("BT1-009");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT5-025") && s.state.players[0]!.hand.some((card) => card.cardId === "EX7-017"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT5-025", "EX7-017"]));
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-009");
   });
 });

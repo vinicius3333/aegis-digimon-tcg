@@ -10,7 +10,7 @@ afterEach(() => {
 
 describe("registerIrCard", () => {
   it("builds and registers the compiled module without an undefined implementation override", () => {
-    const module = registerIrCard(CARD_ID, { effects: [] });
+    const module = registerIrCard(CARD_ID, { effects: [], coverage: "none", residual: [] });
 
     expect(module.cardId).toBe(CARD_ID);
     expect(getEffectModule(CARD_ID)).toBe(module);

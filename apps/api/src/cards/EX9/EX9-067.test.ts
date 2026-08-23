@@ -14,9 +14,9 @@ describe("EX9-067", () => {
   it("reveals three and adds a Puppet card while returning the rest to the deck bottom", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-067", as: "source" }], deck: ["BT1-009", "EX9-024", "BT1-010"] } }, { autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0].hand.some((card) => card.cardId === "EX9-024") && s.state.players[0].deck.length === 2, 40);
-    expect(s.state.players[0].hand.some((card) => card.cardId === "EX9-024")).toBe(true);
-    expect(s.state.players[0].deck).toHaveLength(2);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX9-024") && s.state.players[0]!.deck.length === 2, 40);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-024")).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
   it("returns this Tamer to the deck bottom and plays a Puppet after its digivolution trigger", async () => {
     const s = setupEngine({

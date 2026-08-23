@@ -30,7 +30,7 @@ describe("BT26-033 compiled fidelity", () => {
           cost: { kind: "placeAsSecurity", position: "bottom", target: { filter: { isSelfRef: true }, isSelf: true } },
         },
       ],
-    }, { autoAcceptOptional: true });
+    });
   });
 
   it("publicly adds the top security card to hand and plays an Iliad card with the reduction", async () => {

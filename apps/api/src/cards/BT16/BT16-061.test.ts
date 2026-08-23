@@ -65,7 +65,7 @@ describe("BT16-061 DoruGreymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireSubTrigger("whenBattleDeleteOpponent", {
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
       attackerPermanentId: s.perm("host").permanentId,
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-051"));

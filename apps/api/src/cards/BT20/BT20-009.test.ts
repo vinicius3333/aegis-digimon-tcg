@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT20-009.js";
 
 describe("BT20-009 Veemon", () => {
@@ -10,7 +11,7 @@ describe("BT20-009 Veemon", () => {
       event: "whenPlayed",
       sourceFilter: { controller: "mine", kind: ["Digimon"], colors: ["Purple"] },
     });
-    expect(watcher?.actions[0]).toMatchObject({
+    expect(irNode(watcher)?.actions[0]).toMatchObject({
       kind: "Digivolve",
       optional: true,
       reduceCost: 1,

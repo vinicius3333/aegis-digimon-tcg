@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -40,7 +41,7 @@ describe("BT26-089 compiled fidelity", () => {
         }),
       ]),
     );
-    expect(watchers[1]?.actions).toEqual(
+    expect(irNode(watchers[1])?.actions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "Suspend" }),
         expect.objectContaining({ kind: "PlaceUnder", fromDeckTop: true, faceDown: true }),

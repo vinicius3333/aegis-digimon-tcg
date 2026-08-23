@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT16-088.js";
 
 describe("BT16-088", () => {
@@ -30,8 +31,8 @@ describe("BT16-088", () => {
         },
       ],
     });
-    expect(compiled.effects?.[1]?.actions?.[0]?.actions?.[1]).not.toHaveProperty("optional");
-    expect(compiled.effects?.[1]?.actions?.[0]?.actions?.[1]).not.toHaveProperty("abortOnDecline");
+    expect(irNode(compiled.effects?.[1]?.actions?.[0])?.actions?.[1]).not.toHaveProperty("optional");
+    expect(irNode(compiled.effects?.[1]?.actions?.[0])?.actions?.[1]).not.toHaveProperty("abortOnDecline");
   });
 
   it("plays itself from security", () => {
