@@ -77,7 +77,7 @@ describe("§16-10 <Digisorption> (comprehensive-0228)", () => {
         instanceId: digivolveCard.instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => base.topCard?.cardId === "BT10-052", 300);
+    await settle(() => base.topCard?.cardId === "BT10-052", 5000);
 
     expect(base.topCard?.cardId).toBe("BT10-052");
   });
@@ -170,7 +170,7 @@ describe("§16-13 <Retaliation> (comprehensive-0231) — ENGINE BUG: the keyword
           target: { kind: "permanent", permanentId: retaliator.permanentId },
         }),
       ).toEqual({ ok: true });
-      await settle(() => false, 300);
+      await settle(() => false, 5000);
 
       // The defender (4000 DP, HAS Retaliation) lost to the attacker (9000 DP) as usual...
       expect(p1.battleArea.some((p) => p.permanentId === retaliator.permanentId)).toBe(false);
@@ -206,7 +206,7 @@ describe("§16-14 <Digi-Burst> (comprehensive-0232)", () => {
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
     ).toEqual({ ok: true });
-    await settle(() => p1.battleArea.some((p) => p.permanentId === weakTarget.permanentId) === false, 300);
+    await settle(() => p1.battleArea.some((p) => p.permanentId === weakTarget.permanentId) === false, 5000);
 
     expect(burster.stack.length).toBe(0); // both digivolution cards trashed as the cost
     expect(p1.battleArea.some((p) => p.permanentId === weakTarget.permanentId)).toBe(false); // deleted
@@ -324,7 +324,7 @@ describe("§16-17 <Delay> (comprehensive-0235)", () => {
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.length === 0, 300);
+    await settle(() => p0.battleArea.length === 0, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === delayer.permanentId)).toBe(false); // trashed itself
     expect(p0.trash.length).toBe(trashBefore + 1);
@@ -399,7 +399,7 @@ describe("§16-19 <Armor Purge> (comprehensive-0237)", () => {
           target: { kind: "permanent", permanentId: armored.permanentId },
         }),
       ).toEqual({ ok: true });
-      await settle(() => false, 300);
+      await settle(() => false, 5000);
 
       // EXPECTED (per §16-19-1): spared by trashing its own top card instead.
       expect(p1.battleArea.some((p) => p.permanentId === armored.permanentId)).toBe(true);

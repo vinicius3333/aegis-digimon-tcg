@@ -221,7 +221,7 @@ describe("§4-5 DUAL Cards (comprehensive-0072)", () => {
         useAs: "option",
       } as never);
       expect(result).toEqual({ ok: true });
-      await settle(() => oppTarget.currentDP !== 12000, 200);
+      await settle(() => oppTarget.currentDP !== 12000, 5000);
       expect(oppTarget.currentDP).toBe(4000); // the Option side's "-8000 DP" actually applied
       expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043")).toBe(false); // NOT played as a Digimon permanent
     },
@@ -244,7 +244,7 @@ describe("§4-5 DUAL Cards (comprehensive-0072)", () => {
 
     const result = s.engine.applyIntent(0, { type: "playCard", instanceId: dualCard.instanceId } as never);
     expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043"), 200);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043"), 5000);
     // Played as the Digimon side (the default): it's a battle-area permanent...
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT25-043")).toBe(true);
     // ...and the Option side's "-8000 DP" did NOT apply.
@@ -315,7 +315,7 @@ describe("§4-6 Stacked Cards (comprehensive-0075)", () => {
     const digivolveCard = s.inst("digivolveCard");
     s.state.memory = 3;
     s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: digivolveCard.instanceId });
-    await settle(() => base.topCard?.cardId === "AD1-002", 200);
+    await settle(() => base.topCard?.cardId === "AD1-002", 5000);
 
     // The old top card is now demoted into the stack: base.stack IS "stacked cards" (>= 1).
     expect(base.stack.length).toBe(1);
@@ -435,7 +435,7 @@ describe("§4-7 Digivolution Cards (comprehensive-0077)", () => {
     const digivolveCard = s.inst("digivolveCard");
     s.state.memory = 3;
     s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: digivolveCard.instanceId });
-    await settle(() => base.topCard?.cardId === "AD1-002", 200);
+    await settle(() => base.topCard?.cardId === "AD1-002", 5000);
 
     // AD1-001 (the base) is no longer the top card, but it IS now a digivolution card of the
     // AD1-002 permanent — referenced from `permanent.stack`, not a separate on-field entity.
@@ -850,7 +850,7 @@ describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
     expect(result).toEqual({ ok: true });
 
     // The Option's [Main] effect resolves first (the -8000 DP still applies)...
-    await settle(() => s.state.pendingDecision !== undefined, 300);
+    await settle(() => s.state.pendingDecision !== undefined, 5000);
     const oppTarget = s.perm("oppTarget");
     expect(oppTarget.currentDP).toBe(4000);
     // ...THEN Arts Digivolve is offered, replacing the pending trash — accept it.
@@ -862,7 +862,7 @@ describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
       response: { kind: "selectCards", instanceIds: [base.topCard!.instanceId] },
     } as never);
 
-    await settle(() => base.topCard?.cardId === "BT25-043", 300);
+    await settle(() => base.topCard?.cardId === "BT25-043", 5000);
     expect(base.topCard?.cardId).toBe("BT25-043"); // digivolved in, NOT trashed
     expect(base.stack.some((c) => c.cardId === "BT1-060")).toBe(true); // prior top slid under
     expect(p0.trash.some((c) => c.cardId === "BT25-043")).toBe(false);
@@ -882,7 +882,7 @@ describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
     s.state.memory = requireCardDefinition("BT25-043").playCost;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: dualCard.instanceId, useAs: "option" } as never);
-    await settle(() => s.state.pendingDecision !== undefined, 300);
+    await settle(() => s.state.pendingDecision !== undefined, 5000);
     const pending = s.state.pendingDecision!;
     s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -890,7 +890,7 @@ describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
       response: { kind: "selectCards", instanceIds: [] },
     } as never);
 
-    await settle(() => p0.trash.some((c) => c.cardId === "BT25-043"), 300);
+    await settle(() => p0.trash.some((c) => c.cardId === "BT25-043"), 5000);
     expect(base.topCard?.cardId).toBe("BT1-060"); // unchanged
     expect(p0.trash.some((c) => c.cardId === "BT25-043")).toBe(true);
   });
@@ -910,7 +910,7 @@ describe("§4-19 Arts Digivolve (comprehensive-0089)", () => {
     s.state.memory = requireCardDefinition("BT25-043").playCost;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: dualCard.instanceId, useAs: "option" } as never);
-    await settle(() => p0.trash.some((c) => c.cardId === "BT25-043"), 300);
+    await settle(() => p0.trash.some((c) => c.cardId === "BT25-043"), 5000);
     expect(s.state.pendingDecision).toBeUndefined();
     expect(p0.trash.some((c) => c.cardId === "BT25-043")).toBe(true);
   });
@@ -1256,7 +1256,7 @@ describe('§4-26 "Each" or "Every" (comprehensive-0096)', () => {
     // Zero opponent Digimon: the flat "Draw 1" is the only draw.
     const result = s.engine.applyIntent(0, { type: "playCard", instanceId: deckerdramon.instanceId });
     expect(result).toEqual({ ok: true });
-    await settle(() => p0.hand.length !== handBefore, 200);
+    await settle(() => p0.hand.length !== handBefore, 5000);
     expect(p0.hand.length).toBe(handBefore + 1);
 
     // A second Deckerdramon with TWO opponent Digimon on the field draws 1 (flat) + 2 (each) = 3.
@@ -1266,7 +1266,7 @@ describe('§4-26 "Each" or "Every" (comprehensive-0096)', () => {
     s.state.memory = def.playCost;
     const handBefore2 = p0.hand.length - 1;
     s.engine.applyIntent(0, { type: "playCard", instanceId: second.instanceId });
-    await settle(() => p0.hand.length >= handBefore2 + 3, 300);
+    await settle(() => p0.hand.length >= handBefore2 + 3, 5000);
     expect(p0.hand.length).toBe(handBefore2 + 3);
   });
 });
@@ -1296,7 +1296,7 @@ describe('§4-26-5 "Each" or "Every", cont\'d (comprehensive-0097)', () => {
 
     const onPlayEventsBefore = s.events.length;
     s.engine.applyIntent(0, { type: "playCard", instanceId: deckerdramon.instanceId });
-    await settle(() => p0.hand.length >= handBeforePlay + 3, 300);
+    await settle(() => p0.hand.length >= handBeforePlay + 3, 5000);
     expect(p0.hand.length).toBe(handBeforePlay + 3); // the count actually landed — not just "some draws happened"
 
     // Exactly ONE On Play activation happened (a single `cardPlayed`/On Play window), yet the

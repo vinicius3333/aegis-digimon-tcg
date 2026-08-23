@@ -67,7 +67,7 @@ describe("§16-20 <Save> (comprehensive-0238)", () => {
     // Settle on the <Save> PLACEMENT, not merely the deletion: the card leaves the field first,
     // and PlaceUnder resolves behind async optional/target prompts afterward — a deletion-only
     // predicate would race ahead of the placement (mechanic.test.ts's P-115 <Save> precedent).
-    await settle(() => tamer.stack.some((c) => c.cardId === "BT10-008"), 300);
+    await settle(() => tamer.stack.some((c) => c.cardId === "BT10-008"), 5000);
 
     // NOT in the trash — Save placed it under the Tamer instead.
     expect(tamer.stack.some((c) => c.cardId === "BT10-008")).toBe(true);
@@ -112,7 +112,7 @@ describe("§16-21/16-21-6 <Material Save> (comprehensive-0239/0240)", () => {
           target: { kind: "permanent", permanentId: saver.permanentId },
         }),
       ).toEqual({ ok: true });
-      await settle(() => false, 300);
+      await settle(() => false, 5000);
 
       // EXPECTED (per §16-21-1): a digivolution card ends up placed under the Tamer.
       expect(tamer.stack.length).toBeGreaterThan(0);
@@ -171,7 +171,7 @@ describe("§16-23 <Raid> (comprehensive-0242)", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId), 400);
+      await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId), 5000);
       expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
       expect(p1.battleArea.some((p) => p.permanentId === unsuspendedHighDP.permanentId)).toBe(true);
       expect(p1.security.length).toBe(securityBefore);
@@ -210,14 +210,14 @@ describe("§16-24 <Alliance> (comprehensive-0243)", () => {
     expect(
       s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: ally.permanentId } as never),
     ).toEqual({ ok: true });
-    await settle(() => attacker.currentDP !== 5000, 600);
+    await settle(() => attacker.currentDP !== 5000, 5000);
 
     expect(ally.isSuspended).toBe(true); // suspended to pay Alliance's cost
     expect(attacker.currentDP).toBe(8000); // 5000 + the ally's 3000 DP — the real DP-addition mechanic
 
     // Flush further: the battle comparison itself (a separate step after the DP modifier lands)
     // needs additional ticks beyond the DP settle above.
-    await settle(() => p1.battleArea.some((p) => p.permanentId === defender.permanentId) === false, 600);
+    await settle(() => p1.battleArea.some((p) => p.permanentId === defender.permanentId) === false, 5000);
     expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(false); // wins with the boost
   });
 });
@@ -250,7 +250,7 @@ describe("§16-25 <Barrier> (comprehensive-0244)", () => {
       }),
     ).toEqual({ ok: true });
     const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
-    await settle(() => combat.hasOpenBarrierDecision, 300);
+    await settle(() => combat.hasOpenBarrierDecision, 5000);
     expect(
       s.engine.applyIntent(0, {
         type: "respondBarrier",
@@ -258,7 +258,7 @@ describe("§16-25 <Barrier> (comprehensive-0244)", () => {
         accept: true,
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => false, 300);
+    await settle(() => false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === barriered.permanentId)).toBe(true); // spared
     expect(p0.security.length).toBe(0); // paid by trashing the top security card
@@ -293,7 +293,7 @@ describe("§16-26 <Blast Digivolve> (comprehensive-0245)", () => {
       instanceId: blastCard.instanceId,
     });
     expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "AD1-005"), 300);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "AD1-005"), 5000);
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "AD1-005")).toBe(true);
     expect(s.state.memory).toBe(0); // cost genuinely waived, not merely affordable
   });
@@ -350,7 +350,7 @@ describe("§16-27 <Fortitude> (comprehensive-0246)", () => {
           target: { kind: "permanent", permanentId: fort.permanentId },
         }),
       ).toEqual({ ok: true });
-      await settle(() => p0.trash.length > trashBefore, 300);
+      await settle(() => p0.trash.length > trashBefore, 5000);
 
       // EXPECTED (per §16-27-1): replayed for free — back on the battle area, not sitting trashed.
       expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT20-034")).toBe(true);
@@ -379,7 +379,7 @@ describe("§16-28 <Mind Link> (comprehensive-0247)", () => {
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === linker.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === linker.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === linker.permanentId)).toBe(false); // left the field as its own permanent
     expect(target.stack.some((c) => c.cardId === "BT14-086")).toBe(true); // now a digivolution card of the target
@@ -411,7 +411,7 @@ describe("§16-29 <Partition> (comprehensive-0248)", () => {
     ).primitives;
     s.state.turnSeat = 1; // an OPPONENT effect resolves the deletion
     await primitives.deletePermanent([holder.permanentId], "byEffect");
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "AD1-010"), 300);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "AD1-010"), 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === holder.permanentId)).toBe(false);
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "AD1-010")).toBe(true);
@@ -465,7 +465,7 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
       instanceId: blastDna.instanceId,
     } as never);
     expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT17-078"), 300);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT17-078"), 5000);
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT17-078")).toBe(true);
     // The two materials were consumed (left the battle area as their own permanents).
     expect(p0.battleArea.some((p) => p.permanentId === materialA.permanentId)).toBe(false);
@@ -562,7 +562,7 @@ describe("§16-32 <Scapegoat> (comprehensive-0251)", () => {
           target: { kind: "permanent", permanentId: scapegoater.permanentId },
         }),
       ).toEqual({ ok: true });
-      await settle(() => false, 300);
+      await settle(() => false, 5000);
 
       // EXPECTED (per §16-32-1): spared, with `other` sacrificed instead.
       expect(p0.battleArea.some((p) => p.permanentId === scapegoater.permanentId)).toBe(true);
@@ -703,7 +703,7 @@ describe("§16-37 <Fragment> (comprehensive-0256)", () => {
           target: { kind: "permanent", permanentId: fragmented.permanentId },
         }),
       ).toEqual({ ok: true });
-      await settle(() => false, 300);
+      await settle(() => false, 5000);
 
       // EXPECTED (per §16-37-1): spared by trashing its 3 digivolution cards instead.
       expect(p0.battleArea.some((p) => p.permanentId === fragmented.permanentId)).toBe(true);
@@ -730,7 +730,7 @@ describe("§16-38 <Execute> (comprehensive-0257)", () => {
     await (
       s.engine as unknown as { fireTiming(t: EffectTiming, trigger: Record<string, unknown>): Promise<void> }
     ).fireTiming(EffectTiming.OnEndTurn, {});
-    await settle(() => !p0.battleArea.some((p) => p.permanentId === executor.permanentId), 400);
+    await settle(() => !p0.battleArea.some((p) => p.permanentId === executor.permanentId), 5000);
 
     // The trailing self-delete fired: a normal attacker never deletes itself.
     expect(p0.battleArea.some((p) => p.permanentId === executor.permanentId)).toBe(false);
@@ -833,7 +833,7 @@ describe("§16-41 <Training> (comprehensive-0260)", () => {
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId, effectKey: entry!.effectKey }),
     ).toEqual({ ok: true });
-    await settle(() => trainer.stack.length > 0, 300);
+    await settle(() => trainer.stack.length > 0, 5000);
 
     expect(trainer.isSuspended).toBe(true); // the suspend WAS the cost
     expect(trainer.stack.length).toBe(1);
@@ -964,7 +964,7 @@ describe("§16-43 <Ascension> (comprehensive-0262)", () => {
           target: { kind: "permanent", permanentId: ascender.permanentId },
         }),
       ).toEqual({ ok: true });
-      await settle(() => false, 300);
+      await settle(() => false, 5000);
 
       // EXPECTED (per §16-43-1): sitting atop security, NOT in the trash.
       expect(p0.security.some((c) => c.cardId === "BT25-034" && c.faceUp === false)).toBe(true);

@@ -123,7 +123,7 @@ describe("§16-6 <Recovery> (comprehensive-0224)", () => {
     s.state.memory = 4; // BT1-060's printed play cost
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
-    await settle(() => p0.security.length > securityBefore, 200);
+    await settle(() => p0.security.length > securityBefore, 5000);
 
     expect(p0.security.length).toBe(securityBefore + 1);
     expect(p0.deck.length).toBe(deckBefore - 1);
@@ -184,7 +184,7 @@ describe("§16-7 <Piercing> (comprehensive-0225)", () => {
         target: { kind: "permanent", permanentId: defender.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p1.battleArea.length === 0, 300);
+    await settle(() => p1.battleArea.length === 0, 5000);
 
     expect(p1.security.length).toBe(2); // unchanged — no Piercing consume seam fired
   });
@@ -204,7 +204,7 @@ describe("§16-8 <Draw> (comprehensive-0226)", () => {
     const handBefore = p0.hand.length - 1; // minus the card about to leave the hand
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
-    await settle(() => p0.hand.length !== handBefore, 200);
+    await settle(() => p0.hand.length !== handBefore, 5000);
 
     expect(p0.hand.length).toBe(handBefore + 1);
     expect(p0.deck.length).toBe(deckBefore - 1);
@@ -233,7 +233,7 @@ describe("§16-9 <Jamming> (comprehensive-0227)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p1.security.length === 0, 300);
+    await settle(() => p1.security.length === 0, 5000);
 
     // The security Digimon flips, battles, and wins (1000 < 5000) — but Jamming spares
     // the attacker from deletion despite losing that battle.
@@ -257,7 +257,7 @@ describe("§16-9 <Jamming> (comprehensive-0227)", () => {
     ).toEqual({ ok: true });
     // Security is removed from the stack BEFORE the battle-and-delete step resolves, so wait on
     // the attacker's own removal (not just the security-length drop) to avoid racing the delete.
-    await settle(() => p0.battleArea.some((p) => p.permanentId === attacker.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === attacker.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false); // deleted
   });

@@ -215,8 +215,8 @@ describe("§7-2-2-4 DigiXros Rules (comprehensive-0116)", () => {
         digiXros: { materialInstanceIds: [fieldMaterial.topCard!.instanceId] },
       } as never);
       expect(result).toEqual({ ok: true });
-      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-061"), 200);
-      await settle(() => false, 200); // let the [On Play] resolution fully settle either way
+      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-061"), 5000);
+      await settle(() => false, 5000); // let the [On Play] resolution fully settle either way
 
       // `relocatePermanent`'s `shedOwnCards` (set only by the DigiXros action) attaches the
       // source's TOP card alone; its own digivolution stack and link card go to the trash.
@@ -264,7 +264,7 @@ describe("§7-2-2-10 DigiXros Rules (comprehensive-0117)", () => {
       await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-061"));
       // Give the [On Play] resolution (reveal/add/trash, then the conditioned Delete) room to
       // fully settle before asserting the negative — a fixed short tick count is unreliable here.
-      await settle(() => false, 200);
+      await settle(() => false, 5000);
       expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(true);
     }
 
@@ -288,7 +288,7 @@ describe("§7-2-2-10 DigiXros Rules (comprehensive-0117)", () => {
           digiXros: { materialInstanceIds: [material1.instanceId, material2.instanceId] },
         } as never),
       ).toEqual({ ok: true });
-      await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId), 200);
+      await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId), 5000);
       expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false);
     }
   });

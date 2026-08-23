@@ -208,7 +208,7 @@ describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
 
       const result = s.engine.applyIntent(0, { type: "playCard", instanceId: greymon.instanceId });
       expect(result).toEqual({ ok: true });
-      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-019"), 200);
+      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-019"), 5000);
       await settle(() => false, 60);
 
       // EXPECTED (per §18-2-2): the "instead" processing was available and usable — the

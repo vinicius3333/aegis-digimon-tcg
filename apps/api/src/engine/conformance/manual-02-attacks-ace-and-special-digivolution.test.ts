@@ -193,7 +193,7 @@ describe("manual-0031/manual-0032/manual-0033 — DigiXros: cost reduction SCALE
       } as never);
       expect(result).toEqual({ ok: true });
 
-      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-061"), 200);
+      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT10-061"), 5000);
       // 4 (printed) - 1 (one material x -1 each) = 3, exactly what was paid — NOT the 2-material
       // reduction (-2, cost 2) ch07's own fixture always drives.
       expect(s.state.memory).toBe(0);

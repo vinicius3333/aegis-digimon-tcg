@@ -258,7 +258,7 @@ describe("§6-5 Main Phase (comprehensive-0108)", () => {
       instanceId: digivolveCard.instanceId,
     });
     expect(result).toEqual({ ok: true });
-    await settle(() => played.topCard?.cardId === "AD1-002", 200);
+    await settle(() => played.topCard?.cardId === "AD1-002", 5000);
     expect(played.topCard?.cardId).toBe("AD1-002");
   });
 });

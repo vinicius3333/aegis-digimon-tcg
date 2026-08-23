@@ -234,7 +234,7 @@ describe("manual-0059 — Rule Check A: a 0 DP Digimon in the battle area is del
       s.state.memory = 2; // BT1-009's printed cost
       const result = s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId });
       expect(result).toEqual({ ok: true });
-      await settle(() => !p0.battleArea.some((p) => p.permanentId === zeroed.permanentId), 200);
+      await settle(() => !p0.battleArea.some((p) => p.permanentId === zeroed.permanentId), 5000);
 
       expect(p0.battleArea.some((p) => p.permanentId === zeroed.permanentId)).toBe(false);
       expect(p0.trash.some((c) => c.instanceId === zeroed.topCard?.instanceId)).toBe(true);

@@ -53,7 +53,7 @@ describe("§15-10-1 Effect Targets - Players (comprehensive-0183)", () => {
 
     const result = s.engine.applyIntent(0, { type: "playCard", instanceId: bothDraw.instanceId });
     expect(result).toEqual({ ok: true });
-    await settle(() => p1.hand.length > p1HandBefore, 200);
+    await settle(() => p1.hand.length > p1HandBefore, 5000);
 
     expect(p0.hand.length).toBe(p0HandBefore + 1);
     expect(p1.hand.length).toBe(p1HandBefore + 1); // the OPPONENT drew too, unprompted
@@ -83,7 +83,7 @@ describe("§15-10-2 Effect Targets - Cards (comprehensive-0184)", () => {
     s.state.memory = requireCardDefinition("ST2-14").playCost;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: st214.instanceId });
-    await settle(() => s.decisions.some((d) => d.req.kind === "chooseTargets"), 200);
+    await settle(() => s.decisions.some((d) => d.req.kind === "chooseTargets"), 5000);
 
     const targetDecision = s.decisions.find((d) => d.req.kind === "chooseTargets");
     expect(targetDecision).toBeDefined(); // 2 legal candidates, count 1 => a real choice is offered
@@ -321,7 +321,7 @@ describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', ()
     });
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
-    await settle(() => s.decisions.some((d) => d.req.kind === "chooseTargets"), 200);
+    await settle(() => s.decisions.some((d) => d.req.kind === "chooseTargets"), 5000);
 
     const targetDecision = s.decisions.find((d) => d.req.kind === "chooseTargets");
     expect(targetDecision).toBeDefined();

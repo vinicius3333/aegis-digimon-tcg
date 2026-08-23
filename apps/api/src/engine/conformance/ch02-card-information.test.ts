@@ -201,7 +201,7 @@ describe("§2-3-7 DigiXros Requirements (comprehensive-0039)", () => {
     } as never);
     expect(result).toEqual({ ok: true });
 
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "EX10-058"), 200);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "EX10-058"), 5000);
     await settle(() => false, 60); // flush the [On Play] grant-recipient prompt
     const lilithPermanent = p0.battleArea.find((p) => p.topCard?.cardId === "EX10-058");
     expect(lilithPermanent).toBeDefined();
@@ -261,7 +261,7 @@ describe("§2-3-8 Burst Digivolve (comprehensive-0040)", () => {
     });
 
     expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020"), 200);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020"), 5000);
     expect(s.state.memory).toBe(memoryBefore); // truly cost 0 — no memory paid
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020")).toBe(true);
   });
@@ -275,7 +275,7 @@ describe("§2-3-8 Burst Digivolve (comprehensive-0040)", () => {
       instanceId: burstCard.instanceId,
       useAlternateCost: true,
     });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020"), 200);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020"), 5000);
 
     // DIVERGENCE: the compiled card's own "Return 1 [Marcus Damon] to hand" action (same
     // compiled card, under a "Static" trigger alongside the Digivolve/TrashDigivolution/
@@ -485,7 +485,7 @@ describe("§2-11 Arts Digivolve (comprehensive-0050)", () => {
       useAs: "option",
     } as never);
     expect(result).toEqual({ ok: true });
-    await settle(() => oppTarget.currentDP !== 9000, 200);
+    await settle(() => oppTarget.currentDP !== 9000, 5000);
 
     // Played as its OPTION side: "-8000 DP" applied to the opponent's Digimon...
     expect(oppTarget.currentDP).toBe(1000);

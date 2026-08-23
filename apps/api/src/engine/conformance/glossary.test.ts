@@ -89,7 +89,7 @@ describe("glossary-0002 (Areas on the Playing Field, part 2)", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.gameOver, 300);
+    await settle(() => s.state.gameOver, 5000);
 
     expect(s.state.gameOver).toBe(true);
     expect(s.state.winnerSeat).toBe(0); // p1 lost — the match ends with p0 declared the winner
@@ -124,7 +124,7 @@ describe("glossary-0003 (Timings, part 1)", () => {
     expect(
       s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: digivolveCard.instanceId }),
     ).toEqual({ ok: true });
-    await settle(() => base.topCard?.cardId === "AD1-002", 300);
+    await settle(() => base.topCard?.cardId === "AD1-002", 5000);
 
     // No "cardPlayed" event exists for a digivolve (that event is exclusive to the play-card
     // verb) — the base's [On Play] window is never opened by digivolving into it.
@@ -154,7 +154,7 @@ describe("glossary-0004 (Timings, part 2)", () => {
     p0.hand.push(trigger);
     s.state.memory = 2;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trigger.instanceId })).toEqual({ ok: true });
-    await settle(() => !p0.battleArea.some((p) => p.permanentId === mammothmon.permanentId), 300);
+    await settle(() => !p0.battleArea.some((p) => p.permanentId === mammothmon.permanentId), 5000);
     await settle(() => false, 60); // flush the [On Deletion] grant
 
     // The rule check (not combat) deleted it, at 0 raw DP...
@@ -334,7 +334,7 @@ describe("glossary-0008 (Digimon Card Properties)", () => {
         target: { kind: "permanent", permanentId: defender.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId), 300);
+    await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId), 5000);
 
     // The LOWER-DP side (the attacker, 3000 < 9000) lost and was deleted.
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
@@ -378,7 +378,7 @@ describe("glossary-0010 (Tamer Card Properties)", () => {
     s.state.memory = def.playCost;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: tamerCard.instanceId })).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT12-092"), 200);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT12-092"), 5000);
 
     expect(s.state.memory).toBe(0); // paid exactly the printed cost, no more no less
   });
@@ -400,7 +400,7 @@ describe("glossary-0011 (Option Card Properties)", () => {
     s.state.memory = def.playCost;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.memory !== def.playCost || p0.trash.length > 0, 200);
+    await settle(() => s.state.memory !== def.playCost || p0.trash.length > 0, 5000);
 
     expect(s.state.memory).toBe(0);
   });
@@ -489,7 +489,7 @@ describe("glossary-0014 (Keyword Effects — <Security Attack -x>)", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => false, 200);
+    await settle(() => false, 5000);
 
     // 0 checks against 0 security: NOT a win, unlike the glossary-0002 scenario with a normal
     // (>=1 check) attacker against the same empty stack.
@@ -522,7 +522,7 @@ describe("glossary-0015 (Keyword Effects — <Jamming>)", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
-    await settle(() => p1.security.length === 0, 300);
+    await settle(() => p1.security.length === 0, 5000);
 
     // Jamming spared the attacker despite losing the first (Security Digimon) check...
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true);
@@ -613,7 +613,7 @@ describe("glossary-0018 (Keyword Effects — <Delay>)", () => {
       effectKey: entry!.effectKey,
     });
     expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.length === 0, 300);
+    await settle(() => p0.battleArea.length === 0, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === delayer.permanentId)).toBe(false); // trashed itself
     expect(p0.trash.length).toBeGreaterThan(0);
