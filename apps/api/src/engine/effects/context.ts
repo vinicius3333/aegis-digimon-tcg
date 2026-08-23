@@ -400,7 +400,10 @@ export function gatherTriggeredEffects(
       fx: env.fx,
       ask: env.ask,
       usage: env.tracker,
-      activeTiming: EffectTiming[timing],
+      // The PRINTED window ("[Main]", "[When Attacking]") the decision is attributed to, which
+      // is the effect's IR trigger; the engine timing name is the fallback for hand-written
+      // effects that carry none.
+      activeTiming: effect.irTrigger ?? EffectTiming[timing],
       activeEffectText: effect.description,
       conferredToPermanentId,
     });

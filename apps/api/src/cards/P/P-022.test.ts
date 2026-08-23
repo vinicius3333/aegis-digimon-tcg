@@ -28,7 +28,7 @@ describe("P-022 DNA Digivolution-Hearts United", () => {
     await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
     const order = [...s.decisions].reverse().find(({ req }) => req.kind === "orderCards")!.req;
     expect(order.sourceCardId).toBe("P-022");
-    expect(order.options?.timing).toBe("OnUseOption");
+    expect(order.options?.timing).toBe("Main");
     expect(order.options?.effectText).toContain("[Main] If you have [Davis Motomiya]");
     expect(order.options?.orderDestination).toBe("deckBottom");
     expect(order.options?.visibleCards).toEqual(expect.arrayContaining([

@@ -4384,7 +4384,9 @@ export class GameEngine {
       // exact [Main]/Delay clause rather than guessing from the card's first text box.
       makeContext: (source, effect) => {
         const ctx = this.buildEffectContext(source, {});
-        ctx.activeTiming = EffectTiming[ACTIVATE_TIMING];
+        // The PRINTED window this clause is tagged with ("[Main]"), which is its IR trigger;
+        // the internal activation timing name is the fallback for hand-written effects.
+        ctx.activeTiming = effect.irTrigger ?? EffectTiming[ACTIVATE_TIMING];
         ctx.activeEffectText = effect.description;
         return ctx;
       },
