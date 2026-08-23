@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
             "trash"
           ],
           "reduceCost": 1,
+          "payCost": true,
           "optional": true,
           "condition": {
             "kind": "isYourTurn",
@@ -87,6 +88,7 @@ const compiled: CompiledCard = {
             "trash"
           ],
           "reduceCost": 1,
+          "payCost": true,
           "optional": true,
           "condition": {
             "kind": "isYourTurn",

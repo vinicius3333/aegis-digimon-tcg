@@ -46,9 +46,18 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (action.kind === "Delete" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
     return action.abortOnDecline === true;
   }
+  // "By paying ..., return 1 [X]" is not worth offering when nothing can be returned — but
+  // only a BATTLE-AREA return is answered by a board scan. A return that sources a loose card
+  // ("from your trash to the hand", BT16-031) has its candidates in another zone, where
+  // resolvePermanentTargets always finds none and would abort every such clause outright.
+  const returnsLooseCard =
+    action.kind === "Return" &&
+    ((action.from?.length ?? 0) > 0 ||
+      (action.target.filter.zone !== undefined && action.target.filter.zone !== "battleArea"));
   if (
     action.kind === "Return" &&
     action.cost !== undefined &&
+    !returnsLooseCard &&
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
     (await resolvePermanentTargets(ctx, action.target)).length === 0
   ) {

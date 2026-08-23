@@ -33,7 +33,7 @@ describe("BT16-040", () => {
           deck: ["BT1-009", "BT1-009"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 4;
 
