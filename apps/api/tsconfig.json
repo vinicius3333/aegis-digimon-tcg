@@ -5,7 +5,8 @@
     "moduleResolution": "NodeNext",
     "rootDir": "./src",
     "outDir": "./dist",
-    "lib": ["ES2022"],
+    // Node 20+ (see the root `engines` field) ships the ES2023 array methods this code uses.
+    "lib": ["ES2023"],
     "types": ["node"],
     "experimentalDecorators": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
