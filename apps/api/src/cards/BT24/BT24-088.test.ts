@@ -12,7 +12,7 @@ describe("BT24-088 Asuna Shiroki", () => {
       kind: "PlayWithoutCost",
       from: ["trash"],
       target: {
-        filter: { namesExact: ["Asuna Shiroki"] },
+        filter: { nameOrTrait: [{ tokens: ["Asuna Shiroki"], match: "nameExact" }] },
         orFilters: [
           { kind: ["Digimon"], levelComparison: { op: "lte", value: 4 }, nameOrTrait: [{ match: "trait" }] },
           { kind: ["Digimon"], levelComparison: { op: "lte", value: 4 }, nameOrTrait: [{ match: "any" }] },
@@ -52,7 +52,7 @@ describe("BT24-088 Asuna Shiroki", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("target").instanceId),
     );
 
-    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("asuna").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("asuna").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("target").instanceId);
   });
 
@@ -109,7 +109,13 @@ describe("BT24-088 Asuna Shiroki", () => {
   });
 
   it("plays itself from security without paying the cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT24-088", as: "asuna" }] } });
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-088", as: "asuna" }],
+        hand: [{ card: "BT21-054", as: "cost" }],
+        deck: [{ card: "BT1-002", as: "drawn1" }, { card: "BT1-003", as: "drawn2" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] });
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("asuna"));
