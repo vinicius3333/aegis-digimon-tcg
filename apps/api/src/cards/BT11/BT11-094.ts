@@ -1,7 +1,7 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const playCounterpart = {
+const playCounterpart: Action = {
   kind: "PlayWithoutCost",
   target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Angewomon", "LadyDevimon"], match: "name" }] }, count: 1 },
   from: ["hand"],

@@ -105,7 +105,9 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/security`,
           description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => ctx.fx.playFromSecurity(source.instanceId, { payCost: false }),
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
+          },
         }),
       ];
     return [];

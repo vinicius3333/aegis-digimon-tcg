@@ -1,4 +1,5 @@
 import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
+import type { CardEffect, CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -18,10 +19,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  */
 const cardId = "EX4-059";
 
-const compiled = {
+const compiled: CompiledCard = {
   ...compiledEffects[cardId]!,
   effects: [
-    ...compiledEffects[cardId]!.effects.map((effect) =>
+    ...compiledEffects[cardId]!.effects.map((effect): CardEffect =>
       effect.trigger === "WhenDigivolving"
         ? {
             ...effect,

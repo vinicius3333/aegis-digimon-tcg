@@ -1,4 +1,4 @@
-import { EffectTiming, isDigimon, isTamer, type Seat } from "@aegis/shared";
+import { CardColor, EffectTiming, isDigimon, isTamer, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
@@ -86,7 +86,7 @@ async function resolveHandMain(ctx: EffectContext, source: CardSource): Promise<
   await ctx.fx.digivolveFromInstance(hostPermanentId, source.instanceId, {
     payCost: true,
     costOverride: 3,
-    virtualBase: { level: 4, colors: ["Red"] },
+    virtualBase: { level: 4, colors: [CardColor.Red] },
   });
 }
 

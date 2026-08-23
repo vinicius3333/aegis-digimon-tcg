@@ -1,10 +1,10 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const textOrTs = [
+const textOrTs: NonNullable<Filter["nameOrTrait"]> = [
   { tokens: ["Three Musketeers"], match: "text" },
   { tokens: ["TS"], match: "trait" },
-] as const;
+];
 export const compiled: CompiledCard = {
   effects: [
     {

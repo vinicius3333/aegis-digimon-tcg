@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
         amount: 1,
         fromTop: false,
       },
-      { kind: "Draw", amount: 1, condition: { kind: "ifThisEffectActed" } },
+      { kind: "Draw", controller: "mine", amount: 1, condition: { kind: "ifThisEffectActed" } },
       { kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectActed" } },
     ],
   }],

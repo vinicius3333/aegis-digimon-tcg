@@ -93,7 +93,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              zone: ["battleArea", "breedingArea"],
+              zone: ["battleArea", "breeding"],
               kind: ["Digimon"],
             },
             count: 1,

@@ -105,7 +105,7 @@ export const compiled: CompiledCard = {
               },
             ],
             controller: "mine",
-            zone: "breedingArea",
+            zone: "breeding",
           },
           position: "bottom",
         },

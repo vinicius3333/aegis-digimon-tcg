@@ -1385,10 +1385,12 @@ export function lateBt12Module(cardId: string): EffectModule {
                 optional: true,
                 when: (ctx) => {
                   if (source.isOwnersTurn()) return false;
-                  if (timing === EffectTiming.OnUseAttack) {
-                    const attacker = ctx.trigger.attackerPermanentId
-                      ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
-                      : undefined;
+                  // Attack vs. digivolution is decided by the FIRED trigger's payload, not by the
+                  // `timing` this branch was entered with: that outer check already pinned `timing`
+                  // to OnEnterFieldAnyone, so comparing it again could only ever be false and the
+                  // attack case never ran.
+                  if (ctx.trigger.attackerPermanentId !== undefined) {
+                    const attacker = ctx.game.permanentById(ctx.trigger.attackerPermanentId);
                     return attacker?.controllerSeat === ctx.game.opponentOf(source.ownerSeat);
                   }
                   const subject = ctx.trigger.subjectPermanentId
