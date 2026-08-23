@@ -7,7 +7,7 @@ describe("P-112 Morphomon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "P-112", as: "morphomon" }],
-        deck: [{ card: "BT6-083", as: "eosmon" }, { card: "BT6-092", as: "menoa" }, { card: "BT1-001", as: "filler" }],
+        deck: [{ card: "BT6-083", as: "eosmon" }, { card: "BT6-092", as: "menoa" }, { card: "BT1-009", as: "filler" }],
       },
     }, { autoAcceptOptional: false, autoSelectCards: true, autoOrderCards: true });
     s.state.memory = 10;
@@ -22,7 +22,7 @@ describe("P-112 Morphomon", () => {
 
   it("adds the one matching card when only one of Eosmon or Menoa is revealed", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "P-112", as: "morphomon" }], deck: [{ card: "BT6-083", as: "eosmon" }, "BT1-001", "BT1-002"] },
+      0: { hand: [{ card: "P-112", as: "morphomon" }], deck: [{ card: "BT6-083", as: "eosmon" }, "BT1-009", "BT1-010"] },
     }, { autoAcceptOptional: false, autoSelectCards: true, autoOrderCards: true });
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("morphomon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("eosmon").instanceId));

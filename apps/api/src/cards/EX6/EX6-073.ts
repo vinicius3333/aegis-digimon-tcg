@@ -4,6 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-073")!;
 const deletedCountSource = "ex6-073-deleted";
+const placedCountSource = "ex6-073-placed";
 
 /** EX6-073 — Ogudomon, with the 7-minus-deleted security count structured. */
 export const compiled: CompiledCard = {
@@ -13,6 +14,15 @@ export const compiled: CompiledCard = {
     actions: effect.actions
       .filter((action) => !(action.kind === "RawUnparsed" && action.text.includes("reduce the cards trashed by 1")))
       .map((action) => {
+        if (action.kind === "PlaceUnder") {
+          return { ...action, trackCount: placedCountSource };
+        }
+        if (action.kind === "Delete" && action.condition?.kind === "raw") {
+          return {
+            ...action,
+            condition: { kind: "namedCountAtLeast", countSource: placedCountSource, count: 4 },
+          };
+        }
         if (action.kind === "Delete") {
           return {
             ...action,

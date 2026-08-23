@@ -255,10 +255,10 @@ export interface DigivolveDeps {
    * controller, and on accept suspend 1 eligible Digimon (their own, or an opponent's via the
    * BT3-056 redirect), firing the suspend's `whenSuspended` window. Returns the cost reduction
    * actually obtained (N when a suspend was paid, 0 when declined or none available). Run in
-   * apply, AFTER the evolving card is stacked and BEFORE the memory cost is paid (documented behavior BeforePayCost
-   * rule implementation). Absent => no reduction (base rule).
+   * apply, BEFORE the evolving card is stacked and before the memory cost is paid (the
+   * digivolution is declared but not complete). Absent => no reduction (base rule).
    */
-  payDigisorption?(state: GameState, seat: Seat, into: CardInstance): Promise<number>;
+  payDigisorption?(state: GameState, seat: Seat, into: CardInstance, target: Permanent): Promise<number>;
   /**
    * Resolve mandatory "when this Digimon would digivolve" bodies after declaration and
    * before any digivolution cost is paid (BT8-024, KB Q1714). The target is still the
@@ -672,6 +672,20 @@ export async function applyDigivolve(
     if (paid === false) return { ok: false, reason: "invalid-evolution" };
   }
 
+  // (0c) ＜Digisorption -N＞ resolves after the digivolution is declared but before it is
+  //      complete. Pay its suspend cost while the evolving card is still in hand so inherited
+  //      effects from the would-be stack are not active yet (BT10-048 Q1974). Doing this before
+  //      the carried-state snapshot also preserves suspension when the base itself pays the cost.
+  //      The alternate-requirement path does not offer Digisorption.
+  const offersDigisorption =
+    !check.usedAlternate &&
+    !check.blastWaived &&
+    deps.payDigisorption !== undefined &&
+    (deps.digisorptionReduction?.(state, seat, definition.cardId) ?? 0) > 0;
+  const digisorptionReduction = offersDigisorption
+    ? await deps.payDigisorption!(state, seat, check.evolving, permanent)
+    : 0;
+
   // (1) Capture suspended state of the base before any mutation.
   const carriedSuspended = permanent.isSuspended;
   const previousLevel = definitionOf(permanent.topCard)?.level;
@@ -719,19 +733,8 @@ export async function applyDigivolve(
 
   deps.emit?.({ kind: "digivolved", seat, permanentId: permanent.permanentId, cardId: evolving.cardId });
 
-  // (4b) ＜Digisorption -N＞ (Comprehensive Rules §16-10): BEFORE paying the memory cost, offer the
-  //      the suspend (and any redirect / whenSuspended window) resolves first, then the reduced cost
-  //      is paid. Declining returns 0 (full cost). Skipped on the alternate-requirement path.
-  // Only enter the (async, prompting) ＜Digisorption＞ payment when this card actually offers a
-  // realizable reduction — gated by the same pure read the affordability check uses. This keeps the
-  // hot path for every non-＜Digisorption＞ digivolve fully synchronous up to the memory payment
-  // (an extra `await` here would reorder memory payment after the When-Digivolving observers).
-  const offersDigisorption =
-    !check.usedAlternate &&
-    !check.blastWaived &&
-    deps.payDigisorption !== undefined &&
-    (deps.digisorptionReduction?.(state, seat, definition.cardId) ?? 0) > 0;
-  const digisorptionReduction = offersDigisorption ? await deps.payDigisorption!(state, seat, evolving) : 0;
+  // (4b) Apply the Digisorption reduction paid at (0c) to the memory cost. Declining the
+  //      immediate effect produced 0, so the full cost is paid here.
   const finalCost = Math.max(0, cost - digisorptionReduction);
 
   // (5) Pay the digivolve cost (shared memory gauge moves toward the opponent).

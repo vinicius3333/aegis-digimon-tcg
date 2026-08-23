@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST19-12.js";
 import "./ST19-11.js";
@@ -43,21 +44,16 @@ describe("ST19-11 Chaperomon", () => {
             { card: "TOKEN-Familiar-Token", as: "fodder", dp: 3000 },
           ],
         },
-        1: { hand: [{ card: "AD1-008", as: "remover" }], battleArea: [{ card: "BT9-014", as: "base" }] },
+        1: {},
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
     s.state.turnSeat = 1;
     await s.ready();
-    expect(
-      s.engine.applyIntent(1, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("remover").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010"));
+    // No public intent isolates an arbitrary opponent-effect deletion without adding
+    // another card's targeting behavior, so use the production deletion verb directly.
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("chap").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
     await settle(
       () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token"),

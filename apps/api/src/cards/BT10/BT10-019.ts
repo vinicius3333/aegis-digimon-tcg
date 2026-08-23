@@ -11,17 +11,13 @@ const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [{
-        kind: "Modal",
-        choose: 1,
-        labels: ["Return MetalGreymon from trash", "Reveal 4 and add Blue Flare"],
-        options: [
-          [{ kind: "Return", target: { filter: metalGreymon, count: 1 }, from: ["trash"], to: "hand" }],
-          [{ kind: "RevealAdd", revealCount: 4, add: [{ filter: blueFlare, count: 2, to: "hand" }], rest: "deckBottom" }],
-        ],
-        optionConditions: [{ kind: "allOf", conditions: [
+        kind: "ConditionalBranch",
+        condition: { kind: "allOf", conditions: [
           { kind: "youHave", filter: kiriha },
           { kind: "selfHasMinTrash", count: 1, filter: metalGreymon },
-        ] }, null],
+        ] },
+        ifTrue: [{ kind: "Return", target: { filter: metalGreymon, count: 1 }, from: ["trash"], to: "hand" }],
+        ifFalse: [{ kind: "RevealAdd", revealCount: 4, add: [{ filter: blueFlare, count: 2, to: "hand" }], rest: "deckBottom" }],
       }],
     },
     {

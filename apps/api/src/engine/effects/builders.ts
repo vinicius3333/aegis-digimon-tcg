@@ -16,6 +16,7 @@ export interface BuilderOptions {
   irTrigger?: string;
   effectKey: string;
   description: string;
+  timingOverride?: string;
   optional?: boolean; // source `optional`
   isInherited?: boolean; // source `isInherited`
   isLinked?: boolean; // source IsLinkedEffect
@@ -75,6 +76,7 @@ function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
     ...(opts.irTrigger !== undefined ? { irTrigger: opts.irTrigger } : {}),
     effectKey: opts.effectKey,
     description: opts.description,
+    ...(opts.timingOverride !== undefined ? { timingOverride: opts.timingOverride } : {}),
     optional: opts.optional ?? false,
     isInherited: opts.isInherited ?? false,
     isSecurity: flags.isSecurity ?? false,

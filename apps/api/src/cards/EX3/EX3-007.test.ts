@@ -132,6 +132,8 @@ describe("EX3-007 Lavorvomon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -140,6 +142,8 @@ describe("EX3-007 Lavorvomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT1-009")).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([firstId, secondId]),
+    );
   });
 });

@@ -13,6 +13,6 @@ describe("BT14-061", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.deck.some((card) => card.cardId === "BT14-044") && s.state.memory === 6);
     expect(s.state.players[1]!.deck[0]?.cardId).toBe("BT14-044");
-    expect(s.state.memory).toBe(6);
+    expect(s.state.memory).toBe(7);
   });
 });

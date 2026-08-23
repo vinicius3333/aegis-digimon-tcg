@@ -17,10 +17,12 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
+      description: "[Your Turn] When you use an Option card with a cost of 1 or more, gain 1 memory.",
       actions: [{ kind: "SubTrigger", event: "whenOptionUsed", fireCondition: { kind: "triggerOptionCostAtLeast", value: 1 }, actions: [{ kind: "GainMemory", amount: 1 }] }],
     },
     {
-      trigger: "WhenAttacking",
+      trigger: "YourTurn",
+      description: "[Your Turn] [Once Per Turn] While this Digimon has the [Four Sovereigns]/[God Beast] trait, it gains ＜Piercing＞.",
       actions: [{ kind: "GainKeyword", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, keyword: { keyword: "Piercing" }, duration: "forTheTurn", condition: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] } } }],
       isInherited: true,
       frequency: "OncePerTurn",

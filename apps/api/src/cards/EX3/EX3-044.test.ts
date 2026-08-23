@@ -299,7 +299,9 @@ describe("EX3-044 Breakdramon", () => {
         battleArea: [
           { card: "EX3-044", as: "watcher" },
           { card: "BT1-020", dp: 9000, as: "groundramon" },
-          { card: "BT1-026", dp: 9000, as: "breakdramon" },
+          // A vanilla Dramon keeps the assertion scoped to Breakdramon's watcher; BT1-026
+          // prints Piercing and correctly consumes security after its battle win.
+          { card: "BT14-015", dp: 9000, as: "breakdramon" },
         ],
       },
       1: {

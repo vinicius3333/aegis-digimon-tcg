@@ -6,7 +6,7 @@ import "./EX11-018.js";
 describe("EX11-018 Ryugumon", () => {
   it("places an Aqua/Sea Animal card under itself and unsuspends one Digimon", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "EX11-018", as: "ryugumon" }, "EX11-018"], battleArea: [{ card: "EX11-018", as: "ally", suspended: true }] } },
+      { 0: { hand: [{ card: "EX11-018", as: "ryugumon" }, "BT1-033"], battleArea: [{ card: "EX11-018", as: "ally", suspended: true }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 11;

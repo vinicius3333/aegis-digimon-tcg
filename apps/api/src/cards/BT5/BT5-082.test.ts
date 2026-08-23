@@ -9,7 +9,7 @@ describe("BT5-082 Tactimon", () => {
   });
 
   it("activates all 3 effects when no other own Digimon is in play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-082", as: "tacti" }] }, 1: { battleArea: [{ card: "BT5-071", as: "a" }, { card: "BT5-072", as: "b" }, { card: "BT5-061", as: "c" }], security: ["BT1-009"] } }, { autoSelectCards: true });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-082", as: "tacti" }] }, 1: { battleArea: [{ card: "BT1-009", as: "a" }, { card: "BT1-013", as: "b" }, { card: "BT1-027", as: "c" }], security: ["BT1-009"] } }, { autoSelectCards: true });
     const tacti = s.perm("tacti");
     const before = tacti.currentDP;
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: tacti.permanentId, target: { kind: "player" } })).toEqual({ ok: true });

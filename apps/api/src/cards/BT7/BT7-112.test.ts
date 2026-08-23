@@ -238,7 +238,8 @@ describe("BT7-112 (Susanoomon)", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(10);
-    expect(observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack")).toBe(2);
+    // Susanoomon's +2 combines with Takuya's inherited +1 at 10000+ DP.
+    expect(observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack")).toBe(3);
 
     expect(
       s.engine.applyIntent(0, {
@@ -247,8 +248,8 @@ describe("BT7-112 (Susanoomon)", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1, 5000);
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
 
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

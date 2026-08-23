@@ -1295,6 +1295,8 @@ export class CombatController {
       await this.hooks.fireSubTrigger?.("onDeletionOf", {
         deletedPermanentId: permanentId,
         deletedPermanentIds: postCardPreventionDeletedIds,
+        deletedControllerSeat: this.access.permanentById(permanentId)?.controllerSeat,
+        deletedTopCardId: this.access.permanentById(permanentId)?.topCard?.cardId,
       });
       // whenLeavesPlay is the delete∪bounce superset; fire it here too so a watcher reacts to
       // a battle deletion, matching the effect-path primitive (otherwise a card works when

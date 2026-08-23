@@ -101,6 +101,8 @@ export interface UseOptionWithoutCostAction extends ActionBase {
   reduceCostBy?: number;
   /** Dynamic reduction equal to the source controller's opponent's current memory. */
   reduceCostByOpponentMemory?: boolean;
+  /** The granting effect explicitly ignores the chosen Option's color requirements. */
+  waiveColorRequirement?: boolean;
   /** Permit multi-color Options when the printed effect has no single-color restriction. */
   allowMultiColor?: boolean;
   /** Defaults to ["hand"], the only printed form. */

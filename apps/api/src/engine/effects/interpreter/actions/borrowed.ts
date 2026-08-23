@@ -158,7 +158,16 @@ export async function runActivateForeignEffect(
       },
     };
   }
-  for (const eff of toRun.slice(0, action.count)) await runEffect(runCtx, eff);
+  for (const eff of toRun.slice(0, action.count)) {
+    await runEffect(
+      {
+        ...runCtx,
+        activeTiming: eff.trigger,
+        activeEffectText: eff.description ?? describeEffect(eff),
+      },
+      eff,
+    );
+  }
 }
 
 const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = [
@@ -167,6 +176,10 @@ const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = [
   "OnDeletion",
   "OnDestroyedAnyone",
 ];
+
+function optionUseCommitted(ctx: EffectContext): boolean {
+  return ctx.lastOptionUsed === true;
+}
 
 export async function runActivateEffect(
   ctx: EffectContext,
@@ -259,6 +272,12 @@ export async function runUseOptionWithoutCost(
       if (!def.kinds.includes(CardKind.Option)) continue;
       if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) continue;
       if (def.playCost > costCap) continue;
+      if (
+        action.waiveColorRequirement !== true &&
+        ctx.game.optionColorRequirementMet?.(seat, cand.instanceId, def) === false
+      ) {
+        continue;
+      }
       if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
       candidates.push(cand.instanceId);
     }
@@ -298,11 +317,23 @@ export async function runUseOptionWithoutCost(
   // Option's ORIGINAL use cost so a whenOptionUsed watcher can gate on "a cost of 2 or more"
   // (BT19-040; KB Q5471-Q5473 read the cost itself, not the paid/reduced value).
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
+  const effectiveUseCost = Math.max(0, (usedCost ?? 0) - totalReduction);
+  let paymentHandled = false;
+  // The concrete primitive owns payment in production. Lightweight interpreter doubles used
+  // by mechanism tests do not expose that lifecycle seam, so charge through the context's
+  // memory hook there to keep the action contract observable without double-paying live games.
+  if (action.payCost === true && effectiveUseCost > 0 && ctx.fx.resolveCardEffect === undefined) {
+    const payer = ctx.fx.gainMemoryForSeat;
+    if (payer === undefined) return;
+    payer(ctx.source.ownerSeat, -effectiveUseCost);
+    paymentHandled = true;
+  }
   await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
     payCost: action.payCost,
     ...(totalReduction > 0 ? { costDelta: totalReduction } : {}),
+    ...(paymentHandled ? { paymentHandled: true } : {}),
   });
-  ctx.lastOptionUsed = true;
+  if (!optionUseCommitted(ctx)) return;
   ctx.lastOptionUsedInstanceId = chosenId;
 }
 

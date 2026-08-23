@@ -25,7 +25,8 @@ describe("BT2-013 Growlmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT1-010")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("other").permanentId);
   });
 
   it("does not delete an opposing 3000 DP Digimon", async () => {

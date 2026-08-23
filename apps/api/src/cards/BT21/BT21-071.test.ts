@@ -55,6 +55,6 @@ describe("BT21-071 Scopemon", () => {
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("appmon").instanceId));
 
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(memoryBefore - 4);
+    expect(s.state.memory).toBe(memoryBefore - 3); // play cost 4, then the optional placement gains 1 memory
   });
 });

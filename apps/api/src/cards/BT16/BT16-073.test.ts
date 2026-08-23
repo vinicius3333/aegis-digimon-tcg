@@ -25,7 +25,8 @@ describe("BT16-073", () => {
           payCost: false,
           optional: true,
           abortOnDecline: true,
-          target: { count: 1, location: "trash", controller: "mine" },
+          target: { count: 1, filter: { kind: ["Tamer"], controller: "mine", textContains: "[Myotismon]" } },
+          from: ["trash"],
         },
       ],
     });
@@ -34,14 +35,14 @@ describe("BT16-073", () => {
   it("plays an eligible Myotismon-text Tamer from trash when accepted", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT16-073", as: "mummy" }], trash: [{ card: "BT16-087", as: "kosuke" }] },
+        0: { battleArea: [{ card: "BT16-073", as: "mummy" }], trash: [{ card: "BT16-089", as: "kosuke" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("mummy").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-087"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-089"));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-087")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-089")).toBe(true);
   });
 });

@@ -60,8 +60,9 @@ it("deletes an opposing Digimon and lets a Shoutmon X7: Superior Mode attack", a
   await s.ready();
   s.state.memory = 9;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[1]!.battleArea.length === 0 && observe(s.engine).isAttacking());
+  await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
   expect(s.state.players[1]!.battleArea).toHaveLength(0);
-  expect(observe(s.engine).isAttacking()).toBe(true);
+  expect(s.perm("shoutmon").isSuspended).toBe(true);
+  expect(s.state.players[1]!.security).toHaveLength(0);
   expect(s.decisions.some(({ req }) => req.sourceCardId === "BT12-100")).toBe(true);
 });

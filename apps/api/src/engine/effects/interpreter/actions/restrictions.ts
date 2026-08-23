@@ -9,6 +9,8 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
+import { extractCardById, insertCard } from "../../../state/access.js";
+import { Zone } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
@@ -37,7 +39,10 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       if (returnChoice !== 0) {
         const deck = ctx.game.player(opponent).deck;
         const index = deck.findIndex((card) => card.instanceId === revealed.instanceId);
-        if (index >= 0) deck.push(...deck.splice(index, 1));
+        if (index >= 0) {
+          const returned = extractCardById(ctx.game.player(opponent), Zone.Deck, revealed.instanceId);
+          if (returned !== undefined) insertCard(ctx.game.player(opponent), Zone.Deck, returned, "bottom");
+        }
       }
       return false;
     }

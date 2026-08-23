@@ -43,9 +43,6 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   } else {
     ctx.lastActionConditionMatched = true;
   }
-  if (action.kind === "Delete" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
-    return action.abortOnDecline === true;
-  }
   // "By paying ..., return 1 [X]" is not worth offering when nothing can be returned — but
   // only a BATTLE-AREA return is answered by a board scan. A return that sources a loose card
   // ("from your trash to the hand", BT16-031) has its candidates in another zone, where
@@ -66,6 +63,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
+    !(
+      action.cost.bindHostAs !== undefined &&
+      action.cost.bindHostAs === action.target.fromSelectionRef
+    ) &&
     (await resolvePermanentTargets(ctx, action.target)).every((id) => {
       const permanent = ctx.game.permanentById(id);
       return permanent === undefined || permanent.isSuspended !== true;
@@ -425,6 +426,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       return await runCombatAction(ctx, action, scope);
     case "DeDigivolve":
     case "Digivolve":
+    case "DigivolveViaPlacement":
     case "DnaDigivolve":
     case "AppFuse":
     case "PlaceUnder":

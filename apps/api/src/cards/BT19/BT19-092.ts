@@ -26,26 +26,6 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "to": "deckBottom",
-          "bindResultAs": "upgraded",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "keywords": [
-                "Decode"
-              ]
-              },
-            },
-            count: 1,
-          },
           to: "deckBottom",
           bindResultAs: "upgraded",
           cost: {

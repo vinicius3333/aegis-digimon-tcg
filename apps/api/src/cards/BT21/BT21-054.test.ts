@@ -68,7 +68,7 @@ describe("BT21-054 Shotmon", () => {
     });
     await settle(() => s.perm("opponent").stack.length === 1);
 
-    expect(s.perm("ownHost").stack.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(true);
+    expect(s.perm("ownHost").stack.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(false);
     expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

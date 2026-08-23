@@ -56,7 +56,7 @@ describe("BT26-013 Musyamon", () => {
     expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(safeId);
   });
 
-  it("does not delete or trash a hand card when no opponent Digimon is within 6000 DP", async () => {
+  it("may pay the trash cost even when no opponent Digimon is within 6000 DP", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-013", as: "self" }],
@@ -67,8 +67,10 @@ describe("BT26-013 Musyamon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("self"));
 
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("cost").instanceId);
+    // CR §15-7-5 allows an optional processing condition to be paid even when the
+    // processing after it cannot do anything.
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 

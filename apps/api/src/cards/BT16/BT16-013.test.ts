@@ -26,11 +26,18 @@ describe("BT16-013", () => {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
       actions: [
-        { kind: "SubTrigger", event: "whenSecurityRemoved" },
         {
-          kind: "GainKeyword",
-          keyword: { keyword: "SecurityAttack", amount: 1 },
-          condition: { kind: "ifThisEffectDidNotDelete" },
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          sourceFilter: { controller: "any" },
+          actions: [
+            { kind: "Delete" },
+            {
+              kind: "GainKeyword",
+              keyword: { keyword: "SecurityAttack", amount: 1 },
+              condition: { kind: "ifThisEffectDidNotDelete" },
+            },
+          ],
         },
       ],
     }));
@@ -53,11 +60,15 @@ describe("BT16-013", () => {
   });
 
   it("deletes an opposing Digimon at the 8000 DP boundary when security is removed", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT16-013", as: "valkyrimon" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 8000 }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-013", as: "valkyrimon" }] },
+        1: { battleArea: [{ card: "BT16-012", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
     const targetId = s.perm("target").permanentId;
+    await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
 

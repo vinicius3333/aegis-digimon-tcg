@@ -1,5 +1,6 @@
 import { getCardDefinition, Phase, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-012.js";
 import "./EX3-018.js";
@@ -111,9 +112,9 @@ describe("EX3-012 Volcanicdramon", () => {
         deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
       },
     });
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    s.state.memory = 10;
     const controllerTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("volcanicdramon").instanceId })).toEqual({
       ok: true,
@@ -123,13 +124,13 @@ describe("EX3-012 Volcanicdramon", () => {
         s.state.pendingDecision === undefined &&
         s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-012"),
     );
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
     await controllerTurn;
 
     s.state.turnSeat = 1;
-    s.state.memory = 0;
+    s.state.memory = 10;
     const opponentTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("atLimit").instanceId })).toEqual({
       ok: false,
@@ -139,26 +140,26 @@ describe("EX3-012 Volcanicdramon", () => {
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-071"));
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
     s.state.turnSeat = 0;
-    s.state.memory = 0;
+    s.state.memory = 10;
     const nextControllerTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0 && s.state.phase === Phase.Main);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await nextControllerTurn;
 
     s.state.turnSeat = 1;
-    s.state.memory = 0;
+    s.state.memory = 10;
     const nextOpponentTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 3;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("atLimit").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-013"));
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(1);
     await nextOpponentTurn;
   });
 

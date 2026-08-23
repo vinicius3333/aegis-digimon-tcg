@@ -7,7 +7,7 @@ describe("P-119 Hawkmon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "P-119", as: "hawkmon" }],
-        deck: [{ card: "BT11-009", as: "multicolor" }, { card: "P-126", as: "yolei" }, { card: "BT1-001", as: "filler" }],
+        deck: [{ card: "BT11-009", as: "multicolor" }, { card: "P-126", as: "yolei" }, { card: "BT1-009", as: "filler" }],
       },
     }, { autoSelectCards: true, autoOrderCards: true });
     s.state.memory = 10;

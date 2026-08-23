@@ -54,15 +54,19 @@ export type EffectTrigger =
   | "OnDiscardSecurity"
   /** Fires while a security card is revealed, before the normal battle/trash resolution. */
   | "OnSecurityCheck"
+  /** Fires while determining whether a pending attack will perform security checks. */
+  | "OnDetermineDoSecurityCheck"
+  /** Fires when a card leaves a security stack. */
+  | "OnLoseSecurity"
+  /** Fires when a card is added to a security stack. */
+  | "OnAddSecurity"
   /**
    * Fires on THIS Digimon as attacker when it is blocked (BT7-016). Maps to
    * EffectTiming.OnBlockAnyone, fired from `switchDefenderToBlocker` for EVERY block regardless of
    * who is watching, so the effect module must check that it is the attacker —
    * `ctx.trigger.attackerPermanentId` equals its own permanent.
    */
-  | "WhenBlocked"
-  /** Fires for every security card this Digimon checks. */
-  | "OnSecurityCheck";
+  | "WhenBlocked";
 
 /** Per-turn activation limit, from `[Once Per Turn]` / `[Twice Per Turn]`. */
 export type EffectFrequency = "OncePerTurn" | "TwicePerTurn";

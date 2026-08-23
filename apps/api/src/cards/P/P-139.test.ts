@@ -7,14 +7,14 @@ describe("P-139 Leomon (X Antibody)", () => {
   it("reduces an opponent's Digimon by 3000 DP on play", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "P-139", as: "source" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("target").currentDP === 3000);
+    await settle(() => s.perm("target").currentDP === 1000);
 
-    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.perm("target").currentDP).toBe(1000);
     expect(s.perm("target").topCard.cardId).toBe("BT1-009");
     assertNoLoudGap(s);
   });

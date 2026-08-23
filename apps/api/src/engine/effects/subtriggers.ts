@@ -503,9 +503,15 @@ export class SubTriggerRegistry {
     const consumedReplacementIds = new Set<number>();
     const sourcePermanentId = typeof source === "string" ? source : source?.permanentId;
     for (const r of this.replacements) {
-      if (r.event !== event || r.mode !== "reduceCost" || r.activate !== undefined) continue;
+      // Interactive reductions are activated by the pay-time play seam when a turn ledger is
+      // supplied. A ledger-free registry read is also used as an observability/query seam for
+      // resident replacements (including [Breeding] effects), where the installed reduction is
+      // expected to be visible without consuming its once-per-turn activation.
+      if (r.event !== event || r.mode !== "reduceCost" || (r.activate !== undefined && turnBudget !== undefined)) continue;
       if (r.appliesTo !== undefined) {
-        if (typeof source === "string" || source === undefined || !r.appliesTo(source)) continue;
+        if (typeof source === "string") {
+          if (r.sourcePermanentId !== source) continue;
+        } else if (source === undefined || !r.appliesTo(source)) continue;
       } else if (sourcePermanentId !== undefined && r.sourcePermanentId !== sourcePermanentId) continue;
       if (r.intoMatches !== undefined && into !== undefined && !r.intoMatches(into)) continue;
       if (r.oncePerTurnKey !== undefined && turnBudget?.hasFired(r.oncePerTurnKey)) continue;
@@ -588,7 +594,7 @@ export class SubTriggerRegistry {
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId: string | undefined,
-    buildContext: (sourcePermanentId: string) => EffectContext | undefined,
+    buildContext: (sourcePermanentId: string, sourceInstanceId?: string) => EffectContext | undefined,
     turnBudget?: SubTriggerTurnLedger,
   ): Promise<number> {
     let reduction = 0;
@@ -603,7 +609,9 @@ export class SubTriggerRegistry {
         continue;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) continue;
       const sourcePermanentId = replacement.sourcePermanentId;
-      const ctx = sourcePermanentId === undefined ? replacement.activationContext : buildContext(sourcePermanentId);
+      const ctx = sourcePermanentId === undefined
+        ? replacement.activationContext
+        : buildContext(sourcePermanentId, replacement.sourceInstanceId);
       if (ctx === undefined) continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;

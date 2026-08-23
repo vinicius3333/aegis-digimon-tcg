@@ -40,7 +40,7 @@ it("allows declining the optional player attack after the Hybrid boost", async (
   const s = setupEngine(
     {
       0: { hand: [{ card: "BT12-099", as: "option" }], battleArea: [{ card: "BT12-013", as: "hybrid" }] },
-      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
     },
     { autoAcceptOptional: false, autoSelectCards: true },
   );
@@ -76,8 +76,9 @@ it("allows the boosted eligible Hybrid to attack a player", async () => {
   await s.ready();
   s.state.memory = 4;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-  await settle(() => observe(s.engine).isAttacking());
+  await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
 
   expect(s.perm("hybrid").currentDP).toBe(s.perm("hybrid").baseDP + 3000);
-  expect(observe(s.engine).isAttacking()).toBe(true);
+  expect(s.perm("hybrid").isSuspended).toBe(true);
+  expect(s.state.players[1]!.security).toHaveLength(0);
 });

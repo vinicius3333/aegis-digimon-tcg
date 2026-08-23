@@ -20,6 +20,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
+          fireCondition: { kind: "triggerPlayedOrDigivolvedByEffect" },
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],

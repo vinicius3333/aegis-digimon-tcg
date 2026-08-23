@@ -20,7 +20,8 @@ const compiled: CompiledCard = {
               ],
               "colors": [
                 "Purple"
-              ]
+              ],
+              "suspended": true
             },
             "count": 1
           },

@@ -62,7 +62,7 @@ describe("BT2-099 Glorious Burst", () => {
     const s = setupEngine(
       {
         0: { battleArea: ["BT2-033", "BT2-087"], hand: [{ card: "BT2-099", as: "option" }] },
-        1: { battleArea: [{ card: "BT2-045", as: "target" }] },
+        1: { battleArea: [{ card: "BT2-045", as: "target", dp: 13000 }] },
       },
       { autoSelectCards: true },
     );
@@ -70,8 +70,8 @@ describe("BT2-099 Glorious Burst", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").currentDP === 0);
-    expect(s.perm("target").currentDP).toBe(0);
+    await settle(() => s.perm("target").currentDP === 1000);
+    expect(s.perm("target").currentDP).toBe(1000);
   });
 
   it("applies the full -12000 DP to exactly one selected opposing Digimon", async () => {

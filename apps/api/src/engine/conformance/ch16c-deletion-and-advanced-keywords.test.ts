@@ -195,7 +195,8 @@ describe("§16-24 <Alliance> (comprehensive-0243)", () => {
     p0.battleArea.push(attacker, ally);
     const defender = digimon(1, 7000, NON_KEYWORD_CARD); // beats the base 5000 but not 5000+3000
     defender.isSuspended = true;
-    p1.battleArea.push(defender);
+    const blocker = digimon(1, 1000, "ST18-07");
+    p1.battleArea.push(defender, blocker);
     await s.engine.recomputeContinuousEffects();
 
     expect(
@@ -210,10 +211,13 @@ describe("§16-24 <Alliance> (comprehensive-0243)", () => {
     expect(
       s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: ally.permanentId } as never),
     ).toEqual({ ok: true });
-    await settle(() => attacker.currentDP !== 5000, 5000);
+    const blockWindow = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+    await settle(() => blockWindow.hasOpenBlockWindow, 5000);
 
     expect(ally.isSuspended).toBe(true); // suspended to pay Alliance's cost
     expect(attacker.currentDP).toBe(8000); // 5000 + the ally's 3000 DP — the real DP-addition mechanic
+
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
 
     // Flush further: the battle comparison itself (a separate step after the DP modifier lands)
     // needs additional ticks beyond the DP settle above.
@@ -753,8 +757,10 @@ describe("§16-39 <Progress> (comprehensive-0258)", () => {
 
       const s = setup();
       const p0 = s.state.players[0] as PlayerState;
+      const p1 = s.state.players[1] as PlayerState;
       const progresser = digimon(0, 7000, "BT21-025"); // printed <Progress>
       p0.battleArea.push(progresser);
+      p1.battleArea.push(digimon(1, 1000, "ST18-07"));
       await s.engine.recomputeContinuousEffects();
 
       expect(
@@ -764,7 +770,8 @@ describe("§16-39 <Progress> (comprehensive-0258)", () => {
           target: { kind: "player" },
         }),
       ).toEqual({ ok: true });
-      await settle(() => false, 40);
+      const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
+      await settle(() => combat.hasOpenBlockWindow, 5000);
 
       // §16-39-1 is enforced behaviourally, not as a ledger entry: primitives.ts computes
       // isUnaffectableByOpponentEffects live as hasKeyword(id,"Progress") && the permanent being
@@ -777,6 +784,7 @@ describe("§16-39 <Progress> (comprehensive-0258)", () => {
         }
       ).primitives;
       expect(prim.isUnaffectableByOpponentEffects(progresser.permanentId)).toBe(true);
+      expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
     },
   );
 });

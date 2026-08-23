@@ -33,6 +33,7 @@ import {
   trainingActivatedEffect,
 } from "./keywords.js";
 import { collectWouldBePlayedSelfReducers, collectWouldDigivolveSelfReducers } from "./reducers.js";
+import { normalizeCompiledCard } from "./normalize.js";
 import { EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { CardEffect, CompiledCard } from "@aegis/shared";
 
@@ -254,15 +255,19 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           irTrigger: effect.trigger,
           effectKey,
           description: effect.description ?? describeEffect(effect),
+          timingOverride: effect.timingOverride,
           optional: effect.optional ?? false,
           isInherited: effect.isInherited ?? false,
           isLinked: effect.isLinked ?? false,
+          attackScope: effect.attackScope,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
           continuousPriority: readsSelfKeyword(effect) ? 1 : 0,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
-          when: (ctx) => (turnOwnerGuard(effect.trigger)?.(ctx) ?? true) && triggerCondition(effect, ctx),
+          when: (ctx) =>
+            (turnOwnerGuard(effect.trigger)?.(ctx) ?? true) &&
+            (timing === EffectTiming.BeforePayCost ? effectCondition(effect, ctx) : triggerCondition(effect, ctx)),
           canActivate: (ctx) =>
             (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
             canActivateEffect(ctx, effect),
@@ -287,7 +292,8 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * for a hand-written double-port that does not go through this bulk path.
  */
 export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
-  registeredCompiledCards.set(cardId, compiled);
+  const normalized = normalizeCompiledCard(compiled);
+  registeredCompiledCards.set(cardId, normalized);
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
   // Registry precedence belongs to the concrete module, not merely to the fact that IR for
@@ -296,7 +302,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard): EffectMo
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = irCardModule(cardId, compiled);
+  const module = irCardModule(cardId, normalized);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;

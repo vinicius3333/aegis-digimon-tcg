@@ -149,7 +149,7 @@ export interface PrimitivesEngine {
   /** Resolve each newly linked physical card's own [When Linking] window. */
   fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
-  resolveSelfWhenTrashedFromDeck?: (instanceId: string) => Promise<void>;
+  resolveSelfWhenTrashedFromDeck?: (instanceId: string, byEffectCardId?: string) => Promise<void>;
   /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
   dnaDigivolveMemoryGain?: (materialPermanentIds: readonly string[], into: CardDefinition) => number;
   /**
@@ -434,11 +434,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * interface (the source draw is a coroutine and OnDraw triggers fire through the
    * stack), even though the movement itself is synchronous.
    */
-  const draw = async (seat: Seat, n: number): Promise<CardInstance[]> => {
+  const draw = async (
+    seat: Seat,
+    n: number,
+    opts?: { excludeInstanceIds?: readonly string[] },
+  ): Promise<CardInstance[]> => {
     const p = player(seat);
     const drawn: CardInstance[] = [];
+    const excluded = new Set(opts?.excludeInstanceIds ?? []);
     for (let i = 0; i < n; i++) {
-      const top = takeTop(p, Zone.Deck);
+      const drawIndex = p.deck.findIndex((card) => !excluded.has(card.instanceId));
+      const top = drawIndex < 0 ? undefined : extractCardAt(p, Zone.Deck, drawIndex);
       if (top === undefined) break; // deck-out; loss handled by security-and-win-check
       top.faceUp = true; // now in hand, visible to its owner
       insertCard(p, Zone.Hand, top);
@@ -996,8 +1002,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             ? actualBaseDef
             : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
         const printed = matchingDigivolveCost(definition, baseDef);
-        const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
-        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef);
+        // `virtualBase` replaces the base used for requirement matching. Retaining the
+        // original card's Tamer/name/trait identity here would incorrectly admit alternate
+        // paths in addition to the stated virtual level and colors.
+        const baseGranted = opts.virtualBase === undefined
+          ? engine.baseGrantedDigivolve?.(seat, permanent, definition)
+          : undefined;
+        const alternate = opts.virtualBase === undefined
+          ? matchingAlternateDigivolutionRequirement(definition, baseDef)
+          : undefined;
         const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
         if (useAlternate && alternate.minNameStackNames !== undefined) {
           const required = alternate.minNameStackCount ?? 1;
@@ -1364,6 +1377,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (newTop === undefined) return undefined;
     const oldTop = permanent.topCard;
     permanent.topCard = newTop;
+    newTop.faceUp = true;
     oldTop.faceUp = true;
     insertCard(player(oldTop.ownerSeat), Zone.Trash, oldTop);
     const def = requireCardDefinition(newTop.cardId);
@@ -1705,6 +1719,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       });
       // A breeding -> battle move fires the OnMove timing (P-130's [Your Turn] reaction).
       await engine.fireTiming?.(EffectTiming.OnMove, { movedPermanentId: permanent.permanentId });
+      // Effect-driven movement is the same physical event as the breeding-phase move verb:
+      // notify both sides' reactive watchers after the move timing has resolved.
+      await engine.fireSubTrigger?.("whenMovedFromBreeding", { subjectPermanentId: permanent.permanentId });
+      await engine.fireSubTrigger?.("whenOpponentMovedFromBreeding", { subjectPermanentId: permanent.permanentId });
       return true;
     }
     return false;
@@ -2251,7 +2269,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ?.subscriptionsFor("whenTrashedFromDeck")
         .some((subscription) => subscription.sourceInstanceId === instanceId);
     if (instanceId !== undefined && !alreadyArmed) {
-      await engine.resolveSelfWhenTrashedFromDeck?.(instanceId);
+      await engine.resolveSelfWhenTrashedFromDeck?.(instanceId, byEffectCardId);
     }
     if (engine.fireSubTrigger) {
       await engine.fireSubTrigger("whenTrashedFromDeck", {
@@ -2292,7 +2310,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     ctx: EffectContext,
     usedInstanceId: string,
     usedOptionCost?: number,
-    opts?: { payCost?: boolean; costDelta?: number },
+    opts?: { payCost?: boolean; costDelta?: number; paymentHandled?: boolean },
   ): Promise<CardInstance[]> => {
     // `peekLooseInstance` (not `locateInHand`): callers may use an Option from a hand, stack,
     // link list, or (for shared engine verbs) trash. Before resolving, claim the exact physical
@@ -2314,7 +2332,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       } catch {
         // Unit-test and extension modules may register an effect-only card without card data.
       }
-      if (opts?.payCost && usedDefinition !== undefined) {
+      if (opts?.payCost && usedDefinition !== undefined && opts.paymentHandled !== true) {
         const cost = await effectDrivenPlayCost(
           usedInstanceId,
           usedDefinition,
@@ -2333,6 +2351,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       resolvingCard = removeLooseInstance(state, usedInstanceId, true);
       if (resolvingCard === undefined) return [];
       usedOwner.resolvingOption = resolvingCard;
+      // This is the authoritative commit point: legality and payment passed, and the exact
+      // physical Option has left its source zone for the no-area resolving slot. Callers use
+      // this receipt for `ifThisEffectUsed`; a mere candidate selection is not a successful use.
+      ctx.lastOptionUsed = true;
       try {
         if (usedDefinition === undefined) {
           await resolveCardEffect(ctx, usedCard.cardId, EffectTiming.OnUseOption);
@@ -2543,10 +2565,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         : !isRestricted(permanentId, "beDeleted"),
     );
     if (permanentIds.length === 0) return 0;
-    for (const permanentId of permanentIds) {
-      if (engine.fireTiming) {
-        await engine.fireTiming(EffectTiming.WhenPermanentWouldBeDeleted, { deletedPermanentId: permanentId });
-      }
+    if (engine.fireTiming) {
+      await Promise.all(
+        permanentIds.map((permanentId) =>
+          engine.fireTiming!(EffectTiming.WhenPermanentWouldBeDeleted, { deletedPermanentId: permanentId }),
+        ),
+      );
     }
     // Leave-the-battle-area PREVENT reactions: a card may prevent some of these effect-deletions
     // by paying a cost. Consult them and drop the prevented permanents from the deletion set.
@@ -2798,7 +2822,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
-          deletedTopCardId: access.permanentById(permanentId)?.topCard?.cardId,
+          deletedControllerSeat: deleted.controllerSeat,
+          deletedTopCardId: deleted.topCard?.cardId,
           removalCause: cause,
           deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
         });
@@ -3032,7 +3057,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   // --- suspend / unsuspend ---------------------------------------------------
 
-  async function fireSuspensionTriggers(permanentIds: string[], opts?: { byEffectSeat?: Seat }): Promise<void> {
+  async function fireSuspensionTriggers(
+    permanentIds: string[],
+    opts?: { byEffectSeat?: Seat; suppressWhenEffectSuspends?: boolean },
+  ): Promise<void> {
     const firstPermanentId = permanentIds[0];
     if (firstPermanentId === undefined) return;
     const simultaneousTrigger = {
@@ -3051,15 +3079,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       "whenSuspended",
       permanentIds.length > 1 ? simultaneousTrigger : { suspendedPermanentId: firstPermanentId },
     );
-    await engine.fireSubTrigger?.("whenEffectSuspends", {
-      ...simultaneousTrigger,
-      ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
-    });
+    if (opts?.suppressWhenEffectSuspends !== true) {
+      await engine.fireSubTrigger?.("whenEffectSuspends", {
+        ...simultaneousTrigger,
+        ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
+      });
+    }
   }
 
   async function suspend(
     permanentIds: string[],
-    opts?: { byEffectSeat?: Seat; deferTriggers?: boolean },
+    opts?: { byEffectSeat?: Seat; deferTriggers?: boolean; suppressWhenEffectSuspends?: boolean },
   ): Promise<string[]> {
     const suspendedPermanentIds: string[] = [];
     for (const permanentId of permanentIds) {

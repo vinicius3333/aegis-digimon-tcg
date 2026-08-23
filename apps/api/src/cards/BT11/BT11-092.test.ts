@@ -37,7 +37,7 @@ describe("BT11-092 Analogman", () => {
         0: {
           battleArea: [
             { card: "BT11-092", as: "analogman" },
-            { card: "BT11-072", as: "machine" },
+            { card: "BT15-066", as: "machine" },
           ],
           security: ["BT1-009"],
         },
@@ -57,6 +57,6 @@ describe("BT11-092 Analogman", () => {
 
     expect(s.perm("analogman").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT11-072")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT15-066")).toBe(true);
   });
 });

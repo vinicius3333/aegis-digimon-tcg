@@ -188,7 +188,10 @@ describe("BT25-058 Callismon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() =>
+      s.state.pendingDecision?.kind === "chooseTargets" &&
+      s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
+    );
     const restrictDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
@@ -197,7 +200,10 @@ describe("BT25-058 Callismon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("restrictTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend"));
+    await settle(() =>
+      observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend") &&
+      s.state.pendingDecision === undefined,
+    );
     expect(s.perm("suspendTarget").isSuspended).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend")).toBe(true);
 
@@ -220,7 +226,7 @@ describe("BT25-058 Callismon", () => {
         0: { hand: [{ card: "BT25-058", as: "callismon" }] },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "digimon" },
+            { card: "BT1-009", as: "digimon", dp: 14000 },
             { card: "BT1-085", as: "tamer" },
           ],
         },
@@ -240,7 +246,10 @@ describe("BT25-058 Callismon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() =>
+      s.state.pendingDecision?.kind === "chooseTargets" &&
+      s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
+    );
     const restrictDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
@@ -338,7 +347,7 @@ describe("BT25-058 Callismon", () => {
             { card: "BT25-058", as: "callismon" },
             { card: "BT1-020", as: "effectBase" },
           ],
-          hand: [{ card: "BT24-017", as: "effectEvolution" }],
+          hand: [{ card: "BT1-009", as: "effectEvolution" }],
         },
         1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"] }] },
       },

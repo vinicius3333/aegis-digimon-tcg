@@ -515,9 +515,15 @@ export class GameEngine {
       dropPermanentSubscriptions: (permanentId) => this.dropPermanentSubscriptions(permanentId),
       checkSecurity: async (defenderSeat, attackerPermanentId) =>
         this.runSecurityCheck(defenderSeat, attackerPermanentId),
-      // The pierce read seam: combat consults the server-only modifier ledger to decide
-      // whether a winning attacker still checks security (＜Piercing＞).
-      hasPierce: (permanentId) => this.modifiers.hasPierce(permanentId),
+      // The pierce read seam: combat consults both the temporary modifier ledger and
+      // the resolved printed/continuous keyword state. Printed ＜Piercing＞ lives in the
+      // latter; only effect-granted, battle-scoped Piercing lives in the former.
+      hasPierce: (permanentId) =>
+        this.modifiers.hasPierce(permanentId) ||
+        (() => {
+          const permanent = this.access.permanentById(permanentId);
+          return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes("Piercing");
+        })(),
       addDpModifier: (permanentId, delta) =>
         this.modifiers.addDpModifier(this.state, permanentId, delta, EffectDuration.UntilEndBattle),
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
@@ -641,12 +647,13 @@ export class GameEngine {
           });
         }
       },
-      resolveSelfWhenTrashedFromDeck: async (instanceId) => {
+      resolveSelfWhenTrashedFromDeck: async (instanceId, byEffectCardId) => {
         const instance = this.findLooseInstance(instanceId);
         if (instance === undefined) return;
         await resolveSelfWhenTrashedFromDeck(
           this.buildEffectContext(this.cardSourceOf(instance), {
             trashedFromDeckCardId: instance.cardId,
+            ...(byEffectCardId === undefined ? {} : { trashedFromDeckByEffectCardId: byEffectCardId }),
           }),
         );
       },
@@ -1235,11 +1242,14 @@ export class GameEngine {
           target,
           into,
           evolvingInstanceId,
-          (sourcePermanentId) => {
+          (sourcePermanentId, sourceInstanceId) => {
             const source = this.access.permanentById(sourcePermanentId);
             return source?.topCard === undefined
               ? undefined
-              : this.buildEffectContext(this.cardSourceOf(source.topCard), {});
+              : this.buildEffectContext(
+                  this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? source.topCard),
+                  {},
+                );
           },
           {
             hasFired: (key) => this.tracker.count(key, "replacement") > 0,
@@ -1337,7 +1347,7 @@ export class GameEngine {
         if (amount === undefined) return 0;
         return this.digisorptionSuspendCandidates(seat).length >= 1 ? amount : 0;
       },
-      payDigisorption: (_state, seat, into) => this.payDigisorption(seat, into),
+      payDigisorption: (_state, seat, into, target) => this.payDigisorption(seat, into, target),
       fireWouldDigivolve: async (_state, _seat, target, into) => {
         // A would-digivolve watcher may be anchored to another permanent (EX2-056 Takato)
         // while applying to the Digimon that declared the evolution. Gather the whole event
@@ -1590,12 +1600,12 @@ export class GameEngine {
    * the suspend's `whenSuspended` window. Returns the cost reduction obtained (the ＜Digisorption＞
    * amount when paid, else 0).
    */
-  private async payDigisorption(seat: Seat, into: CardInstance): Promise<number> {
+  private async payDigisorption(seat: Seat, into: CardInstance, evolvingPermanent: Permanent): Promise<number> {
     const amount = digisorptionAmountFor(into.cardId);
     if (amount === undefined) return 0;
-    // Payment happens after the new top is stacked, but KB BT3-056 Q4703 says the Ceresmon
-    // being digivolved into cannot grant its own redirect from the hand. Exclude that exact
-    // instance while still allowing a different, pre-existing Ceresmon to redirect.
+    // Payment happens while the evolving card is still in hand. Exclude that exact instance
+    // defensively as well: KB BT3-056 Q4703 says the Ceresmon being digivolved into cannot
+    // grant its own redirect, while a different, pre-existing Ceresmon still can.
     const candidates = this.digisorptionSuspendCandidates(seat, into.instanceId);
     if (candidates.length === 0) return 0;
 
@@ -1612,7 +1622,13 @@ export class GameEngine {
     if (!accept) return 0;
 
     const byInstanceId = new Map<string, Permanent>();
-    for (const p of candidates) if (p.topCard !== undefined) byInstanceId.set(p.topCard.instanceId, p);
+    for (const p of candidates) {
+      if (p.topCard === undefined) continue;
+      // Digisorption is paid before stacking, but the declared evolution has already revealed
+      // the card being digivolved into. Preserve that visible identity for the evolving target
+      // while mapping the decision back to the still-live base permanent that gets suspended.
+      byInstanceId.set(p.permanentId === evolvingPermanent.permanentId ? into.instanceId : p.topCard.instanceId, p);
+    }
     const chosen = await this.decisionApi.chooseTargets(ctx, {
       candidates: [...byInstanceId.keys()],
       min: 1,
@@ -1631,7 +1647,7 @@ export class GameEngine {
       }
     }
 
-    await this.primitives.suspend([target.permanentId]);
+    await this.primitives.suspend([target.permanentId], { byEffectSeat: seat });
     return amount;
   }
 
@@ -2651,15 +2667,18 @@ export class GameEngine {
       playTarget,
       source.definition,
       undefined,
-      (sourcePermanentId) => {
+      (sourcePermanentId, sourceInstanceId) => {
         const resident = this.access.permanentById(sourcePermanentId);
         return resident?.topCard === undefined
           ? undefined
-          : this.buildEffectContext(this.cardSourceOf(resident.topCard), {
-              wouldBePlayedInstanceId: instance.instanceId,
-              wouldBePlayedCardId: instance.cardId,
-              wouldBePlayedAsOption: useAsOption,
-            });
+          : this.buildEffectContext(
+              this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
+              {
+                wouldBePlayedInstanceId: instance.instanceId,
+                wouldBePlayedCardId: instance.cardId,
+                wouldBePlayedAsOption: useAsOption,
+              },
+            );
       },
       {
         hasFired: (key) => this.tracker.count(key, "replacement") > 0,
@@ -3564,11 +3583,7 @@ export class GameEngine {
           (effect) => effect.costWindow !== "digivolve",
         ) ||
         wouldBePlayedSelfReducersFor(instance.cardId).length > 0 ||
-        (this.state.players[this.cardSourceOf(instance).ownerSeat]?.breeding?.stack ?? []).some((card) =>
-          effectsOf(EffectTiming.BeforePayCost, this.cardSourceOf(card)).some(
-            (effect) => effect.isInherited && effect.costWindow === "play",
-          ),
-        ) ||
+        (this.state.players[this.cardSourceOf(instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
         this.crossPermanentPlayReducerWatchers(instance, this.cardSourceOf(instance).ownerSeat).length > 0 ||
         this.residentPlayCostEffects(this.cardSourceOf(instance).ownerSeat).length > 0 ||
         this.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", this.cardSourceOf(instance).ownerSeat),

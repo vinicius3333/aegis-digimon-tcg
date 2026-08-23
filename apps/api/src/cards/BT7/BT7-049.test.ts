@@ -6,7 +6,7 @@ describe("BT7-049 MameTyramon", () => {
   it("digivolves into a revealed green level 6 without paying its cost when attacking", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT7-049", as: "mame" }], deck: [{ card: "BT7-054", as: "ancient" }, "BT1-010", "BT1-011", "BT1-012"] },
-      1: { security: ["BT1-101"] },
+      1: { security: ["BT1-009"] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 0;
 

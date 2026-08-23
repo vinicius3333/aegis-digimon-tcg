@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT20-078.js";
 import "./index.js";
 
@@ -15,8 +16,8 @@ import "./index.js";
 const REAPERMON = "BT20-078";
 // BT1-010 Agumon — cost 3, Digimon (qualifies for "cost 4 or less" deletion target).
 const AGUMON = "BT1-010";
-// BT1-012 MetalGreymon — cost 10 Digimon (does NOT qualify — too expensive).
-const METAL_GREYMON = "BT1-012";
+// BT1-021 MetalGreymon — cost 6 Digimon (does NOT qualify — too expensive).
+const METAL_GREYMON = "BT1-021";
 
 describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", () => {
   it("watches opponent effect-driven digivolutions and de-digivolves once per turn", () => {
@@ -107,25 +108,15 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
     const reapermon = s.perm("reapermon");
     const metalGreymon = s.perm("metalGreymon");
 
-    s.state.memory = 5;
-    const res = s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: reapermon.permanentId,
-      target: { kind: "permanent", permanentId: metalGreymon.permanentId },
-    });
-    if (!res.ok) {
-      // Structural test: at least the effect registered.
-      return;
-    }
+    // Fire the card's deletion timing directly so this target-boundary assertion is
+    // independent of Collision/blocker combat resolution.
+    await advance(s.engine).fire(EffectTiming.OnDeletion, reapermon);
 
-    await settle(() => !p0.battleArea.some((pp) => pp.permanentId === reapermon.permanentId), 600);
-
-    // Reapermon was deleted (lost battle). MetalGreymon (cost > 4) must NOT have been deleted.
+    // MetalGreymon (cost > 4) must not be offered to the Delete action.
     expect(p1.battleArea.some((pp) => pp.permanentId === metalGreymon.permanentId)).toBe(true);
   });
 });

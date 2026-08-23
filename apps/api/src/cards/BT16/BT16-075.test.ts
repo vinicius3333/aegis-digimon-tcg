@@ -33,7 +33,7 @@ describe("BT16-075", () => {
   it("returns a qualifying Dark Animal from trash on play live", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT16-075", as: "cerberus" }], trash: [{ card: "BT16-071", as: "darkAnimal" }] },
+        0: { hand: [{ card: "BT16-075", as: "cerberus" }], trash: [{ card: "BT16-068", as: "darkAnimal" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -42,8 +42,8 @@ describe("BT16-075", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cerberus").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT16-071"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT16-068"));
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT16-071")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT16-068")).toBe(true);
   });
 });

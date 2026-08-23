@@ -103,16 +103,19 @@ describe("BT25-082 BlackGatomon", () => {
   });
 
   it("Q6389/Q6392 lets an effect-driven paid digivolve use the base grant and P-108-style reduction", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: CARD_ID, as: "cat" },
-          { card: "BT25-092", as: "tamer" },
-        ],
-        hand: [{ card: "BT25-085", as: "beel" }],
-        deck: ["AD1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "cat" },
+            { card: "BT25-092", as: "tamer" },
+          ],
+          hand: [{ card: "BT25-085", as: "beel" }],
+          deck: ["AD1-001"],
+        },
       },
-    });
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 2;
     await s.ready();
     await advance(s.engine).verb.digivolveFromInstance(s.perm("cat").permanentId, s.inst("beel").instanceId, {

@@ -99,7 +99,7 @@ describe("BT1-085 Tai Kamiya", () => {
           { card: "BT1-024", as: "attacker", dp: 20000, under: ["BT1-001", "BT1-010", "BT1-015", "BT1-020"] },
         ],
       },
-      1: { security: ["BT1-010", "BT1-101"] },
+      1: { security: ["BT1-101", "BT1-010"] },
     });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);

@@ -48,8 +48,11 @@ describe("deck card truth: newly executable complex effects", () => {
     const securityBefore = s.state.players[0]!.security.length;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
     await settle(() => false, 120);
-    expect(s.state.players[0]!.security.length).toBe(securityBefore - 1);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-090")).toBe(true);
+    // One security card moves to hand and one Angel moves from hand to security, so the
+    // stack size is unchanged. Counting the received cards proves the wrapper cost was
+    // paid exactly once rather than once per nested action.
+    expect(s.state.players[0]!.security.length).toBe(securityBefore);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT1-090")).toHaveLength(1);
     expect(s.perm("opponent").currentDP).toBe(3000);
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-053")).toBe(true);
     assertNoLoudGap(s);

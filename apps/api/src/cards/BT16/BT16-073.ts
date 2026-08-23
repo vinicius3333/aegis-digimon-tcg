@@ -40,19 +40,13 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              cardType: "Tamer",
+              kind: ["Tamer"],
+              controller: "mine",
               textContains: "[Myotismon]",
-              notSameNameAs: {
-                filter: {
-                  cardType: "Tamer",
-                  controller: "mine",
-                },
-              },
             },
             count: 1,
-            location: "trash",
-            controller: "mine",
           },
+          from: ["trash"],
           payCost: false,
           optional: true,
           abortOnDecline: true,

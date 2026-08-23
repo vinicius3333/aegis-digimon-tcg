@@ -27,7 +27,7 @@ describe("ST13-16 Legend-Arms Alliance", () => {
   it("exposes Delay only on a later turn, trashes itself, and returns all four cards together", async () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "ST13-16", as: "alliance" }],
-      deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+      deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
     } }, { autoChooseOption: true, autoOrderCards: true });
     s.perm("alliance").enterFieldTurnCount = s.state.turnCount;
     await s.ready();
@@ -42,15 +42,19 @@ describe("ST13-16 Legend-Arms Alliance", () => {
       sourceInstanceId: s.perm("alliance").topCard.instanceId,
       effectKey: delay!.effectKey,
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "ST13-16"));
+    await settle(() =>
+      s.state.players[0]!.trash.some((card) => card.cardId === "ST13-16") &&
+      s.state.players[0]!.deck.length === 5 &&
+      s.state.players[0]!.deck.every((card) => !card.faceUp)
+    );
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual([
-      "BT1-001",
-      "BT1-002",
-      "BT1-003",
-      "BT1-004",
-      "BT1-005",
+      "BT1-009",
+      "BT1-010",
+      "BT1-011",
+      "BT1-012",
+      "BT1-013",
     ]);
   });
 

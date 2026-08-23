@@ -9,6 +9,7 @@ describe("BT16-035", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Static",
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Angel"] }],
+      keywords: [{ keyword: "Barrier" }, { keyword: "Reboot" }],
     });
   });
 
@@ -16,7 +17,6 @@ describe("BT16-035", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      keywords: [{ keyword: "Barrier" }, { keyword: "Reboot" }],
     });
     expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",

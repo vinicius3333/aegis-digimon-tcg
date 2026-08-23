@@ -32,7 +32,7 @@ it("gains 1 memory when it DNA digivolves into a blue Digimon", async () => {
   const s = setupEngine({
     0: {
       battleArea: [
-        { card: "BT12-022", as: "exveemon" },
+        { card: "BT1-037", as: "exveemon" },
         { card: "BT12-050", as: "stingmon" },
       ],
       hand: [{ card: "BT12-028", as: "paildramon" }],

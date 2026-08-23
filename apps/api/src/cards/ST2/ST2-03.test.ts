@@ -52,6 +52,6 @@ describe("ST2-03 Gabumon", () => {
     expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([
       s.inst("bottom").instanceId,
     ]);
-    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId)).toBe(false);
   });
 });

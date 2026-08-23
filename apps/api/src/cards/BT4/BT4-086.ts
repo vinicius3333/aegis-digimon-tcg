@@ -33,7 +33,7 @@ const compiled: CompiledCard = {
                     "tokens": [
                       "Cerberusmon"
                     ],
-                    "match": "name"
+                    "match": "nameExact"
                   }
                 ]
               },

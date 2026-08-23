@@ -8,7 +8,7 @@ describe("BT16-052", () => {
   it("optionally plays one KoHagurumon Token on digivolution", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
-      actions: [{ kind: "PlayToken", tokens: ["KoHagurumon"], count: 1, payCost: false, optional: true }],
+      actions: [{ kind: "PlayToken", tokens: ["KoHagurumon Token"], count: 1, payCost: false, optional: true }],
     });
   });
 
@@ -24,7 +24,10 @@ describe("BT16-052", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-055", as: "base" }],
+          battleArea: [
+            { card: "BT15-055", as: "base" },
+            { card: "BT16-057", as: "blockerHost", under: ["BT16-052"] },
+          ],
           hand: [{ card: "BT16-052", as: "xantibody" }],
         },
       },
@@ -40,12 +43,12 @@ describe("BT16-052", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "KoHagurumon Token"),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "TOKEN-KoHagurumon-Token"),
     );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "KoHagurumon Token")).toBe(
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "TOKEN-KoHagurumon-Token")).toBe(
       true,
     );
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("blockerHost"), "Blocker")).toBe(true);
   });
 });

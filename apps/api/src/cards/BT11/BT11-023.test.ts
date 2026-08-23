@@ -10,7 +10,7 @@ describe("BT11-023 Veemon", () => {
         deck: [
           { card: "BT11-027", as: "veedramon" },
           { card: "BT11-090", as: "tamer" },
-          { card: "BT1-001", as: "rest" },
+          { card: "BT1-009", as: "rest" },
         ],
       },
     }, { autoSelectCards: true });
@@ -54,8 +54,8 @@ describe("BT11-023 Veemon", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.memory === 7);
+    await settle(() => s.state.memory === 8);
 
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(8);
   });
 });

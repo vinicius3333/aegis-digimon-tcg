@@ -15,7 +15,7 @@ describe("BT5-106 Demonic Disaster", () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-071", as: "cost" }, { card: "BT5-072", as: "target", suspended: true }], hand: [{ card: "BT5-106", as: "option" }] } }, { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds });
     const costPermanentId = s.perm("cost").permanentId;
-    preferInstanceIds.push(s.perm("cost").topCard.instanceId);
+    preferInstanceIds.push(s.perm("cost").permanentId);
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle(() => !s.perm("target").isSuspended && !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costPermanentId));

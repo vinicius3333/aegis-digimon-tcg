@@ -6,7 +6,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 5, condition: { kind: "raw", raw: "there is a Digimon with 13000 DP or more" } }] }],
+      actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 5, condition: { kind: "permanentCount", seat: "mine", op: "gte", value: 1, filter: { kind: ["Digimon"], dp: { op: "gte", value: 13000 } } } }] }],
     },
     ...(["OnPlay", "WhenDigivolving", "WhenAttacking"] as const).map((trigger) => ({
       trigger,

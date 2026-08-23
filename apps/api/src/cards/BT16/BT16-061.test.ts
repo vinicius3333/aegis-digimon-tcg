@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -65,7 +66,7 @@ describe("BT16-061 DoruGreymon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnBattleDeleteOpponent, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-051"));

@@ -103,9 +103,10 @@ describe("BT10-085 Sistermon Ciel", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("base").topCard.cardId === "BT10-016" && s.state.memory === 3);
+    await settle(() => s.perm("base").topCard.cardId === "BT10-016" && s.state.memory === 4);
     expect(s.perm("base").stack.some((c) => c.cardId === "BT10-011")).toBe(true);
-    expect(s.state.memory).toBe(3);
+    // Pay 3 to digivolve, then Sistermon Ciel's once-per-turn trigger gains 1.
+    expect(s.state.memory).toBe(4);
   });
 
   it("gains memory only once when two Huckmon or Royal Knight evolutions happen in the same turn", async () => {

@@ -420,6 +420,33 @@ describe("digivolve — apply (stack, DP, cost, draw, suspended carry, timing)",
     expect(permanent.isSuspended).toBe(false);
   });
 
+  it("pays Digisorption before stacking and carries a base suspended by that payment", async () => {
+    const { state, gauge, permanent, evolver, baseTop } = makeState({ memory: 5 });
+    const payDigisorption = vi.fn(async (_state: GameState, _seat: Seat, into: CardInstance) => {
+      expect(into.instanceId).toBe(evolver.instanceId);
+      expect(permanent.topCard.instanceId).toBe(baseTop.instanceId);
+      expect(state.players[0]!.hand.some((card) => card.instanceId === evolver.instanceId)).toBe(true);
+      permanent.isSuspended = true;
+      return 1;
+    });
+    const deps = depsFrom(gauge, {
+      digisorptionReduction: () => 1,
+      payDigisorption,
+    });
+
+    const result = await applyDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps);
+
+    expect(result.ok).toBe(true);
+    expect(payDigisorption).toHaveBeenCalledOnce();
+    expect(permanent.topCard.instanceId).toBe(evolver.instanceId);
+    expect(permanent.isSuspended).toBe(true);
+    expect(state.memory).toBe(4);
+    if (result.ok) {
+      expect(result.outcome.carriedSuspended).toBe(true);
+      expect(result.outcome.cost).toBe(1);
+    }
+  });
+
   it("does not mutate state when validation fails", async () => {
     const { state, gauge, permanent, evolver } = makeState({ baseCardId: WRONG_COLOR_BASE, memory: 5 });
     const before = { memory: state.memory, stack: permanent.stack.length, hand: state.players[0]!.hand.length };

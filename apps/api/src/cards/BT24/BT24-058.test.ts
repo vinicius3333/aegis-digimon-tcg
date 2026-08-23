@@ -31,8 +31,8 @@ describe("BT24-058 Blimpmon", () => {
           hand: [{ card: "BT24-058", as: "blimpmon" }],
           deck: [
             { card: "P-133", as: "tamer" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
           ],
         },
       },
@@ -61,8 +61,8 @@ describe("BT24-058 Blimpmon", () => {
           battleArea: [{ card: "BT24-058", as: "blimpmon" }],
           deck: [
             { card: "P-133", as: "tamer" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
           ],
         },
       },

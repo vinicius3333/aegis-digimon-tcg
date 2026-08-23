@@ -69,7 +69,7 @@ describe("EX3-027 Agumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.deck.length === 1);
+    await settle(() => s.state.players[0]!.deck.length === 0);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("inheritedDraw").instanceId]);
@@ -153,9 +153,9 @@ describe("EX3-027 Agumon", () => {
       },
       1: { deck: ["BT1-001", "BT1-002", "BT1-003"] },
     });
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    s.state.memory = 12;
     const firstTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 24;
 
     await advance(s.engine).recompute();
@@ -164,27 +164,28 @@ describe("EX3-027 Agumon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.deck.length === 2);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    advance(s.engine).endMainPhaseIfOpen(0);
     await firstTurn;
 
     s.state.turnSeat = 1;
-    s.state.memory = 0;
+    s.state.memory = 10;
     const opponentTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1);
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
 
     s.state.turnSeat = 0;
     s.state.memory = 12;
     const nextTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondDragon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.deck.length === 1);
+    await settle(() => s.state.players[0]!.deck.length === 0);
 
-    expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    // The real turn machine also performs this turn's normal draw before the inherited draw.
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
   });
 

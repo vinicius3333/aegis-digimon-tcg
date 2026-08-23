@@ -49,7 +49,7 @@ describe("BT26-100 compiled fidelity", () => {
         0: {
           hand: [
             { card: "BT26-100", as: "darkField" },
-            { card: "BT26-069", as: "titan" },
+            { card: "BT24-042", as: "titan" },
           ],
           security: [{ card: "BT1-009", as: "bottomSecurity" }],
         },
@@ -60,7 +60,7 @@ describe("BT26-100 compiled fidelity", () => {
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkField").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-069"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-042"));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bottomSecurity").instanceId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);

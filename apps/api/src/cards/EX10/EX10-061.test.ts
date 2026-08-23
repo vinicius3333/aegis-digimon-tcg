@@ -25,11 +25,13 @@ describe("EX10-061 Apocalymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("apocalymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-061"));
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
 
     const apocalymon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX10-061")!;
-    expect(apocalymon.stack).toHaveLength(2);
-    expect(new Set(apocalymon.stack.map(({ cardId }) => cardId))).toEqual(new Set(["EX10-012", "EX10-020"]));
+    expect(apocalymon.stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
+      expect.arrayContaining(["EX10-061", "EX10-012", "EX10-020"]),
+    );
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(
       s.inst("duplicateMetal").instanceId,
     );

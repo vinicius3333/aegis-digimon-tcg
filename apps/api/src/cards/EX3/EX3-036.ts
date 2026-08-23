@@ -30,13 +30,21 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
+      optional: true,
+      description: "[OnDeletion] You may place 1 [Trial of the Four Great Dragons] from your hand in the battle area.",
+      timingOverride: "OnDeletion",
       actions: [
         {
           kind: "PlaceInBattleAreaSelf",
           target: { filter: { ...trialFilter, zone: "hand" }, count: 1 },
           from: ["hand"],
-          optional: true,
-          condition: { kind: "youHaveNone", filter: { ...trialFilter, zone: "battleArea" } },
+          condition: {
+            kind: "allOf",
+            conditions: [
+              { kind: "youHave", filter: { ...trialFilter, zone: "hand" } },
+              { kind: "youHaveNone", filter: { ...trialFilter, zone: "battleArea" } },
+            ],
+          },
         },
       ],
     },

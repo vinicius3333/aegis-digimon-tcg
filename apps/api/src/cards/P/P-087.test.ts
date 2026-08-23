@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./P-028.js";
 import "./P-087.js";
 
 describe("P-087 Ritsu Kodo", () => {
@@ -9,13 +10,13 @@ describe("P-087 Ritsu Kodo", () => {
         0: {
           battleArea: [{ card: "P-087", as: "ritsu" }],
           hand: [{ card: "P-028", as: "pulsemon" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-001", as: "drawnOne" }, { card: "BT1-002", as: "drawnTwo" }],
           security: 3,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const drawnId = s.inst("drawn").instanceId;
+    const drawnIds = [s.inst("drawnOne").instanceId, s.inst("drawnTwo").instanceId];
     s.state.memory = 10;
     await s.ready();
     expect(s.perm("ritsu").isSuspended).toBe(false);
@@ -26,15 +27,15 @@ describe("P-087 Ritsu Kodo", () => {
     })).toEqual({ ok: true });
     await settle(() =>
       s.perm("ritsu").isSuspended &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === drawnId) &&
-      s.state.memory === 8
+      drawnIds.every((instanceId) => s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)) &&
+      s.state.memory === 9
     );
 
     expect({
       suspended: s.perm("ritsu").isSuspended,
-      drew: s.state.players[0]!.hand.some((card) => card.instanceId === drawnId),
+      drew: drawnIds.every((instanceId) => s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)),
       memory: s.state.memory,
-    }).toEqual({ suspended: true, drew: true, memory: 8 });
+    }).toEqual({ suspended: true, drew: true, memory: 9 });
     expect(s.decisions.filter(({ req }) =>
       req.kind === "optional" && req.sourceCardId === "P-087"
     )).toHaveLength(1);

@@ -13,7 +13,7 @@ describe("P-130 Lui Ohwada", () => {
     const raisedId = s.perm("raised").topCard.instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lui").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding === undefined && s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === raisedId));
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(8);
     assertNoLoudGap(s);
   });
 

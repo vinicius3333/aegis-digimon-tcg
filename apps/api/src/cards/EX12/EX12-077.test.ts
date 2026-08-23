@@ -83,7 +83,7 @@ describe("EX12-077 Proximamon", () => {
         },
         1: { battleArea: [{ card: "EX12-005", as: "opponent" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 20;
     await s.ready();

@@ -48,6 +48,7 @@ describe("ST2-12 Matt Ishida", () => {
     });
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt1"));
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt2"));
     expect(s.state.memory).toBe(2);
   });
 

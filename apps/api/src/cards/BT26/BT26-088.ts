@@ -19,33 +19,27 @@ export const compiled: CompiledCard = {
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Boss", "TS"], match: "trait" }],
           },
-          actions: [
+          mode: "reduceCost",
+          amountChoices: [
             {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amountChoices: [
-                {
-                  amount: 2,
-                  condition: {
-                    kind: "youHaveNone",
-                    filter: { controllerDefault: "mine", kind: ["Digimon"] },
-                    raw: "you have no Digimon",
-                  },
-                },
-                {
-                  amount: 1,
-                  condition: {
-                    kind: "youHave",
-                    filter: { controllerDefault: "mine", kind: ["Digimon"] },
-                    raw: "you have a Digimon",
-                  },
-                },
-              ],
-              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 } },
-              raw: "by suspending this Tamer, reduce the play cost by 1, or by 2 if you have no Digimon",
+              amount: 2,
+              condition: {
+                kind: "youHaveNone",
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                raw: "you have no Digimon",
+              },
+            },
+            {
+              amount: 1,
+              condition: {
+                kind: "youHave",
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                raw: "you have a Digimon",
+              },
             },
           ],
+          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 } },
+          raw: "by suspending this Tamer, reduce the play cost by 1, or by 2 if you have no Digimon",
         },
       ],
     },

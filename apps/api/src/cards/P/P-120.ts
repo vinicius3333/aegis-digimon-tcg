@@ -21,7 +21,8 @@ const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "ModifyDP",
+          "kind": "ModifySecurityDP",
+          "controller": "opponent",
           "target": {
             "filter": {
               "controller": "opponent",

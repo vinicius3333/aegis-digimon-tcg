@@ -13,10 +13,10 @@ describe("P-134 Shoemon", () => {
   });
 
   it("reduces one opposing Digimon by 2000 through the inherited attack effect", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["P-134"] }] }, 1: { battleArea: [{ card: "BT1-010", dp: 5000, suspended: true, as: "target" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["P-134"] }] }, 1: { battleArea: [{ card: "BT1-010", dp: 7000, suspended: true, as: "target" }] } });
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
-    await settle(() => s.perm("target").currentDP === 3000);
-    expect(s.perm("target").currentDP).toBe(3000);
+    await settle(() => s.perm("target").currentDP === 5000);
+    expect(s.perm("target").currentDP).toBe(5000);
     assertNoLoudGap(s);
   });
 });

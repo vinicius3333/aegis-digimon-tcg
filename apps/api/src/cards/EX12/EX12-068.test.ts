@@ -129,7 +129,7 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 100);
 
-    expect(s.perm("ruli").isSuspended).toBe(false);
+    expect(s.perm("ruli").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-050");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("illegalTarget").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);

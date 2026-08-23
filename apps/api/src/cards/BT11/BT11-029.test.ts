@@ -13,7 +13,7 @@ describe("BT11-029 AeroVeedramon", () => {
         deck: [
           { card: "BT11-090", as: "blue1" },
           { card: "BT11-112", as: "blue2" },
-          { card: "BT1-001", as: "rest" },
+          { card: "BT1-009", as: "rest" },
         ],
       },
     });

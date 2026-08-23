@@ -9,7 +9,7 @@ describe("EX4-010 BlackWarGrowlmon", () => {
   it("trashes three cards from both decks, then uses the combined-trash DP ceiling", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions ?? [];
     expect(actions[0]).toMatchObject({ kind: "TrashTopDeck", controller: "both", amount: 3 });
-    expect(actions[1]).toMatchObject({ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 0, upTo: true, totalDpCap: 3000 }, dpCeiling: 3000, dpCeilingScaling: { per: 10, amount: 2000, unit: "cards", filter: { zone: "trash", controllerDefault: "both" } } });
+    expect(actions[1]).toMatchObject({ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 0, upTo: true, totalDpCap: 3000 }, dpCeiling: 3000, totalDpCapScaling: { per: 10, amount: 2000, unit: "cards", filter: { zone: "trash", controllerDefault: "both" } } });
   });
 
   it("deletes opponent Digimon whose combined DP fits the post-trash ceiling", async () => {
@@ -23,11 +23,10 @@ describe("EX4-010 BlackWarGrowlmon", () => {
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("blackWarGrowlmon"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.deck).toHaveLength(0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("BT1-009");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

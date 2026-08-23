@@ -119,6 +119,7 @@ export interface DecisionRequest {
     min?: number;
     max?: number; // selection count bounds
     maxTotalPlayCost?: number; // summed printed play-cost budget for multi-card selections
+    maxTotalDP?: number; // summed live-DP budget for aggregate permanent selections
     differentColors?: boolean; // prevent selecting cards that share a color with an already-picked card
     distinctCardIds?: boolean; // prevent selecting multiple instances with the same card number
     orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination

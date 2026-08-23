@@ -26,30 +26,23 @@ const compiled: CompiledCard = {
               "kind": ["Digimon", "Tamer"]
             },
             "count": 1
-          }
+          },
+          "bindResultAs": "rasielmonTarget"
         },
         {
           "kind": "Restrict",
           "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
-            },
-            "count": 1,
-            "sameTarget": true
+            "filter": { "boundRef": "rasielmonTarget" },
+            "count": 1
           },
-          "restriction": "cantActivateWhenDigivolving",
+          "restriction": "cannotActivateWhenDigivolving",
           "duration": "untilOpponentTurnEnd"
         },
         {
           "kind": "Restrict",
           "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
-            },
-            "count": 1,
-            "sameTarget": true
+            "filter": { "boundRef": "rasielmonTarget" },
+            "count": 1
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"
@@ -67,30 +60,23 @@ const compiled: CompiledCard = {
               "kind": ["Digimon", "Tamer"]
             },
             "count": 1
-          }
+          },
+          "bindResultAs": "rasielmonTarget"
         },
         {
           "kind": "Restrict",
           "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
-            },
-            "count": 1,
-            "sameTarget": true
+            "filter": { "boundRef": "rasielmonTarget" },
+            "count": 1
           },
-          "restriction": "cantActivateWhenDigivolving",
+          "restriction": "cannotActivateWhenDigivolving",
           "duration": "untilOpponentTurnEnd"
         },
         {
           "kind": "Restrict",
           "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
-            },
-            "count": 1,
-            "sameTarget": true
+            "filter": { "boundRef": "rasielmonTarget" },
+            "count": 1
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"

@@ -28,7 +28,7 @@ describe("EX10-072 — Spiral Mountain", () => {
           optional: true,
           target: { filter: { faceUp: true } },
         },
-        { kind: "DelayedDelete" },
+        { kind: "DelayedDeletePlayed" },
       ],
     });
     expect(effects[3]).toMatchObject({

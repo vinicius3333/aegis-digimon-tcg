@@ -24,7 +24,8 @@ import { ModifierLedger } from "../effects/modifiers.js";
 import "../../cards/BT25/BT25-045.js";
 // The real (hand-written, non-IR) EffectModule for the card whose [On Play] links its OWN
 // already-on-field permanent — the exact branch comprehensive-0140's divergence named.
-import EX11_027 from "../../cards/EX11/EX11-027.js";
+import "../../cards/EX11/EX11-027.js";
+import { getEffectModule } from "../effects/registry.js";
 import "../../cards/index.js"; // boot side-effect: register every compiled-IR card module
 
 /**
@@ -211,7 +212,8 @@ async function runEx11027Link(): Promise<{ state: GameState; p0: PlayerState; ho
   const recipient = new Permanent();
   recipient.permanentId = "p-recipient";
   recipient.controllerSeat = 0;
-  recipient.topCard = card("BT25-045", 0, true); // any other battle-area Digimon
+  // EX11-027's printed Link requirement is a Digimon with [Maquinamon] in its text.
+  recipient.topCard = card("EX11-029", 0, true);
   p0.battleArea.push(recipient);
 
   // Filler deck cards so EX11-027's own "reveal top 3" opener doesn't return early on an
@@ -252,7 +254,7 @@ async function runEx11027Link(): Promise<{ state: GameState; p0: PlayerState; ho
   const fx = createPrimitives(engine);
   const game = createGameAccess(state);
   const src = createCardSource(host.topCard, stateLookup);
-  const effects = EX11_027.effectsForTiming(EffectTiming.OnEnterFieldAnyone, src);
+  const effects = getEffectModule("EX11-027")!.effectsForTiming(EffectTiming.OnPlay, src);
   for (const e of effects) {
     const ctx = createEffectContext({ source: src, trigger: {}, game, fx, ask: decisionApi });
     await e.resolve(ctx);
@@ -543,7 +545,8 @@ describe("§4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and th
     await settle(() => verbHost.linked.length === 1);
 
     // --- Path 2: a card effect's Link action (runLink, interpreter.ts) — AD1-005's [On Play]
-    // links up to 2 [Social]/[Navi]/[Tool] cards to ITSELF, base link limit 1. ---
+    // links up to 2 [Social]/[Navi]/[Tool] cards to ITSELF. Cancel its printed <Link +1>
+    // grant so this path, like the player-facing fixture above, isolates base link limit 1.
     const effectGame = setup();
     const effectPlayer = effectGame.state.players[0] as PlayerState;
     const effectSource = looseCard("AD1-005", 0);
@@ -556,8 +559,14 @@ describe("§4-8-5 / §17-1-3-2-5 Link limit — a link at the limit lands and th
     expect(
       effectGame.engine.applyIntent(0, { type: "playCard", instanceId: effectSource.instanceId }),
     ).toEqual({ ok: true });
-    await settle(() => (findPermanent(effectGame, 0, "AD1-005")?.linked.length ?? 0) === 1);
-    const effectHost = findPermanent(effectGame, 0, "AD1-005");
+    await settle(() => findPermanent(effectGame, 0, "AD1-005") !== undefined);
+    const effectHost = findPermanent(effectGame, 0, "AD1-005")!;
+    (
+      effectGame.engine as unknown as {
+        continuous: { addLinkMaxGrant(id: string, delta: number, duration: unknown): void };
+      }
+    ).continuous.addLinkMaxGrant(effectHost.permanentId, -1, EffectDuration.UntilEachTurnEnd);
+    await settle(() => effectHost.linked.length === 1);
 
     // Both paths offered 2 cards onto a base-limit-1 recipient. Neither refused the link at
     // declaration; both converge on exactly 1 landed link card after the rule-check sweep.

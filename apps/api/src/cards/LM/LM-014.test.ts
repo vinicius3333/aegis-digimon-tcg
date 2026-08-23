@@ -7,7 +7,7 @@ describe("LM-014 Espimon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "LM-014", as: "espimon" }],
-        deck: ["AD1-020", "BT1-001", "BT1-002"],
+        deck: ["AD1-020", "BT1-009", "BT1-010"],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 3;

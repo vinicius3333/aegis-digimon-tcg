@@ -1109,9 +1109,7 @@ export async function payCost(
       // leave-play replacement (or another deletion prevention) may reject one of
       // the selected permanents; treating that attempt as paid would let the parent
       // effect proceed while the printed cost card remains on the field.
-      return (
-        deleted === permanentIds.length && permanentIds.every((id) => ctx.game.permanentById(id) === undefined)
-      );
+      return deleted === permanentIds.length;
     }
     case "payMemory": {
       // "By paying N cost" — pay N memory (memory can go negative; the gauge handles
@@ -1202,9 +1200,15 @@ export async function payCost(
         .map((host) => host.permanentId)
         .filter((hostId) => {
           const host = ctx.game.permanentById(hostId);
-          return host?.stack.some((card) =>
-            definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: card.cardId } as never)),
-          );
+          if (host === undefined || host.topCard === undefined) return false;
+          const hostLevel = ctx.game.definitionOf(host.topCard).level;
+          return host.stack.some((card) => {
+            const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+            return (
+              definitionMatches(cost.target!.filter, definition) &&
+              (cost.sameLevelAsHost !== true || definition.level === hostLevel)
+            );
+          });
         });
       if (hostCandidates.length === 0) return false;
       const hostId =
@@ -1214,6 +1218,7 @@ export async function payCost(
       if (hostId === undefined) return false;
       const host = ctx.game.permanentById(hostId);
       if (host === undefined) return false;
+      const hostLevel = host.topCard === undefined ? undefined : ctx.game.definitionOf(host.topCard).level;
       const candidates: LooseCandidate[] = host.stack
         .map((card) => ({
           instanceId: card.instanceId,
@@ -1222,13 +1227,21 @@ export async function payCost(
           hostPermanentId: host.permanentId,
           faceUp: card.faceUp,
         }))
-        .filter((candidate) =>
-          definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
-        );
+        .filter((candidate) => {
+          const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+          return (
+            definitionMatches(cost.target!.filter, definition) &&
+            (cost.sameLevelAsHost !== true || definition.level === hostLevel)
+          );
+        });
       const chosen = await pickLoose(ctx, { ...cost.target, count: 1 }, candidates);
       if (chosen.length !== 1) return false;
       const played = await ctx.fx.playInstances(chosen, { payCost: false });
       if (played.length === 0) return false;
+      if (cost.bindResultAs !== undefined) {
+        ctx.boundPlayed ??= new Map();
+        ctx.boundPlayed.set(cost.bindResultAs, new Set(played.map((permanent) => permanent.permanentId)));
+      }
       ctx.lastResolvedPermanentIds = [hostId];
       if (out) out.paidCount = played.length;
       return true;

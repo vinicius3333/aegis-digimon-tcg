@@ -31,7 +31,7 @@ describe("BT16-050", () => {
       0: {
         battleArea: [
           { card: "BT16-050", as: "command", dp: 1000 },
-          { card: "BT16-051", as: "eligible", dp: 3000 },
+          { card: "BT3-059", as: "eligible", dp: 3000 },
           { card: "BT1-009", as: "other", dp: 3000 },
         ],
       },

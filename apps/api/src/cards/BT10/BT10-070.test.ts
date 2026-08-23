@@ -89,7 +89,9 @@ describe("BT10-070 Blastmon", () => {
 
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === secondAttackerId)).toBe(true);
     expect(s.perm("blastmon").stack).toHaveLength(1);
-    expect(s.state.players[0]!.trash).toHaveLength(1);
+    // The first trigger trashes Blastmon's source; the later unchecked security card also
+    // enters the same trash, so the owner's trash contains both cards.
+    expect(s.state.players[0]!.trash).toHaveLength(2);
   });
 
   it("does not delete an attacker when Blastmon has no source to pay the cost", async () => {
@@ -121,6 +123,8 @@ describe("BT10-070 Blastmon", () => {
     expect(
       s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("attacker").permanentId),
     ).toBe(true);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    // The attack still performs its security check; the revealed card is trashed even though
+    // Blastmon cannot pay its optional source cost.
+    expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 });

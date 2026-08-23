@@ -40,7 +40,7 @@ describe("BT16-028", () => {
         0: { battleArea: [{ card: "BT16-028", as: "source", suspended: true }] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));

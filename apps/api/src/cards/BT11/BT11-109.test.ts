@@ -27,8 +27,9 @@ describe("BT11-109 Astral Snatcher", () => {
     await settle(
       () =>
         s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("material").instanceId) &&
-        s.state.players[1]!.battleArea.length === 2,
+        s.state.players[1]!.battleArea.length === 1,
     );
-    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("destination").stack.some(({ instanceId }) => instanceId === s.inst("moved").instanceId)).toBe(true);
   });
 });

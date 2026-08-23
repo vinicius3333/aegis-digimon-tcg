@@ -338,7 +338,11 @@ export async function runSubTrigger(
       ? (subCtx: EffectContext): boolean => {
           const suspendedIds =
             subCtx.trigger.subjectPermanentIds ??
-            (subCtx.trigger.suspendedPermanentId !== undefined ? [subCtx.trigger.suspendedPermanentId] : []);
+            (subCtx.trigger.suspendedPermanentId !== undefined
+              ? [subCtx.trigger.suspendedPermanentId]
+              : subCtx.trigger.subjectPermanentId !== undefined
+                ? [subCtx.trigger.subjectPermanentId]
+                : []);
           return suspendedIds.includes(anchorPermanentId);
         }
       : undefined;
@@ -680,6 +684,20 @@ export async function runSubTrigger(
           );
         }
       : undefined;
+  // A linked card's "when this card is linked" effect is physically scoped to that card,
+  // not merely to the Digimon carrying it. All linked cards share the recipient permanent,
+  // so the generic isSelfRef subject gate alone would let an older link card react whenever
+  // a different card links to the same host. Preserve host-level "this Digimon gets linked"
+  // watchers by applying the instance gate only when the watcher source is itself linked.
+  const linkedSelfSourceGate =
+    event === "whenLinked" &&
+    sourceFilter?.isSelfRef === true &&
+    ctx.source.permanent()?.linked?.some((card) => card.instanceId === ctx.source.instanceId) === true
+      ? (subCtx: EffectContext): boolean => {
+          const linkedIds = subCtx.trigger.linkedCardInstanceIds ?? subCtx.trigger.linkedInstanceIds;
+          return linkedIds === undefined || linkedIds.includes(subCtx.source.instanceId);
+        }
+      : undefined;
   const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: "dpReachedZero" }) | undefined)?.deleteCause;
   const deleteCauseGate =
     event === "onDeletionOf" && sourceDeleteCause === "dpReachedZero"
@@ -723,6 +741,7 @@ export async function runSubTrigger(
     triggerFilterGate,
     addedDigivolutionCardGate,
     linkedCardGate,
+    linkedSelfSourceGate,
     inheritedHostNameGate,
     hostFilterGate,
     deleteCauseGate,

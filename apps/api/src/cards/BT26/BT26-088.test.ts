@@ -15,14 +15,9 @@ describe("BT26-088 Hiroko Sagisaka", () => {
           kind: "Replacement",
           event: "wouldBePlayed",
           sourceFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Boss", "TS"], match: "trait" }] },
-          actions: [
-            {
-              kind: "Replacement",
-              mode: "reduceCost",
-              amountChoices: [{ amount: 2 }, { amount: 1 }],
-              cost: { kind: "suspend" },
-            },
-          ],
+          mode: "reduceCost",
+          amountChoices: [{ amount: 2 }, { amount: 1 }],
+          cost: { kind: "suspend" },
         },
       ],
     });

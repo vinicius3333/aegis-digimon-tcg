@@ -63,7 +63,7 @@ describe("BT2-076 Pumpkinmon", () => {
   it("activates when its host is deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 20000 }] },
         1: {
           battleArea: [{ card: "BT2-079", as: "host", under: ["BT2-076"], suspended: true }],
           deck: [

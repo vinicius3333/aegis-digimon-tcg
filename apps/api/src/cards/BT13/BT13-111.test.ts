@@ -32,11 +32,10 @@ describe("BT13-111 Gallantmon", () => {
     await blocked.engine.recomputeContinuousEffects();
     expect(
       blocked.engine.applyIntent(0, { type: "playCard", instanceId: blocked.inst("gallantmon").instanceId }),
-    ).toEqual({
-      ok: true,
-    });
-    await settle(() => blocked.state.players[0]!.hand.some((card) => card.cardId === "BT13-111"));
-    expect(blocked.state.players[0]!.hand.some((card) => card.cardId === "BT13-111")).toBe(true);
+    ).toEqual({ ok: true });
+    await settle(() => blocked.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-111"));
+    expect(blocked.state.memory).toBe(-1);
+    expect(blocked.state.players[0]!.hand.some((card) => card.cardId === "BT13-111")).toBe(false);
   });
 
   it("reduces play cost by two for every five cards in both trash when no Digimon is present", () => {

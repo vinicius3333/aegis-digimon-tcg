@@ -30,7 +30,7 @@ describe("BT24-076 WarGrowlmon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
           trash: [{ card: "BT24-076", as: "wargrowlmon" }],
         },
         1: { battleArea: [{ card: "BT1-014", as: "target" }] },
@@ -70,7 +70,7 @@ describe("BT24-076 WarGrowlmon", () => {
   it("does not activate from trash above four cards in hand", async () => {
     const s = setupEngine({
       0: {
-        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+        hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         trash: [{ card: "BT24-076", as: "wargrowlmon" }],
       },
     });

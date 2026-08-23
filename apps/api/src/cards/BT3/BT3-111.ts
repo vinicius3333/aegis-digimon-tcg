@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
         },
       ],

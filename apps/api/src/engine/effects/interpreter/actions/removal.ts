@@ -3,6 +3,7 @@
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { ActionScope } from "../dispatch.js";
 import type { EffectContext } from "../../EffectContext.js";
+import { CardKind } from "@aegis/shared";
 import type { CardColor } from "@aegis/shared";
 import { seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
@@ -527,7 +528,24 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         }
         return false;
       }
-      const ids = topInstanceIds(ctx, permanentIds);
+      // A field-scoped Trash action names a card in a permanent's stack (the IR uses the
+      // dedicated TrashDigivolution verb when the wording is explicit, but older generated
+      // records encode the same operation as Trash against a Digimon target). The permanent's
+      // top card is not a loose card and must never be passed to the generic trash primitive.
+      const ids: string[] = [];
+      for (const permanentId of permanentIds) {
+        const permanent = ctx.game.permanentById(permanentId);
+        const top = permanent?.topCard;
+        if (top !== undefined) {
+          const kinds = ctx.game.definitionOf(top).kinds;
+          if (kinds.includes(CardKind.Option) || kinds.includes(CardKind.Tamer)) {
+            await ctx.fx.deletePermanent([permanentId]);
+            continue;
+          }
+        }
+        const source = permanent?.stack.at(-1);
+        if (source !== undefined) ids.push(source.instanceId);
+      }
       if (ids.length > 0) await ctx.fx.trash(ids, { byEffectSeat: ctx.source.ownerSeat });
       return false;
     }
@@ -592,8 +610,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return false;
       }
       if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
-        if (action.to === "hand") await ctx.fx.returnToHand([ctx.source.instanceId]);
-        else await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
+        const moved =
+          action.to === "hand"
+            ? await ctx.fx.returnToHand([ctx.source.instanceId])
+            : await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
+        ctx.lastEffectActed = moved.length > 0;
         return false;
       }
       if (returnTarget.totalPlayCostBudget !== undefined) {
@@ -650,6 +671,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             : await ctx.fx.returnToDeck(action.to === "deckTop" ? [...ordered].reverse() : ordered, {
                 toTop: action.to === "deckTop",
               });
+        ctx.lastEffectActed = moved.length > 0;
         if (action.bindResultAs) {
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
@@ -676,10 +698,12 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         }
         return false;
       }
-      const moved =
+      const movedResult =
         action.to === "hand"
           ? await ctx.fx.returnToHand(ids)
           : await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
+      const moved = movedResult ?? [];
+      ctx.lastEffectActed = movedResult === undefined ? ids.length > 0 : moved.length > 0;
       if (action.bindResultAs) {
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));

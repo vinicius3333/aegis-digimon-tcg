@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-081.js";
 import "../index.js";
 
@@ -38,6 +38,7 @@ describe("BT16-081", () => {
   });
 
   it("pays the deletion cost before deleting an opposing unsuspended Digimon", async () => {
+    const preferredInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -48,16 +49,20 @@ describe("BT16-081", () => {
         },
         1: { battleArea: [{ card: "BT16-042", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
+    const costId = s.perm("cost").permanentId;
+    const targetId = s.perm("target").permanentId;
+    preferredInstanceIds.push(costId, targetId);
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("malo"));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("cost").permanentId),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId),
     ).toBe(false);
     expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId),
     ).toBe(false);
   });
 });

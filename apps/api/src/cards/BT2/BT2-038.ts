@@ -23,18 +23,7 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-        },
-        {
-          kind: "GrantStatic",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          grant: "suppressOnPlayEffects",
-          duration: "permanent",
+          suppressOnPlayEffects: true,
         },
       ],
     },

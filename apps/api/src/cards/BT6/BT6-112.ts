@@ -55,14 +55,10 @@ const compiled: CompiledCard = {
           "to": "hand"
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {"kind": ["Option"], "playCostOneOf": [7]},
-            "count": 1,
-            "location": "hand"
-          },
-          "payCost": false,
-          "costReduction": 0
+          "kind": "UseOptionWithoutCost",
+          "filter": {"kind": ["Option"], "playCostOneOf": [7]},
+          "from": ["hand"],
+          "payCost": false
         }
       ]
     }

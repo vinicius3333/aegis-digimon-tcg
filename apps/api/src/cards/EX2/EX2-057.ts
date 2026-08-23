@@ -58,7 +58,8 @@ const compiled: CompiledCard = {
             ],
             "colors": [
               "Blue"
-            ]
+            ],
+            "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "nameExact" }]
           },
           "actions": [
             {
@@ -87,7 +88,7 @@ const compiled: CompiledCard = {
                 "raw": "by suspending this Tamer"
               },
               "optional": true,
-              "abortOnDecline": true
+              "abortOnDecline": false
             },
             {
               "kind": "TrashDigivolution",
@@ -103,12 +104,39 @@ const compiled: CompiledCard = {
               },
               "amount": 1,
               "fromTop": false,
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter",
+              "condition": { "kind": "ifThisEffectActed" }
+            }
+          ]
+        },
+        {
+          "kind": "SubTrigger",
+          "event": "whenPlayed",
+          "sourceFilter": {
+            "controllerDefault": "mine",
+            "kind": ["Digimon"],
+            "colors": ["Blue"],
+            "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "nameExact", "negate": true }]
+          },
+          "actions": [
+            {
+              "kind": "TrashDigivolution",
+              "target": {
                 "filter": {
-                  "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "name" }]
-                }
-              }
+                  "controller": "opponent",
+                  "kind": ["Digimon"],
+                  "digivolutionCards": "hasAny"
+                },
+                "count": 1
+              },
+              "amount": 1,
+              "fromTop": false,
+              "cost": {
+                "kind": "suspend",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "raw": "by suspending this Tamer"
+              },
+              "optional": true,
+              "abortOnDecline": true
             }
           ]
         }

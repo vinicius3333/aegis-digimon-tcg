@@ -10,10 +10,10 @@ describe("P-158 Jeri (Fake)", () => {
         0: {
           hand: [{ card: "P-158", as: "jeri" }],
           deck: [
-            { card: "BT1-001", as: "nonMatch1" },
+            { card: "BT1-009", as: "nonMatch1" },
             { card: "EX2-046", as: "searcher" },
-            { card: "BT1-002", as: "nonMatch2" },
-            { card: "BT1-003", as: "nonMatch3" },
+            { card: "BT1-010", as: "nonMatch2" },
+            { card: "BT1-011", as: "nonMatch3" },
           ],
         },
       },

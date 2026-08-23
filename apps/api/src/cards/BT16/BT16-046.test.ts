@@ -17,7 +17,7 @@ describe("BT16-046", () => {
     for (const effect of compiled.effects?.slice(1, 3) ?? []) {
       expect(effect.actions?.[0]).toMatchObject({
         kind: "SelectBind",
-        target: { count: 2, bindAs: "effectSuspended" },
+        target: { count: 2, bindAs: "effectSuspended", filter: { unsuspended: true } },
       });
       expect(effect.actions?.[1]).toMatchObject({ kind: "Suspend", target: { fromSelectionRef: "effectSuspended" } });
       expect(effect.actions?.[2]).toMatchObject({
@@ -64,7 +64,7 @@ describe("BT16-046", () => {
     s.state.memory = 7;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gran").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended).length >= 3);
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-085"));
 
     expect(observe(s.engine).isRestricted(s.perm("opponentDigimon"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("alreadySuspended"), "unsuspend")).toBe(false);

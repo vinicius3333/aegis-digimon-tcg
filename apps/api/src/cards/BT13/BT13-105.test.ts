@@ -46,7 +46,8 @@ describe("BT13-105 Full Moon Meteor Impact", () => {
     await settle(() => s.state.players[1]!.hand.filter((card) => card.cardId === "BT13-111").length === 1);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111")).toBe(false);
-    expect(s.state.memory).toBe(2);
+    // The returned Digimon is the ninth opposing hand card before scaling is counted.
+    expect(s.state.memory).toBe(4);
   });
 
   it("returns an opposing Digimon without the Main memory gain from security", async () => {

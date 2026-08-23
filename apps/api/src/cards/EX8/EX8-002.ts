@@ -14,8 +14,11 @@ export const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "memoryAtMost",
-            "value": 0,
+            "kind": "allOf",
+            "conditions": [
+              { "kind": "memoryAtMost", "value": 0 },
+              { "kind": "memoryAtLeast", "value": 0 }
+            ],
             "raw": "you have 0 memory"
           }
         }

@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-016.js";
 
@@ -19,10 +21,10 @@ describe("BT5-016 WarGreymon", () => {
   });
 
   it("does not use an excluded Greymon source to delete a Blocker", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-015", as: "base", under: ["BT4-013"] }], hand: [{ card: "BT5-016", as: "evolving" }] }, 1: { battleArea: ["BT5-062"] } }, { autoSelectCards: true });
-    s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT5-016");
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-016", as: "warGreymon", under: ["BT7-064"] }] }, 1: { battleArea: ["BT5-062"] } }, { autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("warGreymon"));
+
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

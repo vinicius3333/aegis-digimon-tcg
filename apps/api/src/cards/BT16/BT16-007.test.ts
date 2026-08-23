@@ -29,7 +29,7 @@ describe("BT16-007", () => {
       0: {
         battleArea: [
           { card: "BT16-007", as: "host" },
-          { card: "BT16-007", as: "freeSubject" },
+          { card: "BT8-053", as: "freeSubject" },
           { card: "BT16-029", as: "yellowSubject" },
         ],
       },

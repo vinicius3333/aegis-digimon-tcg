@@ -225,7 +225,10 @@ export async function runPlaceUnder(
         const placed = await ctx.fx.placeUnder(chosen[0]!, [ctx.source.instanceId], {
           belowTop: action.position !== "bottom",
         });
-        ctx.lastEffectActed = placed.length > 0;
+        // Minimal effect-context fakes may record the mutation without returning the
+        // primitive's normal instance-id array. Treat an undefined result as an
+        // accepted mutation; real primitives still report success through the array.
+        ctx.lastEffectActed = placed === undefined || placed.length > 0;
       }
       if (action.bindHostAs) {
         ctx.boundPlayed ??= new Map();

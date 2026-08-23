@@ -52,7 +52,7 @@ describe("EX10-074 Beelzemon", () => {
         },
         1: { battleArea: [{ card: "AD1-004", as: "cost12" }] },
       },
-      { autoOrderTriggers: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoOrderTriggers: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     const targetId = s.perm("cost12").permanentId;
@@ -60,7 +60,7 @@ describe("EX10-074 Beelzemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelzemon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId));
+    await settle(() => s.state.players[0]!.trash.length === 20 && !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId));
 
     expect(s.state.players[0]!.trash).toHaveLength(20);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -78,7 +78,7 @@ describe("EX10-074 Beelzemon", () => {
           battleArea: [{ card: "AD1-004", as: "target", under: ["BT1-009", "BT1-010", "BT1-011"] }],
         },
       },
-      { autoOrderTriggers: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
     );
     s.state.memory = 10;
 

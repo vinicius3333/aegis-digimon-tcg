@@ -1,4 +1,4 @@
-import { EffectTiming, type CardInstance, type EffectDuration, type Permanent, type Seat } from "@aegis/shared";
+import { EffectTiming, Phase, type CardInstance, type EffectDuration, type Permanent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../GameEngine.js";
 import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { internalsOf } from "./internals.js";
@@ -18,6 +18,29 @@ import { internalsOf } from "./internals.js";
 export function advance(engine: GameEngine) {
   const internals = internalsOf(engine);
   return {
+    /** Wait until the requested seat's production Main controller is authoritatively open. */
+    async waitForMainPhase(seat: Seat): Promise<void> {
+      for (
+        let i = 0;
+        i < 500 && !(internals.mainPhase.seat === seat && internals.state.phase === Phase.Main);
+        i += 1
+      ) {
+        await Promise.resolve();
+      }
+      if (internals.mainPhase.seat !== seat || internals.state.phase !== Phase.Main) {
+        throw new Error(`Seat ${seat}'s Main phase did not become ready`);
+      }
+    },
+
+    /** End the requested seat's Main phase when it is still open; tolerate production auto-end. */
+    endMainPhaseIfOpen(seat: Seat): void {
+      if (internals.mainPhase.seat !== seat || internals.state.phase !== Phase.Main) return;
+      const ended = engine.applyIntent(seat, { type: "endPhase" });
+      if (!ended.ok) {
+        throw new Error(`Could not end seat ${seat}'s Main phase: ${ended.reason}`);
+      }
+    },
+
     /**
      * Drive one complete production turn and voluntarily end its Main phase.
      * The caller arranges `turnSeat`/memory before entry when chaining hand-laid turns.
@@ -28,17 +51,9 @@ export function advance(engine: GameEngine) {
       }
 
       const turn = engine.runOneTurn();
-      for (let i = 0; i < 500 && !internals.mainPhase.isOpen; i += 1) {
-        await Promise.resolve();
-      }
-      if (!internals.mainPhase.isOpen) {
-        throw new Error(`Seat ${seat}'s Main phase did not open`);
-      }
+      await this.waitForMainPhase(seat);
 
-      const ended = engine.applyIntent(seat, { type: "endPhase" });
-      if (!ended.ok) {
-        throw new Error(`Could not end seat ${seat}'s Main phase: ${ended.reason}`);
-      }
+      this.endMainPhaseIfOpen(seat);
       await turn;
     },
 
@@ -65,8 +80,13 @@ export function advance(engine: GameEngine) {
     /** Fire a timing window on a battle-area permanent through the production fire seam. */
     async fire(timing: EffectTiming, permanent: Permanent): Promise<void> {
       await internals.recomputeContinuousEffects();
-      await internals.fireTiming(timing, permanent);
+      await internals.fireTimingForPermanent(timing, permanent);
       await internals.recomputeContinuousEffects();
+    },
+
+    /** Fire a production-wide timing window, including its rule-processing follow-ups. */
+    async fireGlobal(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
+      await internals.fireTiming(timing, trigger);
     },
 
     /** Fire one permanent's timing with an explicit production trigger payload. */

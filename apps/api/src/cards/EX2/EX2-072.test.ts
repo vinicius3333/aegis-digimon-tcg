@@ -51,7 +51,8 @@ describe("EX2-072 Blue Card", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       s.inst("bonusDraw").instanceId,
     );
-    // Only Blue Card's own option cost is paid; the revealed digivolution is free.
-    expect(s.state.memory).toBe(memoryBefore - 3);
+    // Blue Card pays 3, the revealed digivolution is free, and Renamon's
+    // inherited effect refunds 1 memory for using a 2+-cost Option.
+    expect(s.state.memory).toBe(memoryBefore - 2);
   });
 });

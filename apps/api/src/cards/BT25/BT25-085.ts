@@ -71,7 +71,7 @@ export const compiled: CompiledCard = {
           },
           "payCost": false,
           "costReduction": 0,
-          "optional": false
+          "optional": true
         }
       ],
       "frequency": "OncePerTurn",
@@ -104,7 +104,7 @@ export const compiled: CompiledCard = {
           },
           "payCost": false,
           "costReduction": 0,
-          "optional": false
+          "optional": true
         }
       ],
       "frequency": "OncePerTurn",

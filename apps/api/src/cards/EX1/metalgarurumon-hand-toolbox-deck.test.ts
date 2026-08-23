@@ -82,7 +82,9 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
       5000,
     );
 
-    expect(s.state.memory).toBe(7);
+    // EX1-017 is the attack's only memory gain: the played ST2-12 has no On Play
+    // memory effect, and EX1-021's gain belongs to its When Digivolving timing.
+    expect(s.state.memory).toBe(6);
     expect(s.state.players[0]!.hand).toHaveLength(9);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([

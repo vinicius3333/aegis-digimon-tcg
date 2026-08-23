@@ -8,7 +8,7 @@ describe("P-116 DIGIMON CON 2023", () => {
       0: {
         battleArea: [{ card: "BT17-074", as: "white" }],
         hand: [{ card: "P-116", as: "option" }],
-        deck: [{ card: "BT10-092", as: "tamer" }, { card: "BT1-001", as: "nonTamer" }],
+        deck: [{ card: "BT10-092", as: "tamer" }, { card: "BT1-009", as: "nonTamer" }],
       },
     }, { autoSelectCards: true, autoOrderCards: true });
     s.state.memory = 10;

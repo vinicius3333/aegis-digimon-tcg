@@ -27,9 +27,15 @@ export function candidatePermanents(
   // A target that IS a prior binding ("place [the chosen Digimon] under ..."): resolve to the
   // stored permanent, no fresh selection. An unbound/gone ref yields nothing.
   if (target.fromSelectionRef !== undefined) {
-    const boundId = ctx.selections?.get(target.fromSelectionRef);
-    const p = boundId !== undefined ? ctx.game.permanentById(boundId) : undefined;
-    return p ? [p] : [];
+    const boundIds = new Set(ctx.boundPlayed?.get(target.fromSelectionRef) ?? []);
+    const scalarId = ctx.selections?.get(target.fromSelectionRef);
+    if (scalarId !== undefined) boundIds.add(scalarId);
+    const permanents: Permanent[] = [];
+    for (const boundId of boundIds) {
+      const permanent = ctx.game.permanentById(boundId);
+      if (permanent !== undefined) permanents.push(permanent);
+    }
+    return permanents;
   }
   // useTriggerSource: resolve to the permanent that triggered the enclosing replacement
   // (the leaving/affected Digimon) rather than scanning the board. Used by BT19-053's
@@ -213,8 +219,9 @@ export function raiseDeletionDpCap(ctx: EffectContext, target: Target): Target {
  * live card modules still emit it (EX2-011, ST7-12, BT9-094, BT12-014). Treat it as
  * the same aggregate DP-deletion family: the generic deletion-maximum modifier
  * raises the budget (EX2-011 KB Q3296), while a relative DP threshold is irrelevant.
- * The first pick is mandatory whenever at least one Digimon fits; subsequent picks
- * are optional and are offered only while their combined live DP stays in budget.
+ * The selection is submitted as one aggregate choice and revalidated as a whole. A
+ * hostile over-budget response resolves to no targets; it is never reinterpreted as
+ * a smaller legal subset chosen on the player's behalf.
  */
 export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Target): Promise<string[]> {
   const baseBudget = target.totalDpCap;
@@ -231,32 +238,22 @@ export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Targe
     return [];
   }
 
-  const first = await ctx.ask.chooseTargets(ctx, {
+  const selected = await ctx.ask.chooseTargets(ctx, {
     candidates: candidates.map(({ permanentId }) => permanentId),
     min: 1,
-    max: 1,
+    max: candidates.length,
+    maxTotalDP: budget,
   });
-  const firstCandidate = candidates.find(({ permanentId }) => permanentId === first[0]);
-  if (firstCandidate === undefined) {
+  const selectedCandidates = selected
+    .map((id) => candidates.find(({ permanentId }) => permanentId === id))
+    .filter((candidate): candidate is { permanentId: string; dp: number } => candidate !== undefined);
+  const totalDp = selectedCandidates.reduce((sum, candidate) => sum + candidate.dp, 0);
+  if (selectedCandidates.length === 0 || totalDp > budget) {
     ctx.lastResolvedPermanentIds = [];
     return [];
   }
 
-  const selected = [firstCandidate.permanentId];
-  let spent = firstCandidate.dp;
-  for (const candidate of candidates) {
-    if (candidate.permanentId === firstCandidate.permanentId) continue;
-    if (spent + candidate.dp > budget) continue;
-    const useCandidate = await ctx.ask.optional(
-      ctx,
-      `Delete ${candidate.permanentId} (DP ${candidate.dp}, spent ${spent}/${budget})?`,
-    );
-    if (!useCandidate) continue;
-    selected.push(candidate.permanentId);
-    spent += candidate.dp;
-  }
-
-  const affectable = filterAffectable(ctx, selected);
+  const affectable = filterAffectable(ctx, selectedCandidates.map(({ permanentId }) => permanentId));
   if (target.minimum !== undefined && affectable.length < target.minimum) return [];
   ctx.lastResolvedPermanentIds = affectable;
   return affectable;

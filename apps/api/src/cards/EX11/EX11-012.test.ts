@@ -6,16 +6,21 @@ import "./EX11-012.js";
 
 describe("EX11-012 Medusamon", () => {
   it("deletes an opposing Digimon within its DP on digivolution", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX11-010", as: "base", dp: 7000 }],
           hand: [{ card: "EX11-012", as: "medusamon" }],
         },
-        1: { battleArea: [{ card: "EX11-008", as: "victim", dp: 1000 }] },
+        1: {
+          battleArea: [{ card: "EX11-008", as: "victim", dp: 1000 }],
+          trash: [{ card: "BT1-009", as: "returnCost" }],
+        },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.inst("returnCost").instanceId);
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, {
       type: "digivolve",
@@ -23,7 +28,6 @@ describe("EX11-012 Medusamon", () => {
       instanceId: s.inst("medusamon").instanceId,
     })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX11-008"), 600);
-
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX11-008")).toBe(true);
     expect(s.perm("base").topCard?.cardId).toBe("EX11-012");
   });

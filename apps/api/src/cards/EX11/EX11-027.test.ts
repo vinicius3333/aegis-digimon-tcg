@@ -8,9 +8,9 @@ describe("EX11-027 Maquinamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "ally", dp: 3000 }],
+          battleArea: [{ card: "EX11-033", as: "ally", dp: 3000 }],
           hand: [{ card: "EX11-027", as: "maquinamon" }],
-          deck: ["EX11-073", "BT1-001", "BT1-002"],
+          deck: ["EX11-073", "BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -24,7 +24,6 @@ describe("EX11-027 Maquinamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("ally").linked.length === 1, 600);
-
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX11-073")).toBe(true);
     expect(s.perm("ally").linked).toHaveLength(1);
   });
@@ -35,7 +34,7 @@ describe("EX11-027 Maquinamon", () => {
         0: {
           battleArea: [{ card: "BT1-012", as: "ally", dp: 3000 }],
           hand: [{ card: "EX11-027", as: "maquinamon" }],
-          deck: ["EX11-033", "BT1-001", "BT1-002"],
+          deck: ["EX11-033", "BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -53,9 +52,12 @@ describe("EX11-027 Maquinamon", () => {
     const compiled = runtimeCompiledCard("EX11-027")!;
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({
-      trigger: "OnPlay",
-      actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" }],
+    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay" });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 3,
+      rest: "deckBottom",
     });
+    expect(compiled.effects[0]?.actions[1]).toMatchObject({ kind: "Link", payCost: false, optional: true });
   });
 });

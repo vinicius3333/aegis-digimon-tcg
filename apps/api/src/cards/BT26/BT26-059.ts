@@ -40,7 +40,7 @@ export const compiled: CompiledCard = {
           sourceFilter: { controllerDefault: "mine", isSelfRef: true },
           mode: "reduceCost",
           amount: 6,
-          condition: { kind: "raw", raw: "your hand has fewer cards than your opponent's hand" },
+          condition: { kind: "handCompare", op: "lt" },
         },
       ],
     },

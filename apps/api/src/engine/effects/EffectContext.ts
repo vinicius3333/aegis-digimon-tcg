@@ -499,6 +499,8 @@ export interface GameAccess {
   effectiveDP?(permanentId: string): number;
   /** Whether a loose card currently ignores its printed color requirement. */
   colorRequirementWaived?(instanceId: string): boolean;
+  /** Whether an Option can currently be used under its ordinary color requirement. */
+  optionColorRequirementMet?(seat: Seat, instanceId: string, definition: CardDefinition): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
   hasKeyword?(permanentId: string, keyword: string): boolean;
   /** Whether the permanent can currently declare an ordinary (tapping) attack. */
@@ -520,7 +522,7 @@ export interface GameAccess {
  * GameEngine. Signatures below are the contract card modules are written against.
  */
 export interface Primitives {
-  draw(seat: Seat, n: number): Promise<CardInstance[]>;
+  draw(seat: Seat, n: number, opts?: { excludeInstanceIds?: readonly string[] }): Promise<CardInstance[]>;
   gainMemory(n: number): void;
   /** Gain memory for a specific seat (effect controller), with Tamer-effect policy check. */
   gainMemoryForSeat(seat: Seat, n: number, opts?: { isTamerEffect?: boolean }): void;
@@ -863,7 +865,7 @@ export interface Primitives {
     ctx: EffectContext,
     usedInstanceId: string,
     usedOptionCost?: number,
-    opts?: { payCost?: boolean; costDelta?: number },
+    opts?: { payCost?: boolean; costDelta?: number; paymentHandled?: boolean },
   ): Promise<CardInstance[]>;
   /**
    * Run `cardId`'s registered EffectModule effect(s) for `timing`, under `ctx.source`'s control
@@ -897,7 +899,10 @@ export interface Primitives {
    */
   deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number>;
   /** Returns the permanent IDs that actually transitioned to suspended. */
-  suspend(permanentIds: string[], opts?: { byEffectSeat?: Seat; deferTriggers?: boolean }): Promise<string[]>;
+  suspend(
+    permanentIds: string[],
+    opts?: { byEffectSeat?: Seat; deferTriggers?: boolean; suppressWhenEffectSuspends?: boolean },
+  ): Promise<string[]>;
   fireSuspensionTriggers?(permanentIds: string[], opts?: { byEffectSeat?: Seat }): Promise<void>;
   unsuspend(permanentIds: string[]): Promise<void>;
   /**
@@ -1575,7 +1580,14 @@ export interface SeatScopedDecisionApi {
   optional(ctx: EffectContext, prompt: string): Promise<boolean>;
   chooseTargets(
     ctx: EffectContext,
-    opts: { candidates: string[]; min: number; max: number; visible?: string[]; maxTotalPlayCost?: number },
+    opts: {
+      candidates: string[];
+      min: number;
+      max: number;
+      visible?: string[];
+      maxTotalPlayCost?: number;
+      maxTotalDP?: number;
+    },
   ): Promise<string[]>;
   selectCards(
     ctx: EffectContext,

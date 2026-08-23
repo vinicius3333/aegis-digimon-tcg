@@ -3,6 +3,7 @@ import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT3-109.js";
+import "./BT3-008.js";
 
 describe("BT3-109 Back for Revenge!", () => {
   it("matches official metadata and registers fully covered IR", () => {

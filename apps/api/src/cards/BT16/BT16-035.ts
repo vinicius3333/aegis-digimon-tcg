@@ -24,6 +24,16 @@ const compiled: CompiledCard = {
             "Angel"
           ]
         }
+      ],
+      "keywords": [
+        {
+          "keyword": "Barrier",
+          "raw": "＜Barrier＞"
+        },
+        {
+          "keyword": "Reboot",
+          "raw": "＜Reboot＞"
+        }
       ]
     },
     {
@@ -47,17 +57,7 @@ const compiled: CompiledCard = {
           ]
         }
       ],
-      "frequency": "OncePerTurn",
-      "keywords": [
-        {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        },
-        {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+      "frequency": "OncePerTurn"
     }
   ],
   "coverage": "full",

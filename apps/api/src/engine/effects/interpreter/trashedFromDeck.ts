@@ -22,6 +22,11 @@ export async function resolveSelfWhenTrashedFromDeck(ctx: EffectContext): Promis
         action.sourceFilter?.isSelfRef !== true
       )
         continue;
+      if (
+        action.excludeSelfEffect === true &&
+        ctx.trigger.trashedFromDeckByEffectCardId === ctx.source.cardId
+      )
+        continue;
       if (action.optional === true && !(await ctx.ask.optional(ctx, action.raw ?? "Activate this effect?"))) continue;
       for (const nested of action.actions) await runAction(ctx, nested);
     }

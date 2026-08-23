@@ -66,6 +66,14 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     return EffectTiming.OnDeclaration;
   }
   switch (effect.trigger) {
+    case "OnSecurityCheck":
+      return EffectTiming.OnSecurityCheck;
+    case "OnDetermineDoSecurityCheck":
+      return EffectTiming.OnDetermineDoSecurityCheck;
+    case "OnLoseSecurity":
+      return EffectTiming.OnLoseSecurity;
+    case "OnAddSecurity":
+      return EffectTiming.OnAddSecurity;
     case "OnPlay":
       return EffectTiming.OnPlay;
     case "BeforePayCost":
@@ -75,7 +83,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     case "WhenDigivolving":
       return EffectTiming.WhenDigivolving;
     case "WhenAttacking":
-      return EffectTiming.OnUseAttack;
+      return effect.attackScope === "ally" ? EffectTiming.OnAllyAttack : EffectTiming.OnUseAttack;
     case "WhenBlocked":
       return EffectTiming.OnBlockAnyone;
     case "OnDeletion":
@@ -394,6 +402,7 @@ export function readsSelfKeyword(value: unknown): boolean {
   if (filter !== null && typeof filter === "object" && !Array.isArray(filter)) {
     const candidate = filter as Record<string, unknown>;
     if (
+      candidate.dp !== undefined ||
       (Array.isArray(candidate.keywords) && candidate.keywords.length > 0) ||
       (Array.isArray(candidate.excludeKeywords) && candidate.excludeKeywords.length > 0)
     ) {
@@ -448,6 +457,7 @@ const RESULT_BINDING_KEYS = [
   "lastDeletedByThisEffectIds",
   "namedCounts",
   "boundPlayed",
+  "playCostDelta",
 ] as const satisfies readonly (keyof EffectContext)[];
 
 function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
@@ -586,13 +596,27 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // restrictive here, matching runAction's resolution behavior; otherwise the UI offers an
   // effect that resolution will silently skip.
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
-  const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
-  const isGated = (action: Action) =>
+  type ParsedAction = Exclude<Action, { kind: "RawUnparsed" }>;
+  const relevantActions = (effect.actions ?? []).filter(
+    (action): action is ParsedAction => action.kind !== "RawUnparsed",
+  );
+  const isGated = (action: ParsedAction) =>
     action.kind === "Digivolve" ||
     action.kind === "DnaDigivolve" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
-    action.cost !== undefined;
-  const intrinsicPossible = (action: Action): boolean => {
+    action.cost !== undefined ||
+    action.additionalCost !== undefined ||
+    (action.additionalCosts?.length ?? 0) > 0 ||
+    (action.costOptions?.length ?? 0) > 0;
+  const costsPayable = (action: ParsedAction): boolean => {
+    const primaryPayable =
+      action.cost === undefined || typeof action.cost === "number" || canPayCost(ctx, action.cost);
+    if (!primaryPayable) return false;
+    if (action.additionalCost !== undefined && !canPayCost(ctx, action.additionalCost)) return false;
+    if ((action.additionalCosts ?? []).some((cost) => !canPayCost(ctx, cost))) return false;
+    return (action.costOptions?.length ?? 0) === 0 || action.costOptions!.some((cost) => canPayCost(ctx, cost));
+  };
+  const intrinsicPossible = (action: ParsedAction): boolean => {
     if (action.kind === "Digivolve") {
       const costProducedTarget =
         action.cost?.kind === "place" &&
@@ -664,8 +688,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
-    const costPayable =
-      leadingAction.cost === undefined || typeof leadingAction.cost === "number" || canPayCost(ctx, leadingAction.cost);
+    const costPayable = costsPayable(leadingAction);
     return actionPossible && conditionMet && costPayable;
   }
   const gatedActions = relevantActions.filter(isGated);
@@ -675,7 +698,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     const actionPossible = intrinsicPossible(action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
-    const costPayable = action.cost === undefined || typeof action.cost === "number" || canPayCost(ctx, action.cost);
+    const costPayable = costsPayable(action);
     return actionPossible && conditionMet && costPayable;
   });
 }

@@ -53,6 +53,7 @@ describe("EX12-027 TeslaJellymon", () => {
       },
     }, { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 });
     s.state.memory = 1;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",

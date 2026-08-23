@@ -22,9 +22,6 @@ describe("ST20-15 Island of Adventure", () => {
     s.state.turnSeat = 0;
     const optionId = s.inst("option").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
-    const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === optionId)!;
-    await advance(s.engine).fire(EffectTiming.OnUseOption, option);
     await settle(() => s.state.players[0]!.security[0]?.cardId === "ST20-15");
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
     expect(s.state.players[0]!.security[0]!.cardId).toBe("ST20-15");

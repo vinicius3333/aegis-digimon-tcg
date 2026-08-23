@@ -38,7 +38,10 @@ describe("EX8-068", () => {
   });
   it("prevents battle deletion of an own DS Digimon while memory is at least 1", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-068", as: "source" }, { card: "EX8-058", as: "ds", suspended: true }] },
+      0: {
+        battleArea: [{ card: "EX8-058", as: "ds", suspended: true }],
+        security: [{ card: "EX8-068", as: "source", faceUp: true }],
+      },
       1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
     });
     s.state.memory = 1;

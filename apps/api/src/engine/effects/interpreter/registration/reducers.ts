@@ -5,7 +5,7 @@ import { evaluateCondition } from "../conditions.js";
 import { payCost } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
-import { candidateLooseInstances } from "../targeting/loose.js";
+import { candidateLooseInstances, zoneList } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
@@ -23,6 +23,8 @@ import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef }
  */
 export interface WouldBePlayedSelfReducer {
   amount: number;
+  /** Cost reduction earned for each card committed by a deferred self-placement cost. */
+  amountPerPaid?: number;
   raw: string;
   /** Hand-written payment hook for costs whose card-selection/movement shape is not representable as Cost. */
   pay?: (ctx: EffectContext) => Promise<boolean>;
@@ -92,6 +94,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT24-041", // own Iliad Digimon or Tamer -> self play cost -5
   "BT24-051", // 3+ total Digimon -> self play cost -5
   "BT25-096", // trash the bottom face-down card under a Tamer -> Option use cost -2 (Q6456)
+  "EX10-061", // place one of each face-up Dark Masters name from security -> -4 each (Q5783/Q5784)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
   "BT11-096", // condition: you have a red Tamer -> Option use cost -1
   "BT11-099", // condition: you have a blue Tamer -> Option use cost -1
@@ -208,6 +211,7 @@ export function collectWouldBePlayedSelfReducers(cardId: string, effects: readon
         mode?: string;
         sourceFilter?: SourceFilter;
         actions?: unknown[];
+        cost?: Cost;
         scaling?: Scaling;
         raw?: string;
       } & Record<string, unknown>;
@@ -234,6 +238,20 @@ export function collectWouldBePlayedSelfReducers(cardId: string, effects: readon
             (item as { mode?: string }).mode === "reduceCost",
         ) as Record<string, unknown> | undefined;
         if (inner === undefined) continue;
+        if (
+          a.cost?.kind === "place" &&
+          a.cost.target !== undefined &&
+          a.cost.underFilter?.isSelfRef === true &&
+          typeof inner.amountPerPlaced === "number"
+        ) {
+          out.push({
+            amount: 0,
+            amountPerPaid: inner.amountPerPlaced,
+            cost: a.cost,
+            raw: a.cost.raw ?? a.raw ?? "Place cards under this card to reduce its play cost.",
+          });
+          continue;
+        }
         const costActions = a.actions.filter((item) => item !== inner);
         // Some generated records put the eligibility gate on the OUTER wouldBePlayed
         // wrapper and leave the nested reduceCost item unconditional (EX2-045).  The
@@ -410,6 +428,39 @@ export async function applyWouldBePlayedSelfReducer(
   }
   if (reducer.cost !== undefined) {
     if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
+    if (
+      reducer.amountPerPaid !== undefined &&
+      reducer.cost.kind === "place" &&
+      reducer.cost.target !== undefined &&
+      reducer.cost.underFilter?.isSelfRef === true
+    ) {
+      const zones = zoneList(reducer.cost.target.filter.zone ?? "security");
+      const candidates = candidateLooseInstances(ctx, reducer.cost.target, zones);
+      const byName = new Map<string, typeof candidates>();
+      for (const candidate of candidates) {
+        const name = (ctx.game.definitionOf(candidate as never).nameEn ?? candidate.cardId).toLowerCase();
+        byName.set(name, [...(byName.get(name) ?? []), candidate]);
+      }
+      if (byName.size === 0) return;
+      const chosen: string[] = [];
+      for (const group of byName.values()) {
+        const instanceId =
+          group.length === 1
+            ? group[0]!.instanceId
+            : (
+                await ctx.ask.selectCards(ctx, {
+                  candidates: group.map((candidate) => candidate.instanceId),
+                  min: 1,
+                  max: 1,
+                })
+              )[0];
+        if (instanceId === undefined) return;
+        chosen.push(instanceId);
+      }
+      ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), ...chosen];
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + chosen.length * reducer.amountPerPaid;
+      return;
+    }
     if (await payCost(ctx, reducer.cost)) {
       ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
     }

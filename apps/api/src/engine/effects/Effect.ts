@@ -12,6 +12,8 @@ export interface Effect {
   effectKey: string;
   /** Rules text shown in the log / decision prompt. */
   description: string;
+  /** Optional printed timing label used when the engine routes a trigger through a shared window. */
+  timingOverride?: string;
   /** Must the controller be asked? (source IsOptional) */
   optional: boolean;
   /** Granted via the digivolution stack? (source IsInheritedEffect) */

@@ -46,7 +46,13 @@ describe("BT9-092 Cool Boy", () => {
         0: {
           battleArea: [{ card: "BT9-092", as: "coolBoy" }, { card: "BT5-007", as: "agumon" }],
           hand: [{ card: "BT9-011", as: "growlmonX" }],
-          deck: [{ card: "BT1-001", as: "evolutionDraw" }, { card: "BT1-002", as: "untouched" }],
+          deck: [
+            { card: "BT1-009", as: "evolutionDraw" },
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            { card: "BT1-009", as: "untouched" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -70,7 +76,13 @@ describe("BT9-092 Cool Boy", () => {
         0: {
           battleArea: [{ card: "BT9-092", as: "coolBoy" }, { card: "BT5-007", as: "agumon" }],
           hand: [{ card: "BT9-008", as: "agumonX" }],
-          deck: [{ card: "BT1-001", as: "evolutionDraw" }, { card: "BT1-002", as: "untouched" }],
+          deck: [
+            { card: "BT1-009", as: "evolutionDraw" },
+            "BT1-009",
+            "BT1-009",
+            "BT1-009",
+            { card: "BT1-009", as: "untouched" },
+          ],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

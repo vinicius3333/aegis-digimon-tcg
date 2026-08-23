@@ -68,7 +68,7 @@ describe("BT24-032 Pipomon", () => {
           battleArea: [{ card: "BT21-009", as: "host" }],
           hand: [{ card: "BT24-032", as: "pipomon" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );

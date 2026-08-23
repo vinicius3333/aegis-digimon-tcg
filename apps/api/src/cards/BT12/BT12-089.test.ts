@@ -65,6 +65,8 @@ describe("BT12-089 handwritten module", () => {
     expect(s.perm("guilmon").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT12-089", "BT12-010", "BT12-016"]),
     );
-    expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 2000);
+    // Takato grants +2000 DP; Guilmon and Growlmon each contribute another
+    // +2000 DP inherited boost once Gallantmon is the stack's top card.
+    expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 6000);
   });
 });

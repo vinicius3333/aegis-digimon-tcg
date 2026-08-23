@@ -39,6 +39,8 @@ export interface Cost {
   costs?: Cost[];
   /** Host permanent selected before resolving a stack-card play cost (BT19-102). */
   hostTarget?: Target;
+  /** The played stack card must share the selected host's current top-card level (EX5-065). */
+  sameLevelAsHost?: boolean;
   /** Whose stack a specialized cost draws from. */
   controller?: Controller;
   /** Cards required by a specialized fixed-card cost. */

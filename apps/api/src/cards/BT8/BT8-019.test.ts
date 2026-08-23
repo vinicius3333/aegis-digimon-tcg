@@ -14,7 +14,9 @@ describe("BT8-019 Zhuqiaomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("spared").topCard?.cardId).toBe("BT1-010");
     expect(s.state.memory).toBe(2);
-    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(3);
+    // The modifier amount excludes the base security check: only the 2 opponent Digimon
+    // deleted in the aggregate batch produce ＜Security Attack +1＞ activations.
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(2);
   });
 
   it("Q1703 has the opponent choose which of their Digimon survives", async () => {

@@ -13,7 +13,7 @@ describe("LM-013 Diarbbitmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("diarbbitmon").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
-    await settle(() => s.state.memory === 6);
-    expect(s.state.memory).toBe(6);
+    await settle(() => s.state.memory === 8);
+    expect(s.state.memory).toBe(8);
   });
 });

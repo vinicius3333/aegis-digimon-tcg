@@ -71,7 +71,7 @@ describe("EX12-050 SymbareAngoramon", () => {
         sourceInstanceId: s.perm("source").topCard!.instanceId,
         effectKey: mainEffectKey(s),
       }),
-    ).toEqual({ ok: true });
+    ).toEqual({ ok: false, reason: "illegal-target" });
     await settle(() => false, 300);
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "EX12-051")).toHaveLength(1);
@@ -92,6 +92,7 @@ describe("EX12-050 SymbareAngoramon", () => {
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
     s.state.memory = 10;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

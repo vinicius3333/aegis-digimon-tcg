@@ -7,7 +7,7 @@ import "./BT4-109.js";
 
 describe("BT4-109 Final Zubagon Punch", () => {
   it("grants +3000 DP and all three keywords when the boosted Digimon reaches 16000 DP", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-075", as: "target" }], hand: [{ card: "BT4-109", as: "option" }] } }, { autoSelectCards: true });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-017", as: "target" }], hand: [{ card: "BT4-109", as: "option" }] } }, { autoSelectCards: true });
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 16000 && observe(s.engine).hasKeyword(s.perm("target"), "Blocker") && observe(s.engine).hasKeyword(s.perm("target"), "Reboot") && observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === 1);

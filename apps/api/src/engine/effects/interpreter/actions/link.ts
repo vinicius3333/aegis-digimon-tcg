@@ -10,11 +10,24 @@ import { candidatePermanents } from "../targeting/permanents.js";
 import { isTamer } from "@aegis/shared";
 import type { Action, CardDefinition, Filter, Permanent } from "@aegis/shared";
 
+function linkTargetIncludesSelf(action: Extract<Action, { kind: "Link" }>): boolean {
+  return [
+    action.target.filter,
+    ...(action.target.orFilters ?? []),
+    ...(action.target.filter.orFilters ?? []),
+  ].some((filter) => filter.isSelfRef === true);
+}
+
 /** Whether a declared Link action currently has both legal material and a legal recipient. */
 export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kind: "Link" }>): boolean {
-  const material = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).some(
+  const looseMaterial = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).some(
     (candidate) => linkEligible(ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
   );
+  const selfMaterial =
+    linkTargetIncludesSelf(action) &&
+    ctx.source.permanent() !== undefined &&
+    linkEligible(ctx.game.definitionOf({ cardId: ctx.source.cardId } as never));
+  const material = looseMaterial || selfMaterial;
   if (!material) return false;
 
   if (action.recipient === undefined) return ctx.source.permanent() !== undefined;
@@ -83,11 +96,12 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // mechanic may be linked. A client link intent against a no-<Link> target is rejected
   // here by excluding it from the selectable set — never trusted.
   const candidates = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]);
+  const targetsSelf = linkTargetIncludesSelf(action);
   // A resolving Option is deliberately in no zone (§9-1-4), and a Security effect can still
   // refer to "this card" before security processing moves it. Preserve that physical identity
   // for self-link effects instead of requiring the source to appear in a normal source zone.
   if (
-    action.target.filter.isSelfRef === true &&
+    targetsSelf &&
     ctx.source.permanent() === undefined &&
     !candidates.some((candidate) => candidate.instanceId === ctx.source.instanceId)
   ) {
@@ -98,7 +112,7 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     });
   }
   if (
-    action.target.filter.isSelfRef === true &&
+    targetsSelf &&
     ctx.source.permanent() !== undefined &&
     !candidates.some((candidate) => candidate.instanceId === ctx.source.instanceId)
   ) {

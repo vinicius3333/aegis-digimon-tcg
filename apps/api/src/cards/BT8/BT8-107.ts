@@ -13,10 +13,6 @@ const compiled: CompiledCard = {
             "filter": {
               "controller": "opponent",
               "unsuspended": true,
-              "levelComparison": {
-                "op": "lte",
-                "relativeTo": "lastDeleted"
-              },
               "kind": [
                 "Digimon"
               ],

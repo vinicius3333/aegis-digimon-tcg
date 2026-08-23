@@ -114,6 +114,28 @@ describe("ctx.ask.opponent (opponent-addressed decisions)", () => {
     expect(await promise).toEqual(["active-2"]);
   });
 
+  it("publishes an aggregate DP budget with a permanent-selection decision", async () => {
+    const state = makeState();
+    const { transport, sent } = recordingTransport();
+    const mgr = new DecisionManager(state, transport);
+    const api = createDecisionApi(mgr);
+    const ctx = makeCtx();
+
+    const promise = api.chooseTargets(ctx, {
+      candidates: ["dp-2k", "dp-4k"],
+      min: 1,
+      max: 2,
+      maxTotalDP: 6000,
+    });
+
+    expect(sent[0]!.req.options).toMatchObject({ maxTotalDP: 6000 });
+    mgr.respond(0, sent[0]!.req.decisionId, {
+      kind: "chooseTargets",
+      instanceIds: ["dp-2k", "dp-4k"],
+    });
+    expect(await promise).toEqual(["dp-2k", "dp-4k"]);
+  });
+
   it("requireOpponentAsk throws loudly rather than silently no-op when ctx.ask.opponent is missing", () => {
     const ctx = { ask: {} } as unknown as EffectContext;
     // FAILS-WHEN-REVERTED (a card reading ctx.ask.opponent directly instead of going

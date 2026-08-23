@@ -28,8 +28,8 @@ describe("BT11-022 Dracomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT11-022", as: "dracomon" }],
-        hand: [{ card: "BT11-023", as: "nonQualifier" }],
-        deck: [{ card: "BT1-001", as: "notDrawn" }],
+        hand: [{ card: "BT1-010", as: "nonQualifier" }],
+        deck: [{ card: "BT1-009", as: "notDrawn" }],
       },
     });
     s.state.memory = 10;

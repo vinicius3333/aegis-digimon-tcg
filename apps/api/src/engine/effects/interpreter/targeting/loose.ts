@@ -146,6 +146,36 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
       }
       break;
     }
+    case "linked": {
+      // Link cards are loose instances owned by their host permanent for targeting, even
+      // though they are not part of the player's hand/trash/deck zones.
+      for (const permanent of p.battleArea) {
+        for (const c of permanent.linked) {
+          out.push({
+            instanceId: c.instanceId,
+            cardId: c.cardId,
+            ownerSeat: c.ownerSeat,
+            hostPermanentId: permanent.permanentId,
+          });
+        }
+      }
+      if (p.breeding !== undefined) {
+        for (const c of p.breeding.linked) {
+          out.push({
+            instanceId: c.instanceId,
+            cardId: c.cardId,
+            ownerSeat: c.ownerSeat,
+            hostPermanentId: p.breeding.permanentId,
+          });
+        }
+      }
+      break;
+    }
+    case "digivolutionCardsOrLinkCards": {
+      out.push(...looseCardsInZone(ctx, seat, "digivolutionCards"));
+      out.push(...looseCardsInZone(ctx, seat, "linked"));
+      break;
+    }
     default:
       break;
   }
@@ -203,25 +233,27 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
     for (const zone of zones) {
       for (const cand of looseCardsInZone(ctx, seat, zone)) {
         if (seen.has(cand.instanceId)) continue;
-        // `isSelfRef` on a digivolution-card filter scopes the HOST ("THIS Digimon's digivolution
-        // cards", BT4-017's ＜Digi-Burst＞), not the card identity: no stack card is ever the
-        // source instance itself. Everywhere else it still means "this very card", which an
-        // inherited source sitting in a stack also satisfies.
-        if (target.filter.isSelfRef === true && cand.instanceId !== ctx.source.instanceId) {
-          const selfPermanentId = ctx.source.permanent()?.permanentId;
-          const hostIsSelf = zone === "digivolutionCards" && cand.hostPermanentId === selfPermanentId;
-          if (!hostIsSelf) continue;
-        }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
-        if (!allFilters.some((f) => definitionMatches(f, def) && contextMatches(f, cand.ownerSeat))) continue;
+        const branchMatches = (filter: Filter): boolean => {
+          // `isSelfRef` belongs to the individual union branch, not the primary filter.
+          // EX11-027 can link either this resolving card OR a Maquinamon from hand; applying
+          // the primary branch's self gate to the whole union incorrectly removes the hand
+          // branch. On stack zones self refers to this Digimon's hosted cards.
+          if (filter.isSelfRef === true && cand.instanceId !== ctx.source.instanceId) {
+            const selfPermanentId = ctx.source.permanent()?.permanentId;
+            const hostIsSelf =
+              (zone === "digivolutionCards" || zone === "linked") && cand.hostPermanentId === selfPermanentId;
+            if (!hostIsSelf) return false;
+          }
+          return definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat);
+        };
+        if (!allFilters.some(branchMatches)) continue;
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind
         // (e.g. "from under your Tamers" — BT10-093), OR require the host to BE the source's
         // own permanent ("this Digimon's digivolution cards" — BT9-111, hostFilter.isSelfRef).
         // Resolve it from the matching OR branch as well; cards such as BT13-019 combine
         // trash and breeding-area digivolution-card sources in one target.
-        const matchedFilter = allFilters.find(
-          (filter) => definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat),
-        );
+        const matchedFilter = allFilters.find(branchMatches);
         if (matchedFilter?.sameColorAsSelectionRef !== undefined) {
           const referenceId = ctx.selections?.get(matchedFilter.sameColorAsSelectionRef);
           const reference = referenceId === undefined ? undefined : ctx.game.permanentById(referenceId);
@@ -233,7 +265,7 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         if (matchedFilter?.faceUp === false && cand.faceUp === true) continue;
         if (matchedFilter?.faceDown === true && cand.faceUp === true) continue;
         const hostFilter = matchedFilter?.hostFilter;
-        if (zone === "digivolutionCards" && hostFilter && cand.hostPermanentId) {
+        if ((zone === "digivolutionCards" || zone === "linked") && hostFilter && cand.hostPermanentId) {
           if (hostFilter.isSelfRef === true) {
             const self = ctx.source.permanent();
             if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
@@ -280,7 +312,15 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
 }
 
 export function findLooseCandidateByInstance(ctx: EffectContext, instanceId: string): LooseCandidate | undefined {
-  const zones: ZoneRef[] = ["hand", "trash", "deck", "security", "breeding", "digivolutionCards"];
+  const zones: ZoneRef[] = [
+    "hand",
+    "trash",
+    "deck",
+    "security",
+    "breeding",
+    "digivolutionCards",
+    "linked",
+  ];
   for (const seat of [ctx.source.ownerSeat, ctx.game.opponentOf(ctx.source.ownerSeat)]) {
     for (const zone of zones) {
       const found = looseCardsInZone(ctx, seat, zone).find((candidate) => candidate.instanceId === instanceId);

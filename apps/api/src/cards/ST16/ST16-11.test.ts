@@ -41,6 +41,7 @@ describe("ST16-11 WereGarurumon", () => {
             { card: "ST16-08", as: "levelFour", suspended: true },
             { card: "ST16-11", as: "levelFive", suspended: true },
           ],
+          security: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -50,7 +51,7 @@ describe("ST16-11 WereGarurumon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("levelFive").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST16-08"));

@@ -92,7 +92,7 @@ describe("BT3-030 Leopardmon", () => {
         0: {
           battleArea: [
             { card: "BT1-038", as: "leopardBase" },
-            { card: "AD1-010", as: "recipient" },
+            { card: "BT1-037", as: "recipient" },
           ],
           hand: [
             { card: "BT3-030", as: "leopardmon" },
@@ -121,6 +121,7 @@ describe("BT3-030 Leopardmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("recipient").topCard?.cardId === "BT1-038");
+    await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Jamming")).toBe(false);
   });

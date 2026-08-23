@@ -625,17 +625,19 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },
-      1: { battleArea: [{ card: DIGIMON_B, dp: 1000, suspended: true, as: "defender" }] },
+      // Use a Digimon without a top-level end-of-attack prompt so this rules test
+      // observes the battle itself rather than stopping on an unrelated card decision.
+      1: { battleArea: [{ card: "BT1-010", dp: 1000, suspended: true, as: "defender" }] },
     });
     const p1 = s.state.players[1]!;
     const attacker = s.perm("attacker");
     const defender = s.perm("defender");
 
-    s.engine.applyIntent(0, {
+    expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: attacker.permanentId,
       target: { kind: "permanent", permanentId: defender.permanentId },
-    });
+    })).toEqual({ ok: true });
     await settle(() => s.events.some((e) => e.kind === "combatResolved"), 5000);
     const resolved = s.events.find((e) => e.kind === "combatResolved");
     expect(resolved).toMatchObject({ seat: 0, deletedPermanentIds: [defender.permanentId] });

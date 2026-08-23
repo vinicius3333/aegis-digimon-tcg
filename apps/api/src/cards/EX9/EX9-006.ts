@@ -46,7 +46,9 @@ export const compiled: CompiledCard = {
                 "zone": "digivolutionCards",
                 "controller": "mine",
                 "faceDown": true,
-                "position": "bottom"
+                "position": "bottom",
+                "sameHost": true,
+                "hostFilter": { "isSelfRef": true }
               },
               "count": 1
             },

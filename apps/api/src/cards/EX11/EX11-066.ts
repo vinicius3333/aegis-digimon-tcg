@@ -4,12 +4,13 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay, turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX11-066";
 
 function hasVemmonInText(def: CardDefinition): boolean {
-  return def.nameEn.includes("Vemmon");
+  return matchNameOrTrait(def, { tokens: ["Vemmon"], match: "text" });
 }
 
 const module: EffectModule = {

@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
         kind: "Aura",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
-        while: { kind: "raw", raw: "this Digimon has [Machine] or [Dragonkin] in its traits" },
+        while: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Machine", "Dragonkin"], match: "trait" }] } },
       }],
     },
   ],

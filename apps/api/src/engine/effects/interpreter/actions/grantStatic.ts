@@ -214,7 +214,10 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const idx = await ctx.ask.chooseOption(ctx, labels);
         const chosen = COLOR_MAP[labels[idx] ?? labels[0]!];
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.addColorGrant(id, chosen, grantDuration);
+        // "Change ... into [a color]" replaces the permanent's original color for the
+        // duration. It is distinct from "also treated as [color]", which is the additive
+        // addColorGrant path used by ordinary color grants.
+        for (const id of ids) ctx.fx.setOriginalCardInfo(id, { colors: [chosen] }, grantDuration);
         return false;
       }
       // The compiler's other encoding of the same "any color except X" choice (BT18-078):
@@ -237,7 +240,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const idx = await ctx.ask.chooseOption(ctx, labels);
         const chosen = COLOR_MAP[labels[idx] ?? labels[0]!];
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.addColorGrant(id, chosen, grantDuration);
+        for (const id of ids) ctx.fx.setOriginalCardInfo(id, { colors: [chosen] }, grantDuration);
         return false;
       }
       // { kind: "PreventSecurityActivation", cardType: "Option" } (BT1-025, BT20-015, BT20-074):

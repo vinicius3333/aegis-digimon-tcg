@@ -9,13 +9,13 @@ describe("BT13-046 Kentaurosmon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
-        { kind: "GainMemory", amount: 3, condition: { kind: "raw", raw: expect.stringContaining("6 or fewer") } },
+        { kind: "GainMemory", amount: 3, condition: { kind: "totalSecurityCount", op: "lte", value: 6 } },
         {
           kind: "HandRevealAdd",
           target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
           securityFilter: { colors: ["Yellow"] },
           toTop: true,
-          condition: { kind: "raw", raw: expect.stringContaining("6 or fewer") },
+          condition: { kind: "totalSecurityCount", op: "lte", value: 6 },
         },
       ],
     });

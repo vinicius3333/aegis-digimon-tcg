@@ -32,7 +32,7 @@ export interface EngineInternals {
   readonly securityDp: SecurityDpLedger;
   recomputeContinuousEffects(): Promise<void>;
   syncActivatableEffects(): void;
-  fireTiming(timing: EffectTiming, permanent: Permanent): Promise<void>;
+  fireTiming(timing: EffectTiming, trigger?: TriggerInfo): Promise<void>;
   fireTimingForPermanent(timing: EffectTiming, permanent: Permanent, trigger?: TriggerInfo): Promise<void>;
   fireTimingForInstance(timing: EffectTiming, instanceId: string): Promise<void>;
   fireSubTrigger(event: SubTriggerEventName, payload?: TriggerInfo): Promise<void>;

@@ -279,9 +279,13 @@ export function matchNameOrTrait(
       .toLowerCase()
       .replace(/[^\p{L}\p{N}]+/gu, " ")
       .trim();
-  const names = def.cardId
-    ? effectiveStaticNames(def as CardDefinition).map(normalizeName)
-    : [normalizeName(def.nameEn ?? "")];
+  // Keep the supplied name as the canonical fact even for synthetic test definitions. A
+  // `cardId` can be present merely as an opaque fixture identity, so replacing `nameEn` with
+  // catalog aliases would make every such fact fail name matching.
+  const names = [
+    normalizeName(def.nameEn ?? ""),
+    ...(def.cardId ? effectiveStaticNames(def as CardDefinition).map(normalizeName) : []),
+  ];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].map(normalizeTrait);
   const text = [

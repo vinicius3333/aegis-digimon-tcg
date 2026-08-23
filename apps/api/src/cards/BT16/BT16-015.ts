@@ -108,7 +108,7 @@ const compiled: CompiledCard = {
                   "tokens": [
                     "Sea Animal"
                   ],
-                  "match": "trait"
+                  "match": "traitContains"
                 }
               ],
               "controller": "mine",
@@ -131,7 +131,7 @@ const compiled: CompiledCard = {
                     "Animal",
                     "Sovereign"
                   ],
-                  "match": "trait"
+                  "match": "traitContains"
                 }
               ]
             },

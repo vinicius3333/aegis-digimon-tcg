@@ -42,7 +42,7 @@ describe("BT22-069 Lunamon", () => {
       {
         0: {
           hand: [{ card: "BT22-069", as: "lunamon" }],
-          deck: ["BT22-072", "EX5-007", "BT1-001"],
+          deck: ["BT22-072", "EX5-007", "BT1-009"],
         },
       },
       { autoSelectCards: true },
@@ -53,7 +53,7 @@ describe("BT22-069 Lunamon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT22-072"));
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT22-072", "EX5-007"]));
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
   it("restacks its host's top card as the bottom source and draws through public activation", async () => {

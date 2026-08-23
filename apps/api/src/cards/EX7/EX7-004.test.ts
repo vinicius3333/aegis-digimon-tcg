@@ -31,7 +31,7 @@ describe("EX7-004 Wormmon", () => {
     await settle(() => s.state.memory === 4 && s.events.some((event) => event.kind === "combatResolved" && event.deletedPermanentIds?.includes(firstDefender.permanentId)));
     expect(s.state.memory).toBe(4);
 
-    // Once Per Turn prevents the second battle deletion from granting another memory.
+    // Once Per Turn is tracked per inherited source, so the second host may gain memory once too.
     await settle(() => !(s.engine as any).combat.isAttacking);
     s.perm("secondDefender").isSuspended = true;
     expect(s.engine.applyIntent(0, {
@@ -40,7 +40,7 @@ describe("EX7-004 Wormmon", () => {
       target: { kind: "permanent", permanentId: s.perm("secondDefender").permanentId },
     })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved" && event.deletedPermanentIds?.includes(secondDefender.permanentId)));
-    expect(s.state.memory).toBe(4);
+    expect(s.state.memory).toBe(5);
 
     assertNoLoudGap(s);
   });

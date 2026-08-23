@@ -37,7 +37,8 @@ describe("BT16-037", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT16-037"));
 
     expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT16-037")).toHaveLength(1);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    // One unrevealed card plus the three misses returned to the bottom.
+    expect(s.state.players[0]!.deck).toHaveLength(4);
   });
 
   it("applies the inherited bonus only while suspended", async () => {

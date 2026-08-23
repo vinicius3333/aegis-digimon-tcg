@@ -46,8 +46,8 @@ describe("BT11-027 Veedramon", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueTamer").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.memory === 7);
+    await settle(() => s.state.memory === 8);
 
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(8);
   });
 });

@@ -84,7 +84,13 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         const breeding = ctx.game.player(mine).breeding;
         if (breeding !== undefined && breeding.topCard !== undefined) return false;
       }
-      if (action.target?.isSelf || action.target?.filter?.isSelfRef) {
+      // A self-reference with an explicit loose-card zone (notably `linked`) scopes the
+      // host, it does not mean "play the source card again". The latter is reserved for the
+      // targetless/self target forms used by Security and revive clauses.
+      const selfPlayTarget =
+        action.target?.isSelf ||
+        (action.target?.filter?.isSelfRef === true && action.target.filter.zone === undefined);
+      if (selfPlayTarget) {
         // "Play this card without paying its cost" — from security (the common
         // [Security] form) or from hand.
         const self = ctx.source;
@@ -95,11 +101,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ctx.lastPlayedPermanentIds = [];
           return false;
         }
+        // Lightweight card-module seams may provide only the game state and effect verbs;
+        // they do not need to model every player zone just to assert that self-play delegates
+        // to the correct primitive. In the production engine `player()` is always present,
+        // so this fallback only affects those deliberately narrow contexts.
+        const owner = ctx.game.player?.(self.ownerSeat);
         const fromSecurity =
           action.from?.includes("security") === true ||
-          (ctx.activeTiming === "Security" &&
-            !ctx.game.player(self.ownerSeat).trash.some((card) => card.instanceId === self.instanceId)) ||
-          ctx.game.player(self.ownerSeat).security.some((card) => card.instanceId === self.instanceId);
+          (ctx.activeTiming === "Security" && owner?.trash !== undefined && !owner.trash.some((card) => card.instanceId === self.instanceId)) ||
+          owner?.security?.some((card) => card.instanceId === self.instanceId) === true;
         if (fromSecurity) {
           const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
           ctx.lastPlayedPermanentIds = played !== undefined ? [played.permanentId] : [];
@@ -114,6 +124,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
             ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         } else {
@@ -126,6 +137,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
             ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         }

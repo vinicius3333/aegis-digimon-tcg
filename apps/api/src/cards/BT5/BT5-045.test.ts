@@ -4,7 +4,7 @@ import "./BT5-045.js";
 
 describe("BT5-045 LordKnightmon", () => {
   it("may play a yellow Warrior of any level when attacking", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-045", as: "lord" }], hand: [{ card: "BT5-045", as: "warrior" }] }, 1: { security: ["BT1-009"] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-045", as: "lord" }], hand: [{ card: "BT5-042", as: "warrior" }] }, 1: { security: ["BT1-009"] } }, { autoSelectCards: true, autoAcceptOptional: true });
     const warriorId = s.inst("warrior").instanceId;
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("lord").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === warriorId));

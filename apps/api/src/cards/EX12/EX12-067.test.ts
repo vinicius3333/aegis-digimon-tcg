@@ -129,7 +129,7 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 100);
 
-    expect(s.perm("kiyo").isSuspended).toBe(false);
+    expect(s.perm("kiyo").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-027");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("illegalTarget").instanceId)).toBe(true);
     expect(s.state.memory).toBe(2);

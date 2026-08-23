@@ -16,7 +16,6 @@ const compiled: CompiledCard = {
             },
             count: 1,
             isSelf: true,
-            noDigivolutionCards: true,
           },
           duration: "permanent",
           condition: {
@@ -24,7 +23,7 @@ const compiled: CompiledCard = {
             filter: {
               controllerDefault: "opponent",
               kind: ["Digimon"],
-              noDigivolutionCards: false,
+              digivolutionCards: "hasAny",
             },
             raw: "your opponent has no Digimon with digivolution cards",
           },

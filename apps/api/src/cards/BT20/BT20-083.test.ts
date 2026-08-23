@@ -17,7 +17,7 @@ describe("BT20-083 Omekamon", () => {
     expect(effect?.actions[0]).toMatchObject({
       kind: "PlaceUnder",
       target: { isSelf: true },
-      underFilter: { controller: "mine", zone: "breedingArea", nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }] },
+      underFilter: { controller: "mine", zone: "breeding", nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }] },
       position: "bottom",
     });
   });

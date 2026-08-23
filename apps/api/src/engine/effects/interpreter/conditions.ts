@@ -301,6 +301,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const oppCount = ctx.game.player(opp).security.length;
       return cond.op === "gt" ? mineCount > oppCount : mineCount < oppCount;
     }
+    case "handCompare": {
+      const mineCount = ctx.game.player(mine).hand.length;
+      const oppCount = ctx.game.player(opp).hand.length;
+      return compareNumber(mineCount, cond.op, oppCount);
+    }
     case "totalSecurityCount": {
       // "There are N or fewer total cards in both players' security stacks" (BT13/EX5
       // inherited Vaccine line). Sums both stacks, then applies the encoded comparison.

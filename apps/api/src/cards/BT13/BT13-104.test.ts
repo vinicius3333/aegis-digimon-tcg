@@ -41,7 +41,9 @@ describe("BT13-104 Final Shining Burst", () => {
             { card: "BT13-095", as: "marcus" },
           ],
         },
-        1: { battleArea: [{ card: "BT13-111", as: "target" }] },
+        // Marcus's optional On Play suspension applies a further -3000 DP after
+        // Final Shining Burst. Start high enough to observe both modifiers.
+        1: { battleArea: [{ card: "BT13-111", as: "target", dp: 16000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -67,7 +69,7 @@ describe("BT13-104 Final Shining Burst", () => {
           security: [{ card: "BT13-104", as: "securityOption", faceUp: true }],
           hand: [{ card: "BT13-095", as: "marcus" }],
         },
-        1: { battleArea: [{ card: "BT13-111", as: "target" }] },
+        1: { battleArea: [{ card: "BT13-111", as: "target", dp: 16000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
