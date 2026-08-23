@@ -1084,7 +1084,6 @@ export class CombatController {
       });
     };
 
-    const c = continuous;
     const finalDeletedIds = [...outcome.deletedPermanentIds];
 
     // ＜Evade＞ (§16-35): when this Digimon would be deleted by battle, you may

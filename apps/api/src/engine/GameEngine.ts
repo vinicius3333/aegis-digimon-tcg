@@ -616,7 +616,7 @@ export class GameEngine {
     // `combat` is assigned after the primitives are built (the controller is itself
     // wired with this engine's fireTiming seam), so expose it lazily via a getter; the
     // attack verbs only dereference it at call time, by which point it is set.
-    const self = this;
+    const getCombat = () => this.combat;
     return createPrimitives({
       state: this.state,
       baseGrantedDigivolve: (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
@@ -671,7 +671,7 @@ export class GameEngine {
         this.consultLeavePrevention(ids, cause, resolvingSeat, opts),
       consultDigivolutionTrashRedirect: (ids) => this.consultDigivolutionTrashRedirect(ids),
       get combat() {
-        return self.combat;
+        return getCombat();
       },
       ask: {
         selectInstances: async (seat, candidateInstanceIds, min, max, promptText, provenance) => {

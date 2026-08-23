@@ -1,4 +1,3 @@
-import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { midBt12Module } from "./_midHandwritten.js";
 

@@ -26,7 +26,7 @@ const rosemon = {
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Rosemon"], match: "name" }],
 };
-const aegiochusmon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }] };
+const _aegiochusmon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }] };
 const securityPlayable = {
   controller: "mine",
   zone: ["hand", "trash"],

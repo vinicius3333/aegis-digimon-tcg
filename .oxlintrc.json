@@ -23,6 +23,19 @@
         "vitest/require-to-throw-message": "warn",
         "eslint/no-unsafe-optional-chaining": "warn"
       }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "no-unused-vars": "warn",
+        "vitest/valid-expect": "warn",
+        "vitest/valid-describe-callback": "warn",
+        "vitest/no-conditional-expect": "warn",
+        "vitest/require-to-throw-message": "warn",
+        "vitest/require-mock-type-parameters": "warn",
+        "vitest/expect-expect": "warn",
+        "vitest/valid-title": "warn"
+      }
     }
   ],
   "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/node_modules/**"]

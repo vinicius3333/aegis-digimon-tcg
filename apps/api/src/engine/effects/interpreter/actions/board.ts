@@ -148,11 +148,6 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
-      const continuous =
-        action.continuous === true ||
-        (action.continuous === undefined &&
-          ["Static", "AllTurns", "YourTurn", "OpponentsTurn"].includes(ctx.activeTiming ?? "") &&
-          Object.keys(ctx.trigger ?? {}).length === 0);
       for (const id of ids) {
         const targetScale =
           action.scaling?.unit === "targetFaceDownDigivolutionCards"

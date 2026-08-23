@@ -2,9 +2,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const ownDigimon = { controller: "mine", kind: ["Digimon"] };
-const glowingDawn = { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] };
+const _opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
+const _ownDigimon = { controller: "mine", kind: ["Digimon"] };
+const _glowingDawn = { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] };
 const recovery = [
   {
     kind: "TrashDigivolution",

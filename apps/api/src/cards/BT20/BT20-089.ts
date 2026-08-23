@@ -41,7 +41,7 @@ function isEijiNagasumiCard(def: CardDefinition): boolean {
   return def.nameEn === EIJI_NAGASUMI || def.nameEn.includes(EIJI_NAGASUMI);
 }
 
-const module: EffectModule = {
+const _module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [Rule] Also treated as [Eiji Nagasumi] and [Leon Alexander] — name grant via static.
@@ -260,7 +260,15 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Rule",
-      actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Eiji Nagasumi", "Leon Alexander"], duration: "permanent" }],
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["Eiji Nagasumi", "Leon Alexander"],
+          duration: "permanent",
+        },
+      ],
     },
     {
       trigger: "AllTurns",
@@ -274,24 +282,60 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       isInherited: true,
       actions: [
-        { kind: "GainKeyword", target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true }, keyword: { keyword: "Alliance", raw: "＜Alliance＞" }, duration: "permanent" },
-        { kind: "GainKeyword", target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true }, keyword: { keyword: "Piercing", raw: "＜Piercing＞" }, duration: "permanent" },
-        { kind: "GainKeyword", target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true }, keyword: { keyword: "Barrier", raw: "＜Barrier＞" }, duration: "permanent" },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true },
+          keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true },
+          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true },
+          keyword: { keyword: "Barrier", raw: "＜Barrier＞" },
+          duration: "permanent",
+        },
       ],
     },
     {
       trigger: "StartOfYourMainPhase",
-      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } } }],
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } },
+        },
+      ],
     },
     {
       trigger: "EndOfAllTurns",
       isInherited: true,
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "name" }] }, count: 1 }, from: ["digivolutionCards"], payCost: false, optional: true }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "name" }] }, count: 1 },
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
       trigger: "Security",
       isSecurity: true,
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, from: ["security"], payCost: false }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          from: ["security"],
+          payCost: false,
+        },
+      ],
     },
   ],
   coverage: "full",

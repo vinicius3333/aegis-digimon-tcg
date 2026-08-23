@@ -94,16 +94,16 @@ async function main() {
   console.log("\n[smoke] errors:");
   console.log(errors.length ? JSON.stringify(errors, null, 2) : "(none)");
 
-  const s1 = summarize(r1.state);
+  const finalState = summarize(r1.state);
   const ok =
     Boolean(r1.roomId) &&
     r1.roomId === r2.roomId &&
-    typeof s1 === "object" &&
-    s1.playerCount === 2 &&
+    typeof finalState === "object" &&
+    finalState.playerCount === 2 &&
     errors.length === 0;
   console.log(
     `\n[smoke] RESULT: ${ok ? "PASS" : "FAIL"} — joined=${Boolean(r1.roomId)} ` +
-      `sameRoom=${r1.roomId === r2.roomId} players=${s1.playerCount} errors=${errors.length}`,
+      `sameRoom=${r1.roomId === r2.roomId} players=${finalState.playerCount} errors=${errors.length}`,
   );
 
   await r1.leave();

@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
 const opponentLowDp = { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } };
 const ownDigimon = { controller: "mine", kind: ["Digimon"] };
-const ts = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const _ts = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 
 const onPlayBody = [
   { kind: "ModifyDP", target: { filter: opponentDigimon, count: 1 }, amount: -4000, duration: "untilOpponentTurnEnd" },
@@ -57,7 +57,10 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenEffectAddsToDeck",
           effectSourceFilter: { controller: "mine" },
-          fireCondition: { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] } },
+          fireCondition: {
+            kind: "selfTopHasText",
+            filter: { nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] },
+          },
           actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
         },
       ],

@@ -9,7 +9,7 @@ import { toDuration } from "../duration.js";
 import { evaluateCondition } from "../conditions.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardKind, isTamer } from "@aegis/shared";
+import { CardKind } from "@aegis/shared";
 import type { Action, CardDefinition, Permanent, Seat, Target } from "@aegis/shared";
 
 export async function runResourceAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
@@ -184,16 +184,25 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         const hosts = candidatePermanents(ctx, payment.target)
           .filter((permanent) => permanent.stack.length >= payment.minimum)
           .map((permanent) => permanent.permanentId);
-        if (hosts.length === 0 || !(await ctx.ask.optional(ctx, "Trash digivolution cards to reduce the play cost"))) return false;
-        const chosenHosts = hosts.length === 1 ? hosts : await ctx.ask.chooseTargets(ctx, { candidates: hosts, min: 1, max: 1 });
+        if (hosts.length === 0 || !(await ctx.ask.optional(ctx, "Trash digivolution cards to reduce the play cost")))
+          return false;
+        const chosenHosts =
+          hosts.length === 1 ? hosts : await ctx.ask.chooseTargets(ctx, { candidates: hosts, min: 1, max: 1 });
         const host = chosenHosts[0] === undefined ? undefined : ctx.game.permanentById(chosenHosts[0]);
         if (host === undefined || host.stack.length < payment.minimum) return false;
         const max = host.stack.length;
-        const count = max === payment.minimum
-          ? payment.minimum
-          : payment.minimum + (await ctx.ask.chooseOption(ctx, Array.from({ length: max - payment.minimum + 1 }, (_, i) => `Trash ${payment.minimum + i}`)));
+        const count =
+          max === payment.minimum
+            ? payment.minimum
+            : payment.minimum +
+              (await ctx.ask.chooseOption(
+                ctx,
+                Array.from({ length: max - payment.minimum + 1 }, (_, i) => `Trash ${payment.minimum + i}`),
+              ));
         const ids = host.stack.slice(0, count).map((card) => card.instanceId);
-        const moved = await ctx.fx.trashDigivolutionCards(host.permanentId, ids, { byEffectSeat: ctx.source.ownerSeat });
+        const moved = await ctx.fx.trashDigivolutionCards(host.permanentId, ids, {
+          byEffectSeat: ctx.source.ownerSeat,
+        });
         if (moved.length !== count) return false;
         const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
         ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);

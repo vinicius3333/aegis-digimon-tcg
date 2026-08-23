@@ -431,14 +431,14 @@ export function GameScreen({
     const measure = () => {
       const b = boardRef.current;
       const a = permRefs.current[selPerm];
-      const t = oppSecRef.current;
-      if (!b || !a || !t) {
+      const opponentSecurityEl = oppSecRef.current;
+      if (!b || !a || !opponentSecurityEl) {
         setArrow(null);
         return;
       }
       const br = b.getBoundingClientRect();
       const ar = a.getBoundingClientRect();
-      const tr = t.getBoundingClientRect();
+      const tr = opponentSecurityEl.getBoundingClientRect();
       setArrow({
         from: { x: ar.left + ar.width / 2 - br.left, y: ar.top - br.top },
         to: { x: tr.left + tr.width / 2 - br.left, y: tr.bottom - br.top },
@@ -1789,7 +1789,7 @@ export function GameScreen({
               className="game-security-pile"
               compact={compactPiles}
               count={you.securityCount}
-              label={t("game.pile.security")}
+              label={t("game.yourSecurityPile")}
               refEl={(el) => {
                 yourSecRef.current = el;
               }}
@@ -1946,7 +1946,7 @@ export function GameScreen({
                 className="game-security-pile"
                 compact={compactPiles}
                 count={opp.securityCount}
-                label={t("game.pile.security")}
+                label={t("game.opponentSecurity")}
                 useSelectedSleeve={false}
                 refEl={(el) => {
                   oppSecRef.current = el;

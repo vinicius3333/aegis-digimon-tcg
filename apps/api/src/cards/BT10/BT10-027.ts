@@ -2,17 +2,19 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const _self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      actions: [{
-        kind: "TrashDigivolution",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-        amount: 2,
-        fromTop: false,
-      }],
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 2,
+          fromTop: false,
+        },
+      ],
     },
     {
       trigger: "WhenAttacking",
@@ -23,8 +25,18 @@ const compiled: CompiledCard = {
         countMin: 1,
       },
       actions: [
-        { kind: "PlayWithoutCost", target: { filter: { kind: ["Digimon"], level: 3 }, count: 1 }, from: ["digivolutionCards"], payCost: false },
-        { kind: "PlayWithoutCost", target: { filter: { kind: ["Digimon"], level: 4 }, count: 1 }, from: ["digivolutionCards"], payCost: false },
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { kind: ["Digimon"], level: 3 }, count: 1 },
+          from: ["digivolutionCards"],
+          payCost: false,
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { kind: ["Digimon"], level: 4 }, count: 1 },
+          from: ["digivolutionCards"],
+          payCost: false,
+        },
       ],
     },
   ],

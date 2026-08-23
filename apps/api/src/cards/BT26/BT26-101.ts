@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const ts = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 const tsCard = { controller: "mine", playCostLte: 4, nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
-const tsDigimon = { ...ts, levelLte: 99 };
+const _tsDigimon = { ...ts, levelLte: 99 };
 const namedTamer = {
   controller: "mine",
   kind: ["Tamer"],

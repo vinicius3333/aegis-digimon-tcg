@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const anyDigimon = { filter: { kind: ["Digimon"] }, count: 1 };
-const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const _ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 
 export const compiled: CompiledCard = {
   keywords: [

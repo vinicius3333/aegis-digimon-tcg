@@ -11159,7 +11159,7 @@ function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
-function aquilamonBt3Demo(effect: string | null): CardEffectsFixture {
+function aquilamonBt3Demo(_effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
   state.phase = Phase.Main;
@@ -11300,7 +11300,7 @@ function zubaEagermonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
-function hawkmonBt3Demo(effect: string | null): CardEffectsFixture {
+function hawkmonBt3Demo(_effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
   state.phase = Phase.Main;
@@ -11326,7 +11326,7 @@ function hawkmonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
-function agumonBt3Demo(effect: string | null): CardEffectsFixture {
+function agumonBt3Demo(_effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
   state.phase = Phase.Main;

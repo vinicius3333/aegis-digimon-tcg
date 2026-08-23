@@ -2,11 +2,13 @@ import { cardImageUrls, getCardDefinition, type CardDefinition } from "@aegis/sh
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCardSleeve } from "./sleeve";
-import { COLORS, colorKey, emblemFor, formLabel, kindOf, paletteFor, sigilPaths } from "./theme";
+import { COLORS, colorKey, emblemFor, paletteFor, sigilPaths } from "./theme";
 
 /** True on hover-capable (desktop) pointers; false on touch/responsive devices. */
 function useHoverZoomEnabled(): boolean {
-  const [enabled, setEnabled] = useState(() => (typeof window === "undefined" ? true : window.matchMedia("(hover: hover) and (pointer: fine)").matches));
+  const [enabled, setEnabled] = useState(() =>
+    typeof window === "undefined" ? true : window.matchMedia("(hover: hover) and (pointer: fine)").matches,
+  );
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
     const update = () => setEnabled(mq.matches);
@@ -67,7 +69,15 @@ export function LevelPips({ level, color }: { level?: number; color: string }) {
 }
 
 /** Card back — a faceted shield over a muted field (security / opponent cards). */
-export function CardBack({ width = 70, label, useSelectedSleeve = true }: { width?: number; label?: number | string; useSelectedSleeve?: boolean }) {
+export function CardBack({
+  width = 70,
+  label,
+  useSelectedSleeve = true,
+}: {
+  width?: number;
+  label?: number | string;
+  useSelectedSleeve?: boolean;
+}) {
   const h = Math.round(width * 1.4);
   const selectedSleeve = useCardSleeve();
   const sleeve = useSelectedSleeve ? selectedSleeve : { src: null };
@@ -87,15 +97,45 @@ export function CardBack({ width = 70, label, useSelectedSleeve = true }: { widt
       }}
     >
       {sleeve.src ? (
-        <img src={sleeve.src} alt="" draggable={false} style={{ width: "100%", height: "100%", objectFit: "cover", userSelect: "none" }} />
+        <img
+          src={sleeve.src}
+          alt=""
+          draggable={false}
+          style={{ width: "100%", height: "100%", objectFit: "cover", userSelect: "none" }}
+        />
       ) : (
-        <svg width={width * 0.5} height={width * 0.5} viewBox="0 0 24 24" fill="none" stroke="var(--ds-primary)" strokeWidth={1.4} style={{ opacity: 0.85 }}>
+        <svg
+          width={width * 0.5}
+          height={width * 0.5}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--ds-primary)"
+          strokeWidth={1.4}
+          style={{ opacity: 0.85 }}
+        >
           <polygon points="12 2 21.5 7 21.5 17 12 22 2.5 17 2.5 7" />
           <polygon points="12 7 17 9.5 17 14.5 12 17 7 14.5 7 9.5" fill="var(--ds-primary)" opacity="0.25" />
         </svg>
       )}
       {label != null ? (
-        <span style={{ position: "absolute", bottom: 3, right: 4, minWidth: Math.max(16, width * 0.25), padding: "1px 4px", borderRadius: 99, background: "rgb(8 15 30 / 82%)", color: "#fff", textAlign: "center", fontFamily: "var(--ds-font-mono)", fontSize: Math.max(9, width * 0.16), fontWeight: 700 }}>{label}</span>
+        <span
+          style={{
+            position: "absolute",
+            bottom: 3,
+            right: 4,
+            minWidth: Math.max(16, width * 0.25),
+            padding: "1px 4px",
+            borderRadius: 99,
+            background: "rgb(8 15 30 / 82%)",
+            color: "#fff",
+            textAlign: "center",
+            fontFamily: "var(--ds-font-mono)",
+            fontSize: Math.max(9, width * 0.16),
+            fontWeight: 700,
+          }}
+        >
+          {label}
+        </span>
       ) : null}
     </div>
   );
@@ -106,7 +146,17 @@ const ZOOM_H = Math.round(ZOOM_W * 1.4);
 const ZOOM_GAP = 14;
 
 /** Fixed-position large card image rendered into document.body via portal. */
-function CardZoomPreview({ cardId, x, y, fallbackIndex }: { cardId: string; x: number; y: number; fallbackIndex: number }) {
+function CardZoomPreview({
+  cardId,
+  x,
+  y,
+  fallbackIndex,
+}: {
+  cardId: string;
+  x: number;
+  y: number;
+  fallbackIndex: number;
+}) {
   const def = getCardDefinition(cardId);
   const urls = cardImageUrls(def?.imageId ?? cardId);
   const [extra, setExtra] = useState(0);
@@ -134,7 +184,15 @@ function CardZoomPreview({ cardId, x, y, fallbackIndex }: { cardId: string; x: n
       }}
     >
       {idx >= urls.length ? (
-        <div style={{ width: "100%", height: "100%", background: "var(--ds-surface-muted)", display: "grid", placeItems: "center" }}>
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "var(--ds-surface-muted)",
+            display: "grid",
+            placeItems: "center",
+          }}
+        >
           <Sigil cardId={cardId} color={colorKey(def?.colors[0])} size={ZOOM_W * 0.5} />
         </div>
       ) : (
@@ -210,10 +268,27 @@ export function CardFull({
       )}
 
       {count != null ? (
-        <div style={{ position: "absolute", top: -1, right: -1, background: c.base, color: "#0b0d14", fontFamily: "var(--ds-font-mono)", fontWeight: 600, fontSize: 12, padding: "2px 8px", borderRadius: "0 8px 0 8px" }}>×{count}</div>
+        <div
+          style={{
+            position: "absolute",
+            top: -1,
+            right: -1,
+            background: c.base,
+            color: "#0b0d14",
+            fontFamily: "var(--ds-font-mono)",
+            fontWeight: 600,
+            fontSize: 12,
+            padding: "2px 8px",
+            borderRadius: "0 8px 0 8px",
+          }}
+        >
+          ×{count}
+        </div>
       ) : null}
 
-      {zoomEnabled && mousePos ? <CardZoomPreview cardId={cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} /> : null}
+      {zoomEnabled && mousePos ? (
+        <CardZoomPreview cardId={cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
+      ) : null}
     </div>
   );
 }
@@ -437,7 +512,15 @@ export function CardMini({
       }}
     >
       {urlIndex >= urls.length ? (
-        <div style={{ width: "100%", height: "100%", background: `radial-gradient(${c.soft}, var(--ds-surface-muted))`, display: "grid", placeItems: "center" }}>
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: `radial-gradient(${c.soft}, var(--ds-surface-muted))`,
+            display: "grid",
+            placeItems: "center",
+          }}
+        >
           <Sigil cardId={def.cardId} color={key} size={width * 0.5} />
         </div>
       ) : (
@@ -451,7 +534,9 @@ export function CardMini({
 
       {info ? <TokenInfo def={def} width={width} dp={dp} /> : null}
 
-      {zoomEnabled && zoomOnHover && mousePos ? <CardZoomPreview cardId={def.cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} /> : null}
+      {zoomEnabled && zoomOnHover && mousePos ? (
+        <CardZoomPreview cardId={def.cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
+      ) : null}
     </div>
   );
 }

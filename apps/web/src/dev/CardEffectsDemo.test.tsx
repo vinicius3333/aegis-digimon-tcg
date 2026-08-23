@@ -1372,7 +1372,7 @@ describe("CardEffectsDemo", () => {
     fireEvent.keyDown(screen.getByRole("button", { name: "Commandramon" }), { key: "Enter" });
     expect(screen.getAllByText("Rush")).toHaveLength(1);
     fireEvent.click(screen.getByText("Attack"));
-    expect(screen.getByRole("button", { name: "security · 5" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Opponent security · 5" })).toBeTruthy();
   });
 
   it("shows all four Jazardmon reveals while requiring the eligible Dragon first", () => {
@@ -2283,7 +2283,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Breakdramon (Suspended)" })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "security · 4" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Opponent security · 4" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "trash · 2" })).toBeTruthy();
     expect(screen.getByText(/Breakdramon venceu a batalha e descartou a carta do topo da segurança/i)).toBeTruthy();
     expect(screen.getByText(/1 card moved: security → trash/i)).toBeTruthy();
@@ -2300,7 +2300,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Wingdramon (Suspended)" })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "security · 4" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Opponent security · 4" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "trash · 2" })).toBeTruthy();
     expect(screen.getByText(/O efeito herdado de Breakdramon descartou a carta do topo da segurança/i)).toBeTruthy();
   });
@@ -2604,7 +2604,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Coredramon" })).toBeTruthy();
-    expect(screen.getByRole("img", { name: "security · 4" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Your security · 4" })).toBeTruthy();
     expect(screen.getByText(/Security check on you revealed Agumon.*battle/i)).toBeTruthy();
   });
 
@@ -3018,7 +3018,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByText(log)).toBeTruthy();
     expect(screen.getByText(/hand 1/i)).toBeTruthy();
-    expect(screen.getByLabelText("security · 2")).toBeTruthy();
+    expect(screen.getByLabelText("Your security · 2")).toBeTruthy();
     expect(screen.getByRole("img", { name: "deck · 34" })).toBeTruthy();
     expect(
       screen.getByText(`You revealed ${effect === "yellow" ? "Tsukaimon" : "Gryphonmon"} with Airdramon`),
@@ -3039,7 +3039,7 @@ describe("CardEffectsDemo", () => {
       screen.getByText(/revelou Monodramon.*não era amarela.*não houve Recovery.*embaralhada.*oculta/i),
     ).toBeTruthy();
     expect(screen.getByText(/hand 1/i)).toBeTruthy();
-    expect(screen.getByLabelText("security · 2")).toBeTruthy();
+    expect(screen.getByLabelText("Your security · 2")).toBeTruthy();
     expect(screen.getByRole("img", { name: "deck · 35" })).toBeTruthy();
     expect(screen.queryByText("Tsukaimon")).toBeNull();
     expect(screen.queryByText("Gryphonmon")).toBeNull();
@@ -3057,7 +3057,7 @@ describe("CardEffectsDemo", () => {
     expect(
       screen.getByText(/revelou Tsukaimon.*baralho estava vazio.*Recovery \+1 não moveu carta.*embaralhada/i),
     ).toBeTruthy();
-    expect(screen.getByLabelText("security · 2")).toBeTruthy();
+    expect(screen.getByLabelText("Your security · 2")).toBeTruthy();
     expect(screen.getByRole("img", { name: "deck · 0" })).toBeTruthy();
   });
 
@@ -3074,7 +3074,7 @@ describe("CardEffectsDemo", () => {
     expect(
       screen.getByText(/segurança estava vazia.*não abriu uma escolha impossível.*baralho permaneceu intacto/i),
     ).toBeTruthy();
-    expect(screen.getByLabelText("security · 0")).toBeTruthy();
+    expect(screen.getByLabelText("Your security · 0")).toBeTruthy();
     expect(screen.getByRole("img", { name: "deck · 35" })).toBeTruthy();
   });
 
@@ -3401,7 +3401,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getAllByText("Rush")).toHaveLength(1);
     fireEvent.keyDown(screen.getByRole("button", { name: "Goldramon" }), { key: "Enter" });
     fireEvent.click(screen.getByText("Attack"));
-    expect(screen.getByRole("button", { name: "security · 5" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Opponent security · 5" })).toBeTruthy();
   });
 
   it("applies Gatomon's multi-play errata with a common Digimon visible but disabled", () => {
@@ -3569,7 +3569,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getAllByText("Rush")).toHaveLength(1);
     fireEvent.keyDown(screen.getByRole("button", { name: "Goldramon" }), { key: "Enter" });
     fireEvent.click(screen.getByText("Attack"));
-    expect(screen.getByRole("button", { name: "security · 5" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Opponent security · 5" })).toBeTruthy();
   });
 
   it("applies Veedramon's errata by requiring a choice between two Four Great Dragons played together", () => {

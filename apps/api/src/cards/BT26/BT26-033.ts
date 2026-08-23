@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 const iliad = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
-const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
+const _opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
 
 export const compiled: CompiledCard = {
   keywords: [

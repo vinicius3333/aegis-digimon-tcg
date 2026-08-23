@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const sevenCode = { controller: "mine", nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
+const _sevenCode = { controller: "mine", nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
 const appmon = { controller: "mine", playCostLte: 5, nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] };
 
 export const compiled: CompiledCard = {

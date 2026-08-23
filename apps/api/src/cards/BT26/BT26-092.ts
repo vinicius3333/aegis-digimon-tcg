@@ -1,7 +1,7 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const ts = { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const _ts = { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 export const compiled: CompiledCard = {
   effects: [
     {

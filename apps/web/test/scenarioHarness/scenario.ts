@@ -2,7 +2,9 @@ import { describe } from "vitest";
 
 /** Groups an end-to-end scenario driven through the real UI and room. */
 export function scenario(id: string, fn: () => void): void {
-  describe(`scenario:${id}`, fn);
+  describe(`scenario:${id}`, () => {
+    fn();
+  });
 }
 
 /**
@@ -11,5 +13,7 @@ export function scenario(id: string, fn: () => void): void {
  * This keeps mobile evidence independent from the desktop scenario.
  */
 export function mobileScenario(id: string, fn: () => void): void {
-  describe(`mobile-scenario:${id}`, fn);
+  describe(`mobile-scenario:${id}`, () => {
+    fn();
+  });
 }

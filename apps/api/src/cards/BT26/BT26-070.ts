@@ -9,7 +9,7 @@ const optionFromTrash = {
   kind: ["Option"],
   nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
 };
-const bottomFaceDownUnderTamer = {
+const _bottomFaceDownUnderTamer = {
   controller: "mine",
   zone: "digivolutionCards",
   faceDown: true,
@@ -29,15 +29,17 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       frequency: "OncePerTurn",
-      actions: [{
-        kind: "UseOptionWithoutCost",
-        target: { filter: optionFromTrash, count: 1 },
-        from: ["trash"],
-        payCost: true,
-        reduceCostBy: 2,
-        optional: true,
-        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
-      }],
+      actions: [
+        {
+          kind: "UseOptionWithoutCost",
+          target: { filter: optionFromTrash, count: 1 },
+          from: ["trash"],
+          payCost: true,
+          reduceCostBy: 2,
+          optional: true,
+          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
+        },
+      ],
     },
     {
       trigger: "Static",
