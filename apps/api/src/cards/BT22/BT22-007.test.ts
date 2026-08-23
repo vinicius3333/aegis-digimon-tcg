@@ -212,19 +212,25 @@ describe("BT22-007 inherited leave-play replacement", () => {
     const inherited = compiled.effects.find((entry) => entry.isInherited);
     const watcher = inherited?.actions[0] as any;
     expect(watcher).toMatchObject({
-      kind: "SubTrigger",
+      kind: "Replacement",
       event: "wouldLeavePlay",
+      mode: "instead",
+      leaveCause: "otherThanYourEffect",
       sourceFilter: {
         controller: "mine",
         kind: ["Digimon"],
         includeToken: true,
         nameOrTrait: [{ tokens: ["Eater"], match: "trait" }],
       },
-      fireCondition: { kind: "not", condition: { kind: "effectSourceControllerIs", controller: "mine" } },
     });
+    // The LEAVING Digimon is what moves, and it lands under THIS card — not the other way
+    // round, and not under an arbitrary permanent the controller owns.
     expect(watcher.actions[0]).toMatchObject({
       kind: "PlaceUnder",
-      target: { filter: { isSelfRef: true }, isSelf: true },
+      target: { filter: { useTriggerSource: true } },
+      targetIsPermanent: true,
+      underFilter: { isSelfRef: true },
+      position: "bottom",
     });
   });
 });

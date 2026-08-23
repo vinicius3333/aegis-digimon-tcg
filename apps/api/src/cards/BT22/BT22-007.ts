@@ -98,8 +98,14 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "SubTrigger",
+          // "When any of your [Eater] trait Digimon would leave the battle area other than by
+          // your effects, you may place them as this Digimon's bottom digivolution cards."
+          // A leave REPLACEMENT, not a post-hoc watcher: the leaving Digimon is redirected
+          // under this card instead of leaving, so it must run in the wouldLeavePlay window.
+          kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "instead",
+          leaveCause: "otherThanYourEffect",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
@@ -111,26 +117,20 @@ export const compiled: CompiledCard = {
               },
             ],
           },
-          fireCondition: {
-            kind: "not",
-            condition: {
-              kind: "effectSourceControllerIs",
-              controller: "mine",
-            },
-          },
           actions: [
             {
               kind: "PlaceUnder",
               target: {
-                filter: {
-                  isSelfRef: true,
-                },
+                filter: { useTriggerSource: true },
                 count: 1,
-                isSelf: true,
               },
+              targetIsPermanent: true,
+              underFilter: { isSelfRef: true },
+              position: "bottom",
               optional: true,
             },
           ],
+          optional: true,
         },
       ],
       isInherited: true,
