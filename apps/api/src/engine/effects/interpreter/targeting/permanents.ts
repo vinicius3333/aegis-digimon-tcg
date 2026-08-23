@@ -197,7 +197,9 @@ function narrowToSuperlative(
  * bonus (the common case) returns the target unchanged.
  */
 export function raiseDeletionDpCap(ctx: EffectContext, target: Target): Target {
-  const dp = target.filter.dp;
+  // `filter` is required by the IR type but is not validated before the interpreter sees it
+  // (see candidatePermanents' note); a target that arrives without one has no cap to raise.
+  const dp = target.filter?.dp;
   if (!dp || dp.op !== "lte" || dp.value === undefined || dp.relativeToSource) return target;
   const bonus = ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, ctx.source.permanent()?.permanentId) ?? 0;
   if (bonus === 0) return target;

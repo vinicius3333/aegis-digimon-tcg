@@ -21,11 +21,16 @@ describe("BT16-001", () => {
       { autoSelectCards: true },
     );
 
+    // Capture both ids before the attack: the deleted permanent is off the board afterwards,
+    // so `perm("atLimit")` can no longer resolve it.
+    const aboveLimitId = s.perm("aboveLimit").permanentId;
+    const atLimitInstanceId = s.perm("atLimit").topCard.instanceId;
+
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("aboveLimit").permanentId)).toBe(true);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.perm("atLimit").topCard.instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveLimitId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === atLimitInstanceId)).toBe(true);
   });
 
   it("does not activate from a one-color host", async () => {

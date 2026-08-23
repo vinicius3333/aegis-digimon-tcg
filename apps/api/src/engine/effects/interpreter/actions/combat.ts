@@ -99,6 +99,17 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       if (ids.length > 0) {
         ctx.selections ??= new Map();
         ctx.selections.set(name, ids[0]!);
+        const bound = ctx.game.permanentById(ids[0]!);
+        if (bound !== undefined) {
+          const definition = bound.topCard ? ctx.game.definitionOf(bound.topCard) : undefined;
+          ctx.selectionFacts ??= new Map();
+          ctx.selectionFacts.set(name, {
+            dp: bound.currentDP,
+            level: definition?.level,
+            playCost: definition?.playCost,
+            digivolutionCount: bound.stack.length,
+          });
+        }
       }
       return false;
     }

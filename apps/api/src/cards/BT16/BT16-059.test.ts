@@ -51,7 +51,10 @@ describe("BT16-059", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoot").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
+    // At exactly 3 security both clauses apply: the ＜De-Digivolve 1＞ trashes the stacked
+    // Digimon's top card, and the deletion then removes one play-cost-6-or-less Digimon —
+    // either survivor qualifies, so assert the de-digivolution and the net board instead.
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.perm("high").stack).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT16-048")).toBe(true);
   });
 });

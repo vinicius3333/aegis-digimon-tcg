@@ -1649,6 +1649,13 @@ export interface EffectContext {
    */
   selections?: Map<string, string>;
   /**
+   * Attribute snapshot of each `SelectBind` target, taken at the moment it was bound. A clause
+   * that deletes the chosen Digimon and then compares against it ("delete it and 1 of your
+   * opponent's Digimon with as much or less DP as it" — BT16-070) still needs those attributes
+   * after the permanent has left the board, where `selections` alone resolves to nothing.
+   */
+  selectionFacts?: Map<string, { dp?: number; level?: number; playCost?: number; digivolutionCount?: number }>;
+  /**
    * When set, this effect is conferred from a digivolution-stack card onto
    * `conferredToPermanentId` (GrantStatic grant:"effects").
    */
