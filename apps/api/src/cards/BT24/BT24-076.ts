@@ -6,6 +6,14 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
+      condition: {
+        kind: "zoneCount",
+        seat: "mine",
+        zone: "hand",
+        op: "lte",
+        value: 4,
+        raw: "you have 4 or fewer cards in your hand",
+      },
       actions: [
         {
           kind: "PlayWithoutCost",
@@ -18,15 +26,7 @@ export const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: true,
-          reduceCost: 2,
-          condition: {
-            kind: "zoneCount",
-            seat: "mine",
-            zone: "hand",
-            op: "lte",
-            value: 4,
-            raw: "you have 4 or fewer cards in your hand",
-          },
+          reduceCostBy: 2,
         },
       ],
       isFromTrash: true,

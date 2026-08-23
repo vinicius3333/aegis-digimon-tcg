@@ -2195,6 +2195,26 @@ export class GameEngine {
       }
       instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
     }
+
+    // `[Trash][Main]` abilities are activated from their card's actual trash-zone
+    // instance (Q5653), just as hand-resident Main abilities are projected from hand.
+    // `canTrigger` keeps ordinary Main effects out because only effects registered with
+    // `isFromTrash` accept a source whose current zone is trash.
+    for (const instance of turnPlayer.trash) {
+      const source = this.cardSourceOf(instance);
+      const entries: { instanceId: string; effectKey: string; description: string }[] = [];
+      for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
+        const ctx = this.buildEffectContext(source, {});
+        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
+          entries.push({
+            instanceId: instance.instanceId,
+            effectKey: effect.effectKey,
+            description: effect.description,
+          });
+        }
+      }
+      instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
+    }
   }
 
   /**

@@ -8,13 +8,15 @@ import "../index.js";
 describe("BT24-076 WarGrowlmon", () => {
   it("keeps the trash Main cost reduction and level restrictions", () => {
     const trash = BT24_076.effects?.find((entry) => entry.trigger === "Main");
-    expect(trash).toMatchObject({ isFromTrash: true });
+    expect(trash).toMatchObject({
+      isFromTrash: true,
+      condition: { kind: "zoneCount", zone: "hand", op: "lte", value: 4 },
+    });
     expect(trash?.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["trash"],
       payCost: true,
-      reduceCost: 2,
-      condition: { kind: "zoneCount", zone: "hand", op: "lte", value: 4 },
+      reduceCostBy: 2,
     });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(BT24_076.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({
@@ -28,8 +30,7 @@ describe("BT24-076 WarGrowlmon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: ["BT1-004"],
+          hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
           trash: [{ card: "BT24-076", as: "wargrowlmon" }],
         },
         1: { battleArea: [{ card: "BT1-014", as: "target" }] },
@@ -57,6 +58,7 @@ describe("BT24-076 WarGrowlmon", () => {
         (permanent) => permanent.topCard.instanceId === s.inst("wargrowlmon").instanceId,
       ),
     );
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
     expect(s.state.memory).toBe(5);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
@@ -68,8 +70,7 @@ describe("BT24-076 WarGrowlmon", () => {
   it("does not activate from trash above four cards in hand", async () => {
     const s = setupEngine({
       0: {
-        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
-        deck: ["BT1-005"],
+        hand: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
         trash: [{ card: "BT24-076", as: "wargrowlmon" }],
       },
     });
@@ -83,6 +84,62 @@ describe("BT24-076 WarGrowlmon", () => {
 
     s.engine.applyIntent(0, { type: "endPhase" });
     await turn;
+  });
+
+  it("public play pays 7 and deletes only a level 4 or lower Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-076", as: "wargrowlmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-014", as: "level4" },
+            { card: "BT24-072", as: "level5" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const level4Id = s.perm("level4").permanentId;
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wargrowlmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level4Id));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("level5").permanentId,
+    );
+  });
+
+  it("public evolution pays 3 and resolves the level-4 deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-070", as: "base" }],
+          hand: [{ card: "BT24-076", as: "wargrowlmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "level4" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const level4Id = s.perm("level4").permanentId;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("wargrowlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level4Id));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("wargrowlmon").instanceId);
   });
 
   it("deletes a level 4 or lower Digimon when digivolving", async () => {
@@ -101,23 +158,44 @@ describe("BT24-076 WarGrowlmon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(targetId);
   });
 
-  it("inherited deletion plays a level 4 Dark Dragon from trash", async () => {
+  it.each([
+    ["Dark Dragon", "BT24-070"],
+    ["Evil Dragon", "BT11-079"],
+  ])("public inherited deletion plays a level 4 %s from trash", async (_label, reviveCard) => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-077", as: "host", under: ["BT24-076"] }],
-          trash: [{ card: "BT24-070", as: "darkDragon" }],
+          battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-076"] }],
+          trash: [{ card: reviveCard, as: "revive" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("host"));
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("darkDragon").instanceId,
+        (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
       ),
     );
+  });
+
+  it("does not revive a level 5 Dark Dragon from inherited deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-080", as: "host", under: ["BT24-076"] }],
+          trash: [{ card: "BT24-076", as: "level5" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("level5").instanceId);
   });
 });
