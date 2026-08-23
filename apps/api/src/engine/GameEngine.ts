@@ -1771,6 +1771,41 @@ export class GameEngine {
    * predicate can read what happened). A watcher whose source permanent has left the
    * field is skipped (its subscription was already dropped on leave).
    */
+  /**
+   * Sub-trigger events whose SUBJECT is a breeding-area permanent by definition. They are the
+   * "effects that explicitly specify or reference breeding areas" exception in Comprehensive
+   * Rules §3-4-5-6, so the breeding-visibility guard below must never drop them.
+   */
+  private static readonly BREEDING_SUBJECT_EVENTS: ReadonlySet<SubTriggerEventName> = new Set([
+    "whenHatch",
+    "whenMovedFromBreeding",
+    "whenOpponentMovedFromBreeding",
+  ]);
+
+  /**
+   * Comprehensive Rules §3-4-5-6: "Trigger conditions can't be met by cards in breeding areas,
+   * except for effects that explicitly specify or reference breeding areas." Its own example is
+   * a Tamer's "[Your Turn] When your Digimon digivolves, by suspending this Tamer, <Draw 1>",
+   * which does NOT trigger off a breeding-area digivolution (KB Q870/Q1038; Q4428: only the word
+   * "field" spans both areas, "your Digimon" is the battle area alone).
+   *
+   * The engine still FIRES the digivolve/play/place-under events for a breeding-area subject —
+   * a [Breeding] effect on the breeding permanent itself legitimately watches them — so the rule
+   * is enforced per WATCHER: one whose source is not itself in the breeding area cannot see a
+   * breeding-area subject, and is skipped exactly like a watcher whose source left the field.
+   */
+  private breedingHidesSubjectFrom(
+    event: SubTriggerEventName,
+    payload: TriggerInfo,
+    watcherSource: CardSource,
+  ): boolean {
+    if (GameEngine.BREEDING_SUBJECT_EVENTS.has(event)) return false;
+    const subjectId = payload.subjectPermanentId;
+    if (subjectId === undefined) return false;
+    if (this.access.permanentById(subjectId)?.inBreeding !== true) return false;
+    return watcherSource.isOnBreedingArea?.() !== true;
+  }
+
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
     if (this.ruleProcessing) {
       const deletedControllerSeat =
@@ -1866,31 +1901,7 @@ export class GameEngine {
       } else {
         await this.subTriggers.fire(
           event,
-          (sub) => {
-            // Anchor the watcher's context on its OWN source permanent. A watcher whose anchor
-            // has left the field (its subscription should already be dropped on leave; guard
-            // defensively) yields undefined and is skipped by the registry.
-            // Preserve the exact card that installed the watcher. This matters for inherited
-            // effects whose source card is later trashed from the host's stack: the body still
-            // means "this card", not the host's current top card.
-            if (sub.sourcePermanentId !== undefined) {
-              const srcPerm = this.access.permanentById(sub.sourcePermanentId);
-              if (srcPerm?.topCard === undefined) return undefined;
-              const sourceInstance = [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
-                (card) => card.instanceId === sub.sourceInstanceId,
-              );
-              return this.buildEffectContext(this.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
-            }
-            if (sub.sourceInstanceId !== undefined) {
-              const loose = this.findLooseInstance(sub.sourceInstanceId);
-              if (loose === undefined) return undefined;
-              return this.buildEffectContext(this.cardSourceOf(loose), payload);
-            }
-            if (sub.activationContext !== undefined) {
-              return { ...sub.activationContext, trigger: payload, selections: new Map() };
-            }
-            return undefined;
-          },
+          (sub) => this.buildSubTriggerContext(sub, payload),
           undefined,
           // The ambient resolving-effect window (see `beginResolvingWindow`): undefined when
           // this fire happens outside any fireTiming/fireTimingForInstance call (no dedup —
@@ -1918,7 +1929,22 @@ export class GameEngine {
     await this.recomputeContinuousEffects();
   }
 
+  /**
+   * Anchor a watcher's context on its OWN source permanent (so its body's "this Digimon" and
+   * controller scope resolve correctly) with the event `payload` in `ctx.trigger`. Preserves the
+   * exact card that installed the watcher: for an inherited effect whose source card is later
+   * trashed from the host's stack, the body still means "this card", not the host's current top
+   * card. Returns undefined — skipping the watcher — when its anchor has left the field (the
+   * subscription should already have been dropped on leave; guard defensively) or when the
+   * breeding-area rule hides the event's subject from it.
+   */
   private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
+    const context = this.buildSubTriggerSourceContext(sub, payload);
+    if (context === undefined) return undefined;
+    return this.breedingHidesSubjectFrom(sub.event, payload, context.source) ? undefined : context;
+  }
+
+  private buildSubTriggerSourceContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;

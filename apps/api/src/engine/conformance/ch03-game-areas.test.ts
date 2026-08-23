@@ -5,6 +5,8 @@ import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import { GameStateAccess } from "../state/access.js";
 import { buildStateView, syncPublicCounts } from "../state/visibility.js";
+import { advance } from "../testkit/advance.js";
+import { settle } from "../testkit/harness.js";
 import {
   setupEngine as setup,
   makeInstance as instance,
@@ -234,6 +236,71 @@ describe("§3-4-5 Breeding Area (comprehensive-0061, 0062)", () => {
     // GameEngine.syncActivatableEffects only iterates turnPlayer.battleArea and explicitly
     // clears player.breeding's JSON — the breeding-area copy surfaces NO activatable ability.
     expect(inBreeding.activatableEffectsJson).toBe("");
+  });
+});
+
+describe("§3-4-5-6 breeding-area trigger conditions (comprehensive-0061)", () => {
+  // The rulebook's own example, card for card: EX11-066 Xeno is a battle-area Tamer whose
+  // "[All Turns] When your Digimon are played or digivolve ... by suspending this Tamer ..."
+  // clause is exactly the "[Your Turn] When your Digimon digivolves, by suspending this Tamer,
+  // <Draw 1>" shape §3-4-5-6 says a breeding-area digivolution must not trigger.
+  const XENO = "EX11-066";
+  const VEMMON = "BT11-061"; // Lv.3 [Vemmon], digivolves from a black Lv.2 Digi-Egg
+  const BLACK_EGG = "BT11-005";
+
+  const setupXeno = (where: "breeding" | "battleArea") =>
+    setup(
+      {
+        0: {
+          battleArea: [
+            { card: XENO, as: "xeno" },
+            ...(where === "battleArea" ? [{ card: BLACK_EGG, as: "base" }] : []),
+          ],
+          ...(where === "breeding" ? { breeding: { card: BLACK_EGG, as: "base" } } : {}),
+          hand: [{ card: VEMMON, as: "evolver" }],
+          deck: [VEMMON, "BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+
+  it("3-4-5-6: a breeding-area digivolution doesn't meet a battle-area Tamer's trigger condition", async () => {
+    cite("comprehensive-0061", "3-4-5-6 trigger conditions can't be met by cards in breeding areas");
+
+    const s = setupXeno("breeding");
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === VEMMON);
+
+    // FAILS-WHEN-REVERTED: drop the breeding guard in GameEngine.buildSubTriggerContext and
+    // Xeno's watcher sees the breeding-area subject => it asks to suspend and suspends.
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(false);
+    expect(s.perm("xeno").isSuspended).toBe(false);
+  });
+
+  it("control: the same digivolution on the BATTLE area does meet it", async () => {
+    const s = setupXeno("battleArea");
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("xeno").isSuspended);
+
+    expect(s.perm("xeno").isSuspended).toBe(true);
   });
 });
 

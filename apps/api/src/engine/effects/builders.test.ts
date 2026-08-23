@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { EffectDuration } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { EffectContext, ReplacementInstall, SubTriggerInstall } from "./EffectContext.js";
-import { staticModifier } from "./builders.js";
+import { breeding, staticModifier, turnTiming } from "./builders.js";
 
 function fakeSource(instanceId: string): CardSource {
   return {
@@ -222,5 +222,58 @@ describe("staticModifier: maxPerTurn auto-threads a stable oncePerTurnKey onto s
     };
     await rawResolve(fakeCtx(fakeSource("inst-5"), subscribeSubTrigger));
     expect(installed[0]!.oncePerTurnKey).toBeUndefined();
+  });
+});
+
+/**
+ * Comprehensive Rules §3-4-5-6 (comprehensive-0061): "Trigger conditions can't be met by cards
+ * in breeding areas, except for effects that explicitly specify or reference breeding areas."
+ * The guard lives in the shared `build()` wrapper, so every timing builder inherits it; the
+ * matching watcher-side guard is GameEngine.breedingHidesSubjectFrom (covered end to end by
+ * EX11-066's test and the §3-4-5-6 conformance case).
+ */
+describe("timing builders: a breeding-area subject can't meet another card's trigger condition", () => {
+  const subjectCtx = (source: CardSource, subjectInBreeding: boolean): EffectContext => ({
+    source,
+    trigger: { subjectPermanentId: "P-subject" } as EffectContext["trigger"],
+    game: {
+      permanentById: (permanentId: string) =>
+        permanentId === "P-subject" ? ({ inBreeding: subjectInBreeding } as never) : undefined,
+    } as unknown as EffectContext["game"],
+    ask: {} as EffectContext["ask"],
+    fx: {} as EffectContext["fx"],
+  });
+
+  const observer = (source: CardSource) =>
+    turnTiming({
+      source,
+      effectKey: "TEST-001/observer",
+      description: "[All Turns] When your Digimon digivolves, ...",
+      resolve: async () => {},
+    });
+
+  it("triggers on a battle-area subject", () => {
+    const source = fakeSource("inst-observer");
+    expect(observer(source).canTrigger(subjectCtx(source, false))).toBe(true);
+  });
+
+  it("does not trigger on a breeding-area subject", () => {
+    const source = fakeSource("inst-observer");
+    expect(observer(source).canTrigger(subjectCtx(source, true))).toBe(false);
+  });
+
+  it("still triggers for a [Breeding] effect, which sits in the breeding area itself", () => {
+    const source: CardSource = {
+      ...fakeSource("inst-breeding-observer"),
+      isOnBattleArea: () => false,
+      isOnBreedingArea: () => true,
+    };
+    const breedingEffect = breeding({
+      source,
+      effectKey: "TEST-001/breeding-observer",
+      description: "[Breeding] ...",
+      resolve: async () => {},
+    });
+    expect(breedingEffect.canTrigger(subjectCtx(source, true))).toBe(true);
   });
 });

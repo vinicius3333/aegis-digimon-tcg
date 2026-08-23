@@ -74,4 +74,27 @@ describe("EX11-066 Xeno", () => {
     expect(Array.from(s.perm("vemmon").stack, (card) => card.cardId)).toContain("BT11-061");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
+
+  it("ignores a digivolution in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-066", as: "xeno" }],
+          breeding: { card: "BT11-061", as: "vemmon" },
+          deck: ["BT11-061", "BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
+      subjectPermanentId: s.perm("vemmon").permanentId,
+    });
+
+    expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(false);
+    expect(s.perm("xeno").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.perm("vemmon").stack).toHaveLength(0);
+  });
 });
