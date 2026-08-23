@@ -491,7 +491,11 @@ function findPermanentContainingInstance(state: GameState, instanceId: string): 
  * per-family action dispatch added one promise hop per action), raise the budgets of the
  * specific tests that outgrew theirs.
  */
-export async function settle(predicate: () => boolean = () => false, maxTicks = 500): Promise<void> {
+/**
+ * Tick the microtask queue until `predicate` holds, or `maxTicks` elapse. The predicate is read
+ * for truthiness, so an optional-chained probe that can yield `undefined` is a legal predicate.
+ */
+export async function settle(predicate: () => boolean | undefined = () => false, maxTicks = 500): Promise<void> {
   for (let i = 0; i < maxTicks && !predicate(); i++) {
     await Promise.resolve();
   }

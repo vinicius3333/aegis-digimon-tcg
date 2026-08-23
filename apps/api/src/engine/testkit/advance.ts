@@ -115,6 +115,18 @@ export function advance(engine: GameEngine) {
         await internals.primitives.trashDigivolutionCards(hostPermanentId, instanceIds, { byEffectSeat });
         await internals.recomputeContinuousEffects();
       },
+      /**
+       * Open the resolution-source window a real effect resolution runs inside, so
+       * opponent-scoped and source-kind-qualified restrictions see the same context they
+       * would mid-resolution. Pair every call with `leaveEffectResolution`.
+       */
+      enterEffectResolution(seat: Seat, sourceKinds?: string[]): void {
+        internals.primitives.enterEffectResolution?.(seat, sourceKinds);
+      },
+      /** Close the window opened by `enterEffectResolution`. */
+      leaveEffectResolution(): void {
+        internals.primitives.leaveEffectResolution?.();
+      },
       /** Effect-driven deletion. Returns how many permanents were actually removed. */
       async deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number> {
         await internals.recomputeContinuousEffects();

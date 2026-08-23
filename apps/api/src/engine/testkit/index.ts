@@ -21,3 +21,4 @@ export {
 } from "./harness.js";
 export { observe } from "./observe.js";
 export { advance } from "./advance.js";
+export { irNode, type IrNode } from "./irNode.js";
