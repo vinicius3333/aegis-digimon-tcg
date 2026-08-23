@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
               count: 1,
@@ -91,7 +92,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      traits: ["Aqua"],
+      traitSubstrings: ["Aqua"],
       cost: 3,
       isAlternate: true,
     },

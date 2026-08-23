@@ -79,6 +79,32 @@
       "isAlternate": true
     }
   ],
+  "BT24-074": [
+    {
+      "level": 4,
+      "traitSubstrings": [
+        "Aqua"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": [
+        "Sea Animal"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": [
+        "TS"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
   "BT25-045": [
     {
       "level": 2,

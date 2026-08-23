@@ -21,6 +21,7 @@ describe("BT24-074 SkullSeadramon", () => {
       abortOnDecline: true,
       cost: {
         kind: "place",
+        targetIsPermanent: true,
         destination: "digivolutionStack",
         position: "bottom",
         host: "self",
@@ -28,20 +29,62 @@ describe("BT24-074 SkullSeadramon", () => {
     });
   });
 
-  it("trashes three sources but does not delete after a normal play", async () => {
+  it("public play pays 7, trashes up to three sources, and does not take the effect-play branch", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-074", as: "skullseadramon" }] },
-        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-001", "BT1-002", "BT1-003"] }] },
+        0: { hand: [{ card: "BT24-074", as: "skullseadramon" }] },
+        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-001", "BT1-002"] }] },
       },
       { autoSelectCards: true },
     );
+    const targetId = s.perm("target").permanentId;
+    s.state.memory = 8;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("skullseadramon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullseadramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").stack.length === 0);
 
-    expect(s.perm("target").stack).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(3);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(targetId);
+    expect(s.state.players[1]!.trash).toHaveLength(2);
+  });
+
+  it.each([
+    ["normal purple level-4 requirement at cost 4", "BT24-070", 4, undefined],
+    ["normal blue level-4 requirement at cost 4", "BT1-032", 4, undefined],
+    ["alternate Aqua-in-trait requirement at cost 3", "BT15-025", 3, 0],
+    ["alternate Sea Animal requirement at cost 3", "BT1-033", 3, 1],
+    ["alternate TS requirement without matching color at cost 3", "BT24-010", 3, 2],
+  ])("uses the %s", async (_label, baseCard, cost, alternateRequirementIndex) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [{ card: "BT24-074", as: "skullseadramon" }],
+        },
+        1: { battleArea: [{ card: "BT24-072", as: "target", under: ["BT1-001"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skullseadramon").instanceId,
+        ...(alternateRequirementIndex === undefined ? {} : { alternateRequirementIndex }),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("skullseadramon").instanceId);
+    await settle(() => s.perm("target").stack.length === 0);
+
+    expect(s.state.memory).toBe(6 - cost);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("skullseadramon").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("deletes the emptied Digimon when played by an effect", async () => {
@@ -75,28 +118,48 @@ describe("BT24-074 SkullSeadramon", () => {
       enteredByEffect: 0,
     });
 
-    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 
-  it("plays a level 4 Seadramon from trash on deletion", async () => {
+  it.each([
+    ["level 4 Seadramon", "BT15-025"],
+    ["level 4 TS Digimon without Seadramon in its name", "BT24-010"],
+  ])("Q5652: public deletion plays a %s from trash", async (_label, reviveCard) => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT24-074", as: "skullseadramon" }],
-          trash: [{ card: "BT15-025", as: "seadramon" }],
+          trash: [{ card: reviveCard, as: "revive" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("skullseadramon"));
+    await advance(s.engine).verb.deletePermanent([s.perm("skullseadramon").permanentId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("seadramon").instanceId,
+        (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
       ),
     );
+  });
+
+  it("Q5652: does not play a near-matching level 4 Sea Beast", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-074", as: "skullseadramon" }],
+          trash: [{ card: "BT1-034", as: "seaBeast" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("skullseadramon").permanentId], "byEffect");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("seaBeast").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("inherited attack places another Digimon at the bottom to unsuspend its host", async () => {
@@ -104,20 +167,29 @@ describe("BT24-074 SkullSeadramon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT24-075", as: "host", under: ["BT24-074"], suspended: true },
+            { card: "BT1-080", as: "host", under: ["BT24-074"] },
             { card: "BT1-009", as: "cost" },
           ],
         },
+        1: { security: ["BT1-001", "BT1-002"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const costPermanentId = s.perm("cost").permanentId;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costPermanentId));
+    await settle(() => !s.engine.combat.isAttacking);
 
-    expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.perm("host").stack.at(-1)?.instanceId).toBe(s.inst("cost").instanceId);
+    expect(s.perm("host").stack[0]?.instanceId).toBe(s.inst("cost").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(costPermanentId);
+    expect(s.perm("host").isSuspended).toBe(false);
   });
 });
