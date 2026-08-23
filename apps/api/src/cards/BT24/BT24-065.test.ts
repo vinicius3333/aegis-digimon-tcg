@@ -12,7 +12,10 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
     expect(play).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand", "digivolutionCards"],
-      target: { source: "thisDigimon" },
+      target: {
+        source: "thisDigimon",
+        filter: { nameOrTrait: [{ tokens: ["Diaboromon"], match: "nameExact" }] },
+      },
     });
   });
 
@@ -22,6 +25,57 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("xAntibody"), "Overclock")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("xAntibody"), "Blocker")).toBe(true);
+  });
+
+  it("uses Overclock by deleting another Unidentified Digimon and attacks without suspending", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: ["BT1-001"],
+          deck: ["BT1-001", "BT1-002"],
+          battleArea: [
+            { card: "BT24-065", as: "xAntibody" },
+            { card: "BT17-059", as: "fodder" },
+          ],
+        },
+        1: { hand: ["BT1-001"], deck: ["BT1-001", "BT1-002"], security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const fodderId = s.perm("fodder").permanentId;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen, 500);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === fodderId)).toBe(false);
+    expect(s.perm("xAntibody").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+  });
+
+  it("uses the normal black level-5 evolution route for cost 5", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-064", as: "base" }],
+        hand: [{ card: "BT24-065", as: "xAntibody" }],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("xAntibody").instanceId);
+
+    expect(s.state.memory).toBe(1);
   });
 
   it("digivolves from exact Diaboromon for cost 2, repeats De-Digivolve, then deletes every highest cost", async () => {
@@ -60,7 +114,7 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highestId));
 
     expect(s.state.memory).toBe(3);
-    expect(s.perm("peeled").topCard.cardId).toBe("BT24-046");
+    expect(s.perm("peeled").topCard.cardId).toBe("BT24-050");
   });
 
   it("Q5645: simultaneous departures play only one exact Diaboromon and do not prevent leaving", async () => {
