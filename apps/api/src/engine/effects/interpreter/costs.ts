@@ -4,7 +4,7 @@ import { MEMORY_MIN } from "../../MemoryGauge.js";
 import type { EffectContext } from "../EffectContext.js";
 import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
-import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "./targeting/loose.js";
+import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
 import { CardKind, getCardDefinition, isTamer } from "@aegis/shared";
 import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
@@ -725,7 +725,7 @@ export async function payCost(
         // NOT Infinity (a finite pool is never >= Infinity, which made every "all"-shaped
         // cost unpayable; engine-audit finding 6). An empty pool is unpayable outright
         // (n <= 0), matching the isSelfRef branch above.
-        const zones = trashStackZone === undefined ? ["digivolutionCards" as const] : [trashStackZone];
+        const zones = trashStackZone === undefined ? ["digivolutionCards" as const] : zoneList(trashStackZone);
         let candidates = candidateLooseInstances(ctx, cost.target, zones);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
@@ -900,6 +900,9 @@ export async function payCost(
               destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
             })) ?? chosen;
         }
+        // A hand card "returned" to hand moves nowhere, so such a cost is unpayable rather
+        // than a silent deck return.
+        if (cost.to === "hand") return false;
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
@@ -966,27 +969,6 @@ export async function payCost(
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
-        if (out) out.paidCount = chosen.length;
-        return true;
-      }
-      if (cost.target.filter.zone === "hand") {
-        const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
-        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
-        if (n <= 0 || candidates.length < n) return false;
-        let chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
-        if (chosen.length < n) return false;
-        if (cost.orderReturnedCards === true && chosen.length > 1) {
-          chosen =
-            (await ctx.ask.orderCards?.(ctx, {
-              candidates: chosen,
-              visibleCards: candidates
-                .filter((candidate) => chosen.includes(candidate.instanceId))
-                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
-              destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
-            })) ?? chosen;
-        }
-        if (cost.to === "hand") return false;
-        await ctx.fx.returnToDeck(chosen, { toTop: cost.to === "deckTop" });
         if (out) out.paidCount = chosen.length;
         return true;
       }

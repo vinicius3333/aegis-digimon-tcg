@@ -116,7 +116,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
         filter: { ...(action.filter ?? { kind: ["Digimon"] }), controller: "opponent" },
         count: "all",
       } as Target);
-      const duration = toDuration(action.duration);
+      const duration = toDuration(action.duration ?? "untilOpponentTurnEnd");
       for (const permanent of candidates) {
         // Anchor the watcher to its OWN permanent: `fireSubTrigger(event)` runs every watcher of
         // that event (it passes no sourcePermanentId), so without this gate one Digimon suspending
@@ -124,7 +124,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
         // subject to BE the watched permanent.
         const anchorId = permanent.permanentId;
         ctx.fx.subscribeSubTrigger({
-          event: SUBTRIGGER_EVENT_MAP[action.event] ?? "whenSuspended",
+          event: (action.event === undefined ? undefined : SUBTRIGGER_EVENT_MAP[action.event]) ?? "whenSuspended",
           sourcePermanentId: anchorId,
           once: false,
           description: `GrantAura from ${ctx.source.cardId}`,
@@ -149,7 +149,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             return subjectId === undefined || subjectId === anchorId;
           },
           run: async (subCtx) => {
-            for (const auraAction of action.actions) {
+            for (const auraAction of action.actions ?? []) {
               await runAction(subCtx, auraAction as Action);
             }
           },

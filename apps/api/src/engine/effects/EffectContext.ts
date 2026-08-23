@@ -456,7 +456,11 @@ export interface GameAccess {
   player(seat: Seat): PlayerState;
   opponentOf(seat: Seat): Seat;
   permanentById(permanentId: string): Permanent | undefined;
-  definitionOf(card: CardInstance): CardDefinition;
+  /**
+   * Only `cardId` is read, so a bare `{ cardId }` — a loose-card candidate, a recorded trigger
+   * subject — is a legal argument without materializing a whole {@link CardInstance}.
+   */
+  definitionOf(card: Pick<CardInstance, "cardId">): CardDefinition;
   /**
    * A permanent's EFFECTIVE link limit: base 1 plus every
    * active `<Link +N>` grant. Server-authoritative; `runLink` reads it to cap link cards.

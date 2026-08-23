@@ -168,7 +168,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     // explicit side must not be clobbered back to the kind's default.
     case "youHave": {
       if (cond.filter === undefined) return false;
-      const { countMax, ...matchingFilter } = cond.filter as Filter & { countMax?: number };
+      const { countMax, ...matchingFilter } = cond.filter;
       const count = countMatching(ctx, { controller: "mine", ...matchingFilter });
       if (countMax !== undefined) return count <= countMax;
       return count >= (cond.countMin ?? cond.count ?? 1);

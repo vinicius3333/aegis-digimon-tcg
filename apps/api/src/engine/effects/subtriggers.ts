@@ -124,6 +124,12 @@ export interface ReplacementSubscriptionBase {
   id: number;
   event: ReplacementEventName;
   sourcePermanentId?: string;
+  /**
+   * Anchor for a hand/trash-resident source with no live Permanent, mirroring
+   * {@link SubTriggerSubscription.sourceInstanceId}. When both are present, the permanent anchors
+   * the subscription lifecycle while the instance preserves the printed source card.
+   */
+  sourceInstanceId?: string;
   /** Stable key used to consume a persistent replacement at most once in a turn. */
   oncePerTurnKey?: string;
   /**
@@ -149,6 +155,12 @@ export interface ReplacementSubscriptionBase {
 export interface ReplacementSubscriptionReduceCost extends ReplacementSubscriptionBase {
   mode: "reduceCost";
   amount?: number;
+  /**
+   * Reduction computed from the card being digivolved INTO, for the forms that scale with a
+   * property of the destination (e.g. "-1 for each of its colors"). Takes precedence over
+   * `amount` whenever the destination is known.
+   */
+  amountForInto?: (def: CardDefinition) => number;
   /**
    * For mode "reduceCost" + event "wouldDigivolve": predicate gating the reduction to only
    * when the card being digivolved INTO satisfies this check. Absent ⇒ applies to all targets.

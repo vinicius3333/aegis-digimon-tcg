@@ -6,7 +6,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import type { CardColor } from "@aegis/shared";
 import { seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
-import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "../targeting/loose.js";
 import {
   candidatePermanents,
   raiseDeletionDpCap,
@@ -18,6 +18,7 @@ import {
 } from "../targeting/permanents.js";
 import type { Action, Target } from "@aegis/shared";
 import { definitionMatches } from "../matching/definition.js";
+import { COLOR_MAP } from "../maps.js";
 
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -276,7 +277,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const source = ctx.source.permanent();
       if (source === undefined) return false;
       const hasColor = (color: "Red" | "Black") =>
-        source.stack.some((card) => ctx.game.definitionOf(card).colors.includes(color));
+        source.stack.some((card) => ctx.game.definitionOf(card).colors.includes(COLOR_MAP[color]));
       const filters = [
         ...(hasColor("Red") ? [action.redFilter] : []),
         ...(hasColor("Black") ? [action.blackFilter] : []),
@@ -608,7 +609,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // silently no-opping the whole effect. Route through the same loose-instance resolution
       // the "Trash" case already uses for its hand-zone branch.
       const zone = returnTarget.filter.zone;
-      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? [zone] : undefined);
+      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? zoneList(zone) : undefined);
       if (looseZones !== undefined) {
         const candidates = candidateLooseInstances(ctx, returnTarget, looseZones);
         const visibleZoneIds =
@@ -690,7 +691,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "ReturnToEggDeck": {
-      const zones = action.from ?? (action.target.filter.zone !== undefined ? [action.target.filter.zone] : ["trash"]);
+      const zones = action.from ?? (action.target.filter.zone !== undefined ? zoneList(action.target.filter.zone) : ["trash"]);
       const candidates = candidateLooseInstances(ctx, action.target, zones);
       const count = action.target.count === "all" ? candidates.length : (action.target.count ?? 1);
       if (count <= 0 || candidates.length < count || ctx.fx.returnToEggDeck === undefined) return false;

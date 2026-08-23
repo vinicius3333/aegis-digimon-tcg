@@ -128,6 +128,10 @@ export async function runSecurityManipulation(
         return;
       }
       const [top] = security.splice(0, 1);
+      if (top === undefined) {
+        ctx.lastEffectActed = false;
+        return;
+      }
       security.push(top);
       ctx.lastEffectActed = true;
       return;

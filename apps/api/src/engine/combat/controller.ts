@@ -38,6 +38,13 @@ import { recordDigimonAttack } from "../turnActivity.js";
  */
 
 /** A live block window awaiting the defending seat's declareBlock / declineBlock. */
+/** Battle completion payload, published once the outer attack reaches cleanup. */
+interface CompletedCombat {
+  seat: Seat;
+  attackerPermanentId: string;
+  deletedPermanentIds: string[];
+}
+
 interface OpenBlockWindow {
   attackerPermanentId: string;
   defendingSeat: Seat;
@@ -299,7 +306,19 @@ export class CombatController {
   /** Active §11-3 Counter Timing window. */
   private counterWindow: OpenCounterWindow | undefined;
   /** Battle completion payload held until the outer attack reaches cleanup. */
-  private completedCombat: { seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] } | undefined;
+  private completedCombat: CompletedCombat | undefined;
+
+  /**
+   * Take the held battle-completion payload and clear it. Reading the field directly from
+   * `resolveAttack` is not enough: that method clears the field on entry, so the compiler's
+   * control-flow analysis narrows every later read to `undefined` and cannot see that the
+   * intervening battle resolution repopulated it.
+   */
+  private takeCompletedCombat(): CompletedCombat | undefined {
+    const completed = this.completedCombat;
+    this.completedCombat = undefined;
+    return completed;
+  }
   /**
    * [Counter] effects activated so far THIS attack (§11-3-2 caps it at 1). Reset by
    * `cleanup` at the end of every attack.
@@ -694,8 +713,7 @@ export class CombatController {
       });
     } finally {
       this.cleanup();
-      const completedCombat = this.completedCombat;
-      this.completedCombat = undefined;
+      const completedCombat = this.takeCompletedCombat();
       if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
     }
   }

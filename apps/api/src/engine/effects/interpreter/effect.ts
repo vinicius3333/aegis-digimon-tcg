@@ -576,7 +576,8 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
-    const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
+    const costPayable =
+      leadingAction.cost === undefined || typeof leadingAction.cost === "number" || canPayCost(ctx, leadingAction.cost);
     return actionPossible && conditionMet && costPayable;
   }
   const gatedActions = relevantActions.filter(isGated);
@@ -586,7 +587,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     const actionPossible = intrinsicPossible(action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
-    const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
+    const costPayable = action.cost === undefined || typeof action.cost === "number" || canPayCost(ctx, action.cost);
     return actionPossible && conditionMet && costPayable;
   });
 }

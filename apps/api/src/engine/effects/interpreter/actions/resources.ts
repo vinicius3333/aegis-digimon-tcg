@@ -5,6 +5,7 @@ import { type ActionScope, runAction } from "../dispatch.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching } from "../scaling.js";
+import { toDuration } from "../duration.js";
 import { evaluateCondition } from "../conditions.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
@@ -70,7 +71,7 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         ctx.fx.gainMemoryForSeat(ctx.source.ownerSeat, -paid);
         const targets = await resolvePermanentTargets(ctx, action.target);
         for (const permanentId of targets) {
-          ctx.fx.modifyDP(permanentId, paid * action.amount, action.duration);
+          ctx.fx.modifyDP(permanentId, paid * action.amount, toDuration(action.duration));
         }
       }
       return false;

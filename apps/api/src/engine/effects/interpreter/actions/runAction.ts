@@ -7,7 +7,7 @@ import { describeAction } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
-import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.js";
+import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
@@ -165,7 +165,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // never ask the player to confirm a move that has no selectable card or permanent.
     if (action.kind === "Return" && !action.target.isSelf && action.target.filter.isSelfRef !== true && !(action.from ?? []).includes("digivolutionCards")) {
       const zone = action.target.filter.zone;
-      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? [zone] : undefined);
+      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? zoneList(zone) : undefined);
       // Only preflight loose-zone recovery here. A battle-area Return may have an
       // activation cost that changes target legality (BT16-048 suspends the Digimon
       // whose DP becomes the bounce ceiling), so its candidates must be resolved
@@ -230,6 +230,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "SubTrigger" &&
     action.kind !== "CostGatedBlock" &&
     action.kind !== "PlayPerLevel" &&
+    // `DigivolveViaPlacement.cost` is a memory amount paid by the digivolve itself, not an
+    // activation Cost, so it must not enter the generic cost-payment path.
+    action.kind !== "DigivolveViaPlacement" &&
     action.cost
   ) {
     if (action.cost.optional) {
@@ -261,7 +264,8 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "Replacement" &&
     action.kind !== "CostModifier" &&
     action.kind !== "SubTrigger" &&
-    action.kind !== "PlayPerLevel"
+    action.kind !== "PlayPerLevel" &&
+    action.kind !== "DigivolveViaPlacement"
   ) {
     const extraCosts = [
       ...((action.additionalCosts ?? []) as Cost[]),
@@ -277,7 +281,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // this case, so the paid count is the sole scale factor — overriding the residual-stack read
   // scaleFactor would otherwise return for a `digivolutionCards` unit.
   const digiBurstScale =
-    action.kind !== "RawUnparsed" && action.cost?.kind === "trash" && action.cost.target?.upTo === true
+    action.kind !== "RawUnparsed" &&
+    action.kind !== "DigivolveViaPlacement" &&
+    action.cost?.kind === "trash" &&
+    action.cost.target?.upTo === true
       ? costPayment.paidCount
       : undefined;
   // The upTo-Digi-Burst paid count and a `scaling` ("for each") hint are two

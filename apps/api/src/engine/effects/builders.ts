@@ -322,7 +322,12 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
           ...changeOpts,
           continuous: true,
         }),
-      modifyDP: (permanentId, delta, duration, modifyOpts) =>
+      modifyDP: (
+        permanentId: Parameters<EffectContext["fx"]["modifyDP"]>[0],
+        delta: Parameters<EffectContext["fx"]["modifyDP"]>[1],
+        duration: Parameters<EffectContext["fx"]["modifyDP"]>[2],
+        modifyOpts: Parameters<EffectContext["fx"]["modifyDP"]>[3],
+      ) =>
         ctx.fx.modifyDP(permanentId, delta, duration, {
           ...modifyOpts,
           continuous: true,
@@ -334,7 +339,12 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
             ? { oncePerTurnKey: replacement.oncePerTurnKey ?? autoKey }
             : {}),
         }),
-      restrict: (permanentId, restriction, duration, restrictOpts) =>
+      restrict: (
+        permanentId: Parameters<EffectContext["fx"]["restrict"]>[0],
+        restriction: Parameters<EffectContext["fx"]["restrict"]>[1],
+        duration: Parameters<EffectContext["fx"]["restrict"]>[2],
+        restrictOpts: Parameters<EffectContext["fx"]["restrict"]>[3],
+      ) =>
         ctx.fx.restrict(permanentId, restriction, duration, {
           ...restrictOpts,
           continuous: true,
@@ -403,7 +413,12 @@ export const securityStatic = (opts: BuilderOptions): Effect =>
           ...ctx,
           fx: {
             ...ctx.fx,
-            modifyDP: (permanentId, delta, duration, modifyOpts) =>
+            modifyDP: (
+        permanentId: Parameters<EffectContext["fx"]["modifyDP"]>[0],
+        delta: Parameters<EffectContext["fx"]["modifyDP"]>[1],
+        duration: Parameters<EffectContext["fx"]["modifyDP"]>[2],
+        modifyOpts: Parameters<EffectContext["fx"]["modifyDP"]>[3],
+      ) =>
               ctx.fx.modifyDP(permanentId, delta, duration, {
                 ...modifyOpts,
                 continuous: true,

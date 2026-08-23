@@ -11,6 +11,8 @@ import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
+import { KIND_MAP } from "../maps.js";
+import { findLooseCandidateByInstance } from "../targeting/loose.js";
 
 export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefined> = {
   whenAttacking: "whenAttacking",
@@ -287,7 +289,7 @@ export async function runSubTrigger(
           const deletedCardId = subCtx.trigger.deletedTopCardId;
           if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
           const definition = getCardDefinition(deletedCardId);
-          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(kind));
+          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(KIND_MAP[kind]));
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
@@ -767,7 +769,7 @@ export async function runSubTrigger(
             : `${ctx.source.instanceId}/${action.oncePerTurnKey}`,
         }
       : {}),
-    description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : action.raw,
+    description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : (action.raw ?? event),
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.
       // The freshly rebound context carries the event payload but not the installing effect's

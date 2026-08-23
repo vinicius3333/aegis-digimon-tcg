@@ -157,6 +157,15 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
  * card A3 can prove the load-bearing filter-resolution path discriminates (e.g. BT25-089's
  * `hasLinkRequirement` ＜Link＞-capability gate over hand/digivolution link material).
  */
+/**
+ * Normalize a filter's `zone` into a list. A filter may name one zone or pool several
+ * ("from your trash or your Digimon's digivolution cards" — EX9-057).
+ */
+export function zoneList(zone: ZoneRef | ZoneRef[] | undefined): ZoneRef[] {
+  if (zone === undefined) return [];
+  return Array.isArray(zone) ? zone : [zone];
+}
+
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
   if (target.fromSelectionRef !== undefined) {
     const boundInstanceId = ctx.selections?.get(target.fromSelectionRef);
@@ -169,7 +178,7 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
       )
     )
       return [];
-    const def = ctx.game.definitionOf({ cardId: bound.cardId } as never);
+    const def = ctx.game.definitionOf({ cardId: bound.cardId });
     return definitionMatches(target.filter, def) ? [bound] : [];
   }
   // `orFilters`: a card qualifies if it matches the primary filter OR any alternative
