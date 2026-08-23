@@ -1263,6 +1263,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // CR 8-4-3-3: the app fusion procedure itself draws 1 card — unconditional, part of the
     // placement procedure (mirrors applyDigivolve step 6 / dnaDigivolveInto).
     await draw(seat, 1);
+    // The fusion result is now the permanent's live top card. Re-derive its printed
+    // continuous effects before opening the [When Digivolving] window, matching the
+    // ordinary digivolution path (BT24-077's printed Blocker is immediately active).
+    await engine.recomputeContinuousEffects?.();
     // CR 8-4-1 ("a player can digivolve 1 Digimon card with [App Fusion]..."), 8-4-2-3
     // ("effects that affect digivolution will also affect app fusion"), and 15-16-3's definition
     // of [When Digivolving] ("triggered ... when the action of digivolving into a card with that

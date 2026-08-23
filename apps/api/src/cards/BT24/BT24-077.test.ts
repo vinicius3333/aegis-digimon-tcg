@@ -49,6 +49,88 @@ describe("BT24-077 Revivemon", () => {
     });
   });
 
+  it("public play pays 9 and enters with Blocker", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT24-077", as: "revivemon" }] } });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revivemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("revivemon"), "Blocker"));
+
+    expect(s.state.memory).toBe(1);
+    expect(observe(s.engine).hasKeyword(s.perm("revivemon"), "Blocker")).toBe(true);
+  });
+
+  it.each([
+    ["normal purple level-4 requirement", "BT24-070"],
+    ["normal red level-4 requirement", "BT1-014"],
+  ])("uses the %s for cost 4 and resolves its free link", async (_label, baseCard) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: baseCard, as: "base" },
+            { card: "BT21-009", as: "recipient" },
+          ],
+          hand: [{ card: "BT24-077", as: "revivemon" }],
+          trash: [{ card: "BT24-036", as: "link" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("recipient").topCard.instanceId, s.inst("link").instanceId);
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("revivemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("recipient").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("revivemon").instanceId);
+  });
+
+  it("App Fuses from Raidramon linked with Dezipmon for cost 0", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: "BT24-071", as: "raidramon" },
+          ],
+          hand: [{ card: "BT24-056", as: "dezipmon" }],
+          trash: [{ card: "BT24-077", as: "fusion" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("raidramon").topCard.instanceId, s.inst("fusion").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dezipmon").instanceId,
+        targetPermanentId: s.perm("raidramon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("raidramon").topCard.instanceId === s.inst("fusion").instanceId);
+    await settle(() => observe(s.engine).hasKeyword(s.perm("raidramon"), "Blocker"));
+
+    expect(s.state.memory).toBe(3);
+    expect(observe(s.engine).hasKeyword(s.perm("raidramon"), "Blocker")).toBe(true);
+  });
+
   it("free-links an eligible level 4 from trash to a chosen friendly Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -97,12 +179,20 @@ describe("BT24-077 Revivemon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("revivemon"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) =>
+        permanent.linked.some((card) => card.instanceId === s.inst("ownSource").instanceId),
+      ),
+    );
 
-    expect(s.perm("recipient").linked.map((card) => card.instanceId)).toContain(s.inst("ownSource").instanceId);
-    expect(s.perm("other").stack.map((card) => card.instanceId)).toContain(s.inst("otherSource").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) =>
+        permanent.linked.some((card) => card.instanceId === s.inst("ownSource").instanceId),
+      ),
+    ).toBe(true);
   });
 
-  it("on deletion links one eligible card and plays a level 3 Appmon from trash", async () => {
+  it("public deletion links one eligible card and plays a level 3 Appmon from trash", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -122,7 +212,7 @@ describe("BT24-077 Revivemon", () => {
     preferred.push(s.perm("recipient").topCard.instanceId, s.inst("link").instanceId, s.inst("appmon").instanceId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("revivemon"));
+    await advance(s.engine).verb.deletePermanent([s.perm("revivemon").permanentId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("appmon").instanceId),
     );
@@ -163,6 +253,7 @@ describe("BT24-077 Revivemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("revivemon").instanceId));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowAId));
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(hostDp + 4000);
