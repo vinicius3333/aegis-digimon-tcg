@@ -40,8 +40,11 @@ export const compiled: CompiledCard = {
         {
           "kind": "GainMemory",
           "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "if you trashed a [Rock Dragon]/[Earth Dragon] card for this effect"
+          }
         }
       ]
     },

@@ -47,8 +47,11 @@ const compiled: CompiledCard = {
           "kind": "Draw",
           "controller": "mine",
           "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "if you placed a [Gammamon] card for this effect"
+          }
         }
       ]
     },

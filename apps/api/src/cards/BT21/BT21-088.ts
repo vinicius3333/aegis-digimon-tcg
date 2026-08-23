@@ -45,8 +45,10 @@ export const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          optional: true,
-          abortOnDecline: true,
+          // No `ifThisEffectActed` guard here: a place-cost Draw does not set that receipt, so
+          // the condition would suppress the memory outright. Declining the cost already aborts
+          // the whole effect through the Draw's `abortOnDecline`.
+          optional: false,
         },
       ],
     },
