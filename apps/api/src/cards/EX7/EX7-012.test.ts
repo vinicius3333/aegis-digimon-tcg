@@ -16,8 +16,8 @@ describe("EX7-012 Lavogaritamon", () => {
     const deletion = setupEngine({ 0: { battleArea: [{ card: "EX7-012", as: "lava" }] }, 1: { battleArea: [{ card: "BT1-009", dp: 6000 }] } });
     await deletion.ready();
     await advance(deletion.engine).fire(EffectTiming.OnPlay, deletion.perm("lava"));
-    await settle(() => deletion.state.players[1].battleArea.length === 0);
-    expect(deletion.state.players[1].battleArea).toHaveLength(0);
+    await settle(() => deletion.state.players[1]!.battleArea.length === 0);
+    expect(deletion.state.players[1]!.battleArea).toHaveLength(0);
 
     const gain = setupEngine({ 0: { battleArea: [{ card: "EX7-012", as: "lava" }] }, 1: { battleArea: [{ card: "BT1-009", dp: 7000 }] } });
     await gain.ready();

@@ -49,7 +49,7 @@ describe("BT21-086 Marcus Damon", () => {
             { card: "BT1-009", as: "ally" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 4000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -65,11 +65,11 @@ describe("BT21-086 Marcus Damon", () => {
       () =>
         observe(setup.engine).hasPierce(setup.perm("ally")) &&
         setup.perm("ally").currentDP === 6000 &&
-        setup.perm("opponent").currentDP === 0,
+        setup.perm("opponent").currentDP === 1000,
     );
 
     expect(observe(setup.engine).hasPierce(setup.perm("ally"))).toBe(true);
     expect(setup.perm("ally").currentDP).toBe(6000);
-    expect(setup.perm("opponent").currentDP).toBe(0);
+    expect(setup.perm("opponent").currentDP).toBe(1000);
   });
 });

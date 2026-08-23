@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -8,8 +9,8 @@ describe("ST21-12", () => {
     expect(effects.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
     const replacement = effects.find((effect) => effect.trigger === "YourTurn")?.actions[0];
     expect(replacement).toMatchObject({ kind: "Replacement", event: "wouldBePlayed" });
-    expect(replacement.actions[0]).toMatchObject({ kind: "Replacement", mode: "reduceCost", amount: 1 });
-    expect(replacement.actions[0].cost.actions?.[0] ?? replacement.actions[0].cost).toBeDefined();
+    expect(irNode(replacement).actions[0]).toMatchObject({ kind: "Replacement", mode: "reduceCost", amount: 1 });
+    expect(irNode(replacement).actions[0].cost.actions?.[0] ?? irNode(replacement).actions[0].cost).toBeDefined();
   });
   it("plays itself from security without cost", () => {
     expect((runtimeCompiledCard("ST21-12")?.effects ?? []).find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });

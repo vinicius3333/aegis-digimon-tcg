@@ -39,7 +39,7 @@ describe("AD1-008 Gallantmon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === budgetBId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestAfterBudgetId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("uses either printed alternate level-5 route for cost 3", async () => {

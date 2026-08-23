@@ -25,8 +25,8 @@ describe("BT11-078 Soulmon", () => {
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(s.perm("soulmon"), "Retaliation")).toBe(true);
-    expect(s.perm("soulmon").currentDP).toBe(printedDP.soulmon + 2000);
-    expect(s.perm("ally-retaliation").currentDP).toBe(printedDP["ally-retaliation"] + 2000);
+    expect(s.perm("soulmon").currentDP).toBe(printedDP.soulmon! + 2000);
+    expect(s.perm("ally-retaliation").currentDP).toBe(printedDP["ally-retaliation"]! + 2000);
     expect(s.perm("ally-plain").currentDP).toBe(printedDP["ally-plain"]);
     expect(s.perm("opponent-retaliation").currentDP).toBe(printedDP["opponent-retaliation"]);
   });

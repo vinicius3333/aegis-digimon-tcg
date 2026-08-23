@@ -177,10 +177,10 @@ describe("EX3-033 AeroVeedramon", () => {
       0: {
         battleArea: [
           { card: "EX3-031", as: "base" },
-          { card: "EX3-069", as: "existingTrial" },
         ],
         hand: [
           { card: "EX3-033", as: "aeroveedramon" },
+          { card: "EX3-069", as: "existingTrial" },
           { card: "EX3-069", as: "secondTrial" },
         ],
         deck: ["BT1-001"],
@@ -188,6 +188,7 @@ describe("EX3-033 AeroVeedramon", () => {
     });
     s.state.memory = 3;
     await s.ready();
+    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("existingTrial").instanceId);
 
     expect(
       s.engine.applyIntent(0, {

@@ -25,6 +25,7 @@ describe("BT16-022", () => {
   });
 
   it("trashes one opposing source, then gives Security Attack -1 to a source-less opponent", async () => {
+    const options = { autoSelectCards: true, preferInstanceIds: [] as string[] };
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT16-023", as: "host", under: ["BT16-022"] }] },
@@ -35,9 +36,10 @@ describe("BT16-022", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      options,
     );
     const stackedSourceId = s.perm("stacked").stack[0]!.instanceId;
+    options.preferInstanceIds.push(s.perm("sourceLess").permanentId);
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
 

@@ -25,6 +25,6 @@ describe("EX11-054 Owen Dreadnought", () => {
     await settle(() => s.perm("owen").isSuspended === true, 600);
 
     expect(s.perm("owen").isSuspended).toBe(true);
-    expect(s.perm("progress").currentDP).toBe(7000);
+    expect(s.perm("progress").currentDP).toBe(10000);
   });
 });

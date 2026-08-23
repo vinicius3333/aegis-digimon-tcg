@@ -101,6 +101,20 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
 function countColors(ctx: EffectContext, filter: Filter): number {
   const seats = seatsForController(ctx, filter);
   const colors = new Set<CardColor>();
+  const zones = Array.isArray(filter.zone) ? filter.zone : filter.zone === undefined ? [] : [filter.zone];
+  // "for each different color in your opponent's trash" counts cards, not battle-area
+  // permanents. This is the form used by BT18-085 and similar effects; routing every
+  // color scale through permanent matching silently returned zero for a loose-card zone.
+  if (zones.includes("trash")) {
+    for (const seat of seats) {
+      for (const card of ctx.game.player(seat).trash) {
+        const definition = ctx.game.definitionOf(card);
+        if (!definitionMatches(filter, definition)) continue;
+        for (const color of definition.colors) colors.add(color);
+      }
+    }
+    return colors.size;
+  }
   for (const seat of seats) {
     for (const permanent of ctx.game.player(seat).battleArea) {
       if (!permanentMatchesFilter(ctx, permanent, filter, ctx.source)) continue;

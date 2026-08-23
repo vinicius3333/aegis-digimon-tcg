@@ -133,7 +133,7 @@ describe("EX4-049 CresGarurumon", () => {
       ["BASE", definition("BASE", 3)],
       ["GREYMON", { ...definition("GREYMON", 8), nameEn: "WarGreymon", level: 6 }],
     ]);
-    const calls: unknown[] = [];
+    const calls: unknown[][] = [];
     const game = {
       state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
       player: (seat: Seat) => players[seat] as never,

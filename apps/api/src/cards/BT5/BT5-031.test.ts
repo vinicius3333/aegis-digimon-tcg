@@ -33,7 +33,7 @@ describe("BT5-031 MetalGarurumon", () => {
 
   it("does not bottom-deck when the only Garurumon source is KendoGarurumon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-029", as: "base", under: ["BT4-027"] }], hand: [{ card: "BT5-031", as: "evolving" }] },
+      0: { battleArea: [{ card: "BT1-038", as: "base", under: ["BT4-027"] }], hand: [{ card: "BT5-031", as: "evolving" }] },
       1: { battleArea: [{ card: "AD1-002", as: "target" }] },
     }, { autoSelectCards: true });
     s.state.memory = 3;

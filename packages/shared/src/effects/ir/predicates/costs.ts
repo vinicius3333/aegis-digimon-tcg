@@ -39,6 +39,8 @@ export interface Cost {
   costs?: Cost[];
   /** Host permanent selected before resolving a stack-card play cost (BT19-102). */
   hostTarget?: Target;
+  /** The played stack card must share the selected host's current top-card level (EX5-065). */
+  sameLevelAsHost?: boolean;
   /** Whose stack a specialized cost draws from. */
   controller?: Controller;
   /** Cards required by a specialized fixed-card cost. */
@@ -91,7 +93,7 @@ export interface Cost {
    * `"self"` places under the source; `"target"` under the `underFilter` host (legacy string
    * form); the object form lets the player pick a matching host (BT21-071).
    */
-  host?: "self" | "target" | { filter: Filter; count: number };
+  host?: "self" | "target" | { filter: Filter; count: number; orFilters?: Filter[] };
   /** Only meaningful for `destination:"security"`; digivolution cards are always face-down. */
   faceDown?: boolean;
   /** The place cost relocates a battle-area permanent rather than a loose card. */

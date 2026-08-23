@@ -2,6 +2,7 @@
 
 import type { Filter, Target } from "../filters/filter.js";
 import type { Condition } from "../predicates/conditions.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
 
@@ -94,7 +95,15 @@ export interface ReplacementAction extends ActionBase {
     filter: Filter;
     from: ("trash" | "digivolutionCards")[];
   };
-  raw: string;
+  /**
+   * Scaling applied to a `reduceCost`/`increaseCost` amount, when the compiler emits it under
+   * this name rather than the generic `scaling`. `scaling` wins when both are present.
+   */
+  reduceCostScaling?: Scaling;
+  /** Stable key synthesized for a containing `[Once Per Turn]` continuous watcher. */
+  oncePerTurnKey?: string;
+  /** Original prose, for diagnostics and unsupported routing. Absent on hand-authored IR. */
+  raw?: string;
 }
 
 /**

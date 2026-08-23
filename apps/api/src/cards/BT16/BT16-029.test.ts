@@ -22,7 +22,7 @@ describe("BT16-029", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "YourTurn",
       isInherited: true,
-      actions: [{ kind: "ModifySecurityDP", amount: -3000, duration: "permanent" }],
+      actions: [{ kind: "ModifySecurityDP", controller: "opponent", amount: -3000, duration: "forTheTurn" }],
     });
   });
 

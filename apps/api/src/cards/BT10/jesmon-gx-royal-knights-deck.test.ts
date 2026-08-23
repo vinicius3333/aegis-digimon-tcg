@@ -88,13 +88,12 @@ describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
         !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
-    expect(s.state.memory).toBe(0);
+    // Digivolving costs 5, Sistermon Ciel gains 1, then ST12-08 pays 3 to play Blanc.
+    expect(s.state.memory).toBe(-3);
     // Jesmon GX is 15,000 DP and Sistermon Ciel contributes +2,000 DP.
     expect(s.perm("jesmon").currentDP).toBeGreaterThanOrEqual(17_000);
-    expect(s.state.phase).toBe(Phase.Main);
-    expect(mainPhase.isOpen).toBe(true);
-
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    expect(s.state.phase).toBe(Phase.End);
+    expect(mainPhase.isOpen).toBe(false);
     await turn;
   });
 });

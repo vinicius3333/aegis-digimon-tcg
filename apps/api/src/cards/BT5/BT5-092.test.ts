@@ -20,13 +20,13 @@ describe("BT5-092 Nokia Shiramine", () => {
   it("suspends to reduce a qualifying Greymon digivolution cost by 1", async () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "BT5-092", as: "nokia" }, { card: "BT5-007", as: "base" }],
-      hand: [{ card: "BT5-010", as: "greymon" }],
+      hand: [{ card: "BT1-015", as: "greymon" }],
     } }, { autoAcceptOptional: true });
     s.state.memory = 2;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("greymon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("nokia").isSuspended && s.perm("base").topCard.cardId === "BT5-010");
+    await settle(() => s.perm("nokia").isSuspended && s.perm("base").topCard.cardId === "BT1-015");
 
     expect(s.state.memory).toBe(1);
   });

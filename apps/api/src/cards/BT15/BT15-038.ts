@@ -111,6 +111,7 @@ const module: EffectModule = {
               sourcePermanentId: self.permanentId,
               once: false,
               oncePerTurnKey: `${cardId}/security-removed-recovery`,
+              description: `${cardId} ＜Recovery +1＞ on security removal`,
               matches: (subCtx) =>
                 subCtx.trigger.removedFromSecuritySeat === source.ownerSeat &&
                 subCtx.game.player(source.ownerSeat).security.length <= 3,

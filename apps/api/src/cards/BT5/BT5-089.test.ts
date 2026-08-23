@@ -26,7 +26,7 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
             { card: "BT5-089", as: "tamer" },
             { card: "BT5-052", as: "attacker" },
           ],
-          deck: [{ card: "BT5-055", as: "level6" }, "BT1-010", "BT1-011"],
+          deck: [{ card: "BT5-055", as: "level6" }, "BT1-010", "BT1-011", { card: "BT1-012", as: "draw" }],
         },
         1: { security: ["BT1-012"] },
       },
@@ -44,8 +44,9 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("level6").instanceId);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.hand).toHaveLength(1); // CR 7-1-4-1 digivolution bonus draw
+    expect(s.state.players[0]!.hand[0]?.instanceId).toBe(s.inst("draw").instanceId);
   });
 
   it("reveals all three card identities while choosing the attack-time level 6", async () => {
@@ -60,6 +61,7 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
             { card: "BT5-055", as: "levelSix" },
             { card: "BT1-010", as: "otherOne" },
             { card: "BT1-011", as: "otherTwo" },
+            { card: "BT1-012", as: "draw" },
           ],
         },
         1: { security: ["BT1-012"] },
@@ -113,11 +115,11 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
       () =>
         s.state.pendingDecision === undefined &&
         s.perm("attacker").topCard.instanceId === s.inst("levelSix").instanceId &&
-        s.state.players[0]!.deck.length === 1,
+        s.state.players[0]!.deck.length === 2,
     );
 
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder.slice(0, 1));
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(bottomOrder[1]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("draw").instanceId);
   });
 
   it("Q1363 orders the remaining cards before the level 6 When Digivolving effect", async () => {
@@ -132,6 +134,7 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
             { card: "BT5-058", as: "argomon" },
             { card: "BT1-010", as: "otherOne" },
             { card: "BT1-011", as: "otherTwo" },
+            { card: "BT1-012", as: "draw" },
           ],
         },
         1: {
@@ -172,8 +175,8 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
     ).toEqual({ ok: true });
 
     await settle(() => s.perm("opponentTamer").isSuspended);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([order[0]]);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(order[1]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(order);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("draw").instanceId);
     expect(s.perm("attacker").topCard.cardId).toBe("BT5-058");
   });
 

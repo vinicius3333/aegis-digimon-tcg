@@ -28,7 +28,7 @@ describe("EX9-001", () => {
     expect(s.perm("attacker").topCard?.cardId).toBe("EX9-053");
   });
 
-  it("does not digivolve when only 1 memory is available for the reduced 2-memory cost", async () => {
+  it("digivolves when the reduced cost crosses memory to the opponent's side", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX9-050", as: "attacker", under: ["EX9-001", { card: "BT1-009", faceUp: false }] }], hand: ["EX9-053"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -40,7 +40,7 @@ describe("EX9-001", () => {
       attackerPermanentId: s.perm("attacker").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX9-053"));
-    expect(s.perm("attacker").topCard?.cardId).toBe("EX9-050");
+    await settle(() => s.perm("attacker").topCard?.cardId === "EX9-053");
+    expect(s.perm("attacker").topCard?.cardId).toBe("EX9-053");
   });
 });

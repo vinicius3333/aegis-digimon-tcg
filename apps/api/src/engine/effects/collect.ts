@@ -93,7 +93,13 @@ export function collectGrantedCustomEffects(
  */
 export function collectConferredEffects(
   timing: EffectTiming,
-  conferrals: readonly { targetPermanentId: string; stackInstanceId: string; trigger?: string }[],
+  conferrals: readonly {
+    targetPermanentId: string;
+    stackInstanceId: string;
+    trigger?: string;
+    /** Collect only the stack card's INHERITED effects, not its own. */
+    inheritedOnly?: boolean;
+  }[],
   instanceById: (id: string) => CardSource | undefined,
   makeContext: (source: CardSource, effect: Effect, conferredToPermanentId: string) => EffectContext,
   tracker: UseTracker,

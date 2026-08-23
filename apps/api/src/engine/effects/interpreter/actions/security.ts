@@ -12,7 +12,8 @@ import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
-import type { Action, Filter, Seat, Target, ZoneRef } from "@aegis/shared";
+import { extractCardAt, insertCard } from "../../../state/access.js";
+import { Zone, type Action, type Filter, type Seat, type Target, type ZoneRef } from "@aegis/shared";
 
 /** ST23-05: optional trash of a most-security player's top, then ＜Recovery +N＞. */
 export async function runRecoverByTrashingMostSecurity(
@@ -113,10 +114,10 @@ export async function runSecurityManipulation(
       if (selected.length === 0) return;
       const selectedIndex = security.findIndex((card) => card.instanceId === selected[0]);
       if (selectedIndex < 0) return;
-      const [toDeck] = security.splice(selectedIndex, 1);
+      const toDeck = extractCardAt(ctx.game.player(seat), Zone.Security, selectedIndex);
       if (toDeck === undefined) return;
       toDeck.faceUp = false;
-      ctx.game.player(seat).deck.unshift(toDeck);
+      insertCard(ctx.game.player(seat), Zone.Deck, toDeck, "top");
       ctx.fx.shuffleSecurity(seat);
       ctx.lastEffectActed = true;
       return;
@@ -127,8 +128,12 @@ export async function runSecurityManipulation(
         ctx.lastEffectActed = false;
         return;
       }
-      const [top] = security.splice(0, 1);
-      security.push(top);
+      const top = extractCardAt(ctx.game.player(seat), Zone.Security, 0);
+      if (top === undefined) {
+        ctx.lastEffectActed = false;
+        return;
+      }
+      insertCard(ctx.game.player(seat), Zone.Security, top, "bottom");
       ctx.lastEffectActed = true;
       return;
     }

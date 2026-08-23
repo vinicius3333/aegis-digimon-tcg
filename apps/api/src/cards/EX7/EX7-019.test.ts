@@ -17,7 +17,7 @@ describe("EX7-019 Sorcermon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX7-019", as: "sorcer", suspended: true }, { card: "BT1-009", as: "ally", suspended: true }] }, 1: { battleArea: [{ card: "BT1-010" }] } }, { autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sorcer"));
-    await settle(() => s.state.players[0].battleArea.some((permanent) => !permanent.isSuspended));
-    expect(s.state.players[0].battleArea.some((permanent) => !permanent.isSuspended)).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => !permanent.isSuspended));
+    expect(s.state.players[0]!.battleArea.some((permanent) => !permanent.isSuspended)).toBe(true);
   });
 });

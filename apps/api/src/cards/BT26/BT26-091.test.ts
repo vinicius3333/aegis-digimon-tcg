@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -34,7 +35,7 @@ describe("BT26-091 compiled fidelity", () => {
       ]),
     );
     for (const watcher of actions) {
-      expect(watcher.actions?.[0]).toMatchObject({
+      expect(irNode(watcher).actions?.[0]).toMatchObject({
         kind: "Digivolve",
         from: ["hand"],
         costDelta: -1,

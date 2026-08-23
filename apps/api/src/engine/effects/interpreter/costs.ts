@@ -4,7 +4,7 @@ import { MEMORY_MIN } from "../../MemoryGauge.js";
 import type { EffectContext } from "../EffectContext.js";
 import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
-import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "./targeting/loose.js";
+import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
 import { CardKind, getCardDefinition, isTamer } from "@aegis/shared";
 import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
@@ -725,7 +725,7 @@ export async function payCost(
         // NOT Infinity (a finite pool is never >= Infinity, which made every "all"-shaped
         // cost unpayable; engine-audit finding 6). An empty pool is unpayable outright
         // (n <= 0), matching the isSelfRef branch above.
-        const zones = trashStackZone === undefined ? ["digivolutionCards" as const] : [trashStackZone];
+        const zones = trashStackZone === undefined ? ["digivolutionCards" as const] : zoneList(trashStackZone);
         let candidates = candidateLooseInstances(ctx, cost.target, zones);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
@@ -900,6 +900,9 @@ export async function payCost(
               destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
             })) ?? chosen;
         }
+        // A hand card "returned" to hand moves nowhere, so such a cost is unpayable rather
+        // than a silent deck return.
+        if (cost.to === "hand") return false;
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
@@ -966,27 +969,6 @@ export async function payCost(
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
-        if (out) out.paidCount = chosen.length;
-        return true;
-      }
-      if (cost.target.filter.zone === "hand") {
-        const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
-        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
-        if (n <= 0 || candidates.length < n) return false;
-        let chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
-        if (chosen.length < n) return false;
-        if (cost.orderReturnedCards === true && chosen.length > 1) {
-          chosen =
-            (await ctx.ask.orderCards?.(ctx, {
-              candidates: chosen,
-              visibleCards: candidates
-                .filter((candidate) => chosen.includes(candidate.instanceId))
-                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
-              destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
-            })) ?? chosen;
-        }
-        if (cost.to === "hand") return false;
-        await ctx.fx.returnToDeck(chosen, { toTop: cost.to === "deckTop" });
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -1127,9 +1109,7 @@ export async function payCost(
       // leave-play replacement (or another deletion prevention) may reject one of
       // the selected permanents; treating that attempt as paid would let the parent
       // effect proceed while the printed cost card remains on the field.
-      return (
-        deleted === permanentIds.length && permanentIds.every((id) => ctx.game.permanentById(id) === undefined)
-      );
+      return deleted === permanentIds.length;
     }
     case "payMemory": {
       // "By paying N cost" — pay N memory (memory can go negative; the gauge handles
@@ -1220,9 +1200,15 @@ export async function payCost(
         .map((host) => host.permanentId)
         .filter((hostId) => {
           const host = ctx.game.permanentById(hostId);
-          return host?.stack.some((card) =>
-            definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: card.cardId } as never)),
-          );
+          if (host === undefined || host.topCard === undefined) return false;
+          const hostLevel = ctx.game.definitionOf(host.topCard).level;
+          return host.stack.some((card) => {
+            const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+            return (
+              definitionMatches(cost.target!.filter, definition) &&
+              (cost.sameLevelAsHost !== true || definition.level === hostLevel)
+            );
+          });
         });
       if (hostCandidates.length === 0) return false;
       const hostId =
@@ -1232,6 +1218,7 @@ export async function payCost(
       if (hostId === undefined) return false;
       const host = ctx.game.permanentById(hostId);
       if (host === undefined) return false;
+      const hostLevel = host.topCard === undefined ? undefined : ctx.game.definitionOf(host.topCard).level;
       const candidates: LooseCandidate[] = host.stack
         .map((card) => ({
           instanceId: card.instanceId,
@@ -1240,13 +1227,21 @@ export async function payCost(
           hostPermanentId: host.permanentId,
           faceUp: card.faceUp,
         }))
-        .filter((candidate) =>
-          definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
-        );
+        .filter((candidate) => {
+          const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+          return (
+            definitionMatches(cost.target!.filter, definition) &&
+            (cost.sameLevelAsHost !== true || definition.level === hostLevel)
+          );
+        });
       const chosen = await pickLoose(ctx, { ...cost.target, count: 1 }, candidates);
       if (chosen.length !== 1) return false;
       const played = await ctx.fx.playInstances(chosen, { payCost: false });
       if (played.length === 0) return false;
+      if (cost.bindResultAs !== undefined) {
+        ctx.boundPlayed ??= new Map();
+        ctx.boundPlayed.set(cost.bindResultAs, new Set(played.map((permanent) => permanent.permanentId)));
+      }
       ctx.lastResolvedPermanentIds = [hostId];
       if (out) out.paidCount = played.length;
       return true;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-090.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
@@ -41,7 +42,7 @@ describe("BT26-090 compiled behavior", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")?.actions[0]).toMatchObject({
       reduceCostByOpponentMemory: true,
     });
-    expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")?.actions[0].raw).toContain(
+    expect(irNode(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")?.actions[0]!).raw).toContain(
       "opponent has",
     );
   });

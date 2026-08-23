@@ -39,6 +39,7 @@ describe("BT16-036", () => {
       0: { battleArea: [{ card: "BT16-036", as: "chaosmon" }], security: ["BT1-009"] },
       1: { security: [] },
     });
+    s.state.turnSeat = 1;
 
     await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("chaosmon"));
 

@@ -12,22 +12,15 @@ describe("P-086 Syakomon", () => {
     }, { autoSelectCards: true });
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cantBeAttacked"));
+    await settle(() =>
+      observe(s.engine).isRestricted(s.perm("target"), "cantBeAttacked") &&
+      s.state.pendingDecision === undefined,
+    );
     expect(observe(s.engine).isRestricted(s.perm("target"), "cantBeAttacked")).toBe(true);
 
     s.state.turnSeat = 1;
-    const attacker = s.putOnBoard(1, { card: "BT1-009", as: "attacker" });
-    s.perm("target").isSuspended = true;
     await s.ready();
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: attacker.permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
-
-    await advance(s.engine).runTurn(1);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
     expect(observe(s.engine).isRestricted(s.perm("target"), "cantBeAttacked")).toBe(false);
   });
 

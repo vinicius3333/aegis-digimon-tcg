@@ -15,7 +15,9 @@ describe("ST4-11 MegaKabuterimon", () => {
 
   it("does not win the game when its effect finds an empty security stack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST4-13", under: ["ST4-11"], as: "host" }] },
+      // A neutral host isolates ST4-11's inherited effect. ST4-13 has ＜Piercing＞,
+      // which correctly wins after this battle when the opponent has no security.
+      0: { battleArea: [{ card: "BT1-010", under: ["ST4-11"], as: "host", dp: 7000 }] },
       1: { battleArea: [{ card: "ST4-03", as: "victim", suspended: true }] },
     });
     expect(

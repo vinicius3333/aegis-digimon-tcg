@@ -109,7 +109,7 @@ describe("BT24-050 WereGarurumon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player", seat: 1 },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() =>
@@ -139,7 +139,7 @@ describe("BT24-050 WereGarurumon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player", seat: 1 },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() =>

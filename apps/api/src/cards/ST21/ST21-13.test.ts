@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -6,7 +7,7 @@ describe("ST21-13", () => {
   it("reduces ADVENTURE Digimon hand play cost by suspending this Tamer", () => {
     const reduction = (runtimeCompiledCard("ST21-13")?.effects ?? [])[0];
     expect(reduction).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] });
-    expect(reduction.actions[0].actions[0]).toMatchObject({ kind: "Replacement", mode: "reduceCost", amount: 1 });
+    expect(irNode(reduction!.actions[0]!).actions[0]).toMatchObject({ kind: "Replacement", mode: "reduceCost", amount: 1 });
   });
   it("grants Rush to level 5+ ADVENTURE Digimon and has a security play effect", () => {
     const effects = runtimeCompiledCard("ST21-13")?.effects ?? [];

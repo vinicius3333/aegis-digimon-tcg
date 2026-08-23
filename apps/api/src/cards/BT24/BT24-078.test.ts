@@ -1,4 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -109,7 +110,7 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("creepymon").topCard.instanceId === s.inst("creepymonX").instanceId);
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(1);

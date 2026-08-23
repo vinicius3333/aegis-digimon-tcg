@@ -48,21 +48,21 @@ const compiled: CompiledCard = {
           "oncePerTiming": true,
           "actions": [
             {
-              "kind": "TrashDigivolution",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "amount": 2,
-              "fromTop": true,
+              "kind": "EndAttack",
               "optional": true,
-              "abortOnDecline": true
-            },
-            {
-              "kind": "EndAttack"
+              "abortOnDecline": true,
+              "cost": {
+                "kind": "trash",
+                "target": {
+                  "filter": {
+                    "isSelfRef": true,
+                    "zone": "digivolutionCards"
+                  },
+                  "count": 2,
+                  "isSelf": true
+                },
+                "raw": "by trashing 2 of this Digimon's digivolution cards"
+              }
             }
           ]
         }

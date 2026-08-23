@@ -508,16 +508,16 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       payCost: pending.payCost ?? false,
       draw: false,
       beforeWhenDigivolving: async () => {
-        const player = ctx.game.player(ctx.source.ownerSeat);
         const remainingIds = new Set(
           revealed.filter((card) => !taken.has(card.instanceId)).map((card) => card.instanceId),
         );
-        const unrevealed = player.deck.find((card) => !remainingIds.has(card.instanceId));
+        // The digivolution bonus draw comes from the unrevealed portion of the deck
+        // while the revealed remainder is still set aside (EX2-072 Q3363).
+        await ctx.fx.draw(ctx.source.ownerSeat, 1, { excludeInstanceIds: [...remainingIds] });
         if (!restDisposed) {
           await disposeRest();
           restDisposed = true;
         }
-        if (unrevealed !== undefined) await ctx.fx.returnToHand([unrevealed.instanceId]);
       },
     });
   }

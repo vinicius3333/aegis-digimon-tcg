@@ -140,7 +140,7 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
     const otherId = s.perm("other").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([sourceId, otherId], "effect");
+    await advance(s.engine).verb.deletePermanent([sourceId, otherId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("exact1").instanceId),
     );
@@ -165,7 +165,7 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
     const hostId = s.perm("host").permanentId;
     await s.ready();
 
-    await advance(s.engine).verb.deletePermanent([hostId], "effect");
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);

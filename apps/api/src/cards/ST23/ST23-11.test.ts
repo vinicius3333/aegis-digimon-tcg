@@ -6,7 +6,7 @@ describe("ST23-11 Wolvermon", () => {
   it("pays the bottom face-down under-Tamer card to reduce a Glowing Dawn digivolution by two", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST23-11", as: "base" }, { card: "ST23-13", as: "tamer", under: [{ card: "BT1-001", faceUp: false }] }], hand: [{ card: "ST23-04", as: "target" }], deck: ["BT1-002"] },
-    });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     const underId = s.perm("tamer").stack[0]!.instanceId;
     s.state.memory = 1;
     await s.ready();

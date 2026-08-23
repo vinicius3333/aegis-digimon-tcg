@@ -53,7 +53,7 @@ describe("ST2-06 Garurumon", () => {
     })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
-    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("sourceLess").instanceId)).toBe(false);
     expect(s.perm("sourceLess").stack).toHaveLength(0);
   });
 });

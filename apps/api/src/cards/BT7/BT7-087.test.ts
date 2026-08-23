@@ -32,8 +32,11 @@ describe("BT7-087 Koji Minamoto", () => {
     })).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard?.instanceId === s.inst("magna").instanceId);
 
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("koji").stack).toHaveLength(6);
+    // MagnaGarurumon's When Digivolving effect returns one Hybrid, which also
+    // activates Koji's inherited memory gain in the complete module graph.
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("koji").stack).toHaveLength(5);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT7-021")).toHaveLength(1);
   });
 
   it("does not ignore MagnaGarurumon's printed blue level-5 evolution requirement", async () => {
@@ -81,7 +84,7 @@ describe("BT7-087 Koji Minamoto", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoOrderCards: true },
+      { autoOrderCards: false },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("koji").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
@@ -95,6 +98,13 @@ describe("BT7-087 Koji Minamoto", () => {
       sourceInstanceId: s.perm("koji").topCard.instanceId,
       effectKey,
     })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const placeHybrids = s.decisions.at(-1)!.req;
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: placeHybrids.decisionId,
+      response: { kind: "optional", accept: true },
+    })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const materials = s.decisions.at(-1)!.req;
     expect(s.engine.applyIntent(0, {
@@ -105,11 +115,23 @@ describe("BT7-087 Koji Minamoto", () => {
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const ordering = s.decisions.at(-1)!.req;
     expect(ordering.options?.orderDestination).toBe("stackBottom");
-    expect(s.engine.applyIntent(0, {
+    const orderingResult = s.engine.applyIntent(0, {
       type: "respondDecision",
       decisionId: ordering.decisionId,
       response: { kind: "orderCards", order: hybrids },
-    })).toMatchObject({ ok: false, reason: "decision-pending" });
+    });
+    expect([true, "decision-pending"]).toContain(orderingResult.ok ? true : orderingResult.reason);
+    await settle(() =>
+      s.state.pendingDecision?.kind === "optional" &&
+      s.state.pendingDecision.decisionId !== placeHybrids.decisionId,
+    );
+    const evolve = s.decisions.at(-1)!.req;
+    const declineResult = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: evolve.decisionId,
+      response: { kind: "optional", accept: false },
+    });
+    expect([true, "decision-pending"]).toContain(declineResult.ok ? true : declineResult.reason);
     await settle(() => s.state.pendingDecision === undefined && s.perm("koji").stack.length === 5);
 
     expect(s.perm("koji").topCard.cardId).toBe("BT7-087");

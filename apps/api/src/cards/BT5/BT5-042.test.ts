@@ -5,7 +5,7 @@ import "./BT5-042.js";
 describe("BT5-042 Knightmon", () => {
   it("gives one opponent Digimon -4000 DP for the turn", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT5-042", as: "source" }] }, 1: {
-      battleArea: [{ card: "BT5-045", as: "target", dp: 11000 }, { card: "BT5-045", as: "other", dp: 11000 }],
+      battleArea: [{ card: "BT1-026", as: "target" }, { card: "BT1-026", as: "other" }],
     } }, { autoSelectCards: true });
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });

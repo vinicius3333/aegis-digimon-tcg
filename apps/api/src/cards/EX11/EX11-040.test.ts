@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX11-040.js";
 
@@ -15,6 +16,6 @@ describe("EX11-040 Mulemon", () => {
     const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(linked.actions).toHaveLength(1);
     expect(linked.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } });
-    expect(linked.actions[0].actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], condition: { kind: "permanentCount", op: "lte", value: 1 } });
+    expect(irNode(linked.actions[0]!).actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], condition: { kind: "permanentCount", op: "lte", value: 1 } });
   });
 });

@@ -134,6 +134,7 @@ function makeContext(opts: {
   selfSuspendedDigimon?: Permanent;
   /** seats the fake reports as play-prohibited for a given cardId (CanNotPlayThisOption). */
   prohibited?: Set<string>;
+  colorRequirementMet?: boolean;
 }): EffectContext {
   const rec = opts.recorder;
   const ownArea = opts.selfSuspendedDigimon ? [opts.selfSuspendedDigimon] : [];
@@ -150,6 +151,7 @@ function makeContext(opts: {
     definitionOf: (card) =>
       definitions.get(card.cardId) ?? makeDefinition({ cardId: card.cardId, kinds: ["Digimon"] as never }),
     linkMax: () => 1,
+    optionColorRequirementMet: () => opts.colorRequirementMet ?? true,
   };
   const fx = {
     gainMemory: (n: number) => {
@@ -173,6 +175,7 @@ function makeContext(opts: {
         (c) => c.instanceId === instanceId,
       )?.cardId;
       if (usedCardId !== undefined) {
+        subCtx.lastOptionUsed = true;
         const usedModule = getEffectModule(usedCardId);
         for (const effect of usedModule?.effectsForTiming(EffectTiming.OnUseOption, subCtx.source) ?? []) {
           await effect.resolve(subCtx);
@@ -368,6 +371,36 @@ describe("use-option-without-cost engine path", () => {
 
     expect(rec.calls).not.toContain("useOptionFromHand");
     expect(ctx.lastOptionUsed).toBe(false);
+  });
+
+  it("honors an explicit color waiver on the granting UseOptionWithoutCost action", async () => {
+    resetStores();
+    seedOption("OPT-OFF-COLOR", { colors: ["White"] as never, playCost: 2 }, gainMemoryMain());
+    const rec: Recorder = { calls: [], memoryDeltas: [], trashed: [], optionUsedSubjects: [] };
+    const ctx = makeContext({
+      recorder: rec,
+      ownHand: [{ instanceId: "h-off-color", cardId: "OPT-OFF-COLOR", ownerSeat: 0 as Seat, faceUp: true }],
+      colorRequirementMet: false,
+    });
+    const ir: CompiledCard = {
+      coverage: "full",
+      effects: [{
+        trigger: "OnPlay",
+        actions: [{
+          kind: "UseOptionWithoutCost",
+          filter: { controller: "mine", kind: ["Option"] },
+          payCost: false,
+          waiveColorRequirement: true,
+          from: ["hand"],
+        }],
+      }],
+    } as unknown as CompiledCard;
+
+    const effects = irCardModule("X-WAIVER", ir).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    await effects[0]!.resolve(ctx);
+
+    expect(rec.trashed).toContain("h-off-color");
+    expect(ctx.lastOptionUsed).toBe(true);
   });
 
   // WR-02 (fails-when-reverted): with `from: ["trash"]`, the chosen Option lives in the trash, not

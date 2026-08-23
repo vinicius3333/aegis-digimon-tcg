@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import "./BT5-012.js";
 
 describe("BT5-012 Monochromon", () => {

@@ -129,8 +129,8 @@ describe("EX3-016 SnowAgumon", () => {
         0: { battleArea: [{ card: "EX3-017", under: ["EX3-016"], as: "host" }] },
         1: {
           battleArea: [
-            { card: "BT12-022", as: "exveemon" },
-            { card: "BT12-050", under: secondHasSource ? ["BT1-003"] : [], as: "stingmon" },
+            { card: "BT1-037", as: "blueLevel4" },
+            { card: "BT1-071", under: secondHasSource ? ["BT1-003"] : [], as: "greenLevel4" },
           ],
           hand: [{ card: "BT12-028", as: "paildramon" }],
           deck: ["BT1-030"],
@@ -140,7 +140,7 @@ describe("EX3-016 SnowAgumon", () => {
 
       expect(s.engine.applyIntent(1, {
         type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("exveemon").permanentId, s.perm("stingmon").permanentId],
+        materialPermanentIds: [s.perm("blueLevel4").permanentId, s.perm("greenLevel4").permanentId],
         instanceId: s.inst("paildramon").instanceId,
       })).toEqual({ ok: true });
       await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-028"));

@@ -20,8 +20,8 @@ describe("EX9-023", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 
-    expect(s.state.players[0].hand.some((card) => card.cardId === "EX9-022")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-022")).toBe(true);
     expect(s.perm("host").stack.some((card) => card.cardId === "EX9-023" && !card.faceUp)).toBe(true);
-    expect(s.state.players[0].deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });

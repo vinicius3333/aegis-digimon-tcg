@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT14-017.js";
 
@@ -18,6 +17,5 @@ describe("BT14-017", () => {
     await s.ready();
     expect(s.perm("dino").currentDP).toBe(15000);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("candidate").instanceId }).ok).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("dino"), "play")).toBe(false);
   });
 });

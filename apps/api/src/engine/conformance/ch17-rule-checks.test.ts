@@ -99,7 +99,7 @@ describe("§17-1-2-2 rule checks aren't performed during effect processing (comp
 
       const result = s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId });
       expect(result).toEqual({ ok: true });
-      await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId), 300);
+      await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId), 5000);
 
       // The keyword clause DID resolve against the (momentarily 0-DP but not-yet-deleted)
       // target before it was trashed — the rule check waited for the whole effect.

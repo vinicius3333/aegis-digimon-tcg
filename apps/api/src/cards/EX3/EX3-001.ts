@@ -36,6 +36,7 @@ export const compiled: CompiledCard = {
               },
               amount: 1000,
               duration: "forTheTurn",
+              condition: { kind: "selfHasNameContaining", names: ["Dramon", "Examon"] },
             },
           ],
         },

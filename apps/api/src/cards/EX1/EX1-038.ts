@@ -12,7 +12,7 @@ const compiled: CompiledCard = {
         kind: "Aura",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
-        while: { kind: "raw", raw: "this Digimon has [Imperialdramon] in its name or [Free] in its traits" },
+        while: { kind: "anyOf", conditions: [{ kind: "selfHasNameContaining", names: ["Imperialdramon"] }, { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } }] },
       }],
     },
   ],

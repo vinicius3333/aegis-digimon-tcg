@@ -1,4 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -13,7 +14,7 @@ describe("EX12-066 Hiro Amanokawa", () => {
     const compiled = registeredCompiledCards.get(CARD_ID)!;
     const attack = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     const watcher = attack.actions[0]!;
-    const modal = watcher.actions[0]!;
+    const modal = irNode(watcher).actions[0]!;
 
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);

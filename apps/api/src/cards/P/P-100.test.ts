@@ -48,7 +48,7 @@ describe("P-100 Kuwagamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(false);
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    // With no card left in hand, the production turn loop auto-closes this Main phase.
     await firstTurn;
 
     s.state.turnSeat = 1;

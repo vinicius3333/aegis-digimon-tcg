@@ -16,6 +16,7 @@ export interface BuilderOptions {
   irTrigger?: string;
   effectKey: string;
   description: string;
+  timingOverride?: string;
   optional?: boolean; // source `optional`
   isInherited?: boolean; // source `isInherited`
   isLinked?: boolean; // source IsLinkedEffect
@@ -75,6 +76,7 @@ function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
     ...(opts.irTrigger !== undefined ? { irTrigger: opts.irTrigger } : {}),
     effectKey: opts.effectKey,
     description: opts.description,
+    ...(opts.timingOverride !== undefined ? { timingOverride: opts.timingOverride } : {}),
     optional: opts.optional ?? false,
     isInherited: opts.isInherited ?? false,
     isSecurity: flags.isSecurity ?? false,
@@ -322,7 +324,12 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
           ...changeOpts,
           continuous: true,
         }),
-      modifyDP: (permanentId, delta, duration, modifyOpts) =>
+      modifyDP: (
+        permanentId: Parameters<EffectContext["fx"]["modifyDP"]>[0],
+        delta: Parameters<EffectContext["fx"]["modifyDP"]>[1],
+        duration: Parameters<EffectContext["fx"]["modifyDP"]>[2],
+        modifyOpts: Parameters<EffectContext["fx"]["modifyDP"]>[3],
+      ) =>
         ctx.fx.modifyDP(permanentId, delta, duration, {
           ...modifyOpts,
           continuous: true,
@@ -334,7 +341,12 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
             ? { oncePerTurnKey: replacement.oncePerTurnKey ?? autoKey }
             : {}),
         }),
-      restrict: (permanentId, restriction, duration, restrictOpts) =>
+      restrict: (
+        permanentId: Parameters<EffectContext["fx"]["restrict"]>[0],
+        restriction: Parameters<EffectContext["fx"]["restrict"]>[1],
+        duration: Parameters<EffectContext["fx"]["restrict"]>[2],
+        restrictOpts: Parameters<EffectContext["fx"]["restrict"]>[3],
+      ) =>
         ctx.fx.restrict(permanentId, restriction, duration, {
           ...restrictOpts,
           continuous: true,
@@ -403,7 +415,12 @@ export const securityStatic = (opts: BuilderOptions): Effect =>
           ...ctx,
           fx: {
             ...ctx.fx,
-            modifyDP: (permanentId, delta, duration, modifyOpts) =>
+            modifyDP: (
+        permanentId: Parameters<EffectContext["fx"]["modifyDP"]>[0],
+        delta: Parameters<EffectContext["fx"]["modifyDP"]>[1],
+        duration: Parameters<EffectContext["fx"]["modifyDP"]>[2],
+        modifyOpts: Parameters<EffectContext["fx"]["modifyDP"]>[3],
+      ) =>
               ctx.fx.modifyDP(permanentId, delta, duration, {
                 ...modifyOpts,
                 continuous: true,

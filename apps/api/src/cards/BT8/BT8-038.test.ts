@@ -31,7 +31,7 @@ describe("BT8-038 Magnamon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("veemon").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
     await settle(() => s.perm("veemon").topCard.instanceId === veemonInstanceId);
 

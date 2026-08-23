@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -35,7 +36,7 @@ describe("BT26-094 compiled fidelity", () => {
       ]),
     );
     for (const watcher of actions) {
-      expect(watcher.actions).toMatchObject([
+      expect(irNode(watcher).actions).toMatchObject([
         { kind: "Suspend", target: { isSelf: true } },
         { kind: "GainKeyword", keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" },
       ]);

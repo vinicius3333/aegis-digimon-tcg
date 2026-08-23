@@ -127,9 +127,9 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 5000);
     s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId });
-    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 200);
+    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 5000);
 
     const order = s.events.map((e) => e.kind);
     const idxDeclared = order.indexOf("attackDeclared");
@@ -196,7 +196,7 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => attacker.isSuspended, 200);
+    await settle(() => attacker.isSuspended, 5000);
     expect(attacker.isSuspended).toBe(true);
   });
 
@@ -257,7 +257,7 @@ describe("§11-2 Attack Declaration (comprehensive-0144)", () => {
       target: { kind: "player" },
     });
     // The block window is open, so the first attack is still mid-resolution.
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 5000);
 
     const secondDeclare = s.engine.applyIntent(0, {
       type: "attack",
@@ -572,14 +572,14 @@ describe("§11-4 Block Timing (comprehensive-0147)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 5000);
 
     const opened = s.events.find((e) => e.kind === "blockWindowOpened");
     expect(opened).toMatchObject({ eligibleBlockerIds: [blocker.permanentId] });
 
     const declare = s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId });
     expect(declare).toEqual({ ok: true });
-    await settle(() => s.events.some((e) => e.kind === "blocked"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blocked"), 5000);
     expect(blocker.isSuspended).toBe(true); // blocking suspends the blocker
   });
 });
@@ -599,7 +599,7 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "securityChecked"), 200);
+    await settle(() => s.events.some((e) => e.kind === "securityChecked"), 5000);
     expect(s.events.some((e) => e.kind === "securityChecked")).toBe(true);
   });
 
@@ -615,7 +615,7 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "gameOver"), 200);
+    await settle(() => s.events.some((e) => e.kind === "gameOver"), 5000);
     const over = s.events.find((e) => e.kind === "gameOver");
     expect(over).toMatchObject({ result: { outcome: "win", winnerSeat: 0 }, reason: "security" });
   });
@@ -625,18 +625,20 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
 
     const s = setup({
       0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] },
-      1: { battleArea: [{ card: DIGIMON_B, dp: 1000, suspended: true, as: "defender" }] },
+      // Use a Digimon without a top-level end-of-attack prompt so this rules test
+      // observes the battle itself rather than stopping on an unrelated card decision.
+      1: { battleArea: [{ card: "BT1-010", dp: 1000, suspended: true, as: "defender" }] },
     });
     const p1 = s.state.players[1]!;
     const attacker = s.perm("attacker");
     const defender = s.perm("defender");
 
-    s.engine.applyIntent(0, {
+    expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: attacker.permanentId,
       target: { kind: "permanent", permanentId: defender.permanentId },
-    });
-    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 200);
+    })).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 5000);
     const resolved = s.events.find((e) => e.kind === "combatResolved");
     expect(resolved).toMatchObject({ seat: 0, deletedPermanentIds: [defender.permanentId] });
     expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(false);

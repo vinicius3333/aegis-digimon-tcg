@@ -9,7 +9,7 @@ import { compiled } from "./BT2-097.js";
 
 describe("BT2-097 Lightning Paw", () => {
   it("publishes the errata contract as full compiled IR", () => {
-    expect(compiled).toMatchObject(getCompiledCard("BT2-097"));
+    expect(compiled).toMatchObject(getCompiledCard("BT2-097")!);
     expect(getCardDefinition("BT2-097")).toMatchObject({
       nameEn: "Lightning Paw",
       colors: ["Yellow"],

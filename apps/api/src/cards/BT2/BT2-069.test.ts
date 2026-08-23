@@ -63,7 +63,7 @@ describe("BT2-069 Gabumon", () => {
   it("activates when its host is deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 20000 }] },
         1: {
           battleArea: [{ card: "BT2-074", as: "host", under: ["BT2-069"], suspended: true }],
           deck: [

@@ -141,9 +141,7 @@ function makeContext(opts: {
       opts.recorder.calls.push({ verb: "placeOptionAsPermanent", args });
       return undefined;
     },
-    subscribeReplacement: (...args) => {
-      opts.recorder.calls.push({ verb: "subscribeReplacement", args });
-    },
+    subscribeReplacement: (...args) => opts.recorder.calls.push({ verb: "subscribeReplacement", args }),
   };
 
   const defaultAsk: DecisionApi = {

@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
+      effectKey: "BT13-008/become-digimon",
       frequency: "OncePerTurn",
       actions: [
         { kind: "GrantStatic", target: marcusTarget, grant: "kinds", tokens: ["Digimon"], duration: "forTheTurn" },

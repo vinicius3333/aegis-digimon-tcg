@@ -57,7 +57,7 @@ describe("BT26-014 Darumamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-014", as: "self" }],
-        hand: [{ card: "BT26-013", as: "played" }],
+        hand: [{ card: "BT26-012", as: "played" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     const selfId = s.perm("self").topCard.instanceId;

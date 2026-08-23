@@ -124,7 +124,7 @@ describe("BT25-059 Ceresmon", () => {
             { card: "BT1-013", as: "ownOther" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-013", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT1-013", as: "opponent", dp: 12000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );

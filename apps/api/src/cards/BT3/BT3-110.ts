@@ -30,23 +30,8 @@ const compiled: CompiledCard = {
           "from": [
             "trash"
           ],
-          "payCost": false
-        },
-        {
-          "kind": "DisableTimingEffect",
-          "duration": "permanent",
-          "target": {
-            "count": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            }
-          },
-          "timings": [
-            "onPlay"
-          ]
+          "payCost": false,
+          "suppressOnPlayEffects": true
         }
       ]
     },

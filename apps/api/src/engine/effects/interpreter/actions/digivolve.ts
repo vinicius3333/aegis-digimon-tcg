@@ -71,12 +71,19 @@ function legalIntoCandidates(
   return pool.filter((c) => {
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
     const ordinary = ignoreLevel ? matchingEvoCostIgnoringLevel(intoDef, baseDef) : matchingEvoCost(intoDef, baseDef);
-    const alternate = matchingAlternateDigivolutionRequirement(
-      intoDef,
-      baseDef,
-      ignoreLevel ? { ignoreLevel: true } : undefined,
-    );
-    const baseGranted = base ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef) : undefined;
+    // A virtual base is the complete requirement described by the resolving effect (for
+    // example, "as if this Tamer is a level 5 blue Digimon"). Its original Tamer name,
+    // traits and card kind must not also unlock an alternate or base-granted path.
+    const alternate = virtualBase === undefined
+      ? matchingAlternateDigivolutionRequirement(
+          intoDef,
+          baseDef,
+          ignoreLevel ? { ignoreLevel: true } : undefined,
+        )
+      : undefined;
+    const baseGranted = virtualBase === undefined && base
+      ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef)
+      : undefined;
     if (enforceRequirements && ordinary === undefined && alternate === undefined && baseGranted === undefined)
       return false;
     if (digivolutionCostMax === undefined) return true;
@@ -92,7 +99,11 @@ function digivolveIntoTarget(action: Extract<Action, { kind: "Digivolve" }>): Ta
   const encoded = action.into as Filter | Target;
   return "filter" in encoded
     ? ({ ...encoded, count: encoded.count ?? 1, ...(encoded.upTo === true ? { upTo: true } : {}) } as Target)
-    : { filter: encoded as Filter, count: 1 };
+    : {
+        filter: encoded as Filter,
+        count: 1,
+        ...((encoded as Filter & { upTo?: boolean }).upTo === true ? { upTo: true } : {}),
+      };
 }
 
 /**

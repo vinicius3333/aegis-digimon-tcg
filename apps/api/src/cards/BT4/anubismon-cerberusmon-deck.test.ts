@@ -80,7 +80,7 @@ describe("BT4 Anubismon and Cerberusmon historical deck gauntlet", () => {
     })?.req;
     expect(costRequest).toBeDefined();
     expect(new Set(costRequest!.options?.candidateInstanceIds ?? [])).toEqual(
-      new Set([firstCerberusmonId, secondCerberusmonId, werewolfMode!.permanentId]),
+      new Set([firstCerberusmonId, secondCerberusmonId]),
     );
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === secondCerberusmonId)).toBe(true);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT4-083")).toBe(true);

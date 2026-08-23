@@ -6,7 +6,7 @@ describe("BT8-024 Angemon", () => {
   it("recovers before digivolving while you have 3 or fewer security cards", async () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "BT8-024", as: "base" }],
-      hand: [{ card: "BT8-042", as: "evolving" }],
+      hand: [{ card: "BT1-038", as: "evolving" }],
       deck: ["BT8-033", "BT8-034"],
       security: ["BT8-035", "BT8-036", "BT8-037"],
     } });
@@ -20,7 +20,7 @@ describe("BT8-024 Angemon", () => {
   it("does not recover when the digivolution is declared with 4 security cards", async () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "BT8-024", as: "base" }],
-      hand: [{ card: "BT8-042", as: "evolving" }],
+      hand: [{ card: "BT1-038", as: "evolving" }],
       deck: ["BT8-033", { card: "BT8-034", as: "wouldRecover" }],
       security: ["BT8-034", "BT8-035", "BT8-036", "BT8-037"],
     } });

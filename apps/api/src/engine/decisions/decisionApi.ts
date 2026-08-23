@@ -95,7 +95,14 @@ function buildSeatScopedApi(
 
     async chooseTargets(
       ctx: EffectContext,
-      opts: { candidates: string[]; min: number; max: number; visible?: string[]; maxTotalPlayCost?: number },
+      opts: {
+        candidates: string[];
+        min: number;
+        max: number;
+        visible?: string[];
+        maxTotalPlayCost?: number;
+        maxTotalDP?: number;
+      },
     ): Promise<string[]> {
       const response = await manager.request({
         seat: resolveSeat(ctx),
@@ -108,6 +115,7 @@ function buildSeatScopedApi(
           min: opts.min,
           max: opts.max,
           ...(opts.maxTotalPlayCost !== undefined ? { maxTotalPlayCost: opts.maxTotalPlayCost } : {}),
+          ...(opts.maxTotalDP !== undefined ? { maxTotalDP: opts.maxTotalDP } : {}),
           ...provenance(ctx),
         },
       });

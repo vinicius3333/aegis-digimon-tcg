@@ -35,7 +35,7 @@ describe("BT13-034 Kudamon", () => {
           kind: "ModifyDP",
           amount: -2000,
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-          condition: { kind: "raw", raw: expect.stringContaining("6 or fewer") },
+          condition: { kind: "totalSecurityCount", op: "lte", value: 6 },
         },
       ],
     });

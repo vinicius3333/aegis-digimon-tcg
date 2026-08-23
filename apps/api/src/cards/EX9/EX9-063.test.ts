@@ -14,7 +14,7 @@ describe("EX9-063", () => {
   it("inherits Alliance", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "Alliance", raw: "＜Alliance＞" }));
   it.each([
     ["WhenDigivolving", EffectTiming.WhenDigivolving],
-    ["WhenAttacking", EffectTiming.WhenAttacking],
+    ["WhenAttacking", EffectTiming.OnUseAttack],
   ] as const)("%s trashes the bottom face-down source and plays one DM Digimon from trash", async (_label, timing) => {
     const s = setupEngine({
       0: {
@@ -24,7 +24,7 @@ describe("EX9-063", () => {
       1: { battleArea: [{ card: "BT1-010", suspended: true }] },
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
 
-    if (timing === EffectTiming.WhenAttacking) {
+    if (timing === EffectTiming.OnUseAttack) {
       s.state.turnSeat = 0;
       expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "permanent", permanentId: s.state.players[1]!.battleArea[0]!.permanentId } })).toEqual({ ok: true });
     } else {

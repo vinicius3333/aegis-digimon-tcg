@@ -133,6 +133,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 2,
+          optional: true,
           condition: {
             kind: "zoneCount",
             seat: "mine",
@@ -171,6 +172,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 2,
+          optional: true,
           condition: {
             kind: "zoneCount",
             seat: "mine",

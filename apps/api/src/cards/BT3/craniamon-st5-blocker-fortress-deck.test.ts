@@ -17,7 +17,7 @@ describe("BT3 Craniamon ST5 Blocker fortress deck gauntlet", () => {
       },
       1: {
         battleArea: [
-          { card: "BT1-084", as: "attacker", dp: 20000 },
+          { card: "BT1-009", as: "attacker", dp: 20000 },
           { card: "ST1-03", as: "redSource" },
         ],
         hand: [{ card: "ST1-16", as: "gaiaForce" }],

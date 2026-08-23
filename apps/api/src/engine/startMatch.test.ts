@@ -32,12 +32,17 @@ interface Harness {
 
 /**
  * Let queued promise continuations settle. The turn loop chains several awaits per
- * phase (timing windows, unsuspend, the phase setters), so a generous number of
- * microtask hops is needed to drive it from one open input window to the next.
+ * phase (timing windows, unsuspend, the phase setters), so draining it from one open
+ * input window to the next takes many hops — and passing the turn crosses more of them
+ * than a single burst of microtasks covers. Interleave macrotask turns so the drain ends
+ * when the engine is genuinely idle rather than after a fixed hop count.
  */
 async function flush(): Promise<void> {
-  for (let i = 0; i < 64; i += 1) {
-    await Promise.resolve();
+  for (let round = 0; round < 8; round += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    for (let hop = 0; hop < 64; hop += 1) {
+      await Promise.resolve();
+    }
   }
 }
 

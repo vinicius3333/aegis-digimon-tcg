@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -30,9 +31,8 @@ it("installs the forced start-of-main-phase attack on the chosen opposing Digimo
   await s.ready();
   s.state.memory = 1;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-  const engine = s.engine as typeof s.engine & { continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] } };
-  await settle(() => engine.continuous.listCustomEffectGrants().length > 0);
-  expect(engine.continuous.listCustomEffectGrants()).toEqual(
+  await settle(() => observe(s.engine).customEffectGrants().length > 0);
+  expect(observe(s.engine).customEffectGrants()).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         instanceId: s.perm("target").topCard!.instanceId,

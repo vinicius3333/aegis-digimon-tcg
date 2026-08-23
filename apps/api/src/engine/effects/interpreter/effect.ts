@@ -30,8 +30,9 @@ import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
+import { candidatePermanents } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { Action, CardEffect } from "@aegis/shared";
+import type { Action, CardEffect, Target } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // IR -> EffectModule factory
@@ -65,6 +66,14 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     return EffectTiming.OnDeclaration;
   }
   switch (effect.trigger) {
+    case "OnSecurityCheck":
+      return EffectTiming.OnSecurityCheck;
+    case "OnDetermineDoSecurityCheck":
+      return EffectTiming.OnDetermineDoSecurityCheck;
+    case "OnLoseSecurity":
+      return EffectTiming.OnLoseSecurity;
+    case "OnAddSecurity":
+      return EffectTiming.OnAddSecurity;
     case "OnPlay":
       return EffectTiming.OnPlay;
     case "BeforePayCost":
@@ -74,7 +83,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     case "WhenDigivolving":
       return EffectTiming.WhenDigivolving;
     case "WhenAttacking":
-      return EffectTiming.OnUseAttack;
+      return effect.attackScope === "ally" ? EffectTiming.OnAllyAttack : EffectTiming.OnUseAttack;
     case "WhenBlocked":
       return EffectTiming.OnBlockAnyone;
     case "OnDeletion":
@@ -109,6 +118,11 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return EffectTiming.OnUseOption;
     case "Security":
       return EffectTiming.SecuritySkill;
+    case "WhenEffectAddsToHand":
+      // "When one of your Digimon's effects adds cards to your hand" (BT15-002's inherited
+      // clause): the engine's own add-to-hand window. Distinct from `Hand`, which tags an
+      // effect the controller ACTIVATES while the card sits in hand.
+      return EffectTiming.OnAddHand;
     case "Hand":
       return EffectTiming.OnDeclaration;
     case "Counter":
@@ -308,6 +322,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenTrashedFromBattleArea;
     case "Main":
       return activated;
+    case "WhenEffectAddsToHand":
     case "Hand":
       return onAddHand;
     case "Trash":
@@ -345,6 +360,21 @@ export function withIntrinsicDelayGate(effect: CardEffect): CardEffect {
   return { ...effect, actions };
 }
 
+/**
+ * Carry a continuous effect's printed turn window onto the watcher it installs. The watcher
+ * outlives the resolution that armed it, so without this a `[Your Turn]` clause's watcher would
+ * keep firing on the opponent's turn (EX11-004's inherited draw).
+ */
+export function withSubTriggerTurnScope(effect: CardEffect): CardEffect {
+  const turnScope =
+    effect.trigger === "YourTurn" ? "yourTurn" : effect.trigger === "OpponentsTurn" ? "opponentsTurn" : undefined;
+  if (turnScope === undefined) return effect;
+  const actions = (effect.actions ?? []).map((action): typeof action =>
+    action.kind === "SubTrigger" && action.turnScope === undefined ? { ...action, turnScope } : action,
+  );
+  return { ...effect, actions };
+}
+
 /** Carry a continuous effect's printed frequency onto the watcher that actually fires. */
 export function withSubTriggerFrequency(effect: CardEffect, effectKey: string): CardEffect {
   if (effect.frequency !== "OncePerTurn") return effect;
@@ -372,6 +402,7 @@ export function readsSelfKeyword(value: unknown): boolean {
   if (filter !== null && typeof filter === "object" && !Array.isArray(filter)) {
     const candidate = filter as Record<string, unknown>;
     if (
+      candidate.dp !== undefined ||
       (Array.isArray(candidate.keywords) && candidate.keywords.length > 0) ||
       (Array.isArray(candidate.excludeKeywords) && candidate.excludeKeywords.length > 0)
     ) {
@@ -426,6 +457,7 @@ const RESULT_BINDING_KEYS = [
   "lastDeletedByThisEffectIds",
   "namedCounts",
   "boundPlayed",
+  "playCostDelta",
 ] as const satisfies readonly (keyof EffectContext)[];
 
 function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
@@ -542,18 +574,49 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
  * payable" default, exist as resolve-time no-op safety nets, not as license to gate
  * activation on a guess).
  */
+/**
+ * Action kinds whose `target` can only ever name a live battle-area (or breeding) permanent.
+ * Kinds that also reach cards in hand/deck/trash/security are deliberately absent: their empty
+ * board scan says nothing about whether the action can do something.
+ */
+const BOARD_TARGETED_ACTION_KINDS = new Set<Action["kind"]>(["SetBaseDP"]);
+
+/**
+ * Whether any of `actions` consumes the named selection as its own source — a
+ * `fromSelectionRef`/`boundRef`/`underSelectionRef`/`selectionRef` reference. An
+ * `excludeSelectionRef` is not a dependency: the action still resolves without the binding.
+ */
+function dependsOnSelection(actions: readonly Action[], name: string): boolean {
+  const referenced = new RegExp(`"(fromSelectionRef|boundRef|underSelectionRef|selectionRef)":"${name}"`);
+  return referenced.test(JSON.stringify(actions));
+}
+
 export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
   // An unparsed condition is not evidence that the effect is activatable. Treat it as
   // restrictive here, matching runAction's resolution behavior; otherwise the UI offers an
   // effect that resolution will silently skip.
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
-  const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
-  const isGated = (action: Action) =>
+  type ParsedAction = Exclude<Action, { kind: "RawUnparsed" }>;
+  const relevantActions = (effect.actions ?? []).filter(
+    (action): action is ParsedAction => action.kind !== "RawUnparsed",
+  );
+  const isGated = (action: ParsedAction) =>
     action.kind === "Digivolve" ||
     action.kind === "DnaDigivolve" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
-    action.cost !== undefined;
-  const intrinsicPossible = (action: Action): boolean => {
+    action.cost !== undefined ||
+    action.additionalCost !== undefined ||
+    (action.additionalCosts?.length ?? 0) > 0 ||
+    (action.costOptions?.length ?? 0) > 0;
+  const costsPayable = (action: ParsedAction): boolean => {
+    const primaryPayable =
+      action.cost === undefined || typeof action.cost === "number" || canPayCost(ctx, action.cost);
+    if (!primaryPayable) return false;
+    if (action.additionalCost !== undefined && !canPayCost(ctx, action.additionalCost)) return false;
+    if ((action.additionalCosts ?? []).some((cost) => !canPayCost(ctx, cost))) return false;
+    return (action.costOptions?.length ?? 0) === 0 || action.costOptions!.some((cost) => canPayCost(ctx, cost));
+  };
+  const intrinsicPossible = (action: ParsedAction): boolean => {
     if (action.kind === "Digivolve") {
       const costProducedTarget =
         action.cost?.kind === "place" &&
@@ -565,6 +628,55 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
       ? canAttemptDnaDigivolve(ctx, action)
       : action.kind !== "Link" || canAttemptLink(ctx, action);
   };
+  // Board-targeted actions gate activation: an action that names live battle-area (or
+  // breeding) permanents resolves to nothing when the board holds no candidate. An effect
+  // whose every action is board-targeted and finds nothing must not be offered (BT3-014's
+  // "1 of your opponent's Lv.4 or lower Digimon" against a Lv.5-only board). Targets that
+  // resolve out of a hand/deck/trash zone, a prior binding, or the trigger source are not
+  // board scans and are left to their own action's gate.
+  const boardTargetOf = (action: Action): Target | undefined => {
+    if (!BOARD_TARGETED_ACTION_KINDS.has(action.kind)) return undefined;
+    const target = (action as { target?: Target }).target;
+    if (target === undefined || target.fromSelectionRef !== undefined) return undefined;
+    const filter = target.filter;
+    if (filter === undefined || filter.boundRef !== undefined || filter.useTriggerSource === true) return undefined;
+    if (target.isSelf === true || filter.isSelfRef === true) return undefined;
+    return filter.zone === undefined || filter.zone === "battleArea" || filter.zone === "breeding" ? target : undefined;
+  };
+  const isBoardEmptyFor = (action: Action): boolean => {
+    const target = boardTargetOf(action);
+    if (target === undefined) return false;
+    try {
+      return candidatePermanents(ctx, target).length === 0;
+    } catch {
+      // A partially built context (dispatch seams that omit `fx`) cannot answer the board
+      // scan; treat it as "target may exist" rather than gating the effect off.
+      return false;
+    }
+  };
+  const boardTargeted = relevantActions.filter((action) => boardTargetOf(action) !== undefined);
+  if (
+    boardTargeted.length > 0 &&
+    boardTargeted.length === relevantActions.length &&
+    boardTargeted.every(isBoardEmptyFor)
+  ) {
+    return false;
+  }
+  // A leading SelectBind is the clause's target gate: every following action consumes the
+  // binding it produces, so with no candidate the whole clause resolves to nothing and must
+  // not be offered (BT7-104 "choose 1 of your [X Antibody] Digimon, then draw per its sources").
+  const leadingBind = relevantActions[0]?.kind === "SelectBind" ? relevantActions[0] : undefined;
+  const bindAs = leadingBind?.target.bindAs;
+  if (
+    leadingBind !== undefined &&
+    bindAs !== undefined &&
+    leadingBind.target.upTo !== true &&
+    ctx.selections?.get(bindAs) === undefined &&
+    dependsOnSelection(relevantActions.slice(1), bindAs) &&
+    candidatePermanents(ctx, leadingBind.target).length === 0
+  ) {
+    return false;
+  }
   // A leading abort-on-decline action is the activation gate for the complete clause:
   // "If ..., by paying ..., do X. Then, do Y." The dependent `Then` action is often
   // mechanically ungated because it consumes a binding produced by X; treating Y as an
@@ -576,7 +688,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
-    const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
+    const costPayable = costsPayable(leadingAction);
     return actionPossible && conditionMet && costPayable;
   }
   const gatedActions = relevantActions.filter(isGated);
@@ -586,7 +698,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     const actionPossible = intrinsicPossible(action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
-    const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
+    const costPayable = costsPayable(action);
     return actionPossible && conditionMet && costPayable;
   });
 }

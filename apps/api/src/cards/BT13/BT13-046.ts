@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const securityCondition = { kind: "raw", raw: "there're 6 or fewer total cards in both players' security stacks" };
+const securityCondition = { kind: "totalSecurityCount", op: "lte", value: 6 } as const;
 
 export const compiled: CompiledCard = {
   effects: [

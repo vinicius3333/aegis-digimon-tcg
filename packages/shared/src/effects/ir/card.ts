@@ -74,7 +74,14 @@ export type Coverage = "full" | "partial" | "none";
 
 /** The compiled record for one card, as stored in effects.json keyed by cardId. */
 export interface CompiledCard {
+  /** The card this record compiles, when the module carries its own provenance. */
+  cardId?: string;
   effects: CardEffect[];
+  /**
+   * Keyword abilities printed on the card outside any timing window (＜Detach＞, ＜Blocker＞).
+   * Window-scoped keywords live on {@link CardEffect.keywords} instead.
+   */
+  keywords?: KeywordRef[];
   coverage: Coverage;
   /** Prose fragments the parser could not fully model. */
   residual: string[];

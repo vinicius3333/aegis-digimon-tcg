@@ -14,7 +14,7 @@ it("blocks effect-play of a Digimon while leaving ordinary play intents distingu
   await s.engine.recomputeContinuousEffects();
 
   const result = s.engine.applyIntent(0, {
-    type: "play",
+    type: "playCard",
     instanceId: s.inst("candidate").instanceId,
   });
   expect(result.ok).toBe(false);

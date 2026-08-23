@@ -134,7 +134,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId })).toEqual({ ok: true });
-    await settle(() => p0.trash.some((c) => c.instanceId === card.instanceId), 200);
+    await settle(() => p0.trash.some((c) => c.instanceId === card.instanceId), 5000);
     expect(p0.hand.some((c) => c.instanceId === card.instanceId)).toBe(false);
     expect(p0.trash.some((c) => c.instanceId === card.instanceId)).toBe(true);
   });

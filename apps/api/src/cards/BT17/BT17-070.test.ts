@@ -7,7 +7,7 @@ describe("BT17-070 Gulfmon", () => {
     expect(effects).toHaveLength(2);
     for (const effect of effects) {
       expect(effect.actions[0]).toMatchObject({ kind: "Delete", target: { filter: expect.objectContaining({ controller: "opponent", levelComparison: { op: "lte", value: 5 } }), count: 1 } });
-      expect(effect.actions[0].cost).toMatchObject({
+      expect(effect.actions[0]!.cost).toMatchObject({
         kind: "place",
         target: expect.objectContaining({ filter: expect.objectContaining({ controller: "mine", levels: [5], nameOrTrait: [{ tokens: ["Dark Masters"], match: "text" }] }), from: ["hand", "trash"] }),
         destination: "digivolutionStack",

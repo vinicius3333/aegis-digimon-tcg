@@ -1,4 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -186,7 +187,7 @@ describe("BT24-074 SkullSeadramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costPermanentId));
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("host").stack[0]?.instanceId).toBe(s.inst("cost").instanceId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(costPermanentId);

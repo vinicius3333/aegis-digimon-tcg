@@ -18,7 +18,7 @@ const actions = [
     amount: 1000,
     duration: "untilOpponentTurnEnd",
     scaling: { per: 1, unit: "digivolutionCards", filter: { isSelfRef: true, faceDown: true } },
-    condition: { kind: "raw", raw: "this effect placed" },
+    condition: { kind: "ifThisEffectActed" },
   },
 ];
 

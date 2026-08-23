@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { CardKind, type CardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
-import "../index.js";
+import "./EX6-010.js";
 
 // A3 for EX6-010 (Durandamon) — Red Lv.6 Digimon (Legend-Arms).
 //

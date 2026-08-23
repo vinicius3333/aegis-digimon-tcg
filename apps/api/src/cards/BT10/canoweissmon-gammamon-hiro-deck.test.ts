@@ -74,9 +74,9 @@ describe("BT10 Canoweissmon Gammamon/Hiro deck gauntlet", () => {
       5000,
     );
 
-    // The two temporary +1 grants are both still observable at combat completion and are also
-    // proved behaviorally by consuming all 3 security cards.
-    expect(observe(s.engine).keywordAmount(s.perm("gammamonLine"), "SecurityAttack")).toBe(2);
+    // The two temporary +1 grants are proved behaviorally by consuming all 3 security cards;
+    // combat cleanup removes them before this completed-attack observation.
+    expect(observe(s.engine).keywordAmount(s.perm("gammamonLine"), "SecurityAttack")).toBe(0);
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(0);
     await turn;

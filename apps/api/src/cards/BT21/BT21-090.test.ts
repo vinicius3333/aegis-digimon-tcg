@@ -41,7 +41,7 @@ describe("BT21-090 The Strongest of Brothers", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "color" }],
           hand: [{ card: "BT21-090", as: "option" }],
-          deck: ["BT21-010", "BT1-001", "BT1-002"],
+          deck: ["BT21-010", "BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

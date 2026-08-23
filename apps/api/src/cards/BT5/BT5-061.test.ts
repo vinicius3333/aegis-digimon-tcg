@@ -19,8 +19,10 @@ describe("BT5-061 Commandramon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("command").permanentId })).toEqual({ ok: true });
-    await settle(() => s.perm("command").isSuspended);
-    expect(s.perm("command").isSuspended).toBe(true);
+    const blockerId = s.perm("command").permanentId;
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT5-061"));
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "blocked", blockerPermanentId: blockerId }));
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT5-061")).toBe(true);
   });
 });

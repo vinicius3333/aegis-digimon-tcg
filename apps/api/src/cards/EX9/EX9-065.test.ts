@@ -24,8 +24,8 @@ describe("EX9-065", () => {
   it("plays a level-four DM from trash and grants both keywords to own Ver.4 Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-065", as: "source" }, { card: "EX9-035", as: "ver4" }], trash: ["EX9-037"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0].battleArea.some((permanent) => permanent.topCard.cardId === "EX9-037"));
-    expect(s.state.players[0].trash.some((card) => card.cardId === "EX9-037")).toBe(false);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-037"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-037")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("ver4"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ver4"), "Retaliation")).toBe(true);
   });

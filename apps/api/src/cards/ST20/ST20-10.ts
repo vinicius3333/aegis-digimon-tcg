@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
                 kind: "zoneColorCount",
                 seat: "mine",
                 zone: "battleArea",
-                cardType: "Tamer",
+                filter: { kind: ["Tamer"] },
                 unit: "distinctColors",
                 op: "gte",
                 value: 3,

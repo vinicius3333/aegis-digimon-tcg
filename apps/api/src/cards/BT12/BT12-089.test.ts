@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -38,7 +39,7 @@ describe("BT12-089 handwritten module", () => {
     expect(s.state.memory).toBe(3);
 
     const module = getEffectModule("BT12-089");
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, s.perm("takato"))).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, observe(s.engine).cardSource(s.perm("takato")))).toHaveLength(1);
   });
 
   it("places the required cards under Guilmon, digivolves to Gallantmon, and grants +2000 DP", async () => {
@@ -64,6 +65,8 @@ describe("BT12-089 handwritten module", () => {
     expect(s.perm("guilmon").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT12-089", "BT12-010", "BT12-016"]),
     );
-    expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 2000);
+    // Takato grants +2000 DP; Guilmon and Growlmon each contribute another
+    // +2000 DP inherited boost once Gallantmon is the stack's top card.
+    expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 6000);
   });
 });

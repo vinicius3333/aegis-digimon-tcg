@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -8,13 +9,13 @@ describe("ST21-11", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const action = effects.find((effect) => effect.trigger === trigger)?.actions[0];
       expect(action).toMatchObject({ kind: "Return", to: "deckBottom" });
-      expect(action.target.filter.levelComparison).toEqual({ op: "lte", value: 4 });
-      expect(action.target.filter.controller).toBe("opponent");
+      expect(irNode(action).target.filter.levelComparison).toEqual({ op: "lte", value: 4 });
+      expect(irNode(action).target.filter.controller).toBe("opponent");
     }
   });
   it("keeps Blast Digivolve and optional once-per-turn trash play", () => {
     const effects = runtimeCompiledCard("ST21-11")?.effects ?? [];
-    expect(effects.find((effect) => effect.trigger === "Counter")?.keywords?.[0].keyword).toBe("BlastDigivolve");
+    expect(effects.find((effect) => effect.trigger === "Counter")?.keywords?.[0]!.keyword).toBe("BlastDigivolve");
     expect(effects.find((effect) => effect.trigger === "WhenAttacking")).toMatchObject({ frequency: "OncePerTurn" });
     expect(effects.find((effect) => effect.trigger === "WhenAttacking")?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"] });
   });

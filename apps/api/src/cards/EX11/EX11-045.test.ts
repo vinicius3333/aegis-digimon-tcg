@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX11-045.js";
 
@@ -15,6 +16,6 @@ describe("EX11-045 Metatromon", () => {
     }
     const inherited = compiled.effects.find((effect) => effect.isInherited)!;
     expect(inherited).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { isSelfRef: true } }] });
-    expect(inherited.actions[0].actions[0]).toMatchObject({ kind: "Delete", target: { filter: { superlative: "lowestPlayCost" } } });
+    expect(irNode(inherited.actions[0]!).actions[0]).toMatchObject({ kind: "Delete", target: { filter: { superlative: "lowestPlayCost" } } });
   });
 });

@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import "./index.js";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import module from "./BT22-037.js";
+import { compiled } from "./BT22-037.js";
 
 describe("BT22-037 Chirinmon", () => {
   it("executes its effect-driven security-trash trigger and gives exactly -8000 DP", async () => {
@@ -24,10 +24,14 @@ describe("BT22-037 Chirinmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("keeps its When Digivolving and inherited clauses executable in the direct module", () => {
-    expect(module.effectsForTiming(EffectTiming.WhenDigivolving, {} as never)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.OnUseAttack, {} as never)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.OnDiscardSecurity, {} as never)).toHaveLength(1);
+  it("registers every printed clause in compiled IR", () => {
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ trigger: "OnDiscardSecurity" }),
+        expect.objectContaining({ trigger: "WhenDigivolving" }),
+        expect.objectContaining({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" }),
+      ]),
+    );
   });
 
   it("trashes top security and pays the destination evolution cost reduced by 2", async () => {

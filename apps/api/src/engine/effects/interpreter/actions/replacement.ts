@@ -31,9 +31,34 @@ export async function runReplacement(
   ctx: EffectContext,
   action: Extract<Action, { kind: "Replacement" }>,
 ): Promise<void> {
-  const oncePerTurnKey = (action as typeof action & { oncePerTurnKey?: string }).oncePerTurnKey;
+  const oncePerTurnKey = action.oncePerTurnKey;
   const replacementBudget =
     oncePerTurnKey === undefined ? {} : { oncePerTurnKey: `${ctx.source.instanceId}/${oncePerTurnKey}` };
+  // The prose compiler also emits a CROSS-CARD reduceCost as a nested Replacement — an outer
+  // `wouldBePlayed` reaction scoped by `sourceFilter` ("an [Eater] Digimon", not "this card")
+  // wrapping the inner `{mode:"reduceCost", amount}` Replacement, rather than setting mode/amount
+  // on the outer action itself (BT22-079's [Breeding] resident reducer). Hoisted above the event
+  // dispatch because the `wouldTrashDigivolutionCard` branch reads it for its description.
+  const nestedCostModifiers = (
+    action.actions as
+      | {
+          kind?: string;
+          event?: string;
+          mode?: string;
+          amount?: number;
+          condition?: Condition;
+          cost?: Cost;
+          sourceFilter?: Filter;
+          optional?: boolean;
+          scaling?: Extract<Action, { kind: "Replacement" }>["scaling"];
+          raw?: string;
+        }[]
+      | undefined
+  )?.filter(
+    (a) =>
+      a.kind === "Replacement" && a.event === action.event && (a.mode === "reduceCost" || a.mode === "increaseCost"),
+  );
+  const nestedCostModifier = nestedCostModifiers?.[0];
   const event = REPLACEMENT_EVENT_MAP[action.event];
   if (event === undefined) {
     unsupported(ctx, action, `Replacement event "${action.event}" is not a known game event`);
@@ -57,7 +82,8 @@ export async function runReplacement(
         return original !== undefined && original.controllerSeat === ctx.source.ownerSeat &&
           originalHostId !== self.permanentId && subCtx.game.state.turnSeat !== ctx.source.ownerSeat;
       },
-      redirectTo: async (subCtx) => (await subCtx.ask.optional(subCtx, action.raw)) ? self.permanentId : undefined,
+      redirectTo: async (subCtx) =>
+        (await subCtx.ask.optional(subCtx, action.raw ?? ctx.activeEffectText ?? event)) ? self.permanentId : undefined,
     });
     return;
   }
@@ -77,31 +103,6 @@ export async function runReplacement(
   const nestedPrevent = (
     action.actions as { kind?: string; cost?: Cost; condition?: Condition; grant?: unknown }[] | undefined
   )?.find((a) => a.kind === "Prevent" || (a.kind === "GrantStatic" && isCannotLeavePlayGrant(a.grant)));
-  // The prose compiler also emits a CROSS-CARD reduceCost as a nested Replacement — an outer
-  // `wouldBePlayed` reaction scoped by `sourceFilter` ("an [Eater] Digimon", not "this card")
-  // wrapping the inner `{mode:"reduceCost", amount}` Replacement, rather than setting mode/amount
-  // on the outer action itself (BT22-079's [Breeding] resident reducer). Hoist the nested mode +
-  // amount the same way nestedPrevent is normalized above, so the installed subscription is a real
-  // reduceCost entry `costReductionFor` can sum — not a mode-less dead store.
-  const nestedCostModifiers = (
-    action.actions as
-      | {
-          kind?: string;
-          event?: string;
-          mode?: string;
-          amount?: number;
-          condition?: Condition;
-          cost?: Cost;
-          sourceFilter?: Filter;
-          optional?: boolean;
-          scaling?: Extract<Action, { kind: "Replacement" }>["scaling"];
-        }[]
-      | undefined
-  )?.filter(
-    (a) =>
-      a.kind === "Replacement" && a.event === action.event && (a.mode === "reduceCost" || a.mode === "increaseCost"),
-  );
-  const nestedCostModifier = nestedCostModifiers?.[0];
   // When the prose compiler emits a Replacement with a cost but no explicit
   // mode (e.g. BT18-082 "by trashing the bottom card of your security stack,
   // it doesn't leave"), interpret it as "prevent" — a cost with empty actions
@@ -389,7 +390,7 @@ export async function runReplacement(
       sourcePermanentId: self?.permanentId,
       sourceInstanceId: ctx.source.instanceId,
     mode: "instead",
-    description: action.raw,
+    description: action.raw ?? ctx.activeEffectText ?? event,
     digisorptionRedirect: action.digisorptionRedirect,
     causeAllows: (cause, resolvingSeat) => {
       switch (action.leaveCause ?? "any") {

@@ -36,7 +36,7 @@ describe("BT22-056 Guardromon", () => {
           battleArea: [{ card: "BT22-053", as: "base", under: ["BT22-053"] }],
           hand: [{ card: "BT22-056", as: "guardromon" }],
         },
-        1: { battleArea: [{ card: "BT22-071", as: "target", under: ["BT1-009"] }] },
+        1: { battleArea: [{ card: "BT22-071", as: "target", under: ["BT1-021"] }] },
       },
       { autoSelectCards: true },
     );
@@ -50,10 +50,10 @@ describe("BT22-056 Guardromon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").topCard?.cardId === "BT1-009");
+    await settle(() => s.perm("target").topCard?.cardId === "BT1-021");
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("target").topCard?.cardId).toBe("BT1-009");
+    expect(s.perm("target").topCard?.cardId).toBe("BT1-021");
   });
 
   it("still applies -3000 DP but does not De-Digivolve without a repeated level", async () => {

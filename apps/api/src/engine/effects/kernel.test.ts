@@ -121,6 +121,10 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     definitionOf: () => ({ cardId: "TOP", set: "x", nameEn: "x", kinds: ["Digimon"] as never, colors: [], playCost: 0, dp: 1000, evoCosts: [], maxCountInDeck: 4 }),
   };
 
+  const digiEggTop: Partial<GameAccess> = {
+    definitionOf: () => ({ cardId: "EGG", set: "x", nameEn: "x", kinds: [CardKind.DigiEgg], colors: [], playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4 }),
+  };
+
   it("inherited effect activates only when its source is a STACK card (not the top)", () => {
     const essSource = fakeSource({ instanceId: "ess#1", permanent: () => permanent });
     const eff: Effect = whenAttacking({ source: essSource, effectKey: "k", description: "", isInherited: true, resolve: async () => {} });
@@ -230,7 +234,7 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
       isInherited: true,
       resolve: async () => {},
     });
-    const ctx = fakeContext(breedingSource, { kinds: [CardKind.DigiEgg] });
+    const ctx = fakeContext(breedingSource, digiEggTop);
 
     expect(passesPlacementGuard(eff, ctx)).toBe(true);
   });
@@ -244,7 +248,7 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
       isInherited: true,
       resolve: async () => {},
     });
-    const ctx = fakeContext(stackSource, { kinds: [CardKind.DigiEgg] });
+    const ctx = fakeContext(stackSource, digiEggTop);
 
     expect(passesPlacementGuard(eff, ctx)).toBe(false);
   });

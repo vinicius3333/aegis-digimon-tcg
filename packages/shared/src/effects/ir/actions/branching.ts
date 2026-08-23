@@ -1,7 +1,7 @@
 // Choosing between action lists, and deferring one to a later window.
 
 import type { EffectDurationRef } from "../durations.js";
-import type { Target } from "../filters/filter.js";
+import type { Filter, Target } from "../filters/filter.js";
 import type { Condition } from "../predicates/conditions.js";
 import type { Scaling } from "../predicates/scaling.js";
 import type { Action } from "./action.js";
@@ -23,6 +23,11 @@ export interface GainTriggeredEffectAction extends ActionBase {
   duration: EffectDurationRef;
   /** Unsubscribe after the first matching trigger. */
   once?: boolean;
+  /**
+   * Narrows WHICH permanent firing `gainedTrigger` arms the granted effect. Absent ⇒ the
+   * granted trigger fires for the target itself.
+   */
+  sourceFilter?: Filter;
 }
 
 /** Legacy compiler spelling for a timed trigger grant (EX5-048). */

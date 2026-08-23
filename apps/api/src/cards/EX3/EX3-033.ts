@@ -9,6 +9,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
+      description: "[When Digivolving] You may place 1 [Trial of the Four Great Dragons] from your hand in the battle area if you don't have one in play.",
       actions: [
         {
           kind: "PlaceInBattleAreaSelf",
@@ -26,20 +27,15 @@ const compiled: CompiledCard = {
             zone: "hand",
             from: ["hand"],
           },
+          optional: true,
           condition: {
             kind: "youHaveNone",
             filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Trial of the Four Great Dragons"],
-                  match: "name",
-                },
-              ],
+              controller: "mine",
+              zone: "battleArea",
+              nameOrTrait: [{ tokens: ["Trial of the Four Great Dragons"], match: "name" }],
             },
-            raw: "you don't have a [Trial of the Four Great Dragons] in play",
           },
-          optional: true,
         },
       ],
     },

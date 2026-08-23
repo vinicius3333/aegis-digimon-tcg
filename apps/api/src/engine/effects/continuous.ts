@@ -982,10 +982,11 @@ export class ContinuousEffectLedger {
 
   /** Whether a permanent currently has a given keyword from any active grant. */
   hasKeyword(permanentId: string, keyword: string): boolean {
-    return (
+    const result = (
       this.printedKeywordsOfPermanent?.(permanentId)?.includes(keyword) === true ||
       this.grantedKeywords(permanentId).some((grant) => grant.keyword === keyword)
     );
+    return result;
   }
 
   /** Active parameter alternatives carried by grants such as Decoy (Black/White). */

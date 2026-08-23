@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { CompiledEffects } from "@aegis/shared";
@@ -31,11 +32,11 @@ describe("BT25 persisted IR", () => {
     expect(waiver?.condition?.filter).toEqual({ zone: "security", faceUp: true, controllerDefault: "mine" });
 
     const grants = effects.find((effect) => effect.trigger === "YourTurn" || effect.trigger === "AllTurns")!.actions;
-    expect(grants.some((action) => action.keyword?.keyword === baseKeyword)).toBe(true);
+    expect(grants.some((action) => irNode(action).keyword?.keyword === baseKeyword)).toBe(true);
     expect(
       grants.some(
         (action) =>
-          action.keyword?.keyword === conditionalKeyword &&
+          irNode(action).keyword?.keyword === conditionalKeyword &&
           JSON.stringify(action.condition?.filter?.nameOrTrait).includes(namedCard),
       ),
     ).toBe(true);

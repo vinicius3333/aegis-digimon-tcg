@@ -16,7 +16,7 @@ async function start(s: ReturnType<typeof setupEngine>) {
   const main = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
   for (let i = 0; i < 500 && !main.isOpen; i += 1) await Promise.resolve();
   expect(main.isOpen).toBe(true);
-  return turn;
+  return { turn };
 }
 
 async function finish(s: ReturnType<typeof setupEngine>, turn: Promise<void>) { if ((s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase.isOpen) s.engine.applyIntent(0, { type: "endPhase" }); await turn; }
@@ -25,13 +25,13 @@ function arm(s: ReturnType<typeof setupEngine>) { s.state.players[0]!.battleArea
 describe("LM-031 Black Scramble", () => {
   it("returns black trash to deck top and plays a small black Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "LM-031", as: "option" }], trash: ["BT4-066", "BT4-063"] }, 1: { battleArea: ["BT4-063"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
-    await s.ready(); arm(s); const turn = await start(s); await settle(() => (s as ReturnType<typeof setupEngine> & { top?: string }).top === "BT4-066");
+    await s.ready(); arm(s); const { turn } = await start(s); await settle(() => (s as ReturnType<typeof setupEngine> & { top?: string }).top === "BT4-066");
     expect((s as ReturnType<typeof setupEngine> & { top?: string }).top).toBe("BT4-066"); expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT4-063")).toBe(true); await finish(s, turn);
   });
 
   it("does not activate when the opponent has no Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "LM-031", as: "option" }], trash: ["BT4-063"] } }, { autoAcceptOptional: true, autoSelectCards: true });
-    await s.ready(); arm(s); const turn = await start(s); expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-031")).toBe(true); await finish(s, turn);
+    await s.ready(); arm(s); const { turn } = await start(s); expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-031")).toBe(true); await finish(s, turn);
   });
 
   it("plays a qualifying black Digimon from security and returns itself to hand", async () => {

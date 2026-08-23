@@ -212,18 +212,27 @@ describe("errataCluster — 13 high-use errata'd cards implement the KB 'after' 
       expect(def?.nameEn).not.toBe("LoaderLiomon");
     });
 
-    it("EX2-055 Reaper — errata 'SET play cost to 0' (not 'reduce to 0') carried in the play-replacement clause", () => {
+    it("EX2-055 Reaper — errata 'SET play cost to 0' (not 'reduce to 0') is preserved by the pay-time cost clause", () => {
       // Errata 2022-07-01: "...to REDUCE this Digimon's play cost to 0" -> "...to SET this
-      // Digimon's play cost to 0". The IR's wouldBePlayed replacement clause raw carries the
-      // corrected "set ... play cost to 0".
+      // Digimon's play cost to 0". The compiled implementation uses the dedicated BeforePayCost
+      // action: after the optional 7-card payment, it subtracts the full printed play cost. The
+      // catalog remains the source of truth for the corrected wording.
       const c = ir("EX2-055");
-      const repl = c.effects.flatMap((e) => e.actions).find((a) => a.kind === "Replacement") as
-        | { raw?: string }
+      const beforePayCost = c.effects.find((effect) => effect.trigger === "BeforePayCost");
+      const setToZero = beforePayCost?.actions.find((action) => action.kind === "ReducePlayCost") as
+        | {
+            amount?: { kind?: string; value?: number };
+            payment?: { kind?: string; minimum?: number };
+          }
         | undefined;
-      expect(repl, "EX2-055: wouldBePlayed Replacement present").toBeDefined();
-      // DIFF lever: revert the raw to the printed "reduce ... to 0" -> RED.
-      expect(repl?.raw?.toLowerCase()).toContain("set this digimon's play cost to 0");
-      expect(repl?.raw?.toLowerCase()).not.toContain("reduce this digimon's play cost to 0");
+      expect(setToZero, "EX2-055: BeforePayCost action present").toBeDefined();
+      expect(setToZero?.payment).toMatchObject({ kind: "trashDigivolution", minimum: 7 });
+      expect(setToZero?.amount).toEqual({ kind: "fixed", value: 20 });
+
+      const correctedText = getCardDefinition("EX2-055")?.effectText?.toLowerCase();
+      // DIFF lever: revert the catalog to the printed-before wording -> RED.
+      expect(correctedText).toContain("set this digimon's play cost to 0");
+      expect(correctedText).not.toContain("reduce this digimon's play cost to 0");
     });
 
     it("EX1-073 Machinedramon — On Play place-under carries no stale non-level-5 'Cyborg' filter", () => {

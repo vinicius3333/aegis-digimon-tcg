@@ -39,8 +39,9 @@ export interface AttackAction extends ActionBase {
 export interface BattleAction extends ActionBase {
   kind: "Battle";
   attacker: Target;
-  defender: Target;
-  /** Alternative combined specification. */
+  /** The defender, as `defender` or the equivalent `target`; exactly one is present. */
+  defender?: Target;
+  /** Alternative spelling of `defender`. */
   target?: Target;
 }
 

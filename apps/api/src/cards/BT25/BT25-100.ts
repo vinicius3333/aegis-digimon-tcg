@@ -22,13 +22,6 @@ const compiled: CompiledCard = {
           keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
           duration: "permanent",
         },
-        {
-          kind: "ModifyDP",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          amount: 2000,
-          duration: "permanent",
-          continuous: true,
-        },
       ],
     },
     {
@@ -93,7 +86,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              zone: ["battleArea", "breedingArea"],
+              zone: ["battleArea", "breeding"],
               kind: ["Digimon"],
             },
             count: 1,

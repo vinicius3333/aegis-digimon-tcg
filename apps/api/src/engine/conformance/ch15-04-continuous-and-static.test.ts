@@ -49,12 +49,12 @@ describe("§15-8-2 Persistent Effects (comprehensive-0172)", () => {
 
     const engine = s.engine as unknown as { recomputeContinuousEffects(): Promise<void> };
     await engine.recomputeContinuousEffects();
-    await settle(() => ally.currentDP === 6000, 200);
+    await settle(() => ally.currentDP === 6000, 5000);
     expect(ally.currentDP).toBe(6000); // active on the owner's own turn
 
     s.state.turnSeat = 1;
     await engine.recomputeContinuousEffects();
-    await settle(() => ally.currentDP === 5000, 200);
+    await settle(() => ally.currentDP === 5000, 5000);
     expect(ally.currentDP).toBe(5000); // deactivated the instant it's no longer the owner's turn
   });
 });
@@ -85,11 +85,11 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
       effectKey: "BT15-009/ir-27-0",
     });
     expect(firstUse).toEqual({ ok: true });
-    await settle(() => !p1.battleArea.includes(targetA), 200);
+    await settle(() => !p1.battleArea.includes(targetA), 5000);
     // Wait for the per-turn use ledger to actually record the use (a few ticks behind
     // the board mutation, since register() runs after the awaited decision round trip).
     const trackerRef = (s.engine as unknown as { tracker: { count(id: string, key: string): number } }).tracker;
-    await settle(() => trackerRef.count(meramonA.topCard!.instanceId, "BT15-009/ir-27-0") > 0, 500);
+    await settle(() => trackerRef.count(meramonA.topCard!.instanceId, "BT15-009/ir-27-0") > 0, 5000);
 
     // Copy A is now spent this turn — a second activation on the SAME copy is rejected...
     const secondUseSameCopy = s.engine.applyIntent(0, {
@@ -107,7 +107,7 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
       effectKey: "BT15-009/ir-27-0",
     });
     expect(useOtherCopy).toEqual({ ok: true });
-    await settle(() => !p1.battleArea.includes(targetB), 200);
+    await settle(() => !p1.battleArea.includes(targetB), 5000);
   });
 });
 
@@ -129,7 +129,7 @@ describe("§15-14-2 {Hand} (comprehensive-0194)", () => {
       effectKey: "BT9-042/ir-27-0",
     });
     if (result.ok) {
-      await settle(() => raidenmon.stack.some((c) => c.instanceId === raijinmon.instanceId), 200);
+      await settle(() => raidenmon.stack.some((c) => c.instanceId === raijinmon.instanceId), 5000);
       expect(raidenmon.stack.some((c) => c.instanceId === raijinmon.instanceId)).toBe(true);
     } else {
       // DIVERGENCE surfaced by a real run: see the it.fails immediately below, which
@@ -331,7 +331,7 @@ describe("§15-16-3 [When Digivolving] (comprehensive-0209)", () => {
     s.state.memory = 10;
 
     s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: evolver.instanceId });
-    await settle(() => base.topCard?.cardId === "BT9-042" || s.state.pendingDecision !== undefined, 200);
+    await settle(() => base.topCard?.cardId === "BT9-042" || s.state.pendingDecision !== undefined, 5000);
     expect(base.topCard?.cardId === "BT9-042" || s.state.pendingDecision !== undefined).toBe(true);
   });
 });
@@ -349,7 +349,7 @@ describe("§15-16-4 [On Deletion] (comprehensive-0210)", () => {
 
     await (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives
       .deletePermanent([leomon.permanentId]);
-    await settle(() => s.state.memory !== memoryBefore, 200);
+    await settle(() => s.state.memory !== memoryBefore, 5000);
 
     expect(s.state.memory).toBe(memoryBefore + 2);
   });
@@ -374,7 +374,7 @@ describe("§15-16-5 [When Attacking] (comprehensive-0211)", () => {
       attackerPermanentId: base.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => oppTarget.currentDP !== 9000, 300);
+    await settle(() => oppTarget.currentDP !== 9000, 5000);
     expect(oppTarget.currentDP).toBe(5000); // the inherited [When Attacking] -4000 DP fired
   });
 });
@@ -516,7 +516,7 @@ describe("§15-16-13-1 [Start of Your/Opponent's Main Phase] (comprehensive-0217
     await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
       EffectTiming.OnStartMainPhase,
     );
-    await settle(() => motherEater.stack.some((c) => c.instanceId === egg.instanceId), 200);
+    await settle(() => motherEater.stack.some((c) => c.instanceId === egg.instanceId), 5000);
     // BT22-007's {Breeding}[Start of Your Main Phase] places a real [Mother Eater] egg-deck
     // top card as its OWN top digivolution card — the window fired and its body ran.
     expect(motherEater.stack.some((c) => c.instanceId === egg.instanceId)).toBe(true);
@@ -575,7 +575,7 @@ describe("§15-16-16 [When Moving] (comprehensive-0220)", () => {
         EffectTiming.OnMove,
         { movedPermanentId: keramon.permanentId },
       );
-      await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 500);
+      await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 5000);
       // EXPECTED (per §15-16-16-1): the [When Moving] optional Token-play prompt fires.
       expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     },

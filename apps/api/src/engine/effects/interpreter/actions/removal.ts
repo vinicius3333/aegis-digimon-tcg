@@ -3,10 +3,11 @@
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { ActionScope } from "../dispatch.js";
 import type { EffectContext } from "../../EffectContext.js";
+import { CardKind } from "@aegis/shared";
 import type { CardColor } from "@aegis/shared";
 import { seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
-import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "../targeting/loose.js";
 import {
   candidatePermanents,
   raiseDeletionDpCap,
@@ -18,6 +19,7 @@ import {
 } from "../targeting/permanents.js";
 import type { Action, Target } from "@aegis/shared";
 import { definitionMatches } from "../matching/definition.js";
+import { COLOR_MAP } from "../maps.js";
 
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -276,7 +278,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const source = ctx.source.permanent();
       if (source === undefined) return false;
       const hasColor = (color: "Red" | "Black") =>
-        source.stack.some((card) => ctx.game.definitionOf(card).colors.includes(color));
+        source.stack.some((card) => ctx.game.definitionOf(card).colors.includes(COLOR_MAP[color]));
       const filters = [
         ...(hasColor("Red") ? [action.redFilter] : []),
         ...(hasColor("Black") ? [action.blackFilter] : []),
@@ -526,7 +528,24 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         }
         return false;
       }
-      const ids = topInstanceIds(ctx, permanentIds);
+      // A field-scoped Trash action names a card in a permanent's stack (the IR uses the
+      // dedicated TrashDigivolution verb when the wording is explicit, but older generated
+      // records encode the same operation as Trash against a Digimon target). The permanent's
+      // top card is not a loose card and must never be passed to the generic trash primitive.
+      const ids: string[] = [];
+      for (const permanentId of permanentIds) {
+        const permanent = ctx.game.permanentById(permanentId);
+        const top = permanent?.topCard;
+        if (top !== undefined) {
+          const kinds = ctx.game.definitionOf(top).kinds;
+          if (kinds.includes(CardKind.Option) || kinds.includes(CardKind.Tamer)) {
+            await ctx.fx.deletePermanent([permanentId]);
+            continue;
+          }
+        }
+        const source = permanent?.stack.at(-1);
+        if (source !== undefined) ids.push(source.instanceId);
+      }
       if (ids.length > 0) await ctx.fx.trash(ids, { byEffectSeat: ctx.source.ownerSeat });
       return false;
     }
@@ -591,8 +610,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return false;
       }
       if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
-        if (action.to === "hand") await ctx.fx.returnToHand([ctx.source.instanceId]);
-        else await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
+        const moved =
+          action.to === "hand"
+            ? await ctx.fx.returnToHand([ctx.source.instanceId])
+            : await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
+        ctx.lastEffectActed = moved.length > 0;
         return false;
       }
       if (returnTarget.totalPlayCostBudget !== undefined) {
@@ -608,7 +630,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // silently no-opping the whole effect. Route through the same loose-instance resolution
       // the "Trash" case already uses for its hand-zone branch.
       const zone = returnTarget.filter.zone;
-      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? [zone] : undefined);
+      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? zoneList(zone) : undefined);
       if (looseZones !== undefined) {
         const candidates = candidateLooseInstances(ctx, returnTarget, looseZones);
         const visibleZoneIds =
@@ -649,6 +671,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             : await ctx.fx.returnToDeck(action.to === "deckTop" ? [...ordered].reverse() : ordered, {
                 toTop: action.to === "deckTop",
               });
+        ctx.lastEffectActed = moved.length > 0;
         if (action.bindResultAs) {
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
@@ -675,10 +698,12 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         }
         return false;
       }
-      const moved =
+      const movedResult =
         action.to === "hand"
           ? await ctx.fx.returnToHand(ids)
           : await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
+      const moved = movedResult ?? [];
+      ctx.lastEffectActed = movedResult === undefined ? ids.length > 0 : moved.length > 0;
       if (action.bindResultAs) {
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
@@ -690,7 +715,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "ReturnToEggDeck": {
-      const zones = action.from ?? (action.target.filter.zone !== undefined ? [action.target.filter.zone] : ["trash"]);
+      const zones = action.from ?? (action.target.filter.zone !== undefined ? zoneList(action.target.filter.zone) : ["trash"]);
       const candidates = candidateLooseInstances(ctx, action.target, zones);
       const count = action.target.count === "all" ? candidates.length : (action.target.count ?? 1);
       if (count <= 0 || candidates.length < count || ctx.fx.returnToEggDeck === undefined) return false;

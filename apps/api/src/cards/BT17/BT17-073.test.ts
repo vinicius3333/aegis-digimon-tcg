@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-073.js";
@@ -50,8 +51,8 @@ describe("BT17-073 DexDorugoramon", () => {
       sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
       actions: [{ kind: "Unsuspend", target: { isSelf: true } }],
     });
-    expect(effect?.actions[0]?.sourceFilter).not.toHaveProperty("controller");
-    expect(effect?.actions[0]?.sourceFilter).not.toHaveProperty("controllerDefault");
+    expect(irNode(effect?.actions[0])?.sourceFilter).not.toHaveProperty("controller");
+    expect(irNode(effect?.actions[0])?.sourceFilter).not.toHaveProperty("controllerDefault");
   });
 
   it("unsuspends when an opponent's Digimon is deleted", async () => {

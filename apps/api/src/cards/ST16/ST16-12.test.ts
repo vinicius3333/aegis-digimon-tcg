@@ -53,6 +53,7 @@ describe("ST16-12 MetalGarurumon", () => {
             { card: "ST16-08", as: "lowest", suspended: true },
             { card: "ST16-11", as: "higher", suspended: true },
           ],
+          security: ["BT1-001"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -63,7 +64,7 @@ describe("ST16-12 MetalGarurumon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("metalgarurumon").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("higher").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "ST16-08"));

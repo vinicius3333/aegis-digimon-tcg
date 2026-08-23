@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -28,7 +29,7 @@ describe("EX10-063 Close", () => {
         player: () => ({ hand: [] }),
         definitionOf: () => ({ nameEn: "Sunarizamon" }),
       },
-    } as never;
+    } as unknown as EffectContext;
     expect(effect.canActivate(base)).toBe(false);
     expect(
       effect.canActivate({

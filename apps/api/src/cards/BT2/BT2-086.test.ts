@@ -111,8 +111,8 @@ describe("BT2-086 Rina Shinomiya", () => {
           hand: [{ card: "BT2-086", as: "source" }],
           deck: [
             { card: "BT2-026", as: "validVeedramon" },
-            { card: "BT2-002", as: "veeEgg" },
             { card: "BT12-101", as: "veeOption" },
+            { card: "BT1-009", as: "nonVeeDigimon" },
           ],
         },
       },
@@ -127,7 +127,6 @@ describe("BT2-086 Rina Shinomiya", () => {
       s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("validVeedramon").instanceId),
     );
 
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("veeEgg").instanceId)).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("veeOption").instanceId)).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });

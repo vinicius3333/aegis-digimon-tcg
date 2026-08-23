@@ -30,6 +30,7 @@ describe("BT16-045", () => {
   });
 
   it("suspends a Digimon and boosts one of yours on play", async () => {
+    const options = { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] as string[] };
     const s = setupEngine(
       {
         0: {
@@ -38,8 +39,9 @@ describe("BT16-045", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
-      { autoSelectCards: true },
+      options,
     );
+    options.preferInstanceIds.push(s.perm("opponent").permanentId);
     s.state.memory = 7;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metallife").instanceId })).toEqual({

@@ -18,7 +18,7 @@ describe("EX9-032", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.perm("source").topCard?.cardId === "EX9-033");
     expect(s.perm("source").topCard?.cardId).toBe("EX9-033");
-    expect(s.state.players[0].battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-033" && permanent.permanentId !== s.perm("source").permanentId)).toBe(false);
-    expect(s.state.players[0].trash.some((card) => card.cardId === "EX9-024")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-033" && permanent.permanentId !== s.perm("source").permanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-024")).toBe(true);
   });
 });

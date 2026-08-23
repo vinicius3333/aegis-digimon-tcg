@@ -42,7 +42,7 @@ describe("EX9-010", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     s.state.turnSeat = 0;
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "player", seat: 1 } })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.perm("source").stack).toHaveLength(2);
     expect(s.perm("source").stack.some((card) => card.cardId === "BT1-009" && card.faceUp === false)).toBe(true);
@@ -70,7 +70,7 @@ describe("EX9-010", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(false);
     await settle();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "player", seat: 1 } })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.decisions.length === 0);
 
     expect(s.perm("source").stack).toHaveLength(2);

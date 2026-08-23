@@ -16,6 +16,7 @@ import {
   turnOwnerGuard,
   withIntrinsicDelayGate,
   withSubTriggerFrequency,
+  withSubTriggerTurnScope,
 } from "../effect.js";
 import { evaluateCondition } from "../conditions.js";
 import {
@@ -32,6 +33,7 @@ import {
   trainingActivatedEffect,
 } from "./keywords.js";
 import { collectWouldBePlayedSelfReducers, collectWouldDigivolveSelfReducers } from "./reducers.js";
+import { normalizeCompiledCard } from "./normalize.js";
 import { EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { CardEffect, CompiledCard } from "@aegis/shared";
 
@@ -78,6 +80,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const result = effect.condition === undefined || evaluateCondition(ctx, effect.condition);
     return result;
   };
+  // A condition that describes the FIRING EVENT itself ("when one of your Digimon's effects adds
+  // cards to your hand") is part of the trigger, not of resolution: an event that does not match
+  // must never collect the effect in the first place. Board-state conditions ("if you have a
+  // Tamer") stay a resolution gate, where an effect still triggers and then does nothing.
+  const triggerCondition = (effect: CardEffect, ctx: Parameters<NonNullable<BuilderOptions["when"]>>[0]): boolean =>
+    effect.condition?.kind.startsWith("trigger") !== true || effectCondition(effect, ctx);
   // The on-play body is the FIRST plain (non-security, non-＜Delay＞) [Main] of an Option — the one
   // play-card fires via OnUseOption. Only that clause is stripped of the OnDeclaration co-home (so
   // it cannot re-fire on the placed option permanent); later [Main] clauses stay activatable.
@@ -240,22 +248,26 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // mapping to EffectTiming.None) still installs its listener as a staticModifier, but
         // the listener body must apply Delay's own trash-cost + turn-guard when it fires —
         // see `withIntrinsicDelayGate`'s doc comment above.
-        const frequencyBoundEffect = withSubTriggerFrequency(effect, effectKey);
+        const frequencyBoundEffect = withSubTriggerTurnScope(withSubTriggerFrequency(effect, effectKey));
         const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
         return build({
           source,
           irTrigger: effect.trigger,
           effectKey,
           description: effect.description ?? describeEffect(effect),
+          timingOverride: effect.timingOverride,
           optional: effect.optional ?? false,
           isInherited: effect.isInherited ?? false,
           isLinked: effect.isLinked ?? false,
+          attackScope: effect.attackScope,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
           continuousPriority: readsSelfKeyword(effect) ? 1 : 0,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
-          when: turnOwnerGuard(effect.trigger),
+          when: (ctx) =>
+            (turnOwnerGuard(effect.trigger)?.(ctx) ?? true) &&
+            (timing === EffectTiming.BeforePayCost ? effectCondition(effect, ctx) : triggerCondition(effect, ctx)),
           canActivate: (ctx) =>
             (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
             canActivateEffect(ctx, effect),
@@ -280,7 +292,8 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * for a hand-written double-port that does not go through this bulk path.
  */
 export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
-  registeredCompiledCards.set(cardId, compiled);
+  const normalized = normalizeCompiledCard(compiled);
+  registeredCompiledCards.set(cardId, normalized);
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
   // Registry precedence belongs to the concrete module, not merely to the fact that IR for
@@ -289,7 +302,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard): EffectMo
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = irCardModule(cardId, compiled);
+  const module = irCardModule(cardId, normalized);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;

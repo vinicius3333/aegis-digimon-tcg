@@ -333,10 +333,16 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
         const visibleCardIds = new Map((req.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]));
         const ids: string[] = [];
         const selectedCardIds = new Set<string>();
+        let selectedDP = 0;
         for (const instanceId of ordered) {
           if (ids.length >= cap) break;
           const cardId = visibleCardIds.get(instanceId);
           if (req.options?.distinctCardIds === true && (cardId === undefined || selectedCardIds.has(cardId))) continue;
+          if (req.kind === "chooseTargets" && req.options?.maxTotalDP !== undefined) {
+            const permanent = findPermanentForDecisionId(state, instanceId);
+            if (permanent === undefined || selectedDP + permanent.currentDP > req.options.maxTotalDP) continue;
+            selectedDP += permanent.currentDP;
+          }
           ids.push(instanceId);
           if (cardId !== undefined) selectedCardIds.add(cardId);
         }
@@ -476,6 +482,16 @@ function findPermanentContainingInstance(state: GameState, instanceId: string): 
   return undefined;
 }
 
+function findPermanentForDecisionId(state: GameState, id: string): Permanent | undefined {
+  for (const player of state.players) {
+    const permanent = [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])].find(
+      ({ permanentId }) => permanentId === id,
+    );
+    if (permanent !== undefined) return permanent;
+  }
+  return findPermanentContainingInstance(state, id);
+}
+
 /**
  * Tick the microtask queue until a predicate holds (bounded). Omit the predicate (or pass
  * `() => false`) to just flush pending microtasks for `maxTicks` iterations.
@@ -491,9 +507,21 @@ function findPermanentContainingInstance(state: GameState, instanceId: string): 
  * per-family action dispatch added one promise hop per action), raise the budgets of the
  * specific tests that outgrew theirs.
  */
-export async function settle(predicate: () => boolean = () => false, maxTicks = 500): Promise<void> {
-  for (let i = 0; i < maxTicks && !predicate(); i++) {
+/**
+ * Tick the microtask queue until `predicate` holds, or `maxTicks` elapse. The predicate is read
+ * for truthiness, so an optional-chained probe that can yield `undefined` is a legal predicate.
+ */
+export async function settle(predicate: () => boolean | undefined = () => false, maxTicks = 500): Promise<void> {
+  for (let i = 0; i < maxTicks * 10; i++) {
     await Promise.resolve();
+    if (predicate()) {
+      // A production action may publish its observable milestone before the final action in
+      // the same effect continuation (P-130 suspends before its trailing GainMemory). Give
+      // that continuation one turn through the microtask queue before callers inspect state.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      for (let flush = 0; flush < 20; flush += 1) await Promise.resolve();
+      return;
+    }
   }
 }
 

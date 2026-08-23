@@ -12,7 +12,7 @@ describe("BT25-097 Guardian Palace", () => {
         0: {
           hand: [
             { card: "BT25-097", as: "palace" },
-            { card: "BT25-033", as: "tsTarget" },
+            { card: "BT25-034", as: "tsTarget" },
           ],
         },
       },

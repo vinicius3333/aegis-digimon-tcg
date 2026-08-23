@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT16-094.js";
 
 describe("BT16-094", () => {
@@ -15,7 +16,7 @@ describe("BT16-094", () => {
         { kind: "ModifyDP", amount: -7000, duration: "forTheTurn", condition: { kind: "ifThisEffectActed" } },
       ],
     });
-    expect(compiled.effects?.[1]?.actions?.[0]?.options?.[0]?.[0]).not.toHaveProperty("optional");
+    expect(irNode(compiled.effects?.[1]?.actions?.[0])?.options?.[0]?.[0]).not.toHaveProperty("optional");
   });
 
   it("reduces an opponent by 7000 and places itself from security", () => {

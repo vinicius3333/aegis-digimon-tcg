@@ -139,7 +139,7 @@ describe("BT24-073 SkullSatamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(1);
@@ -169,7 +169,7 @@ describe("BT24-073 SkullSatamon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[1]!.deck).toHaveLength(2);

@@ -27,7 +27,11 @@ const module: EffectModule = {
             "paying the cost.",
           optional: true,
           when: (_ctx) => source.isOnBattleArea(),
-          canActivate: (_ctx) => source.isOnBattleArea(),
+          canActivate: (ctx) =>
+            source.isOnBattleArea() &&
+            Array.from(ctx.game.player(source.ownerSeat).hand).some(
+              (card) => ctx.game.definitionOf(card).nameEn === "Close",
+            ),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const closeCard = Array.from(owner.hand).find((c) => {

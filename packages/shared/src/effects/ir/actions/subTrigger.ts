@@ -75,6 +75,12 @@ export interface SubTriggerAction extends ActionBase {
   /** For whenHandTrashed, select whose hand must have been trashed. Defaults to mine. */
   handTrashedController?: "mine" | "opponent";
   /**
+   * The printed turn window of the clause that installed this watcher: a `[Your Turn]` watcher
+   * fires only while its owner is the turn player, an `[Opponent's Turn]` one only on the other
+   * turn. Stamped from the effect's trigger at registration; `[All Turns]` leaves it absent.
+   */
+  turnScope?: "yourTurn" | "opponentsTurn";
+  /**
    * Keep the watcher at activating-player scope instead of anchoring it to the source permanent,
    * so it still affects permanents entering later after the source leaves play (BT10-016 Q1945).
    * Requires `duration` to give the retained context an expiry.
@@ -123,8 +129,8 @@ export interface SubTriggerAction extends ActionBase {
    * leaves the field.
    */
   duration?: EffectDurationRef;
-  /** Original prose, for diagnostics and unsupported routing. */
-  raw: string;
+  /** Original prose, for diagnostics and unsupported routing. Absent on hand-authored IR. */
+  raw?: string;
   /** Internal text before recursive compilation. */
   _innerText?: string;
   triggerFilter?: Filter;

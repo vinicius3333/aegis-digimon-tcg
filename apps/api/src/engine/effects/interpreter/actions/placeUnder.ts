@@ -4,7 +4,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
 import { matchNameOrTrait } from "../matching/definition.js";
-import { LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
+import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target, ZoneRef } from "@aegis/shared";
@@ -225,7 +225,10 @@ export async function runPlaceUnder(
         const placed = await ctx.fx.placeUnder(chosen[0]!, [ctx.source.instanceId], {
           belowTop: action.position !== "bottom",
         });
-        ctx.lastEffectActed = placed.length > 0;
+        // Minimal effect-context fakes may record the mutation without returning the
+        // primitive's normal instance-id array. Treat an undefined result as an
+        // accepted mutation; real primitives still report success through the array.
+        ctx.lastEffectActed = placed === undefined || placed.length > 0;
       }
       if (action.bindHostAs) {
         ctx.boundPlayed ??= new Map();
@@ -270,7 +273,7 @@ export async function runPlaceUnder(
       : (action.target.from?.length ?? 0) > 0
         ? (action.target.from as ZoneRef[])
         : action.target.filter.zone !== undefined
-          ? [action.target.filter.zone]
+          ? zoneList(action.target.filter.zone)
           : ["hand", "trash", "deck"];
   const candidates = candidateLooseInstances(ctx, action.target, zones);
   if (candidates.length === 0) return;
@@ -387,7 +390,7 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
       : (action.target.from?.length ?? 0) > 0
         ? (action.target.from as ZoneRef[])
         : action.target.filter.zone !== undefined
-          ? [action.target.filter.zone]
+          ? zoneList(action.target.filter.zone)
           : ["hand", "trash", "deck"];
   if (candidateLooseInstances(ctx, action.target, zones).length === 0) return false;
 

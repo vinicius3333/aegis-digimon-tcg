@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -74,7 +75,7 @@ describe("EX12-045 Sanzomon", () => {
     const compiled = registeredCompiledCards.get("EX12-045")!;
     const yourTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     const watcher = yourTurn.actions[0];
-    const play = watcher.actions[0];
+    const play = irNode(watcher).actions[0];
 
     expect(card?.effectText).toContain("[Gokuumon] in its text");
     expect(card?.inheritedEffectText).toContain("-4000 DP");

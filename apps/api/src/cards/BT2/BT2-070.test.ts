@@ -34,7 +34,7 @@ describe("BT2-070 Tapirmon", () => {
 
   it("triggers when Tapirmon is deleted in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
+      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 20000 }] },
       1: {
         battleArea: [{ card: "BT2-070", as: "tapirmon", suspended: true }],
         deck: [{ card: "BT1-029", as: "drawn" }],

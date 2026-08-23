@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
           "kind": "ModifySecurityDP",
           "controller": "opponent",
           "amount": -3000,
-          "duration": "forTheTurn"
+          "duration": "permanent"
         }
       ],
       "isInherited": true

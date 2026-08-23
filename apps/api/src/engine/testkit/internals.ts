@@ -7,6 +7,7 @@ import type { CombatController } from "../combat/controller.js";
 import type { MainPhaseController } from "../MainPhaseController.js";
 import type { Primitives, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import type { SecurityDpLedger } from "../security/securityDp.js";
+import type { CardSource } from "../effects/CardSource.js";
 import type { CardInstance, EffectTiming, GameState, Permanent, Seat } from "@aegis/shared";
 
 /**
@@ -31,10 +32,11 @@ export interface EngineInternals {
   readonly securityDp: SecurityDpLedger;
   recomputeContinuousEffects(): Promise<void>;
   syncActivatableEffects(): void;
-  fireTiming(timing: EffectTiming, permanent: Permanent): Promise<void>;
+  fireTiming(timing: EffectTiming, trigger?: TriggerInfo): Promise<void>;
   fireTimingForPermanent(timing: EffectTiming, permanent: Permanent, trigger?: TriggerInfo): Promise<void>;
   fireTimingForInstance(timing: EffectTiming, instanceId: string): Promise<void>;
   fireSubTrigger(event: SubTriggerEventName, payload?: TriggerInfo): Promise<void>;
+  cardSourceOf(instance: CardInstance): CardSource;
   drawCards(seat: Seat, count: number): Promise<CardInstance[]>;
   beginResolvingWindow(): boolean;
   endResolvingWindow(wasOutermost: boolean): void;

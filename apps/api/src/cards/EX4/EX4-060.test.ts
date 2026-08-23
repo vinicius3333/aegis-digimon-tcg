@@ -160,7 +160,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
       ask: {
         chooseOption: async () => 0,
         chooseTargets: async () => [],
-        selectCards: async (_ctx, options) => [options.candidates[0]!],
+        selectCards: async (_ctx: EffectContext, options: { candidates: string[] }) => [options.candidates[0]!],
         selectPermanents: async () => [],
         optional: async () => true,
       },

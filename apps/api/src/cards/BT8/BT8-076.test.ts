@@ -22,7 +22,7 @@ describe("BT8-076 Fangmon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: fangmonId,
-      target: { kind: "digimon", permanentId: defenderId },
+      target: { kind: "permanent", permanentId: defenderId },
     })).toEqual({ ok: true });
     await settle(() =>
       !s.state.players[0]!.battleArea.some(permanent => permanent.permanentId === fangmonId) &&

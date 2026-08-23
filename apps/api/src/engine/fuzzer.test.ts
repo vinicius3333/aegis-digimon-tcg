@@ -241,7 +241,7 @@ function randomIntent(state: GameState): { seat: Seat; intent: Record<string, un
         // Suspend the target so attack is legal
         const target = opp.battleArea[Math.floor(Math.random() * opp.battleArea.length)]!;
         target.isSuspended = true;
-        return { seat, intent: { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "digimon", permanentId: target.permanentId } } };
+        return { seat, intent: { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "permanent", permanentId: target.permanentId } } };
       }
     }
   }

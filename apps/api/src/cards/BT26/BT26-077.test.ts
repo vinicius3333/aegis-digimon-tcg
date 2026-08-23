@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -27,7 +28,7 @@ describe("BT26-077 compiled behavior", () => {
 
   it("raises the printed play-cost ceiling only for each face-down card in this stack", () => {
     const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")!.actions[0];
-    expect(action.playCostCeiling).toEqual({ base: 6, raise: 1, per: 1, filter: {}, unit: "selfFaceDownDigivolutionCards" });
+    expect(irNode(action).playCostCeiling).toEqual({ base: 6, raise: 1, per: 1, filter: {}, unit: "selfFaceDownDigivolutionCards" });
   });
 
   it("publicly plays an eligible Ver.3 Digimon from trash on play", async () => {

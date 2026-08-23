@@ -1,4 +1,5 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -147,8 +148,8 @@ describe("BT25-057 Monarchlizamon / Final Judgment", () => {
   it("keeps Final Judgment's buffs and optional attack on the same target for the turn", () => {
     const main = compiled.effects.find((effect) => effect.trigger === "Main")!;
     expect(main.actions).toHaveLength(4);
-    expect(main.actions.slice(1).every((action) => action.target?.sameTarget === true)).toBe(true);
-    expect(main.actions.slice(0, 3).every((action) => action.duration === "forTheTurn")).toBe(true);
+    expect(main.actions.slice(1).every((action) => irNode(action).target?.sameTarget === true)).toBe(true);
+    expect(main.actions.slice(0, 3).every((action) => irNode(action).duration === "forTheTurn")).toBe(true);
     expect(main.actions[3]).toMatchObject({ kind: "Attack", optional: true });
   });
 });

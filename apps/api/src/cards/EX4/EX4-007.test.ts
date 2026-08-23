@@ -19,7 +19,7 @@ describe("EX4-007 GeoGreymon", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
 
     expect(s.state.memory).toBe(1);
   });

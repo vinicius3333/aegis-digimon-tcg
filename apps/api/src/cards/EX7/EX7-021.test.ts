@@ -16,7 +16,7 @@ describe("EX7-021 CrysPaledramon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX7-021", as: "crys" }] }, 1: { battleArea: [{ card: "BT1-009", under: ["BT1-010"] }, { card: "BT1-011", under: ["BT1-012"] }] } }, { autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("crys"));
-    await settle(() => s.state.players[1].battleArea.every((permanent) => permanent.stack.length === 0));
-    expect(s.state.players[1].battleArea.every((permanent) => permanent.stack.length === 0)).toBe(true);
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.stack.length === 0));
+    expect(s.state.players[1]!.battleArea.every((permanent) => permanent.stack.length === 0)).toBe(true);
   });
 });

@@ -62,18 +62,18 @@ const compiled: CompiledCard = {
               "kind": "Draw",
               "controller": "mine",
               "amount": 1
+            },
+            {
+              "kind": "Trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "hand"
+                },
+                "count": 1
+              }
             }
           ]
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
-            },
-            "count": 1
-          }
         }
       ]
     },

@@ -1,4 +1,5 @@
 import {
+  CardKind,
   EffectTiming,
   requireCardDefinition,
   type CardDefinition,
@@ -179,6 +180,28 @@ export function createGameAccess(
     },
     effectiveDP,
     colorRequirementWaived: (instanceId): boolean => (colorRequirementWaived ?? (() => false))(instanceId),
+    optionColorRequirementMet: (seat, instanceId, definition): boolean => {
+      if ((colorRequirementWaived ?? (() => false))(instanceId)) return true;
+      const required = definition.optionColorRequirements ?? definition.colors ?? [];
+      if (required.length === 0) return true;
+      const available = new Set<import("@aegis/shared").CardColor>();
+      const sources = [...player(seat).battleArea, player(seat).breeding];
+      for (const permanent of sources) {
+        if (permanent?.topCard === undefined) continue;
+        const sourceDefinition = requireCardDefinition(permanent.topCard.cardId);
+        const isHatchedDigiEgg = permanent.inBreeding === true && sourceDefinition.kinds.includes(CardKind.DigiEgg);
+        if (
+          !sourceDefinition.kinds.includes(CardKind.Digimon) &&
+          !sourceDefinition.kinds.includes(CardKind.Tamer) &&
+          !isHatchedDigiEgg
+        ) {
+          continue;
+        }
+        const colors = (effectiveColors ?? ((p) => requireCardDefinition(p.topCard.cardId).colors))(permanent);
+        for (const color of colors) available.add(color);
+      }
+      return required.every((color) => available.has(color));
+    },
     baseGrantedDigivolve,
   };
 }
@@ -250,6 +273,7 @@ export function unimplementedPrimitives(): Primitives {
     relocatePermanent: () => refuse("effect-primitives", "relocatePermanent"),
     movePermanentZone: () => refuse("effect-primitives", "movePermanentZone"),
     hatch: () => refuse("effect-primitives", "hatch"),
+    placeUnderFromDeck: () => refuse("effect-primitives", "placeUnderFromDeck"),
     placeUnderFromEggDeck: () => refuse("effect-primitives", "placeUnderFromEggDeck"),
     placeAsTopFromEggDeck: () => refuse("effect-primitives", "placeAsTopFromEggDeck"),
     link: () => refuse("effect-primitives", "link"),
@@ -399,7 +423,10 @@ export function gatherTriggeredEffects(
       fx: env.fx,
       ask: env.ask,
       usage: env.tracker,
-      activeTiming: EffectTiming[timing],
+      // The PRINTED window ("[Main]", "[When Attacking]") the decision is attributed to, which
+      // is the effect's IR trigger; the engine timing name is the fallback for hand-written
+      // effects that carry none.
+      activeTiming: effect.irTrigger ?? EffectTiming[timing],
       activeEffectText: effect.description,
       conferredToPermanentId,
     });

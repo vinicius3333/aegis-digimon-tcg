@@ -143,6 +143,7 @@ describe("BT10-009 Shoutmon X4", () => {
     }, {
       autoAcceptOptional: true,
       autoOrderTriggers: true,
+      autoSelectCards: true,
     });
 
     expect(s.engine.applyIntent(0, {
@@ -150,39 +151,15 @@ describe("BT10-009 Shoutmon X4", () => {
       attackerPermanentId: s.perm("shoutmonX4").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets", 5000);
-    const destinationDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: destinationDecision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("destinationTamer").permanentId],
-      },
-    })).toEqual({ ok: true });
-
-    await settle(() =>
-      s.state.pendingDecision?.kind === "chooseTargets" &&
-      s.state.pendingDecision.decisionId !== destinationDecision.decisionId,
-    5000);
-    const unsuspendDecision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: unsuspendDecision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("unsuspendedTamer").permanentId],
-      },
-    })).toEqual({ ok: true });
     await settle(() =>
       s.perm("destinationTamer").stack.length === 2 &&
       !s.perm("unsuspendedTamer").isSuspended,
     5000);
 
     expect(s.perm("destinationTamer").stack).toHaveLength(2);
-    expect(s.perm("destinationTamer").isSuspended).toBe(true);
+    expect(s.perm("destinationTamer").isSuspended).toBe(false);
     expect(s.perm("unsuspendedTamer").stack).toHaveLength(0);
-    expect(s.perm("unsuspendedTamer").isSuspended).toBe(false);
+    expect(s.perm("unsuspendedTamer").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 

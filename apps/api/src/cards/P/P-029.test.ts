@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -117,8 +116,7 @@ describe("P-029 Agunimon", () => {
 
     expect(s.state.memory).toBe(1);
     expect(advance(s.engine).ledgers.subTriggers.subscriptionsFor("endOfTurn", permanentId)).toHaveLength(1);
-    const evolved = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId)!;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, evolved);
+    await advance(s.engine).fireSubTrigger("endOfTurn");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT4-113")).toBe(true);
@@ -167,10 +165,7 @@ describe("P-029 Agunimon", () => {
       instanceId: s.inst("omnimon").instanceId,
     })).toEqual({ ok: true });
     await settle(() => s.perm("promoAgunimon").topCard.cardId === "BT5-086");
-    const evolvedAgain = s.state.players[0]!.battleArea.find(
-      (permanent) => permanent.permanentId === permanentId,
-    )!;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, evolvedAgain);
+    await advance(s.engine).fireSubTrigger("endOfTurn");
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT5-086")).toBe(true);

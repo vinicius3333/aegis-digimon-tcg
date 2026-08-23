@@ -15,7 +15,7 @@ describe("BT19-075 MoonMillenniummon", () => {
           { card: "BT1-087", as: "tamer2" },
         ],
       },
-    }, { autoSelectCards: true, autoSelectPermanents: true });
+    }, { autoSelectCards: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.state.players[1]!.hand.length === 5);
     expect(s.state.players[1]!.hand).toHaveLength(5);

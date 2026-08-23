@@ -53,7 +53,7 @@ describe("BT17-049 Antylamon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === beastId && permanent.permanentId !== costPermanentId));
 

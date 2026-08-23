@@ -111,6 +111,7 @@ export interface Condition {
     | "combinedTrashCount" // both players' trash zones summed
     | "zoneColorCount" // distinct colors among battle-area permanents of `cardType` (ST20-10/ST21-10; KB Q4456)
     | "securityCompare" // your security count vs the opponent's; `op` is "lt" (P-127) or "gt" (P-129)
+    | "handCompare" // your hand count vs the opponent's
     | "securityAtMostSelfFaceDownDigivolutionCards" // EX9-029, KB Q4783
     | "sourceWasFaceUpSecurity"
     | "totalSecurityCount" // both stacks summed
@@ -158,7 +159,7 @@ export interface Condition {
   controller?: "mine" | "self" | "opponent";
   // For `zoneCount`: which player's zone, which zone, and the comparison.
   seat?: "mine" | "opponent";
-  zone?: "hand" | "trash" | "security" | "deck";
+  zone?: "hand" | "trash" | "security" | "deck" | "battleArea";
   op?: "gte" | "lte" | "lt" | "gt" | "eq";
   /** For `boardCountCompare`: left operand, default opponent. */
   left?: "mine" | "opponent";

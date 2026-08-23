@@ -54,7 +54,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         0: {
           battleArea: [
             { card: "BT24-085", as: "source" },
-            { card: "BT24-013", as: "attacker" },
+            { card: "BT24-024", as: "attacker" },
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },
@@ -80,7 +80,7 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         0: {
           battleArea: [
             { card: "BT24-085", as: "source" },
-            { card: "BT24-013", as: "attacker" },
+            { card: "BT24-024", as: "attacker" },
           ],
           hand: [{ card: "BT24-092", as: "option" }],
         },

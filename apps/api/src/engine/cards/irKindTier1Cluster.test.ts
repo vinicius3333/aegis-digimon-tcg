@@ -160,9 +160,10 @@ describe("IR-02 Tier-1 — SecurityManipulation (BT16-024 [On Play] place a Digi
     expect(p0.battleArea.some((p) => p.topCard?.instanceId === securityEvo.instanceId)).toBe(true);
     expect(p0.security.some((c) => c.instanceId === securityEvo.instanceId)).toBe(false);
     // The security card is the physical digivolution source. The standard digivolution
-    // bonus draw then correctly moves the deck decoy into hand; expecting it to remain in
-    // the deck would confuse the draw with a selection/identity leak.
-    expect(p0.hand.some((c) => c.instanceId === deckDecoy.instanceId)).toBe(true);
+    // bonus draw moves the Angel deck decoy into hand, then the effect's optional follow-up
+    // places that drawn Angel at the bottom of security under auto-selection.
+    expect(p0.hand.some((c) => c.instanceId === deckDecoy.instanceId)).toBe(false);
+    expect(p0.security.some((c) => c.instanceId === deckDecoy.instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 

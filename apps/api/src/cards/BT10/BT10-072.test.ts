@@ -12,16 +12,16 @@ describe("BT10-072 Soundbirdmon", () => {
         0: {
           battleArea: [
             { card: "BT10-072", as: "soundbirdmon" },
-            { card: "BT10-093", as: "chosenTamer" },
-            { card: "BT10-093", as: "otherTamer" },
+            { card: "BT12-088", as: "chosenTamer" },
+            { card: "BT12-088", as: "otherTamer" },
           ],
           hand: [
             { card: "BT10-071", as: "purpleMaterial" },
             { card: "BT1-009", as: "redDigimon" },
           ],
           deck: [
-            { card: "BT1-001", as: "drawn" },
-            { card: "BT1-002", as: "notDrawn" },
+            { card: "BT1-009", as: "drawn" },
+            { card: "BT1-009", as: "notDrawn" },
           ],
         },
         1: { security: ["BT1-001"] },
@@ -56,10 +56,10 @@ describe("BT10-072 Soundbirdmon", () => {
       0: {
         battleArea: [
           { card: "BT10-072", as: "soundbirdmon" },
-          { card: "BT10-093", as: "tamer" },
+          { card: "BT12-088", as: "tamer" },
         ],
         hand: [{ card: "BT1-009", as: "redDigimon" }],
-        deck: [{ card: "BT1-001", as: "top" }],
+        deck: [{ card: "BT1-009", as: "top" }],
       },
       1: { security: ["BT1-001"] },
     });

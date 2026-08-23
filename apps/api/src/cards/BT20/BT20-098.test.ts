@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT20-098.js";
 
 describe("BT20-098 Apparition Legion", () => {
@@ -14,8 +15,8 @@ describe("BT20-098 Apparition Legion", () => {
     });
     expect(keywordActions).toHaveLength(2);
     expect(keywordActions?.map((action) => action.kind)).toEqual(["GainKeyword", "GainKeyword"]);
-    expect(keywordActions?.map((action) => action.keyword.keyword)).toEqual(["Rush", "Blocker"]);
-    expect(keywordActions?.every((action) => action.target.count === "all")).toBe(true);
+    expect(keywordActions?.map((action) => irNode(action).keyword.keyword)).toEqual(["Rush", "Blocker"]);
+    expect(keywordActions?.every((action) => irNode(action).target.count === "all")).toBe(true);
     expect(keywordActions?.every((action) => action.optional !== true)).toBe(true);
   });
 });

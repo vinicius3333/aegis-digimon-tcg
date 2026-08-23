@@ -29,7 +29,7 @@ export const compiled: CompiledCard = {
             "totalDpCap": 3000
           },
           "dpCeiling": 3000,
-          "dpCeilingScaling": {
+          "totalDpCapScaling": {
             "per": 10,
             "amount": 2000,
             "filter": { "zone": "trash", "controllerDefault": "both" },

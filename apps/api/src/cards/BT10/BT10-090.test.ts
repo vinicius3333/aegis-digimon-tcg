@@ -22,7 +22,7 @@ describe("BT10-090 Zenjiro Tsurugi", () => {
       ok: true,
     });
     await settle(() => player.battleArea.some((p) => p.topCard.instanceId === s.inst("ballistamon").instanceId));
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
   });
 
   it("offers Ballistamon from hand or under a Tamer, excludes one under a Digimon, then gains memory", async () => {

@@ -62,6 +62,9 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenSecurityRemoved",
+          "sourceFilter": {
+            "controller": "any"
+          },
           "actions": [
             {
               "kind": "Delete",
@@ -78,28 +81,28 @@ const compiled: CompiledCard = {
                 },
                 "count": 1
               }
+            },
+            {
+              "kind": "GainKeyword",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "keyword": {
+                "keyword": "SecurityAttack",
+                "amount": 1,
+                "raw": "＜Security Attack +1＞"
+              },
+              "duration": "untilYourTurnEnd",
+              "condition": {
+                "kind": "ifThisEffectDidNotDelete",
+                "raw": "this effect didn't delete"
+              }
             }
           ]
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
-          },
-          "duration": "untilYourTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this effect didn't delete"
-          }
         }
       ],
       "frequency": "OncePerTurn"

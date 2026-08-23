@@ -122,7 +122,7 @@ describe("P-023 [Main] place a Patamon to security (bottom) and trash its digivo
 
     const request = s.decisions.at(-1)!.req;
     expect(request.sourceCardId).toBe("P-023");
-    expect(request.options?.timing).toBe("OnUseOption");
+    expect(request.options?.timing).toBe("Main");
     expect(request.options?.effectText).toContain("[Main] If you have [T.K. Takaishi]");
     expect(request.options?.candidateInstanceIds).toEqual(
       expect.arrayContaining([plain.permanentId, stacked.permanentId]),

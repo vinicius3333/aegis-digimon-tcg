@@ -123,6 +123,7 @@ describe("ST19-02 Decoy A3", () => {
         deletedIds.push(...ids);
         return ids.length;
       },
+      grantKeyword: () => undefined,
       // Other primitives not expected.
       reveal: () => Promise.resolve([]),
       trash: () => [],

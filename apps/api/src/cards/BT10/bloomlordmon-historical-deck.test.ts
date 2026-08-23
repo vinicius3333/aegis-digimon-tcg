@@ -65,7 +65,7 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     expect(s.state.memory).toBe(9);
     expect(s.perm("ajatarmon").topCard?.cardId).toBe("BT10-057");
     // BloomLordmon counted itself while suspended to reach the 2-memory threshold,
-    // then restanding left only one suspended body, so its continuous scaling falls off.
+    // then restanding temporarily leaves only one suspended body.
     expect(s.perm("ajatarmon").currentDP).toBe(12000);
     expect(observe(s.engine).keywordAmount(s.perm("ajatarmon"), "SecurityAttack")).toBe(0);
 
@@ -84,8 +84,8 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     );
 
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-016")).toBe(true);
-    // The security check after deleting the battle target proves Piercing resolved.
-    // Suspended-body Security Attack scaling is covered by BT10-057's focused test.
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    // Suspending for the attack restores two suspended bodies, so Piercing performs
+    // two checks with BloomLordmon's live Security Attack +1 scaling.
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

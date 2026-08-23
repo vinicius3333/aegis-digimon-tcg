@@ -22,8 +22,8 @@ describe("EX9-027", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(() => s.perm("target").currentDP !== 5000);
-    expect(s.state.players[0].hand).toHaveLength(0);
-    expect(s.state.players[0].trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.perm("target").currentDP).toBe(1000);
   });
 
@@ -34,7 +34,7 @@ describe("EX9-027", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
     await settle(() => s.perm("target").currentDP !== 5000);
-    expect(s.state.players[0].trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.perm("target").currentDP).toBe(1000);
   });
 });

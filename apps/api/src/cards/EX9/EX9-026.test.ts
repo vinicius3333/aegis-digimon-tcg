@@ -28,18 +28,18 @@ describe("EX9-026", () => {
     expect(s.perm("source").stack).toHaveLength(1);
     expect(s.perm("source").stack[0]!.faceUp).toBe(false);
     expect(s.perm("target").currentDP).toBe(2000);
-    expect(s.state.players[0].hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("recovers the top deck card only at three or fewer security", async () => {
     const atMostThree = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }], deck: ["BT1-001"], security: ["BT1-090", "BT1-090", "BT1-090"] } }, { autoOrderTriggers: true });
     await advance(atMostThree.engine).verb.deletePermanent([atMostThree.perm("host").permanentId]);
-    expect(atMostThree.state.players[0].security).toHaveLength(4);
-    expect(atMostThree.state.players[0].deck).toHaveLength(0);
+    expect(atMostThree.state.players[0]!.security).toHaveLength(4);
+    expect(atMostThree.state.players[0]!.deck).toHaveLength(0);
 
     const four = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["EX9-026"] }], deck: ["BT1-001"], security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"] } }, { autoOrderTriggers: true });
     await advance(four.engine).verb.deletePermanent([four.perm("host").permanentId]);
-    expect(four.state.players[0].security).toHaveLength(4);
-    expect(four.state.players[0].deck).toHaveLength(1);
+    expect(four.state.players[0]!.security).toHaveLength(4);
+    expect(four.state.players[0]!.deck).toHaveLength(1);
   });
 });

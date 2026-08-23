@@ -6,7 +6,7 @@ import "../index.js";
 describe("EX11-002 inherited unsuspended-attack permission", () => {
   it("allows the host Digimon to attack an unsuspended opponent Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX11-002"] }] },
+      0: { battleArea: [{ card: "EX11-014", as: "host", under: ["EX11-002"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     });
     await s.ready();

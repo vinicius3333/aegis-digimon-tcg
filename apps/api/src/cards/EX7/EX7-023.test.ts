@@ -17,8 +17,8 @@ describe("EX7-023 Hexeblaumon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX7-023", as: "hex" }] }, 1: { battleArea: [{ card: "BT1-009", under: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"] }, { card: "EX7-065" }] } });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("hex"));
-    await settle(() => s.state.players[1].battleArea[0]!.stack.length === 0 && s.state.players[1].deck.some((card) => card.cardId === "EX7-065"));
-    expect(s.state.players[1].battleArea[0]!.stack).toHaveLength(0);
-    expect(s.state.players[1].deck.at(-1)?.cardId).toBe("EX7-065");
+    await settle(() => s.state.players[1]!.battleArea[0]!.stack.length === 0 && s.state.players[1]!.deck.some((card) => card.cardId === "EX7-065"));
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("EX7-065");
   });
 });

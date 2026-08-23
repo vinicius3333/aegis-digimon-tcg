@@ -11,53 +11,26 @@ const compiled: CompiledCard = {
       "trigger": "Main",
       "actions": [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "Black",
-                "Yellow"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "filter": {
-              "isSelfRef": true
-            }
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "costOverride": 3,
-          "ignoreRequirements": true,
-          "cost": {
-            "kind": "place",
+          "kind": "DigivolveViaPlacement",
+          "placeCost": {
+            "kind": "placeFromTrash",
             "target": {
               "filter": {
-                "zone": "trash",
                 "controller": "mine",
                 "nameOrTrait": [
                   {
                     "tokens": [
-                      "Beetlemon"
+                      "Beetlemon",
+                      "MetalKabuterimon"
                     ],
                     "match": "name"
                   }
                 ]
               },
-              "count": 1,
-              "from": [
-                "trash"
-              ]
+              "count": 2
             },
             "raw": "By placing 1 [Beetlemon] and 1 [MetalKabuterimon] from your trash under 1 of your black or yellow Tamers, that Tamer digivolves into this card for digivolution cost of 3, ignoring its digivolution requirements.",
-            "underFilter": {
+            "hostFilter": {
               "controller": "mine",
               "kind": [
                 "Tamer"
@@ -69,45 +42,10 @@ const compiled: CompiledCard = {
             },
             "destination": "digivolutionStack",
             "position": "bottom",
-            "host": "target"
           },
-          "additionalCosts": [
-            {
-              "kind": "place",
-              "target": {
-                "filter": {
-                  "zone": "trash",
-                  "controller": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "MetalKabuterimon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1,
-                "from": [
-                  "trash"
-                ]
-              },
-              "raw": "By placing 1 [Beetlemon] and 1 [MetalKabuterimon] from your trash under 1 of your black or yellow Tamers, that Tamer digivolves into this card for digivolution cost of 3, ignoring its digivolution requirements.",
-              "underFilter": {
-                "controller": "mine",
-                "kind": [
-                  "Tamer"
-                ],
-                "colors": [
-                  "Black",
-                  "Yellow"
-                ]
-              },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target"
-            }
-          ],
+          "into": { "isSelfRef": true },
+          "cost": 3,
+          "ignoreDigivolutionRequirements": true,
           "raw": "By placing 1 [Beetlemon] and 1 [MetalKabuterimon] from your trash under 1 of your black or yellow Tamers, that Tamer digivolves into this card for digivolution cost of 3, ignoring its digivolution requirements."
         }
       ],

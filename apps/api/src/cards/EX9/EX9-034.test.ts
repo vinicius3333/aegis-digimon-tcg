@@ -14,10 +14,10 @@ describe("EX9-034", () => {
     const source = s.perm("source");
     const [entry] = observe(s.engine).activatableEffects(source) as Array<{ effectKey: string; instanceId: string }>;
     expect(entry?.instanceId).toBe(source.topCard.instanceId);
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: entry.instanceId, effectKey: entry.effectKey })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: entry!.instanceId, effectKey: entry!.effectKey })).toEqual({ ok: true });
     await settle(() => source.stack.length === 1);
     expect(source.isSuspended).toBe(true);
     expect(source.stack[0]?.faceUp).toBe(false);
-    expect(s.state.players[0].deck).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });

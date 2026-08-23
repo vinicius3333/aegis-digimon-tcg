@@ -1,4 +1,5 @@
-import { getCardDefinition, type Permanent, type Seat } from "@aegis/shared";
+import { getCardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
+import type { CardSource } from "../effects/CardSource.js";
 import type { GameEngine } from "../GameEngine.js";
 import type { Restriction, SubTriggerEventName } from "../effects/EffectContext.js";
 import { internalsOf } from "./internals.js";
@@ -18,6 +19,14 @@ import { cardHasTrait } from "../cards/cardData.js";
 export function observe(engine: GameEngine) {
   const internals = internalsOf(engine);
   return {
+    /**
+     * The engine's own `CardSource` for a card — what a card module's `effectsForTiming`
+     * receives in production. Pass a permanent to read its top card's source.
+     */
+    cardSource(card: CardInstance | Permanent): CardSource {
+      return internals.cardSourceOf("topCard" in card ? card.topCard : card);
+    },
+
     /** Continuous restrictions currently applying to a permanent. */
     isRestricted(permanent: Permanent | string, restriction: Restriction): boolean {
       return internals.continuous.hasRestriction(idOf(permanent), restriction);

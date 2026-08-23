@@ -23,6 +23,7 @@ import "../index.js";
 
 describe('A3 ST15-16 — granted "[Start of Your Main Phase] This Digimon attacks."', () => {
   it("POSITIVE: the granted opponent Digimon is forced to attack on its own controller's main phase", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -48,11 +49,12 @@ describe('A3 ST15-16 — granted "[Start of Your Main Phase] This Digimon attack
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
     const p0 = s.state.players[0]!;
     const angoramon = s.inst("angoramon");
     const recipient = s.perm("recipient");
+    preferInstanceIds.push(s.perm("defender").permanentId);
     const engine = s.engine as unknown as {
       applyIntent: typeof s.engine.applyIntent;
       fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;

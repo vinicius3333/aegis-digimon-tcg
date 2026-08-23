@@ -24,6 +24,12 @@ export const compiled: CompiledCard = {
                   ],
                   "match": "name"
                 },
+                {
+                  "tokens": [
+                    "Mamemon"
+                  ],
+                  "match": "trait"
+                }
               ]
             },
             "count": 4,

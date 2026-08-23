@@ -41,7 +41,7 @@ describe("BT24-083 Hiroko Sagisaka", () => {
           battleArea: [{ card: "BT24-083", as: "hiroko" }],
           hand: [
             { card: "BT24-022", as: "tooLarge" },
-            { card: "BT24-013", as: "eligible" },
+            { card: "BT24-011", as: "eligible" },
           ],
         },
       },
@@ -89,9 +89,9 @@ describe("BT24-083 Hiroko Sagisaka", () => {
           battleArea: [{ card: "BT24-083", as: "hiroko" }],
           deck: [
             { card: "BT24-013", as: "ts" },
-            { card: "BT1-001", as: "missA" },
-            { card: "BT1-002", as: "missB" },
-            { card: "BT1-003", as: "filler" },
+            { card: "BT1-009", as: "missA" },
+            { card: "BT1-010", as: "missB" },
+            { card: "BT1-011", as: "filler" },
           ],
         },
       },

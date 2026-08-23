@@ -46,7 +46,7 @@ describe("BT17-062 Dorumon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("dorumon").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.perm("dorumon").topCard?.instanceId === dorugoramonId);
 
@@ -67,7 +67,7 @@ describe("BT17-062 Dorumon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("dorumon").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle();
 

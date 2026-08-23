@@ -1,4 +1,5 @@
 import { EffectTiming } from "@aegis/shared";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -13,7 +14,7 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     const compiled = registeredCompiledCards.get(CARD_ID)!;
     const attack = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     const watcher = attack.actions[0]!;
-    const modal = watcher.actions[0]!;
+    const modal = irNode(watcher).actions[0]!;
 
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -128,7 +129,7 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     ).toEqual({ ok: true });
     await settle(() => false, 100);
 
-    expect(s.perm("ruli").isSuspended).toBe(false);
+    expect(s.perm("ruli").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-050");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("illegalTarget").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);

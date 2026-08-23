@@ -42,11 +42,17 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT25-104");
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === marcusId)).toBe(true);
+    // The Burst cost returns Marcus, then this card's mandatory When Digivolving
+    // activates its Option-side Main. With auto-selection enabled, that optional Main
+    // replays Marcus; his On Play suspension gains 1 memory while a Greymon is present.
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === marcusId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === marcusId),
+    ).toBe(true);
     expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("base"));
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTop)).toBe(true);
   });
 

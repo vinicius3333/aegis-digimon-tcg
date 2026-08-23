@@ -7,7 +7,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", addedDigivolutionCardFilter: { colors: ["Purple"] }, actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", controller: "mine", amount: 1 }], raw: "When a purple card is placed under this Tamer, draw 1 and gain 1 memory." }],
+      actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", triggerFilter: { isSelfRef: true }, addedDigivolutionCardFilter: { colors: ["Purple"] }, actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", controller: "mine", amount: 1 }], raw: "When a purple card is placed under this Tamer, draw 1 and gain 1 memory." }],
     },
     {
       trigger: "YourTurn",

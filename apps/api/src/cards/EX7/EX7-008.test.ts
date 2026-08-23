@@ -18,8 +18,8 @@ describe("EX7-008 Wizardmon", () => {
     }, { autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("toyAgumon"));
-    await settle(() => s.state.players[0].hand.some((card) => card.cardId === "EX7-071") && s.state.players[0].hand.some((card) => card.cardId === "EX7-070"));
-    expect(s.state.players[0].hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX7-071", "EX7-070"]));
-    expect(s.state.players[0].deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX7-071") && s.state.players[0]!.hand.some((card) => card.cardId === "EX7-070"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX7-071", "EX7-070"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 });

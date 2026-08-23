@@ -70,7 +70,8 @@ const compiled: CompiledCard = {
                 "kind": "trash",
                 "target": {
                   "filter": {
-                    "zone": "digivolutionCards"
+                  "zone": "digivolutionCards",
+                  "isSelfRef": true
                   },
                   "count": 1
                 },

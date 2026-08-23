@@ -18,7 +18,7 @@ describe("EX9-038", () => {
     s.state.turnSeat = 0;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
     await settle(() => s.perm("opponent").isSuspended);
-    expect(s.state.players[0].hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("source").stack.map((card) => card.faceUp)).toEqual([false]);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
   });

@@ -71,7 +71,11 @@ export function createResolverDecisions(manager: DecisionManager): ResolverDecis
         sourceCardId: collected.source.cardId,
         options: {
           effectText: collected.effect.description,
-          ...(collected.timing !== undefined ? { timing: EffectTiming[collected.timing] } : {}),
+          ...(collected.effect.timingOverride !== undefined
+            ? { timing: collected.effect.timingOverride }
+            : collected.timing !== undefined
+              ? { timing: EffectTiming[collected.timing] }
+              : {}),
         },
       });
       return response.kind === "optional" ? response.accept : false;

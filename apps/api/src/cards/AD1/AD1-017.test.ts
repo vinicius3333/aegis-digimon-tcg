@@ -20,7 +20,12 @@ describe("AD1-017 Dynasmon", () => {
   it("trashes one security card and gives every opposing Digimon -6000 DP on play", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "AD1-017", as: "dynasmon" }], security: ["BT1-028", "BT1-029"] },
-      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 8000 }] },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "decoy", dp: 7000 },
+          { card: "BT1-010", as: "target", dp: 8000 },
+        ],
+      },
     }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 11;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });

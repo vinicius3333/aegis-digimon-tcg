@@ -46,15 +46,12 @@ describe("BT24-038 Biomon", () => {
     const targetPermanentId = s.perm("target").permanentId;
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("biomon"));
-    await settle(
-      () =>
-        s.perm("biomon").linked.some((card) => card.instanceId === s.inst("eligible").instanceId) &&
-        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetPermanentId),
-    );
+    await settle(() => s.perm("biomon").linked.some((card) => card.instanceId === s.inst("eligible").instanceId));
 
     expect(s.perm("biomon").linked.map((card) => card.instanceId)).toEqual([s.inst("eligible").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(targetPermanentId);
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 
   it("free-links only from Biomon's own digivolution cards", async () => {

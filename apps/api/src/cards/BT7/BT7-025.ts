@@ -34,7 +34,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "TrashDigivolution",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
@@ -42,8 +42,8 @@ export const compiled: CompiledCard = {
               levelComparison: { op: "lte", value: 4 },
             },
             count: 1,
+            bindAs: "returnTarget",
           },
-          amount: "all",
           cost: {
             kind: "return",
             target: {
@@ -61,15 +61,20 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "returnTarget",
+          },
+          amount: "all",
+        },
+        {
           kind: "Return",
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levelComparison: { op: "lte", value: 4 },
-            },
+            filter: {},
             count: 1,
-            sameTarget: true,
+            fromSelectionRef: "returnTarget",
           },
           to: "hand",
         },

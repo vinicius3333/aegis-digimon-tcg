@@ -19,13 +19,18 @@ describe("BT13-010 Biyomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const kristyId = s.perm("kristy").topCard.instanceId;
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-014"));
 
     const garudamon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT13-014")!;
     expect(garudamon.stack.some((card) => card.cardId === "BT13-010")).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-094")).toBe(true);
+    // Garudamon's registered When Digivolving effect immediately replays the
+    // returned 3-cost red Tamer, proving Kristy first left her original permanent.
+    expect(s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === kristyId,
+    )).toBe(true);
   });
 
   it("may return Kristy Damon even without a Garudamon in hand (Q2269)", async () => {

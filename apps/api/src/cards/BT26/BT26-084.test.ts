@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-084.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -47,13 +48,13 @@ describe("BT26-084 compiled behavior", () => {
         },
       ],
     });
-    expect(yourTurn.actions[0].actions[0].add[0]).toMatchObject({
+    expect(irNode(yourTurn.actions[0]!).actions[0]!.add[0]).toMatchObject({
       to: "play",
       costDelta: 3,
       optional: true,
       filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
     });
-    expect(yourTurn.actions[0].actions[0].add[1]).toMatchObject({
+    expect(irNode(yourTurn.actions[0]!).actions[0]!.add[1]).toMatchObject({
       to: "useOption",
       costDelta: 3,
       optional: true,

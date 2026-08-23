@@ -13,7 +13,7 @@ describe("BT16-002", () => {
   });
 
   it("does not apply the bonus to a one-color host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT16-006", as: "host", under: ["BT16-002"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-002"] }] } });
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(2000);
   });

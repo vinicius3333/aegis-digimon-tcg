@@ -144,6 +144,7 @@ describe("BT26-074 Cerberusmon", () => {
     } as unknown as GameAccess;
     const trash = vi.fn(async () => [handCost]);
     const useOptionFromHand = vi.fn(async () => []);
+    const gainMemoryForSeat = vi.fn();
     const selectCards = vi.fn(async (_ctx: EffectContext, request: { candidates: string[] }) => [
       request.candidates[0]!,
     ]);
@@ -152,7 +153,7 @@ describe("BT26-074 Cerberusmon", () => {
       trigger: {},
       game,
       ask: { optional: vi.fn(async () => true), selectCards },
-      fx: { trash, useOptionFromHand } as unknown as Primitives,
+      fx: { trash, gainMemoryForSeat, useOptionFromHand } as unknown as Primitives,
     } as unknown as EffectContext;
     const effect = getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.WhenDigivolving, ctx.source)[0]!;
 
@@ -165,11 +166,12 @@ describe("BT26-074 Cerberusmon", () => {
       candidates: [titanOption.instanceId], min: 0, max: 1,
     });
     expect(trash).toHaveBeenCalledWith([handCost.instanceId], { byEffectSeat: 0 });
+    expect(gainMemoryForSeat).toHaveBeenCalledWith(0, -3);
     expect(useOptionFromHand).toHaveBeenCalledWith(
       expect.anything(),
       titanOption.instanceId,
       5,
-      expect.objectContaining({ payCost: true, costDelta: 2 }),
+      expect.objectContaining({ payCost: true, costDelta: 2, paymentHandled: true }),
     );
   });
 

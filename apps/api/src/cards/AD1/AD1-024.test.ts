@@ -65,12 +65,12 @@ describe("AD1-024 Imperialdramon: Fighter Mode", () => {
         0: { battleArea: [{ card: "BT12-030", as: "base" }], hand: [{ card: "AD1-024", as: "fighter" }] },
         1: { battleArea: [{ card: "BT1-010", as: "low", dp: 5000 }, { card: "BT1-010", as: "high", dp: 6000 }], security: ["BT1-001"] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("fighter").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle();
 

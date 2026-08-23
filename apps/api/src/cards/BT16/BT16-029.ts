@@ -56,8 +56,9 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifySecurityDP",
+          controller: "opponent",
           amount: -3000,
-          duration: "permanent",
+          duration: "forTheTurn",
         },
       ],
       isInherited: true,

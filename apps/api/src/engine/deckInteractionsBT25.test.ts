@@ -33,15 +33,15 @@ describe("BT25 deck-specific interaction oracles", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }], security: ["BT1-090", "BT1-090"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     digivolve(s, "base", "junomon");
     await settle(() => s.perm("base").topCard?.cardId === "BT25-044");
     await settle(() => false, 40);
-    expect(s.state.players[0]!.security).toHaveLength(3);
-    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT25-034")).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-034")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     assertNoLoudGap(s);
   });
 
@@ -62,7 +62,7 @@ describe("BT25 deck-specific interaction oracles", () => {
     const reina = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "ST23-14")!;
     await settle(() => reina.stack.length === 1);
     expect(reina.stack[0]?.cardId).toBe("BT25-046");
-    expect(s.state.memory).toBe(6); // 5-cost Tamer, then +1 from its [On Play].
+    expect(s.state.memory).toBe(7); // 4-cost Tamer, then +1 from its [On Play].
     assertNoLoudGap(s);
   });
 
@@ -159,7 +159,7 @@ describe("BT25 deck-specific interaction oracles", () => {
     s.state.memory = 12;
     playCard(s, "vulcanus");
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-075"));
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(5); // Printed cost 12, reduced by 5 because its controller has fewer Digimon.
     expect(s.state.players[0]!.battleArea[0]?.topCard?.cardId).toBe("BT25-075");
     assertNoLoudGap(s);
   });

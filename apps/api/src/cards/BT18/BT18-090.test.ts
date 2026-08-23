@@ -30,8 +30,8 @@ describe("BT18-090 Zoe Orimoto", () => {
     const action = compiled.effects[2]!.actions[0]!;
     if (action.kind !== "PlayWithoutCost") throw new Error("expected PlayWithoutCost");
     const filter = action.target!.filter;
-    expect(getCardDefinition("BT18-088").inheritedEffectText).toBeTruthy();
-    expect(getCardDefinition("BT18-092").inheritedEffectText).toBeFalsy();
+    expect(getCardDefinition("BT18-088")?.inheritedEffectText).toBeTruthy();
+    expect(getCardDefinition("BT18-092")?.inheritedEffectText).toBeFalsy();
     expect(filter.hasInheritedEffects).toBe(true);
   });
 });

@@ -16,7 +16,7 @@ describe("EX9-037", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-037", as: "source" }], hand: ["BT1-001"] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: false }] } }, { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.perm("opponent").isSuspended);
-    expect(s.state.players[0].hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("source").stack.map((card) => card.faceUp)).toEqual([false]);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
     await advance(s.engine).verb.unsuspend([s.perm("opponent").permanentId]);

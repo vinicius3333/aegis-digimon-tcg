@@ -57,6 +57,7 @@ describe("BT16-078", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
+    const victimId = s.perm("victim").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pharaohmon").instanceId })).toEqual({
       ok: true,
@@ -64,7 +65,7 @@ describe("BT16-078", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-073"));
 
     expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("victim").permanentId),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === victimId),
     ).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-073")).toBe(true);
   });

@@ -47,8 +47,9 @@ describe("BT16-039", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT16-034"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT16-034")).toBe(true);
-    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT16-039")).toHaveLength(2);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT16-039")).toHaveLength(1);
+    // One unrevealed card plus the two misses returned to the bottom.
+    expect(s.state.players[0]!.deck).toHaveLength(3);
   });
 
   it("applies the inherited +1000 DP to a live Pulsemon-text Digimon", async () => {

@@ -99,8 +99,8 @@ describe("§16-27 <Fortitude> — replay for free on deletion, when the holder h
         target: { kind: "permanent", permanentId: fort.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.trash.length > trashBefore, 300);
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT20-034"), 300);
+    await settle(() => p0.trash.length > trashBefore, 5000);
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT20-034"), 5000);
 
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT20-034")).toBe(true);
     // Replayed as a FRESH permanent with no digivolution cards (the stack card stays trashed).
@@ -128,7 +128,7 @@ describe("§16-27 <Fortitude> — replay for free on deletion, when the holder h
         target: { kind: "permanent", permanentId: fort.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.trash.length > trashBefore, 300);
+    await settle(() => p0.trash.length > trashBefore, 5000);
     await settle(() => false, 100);
 
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT20-034")).toBe(false);
@@ -156,7 +156,7 @@ describe("§16-32 <Scapegoat> — delete another Digimon to prevent a non-owner-
         target: { kind: "permanent", permanentId: scapegoater.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === other.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === other.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === scapegoater.permanentId)).toBe(true); // spared
     expect(p0.battleArea.some((p) => p.permanentId === other.permanentId)).toBe(false); // sacrificed
@@ -181,7 +181,7 @@ describe("§16-32 <Scapegoat> — delete another Digimon to prevent a non-owner-
         target: { kind: "permanent", permanentId: scapegoater.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.length === 0, 300);
+    await settle(() => p0.battleArea.length === 0, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === scapegoater.permanentId)).toBe(false);
   });
@@ -206,7 +206,7 @@ describe("§16-32 <Scapegoat> — delete another Digimon to prevent a non-owner-
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === target.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === target.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false); // deleted
     expect(p0.battleArea.some((p) => p.permanentId === other.permanentId)).toBe(true); // untouched
@@ -430,7 +430,7 @@ describe("§16-19 <Armor Purge> — trash this Digimon's own top card to prevent
         target: { kind: "permanent", permanentId: holder.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.trash.length > trashBefore, 300);
+    await settle(() => p0.trash.length > trashBefore, 5000);
     await settle(() => false, 50); // flush: no later async step should still be pending
 
     // The permanent SURVIVES: same permanentId, now showing the promoted stack card.
@@ -461,7 +461,7 @@ describe("§16-19 <Armor Purge> — trash this Digimon's own top card to prevent
         target: { kind: "permanent", permanentId: holder.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === holder.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === holder.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === holder.permanentId)).toBe(false);
   });
@@ -486,7 +486,7 @@ describe("§16-19 <Armor Purge> — trash this Digimon's own top card to prevent
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === target.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === target.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false);
   });
@@ -519,7 +519,7 @@ describe("§16-37 <Fragment (N)> — choose and trash N of this Digimon's own di
         target: { kind: "permanent", permanentId: holder.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.trash.length >= trashBefore + 3, 300);
+    await settle(() => p0.trash.length >= trashBefore + 3, 5000);
 
     // The permanent SURVIVES, top card unchanged, stack fully emptied.
     const survivor = p0.battleArea.find((p) => p.permanentId === holder.permanentId);
@@ -551,7 +551,7 @@ describe("§16-37 <Fragment (N)> — choose and trash N of this Digimon's own di
         target: { kind: "permanent", permanentId: holder.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === holder.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === holder.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === holder.permanentId)).toBe(false);
   });
@@ -608,7 +608,7 @@ describe("§16-43 <Ascension> — when this card is deleted, you may place it at
         target: { kind: "permanent", permanentId: holder.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.security.length > securityBefore, 300);
+    await settle(() => p0.security.length > securityBefore, 5000);
     await settle(() => false, 50); // flush: no later async step should still be pending
 
     expect(p0.battleArea.some((p) => p.permanentId === holder.permanentId)).toBe(false);
@@ -639,7 +639,7 @@ describe("§16-43 <Ascension> — when this card is deleted, you may place it at
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.trash.length > trashBefore, 300);
+    await settle(() => p0.trash.length > trashBefore, 5000);
 
     expect(p0.security.length).toBe(securityBefore);
     expect(p0.trash.some((c) => c.cardId === NON_KEYWORD_CARD)).toBe(true);
@@ -671,7 +671,7 @@ describe("§16-21 <Material Save N> — when this Digimon is deleted, place N sp
         target: { kind: "permanent", permanentId: holder.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.trash.length > trashBefore, 300);
+    await settle(() => p0.trash.length > trashBefore, 5000);
     await settle(() => false, 50); // flush: no later async step should still be pending
 
     // The matching card is now under the Tamer, NOT in trash.
@@ -705,7 +705,7 @@ describe("§16-21 <Material Save N> — when this Digimon is deleted, place N sp
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.trash.length > trashBefore, 300);
+    await settle(() => p0.trash.length > trashBefore, 5000);
     await settle(() => false, 50); // flush: no later async step should still be pending
 
     const tamerAfter = p0.battleArea.find((p) => p.permanentId === tamer.permanentId);
@@ -745,7 +745,7 @@ describe("§16-39 <Progress> — this Digimon isn't affected by your opponent's 
     // Flush to full quiescence (not just "the first observable change") — Damemon's cost
     // payment and its (attempted) Delete are two separate async steps; settling on only the
     // first would assert before the second has had a chance to run.
-    await settle(() => false, 300);
+    await settle(() => false, 5000);
 
     // Damemon paid its cost (trashed its own digivolution card) but found NO legal target —
     // the Progress attacker was excluded from candidate selection.

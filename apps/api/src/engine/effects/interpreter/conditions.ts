@@ -168,7 +168,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     // explicit side must not be clobbered back to the kind's default.
     case "youHave": {
       if (cond.filter === undefined) return false;
-      const { countMax, ...matchingFilter } = cond.filter as Filter & { countMax?: number };
+      const { countMax, ...matchingFilter } = cond.filter;
       const count = countMatching(ctx, { controller: "mine", ...matchingFilter });
       if (countMax !== undefined) return count <= countMax;
       return count >= (cond.countMin ?? cond.count ?? 1);
@@ -300,6 +300,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const mineCount = ctx.game.player(mine).security.length;
       const oppCount = ctx.game.player(opp).security.length;
       return cond.op === "gt" ? mineCount > oppCount : mineCount < oppCount;
+    }
+    case "handCompare": {
+      const mineCount = ctx.game.player(mine).hand.length;
+      const oppCount = ctx.game.player(opp).hand.length;
+      return compareNumber(mineCount, cond.op, oppCount);
     }
     case "totalSecurityCount": {
       // "There are N or fewer total cards in both players' security stacks" (BT13/EX5

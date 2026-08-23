@@ -24,6 +24,31 @@ const compiled: CompiledCard = {
               }
             },
             "count": 1
+          },
+          "condition": {
+            "kind": "youHaveNone",
+            "filter": {
+              "excludeNames": [
+                "DoruGreymon",
+                "BurningGreymon",
+                "DexDoruGreymon"
+              ],
+              "zone": "battleArea",
+              "controllerDefault": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Omnimon",
+                    "Greymon"
+                  ],
+                  "match": "name"
+                }
+              ]
+            },
+            "raw": "you don't have a qualifying [Omnimon] or [Greymon] Digimon in play"
           }
         },
         {

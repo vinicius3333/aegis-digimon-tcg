@@ -11,6 +11,8 @@ import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
+import { KIND_MAP } from "../maps.js";
+import { findLooseCandidateByInstance } from "../targeting/loose.js";
 
 export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefined> = {
   whenAttacking: "whenAttacking",
@@ -287,7 +289,7 @@ export async function runSubTrigger(
           const deletedCardId = subCtx.trigger.deletedTopCardId;
           if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
           const definition = getCardDefinition(deletedCardId);
-          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(kind));
+          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(KIND_MAP[kind]));
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
@@ -336,7 +338,11 @@ export async function runSubTrigger(
       ? (subCtx: EffectContext): boolean => {
           const suspendedIds =
             subCtx.trigger.subjectPermanentIds ??
-            (subCtx.trigger.suspendedPermanentId !== undefined ? [subCtx.trigger.suspendedPermanentId] : []);
+            (subCtx.trigger.suspendedPermanentId !== undefined
+              ? [subCtx.trigger.suspendedPermanentId]
+              : subCtx.trigger.subjectPermanentId !== undefined
+                ? [subCtx.trigger.subjectPermanentId]
+                : []);
           return suspendedIds.includes(anchorPermanentId);
         }
       : undefined;
@@ -497,6 +503,13 @@ export async function runSubTrigger(
   // A fire-time payload gate ("your security" + the added-card trait check for whenAddSecurity)
   // evaluated against the freshly bound context's TriggerInfo. When it does not hold the watcher
   // body is skipped entirely, so a mandatory tail never runs on an off-gate event (BT23-083).
+  // The printed turn window of the installing clause (`[Your Turn]` / `[Opponent's Turn]`).
+  // The watcher persists past the resolution that armed it, so the window has to travel with it.
+  const turnScopeGate =
+    action.turnScope === undefined
+      ? undefined
+      : (subCtx: EffectContext): boolean =>
+          action.turnScope === "yourTurn" ? subCtx.source.isOwnersTurn() : !subCtx.source.isOwnersTurn();
   const fireConditionGate =
     action.fireCondition === undefined
       ? undefined
@@ -671,6 +684,20 @@ export async function runSubTrigger(
           );
         }
       : undefined;
+  // A linked card's "when this card is linked" effect is physically scoped to that card,
+  // not merely to the Digimon carrying it. All linked cards share the recipient permanent,
+  // so the generic isSelfRef subject gate alone would let an older link card react whenever
+  // a different card links to the same host. Preserve host-level "this Digimon gets linked"
+  // watchers by applying the instance gate only when the watcher source is itself linked.
+  const linkedSelfSourceGate =
+    event === "whenLinked" &&
+    sourceFilter?.isSelfRef === true &&
+    ctx.source.permanent()?.linked?.some((card) => card.instanceId === ctx.source.instanceId) === true
+      ? (subCtx: EffectContext): boolean => {
+          const linkedIds = subCtx.trigger.linkedCardInstanceIds ?? subCtx.trigger.linkedInstanceIds;
+          return linkedIds === undefined || linkedIds.includes(subCtx.source.instanceId);
+        }
+      : undefined;
   const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: "dpReachedZero" }) | undefined)?.deleteCause;
   const deleteCauseGate =
     event === "onDeletionOf" && sourceDeleteCause === "dpReachedZero"
@@ -714,11 +741,13 @@ export async function runSubTrigger(
     triggerFilterGate,
     addedDigivolutionCardGate,
     linkedCardGate,
+    linkedSelfSourceGate,
     inheritedHostNameGate,
     hostFilterGate,
     deleteCauseGate,
     notSimultaneousGate,
     trashedDigivolutionTopGate,
+    turnScopeGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
   // Inherited effects that trigger when their own source card is discarded from a
@@ -767,7 +796,7 @@ export async function runSubTrigger(
             : `${ctx.source.instanceId}/${action.oncePerTurnKey}`,
         }
       : {}),
-    description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : action.raw,
+    description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : (action.raw ?? event),
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.
       // The freshly rebound context carries the event payload but not the installing effect's

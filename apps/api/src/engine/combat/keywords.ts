@@ -98,6 +98,8 @@ function scanPrintedKeywords(effectText: string): readonly string[] {
       // The continuous ledger publishes those keywords only while their actual
       // conditions/durations are active.
       if (GRANT_CLAUSE.test(clausePrefix)) continue;
+      // A token's keyword specification belongs to the token, not to the card that creates it.
+      if (/\btoken\b/i.test(clausePrefix) || /\btoken\b/i.test(abilityPrefix)) continue;
       if (FILTER_CLAUSE.test(clausePrefix)) continue;
       if (USE_CLAUSE.test(clausePrefix)) continue;
       // A keyword chained after a conditional clause (for example, "If DNA

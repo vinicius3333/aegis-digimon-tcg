@@ -27,7 +27,7 @@ describe("EX9-025", () => {
 
     expect(source.stack).toHaveLength(1);
     expect(source.stack.at(-1)!.faceUp).toBe(false);
-    expect(s.state.players[0].deck).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(target.currentDP).toBe(3000);
   });
 
@@ -44,8 +44,8 @@ describe("EX9-025", () => {
     await settle(() => s.decisions.length > 0);
 
     expect(source.stack).toHaveLength(0);
-    expect(s.state.players[0].deck).toHaveLength(0);
-    expect(s.state.players[1].deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(target.currentDP).toBe(5000);
   });
 });

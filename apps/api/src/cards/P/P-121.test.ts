@@ -7,7 +7,7 @@ describe("P-121 Armadillomon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "P-121", as: "armadillomon" }],
-        deck: [{ card: "BT11-036", as: "multicolor" }, { card: "P-128", as: "cody" }, { card: "BT1-001", as: "filler" }],
+        deck: [{ card: "BT11-036", as: "multicolor" }, { card: "P-128", as: "cody" }, { card: "BT1-009", as: "filler" }],
       },
     }, { autoSelectCards: true, autoOrderCards: true });
     s.state.memory = 10;

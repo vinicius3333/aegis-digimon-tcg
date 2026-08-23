@@ -124,7 +124,7 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const palmonRequest = s.decisions.at(-1)!.req;
     expect(palmonRequest.sourceCardId).toBe(P_021);
-    expect(palmonRequest.options?.timing).toBe("OnUseOption");
+    expect(palmonRequest.options?.timing).toBe("Main");
     expect(palmonRequest.options?.effectText).toContain("[Main] If you have [Mimi Tachikawa]");
     expect(palmonRequest.options?.candidateInstanceIds).toEqual(
       expect.arrayContaining([firstPalmonId, secondPalmonId]),
@@ -138,7 +138,7 @@ describe("P-021 A New World — play Palmon free + bounce Mimi", () => {
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const mimiRequest = s.decisions.at(-1)!.req;
     expect(mimiRequest.sourceCardId).toBe(P_021);
-    expect(mimiRequest.options?.timing).toBe("OnUseOption");
+    expect(mimiRequest.options?.timing).toBe("Main");
     expect(mimiRequest.options?.effectText).toBe(palmonRequest.options?.effectText);
     expect(mimiRequest.options?.candidateInstanceIds).toEqual(
       expect.arrayContaining([firstMimi.permanentId, secondMimi.permanentId]),

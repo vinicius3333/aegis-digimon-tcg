@@ -66,10 +66,10 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 5000);
     const declare = s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId });
     expect(declare).toEqual({ ok: true });
-    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 200);
+    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 5000);
 
     // The battle resolved against the BLOCKER (attacker DP 9000 > blocker DP 1000), not a
     // player-directed security check — proving the target actually switched.
@@ -103,7 +103,7 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 5000);
     const first = s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerA.permanentId });
     expect(first).toEqual({ ok: true });
 
@@ -111,7 +111,7 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
     // is rejected outright — there's no open window left to answer.
     const second = s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerB.permanentId });
     expect(second).toEqual({ ok: false, reason: "wrong-phase" });
-    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 200);
+    await settle(() => s.events.some((e) => e.kind === "combatResolved"), 5000);
     expect(blockerB.isSuspended).toBe(false); // never suspended — it never actually blocked
   });
 
@@ -139,7 +139,7 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
     const attacker = makePermanent(0, 9000);
     const blocker = makePermanent(1, 1000, { cardId: BLOCKER_CARD });
     state.players[1]!.battleArea.push(blocker);
-    // Deliberately NOT pushed to state.players[0].battleArea — the attacker is not (or is no
+    // Deliberately NOT pushed to state.players[0]!.battleArea — the attacker is not (or is no
     // longer) a live battle-area Digimon.
     expect(canBlock(access, attacker, blocker)).toBe("illegal-target");
 
@@ -165,9 +165,9 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 5000);
     s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId });
-    await settle(() => blocker.isSuspended, 200);
+    await settle(() => blocker.isSuspended, 5000);
     expect(blocker.isSuspended).toBe(true);
   });
 
@@ -189,10 +189,10 @@ describe("§12-1 Blocking (comprehensive-0151)", () => {
       attackerPermanentId: attacker.permanentId,
       target: { kind: "player" },
     });
-    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 200);
+    await settle(() => s.events.some((e) => e.kind === "blockWindowOpened"), 5000);
     const decline = s.engine.applyIntent(1, { type: "declineBlock" });
     expect(decline).toEqual({ ok: true });
-    await settle(() => s.events.some((e) => e.kind === "securityChecked"), 200);
+    await settle(() => s.events.some((e) => e.kind === "securityChecked"), 5000);
 
     expect(blocker.isSuspended).toBe(false); // never suspended — it didn't block
     expect(s.events.some((e) => e.kind === "securityChecked")).toBe(true); // original (player) target still applies

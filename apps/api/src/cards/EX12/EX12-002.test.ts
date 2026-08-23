@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -122,7 +123,7 @@ describe("EX12-002 Mococomon", () => {
       event: "whenPlayed",
       sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["SW"] }] },
     });
-    expect(effect.actions[0]!.actions[0]).toMatchObject({
+    expect(irNode(effect.actions[0]!).actions[0]).toMatchObject({
       kind: "Digivolve",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       into: { kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["SW"] }] },

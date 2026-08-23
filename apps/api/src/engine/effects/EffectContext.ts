@@ -456,7 +456,11 @@ export interface GameAccess {
   player(seat: Seat): PlayerState;
   opponentOf(seat: Seat): Seat;
   permanentById(permanentId: string): Permanent | undefined;
-  definitionOf(card: CardInstance): CardDefinition;
+  /**
+   * Only `cardId` is read, so a bare `{ cardId }` — a loose-card candidate, a recorded trigger
+   * subject — is a legal argument without materializing a whole {@link CardInstance}.
+   */
+  definitionOf(card: Pick<CardInstance, "cardId">): CardDefinition;
   /**
    * A permanent's EFFECTIVE link limit: base 1 plus every
    * active `<Link +N>` grant. Server-authoritative; `runLink` reads it to cap link cards.
@@ -495,6 +499,8 @@ export interface GameAccess {
   effectiveDP?(permanentId: string): number;
   /** Whether a loose card currently ignores its printed color requirement. */
   colorRequirementWaived?(instanceId: string): boolean;
+  /** Whether an Option can currently be used under its ordinary color requirement. */
+  optionColorRequirementMet?(seat: Seat, instanceId: string, definition: CardDefinition): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
   hasKeyword?(permanentId: string, keyword: string): boolean;
   /** Whether the permanent can currently declare an ordinary (tapping) attack. */
@@ -516,7 +522,7 @@ export interface GameAccess {
  * GameEngine. Signatures below are the contract card modules are written against.
  */
 export interface Primitives {
-  draw(seat: Seat, n: number): Promise<CardInstance[]>;
+  draw(seat: Seat, n: number, opts?: { excludeInstanceIds?: readonly string[] }): Promise<CardInstance[]>;
   gainMemory(n: number): void;
   /** Gain memory for a specific seat (effect controller), with Tamer-effect policy check. */
   gainMemoryForSeat(seat: Seat, n: number, opts?: { isTamerEffect?: boolean }): void;
@@ -859,7 +865,7 @@ export interface Primitives {
     ctx: EffectContext,
     usedInstanceId: string,
     usedOptionCost?: number,
-    opts?: { payCost?: boolean; costDelta?: number },
+    opts?: { payCost?: boolean; costDelta?: number; paymentHandled?: boolean },
   ): Promise<CardInstance[]>;
   /**
    * Run `cardId`'s registered EffectModule effect(s) for `timing`, under `ctx.source`'s control
@@ -893,7 +899,10 @@ export interface Primitives {
    */
   deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number>;
   /** Returns the permanent IDs that actually transitioned to suspended. */
-  suspend(permanentIds: string[], opts?: { byEffectSeat?: Seat; deferTriggers?: boolean }): Promise<string[]>;
+  suspend(
+    permanentIds: string[],
+    opts?: { byEffectSeat?: Seat; deferTriggers?: boolean; suppressWhenEffectSuspends?: boolean },
+  ): Promise<string[]>;
   fireSuspensionTriggers?(permanentIds: string[], opts?: { byEffectSeat?: Seat }): Promise<void>;
   unsuspend(permanentIds: string[]): Promise<void>;
   /**
@@ -1571,7 +1580,14 @@ export interface SeatScopedDecisionApi {
   optional(ctx: EffectContext, prompt: string): Promise<boolean>;
   chooseTargets(
     ctx: EffectContext,
-    opts: { candidates: string[]; min: number; max: number; visible?: string[]; maxTotalPlayCost?: number },
+    opts: {
+      candidates: string[];
+      min: number;
+      max: number;
+      visible?: string[];
+      maxTotalPlayCost?: number;
+      maxTotalDP?: number;
+    },
   ): Promise<string[]>;
   selectCards(
     ctx: EffectContext,
@@ -1644,6 +1660,13 @@ export interface EffectContext {
    * ("select A, then act on B with DP <= A's"). Fresh per `runEffect`; absent means no binding.
    */
   selections?: Map<string, string>;
+  /**
+   * Attribute snapshot of each `SelectBind` target, taken at the moment it was bound. A clause
+   * that deletes the chosen Digimon and then compares against it ("delete it and 1 of your
+   * opponent's Digimon with as much or less DP as it" — BT16-070) still needs those attributes
+   * after the permanent has left the board, where `selections` alone resolves to nothing.
+   */
+  selectionFacts?: Map<string, { dp?: number; level?: number; playCost?: number; digivolutionCount?: number }>;
   /**
    * When set, this effect is conferred from a digivolution-stack card onto
    * `conferredToPermanentId` (GrantStatic grant:"effects").

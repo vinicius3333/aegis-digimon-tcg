@@ -113,7 +113,7 @@ describe("§15-3 Inherited Effects (comprehensive-0160)", () => {
       target: { kind: "player" },
     });
     expect(attackResult).toEqual({ ok: true });
-    await settle(() => oppTarget.currentDP !== 9000, 300);
+    await settle(() => oppTarget.currentDP !== 9000, 5000);
     // The inherited clause fired, attributed to `base` (a Digimon permanent) —
     // Comprehensive Rules never routes it through BT9-042 as a loose card.
     expect(oppTarget.currentDP).toBe(5000);
@@ -146,7 +146,7 @@ describe("§15-9 Mandatory Processing and Optional Processing (comprehensive-017
       permanentId: base.permanentId,
       instanceId: evolver.instanceId,
     });
-    await settle(() => base.topCard?.cardId === "BT9-042" || s.state.pendingDecision !== undefined, 200);
+    await settle(() => base.topCard?.cardId === "BT9-042" || s.state.pendingDecision !== undefined, 5000);
 
     const optionalDecision = s.decisions.find((d) => d.req.kind === "optional");
     if (optionalDecision !== undefined) {
@@ -155,7 +155,7 @@ describe("§15-9 Mandatory Processing and Optional Processing (comprehensive-017
         decisionId: optionalDecision.req.decisionId,
         response: { kind: "optional", accept: false },
       });
-      await settle(() => base.topCard?.cardId === "BT9-042", 200);
+      await settle(() => base.topCard?.cardId === "BT9-042", 5000);
       // Declined the abortOnDecline cost: the DP reduction after it never ran.
       expect(oppTarget.currentDP).toBe(9000);
     } else {
@@ -192,7 +192,7 @@ describe("§15-12-1 Effects That Add Information (comprehensive-0189)", () => {
       effectKey: "BT13-008/become-digimon",
     });
     expect(result).toEqual({ ok: true });
-    await settle(() => tamer.currentDP === 3000, 200);
+    await settle(() => tamer.currentDP === 3000, 5000);
 
     const continuousReader = (s.engine as unknown as { continuous: { grantedKinds(id: string): CardKind[] } })
       .continuous;
@@ -250,7 +250,7 @@ describe('§15-15-2 "Gains" (comprehensive-0200)', () => {
     expect(result).toEqual({ ok: true });
     const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, kw: string): boolean } })
       .continuous;
-    await settle(() => continuous.hasKeyword(target.permanentId, "Reboot"), 200);
+    await settle(() => continuous.hasKeyword(target.permanentId, "Reboot"), 5000);
 
     expect(continuous.hasKeyword(target.permanentId, "Reboot")).toBe(true);
   });

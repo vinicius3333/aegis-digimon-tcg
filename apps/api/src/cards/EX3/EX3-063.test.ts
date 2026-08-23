@@ -244,7 +244,8 @@ describe("EX3-063 Imperialdramon: Dragon Mode", () => {
 
     expect(s.state.memory).toBe(3);
     expect(s.perm("dragonMode").currentDP).toBe(15000);
-    expect(s.perm("dragonMode").stack.map(({ cardId }) => cardId)).toContain("EX3-063");
+    expect(s.perm("dragonMode").stack.map(({ cardId }) => cardId)).not.toContain("EX3-063");
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("EX3-063");
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       s.inst("wrongImperialdramon").instanceId,
     );

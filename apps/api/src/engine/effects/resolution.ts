@@ -107,7 +107,12 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
         fx: env.fx,
         ask: env.ask,
         usage: env.tracker,
-        activeTiming: collected.timing === undefined ? undefined : EffectTiming[collected.timing],
+        // Provenance the client shows next to a decision: the PRINTED window the effect is
+        // tagged with ("[When Attacking]"), which is the IR trigger, not the engine's internal
+        // EffectTiming name for it. Hand-written effects that carry no IR trigger fall back to
+        // the enum name.
+        activeTiming:
+          collected.effect.irTrigger ?? (collected.timing === undefined ? undefined : EffectTiming[collected.timing]),
         activeEffectText: collected.effect.description,
         conferredToPermanentId: collected.conferredToPermanentId,
       }),

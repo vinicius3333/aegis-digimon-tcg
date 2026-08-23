@@ -57,7 +57,7 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
   it("does not activate when the only Veedramon is in the breeding area (Q4124)", async () => {
     const s = setupEngine({
       0: {
-        breedingArea: { card: "P-011" },
+        breeding: { card: "P-011" },
         battleArea: [{ card: "P-012", as: "tai" }],
       },
     });

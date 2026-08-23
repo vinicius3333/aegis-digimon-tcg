@@ -35,7 +35,7 @@ describe("BT13-071 Giromon", () => {
     });
     await s.ready();
     s.state.turnSeat = 1;
-    await advance(s.engine).fireForPermanent(EffectTiming.OpponentsTurn, s.perm("host"));
+    await advance(s.engine).fireForPermanent(EffectTiming.None, s.perm("host"));
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
     await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("host").permanentId });
     await settle(() => s.state.players[1]!.security.length === 0);

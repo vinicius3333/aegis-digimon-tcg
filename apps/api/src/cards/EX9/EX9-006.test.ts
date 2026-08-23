@@ -7,29 +7,29 @@ describe("EX9-006", () => {
 
   it("trashes the bottom face-down source and digivolves into a Ver.5 from trash on attack", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-006", as: "source", under: [{ card: "BT1-009", faceUp: false }] }], trash: ["EX9-010"] },
-      1: {},
+      0: { battleArea: [{ card: "EX9-007", as: "source", under: [{ card: "BT1-009", faceUp: false }, "EX9-006"] }], trash: ["EX9-010"] },
+      1: { security: ["EX9-071"] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+    await settle(() => s.perm("source").topCard?.cardId === "EX9-010");
 
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-010")).toBe(true);
+    expect(s.perm("source").topCard?.cardId).toBe("EX9-010");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("does not pay the effect with a face-up bottom source", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-006", as: "source", under: [{ card: "BT1-009", faceUp: true }] }], trash: ["EX9-010"] },
-      1: {},
+      0: { battleArea: [{ card: "EX9-007", as: "source", under: [{ card: "BT1-009", faceUp: true }, "EX9-006"] }], trash: ["EX9-010"] },
+      1: { security: ["EX9-071"] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX9-010"));
 
-    expect(s.perm("source").topCard?.cardId).toBe("EX9-006");
+    expect(s.perm("source").topCard?.cardId).toBe("EX9-007");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(false);
   });
 });

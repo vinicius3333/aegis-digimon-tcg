@@ -129,7 +129,7 @@ describe("BT24-069 Vilemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 1);
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(1);

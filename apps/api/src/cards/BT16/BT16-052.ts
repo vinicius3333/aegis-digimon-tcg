@@ -14,7 +14,7 @@ const compiled: CompiledCard = {
         {
           "kind": "PlayToken",
           "tokens": [
-            "KoHagurumon"
+            "KoHagurumon Token"
           ],
           "count": 1,
           "payCost": false,

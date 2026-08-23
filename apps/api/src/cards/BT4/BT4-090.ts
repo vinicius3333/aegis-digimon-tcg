@@ -11,7 +11,7 @@ export const compiled: CompiledCard = {
         {
           kind: "GrantCanAttackUnsuspended",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          duration: "untilEndAttack",
+          duration: "untilEndOfAttack",
         },
         {
           kind: "Attack",

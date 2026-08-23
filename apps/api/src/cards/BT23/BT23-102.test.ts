@@ -27,7 +27,7 @@ describe("BT23-102 Mastemon", () => {
     });
   });
 
-  it("plays a qualifying level 5 yellow card for free, then trims both security stacks to three", async () => {
+  it("plays a qualifying level 5 yellow card for free, then trims both security stacks", async () => {
     const s = setupEngine(
       {
         0: {
@@ -37,14 +37,16 @@ describe("BT23-102 Mastemon", () => {
         },
         1: { security: 4 },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const qualifyingId = s.inst("qualifying").instanceId;
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mastemon"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === qualifyingId));
 
-    expect(s.state.players[0]!.security).toHaveLength(3);
+    // Angewomon first removes one of your security cards; Mastemon's All Turns watcher then
+    // accepts its optional placement and replaces the trimmed Mastemon stack with one card.
+    expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === qualifyingId)).toBe(true);
   });
@@ -70,6 +72,7 @@ describe("BT23-102 Mastemon", () => {
   });
 
   it("places either player's selected Digimon at the bottom of its security and fires only once per turn", async () => {
+    const preferredIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -78,30 +81,20 @@ describe("BT23-102 Mastemon", () => {
         },
         1: { battleArea: [{ card: "BT23-067", as: "opponentDigimon" }] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
     );
     const opponentId = s.perm("opponentDigimon").topCard!.instanceId;
+    preferredIds.push(s.perm("opponentDigimon").permanentId);
 
     const firstTrigger = advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets"));
-    const selection = s.decisions.find(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets");
-    expect(selection).toBeDefined();
-    const request = selection!.req;
-    s.engine.applyIntent(selection!.seat, {
-      type: "respondDecision",
-      decisionId: request.decisionId,
-      response: request.kind === "selectCards"
-        ? { kind: "selectCards", instanceIds: [opponentId] }
-        : { kind: "chooseTargets", instanceIds: [opponentId] },
-    });
     await firstTrigger;
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === opponentId));
 
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]!.instanceId).toBe(opponentId);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(opponentId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 });

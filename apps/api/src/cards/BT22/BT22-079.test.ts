@@ -54,8 +54,12 @@ describe("BT22-079 Eater (Species Form)", () => {
     );
     const eaterId = s.inst("eater").instanceId;
     s.state.memory = 3;
+    await s.ready();
+    await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: eaterId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    expect(s.decisions).toHaveLength(1);
+    expect(s.decisions[0]?.req).toMatchObject({ kind: "optional", sourceCardId: "BT22-079" });
     expect(s.state.memory).toBe(1);
   });
 });

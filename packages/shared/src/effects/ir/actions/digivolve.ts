@@ -187,6 +187,8 @@ export interface TrashDigivolutionAction extends ActionBase {
   target: Target;
   /** Default 1. */
   amount?: number | "all";
+  /** Lower bound for an "up to `amount`" trash; the payment fails below it. */
+  minAmount?: number;
   /** The default source form. */
   fromTop?: boolean;
   position?: string;

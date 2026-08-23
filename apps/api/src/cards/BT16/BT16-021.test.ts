@@ -30,10 +30,11 @@ describe("BT16-021", () => {
     });
     const sourceId = s.perm("suspended").stack[0]!.instanceId;
 
-    await advance(s.engine).fireSubTrigger("whenSuspended", { permanentId: s.perm("suspended").permanentId });
+    await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("suspended").permanentId });
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === sourceId)).toBe(true);
     expect(s.perm("suspended").stack).toHaveLength(0);
-    expect(observe(s.engine).isRestricted(s.perm("suspended"), "attackOrBlock")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspended"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspended"), "block")).toBe(true);
   });
 });

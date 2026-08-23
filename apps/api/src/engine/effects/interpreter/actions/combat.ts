@@ -92,13 +92,33 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const name = action.target.bindAs;
       if (name === undefined) return false;
       const target = action.chooser === undefined ? action.target : { ...action.target, chooser: action.chooser };
-      const ids =
-        ctx.selections?.get(name) !== undefined
-          ? [ctx.selections.get(name)!]
+      const existingIds = ctx.boundPlayed?.get(name);
+      const existingId = ctx.selections?.get(name);
+      const ids = existingIds !== undefined
+        ? [...existingIds]
+        : existingId !== undefined
+          ? [existingId]
           : await resolvePermanentTargets(ctx, target);
       if (ids.length > 0) {
         ctx.selections ??= new Map();
         ctx.selections.set(name, ids[0]!);
+        // Keep the scalar binding for relative attribute comparisons, and retain the complete
+        // chosen set for plural `fromSelectionRef` consumers (for example, "suspend 2 ... cards
+        // this effect suspended can't unsuspend"). `boundPlayed` is already the resolution-scoped
+        // set-valued binding store read by target resolution, despite its historical name.
+        ctx.boundPlayed ??= new Map();
+        ctx.boundPlayed.set(name, new Set(ids));
+        const bound = ctx.game.permanentById(ids[0]!);
+        if (bound !== undefined) {
+          const definition = bound.topCard ? ctx.game.definitionOf(bound.topCard) : undefined;
+          ctx.selectionFacts ??= new Map();
+          ctx.selectionFacts.set(name, {
+            dp: bound.currentDP,
+            level: definition?.level,
+            playCost: definition?.playCost,
+            digivolutionCount: bound.stack.length,
+          });
+        }
       }
       return false;
     }

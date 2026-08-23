@@ -136,10 +136,11 @@ describe("ST17-13 Magnamon [Security] — end of security battle digivolution", 
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const attackerPermanentId = s.perm("attacker").permanentId;
 
     expect(s.engine.applyIntent(0, {
       type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
+      attackerPermanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
 
@@ -157,14 +158,15 @@ describe("ST17-13 Magnamon [Security] — end of security battle digivolution", 
       { autoAcceptOptional: false, autoSelectCards: true },
     );
     await s.ready();
+    const attackerPermanentId = s.perm("attacker").permanentId;
 
     expect(s.engine.applyIntent(0, {
       type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
+      attackerPermanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
 
-    await settle(() => s.perm("attacker").stack.length === 0, 3000);
-    expect(s.perm("attacker").stack).toHaveLength(0);
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerPermanentId), 3000);
+    expect(() => s.perm("attacker")).toThrow('permanent for "attacker"');
   });
 });

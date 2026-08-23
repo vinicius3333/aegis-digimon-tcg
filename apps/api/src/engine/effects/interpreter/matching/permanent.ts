@@ -300,7 +300,6 @@ export function permanentMatchesFilter(
     const rel = filter.relativeTo;
     const boundId = ctx.selections?.get(rel.selectionRef);
     const boundPerm = boundId !== undefined ? ctx.game.permanentById(boundId) : undefined;
-    if (boundPerm === undefined) return false;
     const attrOf = (p: Permanent): number | undefined => {
       if (rel.attr === "dp") return p.currentDP;
       if (rel.attr === "digivolutionCount") return p.stack.length;
@@ -309,8 +308,11 @@ export function permanentMatchesFilter(
       if (rel.attr === "playCost") return cardDef?.playCost ?? undefined;
       return undefined;
     };
+    // The bound permanent may already have left the board — the same clause often deletes it
+    // before the comparison runs — so fall back to the snapshot taken when it was chosen.
+    const rhs = boundPerm !== undefined ? attrOf(boundPerm) : ctx.selectionFacts?.get(rel.selectionRef)?.[rel.attr];
+    if (rhs === undefined) return false;
     const lhs = attrOf(permanent);
-    const rhs = attrOf(boundPerm);
     if (lhs === undefined || rhs === undefined) return false;
     if (rel.op === "lte" && !(lhs <= rhs)) return false;
     if (rel.op === "gte" && !(lhs >= rhs)) return false;

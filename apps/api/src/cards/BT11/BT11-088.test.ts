@@ -60,7 +60,7 @@ function setup(): { engine: GameEngine; state: GameState } {
         );
       }
       if (req.kind === "selectCards" || req.kind === "chooseTargets") {
-        const candidates = req.options?.candidateInstanceIds ?? req.options?.candidatePermanentIds ?? [];
+        const candidates = req.options?.candidateInstanceIds ?? [];
         const ids = candidates.slice(0, req.options?.max ?? candidates.length);
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {

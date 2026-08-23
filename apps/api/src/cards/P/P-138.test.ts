@@ -8,7 +8,7 @@ describe("P-138 Veedramon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "P-138", as: "source" }],
-        deck: ["BT11-027", "BT1-086", "BT1-001"],
+        deck: ["BT11-027", "BT1-086", "BT1-009"],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 10;
@@ -16,7 +16,7 @@ describe("P-138 Veedramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT11-027") && s.state.players[0]!.hand.some((card) => card.cardId === "BT1-086"));
 
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT11-027", "BT1-086"]));
     assertNoLoudGap(s);
   });

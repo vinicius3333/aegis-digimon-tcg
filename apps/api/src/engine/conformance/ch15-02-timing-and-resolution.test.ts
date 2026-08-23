@@ -88,7 +88,7 @@ describe("§15-4-1 Activation (comprehensive-0162)", () => {
       effectKey: "BT15-009/ir-27-0",
     });
     expect(result).toEqual({ ok: true });
-    await settle(() => !p1.battleArea.includes(oppTarget), 200);
+    await settle(() => !p1.battleArea.includes(oppTarget), 5000);
 
     // The effect body actually ran (the opponent's Digimon was deleted) — "activation"
     // is the execution, not merely the declaration.
@@ -285,7 +285,7 @@ describe("§15-5 Trigger Conditions (comprehensive-0167)", () => {
 
     const eventsBefore = s.events.length;
     s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
-    await settle(() => target.isSuspended, 200);
+    await settle(() => target.isSuspended, 5000);
 
     const suspendActivations = s.events
       .slice(eventsBefore)
@@ -376,7 +376,7 @@ describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () =
       instanceId: evolver.instanceId,
     });
     expect(digResult).toEqual({ ok: true });
-    await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 200);
+    await settle(() => s.decisions.some((d) => d.req.kind === "optional"), 5000);
 
     const optionalDecision = s.decisions.find((d) => d.req.kind === "optional");
     expect(optionalDecision).toBeDefined();

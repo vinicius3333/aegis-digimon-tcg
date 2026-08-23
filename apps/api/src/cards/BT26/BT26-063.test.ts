@@ -7,6 +7,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -88,7 +89,7 @@ describe("BT26-063 Tellermon", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } }],
     });
-    expect(compiled.effects?.[0]?.actions?.[0]?.actions?.[0]).toMatchObject({
+    expect(irNode(compiled.effects?.[0]?.actions?.[0])?.actions?.[0]).toMatchObject({
       kind: "RevealAdd",
       revealCount: 3,
       rest: "deckTopOrBottom",

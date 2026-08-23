@@ -38,10 +38,10 @@ describe("EX12-009 Wankomon", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.deck.length === 3);
+    await settle(() => s.state.players[0]!.deck.length === 2);
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX12-011");
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX12-011", "BT1-009", "BT1-010"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX12-011");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 
   it("adds only the available matching card and bottoms the remaining reveal", async () => {

@@ -31,6 +31,7 @@ export interface Scaling {
     | "linkCards" // linked cards across matching permanents, not the permanents (BT25-075)
     | "deletedThisEffect"
     | "namedCount" // a count already in `EffectContext.namedCounts`
+    | "memory" // current memory from `filter.controller`'s perspective, floored at 0
     | "targetColors"; // distinct colors on the selected target permanent
   /** Name to read when `unit` is `"namedCount"`, usually written by a prior `trackCount`. */
   countSource?: string;

@@ -9,7 +9,7 @@ const freePlay = { kind: "PlayWithoutCost", target: { filter: { controller: "min
   { tokens: ["Insectoid"], match: "trait" }, { tokens: ["Titan"], match: "trait" },
 ] }, count: 1 }, from: ["hand"], payCost: false, optional: true };
 export const compiled: CompiledCard = { effects: [
-  { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { controllerDefault: "mine", isSelfRef: true }, mode: "reduceCost", amount: 4, condition: { kind: "raw", raw: "your hand has fewer cards than your opponent's hand" } }] },
+  { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { controllerDefault: "mine", isSelfRef: true }, mode: "reduceCost", amount: 4, condition: { kind: "handCompare", op: "lt" } }] },
   { trigger: "OnPlay", frequency: "OncePerTurn", sharedUseKey: "bt26-045-free-play", actions: [freePlay] },
   { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "bt26-045-free-play", actions: [freePlay] },
   { trigger: "WhenAttacking", frequency: "OncePerTurn", sharedUseKey: "bt26-045-free-play", actions: [freePlay] },

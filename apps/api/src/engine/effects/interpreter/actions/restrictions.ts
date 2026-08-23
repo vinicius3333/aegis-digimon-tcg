@@ -3,11 +3,14 @@
 import type { EffectContext, Restriction } from "../../EffectContext.js";
 import type { ActionScope } from "../dispatch.js";
 import { toDuration } from "../duration.js";
+import { KIND_MAP } from "../maps.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
+import { extractCardById, insertCard } from "../../../state/access.js";
+import { Zone } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
@@ -22,7 +25,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
       const [revealed] = await ctx.fx.reveal(opponent, 1);
       if (revealed === undefined) return false;
-      if (ctx.game.definitionOf(revealed).kinds.includes(category)) {
+      if (ctx.game.definitionOf(revealed).kinds.includes(KIND_MAP[category])) {
         const ids = await resolvePermanentTargets(ctx, action.target);
         for (const id of ids) {
           ctx.fx.restrict(id, "beAffected", toDuration(action.duration), { fromSourceKind: [category] });
@@ -36,7 +39,10 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       if (returnChoice !== 0) {
         const deck = ctx.game.player(opponent).deck;
         const index = deck.findIndex((card) => card.instanceId === revealed.instanceId);
-        if (index >= 0) deck.push(...deck.splice(index, 1));
+        if (index >= 0) {
+          const returned = extractCardById(ctx.game.player(opponent), Zone.Deck, revealed.instanceId);
+          if (returned !== undefined) insertCard(ctx.game.player(opponent), Zone.Deck, returned, "bottom");
+        }
       }
       return false;
     }
@@ -55,6 +61,13 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
         ? "beReturned"
         : action.restriction) as Restriction;
+      // Card IR spells this immunity using the printed-action vocabulary, while the engine's
+      // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
+      // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
+      // here instead: `restrict()` no longer accepts one, and the ~32 IR records still
+      // carrying `activateEffects` are superseded by the disableSecurityEffect /
+      // disableTimingEffect verbs.
+      if (restriction === "activateEffects") return false;
       if (restriction === "beTrashed" && filter.zone === "digivolutionCards") {
         const cards = candidateLooseInstances(ctx, scaledTarget, ["digivolutionCards"]);
         for (const card of cards) ctx.fx.stackCardTrashLock?.(card.instanceId, card.ownerSeat, duration);
@@ -87,13 +100,6 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
         }
         return false;
       }
-      // Card IR spells this immunity using the printed-action vocabulary, while the engine's
-      // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
-      // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
-      // here instead: `restrict()` no longer accepts one, and the ~32 IR records still
-      // carrying `activateEffects` are superseded by the disableSecurityEffect /
-      // disableTimingEffect verbs.
-      if (restriction === "activateEffects") return false;
       const fromSourceKind = action.fromSourceKind as string[] | undefined;
       const byOpponentEffectsOnly = action.byOpponentEffectsOnly === true ? true : undefined;
       for (const id of ids) ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly, continuous });

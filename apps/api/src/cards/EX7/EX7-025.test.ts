@@ -13,7 +13,7 @@ describe("EX7-025 ShoeShoemon", () => {
     const s = setupEngine({ 0: { hand: ["EX7-063"], battleArea: [{ card: "EX7-025", as: "shoe" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shoe"));
-    await settle(() => s.state.players[0].battleArea.some((permanent) => permanent.topCard.cardId === "EX7-063"));
-    expect(s.state.players[0].battleArea.some((permanent) => permanent.topCard.cardId === "EX7-063")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-063"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-063")).toBe(true);
   });
 });

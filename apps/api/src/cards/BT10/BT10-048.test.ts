@@ -36,7 +36,7 @@ describe("BT10-048 Sunflowmon", () => {
       0: {
         battleArea: [{ card: "BT10-048", as: "base" }, { card: "BT10-046", as: "cost" }],
         hand: [{ card: "BT10-052", as: "evolving" }],
-        deck: [{ card: "BT1-001", as: "shouldNotDraw" }],
+        deck: [{ card: "BT1-001", as: "standardDraw" }, { card: "BT1-002" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 3;
@@ -48,6 +48,7 @@ describe("BT10-048 Sunflowmon", () => {
     })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT10-052");
 
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shouldNotDraw").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("standardDraw").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });

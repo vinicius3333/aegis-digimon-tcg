@@ -17,6 +17,6 @@ describe("LM-042 Rasielmon", () => {
 
     expect(s.perm("opponent").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "cantActivateWhenDigivolving")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "cannotActivateWhenDigivolving")).toBe(true);
   });
 });

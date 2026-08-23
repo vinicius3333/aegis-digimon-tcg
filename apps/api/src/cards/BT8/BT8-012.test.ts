@@ -34,7 +34,7 @@ describe("BT8-012 Flamedramon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("base").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === baseInstanceId);
 

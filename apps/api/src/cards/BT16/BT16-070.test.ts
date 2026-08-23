@@ -36,7 +36,9 @@ describe("BT16-070", () => {
             { card: "BT16-070", as: "seth", dp: 5000 },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 4000 }] },
+        // "as much or less DP as it" is measured against the CHOSEN ally (3000), so a
+        // DP-eligible opponent has to be at or below that.
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

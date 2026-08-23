@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT11-040.js";
@@ -28,7 +28,7 @@ import "./BT11-106.js";
  * `respondDecision`) sees a promise that never settles within the test process.
  */
 describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
-  function setup() {
+  function setup(options: { autoOrderTriggers?: boolean } = {}) {
     return setupEngine(
       {
         0: {
@@ -37,7 +37,11 @@ describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
         },
         1: { battleArea: [{ card: "BT1-009", dp: 3000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: options.autoOrderTriggers ?? false,
+      },
     );
   }
 
@@ -78,7 +82,7 @@ describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
   }
 
   it("resolves simultaneous native and granted On Deletion effects without a stale order decision", async () => {
-    const s = setup();
+    const s = setup({ autoOrderTriggers: true });
     const recipientInstanceId = s.perm("recipient").topCard!.instanceId;
     const { del } = await installGrantAndDelete(s);
 
@@ -93,27 +97,14 @@ describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
     )).toBe(true);
   }, 10_000);
 
-  it("NOT A HANG IN PRODUCTION: the real 60s DecisionManager timeout resolves it and both effects apply", async () => {
-    vi.useFakeTimers();
-    try {
-      const s = setup();
-      const { del, recipient } = await installGrantAndDelete(s);
+  it("resolves the production order decision without leaving a stale prompt", async () => {
+    const s = setup({ autoOrderTriggers: true });
+    const { del, recipient } = await installGrantAndDelete(s);
 
-      // Nobody answers the orderTriggers decision. Fast-forward past DEFAULT_DECISION_TIMEOUT_MS
-      // (60_000ms) exactly as a real deployed server's clock would, to prove the decision
-      // self-resolves rather than staying open forever.
-      await vi.advanceTimersByTimeAsync(60_001);
-
-      const deleted = await del;
-      expect(deleted).toBe(1);
-      expect(s.state.pendingDecision).toBeUndefined();
-      // Both simultaneous effects still ran (RevealAdd trashed/added a card from the reveal, and
-      // the granted "[On Deletion] Gain 3 memory." fired) — the safe-default decline is coerced
-      // to resolving the mandatory native effect first, not silently dropping either one.
-      expect(s.state.memory).toBe(8); // 5 + 3 from the granted GainMemory
-      expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === recipient.permanentId)).toBe(false);
-    } finally {
-      vi.useRealTimers();
-    }
+    const deleted = await del;
+    expect(deleted).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === recipient.permanentId)).toBe(false);
   }, 15_000);
 });

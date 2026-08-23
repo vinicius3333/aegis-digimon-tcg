@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./BT19-090.js";
 import "../index.js";
 

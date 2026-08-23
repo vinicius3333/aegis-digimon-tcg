@@ -249,6 +249,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
             : def(card.cardId, [CardKind.Digimon]),
     } as unknown as GameAccess;
     const useOptionFromHand = vi.fn(async () => []);
+    const gainMemoryForSeat = vi.fn();
     const ctx = {
       source: source(),
       trigger: {},
@@ -265,7 +266,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
           player.trash.push(...moved);
           return moved;
         }),
-        gainMemory: vi.fn(),
+        gainMemoryForSeat,
         useOptionFromHand,
       },
     } as unknown as EffectContext;
@@ -273,7 +274,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
 
     expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
-    expect(useOptionFromHand).toHaveBeenCalledWith(expect.any(Object), "new-option", 3, expect.objectContaining({ payCost: true, costDelta: 2 }));
-    expect(ctx.fx.gainMemory).not.toHaveBeenCalled();
+    expect(gainMemoryForSeat).toHaveBeenCalledWith(0, -1);
+    expect(useOptionFromHand).toHaveBeenCalledWith(expect.any(Object), "new-option", 3, expect.objectContaining({ payCost: true, costDelta: 2, paymentHandled: true }));
   });
 });

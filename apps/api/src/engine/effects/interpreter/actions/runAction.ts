@@ -7,7 +7,7 @@ import { describeAction } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
-import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.js";
+import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
@@ -43,12 +43,18 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   } else {
     ctx.lastActionConditionMatched = true;
   }
-  if (action.kind === "Delete" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
-    return action.abortOnDecline === true;
-  }
+  // "By paying ..., return 1 [X]" is not worth offering when nothing can be returned — but
+  // only a BATTLE-AREA return is answered by a board scan. A return that sources a loose card
+  // ("from your trash to the hand", BT16-031) has its candidates in another zone, where
+  // resolvePermanentTargets always finds none and would abort every such clause outright.
+  const returnsLooseCard =
+    action.kind === "Return" &&
+    ((action.from?.length ?? 0) > 0 ||
+      (action.target.filter.zone !== undefined && action.target.filter.zone !== "battleArea"));
   if (
     action.kind === "Return" &&
     action.cost !== undefined &&
+    !returnsLooseCard &&
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
     (await resolvePermanentTargets(ctx, action.target)).length === 0
   ) {
@@ -57,6 +63,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
+    !(
+      action.cost.bindHostAs !== undefined &&
+      action.cost.bindHostAs === action.target.fromSelectionRef
+    ) &&
     (await resolvePermanentTargets(ctx, action.target)).every((id) => {
       const permanent = ctx.game.permanentById(id);
       return permanent === undefined || permanent.isSuspended !== true;
@@ -165,7 +175,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // never ask the player to confirm a move that has no selectable card or permanent.
     if (action.kind === "Return" && !action.target.isSelf && action.target.filter.isSelfRef !== true && !(action.from ?? []).includes("digivolutionCards")) {
       const zone = action.target.filter.zone;
-      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? [zone] : undefined);
+      const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? zoneList(zone) : undefined);
       // Only preflight loose-zone recovery here. A battle-area Return may have an
       // activation cost that changes target legality (BT16-048 suspends the Digimon
       // whose DP becomes the bounce ceiling), so its candidates must be resolved
@@ -230,6 +240,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "SubTrigger" &&
     action.kind !== "CostGatedBlock" &&
     action.kind !== "PlayPerLevel" &&
+    // `DigivolveViaPlacement.cost` is a memory amount paid by the digivolve itself, not an
+    // activation Cost, so it must not enter the generic cost-payment path.
+    action.kind !== "DigivolveViaPlacement" &&
     action.cost
   ) {
     if (action.cost.optional) {
@@ -261,7 +274,8 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "Replacement" &&
     action.kind !== "CostModifier" &&
     action.kind !== "SubTrigger" &&
-    action.kind !== "PlayPerLevel"
+    action.kind !== "PlayPerLevel" &&
+    action.kind !== "DigivolveViaPlacement"
   ) {
     const extraCosts = [
       ...((action.additionalCosts ?? []) as Cost[]),
@@ -277,7 +291,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // this case, so the paid count is the sole scale factor — overriding the residual-stack read
   // scaleFactor would otherwise return for a `digivolutionCards` unit.
   const digiBurstScale =
-    action.kind !== "RawUnparsed" && action.cost?.kind === "trash" && action.cost.target?.upTo === true
+    action.kind !== "RawUnparsed" &&
+    action.kind !== "DigivolveViaPlacement" &&
+    action.cost?.kind === "trash" &&
+    action.cost.target?.upTo === true
       ? costPayment.paidCount
       : undefined;
   // The upTo-Digi-Burst paid count and a `scaling` ("for each") hint are two
@@ -409,6 +426,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       return await runCombatAction(ctx, action, scope);
     case "DeDigivolve":
     case "Digivolve":
+    case "DigivolveViaPlacement":
     case "DnaDigivolve":
     case "AppFuse":
     case "PlaceUnder":

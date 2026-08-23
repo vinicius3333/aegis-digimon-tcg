@@ -61,10 +61,10 @@ describe("BT22-049 Vegiemon", () => {
     await endCurrentTurn(s);
     await settle(() => s.perm("vegiemon").topCard?.cardId === "BT22-061");
 
-    // Vademon's own When Digivolving immediately spends one bottom face-down source;
-    // the other 2 remain, proving all 3 were placed before its timing opened.
-    expect(s.perm("vegiemon").stack.filter((card) => !card.faceUp)).toHaveLength(2);
-    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-049")).toHaveLength(1);
+    // Vademon's optional return has no legal opposing target, so it cannot pay its
+    // bottom-source cost. All 3 cards remain, proving they were placed before its timing opened.
+    expect(s.perm("vegiemon").stack.filter((card) => !card.faceUp)).toHaveLength(3);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-049")).toHaveLength(0);
   });
 
   it("cannot satisfy Q4902 with only 2 eligible trash cards", async () => {

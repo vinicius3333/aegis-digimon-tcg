@@ -48,7 +48,7 @@ describe("BT16-014", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("goldramon"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("goldramon"));
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("godFlame").instanceId));
 
     expect(s.perm("target").currentDP).toBe(4000);

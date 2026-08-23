@@ -16,10 +16,10 @@ describe("EX9-041", () => {
   it("suspends and returns the lowest-DP opponent by trashing this bottom face-down card", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-041", as: "source", under: [{ card: "BT1-009", faceUp: false }, { card: "BT1-010", faceUp: true }] }] }, 1: { battleArea: [{ card: "BT1-009", as: "low", dp: 2000 }, { card: "BT1-010", as: "high", dp: 5000 }] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[1].hand.some((card) => card.cardId === "BT1-009"));
+    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009"));
     expect(s.perm("source").stack).toHaveLength(1);
     expect(s.perm("source").stack[0]!.faceUp).toBe(true);
-    expect(s.state.players[1].hand.some((card) => card.cardId === "BT1-009")).toBe(true);
-    expect(s.state.players[1].battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT1-010")).toBe(true);
   });
 });

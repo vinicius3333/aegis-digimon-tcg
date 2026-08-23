@@ -51,7 +51,7 @@ describe("BT17-041 ShineGreymon: Burst Mode", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("burst").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("burst"), "SecurityAttack") === 2);
 

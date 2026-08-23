@@ -31,7 +31,7 @@ const compiled: CompiledCard = {
         {
           kind: "Link",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          linkTo: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "gte", value: 3 } },
+          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           payCost: false,
           optional: true,
         },

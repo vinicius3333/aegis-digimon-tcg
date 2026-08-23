@@ -67,7 +67,7 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   ) {
     return false;
   }
-  if (action.cost !== undefined && !canPayCost(ctx, action.cost)) return false;
+  if (action.cost !== undefined && typeof action.cost !== "number" && !canPayCost(ctx, action.cost)) return false;
   if (action.kind === "Digivolve") return canAttemptDigivolve(ctx, action);
   if (action.kind === "DnaDigivolve") return canAttemptDnaDigivolve(ctx, action);
   return action.kind !== "RawUnparsed";

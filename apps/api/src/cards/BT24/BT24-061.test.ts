@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_061 } from "./BT24-061.js";
 import "../index.js";
@@ -102,7 +103,7 @@ describe("BT24-061 Vademon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("first").topCard.cardId === "BT24-050");
-    await settle(() => !s.engine.combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("first").topCard.cardId).toBe("BT24-050");
     expect(s.perm("second").topCard.cardId).toBe("BT24-051");
   });

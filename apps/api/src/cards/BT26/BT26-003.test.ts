@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-003.js";
 import "../index.js";
@@ -8,7 +9,7 @@ describe("BT26-003 Kyaromon", () => {
     const effect = compiled.effects[0]!;
     expect(effect).toMatchObject({ trigger: "OpponentsTurn", isInherited: true, frequency: "OncePerTurn" });
     expect(effect.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenOpponentAttacks" });
-    expect(effect.actions[0].actions[0]).toMatchObject({ kind: "RedirectAttack", optional: false, abortOnDecline: true });
+    expect(irNode(effect.actions[0]!).actions[0]).toMatchObject({ kind: "RedirectAttack", optional: false, abortOnDecline: true });
   });
 
   it("trashes the bottom face-down Tamer card and redirects to Glowing Dawn", async () => {

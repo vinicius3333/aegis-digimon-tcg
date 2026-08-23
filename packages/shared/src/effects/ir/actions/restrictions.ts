@@ -3,6 +3,7 @@
 import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
 import type { Controller } from "../filters/zones.js";
+import type { Condition } from "../predicates/conditions.js";
 import type { ActionBase } from "./base.js";
 
 /** What a continuous restriction forbids the target from doing. */
@@ -54,6 +55,12 @@ export interface RestrictAction extends ActionBase {
    * "…by your opponent's effects" wording. Absent applies to any effect.
    */
   byOpponentEffectsOnly?: boolean;
+  /**
+   * Board-state gate re-evaluated every continuous pass ("while you have 1 or more memory",
+   * EX8-026). Unlike `condition`, which is checked once at resolution, `while` marks the
+   * restriction continuous so it lifts as soon as the state stops holding.
+   */
+  while?: Condition;
 }
 
 /** Declare a card category, reveal the opponent's top deck card, and gain matching immunity. */

@@ -14,10 +14,11 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 2,
           "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine"
-            },
+            "kind": "zoneCount",
+            "seat": "mine",
+            "zone": "security",
+            "op": "eq",
+            "value": 3,
             "raw": "you have 3 security cards"
           }
         }

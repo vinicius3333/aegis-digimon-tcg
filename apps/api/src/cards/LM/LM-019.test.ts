@@ -18,7 +18,7 @@ describe("LM-019 Bokomon", () => {
 
   it("reveals four cards and adds a Digimon with Gammamon in its text", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "LM-019", as: "bokomon" }], deck: ["AD1-007", "BT1-001", "BT1-002", "BT1-003"] },
+      0: { hand: [{ card: "LM-019", as: "bokomon" }], deck: ["AD1-007", "BT1-009", "BT1-010", "BT1-011"] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 2;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId })).toEqual({ ok: true });

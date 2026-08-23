@@ -25,14 +25,14 @@ describe("EX9-066", () => {
   it("returns a named Digimon from trash on play", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-066", as: "source" }], trash: ["BT1-015"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0].hand.some((card) => card.cardId === "BT1-015"));
-    expect(s.state.players[0].hand.some((card) => card.cardId === "BT1-015")).toBe(true);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-015"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-015")).toBe(true);
   });
   it("draws when no named Digimon is available in trash", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX9-066", as: "source" }], deck: ["BT1-001"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0].hand.some((card) => card.cardId === "BT1-001"));
-    expect(s.state.players[0].hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
   it.each([
     ["whenPlayed", "whenPlayed"],

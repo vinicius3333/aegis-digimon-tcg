@@ -22,7 +22,7 @@ const printedKeywordCases = [
   ["BT10-097", "Delay"],
   ["BT4-012", "DigiBurst"],
   ["BT10-052", "Digisorption"],
-  ["AD1-002", "Draw"],
+  ["AD1-010", "Draw"],
   ["AD1-012", "Evade"],
   ["BT20-072", "Execute"],
   ["BT20-034", "Fortitude"],

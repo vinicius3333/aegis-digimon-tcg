@@ -16,7 +16,7 @@ describe("EX7-018 Gekomon", () => {
     const s = setupEngine({ 0: { deck: ["BT1-009"], battleArea: [{ card: "EX7-018", as: "geko" }] } });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("geko"));
-    await settle(() => s.state.players[0].hand.length === 1);
-    expect(s.state.players[0].hand[0]!.cardId).toBe("BT1-009");
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT1-009");
   });
 });

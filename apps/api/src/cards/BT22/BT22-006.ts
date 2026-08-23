@@ -4,6 +4,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { staticModifier } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT22-006 — Moonmon (Purple Lv.2 Digi-Egg).
@@ -80,5 +81,8 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiled, module);
+// The hand-written module goes in first so it keeps registry precedence; registerIrCard then
+// records the compiled record without displacing it.
+registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;

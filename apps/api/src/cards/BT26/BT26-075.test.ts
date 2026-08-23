@@ -18,10 +18,10 @@ describe("BT26-075 compiled behavior", () => {
 
   it("requires a face-down bottom card under a Tamer and preserves the printed waiver", () => {
     const security = compiled.effects.find((effect) => effect.trigger === "Security")!;
-    const cost = security.actions[0].cost;
+    const cost = security.actions[0]!.cost;
         expect(cost).toMatchObject({ kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 });
-    expect(compiled.effects[0].actions[0]).toMatchObject({ kind: "WaiveColorRequirement", condition: { kind: "youHave" } });
-    expect(compiled.effects[0].actions.slice(1)).toEqual([
+    expect(compiled.effects[0]!.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", condition: { kind: "youHave" } });
+    expect(compiled.effects[0]!.actions.slice(1)).toEqual([
       expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Execute" } }),
       expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Ascension" } }),
     ]);

@@ -26,6 +26,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "opponent",
+              unsuspended: true,
               kind: ["Digimon", "Tamer"],
             },
             count: 2,
@@ -71,6 +72,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "opponent",
+              unsuspended: true,
               kind: ["Digimon", "Tamer"],
             },
             count: 2,

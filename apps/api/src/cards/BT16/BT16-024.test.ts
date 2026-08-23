@@ -41,7 +41,7 @@ describe("BT16-024", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT16-024", as: "source" },
+          { card: "BT1-009", as: "source", under: ["BT16-024"] },
           { card: "BT16-019", as: "angel" },
           { card: "BT1-009", as: "other" },
         ],
@@ -52,7 +52,7 @@ describe("BT16-024", () => {
 
     const continuous = (s.engine as unknown as { continuous: { hasKeyword: (id: string, keyword: string) => boolean } })
       .continuous;
-    expect(continuous.hasKeyword(s.perm("source").permanentId, "Blocker")).toBe(true);
+    expect(continuous.hasKeyword(s.perm("source").permanentId, "Blocker")).toBe(false);
     expect(continuous.hasKeyword(s.perm("angel").permanentId, "Blocker")).toBe(true);
     expect(continuous.hasKeyword(s.perm("other").permanentId, "Blocker")).toBe(false);
   });

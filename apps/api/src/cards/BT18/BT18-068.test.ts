@@ -6,7 +6,7 @@ import "./BT18-068.js";
 describe("BT18-068 Wisemon", () => {
   it("returns the five revealed cards to the chosen deck destination and has Blocker", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT18-068", as: "wisemon" }], deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"] } },
+      { 0: { hand: [{ card: "BT18-068", as: "wisemon" }], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"] } },
       { autoAcceptOptional: true, autoChooseOption: true },
     );
     s.state.memory = 10;

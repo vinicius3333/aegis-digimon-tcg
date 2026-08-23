@@ -18,8 +18,8 @@ describe("EX7-011 Megadramon", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("megadramon"));
-    await settle(() => s.state.players[0].battleArea[0]!.stack.some((card) => card.cardId === "EX7-071") && s.state.players[1].battleArea.length === 0);
-    expect(s.state.players[0].battleArea[0]!.stack.some((card) => card.cardId === "EX7-071")).toBe(true);
-    expect(s.state.players[1].battleArea).toHaveLength(0);
+    await settle(() => s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071") && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea[0]!.stack.some((card) => card.cardId === "EX7-071")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

@@ -13,7 +13,7 @@ describe("EX7-028", () => {
     const s = setupEngine({ 0: { hand: ["BT1-045"], battleArea: [{ card: "EX7-028", as: "pix" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("pix").permanentId]);
-    await settle(() => s.state.players[0].battleArea.some((permanent) => permanent.topCard.cardId === "BT1-045"));
-    expect(s.state.players[0].battleArea.some((permanent) => permanent.topCard.cardId === "BT1-045")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-045"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-045")).toBe(true);
   });
 });

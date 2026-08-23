@@ -26,8 +26,8 @@ describe("BT24-063 Locomon", () => {
           hand: [{ card: "BT24-063", as: "locomon" }],
           deck: [
             { card: "BT24-083", as: "tamer" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
           ],
         },
       },
@@ -58,8 +58,8 @@ describe("BT24-063 Locomon", () => {
           hand: [{ card: "BT24-063", as: "locomon" }],
           deck: [
             { card: "BT24-083", as: "tamer" },
-            { card: "BT1-001", as: "miss1" },
-            { card: "BT1-002", as: "miss2" },
+            { card: "BT1-009", as: "miss1" },
+            { card: "BT1-010", as: "miss2" },
           ],
         },
       },

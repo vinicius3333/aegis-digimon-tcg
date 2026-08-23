@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 describe("ST21-09", () => {
@@ -8,9 +9,9 @@ describe("ST21-09", () => {
     const suspend = onPlay?.actions[0];
     const returns = onPlay?.actions[1];
     expect(suspend?.kind).toBe("Suspend");
-    expect(suspend?.target.filter.dp).toEqual({ op: "lte", value: 5000 });
+    expect(irNode(suspend)?.target.filter.dp).toEqual({ op: "lte", value: 5000 });
     expect(returns?.kind).toBe("Return");
-    expect(returns?.to).toBe("deckBottom");
+    expect(irNode(returns)?.to).toBe("deckBottom");
     expect(returns?.scaling).toMatchObject({ per: 2, unit: "colors" });
   });
 
@@ -21,9 +22,9 @@ describe("ST21-09", () => {
     expect(effect?.frequency).toBe("OncePerTurn");
     const [played, digivolved] = effect?.actions ?? [];
     for (const trigger of [played, digivolved]) {
-      expect(trigger.sourceFilter.excludeSelf).toBe(true);
-      expect(trigger.actions[0].condition).toMatchObject({ kind: "sourceHasTrait", trait: "ADVENTURE" });
-      expect(trigger.actions[1]).toMatchObject({ kind: "Attack", optional: true });
+      expect(irNode(trigger).sourceFilter.excludeSelf).toBe(true);
+      expect(irNode(trigger).actions[0]!.condition).toMatchObject({ kind: "sourceHasTrait", trait: "ADVENTURE" });
+      expect(irNode(trigger).actions[1]).toMatchObject({ kind: "Attack", optional: true });
     }
   });
 

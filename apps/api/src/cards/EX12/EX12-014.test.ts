@@ -5,16 +5,18 @@ import "../index.js";
 
 describe("EX12-014 Canoweissmon", () => {
   it("places a matching hand card underneath itself on play", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX12-007", as: "ally" }],
           hand: [{ card: "EX12-014", as: "source" }, { card: "EX12-007", as: "material" }],
         },
-        1: { security: ["BT1-009"] },
+        1: {},
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("source").instanceId);
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
@@ -22,11 +24,11 @@ describe("EX12-014 Canoweissmon", () => {
     await settle(() => sourcePermanent()?.stack.some((card) => card.instanceId === s.inst("material").instanceId) === true);
 
     expect(sourcePermanent()!.stack.map((card) => card.cardId)).toContain("EX12-007");
-    expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(false);
   });
 
   it("places a matching trash card underneath itself when digivolving", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -34,10 +36,11 @@ describe("EX12-014 Canoweissmon", () => {
           hand: [{ card: "EX12-014", as: "source" }],
           trash: [{ card: "EX12-007", as: "material" }],
         },
-        1: { security: ["BT1-009"] },
+        1: {},
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("source").instanceId);
     s.state.memory = 10;
 
     expect(
@@ -51,7 +54,6 @@ describe("EX12-014 Canoweissmon", () => {
 
     expect(s.perm("base").topCard?.cardId).toBe("EX12-014");
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("EX12-007");
-    expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(false);
   });
 

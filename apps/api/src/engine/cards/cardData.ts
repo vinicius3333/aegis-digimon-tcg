@@ -62,7 +62,7 @@ export function intrinsicDigivolutionCostReduction(evolving: CardDefinition | un
  * already part of the match (a CardInstance carries a valid cardId by
  * construction), so a missing definition surfaces as a loud bug, not undefined.
  */
-export function definitionOf(cardIdOrInstance: string | CardInstance): CardDefinition {
+export function definitionOf(cardIdOrInstance: string | Pick<CardInstance, "cardId">): CardDefinition {
   const cardId = typeof cardIdOrInstance === "string" ? cardIdOrInstance : cardIdOrInstance.cardId;
   if (typeof cardId !== "string") {
     throw new Error(

@@ -72,7 +72,7 @@ describe("BT25-068 Deltamon", () => {
     await settle(() => target().stack.length === before - 1);
     expect(target().stack).toHaveLength(before - 1);
 
-    s.perm("delta").suspended = false;
+    s.perm("delta").isSuspended = false;
     await fx.suspend([s.perm("delta").permanentId]);
     await settle(() => false, 100);
     expect(target().stack).toHaveLength(before - 1);

@@ -23,7 +23,11 @@ async function subTriggerAction(
   subCtx.fx.draw(source.ownerSeat, 1);
   const owner = subCtx.game.player(source.ownerSeat);
   const progressDigimon = Array.from(owner.battleArea)
-    .filter((p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)))
+    .filter((p) => {
+      if (p.topCard === undefined) return false;
+      const definition = subCtx.game.definitionOf(p.topCard);
+      return isDigimon(definition) && definition.effectText?.includes("＜Progress＞");
+    })
     .map((p) => p.permanentId);
   if (progressDigimon.length > 0) {
     const chosen = await subCtx.ask.chooseTargets(subCtx, {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-053.js";
@@ -10,7 +11,7 @@ describe("BT17-053 Keramon", () => {
     expect(effect?.actions).toHaveLength(2);
     for (const action of effect!.actions) {
       expect(action).toMatchObject({ event: expect.stringMatching(/^when/), sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, ignoreRequirements: true, optional: true }] });
-      expect(action.actions[0]).toMatchObject({ condition: { kind: "triggerSubjectMatchesFilter", filter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } } } });
+      expect(irNode(action).actions[0]).toMatchObject({ condition: { kind: "triggerSubjectMatchesFilter", filter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } } } });
     }
   });
 

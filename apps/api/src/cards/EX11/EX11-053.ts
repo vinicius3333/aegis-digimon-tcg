@@ -41,6 +41,12 @@ const module: EffectModule = {
             const kingDrasilPerms = Array.from(owner.battleArea).filter(
               (p) => p.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(p.topCard)),
             );
+            if (
+              owner.breeding?.topCard !== undefined &&
+              isKingDrasil(ctx.game.definitionOf(owner.breeding.topCard))
+            ) {
+              kingDrasilPerms.push(owner.breeding);
+            }
             if (kingDrasilPerms.length === 0) return;
             const chosenCard = await ctx.ask.selectCards(ctx, {
               candidates: royalKnightCards.map((c) => c.instanceId),

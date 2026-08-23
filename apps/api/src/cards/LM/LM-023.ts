@@ -27,11 +27,12 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "source": {
             "filter": {
-              "controllerDefault": "mine"
+              "controllerDefault": "mine",
+              "kind": ["Tamer"],
+              "colors": ["Yellow"]
             },
             "orFilters": [
-              { "kind": ["Tamer"], "colors": ["Yellow"] },
-              { "kind": ["Option"], "singleColor": true, "playCostLte": 5 }
+              { "controllerDefault": "mine", "kind": ["Option"], "singleColor": true, "playCostLte": 5 }
             ],
             "count": 1
           },
@@ -52,11 +53,12 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "source": {
             "filter": {
-              "controllerDefault": "mine"
+              "controllerDefault": "mine",
+              "kind": ["Tamer"],
+              "colors": ["Yellow"]
             },
             "orFilters": [
-              { "kind": ["Tamer"], "colors": ["Yellow"] },
-              { "kind": ["Option"], "singleColor": true, "playCostLte": 5 }
+              { "controllerDefault": "mine", "kind": ["Option"], "singleColor": true, "playCostLte": 5 }
             ],
             "count": 1
           },
