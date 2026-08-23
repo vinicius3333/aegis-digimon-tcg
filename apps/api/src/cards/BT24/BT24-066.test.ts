@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-066.js";
 import "../index.js";
@@ -34,8 +32,10 @@ describe("BT24-066 Guilmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-066", as: "source" }],
-          hand: [{ card: "BT1-009", as: "handCost" }],
+          hand: [
+            { card: "BT24-066", as: "source" },
+            { card: "BT1-009", as: "handCost" },
+          ],
           deck: [
             { card: "BT10-093", as: "purpleTamer" },
             { card: "BT24-066", as: "evil" },
@@ -46,10 +46,16 @@ describe("BT24-066 Guilmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("handCost").instanceId, s.inst("purpleTamer").instanceId, s.inst("evil").instanceId);
+    s.state.memory = 3;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 1);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId));
 
+    expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("purpleTamer").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("evil").instanceId, s.inst("handCost").instanceId]),
@@ -57,10 +63,13 @@ describe("BT24-066 Guilmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("miss").instanceId]);
   });
 
-  it("digivolves from exact Gigimon for cost 0", async () => {
+  it.each([
+    ["normal purple level-2 requirement", "BT10-006", false],
+    ["alternate exact Gigimon requirement", "BT24-001", true],
+  ])("uses the %s for cost 0", async (_label, baseCard, useAlternateCost) => {
     const s = setupEngine({
       0: {
-        breeding: { card: "BT24-001", as: "gigimon" },
+        breeding: { card: baseCard, as: "base" },
         hand: [{ card: "BT24-066", as: "guilmon" }],
       },
     });
@@ -70,25 +79,27 @@ describe("BT24-066 Guilmon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("gigimon").permanentId,
+        permanentId: s.perm("base").permanentId,
         instanceId: s.inst("guilmon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("gigimon").topCard.instanceId === s.inst("guilmon").instanceId);
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("guilmon").instanceId);
 
     expect(s.state.memory).toBe(3);
   });
 
-  it("inherited deletion affects only a level-3 opponent once per turn", async () => {
+  it("public attack uses inherited deletion only on a level-3 opponent", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-067", as: "host", under: ["BT24-066"] }] },
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-066"] }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "level3" },
             { card: "BT24-046", as: "level4" },
           ],
+          security: ["BT1-001", "BT1-002"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -98,9 +109,15 @@ describe("BT24-066 Guilmon", () => {
     const level4Id = s.perm("level4").permanentId;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level3Id));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => !s.engine.combat.isAttacking);
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level4Id)).toBe(true);
   });
