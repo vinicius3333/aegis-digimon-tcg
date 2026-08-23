@@ -22,15 +22,19 @@ describe("BT24-064 Ouryumon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT24-064", as: "ouryumon" }] } });
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("ouryumon"), "Piercing")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ouryumon"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("ouryumon"))).toBe(true);
   });
 
-  it("digivolves from DigiPolice for cost 3 and plays a revealed cost-7 DigiPolice card", async () => {
+  it.each([
+    ["normal black level-5 requirement", "BT10-064", false, 4],
+    ["normal green level-5 requirement", "BT1-075", false, 4],
+    ["alternate DigiPolice/SEEKERS requirement", "BT24-060", true, 3],
+  ])("uses the %s and plays a revealed cost-7 DigiPolice card", async (_label, baseCard, useAlternateCost, expectedCost) => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-060", as: "base" }],
+          battleArea: [{ card: baseCard, as: "base" }],
           hand: [{ card: "BT24-064", as: "ouryumon" }],
           deck: [
             { card: "BT24-060", as: "played" },
@@ -49,6 +53,7 @@ describe("BT24-064 Ouryumon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("ouryumon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("ouryumon").instanceId);
@@ -56,7 +61,7 @@ describe("BT24-064 Ouryumon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId),
     );
 
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(5 - expectedCost);
   });
 
   it("De-Digivolves 2 after either player's Tamer suspends, only once per turn", async () => {
@@ -78,7 +83,7 @@ describe("BT24-064 Ouryumon", () => {
     await s.ready();
 
     await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
-    expect(s.perm("first").topCard.cardId).toBe("BT24-046");
+    expect(s.perm("first").topCard.cardId).toBe("BT24-050");
 
     await advance(s.engine).verb.suspend([s.perm("ouryumon").permanentId]);
     expect(s.perm("second").topCard.cardId).toBe("BT24-051");
