@@ -50,22 +50,22 @@ export const compiled: CompiledCard = {
           },
           duration: "forTheTurn",
           condition: {
-            kind: "isDnaDigivolving", raw: "DNA digivolving",
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
         },
         {
           kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
           amount: 5000,
           duration: "forTheTurn",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 1,
+            sameTarget: true,
+          },
           condition: {
-            kind: "isDnaDigivolving", raw: "DNA digivolving",
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
         },
       ],
@@ -113,22 +113,22 @@ export const compiled: CompiledCard = {
           },
           duration: "forTheTurn",
           condition: {
-            kind: "isDnaDigivolving", raw: "DNA digivolving",
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
         },
         {
           kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
           amount: 5000,
           duration: "forTheTurn",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 1,
+            sameTarget: true,
+          },
           condition: {
-            kind: "isDnaDigivolving", raw: "DNA digivolving",
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
           },
         },
       ],
@@ -142,6 +142,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          leaveCause: "otherThanYourEffect",
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -165,6 +166,7 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromHost: "self",
               payCost: false,
               optional: true,
             },
@@ -182,6 +184,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          leaveCause: "otherThanYourEffect",
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -205,6 +208,7 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromHost: "self",
               payCost: false,
               optional: true,
             },
@@ -217,6 +221,15 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT24-037", compiled);

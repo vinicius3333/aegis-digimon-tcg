@@ -37,12 +37,7 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Aegiomon"],
-                      match: "name",
-                    },
-                  ],
+                  nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
                 },
                 count: 1,
               },

@@ -102,6 +102,20 @@ export enum EffectTiming {
   OnLinking,
 }
 
+// Readable card-text aliases used by public behavioral tests and card-facing callers.
+// Namespace constants preserve the enum's existing numeric values and reverse mappings.
+export namespace EffectTiming {
+  export const StartOfYourMainPhase = EffectTiming.OnStartMainPhase;
+  export const StartOfYourTurn = EffectTiming.OnStartTurn;
+  export const EndOfYourTurn = EffectTiming.OnEndTurn;
+  export const EndOfOpponentsTurn = EffectTiming.OnEndTurn;
+  export const EndOfAllTurns = EffectTiming.OnEndTurn;
+  export const EndOfAttack = EffectTiming.OnEndAttack;
+  export const OnDeletion = EffectTiming.OnDestroyedAnyone;
+  export const Security = EffectTiming.SecuritySkill;
+  export const WhenMoving = EffectTiming.OnMove;
+}
+
 // Duration of a temporary modifier; mirrors documented behavior EffectDuration.
 export enum EffectDuration {
   UntilEachTurnEnd,

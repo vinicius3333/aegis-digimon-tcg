@@ -44,6 +44,8 @@ export interface RevealAddAction extends ActionBase {
     to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
     /** For `to:"useOption"`: whether the Option's memory cost is paid. */
     payCost?: boolean;
+    /** For `to:"play"`: the selected card enters the battle area suspended. */
+    suspended?: boolean;
     /** For `to:"digivolve"`: which battle-area Digimon may receive the revealed card. */
     digivolveTarget?: Target;
     /** Place the selected card at the TOP of security (BT6-100). */

@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              superlative: "fewestDigivolutionCards",
+              superlative: "lowestDigivolutionCards",
             },
             count: "all",
           },
@@ -60,7 +60,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              superlative: "fewestDigivolutionCards",
+              superlative: "lowestDigivolutionCards",
             },
             count: "all",
           },
@@ -100,20 +100,25 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["TS"],
-                match: "trait",
-              },
-              {
-                tokens: ["Aqua", "Sea Animal"],
-                match: "trait",
-              },
-            ],
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+                {
+                  tokens: ["Aqua", "Sea Animal"],
+                  match: "traitContains",
+                },
+              ],
+            },
+            count: 10000,
+            upTo: true,
           },
+          affectsAll: true,
           triggerCondition: "byOpponentEffect",
           actions: [
             {
@@ -143,7 +148,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 5,
-      traits: ["Aqua"],
+      traitSubstrings: ["Aqua"],
       cost: 3,
       isAlternate: true,
     },

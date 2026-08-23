@@ -78,7 +78,7 @@ export interface CardPredicates {
    */
   nameOrTrait?: {
     tokens: string[];
-    match: "name" | "nameExact" | "trait" | "text" | "any";
+    match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
     orPrevious?: boolean;
     /** "non-[X]" (BT10-069): qualifies a candidate that does NOT match. */
     negate?: boolean;
@@ -119,7 +119,12 @@ export interface CardPredicates {
    * Exclusion spanning name/trait/text (EX10-035), each ref carrying its own `match` mode.
    * `excludeNames` is name-substring only.
    */
-  excludeNameOrTrait?: { tokens: string[]; match: "name" | "nameExact" | "trait" | "text" | "any" }[];
+  excludeNameOrTrait?: {
+    tokens: string[];
+    match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
+  }[];
+  /** Candidate's effective name must differ from every Tamer the controller has in play. */
+  excludeSameNameAsOwnTamers?: boolean;
   /** "a non-Token Digimon" / ＜Save＞'s "not a Token" guard. */
   excludeToken?: boolean;
   /** "your Tokens or Digimon with [Puppet]". */

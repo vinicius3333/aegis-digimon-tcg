@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Draw",
@@ -54,6 +55,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Restrict",
@@ -95,6 +98,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Restrict",
@@ -119,13 +124,13 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
+          sourceFilter: { controller: "mine" },
           actions: [
             {
               kind: "Digivolve",
               target: {
                 filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
+                  isSelfRef: true,
                   nameOrTrait: [
                     {
                       tokens: ["Demon", "Titan"],
@@ -134,22 +139,15 @@ export const compiled: CompiledCard = {
                   ],
                 },
                 count: 1,
+                isSelf: true,
               },
               into: {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Titamon"],
-                    match: "name",
-                  },
-                  {
-                    tokens: ["Titan"],
-                    match: "trait",
-                  },
-                ],
+                or: [{ namesExact: ["Titamon"] }, { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] }],
               },
               from: ["trash"],
+              payCost: true,
               reduceCost: 1,
               optional: true,
             },

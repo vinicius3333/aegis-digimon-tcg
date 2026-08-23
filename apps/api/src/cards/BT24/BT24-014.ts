@@ -113,6 +113,42 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          leaveCause: "otherThanBattle",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Aegiomon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              playedByDecode: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+    },
   ],
   coverage: "full",
   residual: [],

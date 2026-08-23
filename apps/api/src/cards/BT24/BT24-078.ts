@@ -18,9 +18,17 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Creepymon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
+          },
+          fireCondition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "your opponent has 10 or more cards in their trash",
           },
           actions: [
             {
@@ -82,7 +90,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Creepymon"],
+      namesExact: ["Creepymon"],
       cost: 2,
       isAlternate: true,
     },

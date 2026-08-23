@@ -57,9 +57,24 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "OnDeletion",
+      isLinked: true,
+      actions: [
+        {
+          kind: "DeDigivolve",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+          },
+          amount: 1,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 registerIrCard("BT24-057", compiled);

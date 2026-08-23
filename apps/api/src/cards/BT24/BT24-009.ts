@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with the [Demon], [Shaman] or [Titan] trait from your hand",
           },
+          optional: true,
           abortOnDecline: true,
         },
       ],
@@ -66,6 +67,8 @@ export const compiled: CompiledCard = {
                 ],
               },
               from: ["trash"],
+              payCost: true,
+              useAlternateCost: true,
               reduceCost: 1,
               optional: true,
               condition: {

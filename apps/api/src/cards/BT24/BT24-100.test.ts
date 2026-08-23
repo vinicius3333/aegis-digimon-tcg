@@ -12,12 +12,8 @@ describe("BT24-100 In-Between Theater", () => {
     expect(BT24_100.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0]).toMatchObject({
       kind: "WaiveColorRequirement",
       condition: {
-        kind: "youHave",
-        filter: {
-          controllerDefault: "mine",
-          kind: ["Digimon", "Tamer"],
-          nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
-        },
+        kind: "anyOf",
+        conditions: [{ kind: "youHave" }, { kind: "youHave", filter: { zone: "breeding" } }],
       },
     });
     const main = BT24_100.effects?.find(

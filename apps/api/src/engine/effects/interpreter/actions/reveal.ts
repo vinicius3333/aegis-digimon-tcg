@@ -101,7 +101,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   const taken = new Set<string>();
   const toHand: string[] = [];
   const toTrash: string[] = [];
-  const toPlay: { instanceId: string; costDelta?: number }[] = [];
+  const toPlay: { instanceId: string; costDelta?: number; suspended?: boolean }[] = [];
   const toUseOption: { instanceId: string; costDelta?: number; payCost?: boolean }[] = [];
   const toDigivolve: { instanceId: string; target?: Target; payCost?: boolean }[] = [];
   const toSecurity: { instanceId: string; toTop: boolean; faceDown: boolean }[] = [];
@@ -247,7 +247,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         }
         for (const c of selected) {
           taken.add(c.instanceId);
-          toPlay.push({ instanceId: c.instanceId });
+          toPlay.push({ instanceId: c.instanceId, suspended: spec.suspended });
         }
       }
       continue;
@@ -292,8 +292,10 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const picked = await ctx.ask.chooseOption(ctx, labels);
         disposition = choices[picked] ?? disposition;
       }
-      if (disposition.to === "play") toPlay.push({ instanceId: c.instanceId, costDelta: spec.costDelta });
-      else if (disposition.to === "useOption") toUseOption.push({ instanceId: c.instanceId, costDelta: spec.costDelta, payCost: spec.payCost });
+      if (disposition.to === "play") {
+        toPlay.push({ instanceId: c.instanceId, costDelta: spec.costDelta, suspended: spec.suspended });
+      } else if (disposition.to === "useOption")
+        toUseOption.push({ instanceId: c.instanceId, costDelta: spec.costDelta, payCost: spec.payCost });
       else if (disposition.to === "trash") toTrash.push(c.instanceId);
       else if (disposition.to === "digivolve")
         toDigivolve.push({ instanceId: c.instanceId, target: spec.digivolveTarget });
@@ -341,31 +343,49 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // Group by costDelta so a "play with the cost reduced by N" spec (BT25-074) plays
     // separately from a plain "without paying the cost" spec (payCost: false) in the
     // same RevealAdd action.
-    const freeIds = toPlay.filter((p) => p.costDelta === undefined).map((p) => p.instanceId);
-    const reducedGroups = new Map<number, string[]>();
+    const freeReadyIds = toPlay
+      .filter((p) => p.costDelta === undefined && p.suspended !== true)
+      .map((p) => p.instanceId);
+    const freeSuspendedIds = toPlay
+      .filter((p) => p.costDelta === undefined && p.suspended === true)
+      .map((p) => p.instanceId);
+    const reducedGroups = new Map<string, { costDelta: number; suspended: boolean; ids: string[] }>();
     for (const p of toPlay) {
       if (p.costDelta === undefined) continue;
-      const group = reducedGroups.get(p.costDelta) ?? [];
-      group.push(p.instanceId);
-      reducedGroups.set(p.costDelta, group);
+      const key = `${p.costDelta}:${p.suspended === true ? "suspended" : "ready"}`;
+      const group = reducedGroups.get(key) ?? {
+        costDelta: p.costDelta,
+        suspended: p.suspended === true,
+        ids: [],
+      };
+      group.ids.push(p.instanceId);
+      reducedGroups.set(key, group);
     }
     // Effect-played cards must open their own [On Play] window and `whenPlayed` bus.
     // `playFromHand` is the legacy placement-only primitive; `playInstances` owns the
     // complete effect-play lifecycle (ST13-02 revealing ST13-09, and the wider reveal-play
     // family). The revealed cards were staged into hand above solely to leave the reveal pool.
-    if (freeIds.length > 0) await ctx.fx.playInstances(freeIds, { payCost: false });
-    for (const [costDelta, ids] of reducedGroups) {
+    if (freeReadyIds.length > 0) await ctx.fx.playInstances(freeReadyIds, { payCost: false });
+    if (freeSuspendedIds.length > 0) {
+      await ctx.fx.playInstances(freeSuspendedIds, { payCost: false, suspended: true });
+    }
+    for (const { costDelta, suspended, ids } of reducedGroups.values()) {
       // "With the play cost reduced by N" is not a free play. The old call omitted
       // `payCost:true`, silently waiving the remaining cost in every RevealAdd reduced-play.
-      await ctx.fx.playInstances(ids, { payCost: true, costDelta });
+      await ctx.fx.playInstances(ids, { payCost: true, costDelta, ...(suspended ? { suspended: true } : {}) });
     }
   }
   if (toUseOption.length > 0) {
     const optionIds = toUseOption.map((entry) => entry.instanceId);
     await ctx.fx.returnToHand(optionIds, { silent: true });
     for (const entry of toUseOption) {
-      const card = ctx.game.definitionOf({ cardId: revealed.find((item) => item.instanceId === entry.instanceId)!.cardId } as never);
-      await ctx.fx.useOptionFromHand(ctx, entry.instanceId, card.playCost, { payCost: entry.payCost !== false, costDelta: entry.costDelta });
+      const card = ctx.game.definitionOf({
+        cardId: revealed.find((item) => item.instanceId === entry.instanceId)!.cardId,
+      } as never);
+      await ctx.fx.useOptionFromHand(ctx, entry.instanceId, card.playCost, {
+        payCost: entry.payCost !== false,
+        costDelta: entry.costDelta,
+      });
     }
     ctx.lastEffectActed = toUseOption.length > 0;
   }
@@ -442,7 +462,10 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           })) ?? rest;
       }
       const toTop = choice === 0;
-      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest, { toTop });
+      await ctx.fx.returnToDeck(
+        toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest,
+        { toTop },
+      );
     } else {
       if (rest.length > 1) {
         rest =
@@ -455,7 +478,10 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           })) ?? rest;
       }
       const toTop = action.rest === "deckTop";
-      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest, { toTop });
+      await ctx.fx.returnToDeck(
+        toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest,
+        { toTop },
+      );
     }
   };
 
@@ -483,7 +509,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       draw: false,
       beforeWhenDigivolving: async () => {
         const player = ctx.game.player(ctx.source.ownerSeat);
-        const remainingIds = new Set(revealed.filter((card) => !taken.has(card.instanceId)).map((card) => card.instanceId));
+        const remainingIds = new Set(
+          revealed.filter((card) => !taken.has(card.instanceId)).map((card) => card.instanceId),
+        );
         const unrevealed = player.deck.find((card) => !remainingIds.has(card.instanceId));
         if (!restDisposed) {
           await disposeRest();

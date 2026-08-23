@@ -8,6 +8,18 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -7000,
+          duration: "forTheTurn",
+        },
+      ],
+    },
+    {
       trigger: "Static",
       actions: [],
       keywords: [
@@ -26,6 +38,8 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
               levelComparison: {
                 op: "lte",
                 value: 4,
@@ -55,6 +69,8 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
               levelComparison: {
                 op: "lte",
                 value: 4,
@@ -108,6 +124,7 @@ export const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT24-038", compiled);

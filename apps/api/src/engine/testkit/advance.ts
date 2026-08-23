@@ -1,4 +1,4 @@
-import type { CardInstance, EffectDuration, EffectTiming, Permanent, Seat } from "@aegis/shared";
+import { EffectTiming, type CardInstance, type EffectDuration, type Permanent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../GameEngine.js";
 import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
 import { internalsOf } from "./internals.js";
@@ -78,6 +78,10 @@ export function advance(engine: GameEngine) {
 
     /** Fire a timing window on a loose card instance (security, hand, trash). */
     async fireForInstance(timing: EffectTiming, instance: CardInstance): Promise<void> {
+      // A security skill resolves while its source is revealed face up. Board specs store
+      // security face down by default, so the direct timing seam must model that production
+      // reveal before the engine collects the requested instance.
+      if (timing === EffectTiming.SecuritySkill) instance.faceUp = true;
       await internals.recomputeContinuousEffects();
       await internals.fireTimingForInstance(timing, instance.instanceId);
       await internals.recomputeContinuousEffects();

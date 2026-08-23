@@ -774,10 +774,24 @@ export async function payCost(
           const selections = [...byHost].flatMap(([hostPermanentId, instanceIds]) =>
             instanceIds.map((instanceId) => ({ hostPermanentId, instanceId })),
           );
-          const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, n, {
-            byEffectSeat: ctx.source.ownerSeat,
-          });
-          if (moved.length !== n) return false;
+          if (ctx.fx.trashDigivolutionCardsAtomic !== undefined) {
+            const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, n, {
+              byEffectSeat: ctx.source.ownerSeat,
+            });
+            if (moved.length !== n) return false;
+          } else {
+            // Lightweight/internal primitive implementations may predate the atomic seam.
+            // Preserve the per-host watcher path for them; production uses the atomic
+            // operation above so leave replacements cannot partially pay the cost.
+            let movedCount = 0;
+            for (const [hostId, ids] of byHost) {
+              const moved = await ctx.fx.trashDigivolutionCards(hostId, ids, {
+                byEffectSeat: ctx.source.ownerSeat,
+              });
+              movedCount += moved.length;
+            }
+            if (movedCount !== n) return false;
+          }
         } else {
           if (chosen.some((instanceId) => ctx.fx.canTrashDigivolutionCard?.(instanceId) === false)) return false;
           for (const [hostId, ids] of byHost) {
@@ -1092,13 +1106,13 @@ export async function payCost(
     }
     case "deleteOwn": {
       if (!cost.target) return false;
-      const ids = await resolvePermanentTargets(ctx, cost.target);
-      if (ids.length === 0) return false;
+      const permanentIds = await resolvePermanentTargets(ctx, cost.target);
+      if (permanentIds.length === 0) return false;
       // Capture the deleted Digimon's level BEFORE removal so a
       // subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` can bound on it
       // (BT8-107: "delete 1 of your Digimon to delete 1 of your opponent's with level <= it").
       let maxLevel: number | undefined;
-      for (const id of ids) {
+      for (const id of permanentIds) {
         const perm = ctx.game.permanentById(id);
         const level = perm?.topCard ? ctx.game.definitionOf(perm.topCard).level : undefined;
         if (level !== undefined && level > 0) maxLevel = Math.max(maxLevel ?? 0, level);
@@ -1106,14 +1120,16 @@ export async function payCost(
       if (maxLevel !== undefined) ctx.lastDeletedLevel = maxLevel;
       if (cost.bindResultAs !== undefined) {
         ctx.boundPlayed ??= new Map();
-        ctx.boundPlayed.set(cost.bindResultAs, new Set(ids));
+        ctx.boundPlayed.set(cost.bindResultAs, new Set(permanentIds));
       }
-      const deleted = await ctx.fx.deletePermanent(ids);
+      const deleted = await ctx.fx.deletePermanent(permanentIds);
       // A cost is paid only when every declared permanent actually leaves play. A
       // leave-play replacement (or another deletion prevention) may reject one of
       // the selected permanents; treating that attempt as paid would let the parent
       // effect proceed while the printed cost card remains on the field.
-      return deleted === ids.length;
+      return (
+        deleted === permanentIds.length && permanentIds.every((id) => ctx.game.permanentById(id) === undefined)
+      );
     }
     case "payMemory": {
       // "By paying N cost" — pay N memory (memory can go negative; the gauge handles

@@ -3,6 +3,12 @@
 // arrived where it is.
 
 export interface ContextPredicates {
+  /**
+   * Leave-prevention costs only: exclude the permanent currently being protected. In an
+   * affects-all simultaneous event this still permits a different leaving permanent, matching
+   * "1 other Digimon" rulings such as BT24-040 Q5781.
+   */
+  excludeLeavingSubject?: true;
   /** Share at least one color with the permanent stored by an earlier SelectBind. */
   sameColorAsSelectionRef?: string;
   /** Printed play-cost ceiling from the currently attacking Digimon. */

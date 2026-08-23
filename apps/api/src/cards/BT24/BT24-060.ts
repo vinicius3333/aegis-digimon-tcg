@@ -50,10 +50,11 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: {
-            controllerDefault: "mine",
+          triggerFilter: {
+            isSelfRef: true,
+          },
+          addedDigivolutionCardFilter: {
             kind: ["Tamer"],
-            addedToHost: "self",
           },
           actions: [
             {
@@ -106,7 +107,7 @@ export const compiled: CompiledCard = {
             },
           ],
           cost: {
-            kind: "playWithoutCost",
+            kind: "playFromDigivolutionCards",
             target: {
               filter: {
                 controller: "mine",
@@ -120,9 +121,13 @@ export const compiled: CompiledCard = {
               },
               count: 1,
             },
-            from: ["digivolutionCards"],
-            fromHost: "self",
-            payCost: false,
+            hostTarget: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
             raw: "by playing 1 [DigiPolice] or [SEEKERS] trait Tamer card from this Digimon's digivolution cards without paying the cost",
           },
         },

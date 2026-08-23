@@ -21,7 +21,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           const hand = ctx.game.player(seat).hand;
           const count = Math.max(0, hand.length - 5);
           if (count === 0) continue;
-          const target: Target = { filter: { zone: "hand", controller: seat === ctx.source.ownerSeat ? "mine" : "opponent" }, count };
+          const target: Target = {
+            filter: { zone: "hand", controller: seat === ctx.source.ownerSeat ? "mine" : "opponent" },
+            count,
+          };
           const candidates = candidateLooseInstances(ctx, target, ["hand"]);
           const chosen = await pickLoose(ctx, target, candidates, undefined, ctx.ask);
           if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
@@ -82,7 +85,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
         ctx.namedCounts.set(action.trackCount, suspendedIds.length);
       }
-      return false;
+      return action.abortOnDecline === true && suspendedIds.length === 0;
     }
     case "Unsuspend": {
       const ids = await resolvePermanentTargets(ctx, action.target);
@@ -106,8 +109,8 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         action.countScaling !== undefined
           ? scaleFactor(ctx, action.countScaling)
           : action.countFilter !== undefined
-          ? countMatching(ctx, action.countFilter)
-          : (ctx.namedCounts?.get(action.countSource) ?? 0);
+            ? countMatching(ctx, action.countFilter)
+            : (ctx.namedCounts?.get(action.countSource) ?? 0);
       for (let i = 0; i < repeatCount; i++) {
         await runAction(ctx, action.action);
       }
@@ -165,12 +168,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           amount,
           duration,
           action.continuous === undefined
-            ? (ctx.continuousPass === true
-                ? { continuous: true, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) }
-                : effectSourceBound
-                  ? { sourceInstanceId: ctx.source.instanceId }
-                  : undefined)
-            : { continuous: action.continuous, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) },
+            ? ctx.continuousPass === true
+              ? { continuous: true, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) }
+              : effectSourceBound
+                ? { sourceInstanceId: ctx.source.instanceId }
+                : undefined
+            : {
+                continuous: action.continuous,
+                ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}),
+              },
         );
         for (const keyword of action.alsoGainKeywords ?? []) {
           ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
@@ -289,8 +295,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         action.target?.count === "all" &&
         action.target.filter.kind?.includes("Digimon")
       ) {
-        const playerScopedController = (action as Action & { playerScopedController?: "mine" | "opponent" }).playerScopedController;
-        const playerSeat = playerScopedController === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+        const playerScopedController = (action as Action & { playerScopedController?: "mine" | "opponent" })
+          .playerScopedController;
+        const playerSeat =
+          playerScopedController === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
         ctx.fx.grantPlayerKeyword(playerSeat, kw, duration, keyword.amount);
         return false;
       }

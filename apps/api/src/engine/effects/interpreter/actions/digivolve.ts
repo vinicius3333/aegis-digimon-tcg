@@ -1,6 +1,10 @@
 // The Digivolve action and its legality preflight.
 
-import { matchingAlternateDigivolutionRequirement, matchingEvoCost } from "../../../cards/cardData.js";
+import {
+  matchingAlternateDigivolutionRequirement,
+  matchingEvoCost,
+  matchingEvoCostIgnoringLevel,
+} from "../../../cards/cardData.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
@@ -47,6 +51,7 @@ function legalIntoCandidates(
   pool: LooseCandidate[],
   enforceRequirements: boolean,
   digivolutionCostMax?: number,
+  ignoreLevel = false,
   virtualBase?: { level: number; colors: CardColor[] },
 ): LooseCandidate[] {
   const base = ctx.game.permanentById(basePermanentId);
@@ -65,8 +70,12 @@ function legalIntoCandidates(
   if (baseDef === undefined || baseDef.level === undefined) return pool;
   return pool.filter((c) => {
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
-    const ordinary = matchingEvoCost(intoDef, baseDef);
-    const alternate = matchingAlternateDigivolutionRequirement(intoDef, baseDef);
+    const ordinary = ignoreLevel ? matchingEvoCostIgnoringLevel(intoDef, baseDef) : matchingEvoCost(intoDef, baseDef);
+    const alternate = matchingAlternateDigivolutionRequirement(
+      intoDef,
+      baseDef,
+      ignoreLevel ? { ignoreLevel: true } : undefined,
+    );
     const baseGranted = base ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef) : undefined;
     if (enforceRequirements && ordinary === undefined && alternate === undefined && baseGranted === undefined)
       return false;
@@ -107,13 +116,10 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
   if (pool.length === 0) return false;
 
   const requestedIgnoreRequirements =
-    action.ignoreReqs === true ||
-    action.ignoreRequirements === true ||
-    action.ignoreDigivolutionRequirements === true ||
-    action.ignoreLevelRequirement === true;
-  const enforceRequirements = !(
-    requestedIgnoreRequirements && ctx.fx.isDigivolutionRequirementIgnoreBlocked?.(ctx.source.ownerSeat) !== true
-  );
+    action.ignoreReqs === true || action.ignoreRequirements === true || action.ignoreDigivolutionRequirements === true;
+  const ignoreBlocked = ctx.fx.isDigivolutionRequirementIgnoreBlocked?.(ctx.source.ownerSeat) === true;
+  const enforceRequirements = !(requestedIgnoreRequirements && !ignoreBlocked);
+  const ignoreLevel = action.ignoreLevelRequirement === true && !ignoreBlocked;
   const hasLegalDestination = (permanentId: string): boolean => {
     let candidates = pool;
     if (action.colorsMatchDigivolvingSource === true) {
@@ -131,6 +137,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
         candidates,
         enforceRequirements,
         intoTarget.filter.digivolutionCostMax,
+        ignoreLevel,
         action.virtualBase,
       )
         .length > 0
@@ -212,12 +219,16 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       action.ignoreDigivolutionRequirements === true;
     const ignoreRequirements =
       requestedIgnoreRequirements && ctx.fx.isDigivolutionRequirementIgnoreBlocked?.(ctx.source.ownerSeat) !== true;
+    const ignoreLevel =
+      action.ignoreLevelRequirement === true &&
+      ctx.fx.isDigivolutionRequirementIgnoreBlocked?.(ctx.source.ownerSeat) !== true;
     const candidates = legalIntoCandidates(
       ctx,
       pid,
       candidateLooseInstances(ctx, intoTarget, zones),
       !ignoreRequirements,
       intoTarget.filter.digivolutionCostMax,
+      ignoreLevel,
       action.virtualBase,
     );
     if (candidates.length === 0) return;
@@ -236,6 +247,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       payCost: pays || numericPayCost !== undefined,
       costOverride,
       useAlternateCost: action.useAlternateCost,
+      ignoreLevel,
       ignoreRequirements,
       virtualBase: action.virtualBase,
     });
@@ -276,12 +288,12 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   const pays = action.payCost === true || numericPayCost !== undefined;
   const costOverride = action.costOverride ?? numericPayCost;
   const requestedIgnoreRequirements =
-    action.ignoreReqs === true ||
-    action.ignoreRequirements === true ||
-    action.ignoreDigivolutionRequirements === true ||
-    action.ignoreLevelRequirement === true;
+    action.ignoreReqs === true || action.ignoreRequirements === true || action.ignoreDigivolutionRequirements === true;
   const ignoreRequirements =
     requestedIgnoreRequirements && ctx.fx.isDigivolutionRequirementIgnoreBlocked?.(ctx.source.ownerSeat) !== true;
+  const ignoreLevel =
+    action.ignoreLevelRequirement === true &&
+    ctx.fx.isDigivolutionRequirementIgnoreBlocked?.(ctx.source.ownerSeat) !== true;
   const enforceRequirements = !ignoreRequirements;
   /** The `into` pool as it stands right now, before any base-specific legality. */
   const intoPool = (): LooseCandidate[] => {
@@ -290,7 +302,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     if (action.source === "triggerSource") {
       candidates = candidates.filter((candidate) => candidate.instanceId === ctx.source.instanceId);
     }
-  if (action.amongPreviousSearch) {
+    if (action.amongPreviousSearch) {
       const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
       candidates = candidates.filter((candidate) => searched.has(candidate.instanceId));
     }
@@ -303,12 +315,18 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     let candidates = pool;
     if (action.nameIncludesDigivolvingTarget === true || action.differentNameFromDigivolvingTarget === true) {
       const base = ctx.game.permanentById(basePermanentId);
-      const baseName = base?.topCard === undefined ? undefined : ctx.game.definitionOf(base.topCard).nameEn.toLowerCase();
-      candidates = baseName === undefined ? [] : candidates.filter((candidate) => {
-        const candidateName = ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn.toLowerCase();
-        return (action.nameIncludesDigivolvingTarget !== true || candidateName.includes(baseName)) &&
-          (action.differentNameFromDigivolvingTarget !== true || candidateName !== baseName);
-      });
+      const baseName =
+        base?.topCard === undefined ? undefined : ctx.game.definitionOf(base.topCard).nameEn.toLowerCase();
+      candidates =
+        baseName === undefined
+          ? []
+          : candidates.filter((candidate) => {
+              const candidateName = ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn.toLowerCase();
+              return (
+                (action.nameIncludesDigivolvingTarget !== true || candidateName.includes(baseName)) &&
+                (action.differentNameFromDigivolvingTarget !== true || candidateName !== baseName)
+              );
+            });
     }
     if (action.colorsMatchDigivolvingSource === true) {
       const base = ctx.game.permanentById(basePermanentId);
@@ -324,6 +342,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       candidates,
       enforceRequirements,
       intoTarget?.filter.digivolutionCostMax,
+      ignoreLevel,
       action.virtualBase,
     );
   };
@@ -359,20 +378,25 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       visibleDigivolveSourceIds(ctx, action, zones),
     );
     if (chosen.length === 0) continue;
-    // "Ignoring its level" preserves the printed digivolution COST for a matching-color
-    // requirement; it only waives the requirement's source level. A full
-    // ignoreRequirements call cannot derive that cost from the level-4 base, so recover it
-    // from the chosen card's printed same-color evo-cost row (BT7-110).
-    let resolvedCostOverride = costOverride;
-    if (action.ignoreLevelRequirement === true && resolvedCostOverride === undefined) {
+    let useAlternateCost = action.useAlternateCost;
+    if (ignoreLevel && useAlternateCost === undefined) {
       const base = ctx.game.permanentById(pid);
       const chosenCandidate = candidates.find((candidate) => candidate.instanceId === chosen[0]);
       const intoDef = chosenCandidate ? ctx.game.definitionOf({ cardId: chosenCandidate.cardId } as never) : undefined;
-      const baseColors = base?.topCard ? ctx.game.definitionOf(base.topCard).colors : [];
-      const matchingCosts = (intoDef?.evoCosts ?? [])
-        .filter((cost) => baseColors.includes(cost.color))
-        .map((cost) => cost.memoryCost);
-      if (matchingCosts.length > 0) resolvedCostOverride = Math.min(...matchingCosts);
+      const baseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
+      if (intoDef !== undefined && baseDef !== undefined) {
+        const printed = matchingEvoCostIgnoringLevel(intoDef, baseDef);
+        const alternate = matchingAlternateDigivolutionRequirement(intoDef, baseDef, { ignoreLevel: true });
+        if (printed !== undefined && alternate !== undefined) {
+          const choice = await ctx.ask.chooseOption(ctx, [
+            `Printed digivolution requirement (cost ${printed.memoryCost})`,
+            `Alternate digivolution requirement (cost ${alternate.cost})`,
+          ]);
+          useAlternateCost = choice === 1;
+        } else if (alternate !== undefined) {
+          useAlternateCost = true;
+        }
+      }
     }
     // Older compiled IR carries the folded reduction as positive `reduceCost` (the
     // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
@@ -387,8 +411,9 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     const result = await ctx.fx.digivolveFromInstance(pid, chosen[0]!, {
       payCost: pays,
       costDelta,
-      costOverride: resolvedCostOverride,
-      useAlternateCost: action.useAlternateCost,
+      costOverride,
+      useAlternateCost,
+      ignoreLevel,
       ignoreRequirements,
       virtualBase: action.virtualBase,
     });

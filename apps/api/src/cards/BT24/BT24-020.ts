@@ -65,7 +65,9 @@ export const compiled: CompiledCard = {
               controller: "mine",
               amount: 1,
               condition: {
-                kind: "handCount",
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "hand",
                 op: "lte",
                 value: 7,
               },

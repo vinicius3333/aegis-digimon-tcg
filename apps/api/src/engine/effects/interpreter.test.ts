@@ -589,7 +589,12 @@ function makeContext(opts: {
     },
     trashDigivolutionCardsAtomic: async (...a) => {
       rec.calls.push({ verb: "trashDigivolutionCardsAtomic", args: a });
-      return [];
+      return (a[0] as { instanceId: string }[]).map(({ instanceId }) => ({
+        instanceId,
+        cardId: "STK",
+        ownerSeat: 0 as Seat,
+        faceUp: true,
+      })) as never;
     },
     redirectDigivolutionTrashHosts: async (hostPermanentIds) => {
       rec.calls.push({ verb: "redirectDigivolutionTrashHosts", args: [hostPermanentIds] });
@@ -5476,11 +5481,11 @@ describe('payCost: count:"all" trash/return costs', () => {
     const paid = await payCost(ctx, cost);
 
     expect(paid).toBe(true);
-    // Routed through trashDigivolutionCards (per host) rather than a flat trash,
-    // so per-host stack-trash watchers fire (see interpreter.ts payCost).
-    const trashCalls = recorder.calls.filter((c) => c.verb === "trashDigivolutionCards");
-    expect(trashCalls).toHaveLength(2);
-    const allIds = trashCalls.flatMap((c) => c.args[1] as string[]);
+    // Routed through the atomic stack-trash primitive so replacement effects cannot
+    // turn this all-or-nothing cost into a partial payment.
+    const trashCalls = recorder.calls.filter((c) => c.verb === "trashDigivolutionCardsAtomic");
+    expect(trashCalls).toHaveLength(1);
+    const allIds = (trashCalls[0]!.args[0] as { instanceId: string }[]).map(({ instanceId }) => instanceId);
     // All 3 digivolution cards across both permanents were trashed, not "unpayable".
     expect(allIds.sort()).toEqual(["a1", "a2", "b1"]);
   });

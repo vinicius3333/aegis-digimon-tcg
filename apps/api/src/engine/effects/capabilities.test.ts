@@ -1384,10 +1384,11 @@ describe("place-as-cost position:choice (EX12-077)", () => {
   it("places the card and honors the controller's top/bottom choice", async () => {
     // Host Digimon receives the placed card. chooseOption mock returns 0 (top).
     const hostPerm = perm("HOST", 0 as Seat, "RED");
+    const opponentPerm = perm("OPPONENT", 1 as Seat, "RED");
     const handCard = { instanceId: "hand#0", cardId: "RED", ownerSeat: 0 as Seat, faceUp: true } as never;
     const players = [
       { seat: 0, battleArea: [hostPerm], security: [], hand: [handCard], deck: [], trash: [] },
-      { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+      { seat: 1, battleArea: [opponentPerm], security: [], hand: [], deck: [], trash: [] },
     ];
 
     const placements: { hostId: string; ids: string[]; belowTop: boolean | undefined }[] = [];
@@ -1396,7 +1397,7 @@ describe("place-as-cost position:choice (EX12-077)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0),
-      permanentById: (id: string) => (id === "HOST" ? hostPerm : undefined),
+      permanentById: (id: string) => (id === "HOST" ? hostPerm : id === "OPPONENT" ? opponentPerm : undefined),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
@@ -1406,6 +1407,7 @@ describe("place-as-cost position:choice (EX12-077)", () => {
         placements.push({ hostId, ids, belowTop: opts?.belowTop });
         return [];
       },
+      deletePermanent: async () => 1,
     } as unknown as Primitives;
 
     // chooseOption: first call selects the host (returns 0), subsequent calls choose top (0)

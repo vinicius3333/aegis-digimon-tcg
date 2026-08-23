@@ -17,6 +17,17 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [],
+      keywords: [
+        {
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
@@ -28,6 +39,7 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
 registerIrCard("BT24-053", compiled);

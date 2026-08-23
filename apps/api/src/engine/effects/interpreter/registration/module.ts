@@ -153,10 +153,20 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             // the source must still be a battle-area permanent that entered on an earlier turn.
             canActivate: (ctx) => {
               const self = ctx.source.permanent();
+              const armedDelayAction = (effect.actions ?? []).find(
+                (action) => "requiresDelayArmed" in action && action.requiresDelayArmed === true,
+              );
+              const hasArmedDelay =
+                armedDelayAction !== undefined &&
+                self !== undefined &&
+                (ctx.fx.grantedKeywords?.(self.permanentId) ?? []).some((grant) => grant.keyword === "Delay");
               return (
                 self !== undefined &&
                 self.enterFieldTurnCount !== ctx.game.state.turnCount &&
-                canActivateEffect(ctx, effect)
+                // The Delay trash is itself valid processing. A condition on the bullet is
+                // checked only after paying it (BT24-098 Q5710), so an armed Delay remains
+                // activatable even when its conditional payload currently does nothing.
+                (hasArmedDelay || canActivateEffect(ctx, effect))
               );
             },
             resolve: async (ctx) => {
@@ -165,9 +175,9 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               // the payload if it was actually trashed.
               const self = ctx.source.permanent();
               if (self === undefined) return;
-              const hasArmedDelayAction = (effect.actions ?? []).some((action) => {
-                return action.kind === "PlayWithoutCost" && action.requiresDelayArmed === true;
-              });
+              const hasArmedDelayAction = (effect.actions ?? []).some(
+                (action) => "requiresDelayArmed" in action && action.requiresDelayArmed === true,
+              );
               let delayArmedConsumed = false;
               if (hasArmedDelayAction) {
                 const hasDelay = (ctx.fx.grantedKeywords?.(self.permanentId) ?? []).some((g) => g.keyword === "Delay");

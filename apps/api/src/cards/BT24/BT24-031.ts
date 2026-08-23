@@ -70,7 +70,6 @@ export const compiled: CompiledCard = {
             value: 0,
             raw: "you have 0 security cards",
           },
-          optional: true,
         },
       ],
       isInherited: true,

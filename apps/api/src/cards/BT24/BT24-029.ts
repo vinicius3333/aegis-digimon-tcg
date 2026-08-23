@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          abortOnDecline: true,
           cost: {
             kind: "place",
             target: {
@@ -35,7 +36,7 @@ export const compiled: CompiledCard = {
                   },
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -64,6 +65,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          abortOnDecline: true,
           cost: {
             kind: "place",
             target: {
@@ -78,7 +80,7 @@ export const compiled: CompiledCard = {
                   },
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -112,6 +114,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           from: ["digivolutionCards"],
+          fromHost: "self",
           payCost: false,
           optional: true,
         },
@@ -142,6 +145,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           from: ["digivolutionCards"],
+          fromHost: "self",
           payCost: false,
           optional: true,
         },

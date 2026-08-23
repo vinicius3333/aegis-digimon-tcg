@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
+          abortOnDecline: true,
           additionalEffect: {
             kind: "GrantStatic",
             modifier: "cannotBeDeletedInBattle",
@@ -80,6 +81,7 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
+          abortOnDecline: true,
           additionalEffect: {
             kind: "GrantStatic",
             modifier: "cannotBeDeletedInBattle",
@@ -135,12 +137,7 @@ export const compiled: CompiledCard = {
               },
               into: {
                 controllerDefault: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Neptunemon"],
-                    match: "name",
-                  },
-                ],
+                namesExact: ["Neptunemon"],
               },
               payCost: false,
               from: ["hand"],
@@ -188,8 +185,13 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      traits: ["Aqua", "Sea Animal"],
-      traitsMatchAny: true,
+      traitSubstrings: ["Aqua"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      level: 4,
+      traits: ["Sea Animal"],
       cost: 3,
       isAlternate: true,
     },

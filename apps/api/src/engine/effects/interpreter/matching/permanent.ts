@@ -49,7 +49,9 @@ export function selfTopMatchesText(ctx: EffectContext, filter: Filter | undefine
   const refs = filter?.nameOrTrait;
   if (refs === undefined || refs.length === 0) return false;
   const self = ctx.source.permanent();
-  const topCard = self?.topCard ?? (ctx.trigger.deletedTopCardId !== undefined ? { cardId: ctx.trigger.deletedTopCardId } : undefined);
+  const topCard =
+    self?.topCard ??
+    (ctx.trigger.deletedTopCardId !== undefined ? { cardId: ctx.trigger.deletedTopCardId } : undefined);
   if (topCard === undefined) return false;
   const def = ctx.game.definitionOf(topCard as never);
   return refs.some((ref) => matchNameOrTrait(def, ref));
@@ -154,9 +156,17 @@ export function permanentMatchesFilter(
   // in breeding (BT2-088 Q1038).
   if (filter.zone === "battleArea" && permanent.inBreeding) return false;
   if (filter.zone === "breeding" && !permanent.inBreeding) return false;
+  if (filter.excludeLeavingSubject === true && ctx.trigger.deletedPermanentId === permanent.permanentId) return false;
   const stackKeywords = (filter as Filter & { stackKeywords?: string[] }).stackKeywords;
   if (stackKeywords !== undefined) {
-    if (!stackKeywords.every((keyword) => permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword)))) return false;
+    if (
+      !stackKeywords.every((keyword) =>
+        permanent.stack.some((card) =>
+          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword),
+        ),
+      )
+    )
+      return false;
     const { stackKeywords: _omit, ...withoutStackKeywords } = filter as Filter & { stackKeywords?: string[] };
     filter = withoutStackKeywords;
   }
@@ -369,7 +379,12 @@ export function permanentMatchesFilter(
     if (bound === undefined || def.level === undefined || def.level !== bound) return false;
   }
   if (filter.playCostLteTriggerSource === true) {
-    const bound = ctx.trigger.playedPlayCost;
+    const triggerPermanentId = ctx.trigger.suspendedPermanentId ?? ctx.trigger.subjectPermanentId;
+    const triggerPermanent =
+      triggerPermanentId === undefined ? undefined : ctx.game.permanentById(triggerPermanentId);
+    const triggerDefinition =
+      triggerPermanent?.topCard === undefined ? undefined : ctx.game.definitionOf(triggerPermanent.topCard);
+    const bound = ctx.trigger.playedPlayCost ?? triggerDefinition?.playCost;
     if (bound === undefined || def.playCost > bound) return false;
     const { playCostLteTriggerSource: _bound, ...rest } = filter;
     filter = rest;
@@ -412,9 +427,8 @@ export function permanentMatchesFilter(
     // identity. Prefer it over a possibly stale/conferred CardSource, while retaining the
     // source lookup for non-attack effect contexts that use this predicate.
     const relativePermanentId = ctx.trigger.attackerPermanentId ?? ctx.trigger.subjectPermanentId;
-    const sourcePermanent = relativePermanentId !== undefined
-      ? ctx.game.permanentById(relativePermanentId)
-      : source?.permanent();
+    const sourcePermanent =
+      relativePermanentId !== undefined ? ctx.game.permanentById(relativePermanentId) : source?.permanent();
     if (sourcePermanent === undefined || permanent.isSuspended !== sourcePermanent.isSuspended) return false;
   }
 
@@ -599,7 +613,7 @@ export function permanentMatchesFilter(
   if (filter.keywords && filter.keywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string | { keyword?: string }): boolean => {
-      const token = typeof kw === "string" ? kw : kw.keyword ?? "";
+      const token = typeof kw === "string" ? kw : (kw.keyword ?? "");
       return (
         ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
         granted.has(token) ||
@@ -616,7 +630,7 @@ export function permanentMatchesFilter(
   if (filter.excludeKeywords && filter.excludeKeywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string | { keyword?: string }): boolean => {
-      const token = typeof kw === "string" ? kw : kw.keyword ?? "";
+      const token = typeof kw === "string" ? kw : (kw.keyword ?? "");
       return (
         ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
         granted.has(token) ||

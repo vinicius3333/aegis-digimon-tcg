@@ -17,6 +17,7 @@ describe("BT24-007 Tsunomon", () => {
         {
           kind: "PlayWithoutCost",
           from: ["trash"],
+          fromTriggerHandTrash: true,
           payCost: true,
           reduceCostBy: 2,
           optional: true,
@@ -38,22 +39,52 @@ describe("BT24-007 Tsunomon", () => {
     });
   });
 
-  it("plays a qualifying Titan from trash when your hand is trashed", async () => {
+  it("plays only the qualifying Titan trashed by the triggering action", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT24-008", as: "host", under: ["BT24-007"] }],
-          trash: [{ card: "BT24-045", as: "target" }],
+          hand: [{ card: "BT24-045", as: "triggeringTarget" }],
+          trash: [{ card: "BT24-045", as: "unrelatedTarget" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
 
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0 });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-045"));
+    await advance(s.engine).verb.trash([s.inst("triggeringTarget").instanceId], 0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("triggeringTarget").instanceId,
+      ),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-045")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT24-045")).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("triggeringTarget").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("unrelatedTarget").instanceId);
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("does not play an unrelated trash card when the triggering discard is ineligible", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-008", as: "host", under: ["BT24-007"] }],
+          hand: [{ card: "BT24-042", as: "levelThreeDemon" }],
+          trash: [{ card: "BT24-045", as: "unrelatedTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    await advance(s.engine).verb.trash([s.inst("levelThreeDemon").instanceId], 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("unrelatedTarget").instanceId);
+    expect(s.state.memory).toBe(10);
   });
 });

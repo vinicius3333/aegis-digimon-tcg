@@ -162,7 +162,13 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
     const boundInstanceId = ctx.selections?.get(target.fromSelectionRef);
     if (boundInstanceId === undefined) return [];
     const bound = findLooseCandidateByInstance(ctx, boundInstanceId);
-    if (bound === undefined || !zones.some((zone) => looseCardsInZone(ctx, bound.ownerSeat, zone).some((card) => card.instanceId === boundInstanceId))) return [];
+    if (
+      bound === undefined ||
+      !zones.some((zone) =>
+        looseCardsInZone(ctx, bound.ownerSeat, zone).some((card) => card.instanceId === boundInstanceId),
+      )
+    )
+      return [];
     const def = ctx.game.definitionOf({ cardId: bound.cardId } as never);
     return definitionMatches(target.filter, def) ? [bound] : [];
   }

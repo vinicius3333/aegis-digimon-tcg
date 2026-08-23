@@ -93,46 +93,50 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["X Antibody", "DigiPolice", "SEEKERS"],
-                  match: "trait",
-                },
-              ],
+              isSelfRef: true,
             },
             count: 1,
+            isSelf: true,
           },
-          keyword: {
-            keyword: "Alliance",
-            raw: "＜Alliance＞",
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Alliance",
+              raw: "＜Alliance＞",
+            },
           },
-          duration: "permanent",
+          while: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["X Antibody", "DigiPolice", "SEEKERS"], match: "trait" }],
+            },
+          },
         },
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["X Antibody", "DigiPolice", "SEEKERS"],
-                  match: "trait",
-                },
-              ],
+              isSelfRef: true,
             },
             count: 1,
+            isSelf: true,
           },
-          keyword: {
-            keyword: "Reboot",
-            raw: "＜Reboot＞",
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Reboot",
+              raw: "＜Reboot＞",
+            },
           },
-          duration: "permanent",
+          while: {
+            kind: "selfHasTrait",
+            filter: {
+              nameOrTrait: [{ tokens: ["X Antibody", "DigiPolice", "SEEKERS"], match: "trait" }],
+            },
+          },
         },
       ],
       isInherited: true,
@@ -145,12 +149,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Shuu Yulin"],
-                  match: "name",
-                },
-              ],
+              nameOrTrait: [{ tokens: ["Shuu Yulin", "The Crossroad Witch"], match: "nameExact" }],
             },
             count: 1,
           },

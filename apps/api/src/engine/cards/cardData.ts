@@ -212,6 +212,30 @@ export function matchingEvoCost(
 }
 
 /**
+ * Match a printed EvoCost by color while waiving only its source-level gate.
+ * Used by effects that explicitly say "ignoring level"; color remains mandatory.
+ */
+export function matchingEvoCostIgnoringLevel(
+  evolving: CardDefinition | string,
+  base: CardDefinition | string,
+  derivedColors?: readonly CardColor[],
+): EvoCost | undefined {
+  const baseDef = resolve(base);
+  if (isTokenDefinition(baseDef)) return undefined;
+  const effective =
+    derivedColors === undefined || derivedColors.length === 0
+      ? baseDef.colors
+      : [...new Set<CardColor>([...baseDef.colors, ...derivedColors])];
+  let best: EvoCost | undefined;
+  for (const cost of resolve(evolving).evoCosts) {
+    if (effective.includes(cost.color) && (best === undefined || cost.memoryCost < best.memoryCost)) {
+      best = cost;
+    }
+  }
+  return best;
+}
+
+/**
  * Like {@link matchingEvoCost} but IGNORING the printed color of the base — only the
  * EXACT level test is applied. Used by the digivolve color-legality waiver
  * (WaiveColorRequirement, CONTEXT.md LOCKED Q3): when the evolving card's color
@@ -329,6 +353,7 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
     req.levelMin !== undefined ||
     req.levelMax !== undefined ||
     (req.traits !== undefined && req.traits.length > 0) ||
+    (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0) ||
     (req.excludeTraits !== undefined && req.excludeTraits.length > 0) ||
     (req.names !== undefined && req.names.length > 0) ||
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
@@ -345,6 +370,8 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
  */
 export interface AlternateDigivolveOptions {
   isBlastDigivolve?: boolean;
+  /** Waive only level/levelMin/levelMax; preserve every color, trait, name, and live gate. */
+  ignoreLevel?: boolean;
   /** Match only this stable index in `digivolutionRequirementsFor`; invalid/nonmatching indexes fail. */
   requirementIndex?: number;
 }
@@ -362,6 +389,7 @@ function requirementHasIdentityGate(req: DigivolutionRequirement): boolean {
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
     (req.texts !== undefined && req.texts.length > 0) ||
     (req.traits !== undefined && req.traits.length > 0) ||
+    (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0) ||
     (req.excludeTraits !== undefined && req.excludeTraits.length > 0)
   );
 }
@@ -403,19 +431,23 @@ function matchGatedRequirement(
     }
     if (req.baseColorCountMax !== undefined && baseDef.colors.length > req.baseColorCountMax) continue;
     // Level gate: exact match, or within [levelMin, levelMax].
-    if (req.level !== undefined) {
+    if (req.level !== undefined && options?.ignoreLevel !== true) {
       if (baseDef.level === undefined || baseDef.level !== req.level) continue;
     }
-    if (req.levelMin !== undefined) {
+    if (req.levelMin !== undefined && options?.ignoreLevel !== true) {
       if (baseDef.level === undefined || baseDef.level < req.levelMin) continue;
     }
-    if (req.levelMax !== undefined) {
+    if (req.levelMax !== undefined && options?.ignoreLevel !== true) {
       if (baseDef.level === undefined || baseDef.level > req.levelMax) continue;
     }
 
     // Trait gate: base must have at least one of the listed traits.
     if (req.traits && req.traits.length > 0) {
       if (!req.traits.some((t) => cardHasTrait(baseDef, t))) continue;
+    }
+    if (req.traitSubstrings && req.traitSubstrings.length > 0) {
+      const sourceTraits = [...(baseDef.forms ?? []), ...(baseDef.attributes ?? []), ...(baseDef.types ?? [])];
+      if (!req.traitSubstrings.some((token) => sourceTraits.some((trait) => trait.includes(token)))) continue;
     }
 
     // Color gate: base must have at least one of the listed printed colors.

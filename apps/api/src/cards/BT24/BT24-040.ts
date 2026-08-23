@@ -126,41 +126,37 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "prevent",
           leaveCause: "otherThanYourEffect",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["TS"],
-                match: "trait",
-              },
-            ],
-          },
-          actions: [
-            {
-              kind: "Prevent",
-              mode: "leavePlay",
-              cost: {
-                kind: "place",
-                target: {
-                  filter: {
-                    digivolutionCards: "none",
-                    controllerDefault: "mine",
-                    excludeSelf: true,
-                    kind: ["Digimon"],
-                  },
-                  count: 1,
-                },
-                raw: "by placing 1 other Digimon with no digivolution cards as the bottom security card",
-                destination: "security",
-                position: "bottom",
-                faceDown: true,
-              },
-              optional: true,
-              abortOnDecline: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
             },
-          ],
+            count: 10000,
+            upTo: true,
+          },
+          affectsAll: true,
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: {
+              filter: {
+                digivolutionCards: "none",
+                controllerDefault: "mine",
+                excludeLeavingSubject: true,
+                kind: ["Digimon"],
+              },
+              count: 1,
+            },
+            raw: "by placing 1 other Digimon with no digivolution cards as the bottom security card",
+            destination: "security",
+            position: "bottom",
+            faceDown: true,
+          },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       frequency: "OncePerTurn",

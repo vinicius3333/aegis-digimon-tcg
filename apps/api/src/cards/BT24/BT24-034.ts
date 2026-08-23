@@ -2,6 +2,33 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const securityForTamer = {
+  kind: "CostGatedBlock",
+  cost: {
+    kind: "securityToHand",
+    raw: "By adding your top security card to the hand",
+  },
+  optional: true,
+  abortOnDecline: true,
+  actions: [
+    {
+      kind: "PlayWithoutCost",
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Tamer"],
+          nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+          excludeSameNameAsOwnTamers: true,
+        },
+        count: 1,
+      },
+      from: ["hand"],
+      payCost: false,
+      optional: true,
+    },
+  ],
+};
+
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
@@ -19,111 +46,15 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenMoving",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              nameOrTrait: [
-                {
-                  tokens: ["TS"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          cost: {
-            kind: "securityToHand",
-            raw: "By adding your top security card to the hand",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Restrict",
-          on: "playTarget",
-          filter: {
-            excludeSameNameAsOwnTamers: true,
-          },
-        },
-      ],
+      actions: [securityForTamer],
     },
     {
       trigger: "OnPlay",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              nameOrTrait: [
-                {
-                  tokens: ["TS"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          cost: {
-            kind: "securityToHand",
-            raw: "By adding your top security card to the hand",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Restrict",
-          on: "playTarget",
-          filter: {
-            excludeSameNameAsOwnTamers: true,
-          },
-        },
-      ],
+      actions: [securityForTamer],
     },
     {
       trigger: "WhenDigivolving",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              nameOrTrait: [
-                {
-                  tokens: ["TS"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          cost: {
-            kind: "securityToHand",
-            raw: "By adding your top security card to the hand",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Restrict",
-          on: "playTarget",
-          filter: {
-            excludeSameNameAsOwnTamers: true,
-          },
-        },
-      ],
+      actions: [securityForTamer],
     },
     {
       trigger: "Static",
@@ -141,7 +72,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Elecmon"],
+      namesExact: ["Elecmon"],
       cost: 2,
       isAlternate: true,
     },

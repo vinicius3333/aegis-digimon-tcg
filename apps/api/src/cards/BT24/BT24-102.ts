@@ -17,7 +17,13 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      actions: [{ kind: "ModifyDP", target: { filter: tsDigimon, count: "all" }, amount: 1000, duration: "permanent" }],
+      actions: [
+        {
+          kind: "Aura",
+          target: { filter: tsDigimon, count: "all" },
+          effect: { kind: "modifyDP", amount: 1000 },
+        },
+      ],
     },
     {
       trigger: "EndOfYourTurn",
@@ -38,7 +44,11 @@ export const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, payCost: false }] },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }],
+    },
   ],
   coverage: "full",
   residual: [],

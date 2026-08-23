@@ -33,12 +33,7 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Silphymon"],
-                match: "name",
-              },
-            ],
+            namesExact: ["Silphymon"],
           },
           payCost: true,
           condition: {
@@ -75,12 +70,7 @@ export const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Silphymon"],
-                match: "name",
-              },
-            ],
+            namesExact: ["Silphymon"],
           },
           payCost: true,
           condition: {

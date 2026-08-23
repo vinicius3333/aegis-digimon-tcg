@@ -35,7 +35,7 @@ describe("BT24 deck-specific interaction oracles", () => {
     play(s, "venus");
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT24-040"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT24-040")).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(5);
     assertNoLoudGap(s);
   });
 

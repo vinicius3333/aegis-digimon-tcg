@@ -1,9 +1,12 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { GameState, PlayerState, Permanent, CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import { MemoryGauge } from "../../engine/MemoryGauge.js";
 import { ModifierLedger } from "../../engine/effects/modifiers.js";
 import { SubTriggerRegistry } from "../../engine/effects/subtriggers.js";
 import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../../engine/effects/primitives.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // Self-register the compiled-IR cards so getCompiledCard can resolve the fusion target's
 // appFusionRequirement at runtime (the engine reads it inside appFuseInto).
 import "../index.js";
@@ -134,5 +137,114 @@ describe("A3 App Fusion (BT24-087) — fuse into a trash Digimon, carrying the s
     expect(result, "an illegal fusion must be refused (legality enforced server-side)").toBeUndefined();
     expect(fuser.topCard?.cardId).toBe(DOCMON); // unchanged
     expect(p0.trash.some((c) => c.instanceId === target.instanceId)).toBe(true); // still in trash
+  });
+});
+
+describe("BT24-087 Rei Katsura public behavior", () => {
+  it("suspends, draws, trashes, then App Fuses after one of its Digimon gets linked", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei" },
+            { card: DOCMON, as: "fuser", linked: [{ card: MEDICMON, as: "medicmon" }] },
+          ],
+          hand: [{ card: "BT1-001", as: "discard" }],
+          deck: [{ card: "BT1-002", as: "drawn" }],
+          trash: [{ card: TARGET, as: "fusion" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("discard").instanceId, s.perm("fuser").topCard.instanceId, s.inst("fusion").instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenLinked", {
+      subjectPermanentId: s.perm("fuser").permanentId,
+    });
+    await settle(() => s.perm("fuser").topCard.instanceId === s.inst("fusion").instanceId);
+    expect(s.perm("rei").isSuspended).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
+    // Biomon's own [When Digivolving] then free-links Docmon from the new stack; its
+    // one-card link capacity trashes the previous Medicmon link.
+    expect(s.perm("fuser").linked.map((instance) => instance.cardId)).toContain(DOCMON);
+    expect(s.state.players[0]!.trash.map((instance) => instance.cardId)).toContain(MEDICMON);
+  });
+
+  it("does not trigger when an opponent's Digimon gets linked", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-087", as: "rei" }],
+        hand: ["BT1-001"],
+        deck: ["BT1-002"],
+      },
+      1: { battleArea: [{ card: "BT21-009", as: "opponent" }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenLinked", {
+      subjectPermanentId: s.perm("opponent").permanentId,
+    });
+
+    expect(s.perm("rei").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("does not draw, trash, or App Fuse when Rei cannot pay the suspension cost (Q5675)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-087", as: "rei", suspended: true },
+            { card: DOCMON, as: "fuser", linked: [MEDICMON] },
+          ],
+          hand: ["BT1-001"],
+          deck: ["BT1-002"],
+          trash: [{ card: TARGET, as: "fusion" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenLinked", {
+      subjectPermanentId: s.perm("fuser").permanentId,
+    });
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.perm("fuser").topCard.cardId).toBe(DOCMON);
+    expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("fusion").instanceId);
+  });
+
+  it("gains memory at the start of the main phase only while the opponent has a Digimon", async () => {
+    const withOpponent = setupEngine({
+      0: { battleArea: [{ card: "BT24-087", as: "rei" }] },
+      1: { battleArea: ["BT1-009"] },
+    });
+    withOpponent.state.memory = 2;
+    await withOpponent.ready();
+    await advance(withOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withOpponent.perm("rei"));
+    expect(withOpponent.state.memory).toBe(3);
+
+    const withoutOpponent = setupEngine({ 0: { battleArea: [{ card: "BT24-087", as: "rei" }] } });
+    withoutOpponent.state.memory = 2;
+    await withoutOpponent.ready();
+    await advance(withoutOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, withoutOpponent.perm("rei"));
+    expect(withoutOpponent.state.memory).toBe(2);
+  });
+
+  it("plays itself from security without paying the cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT24-087", as: "rei" }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("rei"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("rei").instanceId),
+    );
   });
 });

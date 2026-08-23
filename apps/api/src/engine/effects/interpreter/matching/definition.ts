@@ -266,7 +266,7 @@ export function matchNameOrTrait(
   },
   ref: {
     tokens: string[];
-    match: "name" | "nameExact" | "trait" | "text" | "any";
+    match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
     negate?: boolean;
   },
 ): boolean {
@@ -303,6 +303,7 @@ export function matchNameOrTrait(
     // named "Cerberusmon: Werewolf Mode" does NOT match "Cerberusmon" (KB Q1231/Q1232).
     if (ref.match === "nameExact") return names.some((name) => name === nameToken);
     if (ref.match === "trait") return traits.some((x) => x === normalizeTrait(rawToken));
+    if (ref.match === "traitContains") return traits.some((x) => x.includes(normalizeTrait(rawToken)));
     // a card NAMED/TRAITED X "has [X] in its text" too, so "text" is the full union
     // (identical to "any"), not effectText-only.
     return (

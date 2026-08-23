@@ -8,6 +8,24 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -2000,
+          duration: "forTheTurn",
+        },
+      ],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {
@@ -48,6 +66,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
   digivolutionRequirement: [
     {
       level: 2,

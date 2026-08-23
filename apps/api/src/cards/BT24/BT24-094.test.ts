@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-094.js";
 import "../index.js";
 
@@ -22,8 +24,12 @@ describe("BT24-094 Central Town: Throne Room", () => {
       trigger: "AllTurns",
       isSecurity: true,
       actions: [
-        { kind: "ModifyDP", amount: 2000, duration: "permanent" },
-        { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Alliance" } } },
+        { kind: "Aura", effect: { kind: "modifyDP", amount: 2000 } },
+        {
+          kind: "Aura",
+          effect: { kind: "keyword", keyword: { keyword: "Alliance" } },
+          while: { filter: { nameOrTrait: [{ tokens: ["Merukimon", "Minervamon"], match: "nameExact" }] } },
+        },
       ],
     });
     expect(compiled.effects[2]).toMatchObject({
@@ -41,12 +47,48 @@ describe("BT24-094 Central Town: Throne Room", () => {
     });
   });
 
+  it("grants source-bound DP and conditional Alliance from face-up security", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-094", as: "town", faceUp: true }],
+        battleArea: [
+          { card: "BT24-042", as: "eligible" },
+          { card: "EX5-042", as: "merukimon" },
+          { card: "BT1-009", as: "ineligible" },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("eligible").currentDP).toBe(s.perm("eligible").baseDP + 2000);
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("merukimon"), "Alliance")).toBe(false);
+    expect(s.perm("ineligible").currentDP).toBe(s.perm("ineligible").baseDP);
+
+    await advance(s.engine).verb.trash([s.inst("town").instanceId]);
+    expect(s.perm("eligible").currentDP).toBe(s.perm("eligible").baseDP);
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Alliance")).toBe(false);
+  });
+
+  it("does not grant Alliance without exact Merukimon or Minervamon", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-094", faceUp: true }],
+        battleArea: [{ card: "BT24-042", as: "eligible" }],
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("eligible").currentDP).toBe(s.perm("eligible").baseDP + 2000);
+    expect(observe(s.engine).hasKeyword(s.perm("eligible"), "Alliance")).toBe(false);
+  });
+
   it("exchanges bottom security for itself and plays a reduced-cost TS Digimon", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-094", as: "source" }],
-          hand: [{ card: "BT24-101", as: "digimon" }],
+          battleArea: [{ card: "BT1-045", as: "yellowSource" }],
+          hand: [{ card: "BT24-094", as: "source" }, { card: "BT24-101", as: "digimon" }],
           security: [{ card: "BT1-001", as: "bottom" }],
         },
       },
@@ -55,28 +97,30 @@ describe("BT24-094 Central Town: Throne Room", () => {
     s.state.memory = 10;
     await s.ready();
 
-    const sourceCard = s.perm("source").topCard!;
-    const source = (s.engine as unknown as { cardSourceOf(card: typeof sourceCard): CardSource }).cardSourceOf(
-      sourceCard,
-    );
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
-      effect.effectKey.startsWith("BT24-094/"),
-    )?.effectKey;
-    expect(effectKey).toBeDefined();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: sourceCard.instanceId,
-        effectKey: effectKey!,
-      }),
-    ).toEqual({ ok: true });
+    const sourceCard = s.inst("source");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sourceCard.instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-101"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceCard.instanceId && card.faceUp)).toBe(
-      true,
-    );
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceCard.instanceId && card.faceUp)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-101")).toBe(true);
+  });
+
+  it("plays a level 4 green or yellow TS Digimon from Security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-094", as: "town" }],
+          trash: [{ card: "BT24-034", as: "digimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("town"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
+    );
   });
 });

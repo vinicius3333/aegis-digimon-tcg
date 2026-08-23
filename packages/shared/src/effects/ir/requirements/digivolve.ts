@@ -19,6 +19,8 @@ export interface DigivolutionRequirement {
   namesExact?: string[];
   /** Required trait tokens on the source ("w/[Xros Heart] in traits"). */
   traits?: string[];
+  /** Substrings accepted anywhere in a source trait ("[Aqua] in any of its traits"). */
+  traitSubstrings?: string[];
   /** Traits the source must NOT have (EX8-037). Any listed trait excludes the base. */
   excludeTraits?: string[];
   /** At least one printed source color must match (for example, "yellow, green, or purple"). */

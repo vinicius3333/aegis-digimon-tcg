@@ -13,18 +13,14 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "PlayWithoutCost",
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Rei Katsura"],
-                      match: "name",
-                    },
-                  ],
+                  nameOrTrait: [{ tokens: ["Rei Katsura"], match: "nameExact" }],
                 },
                 count: 1,
               },
@@ -45,6 +41,12 @@ export const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [],
+      keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }],
+    },
   ],
   coverage: "full",
   residual: [],
@@ -56,6 +58,7 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
 registerIrCard("BT24-067", compiled);

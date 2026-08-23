@@ -484,6 +484,7 @@ export class GameEngine {
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+              deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
@@ -501,6 +502,7 @@ export class GameEngine {
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+          deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },
@@ -813,12 +815,18 @@ export class GameEngine {
         subTriggers: this.subTriggers,
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
-          this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), { deletedPermanentId: leavingId }),
+          this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), {
+            deletedPermanentId: leavingId,
+            deletedPermanentIds: permanentIds,
+          }),
         buildInstanceContext: (sourceInstanceId, leavingId) => {
           const sourceInstance = this.findLooseInstance(sourceInstanceId);
           return sourceInstance === undefined
             ? undefined
-            : this.buildEffectContext(this.cardSourceOf(sourceInstance), { deletedPermanentId: leavingId });
+            : this.buildEffectContext(this.cardSourceOf(sourceInstance), {
+                deletedPermanentId: leavingId,
+                deletedPermanentIds: permanentIds,
+              });
         },
         turnSeat: this.state.turnSeat,
         // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
@@ -2173,6 +2181,26 @@ export class GameEngine {
     }
 
     for (const instance of turnPlayer.hand) {
+      const source = this.cardSourceOf(instance);
+      const entries: { instanceId: string; effectKey: string; description: string }[] = [];
+      for (const effect of effectsOf(ACTIVATE_TIMING, source)) {
+        const ctx = this.buildEffectContext(source, {});
+        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
+          entries.push({
+            instanceId: instance.instanceId,
+            effectKey: effect.effectKey,
+            description: effect.description,
+          });
+        }
+      }
+      instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
+    }
+
+    // `[Trash][Main]` abilities are activated from their card's actual trash-zone
+    // instance (Q5653), just as hand-resident Main abilities are projected from hand.
+    // `canTrigger` keeps ordinary Main effects out because only effects registered with
+    // `isFromTrash` accept a source whose current zone is trash.
+    for (const instance of turnPlayer.trash) {
       const source = this.cardSourceOf(instance);
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
       for (const effect of effectsOf(ACTIVATE_TIMING, source)) {

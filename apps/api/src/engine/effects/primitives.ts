@@ -33,6 +33,7 @@ import {
 } from "../state/access.js";
 import {
   matchingEvoCost,
+  matchingEvoCostIgnoringLevel,
   canDigivolveOntoWithAlternates,
   cardHasTrait,
   matchingAlternateDigivolutionRequirement,
@@ -965,7 +966,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // color+level gate; without it the base must still satisfy a printed EvoCost (a costOverride
       // alone keeps the requirement — BT7-051).
       let baseCost: number | undefined;
-      if (opts.ignoreRequirements || opts.ignoreLevel) {
+      if (opts.ignoreRequirements) {
         // Ignoring the color/level gate does not waive the card's printed digivolution
         // cost. Effects such as BT26-066 still say "with the cost reduced by 2" and
         // therefore need a real printed baseline. A fixed-cost effect supplies
@@ -973,6 +974,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // the destination card. Only cards with no printed evolution cost fall back to 0.
         const printedCosts = definition.evoCosts.map(({ memoryCost }) => memoryCost);
         baseCost = opts.costOverride ?? (printedCosts.length > 0 ? Math.min(...printedCosts) : 0);
+      } else if (opts.ignoreLevel) {
+        const baseDef = requireCardDefinition(permanent.topCard.cardId);
+        const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
+        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, { ignoreLevel: true });
+        const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
+        const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
+        if (matched === undefined) return undefined;
+        baseCost = opts.costOverride ?? matched;
       } else {
         // The base qualifies via a printed EvoCost OR via an alternate digivolution requirement
         // ("[Digivolve] [BurningGreymon]: Cost 0", "onto a red Tamer: Cost 2"). Both carry their
@@ -982,9 +991,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // `runDigivolve`'s candidate filter already offers alternate-path bases; this is the
         // authoritative gate it claims to mirror, so the two must agree.
         const actualBaseDef = requireCardDefinition(permanent.topCard.cardId);
-        const baseDef = opts.virtualBase === undefined
-          ? actualBaseDef
-          : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
+        const baseDef =
+          opts.virtualBase === undefined
+            ? actualBaseDef
+            : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
         const printed = matchingDigivolveCost(definition, baseDef);
         const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
         const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef);
@@ -1253,6 +1263,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // CR 8-4-3-3: the app fusion procedure itself draws 1 card — unconditional, part of the
     // placement procedure (mirrors applyDigivolve step 6 / dnaDigivolveInto).
     await draw(seat, 1);
+    // The fusion result is now the permanent's live top card. Re-derive its printed
+    // continuous effects before opening the [When Digivolving] window, matching the
+    // ordinary digivolution path (BT24-077's printed Blocker is immediately active).
+    await engine.recomputeContinuousEffects?.();
     // CR 8-4-1 ("a player can digivolve 1 Digimon card with [App Fusion]..."), 8-4-2-3
     // ("effects that affect digivolution will also affect app fusion"), and 15-16-3's definition
     // of [When Digivolving] ("triggered ... when the action of digivolving into a card with that
@@ -1933,10 +1947,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     // Fire once per seat whose hand actually lost a card (the move may have skipped some ids).
     for (const seat of handTrashedSeats) {
-      const trashedThisSeat = moved.some((c) => c.ownerSeat === seat);
-      if (trashedThisSeat)
+      const handTrashedInstanceIds = fromHand
+        .filter((entry) => entry.seat === seat && movedIds.has(entry.instanceId))
+        .map((entry) => entry.instanceId);
+      if (handTrashedInstanceIds.length > 0)
         await engine.fireSubTrigger!("whenHandTrashed", {
           handTrashedSeat: seat,
+          handTrashedInstanceIds,
           ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
         });
     }
@@ -2796,6 +2813,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     const allMoved: string[] = [];
     const allStackInstanceIds: string[] = [];
+    const allLinkedInstanceIds: string[] = [];
     const deletedByDpZero =
       cause === "byRule" && toDelete.some((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
     const deletedByDpZeroInstanceIds = toDelete
@@ -2813,6 +2831,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // effects after the permanent is gone.
     const stackIdsByPermanent = toDelete.map(
       (permanentId) => access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [],
+    );
+    const linkedIdsByPermanent = toDelete.map(
+      (permanentId) => access.permanentById(permanentId)?.linked.map((c) => c.instanceId) ?? [],
     );
     const topCardIdsByPermanent = toDelete.map((permanentId) => access.permanentById(permanentId)?.topCard?.cardId);
     const effectiveColorsByPermanent = toDelete.map((permanentId) => {
@@ -2905,6 +2926,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (moved.length === 0) continue;
       deletedCount += 1;
       allStackInstanceIds.push(...stackIdsByPermanent[i]!);
+      allLinkedInstanceIds.push(...linkedIdsByPermanent[i]!);
       // Drop ALL three per-permanent ledgers on the way off the field, mirroring the
       // DNA-digivolve material teardown above. The SubTrigger bus is now live, so a stale
       // reduceCost/prevent replacement or onDeletionOf/whenAttacking watcher anchored to a
@@ -2947,6 +2969,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // Stack-card subset so the placement guard can gate inherited effects (which require
         // a stack position) vs top-card effects after the permanent is gone.
         deletedWasStackInstanceIds: allStackInstanceIds,
+        deletedWasLinkedInstanceIds: allLinkedInstanceIds,
         removalCause: cause,
       };
       if (engine.resolveDeletionReactions) {

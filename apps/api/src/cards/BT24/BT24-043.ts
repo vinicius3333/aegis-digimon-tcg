@@ -31,13 +31,13 @@ export const compiled: CompiledCard = {
                     nameOrTrait: [
                       {
                         tokens: ["Beast", "Animal", "Sovereign"],
-                        match: "trait",
+                        match: "traitContains",
                       },
                     ],
                     excludeNameOrTrait: [
                       {
                         tokens: ["Sea Animal"],
-                        match: "trait",
+                        match: "traitContains",
                       },
                     ],
                   },

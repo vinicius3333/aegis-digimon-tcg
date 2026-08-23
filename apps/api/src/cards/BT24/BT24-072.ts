@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "trash",
             target: {
@@ -89,6 +91,8 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "trash",
             target: {
@@ -178,12 +182,7 @@ export const compiled: CompiledCard = {
             conditions: [
               {
                 kind: "selfHasName",
-                nameOrTrait: [
-                  {
-                    tokens: ["Titamon"],
-                    match: "name",
-                  },
-                ],
+                names: ["Titamon"],
               },
               {
                 kind: "selfHasTrait",

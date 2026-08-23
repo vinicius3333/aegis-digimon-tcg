@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               controller: "mine",
@@ -51,14 +51,16 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          keyword: {
-            keyword: "Blocker",
-            raw: "＜Blocker＞",
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Blocker",
+              raw: "＜Blocker＞",
+            },
           },
-          duration: "permanent",
         },
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               controller: "mine",
@@ -73,23 +75,20 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          keyword: {
-            keyword: "Alliance",
-            raw: "＜Alliance＞",
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Alliance",
+              raw: "＜Alliance＞",
+            },
           },
-          duration: "permanent",
-          condition: {
+          while: {
             kind: "youHave",
             filter: {
               controller: "mine",
               zone: "battleArea",
               kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Neptunemon", "Venusmon"],
-                  match: "name",
-                },
-              ],
+              nameOrTrait: [{ tokens: ["Neptunemon", "Venusmon"], match: "nameExact" }],
             },
             raw: "you have [Neptunemon] or [Venusmon]",
           },
@@ -112,13 +111,6 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
-          source: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
           toTop: false,
           faceUp: true,
         },

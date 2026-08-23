@@ -219,7 +219,7 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
 
   it("allows an inherited effect under a Digi-Egg host in the breeding area", () => {
     const breedingSource = fakeSource({
-      instanceId: "source#1",
+      instanceId: "ess#1",
       permanent: () => permanent,
       isOnBreedingArea: () => true,
     });

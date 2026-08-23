@@ -27,6 +27,7 @@ export const compiled = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
           actions: [
             {
               kind: "Draw",
@@ -37,6 +38,8 @@ export const compiled = {
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
                 raw: "by suspending this Tamer",
               },
+              optional: true,
+              abortOnDecline: true,
             },
             {
               kind: "Trash",

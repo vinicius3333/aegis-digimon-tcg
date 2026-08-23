@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["System", "Life", "Transmutation (App Name)"],
+                  tokens: ["System", "Life", "Transmutation"],
                   match: "trait",
                 },
               ],
@@ -45,7 +45,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["System", "Life", "Transmutation (App Name)"],
+                  tokens: ["System", "Life", "Transmutation"],
                   match: "trait",
                 },
               ],
@@ -86,6 +86,32 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "OnDeletion",
+      isLinked: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [3],
+              nameOrTrait: [
+                {
+                  tokens: ["Appmon"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
@@ -95,6 +121,7 @@ export const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 registerIrCard("BT24-071", compiled);

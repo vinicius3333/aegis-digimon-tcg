@@ -15,6 +15,8 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               isSelfRef: true,
+              colors: ["Blue"],
+              nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
             },
             count: 1,
             isSelf: true,
@@ -24,6 +26,8 @@ export const compiled: CompiledCard = {
             memory: 1,
             raw: "By paying 1 cost",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       isInherited: true,

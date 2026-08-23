@@ -30,6 +30,8 @@ export interface DeDigivolveAction extends ActionBase {
 
 export interface DigivolveAction extends ActionBase {
   kind: "Digivolve";
+  /** Require a prior conditional Delay grant before this payload can be activated. */
+  requiresDelayArmed?: true;
   /** What digivolves ("this Digimon", "1 of your Digimon"). */
   target: Target;
   /** Filter on the card digivolved into. */

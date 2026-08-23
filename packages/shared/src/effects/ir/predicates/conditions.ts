@@ -180,7 +180,10 @@ export interface Condition {
   /** For `not`. */
   condition?: Condition;
   /** For `selfHasInDigivolutionCards`. */
-  nameOrTrait?: { tokens: string[]; match: "name" | "nameExact" | "trait" | "text" | "any" }[];
+  nameOrTrait?: {
+    tokens: string[];
+    match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
+  }[];
   /** For the `binding*` kinds: the binding written by a preceding `bindResultAs`. */
   ref?: string;
   /** For `namedCountAtLeast`: the name a preceding `trackCount` wrote. */

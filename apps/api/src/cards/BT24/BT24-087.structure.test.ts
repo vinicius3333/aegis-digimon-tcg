@@ -7,8 +7,18 @@ describe("BT24-087 Rei Katsura", () => {
     const start = BT24_087.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(start?.actions?.[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
     const watcher = BT24_087.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as any;
-    expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenLinked" });
-    expect(watcher?.actions?.[0]).toMatchObject({ kind: "Draw", amount: 1, cost: { kind: "suspend" } });
+    expect(watcher).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenLinked",
+      sourceFilter: { controller: "mine", kind: ["Digimon"] },
+    });
+    expect(watcher?.actions?.[0]).toMatchObject({
+      kind: "Draw",
+      amount: 1,
+      cost: { kind: "suspend" },
+      optional: true,
+      abortOnDecline: true,
+    });
     expect(watcher?.actions?.[1]).toMatchObject({ kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } });
     expect(watcher?.actions?.[2]).toMatchObject({
       kind: "AppFuse",

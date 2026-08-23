@@ -250,10 +250,27 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       })();
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
+      if (action.fromTriggerHandTrash === true) {
+        const triggeringIds = new Set(ctx.trigger.handTrashedInstanceIds ?? []);
+        candidates = candidates.filter((candidate) => triggeringIds.has(candidate.instanceId));
+      }
       // Seat-level RestrictPlay: drop candidates the resolving effect's owner is forbidden
       // from playing (the effect is attributed to ctx.source.ownerSeat, so the prohibition on
       // THAT seat applies — Q4676; the source player's own effects are unaffected — Q4675).
       candidates = candidates.filter((c) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, c.cardId, "play"));
+      if (action.target?.filter?.excludeSameNameAsOwnTamers === true) {
+        const ownTamerNames = new Set<string>();
+        for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {
+          if (permanent.topCard === undefined) continue;
+          const definition = ctx.game.definitionOf(permanent.topCard);
+          if (!definition.kinds.includes(CardKind.Tamer)) continue;
+          for (const name of effectiveStaticNames(definition)) ownTamerNames.add(name);
+        }
+        candidates = candidates.filter((candidate) => {
+          const names = effectiveStaticNames(ctx.game.definitionOf({ cardId: candidate.cardId } as never));
+          return !names.some((name) => ownTamerNames.has(name));
+        });
+      }
       if (ctx.effectRestrictions?.has("cannotPlaySameNameAsOwnDigimon")) {
         // `battleArea` is an ArraySchema, which throws on flatMap: iterate and collect.
         const ownNames = new Set<string>();

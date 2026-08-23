@@ -49,7 +49,6 @@ export const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                suspended: true,
                 playCostLte: 7,
                 nameOrTrait: [
                   {
@@ -60,6 +59,7 @@ export const compiled: CompiledCard = {
               },
               count: 1,
               to: "play",
+              suspended: true,
               optional: true,
             },
           ],
@@ -81,6 +81,7 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",
@@ -94,6 +95,8 @@ export const compiled: CompiledCard = {
             position: "bottom",
             host: "self",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       isInherited: true,
@@ -105,15 +108,9 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      traits: ["Aqua"],
+      traitSubstrings: ["Aqua", "Sea Animal"],
       cost: 3,
       isAlternate: true,
-    },
-    {
-      traits: ["Sea Animal"],
-      cost: 3,
-      isAlternate: true,
-      level: 4,
     },
     {
       traits: ["TS"],

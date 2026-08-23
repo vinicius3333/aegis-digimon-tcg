@@ -9,6 +9,111 @@
       "isAlternate": true
     }
   ],
+  "BT24-018": [
+    {
+      "namesExact": [
+        "Lamiamon"
+      ],
+      "cost": 6,
+      "isAlternate": true,
+      "controllerControls": {
+        "kind": [
+          "Tamer"
+        ],
+        "namesExact": [
+          "Owen Dreadnought"
+        ],
+        "min": 1
+      }
+    }
+  ],
+  "BT24-028": [
+    {
+      "level": 4,
+      "traitSubstrings": [
+        "Aqua"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": [
+        "Sea Animal"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": [
+        "TS"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT24-030": [
+    {
+      "level": 5,
+      "traitSubstrings": [
+        "Aqua"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": [
+        "Sea Animal"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": [
+        "TS"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT24-074": [
+    {
+      "level": 4,
+      "traitSubstrings": [
+        "Aqua"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": [
+        "Sea Animal"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": [
+        "TS"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT24-078": [
+    {
+      "namesExact": [
+        "Creepymon"
+      ],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
   "BT25-045": [
     {
       "level": 2,
