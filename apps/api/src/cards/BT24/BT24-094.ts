@@ -38,7 +38,7 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              namesExact: ["Merukimon", "Minervamon"],
+              nameOrTrait: [{ tokens: ["Merukimon", "Minervamon"], match: "nameExact" }],
             },
           },
         },
@@ -52,7 +52,6 @@ export const compiled: CompiledCard = {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "mine",
-          source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           toTop: false,
           faceUp: true,
         },

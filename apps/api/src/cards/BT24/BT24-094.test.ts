@@ -28,7 +28,7 @@ describe("BT24-094 Central Town: Throne Room", () => {
         {
           kind: "Aura",
           effect: { kind: "keyword", keyword: { keyword: "Alliance" } },
-          while: { filter: { namesExact: ["Merukimon", "Minervamon"] } },
+          while: { filter: { nameOrTrait: [{ tokens: ["Merukimon", "Minervamon"], match: "nameExact" }] } },
         },
       ],
     });
@@ -87,8 +87,8 @@ describe("BT24-094 Central Town: Throne Room", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-094", as: "source" }],
-          hand: [{ card: "BT24-101", as: "digimon" }],
+          battleArea: [{ card: "BT1-045", as: "yellowSource" }],
+          hand: [{ card: "BT24-094", as: "source" }, { card: "BT24-101", as: "digimon" }],
           security: [{ card: "BT1-001", as: "bottom" }],
         },
       },
@@ -97,28 +97,12 @@ describe("BT24-094 Central Town: Throne Room", () => {
     s.state.memory = 10;
     await s.ready();
 
-    const sourceCard = s.perm("source").topCard!;
-    const source = (s.engine as unknown as { cardSourceOf(card: typeof sourceCard): CardSource }).cardSourceOf(
-      sourceCard,
-    );
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
-      effect.effectKey.startsWith("BT24-094/"),
-    )?.effectKey;
-    expect(effectKey).toBeDefined();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: sourceCard.instanceId,
-        effectKey: effectKey!,
-      }),
-    ).toEqual({ ok: true });
+    const sourceCard = s.inst("source");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sourceCard.instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-101"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceCard.instanceId && card.faceUp)).toBe(
-      true,
-    );
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceCard.instanceId && card.faceUp)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-101")).toBe(true);
   });
 
