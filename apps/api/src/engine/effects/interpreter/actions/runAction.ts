@@ -191,6 +191,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     if (!costUnpayable) {
       const yes = await ctx.ask.optional(ctx, describeAction(action));
       if (!yes) {
+        // `ifThisEffectDidNotAct` belongs to the immediately preceding action. A declined
+        // optional action acted zero times, so clear any success receipt left by an earlier
+        // action in the same effect before its "if they didn't" continuation is evaluated.
+        ctx.lastEffectActed = false;
         if ((action as Action & { preserveOncePerTurnOnDecline?: boolean }).preserveOncePerTurnOnDecline === true) {
           ctx.oncePerTurnActivationDeclined = true;
         }

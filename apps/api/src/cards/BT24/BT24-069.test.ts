@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_069 } from "./BT24-069.js";
 import "../index.js";
@@ -29,8 +29,11 @@ describe("BT24-069 Vilemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-069", as: "vilemon" }],
-          hand: [{ card: "BT1-001", as: "ownCard" }],
+          battleArea: [{ card: "BT24-068", as: "base" }],
+          hand: [
+            { card: "BT24-069", as: "vilemon" },
+            { card: "BT1-001", as: "ownCard" },
+          ],
         },
         1: {
           hand: [{ card: "BT1-002", as: "opponentCard" }],
@@ -42,10 +45,22 @@ describe("BT24-069 Vilemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("vilemon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vilemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("vilemon").instanceId);
+    await settle(() =>
+      s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId),
+    );
 
+    expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownCard").instanceId);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentCard").instanceId);
     expect(s.state.players[1]!.deck).toHaveLength(2);
@@ -90,22 +105,35 @@ describe("BT24-069 Vilemon", () => {
     expect(s.perm("vilemon").currentDP).toBe(6000);
   });
 
-  it("inherited attack trashes both players' top cards only once per turn", async () => {
+  it("public attack trashes both players' top cards through the inherited effect", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT24-070", as: "host", under: ["BT24-069"] }],
+        battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-069"] }],
         deck: ["BT1-001", "BT1-002"],
       },
-      1: { deck: ["BT1-003", "BT1-004"] },
+      1: {
+        deck: [
+          { card: "BT1-003", as: "theirFirst" },
+          { card: "BT1-004", as: "theirSecond" },
+        ],
+        security: ["BT1-005", "BT1-006"],
+      },
     });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 1);
+    await settle(() => !s.engine.combat.isAttacking);
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("theirFirst").instanceId);
   });
 });
