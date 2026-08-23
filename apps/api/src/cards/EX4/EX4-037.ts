@@ -28,7 +28,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "onSuspend",
+          event: "whenSuspended",
           sourceFilter: { kind: ["Digimon"], excludeSelf: true },
           actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true }],
         },

@@ -67,11 +67,14 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "linkTo": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          "recipient": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": 1
           },
           "payCost": false,
           "optional": true
