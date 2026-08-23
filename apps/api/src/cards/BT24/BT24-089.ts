@@ -15,7 +15,8 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              namesExact: ["Elizamon", "Owen Dreadnought"],
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["Elizamon", "Owen Dreadnought"], match: "nameExact" }],
             },
             count: 1,
           },
@@ -36,7 +37,7 @@ export const compiled: CompiledCard = {
           event: "whenSuspended",
           sourceFilter: {
             controller: "mine",
-            namesExact: ["Owen Dreadnought"],
+            nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }],
           },
           actions: [
             {

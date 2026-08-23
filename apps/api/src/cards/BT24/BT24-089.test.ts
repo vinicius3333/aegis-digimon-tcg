@@ -22,7 +22,7 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
     expect(yourTurn?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSuspended",
-      sourceFilter: { controller: "mine", namesExact: ["Owen Dreadnought"] },
+      sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }] },
       actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" }, duration: "permanent" }],
     });
 
@@ -54,6 +54,7 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
           hand: [
             { card: "BT24-089", as: "option" },
             { card: "BT24-008", as: "elizamon" },
@@ -64,8 +65,9 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnUseOption, s.inst("option"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-089"));
+
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-008")).toBe(true);
   });
@@ -75,15 +77,17 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
       {
         0: {
           battleArea: [
-            { card: "BT24-089", as: "option" },
+            { card: "BT1-009", as: "redSource" },
             { card: "BT24-008", as: "base" },
           ],
-          hand: [{ card: "BT24-012", as: "evolution" }],
+          hand: [{ card: "BT24-089", as: "option" }, { card: "BT24-012", as: "evolution" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-089"));
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
 
     expect(
@@ -104,17 +108,19 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
       {
         0: {
           battleArea: [
-            { card: "BT24-089", as: "option" },
+            { card: "BT1-009", as: "redSource" },
             { card: "BT24-082", as: "owen" },
             { card: "BT24-008", as: "base" },
           ],
-          hand: [{ card: "BT24-012", as: "evolution" }],
+          hand: [{ card: "BT24-089", as: "option" }, { card: "BT24-012", as: "evolution" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 1;
+    s.state.memory = 4;
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-089"));
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
 
     await advance(s.engine).verb.suspend([s.perm("owen").permanentId]);
@@ -139,16 +145,18 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
       {
         0: {
           battleArea: [
-            { card: "BT24-089", as: "option" },
+            { card: "BT1-009", as: "redSource" },
             { card: "BT24-082", as: "owen" },
             { card: "BT24-008", as: "base" },
           ],
-          hand: [{ card: evolution, as: "evolution" }],
+          hand: [{ card: "BT24-089", as: "option" }, { card: evolution, as: "evolution" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-089"));
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
     await advance(s.engine).verb.suspend([s.perm("owen").permanentId]);
 
