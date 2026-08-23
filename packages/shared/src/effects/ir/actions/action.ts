@@ -1,6 +1,7 @@
 // The closed `Action` union.
 
 import type {
+  AddDPFromTrashedCardAction,
   AddDPFromSuspendedCostAction,
   AddToHandSelfAction,
   GainKeywordAction,
@@ -35,6 +36,7 @@ import type {
   CannotIgnoreDigivolutionRequirementsAction,
   DeDigivolveAction,
   DigivolveAction,
+  DigivolveViaPlacementAction,
   PlaceUnderAction,
   TrashDigivolutionAction,
   WaiveColorRequirementAction,
@@ -63,12 +65,14 @@ import type {
   DelayedDeletePlayedAction,
   DeleteAction,
   DeleteBudgetAction,
+  DeleteByStackColorBudgetAction,
   DeleteByDPBudgetAction,
   DeleteLevelBudgetAction,
   DeletePerColorAction,
   DeleteUntilCountAction,
   DeletionMaxDpModifierAction,
   ReturnAction,
+  ReturnToEggDeckAction,
   ReturnTopDigivolutionCardsAction,
   RevealChooseDeleteBudgetAction,
   TrashAction,
@@ -99,7 +103,13 @@ import type {
   RestrictUnsuspendedDigivolveAction,
   StackTrashLockAction,
 } from "./restrictions.js";
-import type { RevealAction, RevealAddAction, SearchAction, SearchSecurityAction } from "./reveal.js";
+import type {
+  HandRevealAddAction,
+  RevealAction,
+  RevealAddAction,
+  SearchAction,
+  SearchSecurityAction,
+} from "./reveal.js";
 import type {
   DisableSecurityEffectAction,
   ModifySecurityDPAction,
@@ -115,6 +125,7 @@ import type {
   DisableTimingEffectAction,
   GrantAuraToOpponentsAction,
   GrantStaticAction,
+  DynamicDigivolutionNamesAction,
 } from "./statics.js";
 import type { SubTriggerAction } from "./subTrigger.js";
 import type {
@@ -135,6 +146,7 @@ export type Action =
   | DeletePerColorAction
   | DeleteUntilCountAction
   | DeleteBudgetAction
+  | DeleteByStackColorBudgetAction
   | RevealChooseDeleteBudgetAction
   | DeleteLevelBudgetAction
   | DeleteByDPBudgetAction
@@ -143,6 +155,7 @@ export type Action =
   | OpponentMayTrashSecurityAction
   | HandManipulationAction
   | ReturnAction
+  | ReturnToEggDeckAction
   | ReturnTopDigivolutionCardsAction
   | SuspendAction
   | RepeatPerCountAction
@@ -150,6 +163,7 @@ export type Action =
   | MovePermanentAction
   | HatchAction
   | ModifyDPAction
+  | AddDPFromTrashedCardAction
   | AddDPFromSuspendedCostAction
   | SetBaseDPAction
   | GainKeywordAction
@@ -162,14 +176,17 @@ export type Action =
   | RestrictEffectAction
   | DelayedEffectAction
   | GrantAuraToOpponentsAction
+  | DynamicDigivolutionNamesAction
   | DigiXrosMaterialZoneExpansionAction
   | AllowDigiXrosMaterialsFromTrashAction
   | RevealAddAction
+  | HandRevealAddAction
   | RevealAction
   | SearchAction
   | SearchSecurityAction
   | DeDigivolveAction
   | DigivolveAction
+  | DigivolveViaPlacementAction
   | AttackAction
   | BattleAction
   | PlaceUnderAction

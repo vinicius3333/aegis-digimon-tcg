@@ -12,7 +12,8 @@ export interface BoardPredicates {
    * never for matching.
    */
   controllerDefault?: Controller;
-  zone?: ZoneRef;
+  /** Several zones pool their candidates into one set (EX9-057's trash-or-digivolution-cards). */
+  zone?: ZoneRef | ZoneRef[];
   /** Position within the zone stack; only meaningful for `zone: "security"`, where `"top"` is
    * the card checked next (index 0). Without it, any security card qualifies (BT19-029, BT20-080). */
   position?: "top" | "bottom";
@@ -69,6 +70,11 @@ export interface BoardPredicates {
    * covers the Mind Link guard's "no Tamer cards" reading when combined with kind Digimon.
    */
   digivolutionCards?: "none" | "hasNone" | "hasAny" | "hasFaceDown";
+  /**
+   * Upper bound on how many cards may match, for the "you have 1 or fewer Digimon" shape. Read
+   * by the `youHave`/`opponentHas` conditions, which invert the default at-least comparison.
+   */
+  countMax?: number;
   /** Alias for `digivolutionCards: "hasAny"` (BT17-098). */
   hasDigivolutionCards?: boolean;
   /** Candidate color matches at least one color in the source Digimon's stack (EX9-074). */

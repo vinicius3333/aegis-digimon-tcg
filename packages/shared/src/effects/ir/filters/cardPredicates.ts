@@ -4,10 +4,21 @@
 import type { Keyword } from "../keywords.js";
 import type { Scaling } from "../predicates/scaling.js";
 import type { DpComparison } from "./dp.js";
+import type { Filter } from "./filter.js";
 
 export type FilterKeyword = Keyword;
 
 export interface CardPredicates {
+  /**
+   * Restricts the match to token permanents (`true`) or excludes them (`false`). Absent ⇒ tokens
+   * match on the same terms as printed cards.
+   */
+  isToken?: boolean;
+  /**
+   * Within-filter UNION: a card qualifies if it matches this filter's own predicates OR any of
+   * these alternatives. The filter-level twin of {@link Target.orFilters}.
+   */
+  orFilters?: Filter[];
   /** Loose-card candidate gate: its owner's trash has at least `count` cards whose names contain a token. */
   ownerTrashNameCountGte?: { count: number; tokens: string[] };
   kind?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];

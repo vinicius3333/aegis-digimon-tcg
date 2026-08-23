@@ -194,6 +194,12 @@ export interface ReturnAction extends ActionBase {
   /** Store returned instance ids for a downstream `bindingContains`/`bindingExists`. */
   bindResultAs?: string;
   /**
+   * Store the returned card's printed LEVEL under this name, for a later `namedCount` read
+   * ("delete an opposing Digimon of the same level", EX9-055). Distinct from `trackCount`,
+   * which records how many cards moved.
+   */
+  storeAs?: string;
+  /**
    * Store how many cards were ACTUALLY returned, for a later `unit: "namedCount"` scaling
    * ("gain 1 memory for each card returned", BT9-111). Re-counting a live filter instead would
    * overcount unrelated cards.

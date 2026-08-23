@@ -90,6 +90,8 @@ export interface ModifyDPAction extends ActionBase {
   duration: EffectDurationRef;
   /** Override continuous-pass inference for audited edge cases with a triggered duration. */
   continuous?: boolean;
+  /** Keywords granted to the same targets alongside the DP change, for the same duration. */
+  alsoGainKeywords?: KeywordRef[];
 }
 export interface AddDPFromTrashedCardAction extends ActionBase {
   kind: "AddDPFromTrashedCard";

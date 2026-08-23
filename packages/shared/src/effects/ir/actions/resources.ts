@@ -3,13 +3,14 @@
 import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
 import type { Controller } from "../filters/zones.js";
+import type { Condition } from "../predicates/conditions.js";
 import type { Cost } from "../predicates/costs.js";
 import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
 
 export interface DrawAction extends ActionBase {
   kind: "Draw";
-  controller: Controller;
+  controller: Controller | "both";
   amount: number;
   /** Draw only enough cards to reach this hand size. */
   untilHandSize?: number;
@@ -68,6 +69,7 @@ export type CostType =
   | "digivolve"
   | "use" // a Tamer/Option use cost — the generic "reduce the cost" form
   | "dpDeletion" // legacy compiler label for owner-wide DP-deletion maximum modifiers
+  | "level" // raises the level ceiling a play effect may reach (BT13-035 / BT13-064)
   | "playcost" // alternative spelling of "play"
   | "playCost"; // alternative spelling of "play"
 
@@ -150,8 +152,33 @@ export interface ReducePlayCostAction extends ActionBase {
         kind: "trashDigivolution";
         target: Target;
         minimum: number;
+      }
+    | {
+        /**
+         * No payment at all — a board state gates the reduction instead (BT16-065: "while a [Boss]
+         * Digimon is in play"). The condition is re-evaluated at pay time.
+         */
+        kind: "automatic";
+        condition: Condition;
+      }
+    | {
+        /** "By returning 6 [D-Brigade] cards from your trash to the bottom of your deck" (BT16-065). */
+        kind: "returnFromTrashToDeckTop";
+        target: Target;
+      }
+    | {
+        /**
+         * "By trashing the top card of your security stack, down to `leaveCount` cards" (BT16-100).
+         * Repeatable: each trashed card pays one unit, so the amount is `perPaid`.
+         */
+        kind: "trashSecurityTopUpToLeave";
+        leaveCount: number;
       };
-  amount: { kind: "fixed"; value: number } | { kind: "deletedSacrificePlayCost" };
+  amount:
+    | { kind: "fixed"; value: number }
+    | { kind: "deletedSacrificePlayCost" }
+    /** `value` per unit actually paid, for the repeatable payments. */
+    | { kind: "perPaid"; value: number };
 }
 
 /** Run a group of actions only once one shared activation cost is paid. */

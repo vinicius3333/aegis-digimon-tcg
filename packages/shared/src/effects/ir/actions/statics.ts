@@ -22,10 +22,15 @@ export interface GrantAuraToOpponentsAction extends ActionBase {
   filter?: Filter;
   /** Alternative to `filter`. */
   target?: Target;
-  /** The SubTrigger event the aura watches. */
-  event: string;
-  actions: Action[];
-  duration: EffectDurationRef;
+  /**
+   * The SubTrigger event the aura watches, with the body it runs. Absent for the GRANTEFFECT
+   * shell form, where `effectText` names the printed ability verbatim and the interpreter
+   * resolves it through the granted-effect library instead.
+   */
+  event?: string;
+  actions?: Action[];
+  /** Defaults to `untilOpponentTurnEnd`. */
+  duration?: EffectDurationRef;
   /** Effect text for the aura, used by the GRANTEFFECT pattern. */
   effectText?: string;
 }

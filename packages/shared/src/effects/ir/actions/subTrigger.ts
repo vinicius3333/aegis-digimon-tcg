@@ -123,8 +123,8 @@ export interface SubTriggerAction extends ActionBase {
    * leaves the field.
    */
   duration?: EffectDurationRef;
-  /** Original prose, for diagnostics and unsupported routing. */
-  raw: string;
+  /** Original prose, for diagnostics and unsupported routing. Absent on hand-authored IR. */
+  raw?: string;
   /** Internal text before recursive compilation. */
   _innerText?: string;
   triggerFilter?: Filter;

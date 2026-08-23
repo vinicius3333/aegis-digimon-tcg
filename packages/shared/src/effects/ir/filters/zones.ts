@@ -22,5 +22,7 @@ export type ZoneRef =
   | "digivolutionCardsUnderTamers"
   /** ＜Link＞ cards. As a `filter.zone`, resolves to the link cards of matching hosts, not the hosts. */
   | "linked"
+  /** Digivolution cards and ＜Link＞ cards together, as one pool (BT25-085). */
+  | "digivolutionCardsOrLinkCards"
   /** The prior reveal step's batch (`ctx.lastRevealedCards`), not a real zone. */
   | "revealed";
