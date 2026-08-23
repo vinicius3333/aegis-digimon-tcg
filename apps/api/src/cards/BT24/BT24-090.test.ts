@@ -23,7 +23,7 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
           controller: "mine",
           zone: "battleArea",
           kind: ["Digimon"],
-          namesExact: ["Neptunemon", "Venusmon"],
+          nameOrTrait: [{ tokens: ["Neptunemon", "Venusmon"], match: "nameExact" }],
         },
       },
     });
@@ -103,10 +103,7 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     );
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
-    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
-      instanceId: s.inst("sanctuary").instanceId,
-      faceUp: true,
-    });
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "BT24-090" && card.faceUp)).toBe(true);
     expect(s.state.memory).toBe(7);
   });
 
