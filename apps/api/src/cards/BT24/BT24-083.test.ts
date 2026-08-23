@@ -11,7 +11,11 @@ describe("BT24-083 Hiroko Sagisaka", () => {
     expect(start?.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
       target: {
-        filter: { controller: "mine", kind: ["Tamer"], namesExact: ["Hiroko Sagisaka"] },
+        filter: {
+          controller: "mine",
+          kind: ["Tamer"],
+          nameOrTrait: [{ tokens: ["Hiroko Sagisaka"], match: "nameExact" }],
+        },
         orFilters: [
           {
             kind: ["Digimon"],
@@ -87,6 +91,7 @@ describe("BT24-083 Hiroko Sagisaka", () => {
             { card: "BT24-013", as: "ts" },
             { card: "BT1-001", as: "missA" },
             { card: "BT1-002", as: "missB" },
+            { card: "BT1-003", as: "filler" },
           ],
         },
       },
@@ -97,9 +102,10 @@ describe("BT24-083 Hiroko Sagisaka", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("hiroko"));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ts").instanceId);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toEqual(
       expect.arrayContaining([s.inst("missA").instanceId, s.inst("missB").instanceId]),
     );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("filler").instanceId);
   });
 
   it("plays itself from security without paying the cost", async () => {
