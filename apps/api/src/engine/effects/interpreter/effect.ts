@@ -110,6 +110,11 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return EffectTiming.OnUseOption;
     case "Security":
       return EffectTiming.SecuritySkill;
+    case "WhenEffectAddsToHand":
+      // "When one of your Digimon's effects adds cards to your hand" (BT15-002's inherited
+      // clause): the engine's own add-to-hand window. Distinct from `Hand`, which tags an
+      // effect the controller ACTIVATES while the card sits in hand.
+      return EffectTiming.OnAddHand;
     case "Hand":
       return EffectTiming.OnDeclaration;
     case "Counter":
@@ -309,6 +314,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenTrashedFromBattleArea;
     case "Main":
       return activated;
+    case "WhenEffectAddsToHand":
     case "Hand":
       return onAddHand;
     case "Trash":

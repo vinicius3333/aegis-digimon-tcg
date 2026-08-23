@@ -29,6 +29,12 @@ export type EffectTrigger =
   | "Security"
   | "Counter"
   | "Hand"
+  /**
+   * Fires when an effect adds cards to a player's hand (BT15-002's inherited clause). Maps to
+   * EffectTiming.OnAddHand. Distinct from "Hand", which tags an effect the controller ACTIVATES
+   * while the card sits in hand.
+   */
+  | "WhenEffectAddsToHand"
   | "Trash"
   | "Breeding"
   | "WhenMoving"

@@ -30,16 +30,16 @@ describe("effectsOf (single card)", () => {
     // BT7-089 contributes a Security effect at SecuritySkill.
     const sec = effectsOf(EffectTiming.SecuritySkill, source);
     expect(sec).toHaveLength(1);
-    expect(sec[0]?.effectKey).toBe("BT7-089/play-from-security");
+    expect(sec[0]?.effectKey).toBe("BT7-089/ir-26-0");
     expect(sec[0]?.isSecurity).toBe(true);
 
     // ...its static modifiers at None, including the inherited Piercing provider...
     const stat = effectsOf(EffectTiming.None, source);
     expect(stat.map((e) => e.effectKey)).toEqual([
-      "BT7-089/green-evo-cost-minus-1",
-      "BT7-089/inherited-piercing",
+      "BT7-089/ir-35-0",
+      "BT7-089/ir-35-1",
     ]);
-    expect(stat.find((effect) => effect.effectKey === "BT7-089/inherited-piercing")?.isInherited).toBe(true);
+    expect(stat.find((effect) => effect.effectKey === "BT7-089/ir-35-1")?.isInherited).toBe(true);
 
     // Piercing is continuous, not a security-check timing effect.
     expect(effectsOf(EffectTiming.OnDetermineDoSecurityCheck, source)).toEqual([]);
@@ -77,14 +77,14 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
 
     const onTurn = collectTriggeredEffects(EffectTiming.None, [source], makeContext, new UseTracker());
     expect(onTurn.map((c) => c.effect.effectKey)).toEqual([
-      "BT7-089/green-evo-cost-minus-1",
-      "BT7-089/inherited-piercing",
+      "BT7-089/ir-35-0",
+      "BT7-089/ir-35-1",
     ]);
 
     // On the opponent's turn the `when` guard (isOwnersTurn) fails -> not collected.
     s.state.turnSeat = 1;
     const offTurn = collectTriggeredEffects(EffectTiming.None, [source], makeContext, new UseTracker());
-    expect(offTurn.map((c) => c.effect.effectKey)).toEqual(["BT7-089/inherited-piercing"]);
+    expect(offTurn.map((c) => c.effect.effectKey)).toEqual(["BT7-089/ir-35-1"]);
   });
 
   it("respects maxPerTurn across collection (BT15-002 once-per-turn)", () => {
@@ -114,10 +114,10 @@ describe("collectTriggeredEffects (kernel canTrigger applied)", () => {
 
     const tracker = new UseTracker();
     const first = collectTriggeredEffects(EffectTiming.OnAddHand, [source], makeContext, tracker);
-    expect(first.map((c) => c.effect.effectKey)).toEqual(["BT15-002/dp-plus-1000"]);
+    expect(first.map((c) => c.effect.effectKey)).toEqual(["BT15-002/ir-5-0"]);
 
     // Record a use; the once-per-turn effect should no longer trigger.
-    tracker.register(source.instanceId, "BT15-002/dp-plus-1000");
+    tracker.register(source.instanceId, "BT15-002/ir-5-0");
     const second = collectTriggeredEffects(EffectTiming.OnAddHand, [source], makeContext, tracker);
     expect(second).toEqual([]);
   });
@@ -163,8 +163,8 @@ describe("gatherTriggeredEffects (full instance -> source -> collection chain)",
       [card],
     );
     expect(collected.map((c) => c.effect.effectKey)).toEqual([
-      "BT7-089/green-evo-cost-minus-1",
-      "BT7-089/inherited-piercing",
+      "BT7-089/ir-35-0",
+      "BT7-089/ir-35-1",
     ]);
     expect(collected[0]?.source.cardId).toBe("BT7-089");
   });

@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Hand",
+      trigger: "WhenEffectAddsToHand",
       actions: [
         {
           kind: "ModifyDP",
@@ -15,6 +15,9 @@ const compiled: CompiledCard = {
           condition: { kind: "triggerByYourDigimonEffect", raw: "one of your Digimon's effects adds cards to your hand" },
         },
       ],
+      // The cause gate belongs to the EFFECT, not just its action: an add-to-hand that was not
+      // driven by one of your Digimon's effects must not even be collected at the window.
+      condition: { kind: "triggerByYourDigimonEffect", raw: "one of your Digimon's effects adds cards to your hand" },
       isInherited: true,
       frequency: "OncePerTurn",
     },

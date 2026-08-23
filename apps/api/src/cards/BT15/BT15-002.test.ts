@@ -9,7 +9,7 @@ describe("BT15-002", () => {
     expect(effects).toHaveLength(1);
     expect(effects?.[0]).toMatchObject({ isInherited: true, maxPerTurn: 1 });
     expect(compiled.effects?.[0]).toMatchObject({
-      trigger: "Hand",
+      trigger: "WhenEffectAddsToHand",
       frequency: "OncePerTurn",
       actions: [{ condition: { kind: "triggerByYourDigimonEffect" }, amount: 1000 }],
     });
