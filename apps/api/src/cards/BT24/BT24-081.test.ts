@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { printedKeywordsOf } from "../../engine/combat/keywords.js";
+import { getCardDefinition } from "@aegis/shared";
 import { compiled as BT24_081 } from "./BT24-081.js";
 import "../index.js";
 
@@ -22,7 +24,7 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     expect(deletion).toMatchObject({
       kind: "PlayWithoutCost",
       target: {
-        filter: { namesExact: ["Titamon"] },
+        filter: { nameOrTrait: [{ tokens: ["Titamon"], match: "nameExact" }] },
         orFilters: [{ levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] }],
       },
       from: ["trash"],
@@ -126,8 +128,8 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT24-081", as: "titamon" }] } });
     await s.ready();
 
+    const printed = printedKeywordsOf(getCardDefinition("BT24-081")?.effectText);
+    expect(printed).toEqual(expect.arrayContaining(["Rush", "Piercing", "Execute"]));
     expect(observe(s.engine).hasKeyword(s.perm("titamon"), "Rush")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("titamon"), "Piercing")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("titamon"), "Execute")).toBe(true);
   });
 });
