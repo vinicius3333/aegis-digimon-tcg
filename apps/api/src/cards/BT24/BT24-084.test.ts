@@ -33,7 +33,7 @@ describe("BT24-084 Inori Misono", () => {
               target: {
                 filter: {
                   controller: "mine",
-                  namesExact: ["Aegiomon"],
+                  nameOrTrait: [{ tokens: ["Aegiomon"], match: "nameExact" }],
                 },
                 count: 1,
               },
