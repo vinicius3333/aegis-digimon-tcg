@@ -199,9 +199,6 @@ const _module: EffectModule = {
               return (ctx.game.definitionOf(p.topCard).kinds as string[]).includes("Digimon");
             });
             if (hasOppDigimon) {
-              // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-              // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-              // owner explicitly rather than the turn player.
               ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
             }
           },

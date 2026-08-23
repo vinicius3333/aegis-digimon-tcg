@@ -25,7 +25,7 @@ const module: EffectModule = {
             "[Start of Your Main Phase] By trashing 1 card with [Vemmon] in its text from " +
             "your hand, <Draw 1>. Then, gain 1 memory.",
           optional: true,
-          when: (_ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const vemmonCards = Array.from(owner.hand).filter((c) => hasVemmonInText(ctx.game.definitionOf(c)));
@@ -40,9 +40,6 @@ const module: EffectModule = {
               ctx.fx.draw(source.ownerSeat, 1);
               const willGain = await ctx.ask.optional(ctx, "Gain 1 memory?");
               if (willGain) {
-                // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause
-                // is also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit
-                // this Tamer's owner explicitly rather than the turn player.
                 ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
               }
             }

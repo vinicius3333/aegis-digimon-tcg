@@ -21,7 +21,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-main-gain-memory`,
           description: "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.",
-          when: (_ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             return Array.from(ctx.game.player(opponent).battleArea).some(
@@ -29,9 +29,6 @@ const module: EffectModule = {
             );
           },
           resolve: async (ctx) => {
-            // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-            // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-            // Tamer's owner explicitly rather than the turn player.
             ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
           },
         }),

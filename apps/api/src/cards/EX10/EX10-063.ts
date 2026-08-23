@@ -26,7 +26,7 @@ const module: EffectModule = {
             "don't have a Digimon, you may play 1 [Sunarizamon] from your trash without " +
             "paying the cost.",
           optional: true,
-          when: (_ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) =>
             source.isOnBattleArea() &&
             Array.from(ctx.game.player(source.ownerSeat).hand).some(

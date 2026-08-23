@@ -48,6 +48,7 @@ const module: EffectModule = {
               effectKey: `${cardId}/start-main`,
               description:
                 "[Start of Your Main Phase] By trashing 1 [Composite] or [Wicked God] trait card from your hand, draw 1 and gain 1 memory.",
+              when: () => source.isOnBattleArea() && source.isOwnersTurn(),
               resolve: async (ctx) => drawAndGainMemory(ctx, source),
             });
       return [effect];

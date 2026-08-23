@@ -25,7 +25,7 @@ const module: EffectModule = {
             "[Sea Animal] trait from your hand as the bottom digivolution card of any of your " +
             "[Aqua]/[Sea Animal] Digimon, gain 1 memory.",
           optional: true,
-          when: (_ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             return Array.from(owner.hand).some((c) => {
@@ -57,9 +57,6 @@ const module: EffectModule = {
             });
             if (chosenHost.length === 0) return;
             await ctx.fx.placeUnder(chosenHost[0]!, chosenCard);
-            // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-            // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-            // Tamer's owner explicitly rather than the turn player.
             ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
           },
         }),
