@@ -2233,3 +2233,31 @@ for the individual evidence below.
   interpreter — 171/171; capabilities — 290/290; shared build, API typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, ruling
   dependency, or unresolved limitation remains.
+
+## EX12-070 — Sanmyojin Arrival — 10/10
+
+- **Printed contract:** Yellow/green/blue cost-3 Shambala/TB Option with a TB Use Requirement.
+  Main may trash one TB card from hand as its required “By” cost, then draws 2 and places this
+  card in the battle area. When an allied level-5-or-higher TB Digimon would leave, its intrinsic
+  Delay may play one Sanmyojin Digimon from hand for free. Security activates Main.
+- **KB evidence:** Q6883 prohibits both Draw 2 and the post-“After” placement when the TB cost is
+  not paid. Q6884 and Q6885 make the would-leave effect simultaneous with Evade/Decode and the
+  resulting On Play/On Deletion effects, with ordering chosen through the shared timing queue;
+  the card IR imposes no card-local priority over those effects.
+- **Corrections:** the stale aggregate represented Main as `RawUnparsed`, modeled the leave
+  clause as a replacement that merely granted Delay, detached its play payload, and retained
+  partial coverage/residual text. It now exactly mirrors the direct executable IR: costed Draw
+  with abort-on-decline, self-placement tail, intrinsic Delay keyword, filtered would-leave
+  SubTrigger, nested Sanmyojin play, full coverage, and empty residuals.
+- **Behavioral proof:** a red-only TB permanent waives all printed Option colors; paying with a TB
+  card draws exactly 2 and creates the Option permanent. Both an unpayable cost and an explicit
+  decline leave the deck unchanged and prevent placement, proving Q6883. Security executes the
+  same Main. A real level-5 TB deletion consumes an aged Delay and plays Kaguyamon before the
+  timing completes; a level-4 TB deletion neither consumes the Option nor plays the target.
+- **Identity and verification:** catalog identity, all filters/zones/costs, Delay scope, Security,
+  full coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality
+  are asserted. `EX12-070.test.ts` — 8/8; advanced keyword conformance — 30/30;
+  `PlaceInBattleAreaSelf` — 4/4; subtrigger seams — 22/22; security activation — 2/2;
+  interpreter — 171/171; capabilities — 290/290; shared build, API typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved
+  ruling remains.

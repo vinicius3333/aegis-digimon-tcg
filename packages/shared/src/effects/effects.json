@@ -137290,8 +137290,9 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): ＜Draw 2＞ After, place this card in the battle area",
+            "kind": "Draw",
+            "controller": "mine",
+            "amount": 2,
             "cost": {
               "kind": "trash",
               "target": {
@@ -137304,16 +137305,19 @@
               },
               "raw": "By trashing 1 [TB] trait card from your hand"
             },
-            "optional": true
-          }
+            "optional": true,
+            "abortOnDecline": true
+          },
+          { "kind": "PlaceInBattleAreaSelf" }
         ]
       },
       {
         "trigger": "AllTurns",
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
         "actions": [
           {
-            "kind": "Replacement",
-            "event": "wouldLeavePlay",
+            "kind": "SubTrigger",
+            "event": "whenDigimonWouldLeave",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -137322,33 +137326,27 @@
             },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Sanmyojin"], "match": "trait" }]
+                  },
+                  "count": 1
+                },
+                "from": ["hand"],
+                "payCost": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Sanmyojin"], "match": "trait" }]
-              },
-              "count": 1
-            },
-            "from": ["hand"],
-            "payCost": false,
-            "optional": true
           }
         ]
       },
       { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
     ],
-    "coverage": "partial",
-    "residual": ["missing-primitive(unaudited): ＜Draw 2＞ After, place this card in the battle area"]
+    "coverage": "full",
+    "residual": []
   },
   "EX12-071": {
     "effects": [
