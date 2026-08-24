@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
           controller: "mine",
           amount: 2,
           cost: { kind: "trash", target: { filter: handCost, count: 1 } },
+          optional: true,
         },
       ],
     },

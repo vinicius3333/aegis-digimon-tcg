@@ -32,6 +32,45 @@ describe("BT26-008 Kotemon", () => {
     });
   });
 
+  it("digivolves for zero over an off-color TS egg and rejects an off-color near-match", async () => {
+    const legal = setupEngine({
+      0: {
+        breeding: { card: "BT24-002", as: "tsEgg" },
+        hand: [{ card: "BT26-008", as: "kotemon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    legal.state.memory = 0;
+
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsEgg").permanentId,
+        instanceId: legal.inst("kotemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT26-008");
+    expect(legal.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        breeding: { card: "BT1-003", as: "plainBlueEgg" },
+        hand: [{ card: "BT26-008", as: "kotemon" }],
+      },
+    });
+    invalid.state.memory = 0;
+
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("plainBlueEgg").permanentId,
+        instanceId: invalid.inst("kotemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("grants Piercing and +3000 DP to one controller-owned Shambala/TS Digimon", async () => {
     const s = setupEngine(
       {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-009.js";
 import "../index.js";
 
@@ -12,7 +12,7 @@ describe("BT26-009 Hyokomon", () => {
       effects: [{ trigger: "StartOfYourMainPhase" }, { trigger: "WhenAttacking", isInherited: true }],
     });
   });
-  it("uses the exact off-color Lv.2 [TS] cost-0 evolution path and rejects a near-match", () => {
+  it("uses the exact off-color Lv.2 [TS] cost-0 evolution path and rejects a near-match", async () => {
     expect(digivolutionRequirementsFor("BT26-009")).toContainEqual({
       level: 2,
       traits: ["TS"],
@@ -22,7 +22,7 @@ describe("BT26-009 Hyokomon", () => {
 
     const legal = setupEngine({
       0: {
-        breeding: { card: "BT26-001", as: "tsEgg" },
+        breeding: { card: "BT24-002", as: "tsEgg" },
         hand: [{ card: "BT26-009", as: "hyokomon" }],
         deck: ["BT1-009"],
       },
@@ -35,6 +35,9 @@ describe("BT26-009 Hyokomon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsEgg").topCard.cardId === "BT26-009");
+    expect(legal.perm("tsEgg").stack.map((card) => card.cardId)).toEqual(["BT24-002"]);
+    expect(legal.state.memory).toBe(0);
 
     const illegal = setupEngine({
       0: {
@@ -65,7 +68,7 @@ describe("BT26-009 Hyokomon", () => {
           deck: [{ card: "BT1-010", as: "drawn" }],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("chronomon").instanceId);
 
@@ -92,7 +95,7 @@ describe("BT26-009 Hyokomon", () => {
           deck: [{ card: "BT1-010", as: "drawn" }],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("shaman").instanceId);
 
@@ -106,18 +109,41 @@ describe("BT26-009 Hyokomon", () => {
   });
 
   it("does not draw or gain memory when no hand card can pay the start-main cost", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-009", as: "hyokomon" }],
-        hand: [{ card: "BT1-009", as: "unrelated" }],
-        deck: [{ card: "BT1-010", as: "notDrawn" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-009", as: "hyokomon" }],
+          hand: [{ card: "BT1-009", as: "unrelated" }],
+          deck: [{ card: "BT1-010", as: "notDrawn" }],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hyokomon"));
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrelated").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notDrawn").instanceId]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("may decline the optional start-main payment without trashing, drawing, or gaining memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-009", as: "hyokomon" }],
+          hand: [{ card: "BT26-016", as: "eligibleCost" }],
+          deck: [{ card: "BT1-010", as: "notDrawn" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hyokomon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("eligibleCost").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawn").instanceId]);
     expect(s.state.memory).toBe(0);
   });
 
