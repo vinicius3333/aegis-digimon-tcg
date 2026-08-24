@@ -5,7 +5,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const destroyMode = {
   controller: "mine",
-  zone: "hand",
   nameOrTrait: [{ tokens: ["Chronomon: Destroy Mode"], match: "nameExact" }],
 };
 
