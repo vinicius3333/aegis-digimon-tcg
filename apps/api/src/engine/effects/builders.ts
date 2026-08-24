@@ -68,6 +68,28 @@ const inTrashZone = (ctx: EffectContext): boolean => ctx.source.isInTrash?.() ??
 const inHandZone = (ctx: EffectContext): boolean => ctx.source.isInHand?.() ?? false;
 const inFaceUpSecurity = (ctx: EffectContext): boolean => ctx.source.isInSecurity?.() ?? false;
 
+/**
+ * Comprehensive Rules §3-4-5-6: "Trigger conditions can't be met by cards in breeding areas,
+ * except for effects that explicitly specify or reference breeding areas." The rulebook's own
+ * example is a Tamer's "[Your Turn] When your Digimon digivolves, by suspending this Tamer,
+ * <Draw 1>", which stays silent when the digivolution happened in the breeding area (KB
+ * Q870/Q1038; per Q4428 only the word "field" spans both areas — "your Digimon" is the battle
+ * area alone).
+ *
+ * Board-wide windows (OnEnterFieldAnyone and friends) are broadcast with the breeding-area
+ * permanent as their subject, because the effects that DO reference that area — every
+ * `[Breeding]` effect, which by definition sits on the breeding permanent — must still see it.
+ * So the rule is applied per OBSERVER here, in the one guard every timing builder shares: an
+ * effect whose source is not itself in the breeding area cannot be triggered by a breeding-area
+ * subject.
+ */
+const breedingSubjectHidden = (ctx: EffectContext): boolean => {
+  const subjectPermanentId = ctx.trigger?.subjectPermanentId;
+  if (subjectPermanentId === undefined) return false;
+  if (ctx.game.permanentById(subjectPermanentId)?.inBreeding !== true) return false;
+  return !inBreedingArea(ctx);
+};
+
 function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
   const baseGuard = flags.baseGuard ?? onField;
   const extra = opts.when;
@@ -84,7 +106,7 @@ function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
     maxPerTurn: opts.maxPerTurn ?? -1,
     ...(flags.costWindow !== undefined ? { costWindow: flags.costWindow } : {}),
     ...(opts.continuousPriority !== undefined ? { continuousPriority: opts.continuousPriority } : {}),
-    canTrigger: (ctx) => baseGuard(ctx) && (extra ? extra(ctx) : true),
+    canTrigger: (ctx) => !breedingSubjectHidden(ctx) && baseGuard(ctx) && (extra ? extra(ctx) : true),
     canActivate: (ctx) => (activate ? activate(ctx) : true),
     resolve: opts.resolve,
   };

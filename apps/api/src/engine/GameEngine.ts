@@ -69,7 +69,7 @@ import {
 import { createPrimitives, ModifierLedger, dnaDigivolveCostFor } from "./effects/primitives.js";
 import { ContinuousEffectLedger, effectiveColors, effectiveKinds, effectiveTraits } from "./effects/continuous.js";
 import { linkMax } from "./effects/mindLink.js";
-import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
+import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
 import { createGameAccess, createCardStateLookup, createEffectContext } from "./effects/context.js";
@@ -94,6 +94,7 @@ import {
 } from "./effects/interpreter.js";
 import type { CardSource } from "./effects/CardSource.js";
 import type { Effect } from "./effects/Effect.js";
+import type { CollectedEffect } from "./effects/collect.js";
 import type {
   EffectContext,
   GameAccess,
@@ -239,6 +240,32 @@ function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]
  * boot path compiles/runs, but the rules engine itself is intentionally stubbed.
  * Each subsystem below maps to an entry in historical migration ledger
  */
+/**
+ * A watcher's identity ACROSS continuous recomputes. Every recompute clears the continuous
+ * subscriptions and re-installs them, so `sub.id` is stable only within one recompute cycle;
+ * the (event, anchor, description) triple is what `SubTriggerRegistry.subscribe` itself treats
+ * as "the same subscription", and it survives the reinstall.
+ */
+function subTriggerIdentity(sub: SubTriggerSubscription): string {
+  return [sub.event, sub.sourcePermanentId ?? "", sub.sourceInstanceId ?? "", sub.description].join("|");
+}
+
+/** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
+interface ArmedSubTrigger {
+  sub: SubTriggerSubscription;
+  /** Context as of the event — what the ordering prompt is built from (controller, card). */
+  ctx: EffectContext;
+  /**
+   * Context to run the body against, resolved when this watcher's turn actually comes. The
+   * ordering prompt runs BETWEEN bodies, so an earlier body may have moved the board: a watcher
+   * whose trigger condition stopped being met by then can no longer activate (CR §15-4-4-5), and
+   * `fireSnapshot` drops it by re-checking `matches` against this fresh context. The deferred
+   * paths pass the context bound when their event happened instead, because their trigger has
+   * already activated (KB Q2611/Q2629).
+   */
+  contextAtFireTime: () => EffectContext | undefined;
+}
+
 export class GameEngine {
   private readonly memory: MemoryGauge;
   private readonly turnMachine: TurnStateMachine;
@@ -290,6 +317,20 @@ export class GameEngine {
    * once (see {@link continueMainVerb}).
    */
   private mainVerbChain: Promise<void> = Promise.resolve();
+  /**
+   * Watchers already resolved by the timing window that shares their event (see
+   * {@link withPendingSubTriggers}), keyed by {@link subTriggerIdentity} rather than by
+   * subscription id: a continuous recompute tears down and RE-INSTALLS every continuous watcher
+   * under a fresh id, so an id-keyed ledger would stop recognizing the watcher it just resolved
+   * and the trailing bus fire would run it a second time. Populated only inside such a window and
+   * cleared when the outermost one closes.
+   */
+  private readonly consumedSubTriggerKeys = new Set<string>();
+  /** Nesting depth of {@link withPendingSubTriggers} windows. */
+  private subTriggerWindowDepth = 0;
+  /** Watchers armed for the event of the enclosing window, offered to that window's resolver. */
+  private pendingWindowSubTriggers: ArmedSubTrigger[] = [];
+
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   private readonly deferredSecurityRemovalTriggers: Array<{
     payload: TriggerInfo;
@@ -348,6 +389,18 @@ export class GameEngine {
     } finally {
       this.flushingDeferredSecurityRemovalTriggers = false;
     }
+  }
+
+  /**
+   * Everything that must happen between two effects of one resolution loop, after the rule
+   * sweep: drain the windows a resolving effect deferred (an [On Deletion] caused mid-body) and
+   * the deferred security-removal reactions. Both were parked precisely because an effect was
+   * running; between effects none is, and their triggers must activate BEFORE the effects that
+   * were already pending (CR §15-4-5-2/3, KB Q3430).
+   */
+  private async settleBetweenEffects(): Promise<void> {
+    await this.flushDeferredTimingWindows();
+    await this.flushDeferredSecurityRemovalTriggers();
   }
 
   private async flushDeferredTimingWindows(): Promise<void> {
@@ -1073,8 +1126,9 @@ export class GameEngine {
       // Both seams of "becomes unsuspended": the timing window handwritten modules listen on
       // (BT11-032's bounce) and the SubTrigger bus the compiled watchers use. The effect-driven
       // unsuspend primitive fires the same pair, so a turn-start unsuspend must not fire fewer.
-      await this.fireTiming(EffectTiming.OnUnTappedAnyone, { unsuspendedPermanentId: permanentId });
-      await this.fireSubTrigger("whenUnsuspended", { unsuspendedPermanentId: permanentId });
+      await this.withPendingSubTriggers(["whenUnsuspended"], { unsuspendedPermanentId: permanentId }, () =>
+        this.fireTiming(EffectTiming.OnUnTappedAnyone, { unsuspendedPermanentId: permanentId }),
+      );
     }
     return allFlipped;
   }
@@ -1180,11 +1234,12 @@ export class GameEngine {
       drawn.push(top);
     }
     if (drawn.length > 0) {
-      await this.fireTiming(EffectTiming.OnDraw, { drawnInstanceIds: drawn.map((c) => c.instanceId) });
-      // Fire the SubTrigger bus so reactive watchers run. The event carries the
-      // drawing seat; the gate in runSubTrigger (interpreter.ts) fires a watcher only
-      // when drawingSeat is the OPPONENT of the watcher's controller seat.
-      await this.fireSubTrigger("whenOpponentDraws", { drawingSeat: seat });
+      // Both halves of one draw: the OnDraw window and the reactive watchers. The event
+      // carries the drawing seat; the gate in runSubTrigger (interpreter.ts) fires a watcher
+      // only when drawingSeat is the OPPONENT of the watcher's controller seat.
+      await this.withPendingSubTriggers(["whenOpponentDraws"], { drawingSeat: seat }, () =>
+        this.fireTiming(EffectTiming.OnDraw, { drawnInstanceIds: drawn.map((c) => c.instanceId) }),
+      );
     }
     return drawn;
   }
@@ -1387,29 +1442,37 @@ export class GameEngine {
         // every OTHER permanent's [When Digivolving] effect — including the opponent's
         // — because those effects rely on the engine (not a per-card owner's-turn guard)
         // to be scoped to the digivolving card.
-        await this.fireTimingForPermanent(EffectTiming.WhenDigivolving, permanent, {
+        // One digivolution, one set of simultaneous triggers: the evolving card's own
+        // [When Digivolving], the board-wide enter-field window, and every "when your Digimon
+        // digivolves" watcher. They reach the resolver as ONE pool, so the controller orders
+        // all of them in a single prompt — Destromon's own [When Digivolving] against the two
+        // Xeno EX11-066 watchers, for example — instead of the printed effects always
+        // resolving before the watchers.
+        const digivolveTrigger = {
           subjectPermanentId: permanent.permanentId,
           previousDigivolutionLevel: previousLevel,
-        });
-        // Thread the digivolving permanent as the trigger subject (documented behavior: the enter-field
-        // hashtable carries the entered permanent). An OnEnterFieldAnyone effect that
-        // targets "the Digimon that digivolved" (BT19-080) reads ctx.trigger.subjectPermanentId;
-        // it was previously undefined here, leaving such effects silently inert.
-        await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-          subjectPermanentId: permanent.permanentId,
-          previousDigivolutionLevel: previousLevel,
-          entryCause: "digivolve",
-        });
-        // SubTrigger bus: "when one of your Digimon digivolves" watchers react to the
-        // digivolving permanent (the subject), co-located with the WhenDigivolving timing.
-        await this.fireSubTrigger("whenOneOfYoursDigivolves", {
-          subjectPermanentId: permanent.permanentId,
-          previousDigivolutionLevel: previousLevel,
-        });
-        await this.fireSubTrigger("whenAnyDigivolves", {
-          subjectPermanentId: permanent.permanentId,
-          previousDigivolutionLevel: previousLevel,
-        });
+        };
+        await this.withPendingSubTriggers(
+          ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
+          digivolveTrigger,
+          async () => {
+            // Scope [When Digivolving] to the permanent that just digivolved (its top card
+            // plus inherited stack effects). A global fire would also collect and resolve
+            // every OTHER permanent's [When Digivolving] effect — including the opponent's
+            // — because those effects rely on the engine (not a per-card owner's-turn guard)
+            // to be scoped to the digivolving card.
+            await this.fireTimingForPermanent(EffectTiming.WhenDigivolving, permanent, digivolveTrigger);
+            // Thread the digivolving permanent as the trigger subject (documented behavior: the
+            // enter-field hashtable carries the entered permanent). An OnEnterFieldAnyone effect
+            // that targets "the Digimon that digivolved" (BT19-080) reads
+            // ctx.trigger.subjectPermanentId; it was previously undefined here, leaving such
+            // effects silently inert.
+            await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+              ...digivolveTrigger,
+              entryCause: "digivolve",
+            });
+          },
+        );
       },
       emit: (event) => this.hooks.emit(event as ServerEvent),
     };
@@ -1675,31 +1738,34 @@ export class GameEngine {
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
-      await runTiming(timing, this.effectEnvironment(trigger), this.resolutionDeps());
-      if (wasOutermostWindow) {
-        await this.flushDeferredTimingWindows();
-        await this.flushDeferredSecurityRemovalTriggers();
-      }
-      // GRANTED timed triggers (System B) fired at the same physical point as the matching
-      // Phase]" ability granted onto a permanent (BT23-056) fires at OnStartMainPhase; the
-      // per-install `matches` gate re-checks turn-ownership so it fires only on the watched
-      // permanent's owner's main phase (documented behavior), never the granter's.
+      // GRANTED timed triggers fired at the same physical point as the matching window, and
+      // therefore simultaneous with the printed effects it collects:
+      //   - "[Start of Your Main Phase]" granted onto a permanent (BT23-056); the per-install
+      //     `matches` gate re-checks turn-ownership so it fires only on the watched permanent's
+      //     owner's main phase (documented behavior), never the granter's.
+      //   - "[End of Your Turn]" (EX10-035's delayed self-delete) and "at the end of your
+      //     opponent's turn" (EX3-069/EX4-058/EX4-071/EX6-070/BT16-084/BT16-085/BT16-088/
+      //     BT17-025), both at the OnEndTurn window while `state.turnSeat` is still the ENDING
+      //     player's seat, which is what `endOfOpponentTurnGate` reads.
+      const runWindow = async (): Promise<void> => {
+        await runTiming(
+          timing,
+          this.effectEnvironment(trigger),
+          this.resolutionDeps(undefined, { outermost: wasOutermostWindow }),
+        );
+        if (wasOutermostWindow) {
+          await this.flushDeferredTimingWindows();
+          await this.flushDeferredSecurityRemovalTriggers();
+        }
+      };
       if (timing === EffectTiming.OnStartMainPhase) {
-        await this.fireSubTrigger("startOfYourMainPhase");
+        await this.withPendingSubTriggers(["startOfYourMainPhase"], {}, runWindow);
+      } else if (timing === EffectTiming.OnEndTurn) {
+        await this.withPendingSubTriggers(["endOfTurn", "endOfOpponentTurn"], {}, runWindow);
+      } else {
+        await runWindow();
       }
-      // GRANTED "[End of Your Turn]" timed triggers (EX10-035's delayed self-delete) fire at the
-      // OnEndTurn window, while it is still notionally the turn player's frame. The per-install
-      // `expiresOnTurnEndOf` then drops the one-shot watcher at the following ownerTurnEnd sweep.
       if (timing === EffectTiming.OnEndTurn) {
-        await this.fireSubTrigger("endOfTurn");
-        // "endOfOpponentTurn" ("at the end of your opponent's turn", EX3-069/EX4-058/EX4-071/
-        // EX6-070/BT16-084/BT16-085/BT16-088/BT17-025): fires at the SAME OnEndTurn window as
-        // endOfTurn — this.state.turnSeat is still the ENDING player's seat here (the turn
-        // machine has not advanced it yet) — so the watcher's own dedicated gate
-        // (endOfOpponentTurnGate) can read it directly and compare against the watcher's own
-        // seat, mirroring whenOpponentDrawsGate's "read ambient state, not a payload field"
-        // pattern for a seat-scoped event with no natural subject permanent.
-        await this.fireSubTrigger("endOfOpponentTurn");
         await this.processPendingBurstDigivolveTrash();
       }
       await this.recomputeContinuousEffects();
@@ -1771,6 +1837,41 @@ export class GameEngine {
    * predicate can read what happened). A watcher whose source permanent has left the
    * field is skipped (its subscription was already dropped on leave).
    */
+  /**
+   * Sub-trigger events whose SUBJECT is a breeding-area permanent by definition. They are the
+   * "effects that explicitly specify or reference breeding areas" exception in Comprehensive
+   * Rules §3-4-5-6, so the breeding-visibility guard below must never drop them.
+   */
+  private static readonly BREEDING_SUBJECT_EVENTS: ReadonlySet<SubTriggerEventName> = new Set([
+    "whenHatch",
+    "whenMovedFromBreeding",
+    "whenOpponentMovedFromBreeding",
+  ]);
+
+  /**
+   * Comprehensive Rules §3-4-5-6: "Trigger conditions can't be met by cards in breeding areas,
+   * except for effects that explicitly specify or reference breeding areas." Its own example is
+   * a Tamer's "[Your Turn] When your Digimon digivolves, by suspending this Tamer, <Draw 1>",
+   * which does NOT trigger off a breeding-area digivolution (KB Q870/Q1038; Q4428: only the word
+   * "field" spans both areas, "your Digimon" is the battle area alone).
+   *
+   * The engine still FIRES the digivolve/play/place-under events for a breeding-area subject —
+   * a [Breeding] effect on the breeding permanent itself legitimately watches them — so the rule
+   * is enforced per WATCHER: one whose source is not itself in the breeding area cannot see a
+   * breeding-area subject, and is skipped exactly like a watcher whose source left the field.
+   */
+  private breedingHidesSubjectFrom(
+    event: SubTriggerEventName,
+    payload: TriggerInfo,
+    watcherSource: CardSource,
+  ): boolean {
+    if (GameEngine.BREEDING_SUBJECT_EVENTS.has(event)) return false;
+    const subjectId = payload.subjectPermanentId;
+    if (subjectId === undefined) return false;
+    if (this.access.permanentById(subjectId)?.inBreeding !== true) return false;
+    return watcherSource.isOnBreedingArea?.() !== true;
+  }
+
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
     if (this.ruleProcessing) {
       const deletedControllerSeat =
@@ -1812,85 +1913,27 @@ export class GameEngine {
     const wasContinuousMode = this.continuousMode;
     this.continuousMode = false;
     try {
-      if (event === "whenLinked") {
-        // A link operation creates two simultaneous trigger families: effects on the
-        // recipient ("when this Digimon gets linked") and the newly linked card's own
-        // [When Linking] face. They are all subscriptions in the same event snapshot, so
-        // let each controller choose the next one exactly like a normal timing window.
-        // This ordering is observable for BT26-084/Q7128: its link face can recursively
-        // link a card before or after the host's reveal/play watcher resolves.
-        const snapshot = this.subTriggers.subscriptionsFor(event);
-        const contexts = new Map<number, EffectContext>();
-        const remaining = snapshot.filter((sub) => {
-          if (sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") > 0) {
-            return false;
-          }
-          const ctx = this.buildSubTriggerContext(sub, payload);
-          if (ctx === undefined || (sub.matches !== undefined && !sub.matches(ctx))) return false;
-          contexts.set(sub.id, ctx);
-          return true;
-        });
-        while (remaining.length > 0) {
-          const prioritySeat = remaining.some((sub) => contexts.get(sub.id)!.source.ownerSeat === this.state.turnSeat)
-            ? this.state.turnSeat
-            : contexts.get(remaining[0]!.id)!.source.ownerSeat;
-          const sameController = remaining.filter((sub) => contexts.get(sub.id)!.source.ownerSeat === prioritySeat);
-          let chosen = sameController[0]!;
-          if (sameController.length > 1) {
-            const collected = sameController.map((sub) => {
-              const ctx = contexts.get(sub.id)!;
-              const effect: Effect = {
-                effectKey: `subtrigger/${sub.id}/${sub.description}`,
-                description: sub.description,
-                optional: false,
-                isInherited: false,
-                isSecurity: false,
-                isLinked: false,
-                maxPerTurn: -1,
-                canTrigger: () => true,
-                canActivate: () => true,
-                resolve: sub.run,
-              };
-              return { source: ctx.source, effect };
-            });
-            const index = await this.resolverDecisions.chooseOrder(prioritySeat, collected);
-            if (index !== null) chosen = sameController[index] ?? chosen;
-          }
-          remaining.splice(remaining.indexOf(chosen), 1);
-          await this.subTriggers.fireSnapshot([chosen], (sub) => contexts.get(sub.id), this.activeWindowToken, {
-            hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,
-            markFired: (key) => this.tracker.register(key, "subtrigger"),
-            unmarkFired: (key) => this.tracker.unregister(key, "subtrigger"),
-          });
-        }
+      // One event can arm SEVERAL watchers at once: two copies of Xeno EX11-066 both watch
+      // "when your Digimon digivolves", and a link operation arms both the recipient's watchers
+      // and the newly linked card's [When Linking] face. Simultaneous triggers of one player are
+      // ordered BY THAT PLAYER (CR §15-4), so snapshot the matching watchers and let the
+      // controller pick the next one exactly like a normal timing window. `whenLinked` always
+      // takes this path — its ordering is observable for BT26-084/Q7128, whose link face can
+      // recursively link a card mid-window.
+      //
+      // An ordered window resolves ONLY what its snapshot armed: a body can drive a continuous
+      // recompute, which tears down and RE-INSTALLS every continuous watcher under fresh ids, so
+      // a second pass over a re-queried list would fire the same watcher twice. The set of
+      // simultaneous triggers is fixed when the event happens anyway. The single-watcher case
+      // keeps the plain pass below — no snapshot, no prompt, and a `matches` gate that only
+      // becomes true once an earlier body has resolved still gets its chance.
+      const armed = this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload);
+      if (event === "whenLinked" || armed.length > 1) {
+        await this.runSubTriggersInChosenOrder(armed);
       } else {
         await this.subTriggers.fire(
           event,
-          (sub) => {
-            // Anchor the watcher's context on its OWN source permanent. A watcher whose anchor
-            // has left the field (its subscription should already be dropped on leave; guard
-            // defensively) yields undefined and is skipped by the registry.
-            // Preserve the exact card that installed the watcher. This matters for inherited
-            // effects whose source card is later trashed from the host's stack: the body still
-            // means "this card", not the host's current top card.
-            if (sub.sourcePermanentId !== undefined) {
-              const srcPerm = this.access.permanentById(sub.sourcePermanentId);
-              if (srcPerm?.topCard === undefined) return undefined;
-              const sourceInstance = [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
-                (card) => card.instanceId === sub.sourceInstanceId,
-              );
-              return this.buildEffectContext(this.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
-            }
-            if (sub.sourceInstanceId !== undefined) {
-              const loose = this.findLooseInstance(sub.sourceInstanceId);
-              if (loose === undefined) return undefined;
-              return this.buildEffectContext(this.cardSourceOf(loose), payload);
-            }
-            if (sub.activationContext !== undefined) {
-              return { ...sub.activationContext, trigger: payload, selections: new Map() };
-            }
-            return undefined;
-          },
+          (sub) => this.buildSubTriggerContext(sub, payload),
           undefined,
           // The ambient resolving-effect window (see `beginResolvingWindow`): undefined when
           // this fire happens outside any fireTiming/fireTimingForInstance call (no dedup —
@@ -1899,15 +1942,8 @@ export class GameEngine {
           // watcher dedupes across multiple plays/events from ONE resolving effect (KB Q2814)
           // while still firing once per genuinely separate top-level resolution.
           this.activeWindowToken,
-          // `oncePerTurnKey` ledger: reuses the SAME per-turn UseTracker the kernel's
-          // maxPerTurn and the leave-prevention "replacement" keys use, namespaced with
-          // "subtrigger" so the three ledgers never collide. Resets with everything else at
-          // `ownerTurnStart` (see `clearDurations`).
-          {
-            hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,
-            markFired: (key) => this.tracker.register(key, "subtrigger"),
-            unmarkFired: (key) => this.tracker.unregister(key, "subtrigger"),
-          },
+          this.subTriggerTurnLedger(),
+          (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
         );
       }
     } finally {
@@ -1918,7 +1954,216 @@ export class GameEngine {
     await this.recomputeContinuousEffects();
   }
 
+  /**
+   * The watchers in `subs` that ACTUALLY trigger for `payload`, each paired with the context
+   * bound at the moment the event fired. Filters what the ordering prompt must not offer: a
+   * watcher already consumed by the surrounding timing window, one whose `[Once Per Turn]`
+   * ledger entry is spent, one whose anchor is gone, one whose `matches` gate rejects the
+   * event, and one that could not act anyway (`canFire`, e.g. an unpayable self-suspend cost).
+   */
+  private armedSubTriggers(
+    subs: readonly SubTriggerSubscription[],
+    payload: TriggerInfo,
+    boundContexts?: ReadonlyMap<number, EffectContext>,
+  ): ArmedSubTrigger[] {
+    const armed: ArmedSubTrigger[] = [];
+
+    for (const sub of subs) {
+      if (this.consumedSubTriggerKeys.has(subTriggerIdentity(sub))) continue;
+      if (sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") > 0) continue;
+      const ctx = boundContexts?.get(sub.id) ?? this.buildSubTriggerContext(sub, payload);
+      if (ctx === undefined) continue;
+      if (sub.matches !== undefined && !sub.matches(ctx)) continue;
+      if (sub.canFire !== undefined && !sub.canFire(ctx)) continue;
+      armed.push({
+        sub,
+        ctx,
+        contextAtFireTime: () =>
+          boundContexts?.get(sub.id) === undefined
+            ? this.buildSubTriggerContext(sub, payload)
+            : boundContexts.get(sub.id),
+      });
+    }
+
+    return armed;
+  }
+
+  /**
+   * `oncePerTurnKey` ledger: reuses the SAME per-turn UseTracker the kernel's maxPerTurn and the
+   * leave-prevention "replacement" keys use, namespaced with "subtrigger" so the three ledgers
+   * never collide. Resets with everything else at `ownerTurnStart` (see `clearDurations`).
+   */
+  private subTriggerTurnLedger(): SubTriggerTurnLedger {
+    return {
+      hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,
+      markFired: (key) => this.tracker.register(key, "subtrigger"),
+      unmarkFired: (key) => this.tracker.unregister(key, "subtrigger"),
+    };
+  }
+
+  /**
+   * Resolve simultaneous watchers one at a time, letting the controller pick the next one
+   * (CR §15-4: the turn player orders their own simultaneous triggers first, then the
+   * opponent theirs). A lone watcher resolves without a prompt.
+   */
+  private async runSubTriggersInChosenOrder(armed: readonly ArmedSubTrigger[]): Promise<void> {
+    const remaining = [...armed];
+    while (remaining.length > 0) {
+      // Drop watchers whose trigger condition lapsed while an earlier one resolved, so the
+      // ordering prompt never offers an effect that can no longer activate (CR §15-4-4-5).
+      for (let index = remaining.length - 1; index >= 0; index -= 1) {
+        if (!this.subTriggerStillActivatable(remaining[index]!)) remaining.splice(index, 1);
+      }
+      if (remaining.length === 0) break;
+      const prioritySeat = remaining.some((item) => item.ctx.source.ownerSeat === this.state.turnSeat)
+        ? this.state.turnSeat
+        : remaining[0]!.ctx.source.ownerSeat;
+      const sameController = remaining.filter((item) => item.ctx.source.ownerSeat === prioritySeat);
+      let chosen = sameController[0]!;
+      if (sameController.length > 1) {
+        const index = await this.resolverDecisions.chooseOrder(
+          prioritySeat,
+          sameController.map((item) => this.subTriggerAsCollected(item)),
+        );
+        if (index !== null) chosen = sameController[index] ?? chosen;
+      }
+      remaining.splice(remaining.indexOf(chosen), 1);
+      await this.fireOneSubTrigger(chosen);
+    }
+  }
+
+  /**
+   * The watchers armed for the enclosing window's event, as collected effects the resolver can
+   * order against the printed ones. Each keeps its own body: the resolver builds a context from
+   * the watcher's source for the ordering prompt, but the watcher runs through
+   * `fireOneSubTrigger`, so its `matches` / `once` / `oncePerTiming` / `[Once Per Turn]` ledgers
+   * behave exactly as they do on the SubTrigger bus.
+   */
+  private pendingWindowCollected(): CollectedEffect[] {
+    return this.pendingWindowSubTriggers
+      .filter(
+        (item) =>
+          !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) && this.subTriggerStillActivatable(item),
+      )
+      .map((item) => {
+        const collected = this.subTriggerAsCollected(item);
+        return {
+          ...collected,
+          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item) },
+        };
+      });
+  }
+
+  /**
+   * Run `fireWindows` — the timing windows for one event — with that event's SubTrigger watchers
+   * folded into them, so one player orders their printed effects and their watchers in a SINGLE
+   * prompt and can interleave them (CR §15-4). Mirrors the reference implementation, where a
+   * digivolution stacks every triggered effect into one list and resolves it one at a time.
+   *
+   * Whatever the windows did not resolve fires afterwards, still ordered. Watchers armed DURING
+   * the windows are picked up by the trailing bus fire, which skips the ones already consumed.
+   */
+  private async withPendingSubTriggers(
+    events: readonly SubTriggerEventName[],
+    payload: TriggerInfo | undefined,
+    fireWindows: () => Promise<void>,
+    opts: { busTrigger?: () => TriggerInfo | undefined } = {},
+  ): Promise<void> {
+    const busFire = async (): Promise<void> => {
+      const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
+      if (trigger === undefined) return;
+      for (const event of events) await this.fireSubTrigger(event, trigger);
+    };
+    // A rule sweep parks watchers wholesale (see fireSubTrigger); leave that path alone.
+    const armed =
+      this.ruleProcessing || payload === undefined
+        ? []
+        : events.flatMap((event) => this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+    if (armed.length === 0) {
+      await fireWindows();
+      await busFire();
+      return;
+    }
+    const enclosing = this.pendingWindowSubTriggers;
+    this.pendingWindowSubTriggers = [...enclosing, ...armed];
+    this.subTriggerWindowDepth += 1;
+    try {
+      await fireWindows();
+    } finally {
+      this.pendingWindowSubTriggers = enclosing;
+      this.subTriggerWindowDepth -= 1;
+    }
+    // The bus still runs: it resolves the armed watchers the windows did not reach AND any
+    // watcher armed while they were resolving, both under the ordinary ordering rules.
+    await busFire();
+    if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
+  }
+
+  /**
+   * Is this armed watcher still activatable RIGHT NOW? A pending trigger whose condition stops
+   * being met before it activates can no longer activate (CR §15-4-4-5): two copies of Hina
+   * Kurihara EX3-065 both trigger on one digivolution, but if the first one's resolution removes
+   * the evolved Digimon, the second has nothing to react to (KB Q3430). Re-checked between
+   * resolutions — the SubTrigger bus gets this for free by evaluating `matches` at fire time.
+   */
+  private subTriggerStillActivatable(item: ArmedSubTrigger): boolean {
+    const ctx = item.contextAtFireTime();
+    if (ctx === undefined) return false;
+    if (item.sub.matches !== undefined && !item.sub.matches(ctx)) return false;
+    return item.sub.canFire === undefined || item.sub.canFire(ctx);
+  }
+
+  /** Present a watcher to the ordering prompt as an ordinary collected effect. */
+  private subTriggerAsCollected({ sub, ctx }: ArmedSubTrigger): CollectedEffect {
+    return {
+      source: ctx.source,
+      effect: {
+        effectKey: `subtrigger/${sub.id}/${sub.description}`,
+        description: sub.description,
+        optional: false,
+        isInherited: false,
+        isSecurity: false,
+        isLinked: false,
+        maxPerTurn: -1,
+        canTrigger: () => true,
+        canActivate: () => true,
+        resolve: sub.run,
+      },
+    };
+  }
+
+  /**
+   * Run one armed watcher. `contextAtFireTime` decides which board it sees: the immediate path
+   * rebuilds the context now (so `fireSnapshot`'s own `matches` re-check can still drop a watcher
+   * whose condition lapsed), while the deferred paths hand back the context bound when their
+   * event happened, because their trigger has already activated (KB Q2611/Q2629).
+   */
+  private async fireOneSubTrigger({ sub, contextAtFireTime }: ArmedSubTrigger): Promise<void> {
+    if (this.subTriggerWindowDepth > 0) this.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
+    await this.subTriggers.fireSnapshot(
+      [sub],
+      () => contextAtFireTime(),
+      this.activeWindowToken,
+      this.subTriggerTurnLedger(),
+    );
+  }
+
+  /**
+   * Anchor a watcher's context on its OWN source permanent (so its body's "this Digimon" and
+   * controller scope resolve correctly) with the event `payload` in `ctx.trigger`. Preserves the
+   * exact card that installed the watcher: for an inherited effect whose source card is later
+   * trashed from the host's stack, the body still means "this card", not the host's current top
+   * card. Returns undefined — skipping the watcher — when its anchor has left the field (the
+   * subscription should already have been dropped on leave; guard defensively) or when the
+   * breeding-area rule hides the event's subject from it.
+   */
   private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
+    const context = this.buildSubTriggerSourceContext(sub, payload);
+    if (context === undefined) return undefined;
+    return this.breedingHidesSubjectFrom(sub.event, payload, context.source) ? undefined : context;
+  }
+
+  private buildSubTriggerSourceContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;
@@ -1938,21 +2183,29 @@ export class GameEngine {
     return undefined;
   }
 
+  /**
+   * Fire a DEFERRED snapshot: watchers whose event already happened but whose activation waited
+   * for the resolving effect (a security removal) or the rule fixpoint to finish. They are still
+   * simultaneous triggers of one event, so several of them are ordered by their controller just
+   * like an immediate fire.
+   */
   private async fireSubTriggerSnapshot(
     subscriptions: readonly SubTriggerSubscription[],
     payload: TriggerInfo,
     boundContexts?: ReadonlyMap<number, EffectContext>,
   ): Promise<void> {
-    await this.subTriggers.fireSnapshot(
-      subscriptions,
-      (sub) => boundContexts?.get(sub.id) ?? this.buildSubTriggerContext(sub, payload),
-      this.activeWindowToken,
-      {
-        hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,
-        markFired: (key) => this.tracker.register(key, "subtrigger"),
-        unmarkFired: (key) => this.tracker.unregister(key, "subtrigger"),
-      },
-    );
+    const armed = this.armedSubTriggers(subscriptions, payload, boundContexts);
+    if (armed.length > 1) {
+      await this.runSubTriggersInChosenOrder(armed);
+    } else {
+      await this.subTriggers.fireSnapshot(
+        subscriptions,
+        (sub) => boundContexts?.get(sub.id) ?? this.buildSubTriggerContext(sub, payload),
+        this.activeWindowToken,
+        this.subTriggerTurnLedger(),
+        (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+      );
+    }
     await this.recomputeContinuousEffects();
   }
 
@@ -2409,7 +2662,7 @@ export class GameEngine {
       await runTiming(
         timing,
         this.effectEnvironment(trigger),
-        this.resolutionDeps(() => this.instancesById([sourceInstanceId])),
+        this.resolutionDeps(() => this.instancesById([sourceInstanceId]), { outermost: wasOutermostWindow }),
       );
       if (wasOutermostWindow) {
         await this.flushDeferredTimingWindows();
@@ -2452,11 +2705,14 @@ export class GameEngine {
       await runTiming(
         timing,
         this.effectEnvironment(trigger),
-        this.resolutionDeps(() => {
-          const scoped: CardInstance[] = [];
-          this.collectPermanentInstances(permanent, scoped);
-          return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
-        }),
+        this.resolutionDeps(
+          () => {
+            const scoped: CardInstance[] = [];
+            this.collectPermanentInstances(permanent, scoped);
+            return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
+          },
+          { outermost: wasOutermostWindow },
+        ),
       );
       if (wasOutermostWindow) {
         await this.flushDeferredTimingWindows();
@@ -2466,6 +2722,54 @@ export class GameEngine {
     } finally {
       this.endResolvingWindow(wasOutermostWindow);
     }
+  }
+
+  /**
+   * The entry windows one PLAY opens, as a single pool: the played card's own [On Play], the
+   * board-wide enter-field window, and every armed `whenPlayed` watcher ("when you play a green
+   * Tamer, draw 1"). Shared by every play seam (playCard, DigiXros, Assembly) so they sequence
+   * identically. Only `OnPlay` carries the board-wide half; any other timing just fires scoped.
+   *
+   * The pool is snapshotted from the board as it is when the card ENTERS, which is when those
+   * triggers are determined; the trailing bus fire (inside `withPendingSubTriggers`) re-reads the
+   * played permanent afterwards, exactly as this seam always did, so a watcher the windows did
+   * not reach still sees the post-window board.
+   */
+  private async firePlayEntryWindows(
+    timing: EffectTiming,
+    sourceInstanceId: string,
+    scopedTrigger: TriggerInfo = {},
+  ): Promise<void> {
+    if (timing !== EffectTiming.OnPlay) {
+      await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
+      return;
+    }
+    const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
+    await this.withPendingSubTriggers(
+      ["whenPlayed"],
+      this.playedTrigger(entryPermanentId),
+      async () => {
+        await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
+        const playedPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
+        await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+          ...(playedPermanentId !== undefined ? { subjectPermanentId: playedPermanentId } : {}),
+          entryCause: "play",
+        });
+      },
+      { busTrigger: () => this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId) },
+    );
+  }
+
+  /** The `whenPlayed` payload for a played permanent: its subject id plus its printed level/cost. */
+  private playedTrigger(playedPermanentId: string | undefined): TriggerInfo | undefined {
+    if (playedPermanentId === undefined) return undefined;
+    const played = this.access.permanentById(playedPermanentId);
+    const definition = played?.topCard === undefined ? undefined : definitionOf(played.topCard.cardId);
+    return {
+      subjectPermanentId: playedPermanentId,
+      ...(definition?.level !== undefined ? { playedLevel: definition.level } : {}),
+      ...(definition?.playCost !== undefined ? { playedPlayCost: definition.playCost } : {}),
+    };
   }
 
   /**
@@ -2918,8 +3222,18 @@ export class GameEngine {
    */
   private resolutionDeps(
     listCandidate: () => readonly CardInstance[] = () => this.listCandidateInstances(),
+    opts: { outermost?: boolean } = {},
   ): ResolutionDeps {
     return {
+      // Only the outermost loop settles the deferred queues between effects: at a nested one
+      // the effect that parked them is still running its body (see ResolutionEnv.betweenEffects).
+      // The pending watchers belong to the windows the event opened, not to a window a
+      // resolving effect opens from inside its own body: a nested (cut-in) resolution must not
+      // reach into the pool and resolve a sibling trigger mid-body. Both are the same test —
+      // only the outermost loop runs with no card body on the stack.
+      ...(opts.outermost === true
+        ? { betweenEffects: () => this.settleBetweenEffects(), collectPending: () => this.pendingWindowCollected() }
+        : {}),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,
       ruleProcess: () => this.ruleProcess(),
@@ -3611,30 +3925,8 @@ export class GameEngine {
           }
         }
       },
-      fireTiming: async (_state, _seat, timing, sourceInstanceId) => {
-        await this.fireTimingForInstance(timing, sourceInstanceId);
-        if (timing === EffectTiming.OnPlay) {
-          const playedPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
-          await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-            ...(playedPermanentId !== undefined ? { subjectPermanentId: playedPermanentId } : {}),
-            entryCause: "play",
-          });
-          // SubTrigger bus (System B): a played card is the subject of every armed
-          // `whenPlayed` watcher ("when you play a green Tamer, draw 1"). Co-located with
-          // the OnEnterFieldAnyone timing (System A) so both fire at the same physical
-          // seam; the bus carries the played permanent as `subjectPermanentId` so a
-          // watcher's captured sourceFilter can gate on it.
-          if (playedPermanentId !== undefined) {
-            const played = this.access.permanentById(playedPermanentId);
-            const definition = played?.topCard === undefined ? undefined : definitionOf(played.topCard.cardId);
-            await this.fireSubTrigger("whenPlayed", {
-              subjectPermanentId: playedPermanentId,
-              ...(definition?.level !== undefined ? { playedLevel: definition.level } : {}),
-              ...(definition?.playCost !== undefined ? { playedPlayCost: definition.playCost } : {}),
-            });
-          }
-        }
-      },
+      fireTiming: async (_state, _seat, timing, sourceInstanceId) =>
+        this.firePlayEntryWindows(timing, sourceInstanceId),
       fireOptionUsed: async (usedInstanceId, usedOptionCost) =>
         this.primitives.fireOptionUsed(usedInstanceId, usedOptionCost),
       // CR §4-19 Arts Digivolve (Task 4): a rule on DUAL cards, not a per-card effect —
@@ -4565,25 +4857,8 @@ export class GameEngine {
       suspendPermanent: async (permanentId) => {
         await this.primitives.suspend([permanentId]);
       },
-      fireTiming: async (_state, _seat, timing, sourceInstanceId, materialCount) => {
-        await this.fireTimingForInstance(timing, sourceInstanceId, { digiXrosMaterialCount: materialCount });
-        if (timing === EffectTiming.OnPlay) {
-          const playedPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
-          await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-            ...(playedPermanentId !== undefined ? { subjectPermanentId: playedPermanentId } : {}),
-            entryCause: "play",
-          });
-          if (playedPermanentId !== undefined) {
-            const played = this.access.permanentById(playedPermanentId);
-            const definition = played?.topCard === undefined ? undefined : definitionOf(played.topCard.cardId);
-            await this.fireSubTrigger("whenPlayed", {
-              subjectPermanentId: playedPermanentId,
-              ...(definition?.level !== undefined ? { playedLevel: definition.level } : {}),
-              ...(definition?.playCost !== undefined ? { playedPlayCost: definition.playCost } : {}),
-            });
-          }
-        }
-      },
+      fireTiming: async (_state, _seat, timing, sourceInstanceId, materialCount) =>
+        this.firePlayEntryWindows(timing, sourceInstanceId, { digiXrosMaterialCount: materialCount }),
       emit: (event) => this.hooks.emit(event as ServerEvent),
     };
   }
@@ -4629,25 +4904,8 @@ export class GameEngine {
         this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
       nextPermanentId: () => this.nextPermanentId(),
       placeUnder: (targetPermanentId, instanceIds) => this.primitives.placeUnder(targetPermanentId, instanceIds),
-      fireTiming: async (_state, _seat, timing, sourceInstanceId) => {
-        await this.fireTimingForInstance(timing, sourceInstanceId);
-        if (timing === EffectTiming.OnPlay) {
-          const playedPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
-          await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
-            ...(playedPermanentId !== undefined ? { subjectPermanentId: playedPermanentId } : {}),
-            entryCause: "play",
-          });
-          if (playedPermanentId !== undefined) {
-            const played = this.access.permanentById(playedPermanentId);
-            const definition = played?.topCard === undefined ? undefined : definitionOf(played.topCard.cardId);
-            await this.fireSubTrigger("whenPlayed", {
-              subjectPermanentId: playedPermanentId,
-              ...(definition?.level !== undefined ? { playedLevel: definition.level } : {}),
-              ...(definition?.playCost !== undefined ? { playedPlayCost: definition.playCost } : {}),
-            });
-          }
-        }
-      },
+      fireTiming: async (_state, _seat, timing, sourceInstanceId) =>
+        this.firePlayEntryWindows(timing, sourceInstanceId),
       emit: (event) => this.hooks.emit(event as ServerEvent),
     };
   }

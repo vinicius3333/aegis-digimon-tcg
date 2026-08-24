@@ -55,6 +55,23 @@ export interface ResolutionDeps {
 
   /** Observability seam: a triggered effect finished resolving (see ResolutionEnv.onResolved). */
   onResolved?: ResolutionEnv["onResolved"];
+
+  /** Drain the engine's deferred queues between effects (see ResolutionEnv.betweenEffects). */
+  betweenEffects?: ResolutionEnv["betweenEffects"];
+
+  /**
+   * SubTrigger watchers that fired off the SAME event as this window, presented as ordinary
+   * collected effects (GameEngine.withPendingSubTriggers). One digivolution triggers the
+   * evolving card's own `[When Digivolving]` AND every "when your Digimon digivolves" watcher on
+   * the board; those are simultaneous triggers of one event, and one player orders ALL of their
+   * own in a single prompt (CR §15-4) — which is only possible if they reach the resolver as one
+   * pool instead of as two sequential passes. The reference implementation has no second bus at
+   * all: every triggered effect lands in the one `StackedSkillInfos` list.
+   *
+   * Re-queried each collection pass like the printed effects, so a watcher whose condition
+   * lapsed drops out and a resolved one does not come back. Absent => the window carries none.
+   */
+  collectPending?: () => CollectedEffect[];
 }
 
 /**
@@ -75,8 +92,10 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
   return {
     turnSeat: deps.turnSeat,
     tracker: env.tracker,
-    collect: (timing: EffectTiming): CollectedEffect[] =>
-      gatherTriggeredEffects(env, timing, deps.listCandidateInstances(), grantSnapshot),
+    collect: (timing: EffectTiming): CollectedEffect[] => [
+      ...gatherTriggeredEffects(env, timing, deps.listCandidateInstances(), grantSnapshot),
+      ...(deps.collectPending?.() ?? []),
+    ],
     makeContext: (collected: CollectedEffect): EffectContext =>
       createEffectContext({
         source: collected.source,
@@ -121,6 +140,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
     chooseOrder: deps.chooseOrder,
     askOptional: deps.askOptional,
     onResolved: deps.onResolved,
+    betweenEffects: deps.betweenEffects,
   };
 }
 

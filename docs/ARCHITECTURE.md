@@ -62,6 +62,33 @@ effects, resolves them one at a time, and opens typed decisions when player
 input is required. Continuous effects are recomputed from active sources rather
 than stored as permanent mutations.
 
+### Trigger sequencing
+
+One game event produces one pool of triggers, resolved by a single loop:
+
+1. **Collect.** The pool holds the printed effects that trigger at the window's
+   timing plus the armed SubTrigger watchers for the same event, which the event
+   seam hands over through `withPendingSubTriggers`. Watchers are snapshotted
+   when the event happens; the pool is re-derived every pass, so a trigger whose
+   condition lapses drops out (CR §15-4-4-5).
+2. **Order.** Turn player's triggers first, then the opponent's. Within one
+   controller's group the controller chooses the next one to resolve — printed
+   effects and watchers compete in the same prompt.
+3. **Resolve one**, then run the rule sweep (state-based actions) and settle the
+   deferred queues. A trigger derived from the effect that just resolved
+   therefore activates before the triggers that were already pending
+   (CR §15-4-5-2/3).
+
+Step 3 is why a window never parks a deferred deletion or security-removal
+reaction until it closes: it drains them between effects, at the only point
+where no card body is on the stack. A nested (cut-in) resolution opened from
+inside a card body neither settles those queues nor reaches into the pool.
+
+Whatever the windows did not resolve fires afterwards on the SubTrigger bus,
+which skips the watchers the window already consumed. Consumption is tracked by
+a stable `(event, anchor, description)` identity, because a continuous recompute
+re-installs every continuous watcher under a fresh subscription id.
+
 ## Persistence
 
 Database schema upgrades live in `apps/api/src/db/migrations`; they are active

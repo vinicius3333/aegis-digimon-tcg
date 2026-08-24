@@ -97,6 +97,22 @@ export interface ResolutionEnv {
   askOptional(seat: Seat, collected: CollectedEffect): Promise<boolean>;
 
   /**
+   * Settle everything the effect that just resolved left pending, BEFORE the next one is
+   * offered. The reference implementation runs `RuleProcess()` and then re-enters
+   * `TriggeredSkillProcess()` after every single activation, so a trigger DERIVED from the
+   * effect that just resolved activates ahead of the effects that were already pending
+   * (Comprehensive Rules §15-4-5-2/3). In this engine the derived ones that reach the next
+   * `collect` pass on their own are already handled by the re-collect; this hook covers the
+   * queues the engine parks instead — a deletion window deferred out of a resolving effect and
+   * the deferred security-removal reactions. Wired only for the OUTERMOST resolution loop: at a
+   * nested one the effect that armed those queues is still mid-body, which is exactly what the
+   * deferral protects (KB Q1430/Q1432).
+   *
+   * Optional: an env without it keeps the queues parked until its caller drains them.
+   */
+  betweenEffects?: () => Promise<void>;
+
+  /**
    * Notify that a triggered effect finished resolving (body ran; declined optionals do
    * NOT fire this). Optional observability seam used by the engine to surface a
    * transient "what just resolved" overlay; the pure resolver never depends on it.
@@ -268,6 +284,9 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       // State-based actions between effects (RuleProcess). The next loop iteration
       // re-collects, surfacing anything triggered during this resolution.
       await env.ruleProcess();
+      // ...and the queues the engine parked while that effect was resolving, so a derived
+      // trigger activates before the effects already pending in this window (§15-4-5-2/3).
+      await env.betweenEffects?.();
     }
   };
 

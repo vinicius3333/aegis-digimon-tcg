@@ -58,6 +58,8 @@ export interface SubTriggerSubscription {
    * every event of its kind (RESEARCH BLK-01 "Model gap" / Pitfall 2).
    */
   matches?: (ctx: EffectContext) => boolean;
+  /** See {@link SubTriggerInstall.canFire}: ordering-prompt pre-check, not a firing gate. */
+  canFire?: (ctx: EffectContext) => boolean;
   /**
    * For a GRANTED timed watcher: the seat whose
    * turn-END drops this subscription. Absent => the watcher persists until its anchor leaves
@@ -403,9 +405,10 @@ export class SubTriggerRegistry {
     sourcePermanentId?: string,
     windowToken?: unknown,
     turnLedger?: SubTriggerTurnLedger,
+    skip?: (sub: SubTriggerSubscription) => boolean,
   ): Promise<number> {
     const matching = this.subscriptionsFor(event, sourcePermanentId);
-    return this.fireSnapshot(matching, makeContext, windowToken, turnLedger);
+    return this.fireSnapshot(matching, makeContext, windowToken, turnLedger, skip);
   }
 
   /**
@@ -418,9 +421,14 @@ export class SubTriggerRegistry {
     makeContext: (sub: SubTriggerSubscription) => EffectContext | undefined,
     windowToken?: unknown,
     turnLedger?: SubTriggerTurnLedger,
+    skip?: (sub: SubTriggerSubscription) => boolean,
   ): Promise<number> {
     let fired = 0;
     for (const sub of matching) {
+      // Already resolved by the caller: the timing window that shares this event resolved it
+      // through the same ledgers (GameEngine.withPendingSubTriggers). Filtered here rather than
+      // by pre-filtering the caller's list, so the await chain reaching a body is unchanged.
+      if (skip?.(sub) === true) continue;
       // oncePerTiming: skip when this subscription already fired for the SAME window
       // (persists across fire() calls, unlike a per-call local — see oncePerTimingFiredFor).
       if (

@@ -1393,6 +1393,15 @@ export interface SubTriggerInstall {
    */
   matches?: (ctx: EffectContext) => boolean;
   /**
+   * Can this watcher still DO anything? Consulted only when several watchers fire off the
+   * same event and their controller is asked to order them: a watcher that answers false
+   * would resolve to nothing (its `by suspending this Tamer` cost is unpayable because the
+   * Tamer is already suspended), so it must not appear in that ordering prompt. Firing
+   * itself is unaffected — the body's own guard still decides what happens.
+   * Absent => the watcher always competes for ordering.
+   */
+  canFire?: (ctx: EffectContext) => boolean;
+  /**
    * A GRANTED watcher's expiry: the seat whose turn-END drops this subscription
    *. Absent => the watcher lives until its
    * anchor leaves the field. Swept by the engine at each turn-end boundary.

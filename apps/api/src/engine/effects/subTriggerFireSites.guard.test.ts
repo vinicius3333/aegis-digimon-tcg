@@ -81,10 +81,19 @@ function engineSources(): { path: string; text: string }[] {
   return files;
 }
 
-/** A genuine `fireSubTrigger(...)` (or `?.`/`!` variant) call naming this exact event string. */
+/**
+ * A genuine dispatch naming this exact event string. Two shapes count, both of which really
+ * reach `SubTriggerRegistry.fire`:
+ *   - `fireSubTrigger("event", ...)` (plus its `?.`/`!` variants) — the bus, fired on its own.
+ *   - `withPendingSubTriggers(["event", ...], ...)` — the same bus, fired as part of the timing
+ *     window that shares the event, so the printed effects and the watchers are ordered as one
+ *     pool (GameEngine.withPendingSubTriggers). It ends in `fireSubTrigger(event, …)` with the
+ *     name in a variable, which the literal pattern above cannot see.
+ */
 function hasRealFireSite(event: string, sources: { path: string; text: string }[]): boolean {
-  const pattern = new RegExp(`fireSubTrigger[!?]?\\.?\\(\\s*"${event}"`);
-  return sources.some(({ text }) => pattern.test(text));
+  const fireSite = new RegExp(`fireSubTrigger[!?]?\\.?\\(\\s*"${event}"`);
+  const pendingSite = new RegExp(`withPendingSubTriggers\\(\\s*\\[[^\\]]*"${event}"`, "s");
+  return sources.some(({ text }) => fireSite.test(text) || pendingSite.test(text));
 }
 
 /**

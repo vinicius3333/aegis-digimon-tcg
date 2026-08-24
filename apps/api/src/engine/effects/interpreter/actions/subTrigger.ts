@@ -14,6 +14,32 @@ import type { Action, Cost, Filter } from "@aegis/shared";
 import { KIND_MAP } from "../maps.js";
 import { findLooseCandidateByInstance } from "../targeting/loose.js";
 
+/** Does this cost suspend the effect's OWN source ("by suspending this Tamer")? */
+function suspendsSelf(cost: Cost | undefined): boolean {
+  if (cost === undefined) return false;
+  if (cost.kind === "compound") return (cost.costs ?? []).some(suspendsSelf);
+  if (cost.kind !== "suspend") return false;
+  return cost.target?.isSelf === true || cost.target?.filter?.isSelfRef === true;
+}
+
+/**
+ * Does running `action` require suspending its own source? `costOptions` are deliberately
+ * excluded: an alternative cost can be paid instead, so the action is not blocked by a
+ * suspended source.
+ */
+function costsSelfSuspend(action: Action): boolean {
+  const withCosts = action as {
+    cost?: Cost | number;
+    additionalCost?: Cost;
+    additionalCosts?: Cost[];
+    actions?: Action[];
+  };
+  const cost = typeof withCosts.cost === "number" ? undefined : withCosts.cost;
+  if (suspendsSelf(cost) || suspendsSelf(withCosts.additionalCost)) return true;
+  if ((withCosts.additionalCosts ?? []).some(suspendsSelf)) return true;
+  return withCosts.actions !== undefined && withCosts.actions.some(costsSelfSuspend);
+}
+
 export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefined> = {
   whenAttacking: "whenAttacking",
   whenOpponentAttacks: "whenOpponentAttacks",
@@ -761,8 +787,12 @@ export async function runSubTrigger(
     (event === "onDigiBurstCardDiscarded" ||
       event === "onDigivolutionCardsDiscardedBatch" ||
       event === "onDigivolutionCardDiscarded");
+  // "by suspending this Tamer" is unpayable while the Tamer is already suspended, so such a
+  // watcher must not join the simultaneous-trigger ordering prompt it could only decline.
+  const requiresSelfSuspend = (action.actions ?? []).some(costsSelfSuspend);
   ctx.fx.subscribeSubTrigger({
     event,
+    ...(requiresSelfSuspend ? { canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true } : {}),
     ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
     ...(playerScoped
       ? { activationContext: ctx }

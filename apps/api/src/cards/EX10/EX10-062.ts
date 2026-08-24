@@ -83,6 +83,9 @@ const module: EffectModule = {
               event: "whenLinkTrashed",
               sourcePermanentId: self.permanentId,
               once: false,
+              // A self-suspend cost is unpayable while this card is already suspended, so this watcher
+              // must not pad the prompt when several watchers order off one event.
+              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
               description: `${cardId}: When link card trashed, suspend + Draw 1.`,
               matches: (subCtx) => {
                 const subjectId = subCtx.trigger?.subjectPermanentId;
