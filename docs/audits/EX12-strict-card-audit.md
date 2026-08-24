@@ -204,3 +204,36 @@ for the individual evidence below.
 - **Verification:** `EX12-006.test.ts` — 8/8; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   card-specific KB ruling, or unresolved ambiguity.
+
+## EX12-007 — Gammamon — 10/10
+
+- **Printed contract:** Red/yellow level 3 Digimon, Ceratopsian/VB, play cost 3
+  and 2000 DP. Its standard red and yellow level-2 evolution routes cost 1; it
+  alternatively evolves from Gurimon by name or a level-2 VB card for cost 0.
+  On play it reveals the top 3, adds one card with Gammamon in its text and one
+  VB-trait card, and returns the rest to deck bottom. Its inherited owner-turn
+  effect gives only its host +2000 DP.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-007`; Q6729 defines “a card
+  with X in its text” as spanning the card's name, traits, effects, inherited
+  effects, Rule, evolution/DNA/DigiXros/Burst/App Fusion/Link/Assembly requirements,
+  and icons. The shared `match:"text"` predicate searches name and traits plus the
+  catalog's effect, inherited, security, link, requirement, dual, and option text.
+- **Implementation trace:** `RevealAdd` has two sequential count-1 slots. The first
+  uses the full text-union matcher for Gammamon; the second uses exact VB trait
+  matching. The reveal handler removes each selected physical instance from later
+  slots, accumulates both chosen cards for one hand move, and bottoms every untaken
+  revealed card. The inherited DP effect is self-scoped and owner-turn gated.
+- **Ruling and behavioral proof:** a direct predicate proof matches BT21-002 from
+  its inherited text even though its name is Gurimon and its traits lack VB. The
+  production RevealAdd path finds non-Gammamon-name/non-VB BT15-039 through printed
+  effect text and independently adds EX12-005 through VB. RB1-005 proves name-based
+  text matching; a reveal containing only one EX12-007 proves a physical card that
+  satisfies both slots is added once, not duplicated. Missing categories add only
+  what exists and bottom the rest in stable order.
+- **Evolution and inherited proof:** red BT1-001 and yellow BT12-003 each pay the
+  normal cost 1; Gurimon BT21-002 and VB EX12-001 use their cost-0 alternatives;
+  black non-Gurimon/non-VB BT10-005 is rejected. A second host and turn changes prove
+  the inherited +2000 is neither board-wide nor active during the opponent's turn.
+- **Verification:** `EX12-007.test.ts` — 8/8; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  or unresolved card-specific ambiguity.
