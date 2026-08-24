@@ -416,10 +416,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         if (action.allowDigiXros === true && permanentIds.length === 1) {
           const playedCard = candidates.find((candidate) => candidate.instanceId === permanentIds[0]);
           const requirement = playedCard === undefined ? undefined : digiXrosRequirementFor(playedCard.cardId)?.[0];
-          if (requirement !== undefined) {
+          if (playedCard !== undefined && requirement !== undefined) {
             const ownerSeat = playedCard.ownerSeat;
             const player = ctx.game.player(ownerSeat);
-            const playedDefinition = ctx.game.definitionOf({ cardId: playedCard!.cardId } as never);
+            const playedDefinition = ctx.game.definitionOf({ cardId: playedCard.cardId } as never);
             const expanders = Array.from(player.battleArea).filter((permanent) => {
               if (permanent.isSuspended || permanent.topCard === undefined) return false;
               const expander = digiXrosZoneExpanderFor(permanent.topCard.cardId);
