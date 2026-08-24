@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
+                    kind: ["Digimon", "Tamer"],
                     nameOrTrait: [
                       {
                         tokens: ["Angoramon"],
@@ -60,6 +61,7 @@ const compiled: CompiledCard = {
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
+                allowMultiColor: true,
                 optional: true,
               },
             ],

@@ -1592,3 +1592,38 @@ for the individual evidence below.
   primitives — 126/126; digivolution action flow — 27/27; continuous-effect lifecycle — 5/5;
   API typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
   unsupported behavior, or unresolved ruling remains.
+
+## EX12-050 — SymbareAngoramon — 10/10
+
+- **Printed contract:** Green/black level 4 Beastkin/NSp Vaccine Digimon, play cost 5 and 6000
+  DP. Normal green/black level-3 evolution costs 3; Angoramon by name or a level-3 NSp card costs
+  2. Its Main once-per-turn effect may play a Digimon/Tamer or use an Option with Angoramon in
+  its text or the NSp trait from hand with the cost reduced by 2. Its inherited All Turns effect
+  gives only its host +1000 DP.
+- **KB evidence:** Q6825 defines “Angoramon in text” across names, traits, effects, inherited
+  effects, Rule, and every requirement form. Q6826 forbids combining two copies' reductions into
+  one operation. Q6827 permits the play under Solarmon but suppresses the reduction. Q6828
+  permits activation under Pomumon but prevents the effect-driven Digimon play.
+- **Corrections:** the aggregate IR used an obsolete paid PlayWithoutCost plus a detached
+  would-be-played replacement, omitted the Option-use branch, and did not bind the reduction to
+  the selected operation. It now exactly matches the direct paid two-branch Modal. Both direct
+  and aggregate explicitly constrain the play branch to Digimon/Tamer and permit multicolor
+  Options in the use branch, because the printed predicate itself has no color-count limit.
+  Registration remains exclusively via `registerIrCard`.
+- **Ruling and behavioral proof:** EX12-051 is played for 5 after the reduction, and the same
+  source cannot activate twice. White NSp Option EX12-073 is used for 1 and fully resolves.
+  Multicolor Digimon/Option EX12-052 is accepted on its Option side for 3. Non-NSp Option
+  BT10-102, which mentions Angoramon only in its effect, is used for 0, grants Piercing, and
+  suspends the opposing target, proving Q6825. Two sources independently play two cost-7 targets
+  for 5 each rather than combining reductions, proving Q6826. Solarmon forces the full printed
+  cost for Q6827; Pomumon leaves the target in hand without payment for Q6828.
+- **Evolution and inherited proof:** green EX12-049 and black BT10-058 use the normal cost-3
+  routes; Angoramon EX12-049 and off-color NSp EX7-015 use the cost-2 alternatives; red
+  nonmatching BT1-010 is rejected. A buried copy gives its host +1000 on both turns, while a top
+  copy and unrelated bystander are unchanged. Catalog identity, exact branch filters,
+  direct/shared requirements, full coverage, empty residuals, and exact IR equality are asserted.
+- **Verification:** `EX12-050.test.ts` — 12/12; interpreter capabilities — 290/290; effect
+  primitives — 126/126; interpreter — 171/171; Option-use mechanism — 10/10; digivolution action
+  flow — 27/27; Solarmon — 2/2; Pomumon — 1/1; continuous-effect lifecycle — 5/5; shared build,
+  API typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
+  unsupported behavior, or unresolved ruling remains.

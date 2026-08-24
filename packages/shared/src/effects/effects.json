@@ -135343,28 +135343,49 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
-                  { "tokens": ["Angoramon"], "match": "text" },
-                  { "tokens": ["NSp"], "match": "trait" }
-                ]
-              },
-              "count": 1
-            },
-            "from": ["hand"],
-            "payCost": true,
-            "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 2,
-            "raw": "play or use 1 card with [Angoramon] in its text or the [NSp] trait from your hand with the cost reduced by 2",
-            "optional": true
+            "kind": "Modal",
+            "choose": 1,
+            "labels": ["Play a matching card", "Use a matching Option"],
+            "options": [
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon", "Tamer"],
+                      "nameOrTrait": [
+                        { "tokens": ["Angoramon"], "match": "text" },
+                        { "tokens": ["NSp"], "match": "trait" }
+                      ]
+                    },
+                    "count": 1
+                  },
+                  "from": ["hand"],
+                  "payCost": true,
+                  "reduceCostBy": 2,
+                  "optional": true
+                }
+              ],
+              [
+                {
+                  "kind": "UseOptionWithoutCost",
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Option"],
+                    "nameOrTrait": [
+                      { "tokens": ["Angoramon"], "match": "text" },
+                      { "tokens": ["NSp"], "match": "trait" }
+                    ]
+                  },
+                  "from": ["hand"],
+                  "payCost": true,
+                  "reduceCostBy": 2,
+                  "allowMultiColor": true,
+                  "optional": true
+                }
+              ]
+            ]
           }
         ],
         "frequency": "OncePerTurn"
