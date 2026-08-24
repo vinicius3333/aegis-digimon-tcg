@@ -1750,3 +1750,36 @@ for the individual evidence below.
   security/Blocker conformance — 10/10; API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, card-specific ruling, or
   unresolved ambiguity remains.
+
+## EX12-054 — Guardromon — 10/10
+
+- **Printed contract:** Black level 4 Machine/ME Virus Digimon, play cost 5 and 5000 DP. It
+  normally evolves from a black level 3 for cost 2 or alternatively from any level-3 ME card
+  for cost 2. It has Blocker and also grants Blocker as an inherited effect. On Play and When
+  Digivolving, its controller may trash one Machine-, Cyborg-, or ME-trait card from hand as an
+  activation cost to draw two cards.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-054` returns no card-specific rulings.
+  Comprehensive Rules §15-9 governs the printed “By trashing” processing: the player chooses
+  whether to pay; refusal or an unavailable exact cost prevents the following Draw 2.
+- **Corrections:** the direct IR represented both activation costs as mandatory and the original
+  tests explicitly asserted that defect. Each timing now marks the cost-bearing Draw action
+  optional with `abortOnDecline`, matching the already-correct aggregate IR. Direct and aggregate
+  IR are again exactly equal, full, and residual-free. Registration remains exclusively via
+  `registerIrCard`.
+- **Behavioral proof:** accepting at On Play trashes exactly one real Machine/ME Hagurumon and
+  draws exactly two; accepting after digivolution performs the identical sequence. Explicit
+  pending-decision responses decline each timing and prove the eligible card stays in hand while
+  deck and trash remain unchanged. With only a nonmatching hand card, both timings complete
+  without a decision, payment, or draw. This covers acceptance, refusal, and failed-payability
+  branches rather than merely inspecting the action shape.
+- **Evolution, keyword, and identity proof:** black EX12-053 uses the normal cost-2 route;
+  off-color ME EX12-008 uses the alternate cost-2 route; red non-ME BT1-009 is rejected. A live
+  top copy publishes printed Blocker, a buried copy grants Blocker only to its host, and an
+  unrelated permanent gets neither. Catalog assertions cover name, color, kind, costs, DP,
+  level, form, attribute, traits, and normal evolution. Direct registration, aggregate IR,
+  requirements, full coverage, empty residuals, and exact equality are asserted.
+- **Verification:** `EX12-054.test.ts` — 13/13; interpreter capabilities — 290/290; interpreter —
+  171/171; effect primitives — 126/126; digivolution action flow — 27/27; continuous-effect
+  lifecycle — 5/5; security/Blocker conformance — 10/10; API typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  card-specific ruling, or unresolved ambiguity remains.
