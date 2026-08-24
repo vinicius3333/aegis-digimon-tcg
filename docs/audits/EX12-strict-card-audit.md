@@ -1983,3 +1983,27 @@ for the individual evidence below.
   and Fragment — 25/25; security strike count — 8/8; play/Assembly conformance — 20/20; shared
   build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved card-specific ruling remains.
+
+## EX12-061 — Hanimon — 10/10
+
+- **Printed contract:** Purple level 3 Puppet/Shambala/TB Data Digimon, play cost 3 and 2000 DP.
+  It evolves normally from purple or yellow level 2 for 0 and alternatively from any level-2
+  Shambala for 0. On Play, it may trash one Puppet or TB card from hand to draw 2. Its inherited
+  When Attacking once-per-turn draws 1 and then obligatorily trashes one card from hand.
+- **Implementation and behavioral proof:** the direct and aggregate IR already matched and
+  required no functional correction. Separate Puppet-only BT1-038 and TB-only EX12-004 payments
+  each trash exactly one card and draw two. With an eligible payment present, the controller may
+  decline and preserve hand, deck, and trash; with no eligible card, the optional cost is not
+  offered and no draw occurs. The inherited effect draws before trashing: with a pre-existing
+  hand card the selected old card is trashed and the draw remains, while an initially empty hand
+  must trash the newly drawn card. A second attack timing in the same turn produces no further
+  draw or trash.
+- **Evolution and identity proof:** purple BT10-006 and yellow BT1-005 use their normal 0-cost
+  routes; yellow Shambala EX12-002 uses the alternate route; blue non-Shambala BT1-003 is
+  rejected. Catalog identity, normal and alternate requirements, exact action order and filters,
+  inherited scope, once-per-turn frequency, full coverage, empty residuals, exclusive IR
+  registration, and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-061.test.ts` — 8/8; interpreter — 171/171; capabilities — 290/290;
+  digivolution action flow — 27/27; effect-firing/inherited timing — 5/5; API typecheck, focused
+  formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  ruling dependency, or unresolved limitation remains.
