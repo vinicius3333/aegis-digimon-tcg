@@ -294,3 +294,29 @@ for the individual evidence below.
 - **Verification:** `EX12-009.test.ts` — 8/8; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No implementation correction was needed;
   there is no residual IR, unsupported behavior, card-specific ruling, or ambiguity.
+
+## EX12-010 — Greymon — 10/10
+
+- **Printed contract:** Red/black level 4 Digimon, Dinosaur/ME/VB, play cost 5 and
+  5000 DP. Its normal red and black level-3 evolutions cost 3; a level-3 Digimon
+  with Agumon in its name or either ME or VB trait costs 2. It has printed Raid.
+  On play and when digivolving, it may return one own trash Digimon with Greymon
+  in its name or the VB or ME trait to hand. Its inherited effect also grants Raid.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-010` returns no card-specific
+  rulings. The shared evolution matcher treats `names:["Agumon"]` as name containment
+  and `traits:["ME","VB"]` as an OR, matching the printed “in name or ... ME/VB” text.
+- **Implementation trace:** separate `OnPlay` and `WhenDigivolving` Return actions use
+  the same own-trash, Digimon-kind, count-1 filter. Its name and trait match groups are
+  alternatives and the move is optional. Distinct top-level and inherited Static effects
+  install Raid in each printed placement. Both alternate evolution requirements are
+  level-gated and cost 2, while catalog evolution costs preserve both normal colors.
+- **Behavioral proof:** EX12-005 proves VB recovery, EX12-008 proves ME recovery, and
+  BT1-015 proves Greymon-name recovery without either trait. An unrelated card is not
+  moved and explicit refusal leaves a matching card in trash. A standalone EX12-010,
+  an unrelated host with buried EX12-010, and a no-source control separately prove the
+  printed and inherited Raid placements. Normal red EX12-005 and black BT11-036 pay 3;
+  Agumon BT12-059, VB EX12-021, and ME EX12-038 each pay the alternate 2; green Goblimon
+  BT1-064 is rejected.
+- **Verification:** `EX12-010.test.ts` — 9/9; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No implementation correction was needed;
+  there is no residual IR, unsupported behavior, card-specific ruling, or ambiguity.
