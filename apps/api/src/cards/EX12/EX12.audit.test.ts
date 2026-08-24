@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { allCards } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { hasRegisteredCompiledCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./index.js";
 
 const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
@@ -30,10 +30,17 @@ describe("EX12 collection audit proof", () => {
 
   it("keeps every card imported with a direct module and colocated behavioral test", () => {
     for (const cardId of ex12Ids) {
-      expect(indexSource.match(new RegExp(`\\./${cardId}\\.js`, "g")), `${cardId} index import`).toHaveLength(1);
-      expect(readFileSync(`${collectionDirectory}/${cardId}.test.ts`, "utf8"), `${cardId} behavioral test`).toMatch(
-        /setupEngine\(/,
-      );
+      const testSource = readFileSync(`${collectionDirectory}/${cardId}.test.ts`, "utf8");
+
+      expect(
+        indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")),
+        `${cardId} index import`,
+      ).toHaveLength(1);
+      expect(testSource, `${cardId} test suite`).toMatch(/\bdescribe\s*\(/);
+      expect(testSource, `${cardId} runnable test`).toMatch(/\bit\s*\(/);
+      expect(testSource, `${cardId} engine harness`).toMatch(/\bsetupEngine\s*\(/);
+      expect(testSource, `${cardId} observable assertion`).toMatch(/\bexpect\s*\(/);
+      expect(testSource, `${cardId} skipped or pending test`).not.toMatch(/\b(?:describe|it|test)\.(?:skip|todo)\s*\(/);
       expect(getEffectModule(cardId), `${cardId} executable module`).toBeDefined();
     }
   });
@@ -43,8 +50,13 @@ describe("EX12 collection audit proof", () => {
       const moduleSource = readFileSync(`${collectionDirectory}/${cardId}.ts`, "utf8");
       const compiled = runtimeCompiledCard(cardId);
 
-      expect(moduleSource.match(/\bregisterIrCard\s*\(/g), `${cardId} registerIrCard calls`).toHaveLength(1);
+      expect(
+        moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g")),
+        `${cardId} exact registerIrCard call`,
+      ).toHaveLength(1);
+      expect(moduleSource.match(/\bregisterIrCard\s*\(/g), `${cardId} total registerIrCard calls`).toHaveLength(1);
       expect(moduleSource, `${cardId} legacy registerCard call`).not.toMatch(/\bregisterCard\s*\(/);
+      expect(hasRegisteredCompiledCard(cardId), `${cardId} direct compiled registration`).toBe(true);
       expect(compiled, `${cardId} runtime compiled record`).toBeDefined();
       expect(compiled?.coverage, `${cardId} coverage`).toBe("full");
       expect(compiled?.residual, `${cardId} residual`).toEqual([]);
