@@ -1881,3 +1881,33 @@ for the individual evidence below.
 - **Verification:** `EX12-057.test.ts` — 5/5; token/play-battle mechanics — 6/6; subtrigger seams
   — 22/22; digivolution action flow — 27/27; API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-058 — HiAndromon — 10/10
+
+- **Printed contract:** Black/yellow level 6 Cyborg/ME Vaccine Digimon, play cost 11 and 11000
+  DP. Both normal level-5 evolution routes and the level-5 ME alternate cost 3. Its four expanded
+  DNA pairs cover black/purple level 5 plus red/yellow level 5 for cost 0. On Play, When
+  Digivolving, or When Attacking once per turn, it reveals three, may play one cost-7-or-less
+  Machine, Cyborg, or ME card for free, and trashes the rest. All allied ME Digimon continuously
+  gain Alliance and Reboot.
+- **KB evidence:** Q7193 confirms that an eligible Digimon played during HiAndromon's When
+  Attacking resolution immediately has Alliance and may be suspended for that same attack's
+  Alliance processing.
+- **Implementation trace and behavioral proof:** all three reveal timings share one use key and
+  the exact cost/trait filter. Production On Play plays one legal card and trashes two; a reveal
+  with no match trashes all three. A When Digivolving activation consumes the shared budget and
+  a following When Attacking window leaves the next three deck cards untouched. Continuous
+  grants apply Alliance and Reboot to HiAndromon and another ME Digimon but not a non-ME ally.
+  For Q7193, a real player attack reveals and plays EX12-055, continuous recomputation grants it
+  Alliance before the combat decision, the engine accepts that new permanent as the Alliance
+  ally, suspends it, and completes the security check while both reveal remainders are in trash.
+- **Evolution, DNA, and identity proof:** black EX12-055 and yellow EX12-045 use normal cost 3;
+  ME EX12-055 uses the alternate cost 3; blue non-ME BT1-040 is rejected. All black/purple plus
+  red/yellow DNA combinations resolve for 0, while black-only BT10-064 plus purple-only BT10-079
+  is rejected. The invalid fixture deliberately avoids multicolor leakage. Catalog identity,
+  direct/shared requirements, all effects, full coverage, empty residuals, registration, and
+  exact direct/aggregate equality are asserted. No implementation correction was required.
+- **Verification:** `EX12-058.test.ts` — 8/8; interpreter/reveal mechanics — 171/171; DNA
+  digivolution — 1/1; digivolution action flow — 27/27; advanced-keyword/Alliance conformance —
+  30/30; continuous-effect lifecycle — 5/5; API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
