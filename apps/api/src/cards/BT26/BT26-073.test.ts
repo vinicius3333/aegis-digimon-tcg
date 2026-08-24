@@ -11,6 +11,8 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
       kind: "Modal",
       choose: 1,
+      optional: true,
+      abortOnDecline: true,
       options: [
         [{ kind: "Delete", cost: { kind: "deleteOwn" } }],
         [{ kind: "Delete", cost: { kind: "return", to: "deckBottom" } }],
@@ -79,6 +81,23 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("may decline without paying either cost or deleting the opponent's Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-073", as: "dark" }], trash: [{ card: "BT26-074", as: "cost" }] },
+        1: { battleArea: [{ card: "BT26-074", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dark"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-073");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-074");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("plays an eligible TS Digimon for free when deleted", async () => {
     const s = setupEngine(
       {
@@ -89,6 +108,21 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("dark").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-069"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("can play an eligible TS Tamer rather than only a Digimon on deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-073", as: "dark" }], hand: [{ card: "BT26-090", as: "tsTamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("dark").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-090"));
+
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 

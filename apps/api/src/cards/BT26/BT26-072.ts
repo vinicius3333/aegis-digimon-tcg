@@ -21,7 +21,13 @@ const deleteWithKeenan = {
     faceDown: true,
   },
 };
-const altCostDelete = { kind: "Modal", choose: 1, options: [[deleteWithTrash], [deleteWithKeenan]] };
+const altCostDelete = {
+  kind: "Modal",
+  choose: 1,
+  optional: true,
+  abortOnDecline: true,
+  options: [[deleteWithTrash], [deleteWithKeenan]],
+};
 
 export const compiled: CompiledCard = {
   effects: [

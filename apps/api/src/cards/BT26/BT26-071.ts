@@ -10,6 +10,8 @@ const deleteAction = {
     target: { count: 1, filter: { controller: "mine", kind: ["Digimon"] } },
     raw: "By deleting 1 of your Digimon",
   },
+  optional: true,
+  abortOnDecline: true,
 };
 export const compiled: CompiledCard = {
   effects: [
