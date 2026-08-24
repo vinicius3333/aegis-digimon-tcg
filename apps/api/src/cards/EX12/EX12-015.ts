@@ -11,8 +11,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Inherited][When Attacking][Once Per Turn] You may delete 1 of your opponent's
 //   Digimon with 6000 DP or less.
 //
-// "may gain <Alliance> and attack": Alliance gain is optional; attack part is also
-// optional (KB ST21-04 Q4474 pattern). Can choose different Digimon for each.
+// "may gain <Alliance> and attack": choosing the Alliance recipient is optional, but
+// that same Digimon must attack if possible (Q6737).
 const compiled: CompiledCard = {
   effects: [
     {
@@ -170,6 +170,20 @@ const compiled: CompiledCard = {
       traits: ["Shambala"],
       cost: 3,
       isAlternate: true,
+    },
+  ],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          levelMax: 5,
+          nameOrTrait: [
+            { tokens: ["Gokuumon"], match: "text" },
+            { tokens: ["SW"], match: "trait" },
+          ],
+        },
+      ],
+      count: 2,
     },
   ],
 };

@@ -1082,6 +1082,22 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // EX12-015 prints the same Lv.5-or-lower Gokuumon-text OR SW slot as EX12-029.
+  // The generated aggregate drops the level ceiling and ANDs its split predicates.
+  "EX12-015": [
+    {
+      materials: [
+        {
+          levelMax: 5,
+          nameOrTrait: [
+            { tokens: ["Gokuumon"], match: "text" },
+            { tokens: ["SW"], match: "trait" },
+          ],
+        },
+      ],
+      count: 2,
+    },
+  ],
   // EX3-014: up to 5 differently named Digimon whose trait CONTAINS Dragon/saur/Ceratopsian.
   // This includes Dragonkin, Rock Dragon and Dinosaur (Q3377), not only exact trait tokens.
   "EX3-014": [

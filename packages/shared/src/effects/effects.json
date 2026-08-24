@@ -132146,7 +132146,18 @@
     "residual": [],
     "digivolutionRequirement": [{ "level": 4, "traits": ["Shambala"], "cost": 3, "isAlternate": true }],
     "digiXrosRequirement": [
-      { "materials": [{ "names": ["Gokuumon"], "traits": ["SW"], "texts": ["Gokuumon"] }], "count": 2 }
+      {
+        "materials": [
+          {
+            "levelMax": 5,
+            "nameOrTrait": [
+              { "tokens": ["Gokuumon"], "match": "text" },
+              { "tokens": ["SW"], "match": "trait" }
+            ]
+          }
+        ],
+        "count": 2
+      }
     ]
   },
   "EX12-016": {

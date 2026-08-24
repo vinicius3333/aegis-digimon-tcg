@@ -234,6 +234,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       const ids = await resolvePermanentTargets(ctx, action.target);
+      // Follow-up clauses such as EX12-015's "that Digimon ... attacks" gate on whether
+      // this optional grant actually chose a recipient. Preserve that outcome explicitly;
+      // resolvePermanentTargets already binds the same physical recipient for sameTarget.
+      ctx.lastEffectActed = ids.length > 0;
       // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
       // ability is recorded in the continuous-effect ledger (real server state the
       // combat / keyword-abilities subsystem reads). ACTION-type keywords (those that

@@ -418,3 +418,31 @@ for the individual evidence below.
 - **Verification:** `EX12-014.test.ts` — 10/10 with no error log; leave-prevention mechanism
   suite — 10/10; workspace typecheck, focused formatting, focused lint, and `git diff --check`
   passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-015 — Gokuumon — 10/10
+
+- **Printed contract:** Red/yellow level 5 Beastkin/Shambala/SW, play cost 7 and 7000 DP.
+  Normal red/yellow level-4 evolution costs 4; level-4 Shambala costs 3. DigiXros -2 uses
+  one level-5-or-lower Gokuumon-text or SW Digimon. It has Raid. On play/evolution it gives
+  one opponent -4000 DP through their turn end; then another own SW Digimon may gain Alliance
+  and, if chosen, must attack. Its inherited optional attack trigger deletes DP 6000 or less
+  once per turn.
+- **KB evidence:** Q6736 defines the text union; Q6737 makes the attack mandatory after accepting
+  Alliance; Q6738 applies the level-5 ceiling to both DigiXros alternatives; Q6739 delays the
+  simultaneous DP-0 rule deletion until the complete activated effect, including its attack,
+  finishes.
+- **Corrections:** the executable module omitted DigiXros entirely, while the generated shared
+  recipe dropped `levelMax` and ANDed split text/trait predicates. Module, committed JSON, and
+  shared override now expose one level-capped OR slot reducing cost by 2. `GainKeyword` also
+  failed to publish `lastEffectActed`, so the conditioned same-target attack never ran; the
+  shared runner now records whether a recipient was actually chosen.
+- **Ruling proof:** accepting Alliance produces `attackDeclared` for the chosen SW Digimon;
+  declining produces none. A real 4000-DP target remains through that attack and is deleted by
+  the following rule check. Level-3 SW EX12-006 and level-5 non-SW Gokuumon BT12-039 each pay
+  DigiXros cost 5 and enter as material; level-6 SW EX12-019 is rejected. The inherited deletion
+  accepts the 6000 boundary, rejects 7000, and a second firing cannot delete another target.
+- **Evolution proof:** normal red EX12-011 and yellow BT1-051 pay 4; off-color Shambala EX12-025
+  pays 3; off-color non-Shambala BT1-069 is rejected.
+- **Verification:** `EX12-015.test.ts` — 11/11; interpreter — 171/171; DigiXros OR-material
+  mechanism — 3/3; workspace typecheck, focused formatting, focused lint, and `git diff --check`
+  passed. No residual IR, unsupported behavior, or unresolved ruling remains.
