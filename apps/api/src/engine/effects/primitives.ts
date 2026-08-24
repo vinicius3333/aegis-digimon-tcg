@@ -3248,10 +3248,18 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       engine.controllerSeat(),
       { isBounce: true },
     );
-    if (prevented.size === 0) return instanceIds;
-    return instanceIds.filter((id) => {
+    const notPrevented = instanceIds.filter((id) => {
       const permId = permByInstance.get(id);
       return permId === undefined || !prevented.has(permId);
+    });
+    // An "instead" reaction may move the would-leave top card before the original bounce
+    // resumes. Most importantly, DNA replacement effects turn it into a digivolution card of
+    // a new Digimon (EX12-003 Q6727). Revalidate the snapshotted permanent identity: the old
+    // operation must not chase that instance into its new stack and pull it to hand/deck.
+    return notPrevented.filter((id) => {
+      const originalPermanentId = permByInstance.get(id);
+      if (originalPermanentId === undefined) return true;
+      return access.permanentById(originalPermanentId)?.topCard?.instanceId === id;
     });
   };
 

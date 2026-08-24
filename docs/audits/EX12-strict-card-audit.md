@@ -75,3 +75,35 @@ for the individual evidence below.
   suites — 93/93; interpreter, primitives, and capability regressions — 586/586;
   workspace typecheck passed. No residual IR, unsupported behavior, or unresolved
   card-specific ambiguity.
+
+## EX12-003 — Kapurimon — 10/10
+
+- **Printed contract:** Black level 2 Digi-Egg, Lesser/ME. Its inherited all-turns
+  replacement triggers when any own ME Digimon would leave the battle area other than
+  by its controller's effects. One such leaving Digimon and any other own Digimon may
+  DNA digivolve into an ME Digimon card in hand, subject to the destination's real DNA
+  recipe and cost.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-003`; Q6724 forbids destinations
+  without `[DNA Digivolve]`; Q6725 forbids materials outside the printed recipe; Q6726
+  defines “other Digimon” relative to the chosen leaving ME Digimon; Q6727 confirms the
+  new DNA Digimon does not continue the original leave operation.
+- **Implementation trace:** inherited `AllTurns` installs a `wouldLeavePlay` replacement;
+  `leaveCause: otherThanYourEffect` admits battle, rules, and opponent-effect leaves but
+  rejects the controller's own effects. The replacement filters to own ME Digimon,
+  `includeRef: triggerSubject` pins the leaving permanent, and `count: 2` adds exactly one
+  different own Digimon. The hand result is ME-filtered; `payCost: true` and the canonical
+  DNA legality check preserve the printed recipe and cost.
+- **Behavioral proof:** real EX12-016 + EX12-055 → EX12-017 DNA succeeds at cost 0 and
+  consumes both materials. A separate leaving EX12-055 can use Kapurimon's EX12-016 host
+  as the “other” material. Tests reject an ME card with no DNA recipe (Q6724), a wrong-level
+  partner (Q6725), non-ME and opponent-controlled leaving Digimon, and a leave caused by
+  the controller's own effect; optional refusal allows the original deletion.
+- **Correction and ruling proof:** the return-to-hand path previously followed the old
+  EX12-016 instance into the newly created EX12-017 stack and pulled that material out,
+  violating Q6727. The shared bounce filter now revalidates that a requested card is still
+  the top of the same original permanent after replacements resolve. The resulting
+  EX12-017 and its complete EX12-016/EX12-003/EX12-055 stack remain in play; the same seam
+  protects return-to-deck because both verbs share this filter.
+- **Verification:** `EX12-003.test.ts` — 10/10; DNA, leave-prevention, primitives, and
+  capability regressions — 426/426; workspace typecheck passed. No residual IR,
+  unsupported behavior, or unresolved card-specific ambiguity.
