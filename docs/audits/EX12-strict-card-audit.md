@@ -684,3 +684,32 @@ for the individual evidence below.
 - **Verification:** `EX12-023.test.ts` — 8/8; interpreter/text/reveal mechanics — 171/171;
   digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-024 — Garurumon — 10/10
+
+- **Printed contract:** Blue/purple level 4 Beast/NSo/VB Vaccine Digimon, play cost 4 and 4000
+  DP. Normal blue/purple level-3 evolutions cost 3; level-3 Gabumon-name or NSo/VB alternatives
+  cost 2. It has Jamming. Its shared once-per-turn On Play/When Attacking effect returns one
+  opposing level-4-or-lower Digimon to hand. Its independent inherited once-per-turn When
+  Attacking draws 1 and then trashes one hand card.
+- **KB evidence:** the committed knowledge base has no card-specific EX12-024 ruling. The audit
+  applies the inclusive level boundary, shared timing budget, Jamming security-battle rule,
+  sequential mandatory processing, and OR evolution filters directly from the printed contract.
+- **Implementation trace:** Jamming is a live static keyword. Separate On Play and When Attacking
+  Return actions share one use key and both require an opposing Digimon at level 4 or lower. The
+  inherited Draw and Trash actions are sequential and have their own once-per-turn frequency.
+  The alternate evolution clauses preserve level 3 plus Gabumon-name or either exact NSo/VB
+  trait. No correction was needed.
+- **Behavioral proof:** On Play and When Attacking independently return an eligible level-4
+  Digimon, preserve a level-5 control, and consume the same once-per-turn budget. A real attack
+  into a stronger Security Digimon removes security while Garurumon survives through Jamming.
+  A buried Garurumon draws and trashes exactly once; with an empty deck, the failed draw does not
+  suppress the following mandatory hand trash, proving do-as-much-as-possible sequencing.
+- **Evolution proof:** blue BT1-027 and purple BT10-071 pay 3; Gabumon BT1-029, NSo-only
+  BT26-062, and off-color VB-only EX12-005 each pay 2; red nonmatching BT1-010 is rejected.
+  Catalog identity, stats, traits, printed text, exact IR filters, full coverage, and empty
+  residuals are asserted.
+- **Verification:** `EX12-024.test.ts` — 8/8; interpreter/shared-use mechanics — 171/171;
+  security/Jamming mechanics — 11/11; movement primitives — 126/126; digivolution action flow —
+  27/27; workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.
