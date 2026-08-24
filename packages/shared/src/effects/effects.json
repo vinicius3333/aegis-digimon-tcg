@@ -135833,7 +135833,26 @@
   },
   "EX12-056": {
     "effects": [
-      { "trigger": "Static", "actions": [] },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "prevent",
+            "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] } },
+            "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
+            "leaveCause": "byOpponentEffect",
+            "affectsAll": true,
+            "cost": {
+              "kind": "deleteOwn",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by deleting this Digimon"
+            },
+            "raw": "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)"
+          }
+        ]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -135925,7 +135944,19 @@
     "residual": [],
     "digivolutionRequirement": [{ "level": 4, "traits": ["Shambala"], "cost": 3, "isAlternate": true }],
     "digiXrosRequirement": [
-      { "materials": [{ "names": ["Gokuumon"], "traits": ["SW"], "texts": ["Gokuumon"] }], "count": 2 }
+      {
+        "materials": [
+          {
+            "nameOrTrait": [
+              { "tokens": ["Gokuumon"], "match": "text" },
+              { "tokens": ["SW"], "match": "trait" }
+            ],
+            "levelMax": 5
+          }
+        ],
+        "count": 2,
+        "maxMaterials": 1
+      }
     ]
   },
   "EX12-057": {

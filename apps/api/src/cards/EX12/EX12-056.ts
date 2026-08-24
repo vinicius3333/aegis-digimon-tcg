@@ -196,12 +196,15 @@ export const compiled: CompiledCard = {
     {
       materials: [
         {
-          names: ["Gokuumon"],
-          traits: ["SW"],
-          texts: ["Gokuumon"],
+          nameOrTrait: [
+            { tokens: ["Gokuumon"], match: "text" },
+            { tokens: ["SW"], match: "trait" },
+          ],
+          levelMax: 5,
         },
       ],
       count: 2,
+      maxMaterials: 1,
     },
   ],
 };

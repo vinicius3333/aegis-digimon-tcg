@@ -1816,3 +1816,38 @@ for the individual evidence below.
   timing/resolution conformance — 17/17; shared build, API typecheck, focused formatting, focused
   lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
   remains.
+
+## EX12-056 — Cho-Hakkaimon — 10/10
+
+- **Printed contract:** Black/yellow level 5 Puppet/Shambala/SW Data Digimon, play cost 7 and
+  7000 DP. Normal black/yellow level-4 evolution costs 4; Shambala level 4 costs 3. DigiXros -2
+  accepts exactly one level-5-or-lower Digimon with Gokuumon in its text or the SW trait. Guard
+  may delete Cho-Hakkaimon to prevent all other allied Digimon from leaving by an opponent's
+  effect. On Play and When Digivolving it De-Digivolves one opponent by 1, then another SW ally
+  may gain Alliance for the turn and must attack if possible. Its inherited opponent-turn
+  once-per-turn effect may redirect an opposing attack to its host.
+- **KB evidence:** Q6851 defines Gokuumon-in-text across names, traits, every effect field, Rule,
+  and all requirement forms. Q6852 makes the attack mandatory after accepting Alliance. Q6853
+  applies level 5 or lower to both the Gokuumon-text and SW alternatives.
+- **Corrections:** the DigiXros material used simultaneous exact-name and SW predicates, ignored
+  `texts`, omitted the level cap, and allowed unlimited materials. It now uses a true text-or-SW
+  union, `levelMax: 5`, and `maxMaterials: 1`. The aggregate IR also replaced Guard with an inert
+  Static marker; it now carries the exact executable all-turn replacement, opposing-effect leave
+  cause, all-other-allies scope, and self-deletion cost. Direct and aggregate IR are exactly equal,
+  full, and residual-free; registration remains exclusively via `registerIrCard`.
+- **Ruling and behavioral proof:** text-only non-SW EX6-024 and SW EX12-012 each pay one DigiXros
+  material and reduce cost by exactly 2. Level-6 SW EX12-019 and a two-material declaration are
+  rejected, proving Q6851/Q6853 and the printed singular cap. Accepting the On Play Alliance grant
+  declares the selected ally's attack; resolving Alliance suspends Cho-Hakkaimon, and the attacker
+  wins its Raid battle while security remains untouched, proving Q6852 rather than only observing
+  an effect event. Guard deletes itself and preserves another ally from opposing-effect deletion.
+  A buried copy redirects an opposing attack to its host, which survives while the attacker loses.
+- **Evolution and identity proof:** black EX12-054 and yellow BT12-038 pay normal cost 4;
+  Shambala EX12-012 pays alternate cost 3; red non-Shambala BT1-017 is rejected. Catalog identity,
+  requirements, DigiXros shape, replacement, both timing bodies, inherited watcher, full coverage,
+  empty residuals, direct registration, and exact aggregate equality are asserted.
+- **Verification:** `EX12-056.test.ts` — 6/6; DigiXros OR-material mechanics — 3/3;
+  digivolution action flow — 27/27; interpreter capabilities — 290/290; advanced-keyword
+  conformance including Alliance — 30/30; leave prevention — 10/10; interpreter — 171/171;
+  shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed.
+  No residual IR, unsupported behavior, or unresolved ruling remains.
