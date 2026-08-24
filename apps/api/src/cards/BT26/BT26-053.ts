@@ -24,13 +24,14 @@ export const compiled: CompiledCard = {
           event: "whenAttackTargetSwitched",
           actions: [
             {
-              kind: "TrashDigivolution",
-              target: { filter: { controller: "mine", kind: ["Tamer"], digivolutionCards: "hasAny" }, count: 1 },
-              amount: 1,
-              fromTop: false,
+              kind: "CostGatedBlock",
+              cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
               optional: true,
+              abortOnDecline: true,
+              actions: [
+                { kind: "UseOptionWithoutCost", from: ["hand"], payCost: false, optional: true, filter: option.filter },
+              ],
             },
-            { kind: "UseOptionWithoutCost", from: ["hand"], payCost: false, optional: true, filter: option.filter },
           ],
         },
       ],

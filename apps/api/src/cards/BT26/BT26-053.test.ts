@@ -22,8 +22,11 @@ describe("BT26-053 Wolvermon", () => {
           kind: "SubTrigger",
           event: "whenAttackTargetSwitched",
           actions: [
-            { kind: "TrashDigivolution", fromTop: false },
-            { kind: "UseOptionWithoutCost", from: ["hand"], payCost: false },
+            {
+              kind: "CostGatedBlock",
+              cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
+              actions: [{ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false }],
+            },
           ],
         },
       ],
@@ -43,7 +46,7 @@ describe("BT26-053 Wolvermon", () => {
             { card: "BT26-053", as: "source" },
             { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
           ],
-          hand: [{ card: "BT26-052", as: "option" }],
+          hand: [{ card: "P-236", as: "option" }],
           deck: ["BT1-001", "BT1-002", "BT1-003"],
         },
       },
@@ -56,6 +59,29 @@ describe("BT26-053 Wolvermon", () => {
     });
 
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT26-031");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("P-236");
+  });
+
+  it("doesn't use the Option when the exact face-down bottom cost can't be paid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-053", as: "source" },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceUp", faceUp: true }] },
+          ],
+          hand: [{ card: "P-236", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("source").permanentId,
+    });
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("P-236");
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toContain("BT1-010");
   });
 });

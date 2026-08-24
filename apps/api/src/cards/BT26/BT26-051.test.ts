@@ -26,6 +26,7 @@ describe("BT26-051 Gomimon", () => {
           kind: "SubTrigger",
           event: "whenLinked",
           actions: [
+            { kind: "SelectBind", target: { bindAs: "grantTarget" } },
             { kind: "GainKeyword", keyword: { keyword: "Collision" } },
             { kind: "ModifyDP", amount: 3000 },
           ],
@@ -64,5 +65,47 @@ describe("BT26-051 Gomimon", () => {
 
     expect(s.perm("gomimon").currentDP).toBe(7000);
     expect(observe(s.engine).hasKeyword(s.perm("gomimon"), "Collision")).toBe(true);
+  });
+
+  it("binds one recipient so Collision and +3000 DP can't be split between Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-051", as: "gomimon" },
+            { card: "BT26-029", as: "otherEligible" },
+          ],
+          hand: [{ card: "BT26-019", as: "mailmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const originalDp = new Map([
+      [s.perm("gomimon").permanentId, s.perm("gomimon").currentDP],
+      [s.perm("otherEligible").permanentId, s.perm("otherEligible").currentDP],
+    ]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("mailmon").instanceId,
+        targetPermanentId: s.perm("gomimon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        [s.perm("gomimon"), s.perm("otherEligible")].filter((permanent) =>
+          observe(s.engine).hasKeyword(permanent, "Collision"),
+        ).length === 1,
+    );
+
+    const buffed = [s.perm("gomimon"), s.perm("otherEligible")].filter(
+      (permanent) => observe(s.engine).hasKeyword(permanent, "Collision"),
+    );
+    expect(buffed).toHaveLength(1);
+    expect(observe(s.engine).hasKeyword(buffed[0]!, "Collision")).toBe(true);
+    expect(buffed[0]!.currentDP).toBe(originalDp.get(buffed[0]!.permanentId)! + 3000);
   });
 });

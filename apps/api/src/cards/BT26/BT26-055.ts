@@ -12,17 +12,19 @@ const place = {
 };
 const deleteBody = [
   {
-    kind: "Delete",
+    kind: "SelectBind",
     target: {
       filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ver.3"], match: "trait" }] },
       count: 1,
+      bindAs: "ownVer3ToDelete",
     },
     optional: true,
+    abortOnDecline: true,
   },
+  { kind: "Delete", target: { filter: { boundRef: "ownVer3ToDelete" }, count: 1 } },
   {
     kind: "Delete",
     target: { filter: { controller: "opponent", kind: ["Digimon"], lowestPlayCost: true }, count: "all" },
-    optional: true,
   },
 ];
 const body = [place, ...deleteBody];
