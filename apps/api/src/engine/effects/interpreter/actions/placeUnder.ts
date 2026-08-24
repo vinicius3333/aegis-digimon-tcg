@@ -42,9 +42,15 @@ export async function runPlaceUnder(
     const owner = ctx.game.player(ctx.source.ownerSeat);
     if (action.mixedSources.battleAreaPermanents || action.mixedSources.linkedCards) {
       for (const permanent of owner.battleArea) {
-        if (permanent.inBreeding || permanent.permanentId === destinationId || permanent.topCard === undefined)
-          continue;
-        if (action.mixedSources.battleAreaPermanents && matches(permanent.topCard))
+        if (permanent.inBreeding || permanent.topCard === undefined) continue;
+        // The destination Digimon itself cannot become one of its own digivolution
+        // cards, but its linked cards remain valid mixed-source materials (BT26-102
+        // Q7183). Do not skip the entire permanent when it is the chosen host.
+        if (
+          permanent.permanentId !== destinationId &&
+          action.mixedSources.battleAreaPermanents &&
+          matches(permanent.topCard)
+        )
           candidates.push({ instanceId: permanent.topCard.instanceId, permanentId: permanent.permanentId });
         if (action.mixedSources.linkedCards) {
           for (const linked of permanent.linked)
@@ -395,9 +401,13 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
     return destinationIds.some((destinationId) => {
       let available = 0;
       for (const permanent of owner.battleArea) {
-        if (permanent.inBreeding || permanent.permanentId === destinationId || permanent.topCard === undefined)
-          continue;
-        if (action.mixedSources!.battleAreaPermanents && matches(permanent.topCard)) available += 1;
+        if (permanent.inBreeding || permanent.topCard === undefined) continue;
+        if (
+          permanent.permanentId !== destinationId &&
+          action.mixedSources!.battleAreaPermanents &&
+          matches(permanent.topCard)
+        )
+          available += 1;
         if (action.mixedSources!.linkedCards) available += permanent.linked.filter(matches).length;
       }
       if (action.mixedSources!.hand) available += owner.hand.filter(matches).length;
