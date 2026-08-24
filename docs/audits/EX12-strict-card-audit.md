@@ -1911,3 +1911,41 @@ for the individual evidence below.
   digivolution — 1/1; digivolution action flow — 27/27; advanced-keyword/Alliance conformance —
   30/30; continuous-effect lifecycle — 5/5; API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-059 — Machinedramon ACE — 10/10
+
+- **Printed contract:** Black/purple level 6 Machine/ME Virus ACE, play cost 7, 12000 DP, and
+  Overflow -4. Normal black/purple level-5 evolution costs 4; level-5 Cyborg or ME costs 3. It
+  has Hand/Counter Blast Digivolve, Reboot, and Fragment (2). Its shared On Play, When
+  Digivolving, and When Attacking once-per-turn De-Digivolves one opponent by 3, then may place
+  exactly two level-5-or-lower Machine/Cyborg/ME cards from hand or trash under itself to prevent
+  opposing effects from trashing any allied stacked cards through the opponent's turn.
+- **KB evidence:** Q6858 forbids partial payment with one card. Q6859 makes the lock cover cards
+  at both the top and bottom of stacks, including De-Digivolve and explicit source-trash effects.
+  Q6865 confirms Fragment may be paid when a later effect tries to delete Machinedramon ACE.
+- **Corrections:** the card IR itself and aggregate IR already matched, but the audit exposed a
+  systemic Blast defect: merely printing Blast Digivolve made every normal Main Phase evolution
+  into that card free. The protocol now distinguishes an explicit Blast declaration from normal
+  evolution. Normal evolution pays its printed/alternate cost; during an opponent attack, legal
+  Blast cards in the defender's hand are published in the Counter window for each legal base,
+  and `respondCounter` resolves the selected free evolution before closing that window. The
+  former conformance shortcut was replaced by an actual opponent-attack Counter flow.
+- **Ruling and behavioral proof:** the effect first De-Digivolves by 3, then pays with one card
+  from hand and one from trash, placing exactly two at the bottom. An opposing stack-trash action
+  is blocked while the controller's own action succeeds. With zero or exactly one eligible card,
+  De-Digivolve still resolves but no material moves and no lock is bought, proving Q6858. A second
+  timing in the same turn cannot De-Digivolve again. With two sources already present, a real
+  deletion attempt automatically pays Fragment (2), trashes both sources, and leaves the ACE in
+  play for Q6865. Stack-lock and Fragment mechanism suites cover Q6859's consume sites.
+- **Evolution and identity proof:** black BT10-064 and purple BT10-079 now demonstrably pay normal
+  cost 4; Cyborg/ME EX12-055 pays alternate cost 3; green nonmatching BT1-075 is rejected. Catalog
+  assertions cover ACE identity, Overflow, stats, traits, and routes. Keywords, all timing bodies,
+  shared key, exact cost filter/zones/count, registration, aggregate equality, full coverage, and
+  empty residuals are asserted.
+- **Verification:** `EX12-059.test.ts` — 7/7; digivolution action flow — 27/27; DNA action flow —
+  1/1; advanced-keyword conformance including real Blast Counter — 30/30; combat advanced
+  keywords including Fragment — 25/25; interpreter — 171/171; capabilities — 290/290; effect
+  firing — 5/5; EX12-055 Counter regression — 10/10; shared build, API typecheck, focused
+  formatting, focused lint, and `git diff --check` passed. The full-file GameEngine lint reports
+  only its pre-existing no-shadow/underscore warnings. No residual IR, unsupported behavior, or
+  unresolved card-specific ruling remains.

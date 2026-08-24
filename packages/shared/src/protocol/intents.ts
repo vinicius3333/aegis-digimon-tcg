@@ -18,12 +18,20 @@ export type Intent =
       useAlternateCost?: boolean;
       /** Explicit index in digivolutionRequirementsFor(cardId); server revalidates every gate. */
       alternateRequirementIndex?: number;
+      /** Explicitly use the card's Blast Digivolve waiver; omitted for a normal evolution. */
+      useBlastDigivolve?: boolean;
     } // stack hand card onto a permanent; boolean remains the first-match compatibility path
   | { type: "hatchEgg" } // breeding: move top egg to raising area
   | { type: "moveFromBreeding"; permanentId: string } // move raised Digimon to battle area
   | { type: "activateEffect"; sourceInstanceId: string; effectKey: string } // activate a [Main]/activated effect
   | { type: "linkCard"; instanceId: string; targetPermanentId: string } // link a hand card (§6-5-1-4/§10-1) to one of your battle-area Digimon
-  | { type: "dnaDigivolve"; materialPermanentIds: string[]; instanceId: string } // DNA digivolve (§8-2): consume 2+ battle-area materials + a hand card into a new Digimon
+  | {
+      type: "dnaDigivolve";
+      materialPermanentIds: string[];
+      instanceId: string;
+      /** Explicitly use the card's Blast DNA Digivolve waiver; omitted for normal DNA. */
+      useBlastDigivolve?: boolean;
+    } // DNA digivolve (§8-2): consume 2+ battle-area materials + a hand card into a new Digimon
   | { type: "endPhase" } // advance Main -> End (or skip Breeding action)
 
   // --- Combat verbs ---
