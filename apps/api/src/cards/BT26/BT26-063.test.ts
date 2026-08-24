@@ -3,6 +3,7 @@ import {
   CardKind,
   digivolutionRequirementsFor,
   EffectTiming,
+  getCardDefinition,
   type CardDefinition,
   type Seat,
 } from "@aegis/shared";
@@ -70,7 +71,20 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
 }
 
 describe("BT26-063 Tellermon", () => {
-  it("exposes the printed Detach keyword", () => {
+  it("matches the catalog and exposes the printed Detach keyword", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Tellermon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Stnd.", "Appmon"],
+      attributes: ["Entertainment"],
+      types: ["Fortune Telling (App Name)", "Seven Code"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.keywords).toEqual([{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }]);
   });
   it("exposes the Appmon evolution and Link requirements", () => {
@@ -196,6 +210,43 @@ describe("BT26-063 Tellermon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lowestId));
 
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT26-060"]);
+  });
+
+  it("uses Detach to trash a linked Seven Code card and prevent its battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "tellermon",
+              linked: [{ card: "BT26-019", as: "sevenCodeLink" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const tellermonId = s.perm("tellermon").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: tellermonId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("sevenCodeLink").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(tellermonId);
+    expect(s.perm("tellermon").linked).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("defender").permanentId,
+    );
   });
 
   it("does not reveal when another Appmon, rather than this Tellermon, gets linked", async () => {
