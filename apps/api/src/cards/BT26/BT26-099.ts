@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
         {
           kind: "RevealAdd",
           revealCount: 3,
-          add: [{ filter: dm, count: 1, to: "hand", optional: true }],
+          add: [{ filter: dm, count: 1, to: "hand" }],
           rest: "deckBottom",
         },
         { kind: "PlaceInBattleAreaSelf" },
