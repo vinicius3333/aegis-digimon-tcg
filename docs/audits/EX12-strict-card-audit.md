@@ -630,3 +630,30 @@ for the individual evidence below.
   171/171; digivolution-candidate legality — 5/5; basic effect conformance — 8/8; digivolution
   action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-022 — Kamemon — 10/10
+
+- **Printed contract:** Blue level 3 Cyborg/Shambala/SW Data Digimon, play cost 3 and 2000 DP.
+  Normal blue level-2 and alternate level-2 Shambala evolutions cost 0. On play it reveals the
+  top three cards, adds one Shambala card and one SW card among them, and returns the rest to the
+  deck bottom. Its inherited once-per-turn When Attacking draws 1 when its controller has 7 or
+  fewer cards in hand.
+- **KB evidence:** the committed knowledge base has no card-specific EX12-022 ruling. The audit
+  applies the two independently capped reveal slots, single-card identity, inclusive hand
+  threshold, and standard alternate-evolution rules directly from the printed contract.
+- **Implementation trace:** the On Play action has one three-card reveal with separate count-1
+  Shambala and SW filters and `rest:"deckBottom"`; selected identities are removed between
+  slots, so one dual-trait card cannot be added twice. The inherited Draw 1 has `handAtMost:7`
+  and its own once-per-turn budget. The alternate evolution requires level 2 and Shambala
+  together. No correction was needed.
+- **Behavioral proof:** distinct Shambala-only and SW-eligible cards are both added while the
+  unrelated third card returns to the bottom. With only one dual-trait card among the three, it
+  enters hand exactly once and both unrelated cards return to the deck; with no matches, all
+  three remain in the deck and none enter hand. A buried Kamemon draws once at seven cards,
+  cannot draw a second time that turn, and draws nothing when starting at eight.
+- **Evolution proof:** blue BT1-003 and off-color Shambala EX12-002 evolve into Kamemon for 0
+  through their respective routes; red non-Shambala BT1-001 is rejected. Catalog identity,
+  stats, traits, text, exact IR slots, full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-022.test.ts` — 8/8; interpreter/reveal mechanics — 171/171;
+  digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
