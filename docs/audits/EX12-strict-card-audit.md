@@ -2007,3 +2007,28 @@ for the individual evidence below.
   digivolution action flow — 27/27; effect-firing/inherited timing — 5/5; API typecheck, focused
   formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   ruling dependency, or unresolved limitation remains.
+
+## EX12-062 — Kokeshimon — 10/10
+
+- **Printed contract:** Purple level 4 Puppet/Shambala/TB Data Digimon, play cost 4 and 5000 DP.
+  It evolves normally from purple level 3 for 2 and alternatively from any level-3 Puppet or
+  Shambala for 2. On Play and When Digivolving, it may delete one allied Digimon as a cost to
+  delete one opposing level-4-or-lower Digimon. Its inherited When Attacking once-per-turn draws
+  1 and then trashes one card from hand.
+- **Implementation and behavioral proof:** direct and aggregate IR already matched and required
+  no functional correction. On Play, a specifically selected ally is deleted before an eligible
+  opposing Digimon. When Digivolving, Kokeshimon itself may be deleted as the cost and the
+  already-triggered effect still deletes the opponent. The optional cost can be declined without
+  moving either Digimon. If the only opponent is level 5, the controller may still pay the cost,
+  then the later deletion does as much as possible and leaves that invalid target in play. The
+  inherited effect draws and trashes exactly once across two attack timings.
+- **Evolution and identity proof:** purple EX12-061 uses the normal cost-2 route; white Puppet
+  BT23-076 and blue Shambala EX12-020 independently prove both alternate trait branches; red
+  nonmatching BT1-009 is rejected. Catalog identity, normal and alternate requirements, both
+  deletion windows, exact cost/target filters, inherited scope and OPT, full coverage, empty
+  residuals, exclusive IR registration, and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-062.test.ts` — 7/7; deletion/advanced-keyword conformance — 30/30;
+  interpreter — 171/171; capabilities — 290/290; digivolution action flow — 27/27;
+  effect-firing/inherited timing — 5/5; API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, ruling dependency, or
+  unresolved limitation remains.
