@@ -158,7 +158,7 @@ describe("responsive application state", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "Open the player menu" })[0]!);
 
     expect(await screen.findByRole("dialog")).toBeTruthy();
-    expect(screen.getByText("Guest \u2014 saved on this device")).toBeTruthy();
+    expect(screen.getByText("Guest \u00b7 saved on this device")).toBeTruthy();
   });
 
   it("preserves the active screen and form draft when the viewport crosses a breakpoint", async () => {

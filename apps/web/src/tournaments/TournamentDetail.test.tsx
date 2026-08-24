@@ -257,7 +257,7 @@ describe("tournament detail", () => {
     mockDetail();
     renderDetail("acc-player");
     const panel = (await screen.findByRole("heading", { name: "My match" })).closest(".aegis-panel") as HTMLElement;
-    expect(within(panel).getByText("You do not have a match here yet. Sit tight.")).toBeTruthy();
+    expect(within(panel).getByText("You do not have a match here yet.")).toBeTruthy();
   });
 
   it("marks presence, score and join deadline as pending when the payload carries no series", async () => {

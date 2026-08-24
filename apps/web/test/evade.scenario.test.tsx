@@ -122,7 +122,7 @@ scenario("evade", () => {
 
     // MetalGreymon's [On Play] would delete Shellmon — the real Evade prompt
     // opens on the protagonist's screen (EvadeOverlay, evadePrompt event).
-    const acceptButton = await screen.findByRole("button", { name: /yes — suspend to evade/i }, { timeout: 10_000 });
+    const acceptButton = await screen.findByRole("button", { name: /yes, suspend to evade/i }, { timeout: 10_000 });
     fireEvent.click(acceptButton);
 
     // Answered-outcome proof: Shellmon SURVIVES — still rendered in the
@@ -138,7 +138,7 @@ scenario("evade", () => {
         ).toBe(true),
       { timeout: 10_000 },
     );
-    await vi.waitFor(() => expect(screen.queryByRole("button", { name: /yes — suspend to evade/i })).toBeNull(), {
+    await vi.waitFor(() => expect(screen.queryByRole("button", { name: /yes, suspend to evade/i })).toBeNull(), {
       timeout: 10_000,
     });
     const shellmonPermElAfter = within(yourBattleArea())

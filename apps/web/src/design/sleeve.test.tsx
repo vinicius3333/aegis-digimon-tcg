@@ -22,7 +22,7 @@ describe("card sleeves", () => {
 
     expect(container.querySelector('img[src="/sleeves/omnimon.png"]')).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Alphamon — Official Card Sleeves" }));
+    fireEvent.click(screen.getByRole("button", { name: "Alphamon, Official Card Sleeves" }));
 
     expect(localStorage.getItem("aegis.sleeve")).toBe("alphamon");
     expect(container.querySelector('img[src="/sleeves/alphamon.png"]')).toBeTruthy();

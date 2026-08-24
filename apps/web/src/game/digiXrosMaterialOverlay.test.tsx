@@ -35,7 +35,7 @@ describe("DigiXrosMaterialOverlay accessibility", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("dialog", { name: "＜DigiXros＞ — Dorbickmon" }).getAttribute("aria-modal")).toBe("true");
+    expect(screen.getByRole("dialog", { name: "＜DigiXros＞ Dorbickmon" }).getAttribute("aria-modal")).toBe("true");
     expect(screen.getByText(/Accepted: \[Dragon\/saur\/Ceratopsian\] in traits different names\./)).toBeTruthy();
 
     const material = screen.getByRole("button", { name: "Vorvomon (hand)" });

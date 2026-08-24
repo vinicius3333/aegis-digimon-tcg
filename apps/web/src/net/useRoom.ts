@@ -256,7 +256,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       if (cancelled) return;
       clearPendingIntents();
       setStatus("closed");
-      setError("Connection lost — the match could not be resumed.");
+      setError("Connection lost. We could not resume the match.");
     };
 
     connectRoom(options, match)

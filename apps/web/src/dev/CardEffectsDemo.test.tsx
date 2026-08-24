@@ -851,7 +851,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("dialog", { name: "Block window" })).toBeTruthy();
     expect(screen.getByText(/Choose a <Blocker> to redirect the attack, or take the hit/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: /ExTyrannomon, 9,000 DP, 1 source/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Take the attack — no block" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Take the attack, no block" })).toBeTruthy();
   });
 
   it("shows a source-less ExTyrannomon without an attack affordance or block prompt", () => {
@@ -2575,7 +2575,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-039" />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Take the attack — no block" }));
+    fireEvent.click(screen.getByRole("button", { name: "Take the attack, no block" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -2772,13 +2772,13 @@ describe("CardEffectsDemo", () => {
         .getAllByAltText(/Agumon|Gabumon/)
         .map((image) => image.getAttribute("alt")),
     ).toEqual(["Agumon", "Gabumon"]);
-    fireEvent.click(within(dialog).getByRole("button", { name: "Move card up — Gabumon, 2" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Move card up, Gabumon, 2" }));
     expect(
       within(dialog)
         .getAllByAltText(/Agumon|Gabumon/)
         .map((image) => image.getAttribute("alt")),
     ).toEqual(["Gabumon", "Agumon"]);
-    expect(within(dialog).getByRole("button", { name: "Move card down — Gabumon, 1" })).toBeTruthy();
+    expect(within(dialog).getByRole("button", { name: "Move card down, Gabumon, 1" })).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm order" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
@@ -3804,7 +3804,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-033" />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Take the attack — no block" }));
+    fireEvent.click(screen.getByRole("button", { name: "Take the attack, no block" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -3850,7 +3850,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-033" />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Take the attack — no block" }));
+    fireEvent.click(screen.getByRole("button", { name: "Take the attack, no block" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -4067,8 +4067,8 @@ describe("CardEffectsDemo", () => {
 
     const dialog = screen.getByRole("dialog", { name: /Goldramon · effect/i });
     expect(within(dialog).getByText(/Arrange the cards in deck order/i)).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole("button", { name: /Move card down — Magnadramon, 1/i }));
-    expect(within(dialog).getByRole("button", { name: /Move card up — Magnadramon, 2/i })).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: /Move card down, Magnadramon, 1/i }));
+    expect(within(dialog).getByRole("button", { name: /Move card up, Magnadramon, 2/i })).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm order" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });

@@ -1843,8 +1843,8 @@ describe("digivolution cost choice", () => {
     );
 
     expect(screen.getByText("Digivolve cost")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Blue Lv.2 — 1 memory" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Bebydomon — 0 memory" }));
+    expect(screen.getByRole("button", { name: "Blue Lv.2 · 1 memory" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Bebydomon · 0 memory" }));
     expect(onConfirm).toHaveBeenCalledWith(true);
   });
 });

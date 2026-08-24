@@ -14,7 +14,7 @@ export function CardSleevePicker() {
             className="settings-sleeve-option"
             key={sleeve.id}
             type="button"
-            aria-label={`${sleeve.label} — ${sleeve.collection}`}
+            aria-label={`${sleeve.label}, ${sleeve.collection}`}
             aria-pressed={selected}
             onClick={() => {
               setCardSleeveId(sleeve.id);

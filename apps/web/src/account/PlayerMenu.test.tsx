@@ -33,7 +33,7 @@ describe("the player menu", () => {
   it("tells a guest where their progress lives and offers a way in", () => {
     const props = renderMenu({ signedIn: false });
 
-    expect(screen.getByText("Guest — saved on this device")).toBeTruthy();
+    expect(screen.getByText("Guest · saved on this device")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(props.onClose).toHaveBeenCalled();

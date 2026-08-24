@@ -796,7 +796,7 @@ export function triggerLabel(triggerKey: string): string {
   const cardId = triggerCardId(triggerKey);
   const name = getCardDefinition(cardId)?.nameEn;
   const slug = effectKey.slice(slashAt + 1).replace(/-/g, " ");
-  return name ? `${name} — ${slug}` : effectKey;
+  return name ? `${name} · ${slug}` : effectKey;
 }
 
 /** Card definition id carried by a pending trigger's effect key. */

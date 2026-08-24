@@ -1457,7 +1457,7 @@ export function DecisionOverlay({
                     variant="ghost"
                     disabled={index === 0}
                     onClick={() => moveOrderedCard(index, -1)}
-                    aria-label={`${t("overlay.moveUp")} — ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
+                    aria-label={`${t("overlay.moveUp")}, ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
                   >
                     <Icons.ChevronUp size={18} />
                   </Button>
@@ -1465,7 +1465,7 @@ export function DecisionOverlay({
                     variant="ghost"
                     disabled={index === cardOrder.length - 1}
                     onClick={() => moveOrderedCard(index, 1)}
-                    aria-label={`${t("overlay.moveDown")} — ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
+                    aria-label={`${t("overlay.moveDown")}, ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
                   >
                     <Icons.ChevronDown size={18} />
                   </Button>
