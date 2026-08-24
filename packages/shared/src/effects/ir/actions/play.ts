@@ -22,6 +22,12 @@ export interface PlayWithoutCostAction extends ActionBase {
    */
   reduceCostBy?: number;
   /**
+   * Offer the played Digimon's normal DigiXros declaration during this effect-driven paid play.
+   * Default materials come from hand/battle area; applicable unsuspended expander Tamers may also
+   * unlock their documented under-Tamer/trash allowances.
+   */
+  allowDigiXros?: boolean;
+  /**
    * Optional Assembly declaration available during this effect-driven paid play. The player may
    * select the exact material target from their trash; when selected, the material is placed under
    * the played Digimon and the additional fixed reduction is applied.

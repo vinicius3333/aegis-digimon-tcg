@@ -10,6 +10,7 @@ import { runPlayPerLevel } from "./dna.js";
 import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
 import type { Action, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
+import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
 
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -411,6 +412,107 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
+        let digiXrosMaterialInstanceIds: string[] = [];
+        if (action.allowDigiXros === true && permanentIds.length === 1) {
+          const playedCard = candidates.find((candidate) => candidate.instanceId === permanentIds[0]);
+          const requirement = playedCard === undefined ? undefined : digiXrosRequirementFor(playedCard.cardId)?.[0];
+          if (requirement !== undefined) {
+            const ownerSeat = playedCard.ownerSeat;
+            const player = ctx.game.player(ownerSeat);
+            const playedDefinition = ctx.game.definitionOf({ cardId: playedCard!.cardId } as never);
+            const expanders = Array.from(player.battleArea).filter((permanent) => {
+              if (permanent.isSuspended || permanent.topCard === undefined) return false;
+              const expander = digiXrosZoneExpanderFor(permanent.topCard.cardId);
+              return expander?.appliesTo(playedDefinition) === true;
+            });
+            const selectedExpanderCards =
+              expanders.length === 0
+                ? []
+                : await ctx.ask.selectCards(ctx, {
+                    candidates: expanders.map((permanent) => permanent.topCard!.instanceId),
+                    min: 0,
+                    max: expanders.length,
+                  });
+            const selectedExpanders = expanders.filter((permanent) =>
+              selectedExpanderCards.includes(permanent.topCard!.instanceId),
+            );
+            const expansion = selectedExpanders.reduce(
+              (current, permanent) => {
+                const expander = digiXrosZoneExpanderFor(permanent.topCard!.cardId)!;
+                return {
+                  underTamerMax: Math.max(current.underTamerMax, expander.underTamerMax),
+                  trashMax: Math.max(current.trashMax, expander.trashMax),
+                };
+              },
+              { underTamerMax: 0, trashMax: 0 },
+            );
+            const defaultCandidates = [
+              ...looseCardsInZone(ctx, ownerSeat, "hand").filter(
+                (candidate) => candidate.instanceId !== playedCard!.instanceId,
+              ),
+              ...Array.from(player.battleArea).flatMap((permanent) =>
+                permanent.inBreeding || permanent.topCard === undefined
+                  ? []
+                  : [
+                      {
+                        instanceId: permanent.topCard.instanceId,
+                        cardId: permanent.topCard.cardId,
+                        ownerSeat: permanent.topCard.ownerSeat,
+                        hostPermanentId: permanent.permanentId,
+                      },
+                    ],
+              ),
+            ];
+            const expandedCandidates = [
+              ...(expansion.underTamerMax > 0 ? looseCardsInZone(ctx, ownerSeat, "underTamers") : []),
+              ...(expansion.trashMax > 0 ? looseCardsInZone(ctx, ownerSeat, "trash") : []),
+            ];
+            const materialCandidates = [...defaultCandidates, ...expandedCandidates].filter((candidate) =>
+              materialsSatisfyRecipe(
+                [ctx.game.definitionOf({ cardId: candidate.cardId } as never)],
+                requirement.materials,
+              ),
+            );
+            const materialCap =
+              requirement.maxMaterials ??
+              (requirement.materials.length === 1 ? materialCandidates.length : requirement.materials.length);
+            const selected = await ctx.ask.selectCards(ctx, {
+              candidates: materialCandidates.map((candidate) => candidate.instanceId),
+              min: 0,
+              max: materialCap,
+            });
+            const selectedCandidates = selected
+              .map((instanceId) => materialCandidates.find((candidate) => candidate.instanceId === instanceId))
+              .filter((candidate): candidate is (typeof materialCandidates)[number] => candidate !== undefined);
+            const selectedUnderTamer = selectedCandidates.filter((candidate) =>
+              looseCardsInZone(ctx, ownerSeat, "underTamers").some(
+                (underCard) => underCard.instanceId === candidate.instanceId,
+              ),
+            ).length;
+            const selectedTrash = selectedCandidates.filter((candidate) =>
+              looseCardsInZone(ctx, ownerSeat, "trash").some(
+                (trashCard) => trashCard.instanceId === candidate.instanceId,
+              ),
+            ).length;
+            const definitions = selectedCandidates.map((candidate) =>
+              ctx.game.definitionOf({ cardId: candidate.cardId } as never),
+            );
+            if (
+              selected.length > 0 &&
+              selectedUnderTamer <= expansion.underTamerMax &&
+              selectedTrash <= expansion.trashMax &&
+              materialsSatisfyRecipe(definitions, requirement.materials)
+            ) {
+              if (selectedUnderTamer > 0 || selectedTrash > 0) {
+                await ctx.fx.suspend(
+                  selectedExpanders.map((permanent) => permanent.permanentId),
+                  { byEffectSeat: ownerSeat },
+                );
+              }
+              digiXrosMaterialInstanceIds = selected;
+            }
+          }
+        }
         const hostPermanentIds = Object.fromEntries(
           permanentIds
             .map((instanceId) => {
@@ -430,6 +532,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
+                ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,
               })
