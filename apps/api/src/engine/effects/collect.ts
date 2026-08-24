@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
-import type { EffectContext } from "./EffectContext.js";
+import type { EffectContext, TriggerInfo } from "./EffectContext.js";
 import { getEffectModule } from "./registry.js";
 import { UseTracker, canActivate, canTrigger } from "./kernel.js";
 
@@ -11,6 +11,8 @@ export interface CollectedEffect {
   effect: Effect;
   /** Internal firing window retained so nested decisions can preserve effect provenance. */
   timing?: EffectTiming;
+  /** Event payload captured when a timing triggered inside another resolving effect. */
+  triggerInfo?: TriggerInfo;
   /** Host that received this buried card's printed effect through a static conferral. */
   conferredToPermanentId?: string;
 }

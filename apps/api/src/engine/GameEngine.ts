@@ -78,7 +78,12 @@ import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
-import { createGameAccess, createCardStateLookup, createEffectContext } from "./effects/context.js";
+import {
+  createGameAccess,
+  createCardStateLookup,
+  createEffectContext,
+  gatherTriggeredEffects,
+} from "./effects/context.js";
 import { ArraySchema } from "@colyseus/schema";
 import { createCardSource, type CardStateLookup } from "./cards/CardSource.js";
 import { digisorptionAmountFor, isDigisorptionRedirector } from "./cards/digisorptionDigivolve.js";
@@ -381,6 +386,8 @@ export class GameEngine {
   private subTriggerWindowDepth = 0;
   /** Watchers armed for the event of the enclosing window, offered to that window's resolver. */
   private pendingWindowSubTriggers: ArmedSubTrigger[] = [];
+  /** Printed timing effects triggered inside the currently resolving effect body. */
+  private pendingNestedTimingEffects: CollectedEffect[] = [];
 
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   private readonly deferredSecurityRemovalTriggers: Array<{
@@ -424,7 +431,10 @@ export class GameEngine {
 
   /** Close a window opened by `beginResolvingWindow`; a no-op for a non-outermost (nested) call. */
   private endResolvingWindow(wasOutermost: boolean): void {
-    if (wasOutermost) this.activeWindowToken = undefined;
+    if (!wasOutermost) return;
+    this.pendingNestedTimingEffects = [];
+    this.pendingWindowSubTriggers = [];
+    this.activeWindowToken = undefined;
   }
 
   private async flushDeferredSecurityRemovalTriggers(): Promise<void> {
@@ -465,6 +475,22 @@ export class GameEngine {
     } finally {
       this.flushingDeferredTimingWindows = false;
     }
+  }
+
+  private shouldDeferNestedTiming(): boolean {
+    return this.effectResolutionDepth > 0 && this.activeWindowToken !== undefined;
+  }
+
+  private deferNestedTimingEffects(
+    timing: EffectTiming,
+    trigger: TriggerInfo,
+    candidateInstances: readonly CardInstance[],
+  ): void {
+    const capturedTrigger = { ...trigger };
+    const effects = gatherTriggeredEffects(this.effectEnvironment(capturedTrigger), timing, candidateInstances).map(
+      (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
+    );
+    this.pendingNestedTimingEffects.push(...effects);
   }
 
   /**
@@ -1845,6 +1871,11 @@ export class GameEngine {
         return;
       }
     }
+    if (this.shouldDeferNestedTiming() && !this.flushingDeferredTimingWindows) {
+      await this.recomputeContinuousEffects();
+      this.deferNestedTimingEffects(timing, trigger, this.listCandidateInstances());
+      return;
+    }
     await this.runTimingWindow(timing, trigger);
   }
 
@@ -2042,6 +2073,10 @@ export class GameEngine {
       this.deferredSecurityRemovalTriggers.push({ payload: boundPayload, subscriptions: pending, contexts });
       return;
     }
+    if (this.shouldDeferNestedTiming()) {
+      this.pendingWindowSubTriggers.push(...this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+      return;
+    }
     // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
     // discovered while the engine was re-deriving continuous effects (see
     // {@link withTriggeredMutations}).
@@ -2171,7 +2206,7 @@ export class GameEngine {
    * behave exactly as they do on the SubTrigger bus.
    */
   private pendingWindowCollected(): CollectedEffect[] {
-    return this.pendingWindowSubTriggers
+    const subTriggers = this.pendingWindowSubTriggers
       .filter(
         (item) =>
           !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) && this.subTriggerStillActivatable(item),
@@ -2183,6 +2218,7 @@ export class GameEngine {
           effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item) },
         };
       });
+    return [...this.pendingNestedTimingEffects, ...subTriggers];
   }
 
   /**
@@ -2829,6 +2865,11 @@ export class GameEngine {
     sourceInstanceId: string,
     trigger: TriggerInfo = {},
   ): Promise<void> {
+    if (this.shouldDeferNestedTiming()) {
+      await this.recomputeContinuousEffects();
+      this.deferNestedTimingEffects(timing, trigger, this.instancesById([sourceInstanceId]));
+      return;
+    }
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
@@ -2859,6 +2900,13 @@ export class GameEngine {
     permanent: Permanent,
     trigger: TriggerInfo = {},
   ): Promise<void> {
+    if (this.shouldDeferNestedTiming()) {
+      await this.recomputeContinuousEffects();
+      const scoped: CardInstance[] = [];
+      this.collectPermanentInstances(permanent, scoped);
+      this.deferNestedTimingEffects(timing, trigger, scoped);
+      return;
+    }
     const wasOutermostWindow = this.beginResolvingWindow();
     // Freeze the subject instance set at window open. The resolver re-collects every pass
     // (to fold in effects that BECOME active during resolution), but a card that digivolves

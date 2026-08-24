@@ -108,7 +108,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
         // (BT19-080 subjectPermanentId). Collection (context.ts:309) already binds env.triggerInfo
         // for the canTrigger/`when` check; resolution must use the SAME trigger or a deferred
         // resolve (after an optional/cost decision) loses the source.
-        trigger: env.triggerInfo ?? {},
+        trigger: collected.triggerInfo ?? env.triggerInfo ?? {},
         // Third arg (linkCostReduction) mirrors gatherTriggeredEffects (context.ts:303-307)
         // and GameEngine.buildEffectContext: without it, a Link action resolved from a
         // TRIGGERED effect (e.g. BT24-038's OnPlay Link) reads the () => 0 default inside
