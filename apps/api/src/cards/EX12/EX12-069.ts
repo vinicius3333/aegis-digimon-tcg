@@ -102,6 +102,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              playCostLte: 5,
               nameOrTrait: [
                 {
                   tokens: ["VB"],
@@ -123,4 +124,5 @@ const compiled: CompiledCard = {
   residual: [],
 };
 
+export { compiled };
 registerIrCard("EX12-069", compiled);

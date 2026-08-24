@@ -2209,3 +2209,27 @@ for the individual evidence below.
   legality — 5/5; interpreter — 171/171; capabilities — 290/290; security activation — 2/2;
   shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-069 — Virus Busters — 10/10
+
+- **Printed contract:** Yellow cost-2 VB Option with a VB Use Requirement. While face up in
+  security during the controller's turn, an attack by an allied level-4-or-higher VB Digimon may
+  play a same-level VB Digimon from hand while paying its cost reduced by 3. Main returns the
+  bottom security card to hand, then places this Option face up at the bottom. Its Security effect
+  may play one play-cost-5-or-lower VB card from hand or trash without paying the cost.
+- **Corrections:** the Security play target omitted the printed play-cost ceiling in both the
+  direct module and aggregate. The aggregate also had a duplicate non-security watcher and an
+  invalid explicit self source on the transient Option's Main placement. Both representations now
+  contain the exact cost filter, one `YourTurn` face-up-security watcher, and the executable
+  source-free self-placement; the direct module exports its compiled IR for equality proof.
+- **Behavioral proof:** a non-yellow VB permanent waives the Option's color requirement, while an
+  empty field rejects its use. Main returns the actual bottom security card and places Virus
+  Busters face up at the bottom, including from empty security. A real level-4 VB attack plays a
+  same-level target for cost minus 3; a differently leveled VB target stays in hand. The Security
+  effect plays an eligible VB card from trash while a cost-6-or-higher VB card remains in hand.
+- **Identity and verification:** catalog identity, all zones, filters, costs, security scope, full
+  coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality are
+  asserted. `EX12-069.test.ts` — 9/9; subtrigger seams — 22/22; security activation — 2/2;
+  interpreter — 171/171; capabilities — 290/290; shared build, API typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, ruling
+  dependency, or unresolved limitation remains.
