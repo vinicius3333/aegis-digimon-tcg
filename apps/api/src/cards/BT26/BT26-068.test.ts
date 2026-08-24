@@ -1,7 +1,21 @@
-import { CardColor, CardKind, EffectTiming, type CardDefinition, type CardInstance, type Seat } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  EffectTiming,
+  getCardDefinition,
+  type CardDefinition,
+  type CardInstance,
+  type Seat,
+} from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
+import type {
+  DecisionApi,
+  EffectContext,
+  GameAccess,
+  Primitives,
+  SubTriggerInstall,
+} from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -48,6 +62,20 @@ function source(instanceId = "devimon-card"): CardSource {
 }
 
 describe("BT26-068 Devimon", () => {
+  it("matches the committed card catalog", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Devimon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+      types: ["Fallen Angel", "Iliad", "TS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("encodes the conditional draw, opponent-choice discard cost, and inherited draw", () => {
     expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({
       kind: "ConditionalBranch",
@@ -131,7 +159,7 @@ describe("BT26-068 Devimon", () => {
 
   it("draws 2 for each player at the exact five-card boundary and not at six", async () => {
     const cardSource = source();
-    const draw = vi.fn(async () => []);
+    const draw = vi.fn<Primitives["draw"]>(async () => []);
     const owner = { hand: Array.from({ length: 5 }, (_, index) => instance(`hand-${index}`)) };
     const game = {
       player: (seat: Seat) => (seat === 0 ? owner : { hand: [] }),
@@ -199,12 +227,37 @@ describe("BT26-068 Devimon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(2);
   });
 
+  it("naturally triggers from its own On Play draw added to the opponent's hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "devimon" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "opponentStarting" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("devimon"));
+    await settle(() => s.state.players[0]!.trash.length === 1 && s.state.players[1]!.trash.length === 1);
+
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+    expect(s.decisions.filter(({ seat, req }) => seat === 1 && req.kind === "selectCards")).toHaveLength(1);
+  });
+
   it("releases the once-per-turn reservation when the cost is declined or fails to move", async () => {
     const cardSource = source();
     let subscription: SubTriggerInstall | undefined;
-    const subscribeSubTrigger = vi.fn((install: SubTriggerInstall) => {
+    const subscribeSubTrigger = vi.fn<(install: SubTriggerInstall) => number>((install) => {
       subscription = install;
-      return "subscription";
+      return 1;
     });
     const staticCtx = {
       source: cardSource,
@@ -225,17 +278,19 @@ describe("BT26-068 Devimon", () => {
       opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
       definitionOf: () => definition(),
     } as unknown as GameAccess;
-    const opponentSelect = vi.fn(async () => [opponentCard.instanceId]);
+    const opponentSelect = vi.fn<NonNullable<DecisionApi["opponent"]>["selectCards"]>(async () => [
+      opponentCard.instanceId,
+    ]);
     const declinedCtx = {
       source: cardSource,
       trigger: { effectAddedToHandSeat: 1 as Seat },
       game,
       ask: {
-        optional: vi.fn(async () => false),
-        selectCards: vi.fn(async () => [ownCard.instanceId]),
+        optional: vi.fn<DecisionApi["optional"]>(async () => false),
+        selectCards: vi.fn<DecisionApi["selectCards"]>(async () => [ownCard.instanceId]),
         opponent: { selectCards: opponentSelect },
       },
-      fx: { trash: vi.fn(async () => []) } as unknown as Primitives,
+      fx: { trash: vi.fn<Primitives["trash"]>(async () => []) } as unknown as Primitives,
     } as unknown as EffectContext;
     await subscription!.run(declinedCtx);
     expect(declinedCtx.oncePerTurnActivationDeclined).toBe(true);
@@ -244,7 +299,7 @@ describe("BT26-068 Devimon", () => {
     const failedCtx = {
       ...declinedCtx,
       oncePerTurnActivationDeclined: false,
-      ask: { ...declinedCtx.ask, optional: vi.fn(async () => true) },
+      ask: { ...declinedCtx.ask, optional: vi.fn<DecisionApi["optional"]>(async () => true) },
     } as EffectContext;
     await subscription!.run(failedCtx);
     expect(failedCtx.oncePerTurnActivationDeclined).toBe(true);
