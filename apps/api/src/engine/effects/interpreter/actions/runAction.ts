@@ -18,6 +18,7 @@ import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import { runPlayAction } from "./play.js";
+import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
 import { runRestrictionAction } from "./restrictions.js";
@@ -72,6 +73,13 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     return action.abortOnDecline === true;
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
+    return action.abortOnDecline === true;
+  }
+  if (
+    action.kind === "UseOptionWithoutCost" &&
+    action.cost !== undefined &&
+    !canAttemptUseOptionWithoutCost(ctx, action)
+  ) {
     return action.abortOnDecline === true;
   }
   // Bind a SelectBind target before paying a cost that refers to that selected host.

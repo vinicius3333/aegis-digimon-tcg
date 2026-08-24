@@ -17,12 +17,24 @@ describe("BT26-104 compiled fidelity", () => {
       { kind: "GainMemory", amount: 1 },
     ]);
     expect(card?.effects?.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "Draw", amount: 2, cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } } },
+      {
+        kind: "Draw",
+        amount: 2,
+        optional: true,
+        abortOnDecline: true,
+        cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } },
+      },
     ]);
     const end = card?.effects?.find((effect) => effect.trigger === "EndOfYourTurn");
     expect(end?.condition).toMatchObject({ kind: "youHave", filter: { kind: ["Digimon"] } });
     expect(end?.actions).toMatchObject([
-      { kind: "UseOptionWithoutCost", payCost: false, from: ["hand"], cost: { kind: "suspend" } },
+      {
+        kind: "UseOptionWithoutCost",
+        payCost: false,
+        from: ["hand"],
+        allowMultiColor: true,
+        cost: { kind: "suspend" },
+      },
     ]);
   });
 
@@ -35,7 +47,7 @@ describe("BT26-104 compiled fidelity", () => {
           deck: ["BT1-001", "BT1-002", "BT1-003"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("kunlun"));
@@ -50,7 +62,7 @@ describe("BT26-104 compiled fidelity", () => {
         0: {
           battleArea: [
             { card: "BT26-104", as: "kunlun" },
-            { card: "EX12-019", as: "tentei" },
+            { card: "EX12-036", as: "tentei" },
           ],
           hand: [{ card: "EX12-070", as: "option" }],
         },
@@ -65,5 +77,26 @@ describe("BT26-104 compiled fidelity", () => {
 
     expect(s.perm("kunlun").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("does not suspend when no eligible Shambala Option can be used", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "EX12-019", as: "tentei" },
+          ],
+          hand: [{ card: "BT1-009", as: "unrelated" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+
+    expect(s.perm("kunlun").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 });

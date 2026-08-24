@@ -2,14 +2,25 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _sevenCode = { controller: "mine", nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
-const appmon = { controller: "mine", playCostLte: 5, nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] };
+const sevenCode = { controller: "mine", nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
+const appmon = {
+  controller: "mine",
+  kind: ["Digimon", "Tamer"],
+  playCostLte: 5,
+  nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+};
 
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{ kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: { kind: "youHave", filter: sevenCode },
+        },
+      ],
     },
     {
       trigger: "Main",
@@ -36,6 +47,8 @@ export const compiled: CompiledCard = {
           mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true },
           order: "any",
           trackCount: "sevenCodeMaterials",
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Digivolve",

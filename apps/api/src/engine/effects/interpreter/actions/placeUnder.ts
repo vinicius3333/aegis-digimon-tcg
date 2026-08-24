@@ -372,6 +372,37 @@ export async function runPlaceUnder(
  * existing resolver-specific handling.
  */
 export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action, { kind: "PlaceUnder" }>): boolean {
+  if (action.mixedSources !== undefined) {
+    const destination = action.destination;
+    if (destination === undefined) return false;
+    const destinationIds = new Set(
+      candidatePermanents(ctx, { filter: destination.filter, count: destination.count }).map(
+        (permanent) => permanent.permanentId,
+      ),
+    );
+    if (destinationIds.size === 0) return false;
+    const matches = (card: { cardId: string }): boolean => {
+      const definition = ctx.game.definitionOf(card as never);
+      const filter = action.target.filter;
+      if (filter.kind !== undefined && !definition.kinds.some((kind) => filter.kind!.includes(kind))) return false;
+      return (
+        filter.nameOrTrait === undefined ||
+        filter.nameOrTrait.some((reference) => matchNameOrTrait(definition, reference))
+      );
+    };
+    const owner = ctx.game.player(ctx.source.ownerSeat);
+    let available = 0;
+    for (const permanent of owner.battleArea) {
+      if (permanent.inBreeding || destinationIds.has(permanent.permanentId) || permanent.topCard === undefined)
+        continue;
+      if (action.mixedSources.battleAreaPermanents && matches(permanent.topCard)) available += 1;
+      if (action.mixedSources.linkedCards) available += permanent.linked.filter(matches).length;
+    }
+    if (action.mixedSources.hand) available += owner.hand.filter(matches).length;
+    if (action.mixedSources.trash) available += owner.trash.filter(matches).length;
+    const required = action.target.count === "all" ? available : Number(action.target.count ?? 1);
+    return required > 0 && available >= required;
+  }
   if (action.fromDeckTop === true) {
     return ctx.source.permanent() !== undefined && ctx.game.player(ctx.source.ownerSeat).deck.length > 0;
   }

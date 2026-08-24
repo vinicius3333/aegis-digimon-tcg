@@ -54,6 +54,20 @@ describe("BT26-103 compiled fidelity", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 
+  it("Q7188: recovers two even with no security card to trash", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-103", as: "wrathMode" }],
+        deck: ["BT1-002", "BT1-003"],
+      },
+    });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("wrathMode"));
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it("applies the security-removal DP penalty only once across both event routes", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
