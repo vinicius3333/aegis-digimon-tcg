@@ -245,8 +245,22 @@ function optionUseCandidates(
     filter?.playCostLteScaling === undefined
       ? undefined
       : (filter.playCostLte ?? 0) + scaleFactor(ctx, filter.playCostLteScaling);
+  const dynamicCostCap =
+    action.playCostCeiling === undefined
+      ? undefined
+      : action.playCostCeiling.base +
+        scaleFactor(ctx, {
+          per: action.playCostCeiling.per,
+          filter: action.playCostCeiling.filter,
+          unit: action.playCostCeiling.unit,
+        }) *
+          action.playCostCeiling.raise;
   const costCap =
-    attackerLevelCap ?? scaledCostCap ?? filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
+    dynamicCostCap ??
+    attackerLevelCap ??
+    scaledCostCap ??
+    filter?.playCostLte ??
+    (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
   const candidates: string[] = [];
   for (const zone of zones) {
     for (const cand of looseCardsInZone(ctx, seat, zone)) {

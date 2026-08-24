@@ -275,6 +275,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           }
         } else if (zone === "trash") {
           for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
+        } else if (ceiling.unit === "cards") {
+          totalCards = scaleFactor(ctx, { per: 1, filter: f, unit: "cards" });
         }
         const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
         return {

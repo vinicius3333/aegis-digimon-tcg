@@ -109,6 +109,15 @@ export interface UseOptionWithoutCostAction extends ActionBase {
   from?: ZoneRef[];
   /** Alternative to `filter`. */
   target?: Target;
+  /** Raise the eligible use-cost ceiling from a live card count. */
+  playCostCeiling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards";
+    raw?: string;
+  };
 }
 
 /**
