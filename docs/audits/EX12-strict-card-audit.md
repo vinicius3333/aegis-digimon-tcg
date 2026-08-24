@@ -713,3 +713,30 @@ for the individual evidence below.
   security/Jamming mechanics — 11/11; movement primitives — 126/126; digivolution action flow —
   27/27; workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-025 — Gawappamon — 10/10
+
+- **Printed contract:** Blue level 4 Cyborg/Shambala/SW Data Digimon, play cost 5 and 5000 DP.
+  Normal blue level-3 and alternate level-3 Shambala evolutions cost 2. It has printed Blocker.
+  On Play and On Deletion independently may return one opposing level-4-or-lower Digimon to
+  hand. Its inherited once-per-turn When Attacking draws 1 when its controller has 7 or fewer
+  cards in hand.
+- **KB evidence:** the committed knowledge base has no card-specific EX12-025 ruling. The audit
+  applies the inclusive level boundary, optional activation, printed-versus-inherited placement,
+  Blocker combat rules, inclusive hand threshold, and alternate evolution contract directly.
+- **Implementation trace:** Blocker is a non-inherited static keyword. On Play and On Deletion
+  each contain an optional count-1 Return whose opponent Digimon filter is capped at level 4.
+  The inherited Draw has `handAtMost:7` and an independent once-per-turn budget. The alternate
+  evolution requires both level 3 and exact Shambala trait. No correction was needed.
+- **Behavioral proof:** accepted On Play and On Deletion triggers return a level-4 target while
+  preserving a level-5 control; declining On Play returns nothing. A top Gawappamon exposes
+  Blocker, while the same card buried under a plain host does not grant Blocker. In live combat,
+  it opens the defender's block window, redirects the attack, defeats the smaller attacker, and
+  leaves security untouched. Its inherited effect draws exactly once at seven and not at eight.
+- **Evolution proof:** blue BT1-027 and off-color Shambala EX12-006 each pay 2 through their
+  respective routes; red non-Shambala BT1-010 is rejected. Catalog identity, stats, traits,
+  printed text, exact IR actions, full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-025.test.ts` — 8/8; Blocker behavioral proof — 4/4; movement primitives
+  — 126/126; digivolution action flow — 27/27; workspace typecheck, focused formatting, focused
+  lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
+  remains.
