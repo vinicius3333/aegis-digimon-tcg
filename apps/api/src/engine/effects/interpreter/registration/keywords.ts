@@ -178,17 +178,20 @@ export function isBlastDigivolveMarker(effect: CardEffect): boolean {
  * override; synthesizing again would declare a second attack).
  */
 export function declaresExecuteKeyword(compiled: CompiledCard): boolean {
-  const declares = compiled.effects.some(
-    (e) =>
-      e.isInherited !== true &&
-      ((e.keywords ?? []).some((k) => k.keyword === "Execute") ||
-        (e.actions ?? []).some(
-          (a) =>
-            a.kind === "GainKeyword" &&
-            (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Execute" &&
-            ((a as { target?: { isSelf?: boolean } }).target?.isSelf ?? false),
-        )),
-  );
+  const rootKeywords = (compiled as CompiledCard & { keywords?: Array<{ keyword?: string }> }).keywords ?? [];
+  const declares =
+    rootKeywords.some(({ keyword }) => keyword === "Execute") ||
+    compiled.effects.some(
+      (e) =>
+        e.isInherited !== true &&
+        ((e.keywords ?? []).some((k) => k.keyword === "Execute") ||
+          (e.actions ?? []).some(
+            (a) =>
+              a.kind === "GainKeyword" &&
+              (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Execute" &&
+              ((a as { target?: { isSelf?: boolean } }).target?.isSelf ?? false),
+          )),
+    );
   if (!declares) return false;
   const hasExplicitAttack = compiled.effects.some(
     (e) => e.trigger === "EndOfYourTurn" && (e.actions ?? []).some((a) => a.kind === "Attack"),

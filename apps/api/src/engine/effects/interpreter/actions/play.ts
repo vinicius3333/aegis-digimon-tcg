@@ -12,6 +12,38 @@ import type { Action, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
 
+export function applyPlayCostCeiling(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlayWithoutCost" }>,
+  target: Target,
+): Target {
+  const ceiling = action.playCostCeiling;
+  if (ceiling === undefined) return target;
+  const mine = ctx.source.ownerSeat;
+  const opp = ctx.game.opponentOf(mine);
+  const filter = ceiling.filter;
+  const zone = (filter as { zone?: string }).zone;
+  const controller = (filter as { controller?: string }).controller;
+  const seats: Seat[] =
+    controller === "both" || controller === undefined ? [mine, opp] : controller === "opponent" ? [opp] : [mine];
+  let totalCards = 0;
+  if (ceiling.unit === "digivolutionCards") {
+    for (const seat of seats) {
+      for (const permanent of ctx.game.player(seat).battleArea) {
+        if (permanentMatchesFilter(ctx, permanent, filter, ctx.source)) totalCards += permanent.stack.length;
+      }
+    }
+  } else if (ceiling.unit === "selfFaceDownDigivolutionCards") {
+    totalCards = scaleFactor(ctx, { per: 1, filter, unit: ceiling.unit });
+  } else if (zone === "trash") {
+    for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
+  } else if (ceiling.unit === "cards") {
+    totalCards = scaleFactor(ctx, { per: 1, filter, unit: "cards" });
+  }
+  const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
+  return { ...target, filter: { ...target.filter, playCostLte: computedCeiling } };
+}
+
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
@@ -254,36 +286,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const playCostAdjustedTarget = (() => {
-        const ceiling = action.playCostCeiling;
-        if (ceiling === undefined) return levelCeilingAdjustedTarget;
-        const mine = ctx.source.ownerSeat;
-        const opp = ctx.game.opponentOf(mine);
-        const f = ceiling.filter;
-        const zone = (f as { zone?: string }).zone;
-        const controller = (f as { controller?: string }).controller;
-        const seats: Seat[] =
-          controller === "both" || controller === undefined ? [mine, opp] : controller === "opponent" ? [opp] : [mine];
-        let totalCards = 0;
-        if (ceiling.unit === "digivolutionCards") {
-          for (const seat of seats) {
-            for (const permanent of ctx.game.player(seat).battleArea) {
-              if (permanentMatchesFilter(ctx, permanent, f, ctx.source)) {
-                totalCards += permanent.stack.length;
-              }
-            }
-          }
-        } else if (zone === "trash") {
-          for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
-        } else if (ceiling.unit === "cards") {
-          totalCards = scaleFactor(ctx, { per: 1, filter: f, unit: "cards" });
-        }
-        const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
-        return {
-          ...levelCeilingAdjustedTarget,
-          filter: { ...levelCeilingAdjustedTarget.filter, playCostLte: computedCeiling },
-        };
-      })();
+      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, levelCeilingAdjustedTarget);
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
       if (action.fromTriggerHandTrash === true) {

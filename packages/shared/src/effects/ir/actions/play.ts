@@ -96,7 +96,7 @@ export interface PlayWithoutCostAction extends ActionBase {
     raise: number;
     per: number;
     filter: Filter;
-    unit: "cards" | "digivolutionCards";
+    unit: "cards" | "digivolutionCards" | "selfFaceDownDigivolutionCards";
     raw?: string;
   };
   /**

@@ -49,6 +49,8 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
       ? trigger.map((singleTrigger) => ({ ...effect, trigger: singleTrigger }) as CardEffect)
       : [effect];
   });
+  const rootKeywords = (compiled as CompiledCard & { keywords?: CardEffect["keywords"] }).keywords ?? [];
+  if (rootKeywords.length > 0) effects.push({ trigger: "Static", actions: [], keywords: rootKeywords });
   // ＜Training＞ compiles two ways depending on the runtime record path: either as `effect.keywords`
   // metadata on the printed-keyword line, or (the common case for EX9's Digimon, e.g. EX9-008/
   // EX9-016) as a self-targeted `GainKeyword` ACTION inside a Static effect. Checking only

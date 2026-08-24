@@ -17,7 +17,7 @@ import { canAttemptDigivolve } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import { runPlayAction } from "./play.js";
+import { applyPlayCostCeiling, runPlayAction } from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
@@ -183,7 +183,8 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      let candidates = candidateLooseInstances(ctx, action.target, zones).filter(
+      const preflightTarget = applyPlayCostCeiling(ctx, action, action.target);
+      let candidates = candidateLooseInstances(ctx, preflightTarget, zones).filter(
         (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
       );
       // A paid play with an activation cost must be transactional: do not offer it when
