@@ -476,3 +476,35 @@ for the individual evidence below.
 - **Verification:** `EX12-016.test.ts` — 13/13; interpreter — 171/171; leave-prevention
   mechanism — 10/10; workspace typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-017 — WarGreymon — 10/10
+
+- **Printed contract:** Red/black level 6 Dragonkin/ME/VB, play cost 12 and 12000 DP. Normal
+  red/black level-5 evolution costs 4; level-5 Greymon-name or ME/VB alternatives cost 3.
+  Its zero-cost DNA recipe accepts Red/Yellow level 5 plus Black/Purple level 5. Assembly -6
+  requires matching level-5, level-4, and level-3 Agumon/Greymon-name or ME/VB cards. It has
+  Security Attack +1 and Decode for matching level-5-or-lower sources. Its shared once-per-turn
+  On Play/When Digivolving/When Attacking effect De-Digivolves 2, then deletes an opposing
+  lowest-DP Digimon. Its independent once-per-turn Counter may DNA digivolve two own Digimon
+  into an Omnimon-name or ME/VB card, then may redirect the attack to an own Digimon.
+- **KB evidence:** Q6742 applies Decode's level-5 ceiling to both OR branches; Q6743 requires
+  every one of Assembly's three level slots to satisfy the name/trait predicate. Q6744 removes
+  the original target when that Digimon becomes DNA material. Q6745 permits only one Counter
+  activation per attack. Q6746 permits the redirect even when the optional DNA does not occur.
+- **Correction:** Decode was only an inert keyword marker. A real `AllTurns` other-than-battle
+  replacement now optionally plays one matching level-5-or-lower source for free with
+  `playedByDecode:true`, while the original host still leaves.
+- **Behavioral proof:** the entry sequence peels exactly two real top cards before deleting the
+  distinct lowest-DP Digimon, and a second timing in the shared group does nothing that turn.
+  Effect deletion Decodes a level-5 Greymon-name source, battle deletion does not Decode, and a
+  level-6 VB source is rejected. A player attack checks two security cards. All four DNA color
+  recipes and a three-material Assembly play are preserved; independently invalid level-5,
+  level-4, and level-3 materials are each rejected.
+- **Counter and evolution proof:** a real Counter DNA merges the currently attacked Digimon into
+  EX12-037, removes the old attack target, and rejects a second Counter response. With no legal
+  DNA result, the same Counter still redirects the attack to the selected defender. Normal red
+  BT1-020 and black BT10-064 pay 4; blue Greymon BT10-024 and yellow VB EX12-044 pay 3;
+  off-color nonmatching BT1-038 is rejected.
+- **Verification:** `EX12-017.test.ts` — 16/16; leave-prevention — 10/10; DNA mechanism — 1/1;
+  attack/Counter conformance — 23/23; workspace typecheck, focused formatting, focused lint,
+  and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
