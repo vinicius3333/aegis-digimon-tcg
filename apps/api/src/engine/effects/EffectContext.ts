@@ -1173,6 +1173,15 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
+  /**
+   * Also offer a permanent's `[On Deletion]` effects — its own printed ones AND the inherited
+   * ones its digivolution cards provide — at the end of its own attack (BT16-015's "attach
+   * [End of Attack] to all of this Digimon's [On Deletion] effects"). The projected copies are
+   * the SAME effects collected in a different window, so their own conditions still gate them
+   * (KB BT16-015 Q2614), and the projection rides the continuous tier so it lapses with its
+   * source clause (Q2615).
+   */
+  projectOnDeletionAtEndOfAttack?(permanentId: string, duration: EffectDuration): void;
 
   // --- security-stack manipulation -------------------------------------------
   /** Shuffle a seat's security stack in place (uniform). */

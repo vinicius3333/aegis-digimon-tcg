@@ -17,6 +17,7 @@ import {
   collectTriggeredEffects,
   collectConferredEffects,
   collectGrantedCustomEffects,
+  collectProjectedOnDeletionEffects,
   type CollectedEffect,
 } from "./collect.js";
 import { grantedTokenEffectsForTiming } from "./interpreter.js";
@@ -317,6 +318,7 @@ export function unimplementedPrimitives(): Primitives {
     addColorGrant: () => refuse("static-continuous-effects", "addColorGrant"),
     waiveColorRequirement: () => refuse("static-continuous-effects", "waiveColorRequirement"),
     conferStackEffects: () => refuse("static-continuous-effects", "conferStackEffects"),
+    projectOnDeletionAtEndOfAttack: () => refuse("static-continuous-effects", "projectOnDeletionAtEndOfAttack"),
     shuffleSecurity: () => refuse("effect-primitives", "shuffleSecurity"),
     revealCard: () => refuse("effect-primitives", "revealCard"),
     securityToHand: () => refuse("effect-primitives", "securityToHand"),
@@ -389,6 +391,7 @@ export function gatherTriggeredEffects(
   grantSnapshot?: {
     stackEffectConferrals: readonly { targetPermanentId: string; stackInstanceId: string; trigger?: string }[];
     customEffectGrants: readonly { instanceId: string; token: string }[];
+    onDeletionAtEndOfAttackProjections: readonly string[];
   },
 ): CollectedEffect[] {
   const game = createGameAccess(
@@ -463,7 +466,39 @@ export function gatherTriggeredEffects(
     env.tracker,
   );
 
-  return applyTimingEffectDisable(env, timing, [...base, ...conferred, ...granted]);
+  // [On Deletion] effects re-timed to the end of the projecting Digimon's OWN attack (BT16-015).
+  // Read from the LIVE ledger and intersected with the window's opening snapshot: the snapshot
+  // keeps a projection acquired mid-window from retroactively triggering (BT10-011 Q1940, the
+  // same rule the grant snapshot above serves), while the live read is what makes a projection
+  // REMOVED mid-window stop offering its copies (§15-4-4-5; BT16-015 Q2615).
+  const projected = ((): CollectedEffect[] => {
+    if (timing !== EffectTiming.OnEndAttack) return [];
+    const attackerPermanentId = env.triggerInfo?.attackerPermanentId;
+    if (attackerPermanentId === undefined) return [];
+    const live = env.continuous.listOnDeletionAtEndOfAttackProjections();
+    const isLive = live.some((projection) => projection.permanentId === attackerPermanentId);
+    const inSnapshot =
+      grantSnapshot === undefined || grantSnapshot.onDeletionAtEndOfAttackProjections.includes(attackerPermanentId);
+    if (!isLive || !inSnapshot) return [];
+    return collectProjectedOnDeletionEffects(
+      [attackerPermanentId],
+      (permanentId) => {
+        const permanent = findPermanentInState(env.state, permanentId);
+        if (permanent === undefined) return [];
+        // Top card + digivolution cards: the two positions a Digimon's own and inherited
+        // [On Deletion] effects live in. `canActivate`'s placement guard sorts out which of
+        // each card's effects apply from the position it currently occupies.
+        return [permanent.topCard, ...permanent.stack].flatMap((card) => {
+          const source = card === undefined ? undefined : instanceById(card.instanceId);
+          return source === undefined ? [] : [source];
+        });
+      },
+      (s, e) => makeContext(s, e),
+      env.tracker,
+    );
+  })();
+
+  return applyTimingEffectDisable(env, timing, [...base, ...conferred, ...granted, ...projected]);
 }
 
 /**

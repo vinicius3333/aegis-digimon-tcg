@@ -2329,6 +2329,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     playFromSecurity: true,
     playInstances: true,
     playToken: true,
+    projectOnDeletionAtEndOfAttack: true,
     reactivateOnPlay: true,
     recoverToSecurity: true,
     redirectAttack: true,

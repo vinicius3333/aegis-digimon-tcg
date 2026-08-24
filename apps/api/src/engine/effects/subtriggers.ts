@@ -22,6 +22,12 @@ import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEvent
  * `consultReplacement`.
  */
 
+/**
+ * The zones a LOOSE (permanent-less) watcher source can keep residing in: trash, hand, or
+ * face-up security — the three places a card with no Permanent can still show an effect.
+ */
+export type SubTriggerRootZone = "trash" | "hand" | "security";
+
 /** A delayed/triggered sub-effect installed during resolution. */
 export interface SubTriggerSubscription {
   id: number;
@@ -35,6 +41,28 @@ export interface SubTriggerSubscription {
    * the printed source card (including an inherited card in a stack).
    */
   sourceInstanceId?: string;
+  /**
+   * The root zone the LOOSE source card occupied when this watcher was installed. Recorded only
+   * for a CONTINUOUS install whose sole anchor is `sourceInstanceId` — the zone-resident family
+   * (`{Trash}` / `[Your Turn]` / `[All Turns]` on a permanent-less card), where the watcher IS
+   * the effect's pending trigger and Q5728 confines it to its zone. CR §15-4-4-3: a pending
+   * effect whose source card changed zone "becomes a new card" and can no longer activate —
+   * KB Q2671 (BT16-082), Q2805 (BT17-050). The engine compares this at activation time in
+   * `GameEngine.buildSubTriggerSourceContext`.
+   *
+   * Absent => not zone-gated. Either no zone was nameable at install (a resolving Option holds
+   * no zone at all, §9-1-4), or the install is a one-shot consequence of an effect that has
+   * ALREADY activated, which stays live wherever its card ends up (Q1495 — BT6-111/BT23-028
+   * arm `whenSecurityBattleEnded` and fire once the card has reached the trash).
+   */
+  sourceRootZone?: SubTriggerRootZone;
+  /**
+   * Latched the first time the engine observes the source card outside `sourceRootZone`.
+   * A departed watcher stays dead even if the card comes back (trash -> hand -> trash inside
+   * one window), which is the revival §15-4-4-3 exists to forbid — the same one-way semantics
+   * as the window-scoped `everCollected`/`departed` sets in `stack.ts`.
+   */
+  sourceRootZoneDeparted?: boolean;
   /**
    * Live resolution context retained by a player-scoped, duration-limited watcher whose
    * source card no longer needs to remain in a zone (for example, an Option granting an

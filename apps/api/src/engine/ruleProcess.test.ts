@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectDuration, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "./testkit/harness.js";
 // Boot side-effect: self-registers every compiled-IR card module.
 import "../cards/index.js";
@@ -104,40 +104,102 @@ describe("A4 ruleProcess — face-down top card (CR §17-1-3-2-4)", () => {
 });
 
 describe("A4 ruleProcess — excess link cards (CR §17-1-3-2-5)", () => {
-  it("trashes only the linked cards beyond the effective link limit (base 1)", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: TRIGGER_CARD, as: "trigger" }] },
-      1: {
-        battleArea: [
-          {
-            card: "AD1-001",
-            dp: 3000,
-            as: "perm",
-            // base limit is 1 — 2 cards are excess.
-            linked: [
-              { card: "AD1-001", as: "kept" },
-              { card: "AD1-001", as: "excess1" },
-              { card: "AD1-001", as: "excess2" },
-            ],
-          },
-        ],
+  it("trashes only the linked cards beyond the effective link limit (base 1), and the owner picks which", async () => {
+    // Q6370 (BT25-075): "The link cards to trash are chosen by the player." The RULE fixes
+    // the count (down to the limit); the controller names the cards, so this test answers
+    // the prompt and asserts its own pick — see the sibling test for a pick that is NOT the
+    // tail of `linked`, which is what the sweep used to trim blindly.
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: TRIGGER_CARD, as: "trigger" }] },
+        1: {
+          battleArea: [
+            {
+              card: "AD1-001",
+              dp: 3000,
+              as: "perm",
+              // base limit is 1 — 2 cards are excess.
+              linked: [
+                { card: "AD1-001", as: "kept" },
+                { card: "AD1-001", as: "excess1" },
+                { card: "AD1-001", as: "excess2" },
+              ],
+            },
+          ],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     const p1 = s.state.players[1] as PlayerState;
     const permanentId = s.perm("perm").permanentId;
     const keptId = s.inst("kept").instanceId;
     const excess1Id = s.inst("excess1").instanceId;
     const excess2Id = s.inst("excess2").instanceId;
-
     await triggerSweep(s);
 
     const perm = s.perm("perm");
     expect(perm.linked.length).toBe(1);
-    expect(perm.linked.some((c) => c.instanceId === keptId)).toBe(true);
-    expect(p1.trash.some((c) => c.instanceId === excess1Id)).toBe(true);
-    expect(p1.trash.some((c) => c.instanceId === excess2Id)).toBe(true);
+    expect(p1.trash.filter((c) => [keptId, excess1Id, excess2Id].includes(c.instanceId)).length).toBe(2);
     // The permanent itself survives — only the excess link cards are trashed.
     expect(p1.battleArea.some((p) => p.permanentId === permanentId)).toBe(true);
+  });
+
+  it("Q6370: the controller's pick is honored, not the tail of the link list", async () => {
+    const prefer: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: TRIGGER_CARD, as: "trigger" }] },
+        1: {
+          battleArea: [
+            {
+              card: "AD1-001",
+              dp: 3000,
+              as: "perm",
+              linked: [
+                { card: "AD1-001", as: "first" },
+                { card: "AD1-001", as: "second" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: prefer },
+    );
+    const p1 = s.state.players[1] as PlayerState;
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    // Answer the sweep's prompt with the FIRST link card — the one a tail trim would keep.
+    prefer.push(firstId);
+
+    await triggerSweep(s);
+
+    const perm = s.perm("perm");
+    expect(perm.linked.map((c) => c.instanceId)).toEqual([secondId]);
+    expect(p1.trash.some((c) => c.instanceId === firstId)).toBe(true);
+  });
+
+  it("Q6370: a forced trim — every link card is excess — resolves without asking", async () => {
+    // Limit 0 with 1 linked card: the count the rule demands equals the whole candidate set,
+    // so there is nothing for the controller to decide and no prompt is opened. A limit of 0
+    // needs a negative <Link> delta, which no printed card grants, so it is seeded on the
+    // ledger directly (the same reach ch10-link.test.ts uses to cancel a printed <Link +1>).
+    const s = setupEngine({
+      0: { hand: [{ card: TRIGGER_CARD, as: "trigger" }] },
+      1: { battleArea: [{ card: "AD1-001", dp: 3000, as: "perm", linked: [{ card: "AD1-001", as: "linked" }] }] },
+    });
+    const p1 = s.state.players[1] as PlayerState;
+    const linkedId = s.inst("linked").instanceId;
+    (
+      s.engine as unknown as {
+        continuous: { addLinkMaxGrant(id: string, delta: number, duration: EffectDuration): void };
+      }
+    ).continuous.addLinkMaxGrant(s.perm("perm").permanentId, -1, EffectDuration.UntilEachTurnEnd);
+
+    await triggerSweep(s);
+
+    expect(s.perm("perm").linked).toHaveLength(0);
+    expect(p1.trash.some((c) => c.instanceId === linkedId)).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
   });
 
   it("negative control: a single linked card (within the base limit of 1) is untouched", async () => {

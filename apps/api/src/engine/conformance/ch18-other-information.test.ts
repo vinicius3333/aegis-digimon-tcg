@@ -5,10 +5,16 @@ import {
   CardInstance,
   requireCardDefinition,
   DECISION_KINDS,
+  EffectTiming,
   type Seat,
   type ServerEvent,
   type DecisionRequest,
 } from "@aegis/shared";
+import { resolveTiming, type ResolutionEnv } from "../effects/stack.js";
+import { UseTracker } from "../effects/kernel.js";
+import type { CollectedEffect } from "../effects/collect.js";
+import type { CardSource } from "../effects/CardSource.js";
+import type { Effect } from "../effects/Effect.js";
 import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
@@ -230,6 +236,63 @@ markNotTestable(
     "not this one) cannot be distinguished behaviorally from ordinary effect atomicity.",
 );
 
+/**
+ * Minimal resolver fakes for the §18-3 infinite-loop tests. `resolveTiming` reads only
+ * `source.{ownerSeat,instanceId,permanent}` and `effect.{optional,effectKey,maxPerTurn,
+ * canTrigger,canActivate,resolve}`, so these exercise the real loop-termination code path
+ * without needing a board that can actually loop.
+ *
+ * Synthetic effects rather than real cards, deliberately: a corpus-wide survey of every
+ * printed effectText found no card or combo that can produce a player-stoppable infinite
+ * loop. Every candidate cycle — self-replay from trash, the AD1-001/AD1-010 mutual
+ * free-digivolve mirror, memory-gain engines — consumes memory, hand, trash, security, or
+ * deck, or is capped by [Once Per Turn], or self-invalidates (BT2-083), or exceeds its own
+ * printed cost filter (BT26-078 costs 13 against its own "cost 12 or lower" replay). So
+ * §18-3-3 is unreachable from the corpus today and these tests pin the rule, not a card.
+ */
+const looperEffect: Effect = {
+  effectKey: "ch18-looper",
+  description: "ch18-looper",
+  optional: true,
+  isInherited: false,
+  isSecurity: false,
+  isLinked: false,
+  maxPerTurn: -1, // unlimited: no use ledger to stop it
+  canTrigger: () => true,
+  canActivate: () => true,
+  resolve: async () => {},
+};
+
+function fakeCollected(instanceId: string, effect: Effect): CollectedEffect {
+  return {
+    source: {
+      instanceId,
+      cardId: instanceId,
+      ownerSeat: 0,
+      definition: {} as CardSource["definition"],
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    },
+    effect,
+  };
+}
+
+function loopEnv(overrides: Partial<ResolutionEnv>): ResolutionEnv {
+  return {
+    turnSeat: 0,
+    tracker: new UseTracker(),
+    collect: () => [],
+    makeContext: (c) => ({ source: c.source, trigger: {}, game: {}, fx: {}, ask: {} }) as never,
+    ruleProcess: async () => {},
+    isGameOver: () => false,
+    chooseOrder: async () => 0,
+    askOptional: async () => true,
+    ...overrides,
+  };
+}
+
 describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
   it("NOW MET: when the rule-check fixpoint can't converge, the match should end in a draw (§18-3-2), not throw an engine error", async () => {
     cite(
@@ -278,7 +341,92 @@ describe("§18-3 Infinite Loops (comprehensive-0270)", () => {
     // see that file's own comment), so this is a real exhaustiveness check, not a guess: no
     // member for "declare a repeat count" exists — §18-3-3's declare-and-execute procedure has
     // no engine/protocol counterpart today.
+    //
+    // Still true, and deliberately so: the OUTCOME §18-3-3 prescribes is now implemented (see
+    // the two tests below), but the repeat-count declaration itself is not. §18-3-3-3 executes
+    // the processing "at least the number of times that was declared" and then stops — the
+    // count only buys extra iterations of a cycle whose end state is fixed, so it changes
+    // nothing observable in game state. Adding a decision kind for it would put a prompt in
+    // front of players with no consequence attached to their answer.
     expect(DECISION_KINDS).not.toContain("declareLoopRepeatCount");
+  });
+
+  it("§18-3-3: a loop one of the players CAN stop is stopped, not resolved as a §18-3-2 draw", async () => {
+    cite(
+      "comprehensive-0270",
+      "18-3-3: 'If an infinite loop occurs and one of the players has the ability to stop it, use " +
+        "the following procedure' — 18-3-3-3 executes the processing, then 'the player stops the " +
+        "processing when possible'. The draw of 18-3-2 is reserved for the case where NEITHER " +
+        "player can stop it.",
+    );
+
+    // The stop ability the resolver can see is an OPTIONAL link inside the cycle: an effect its
+    // controller may decline. This env spins a runaway optional trigger (a brand-new instance
+    // every collection pass, so nothing dedupes against the single-trigger ledger) whose
+    // controller keeps accepting — exactly a loop that continues infinitely but that a player
+    // has the ability to stop.
+    let instances = 0;
+    let accepted = 0;
+    let drawDeclared = false;
+    const env = loopEnv({
+      collect: () => [fakeCollected(`loop-${(instances += 1)}`, looperEffect)],
+      askOptional: async () => {
+        accepted += 1;
+        return true;
+      },
+      declareDraw: async () => {
+        drawDeclared = true;
+      },
+    });
+
+    await expect(resolveTiming(EffectTiming.OnPlay, env)).resolves.toBeUndefined();
+
+    expect(accepted).toBeGreaterThan(0); // the processing was performed...
+    expect(drawDeclared).toBe(false); // ...and then stopped, rather than ending the game
+  });
+
+  it("§18-3-3-3: after the stop, the same infinite loop is not performed again in that window", async () => {
+    cite(
+      "comprehensive-0270",
+      "18-3-3: 'After performing the following processing, it will not be possible to perform the " +
+        "actions for the same infinite loop again.'",
+    );
+
+    // A mandatory bystander trigger waits behind the loop. Once the loop is stopped, the window
+    // must carry on and resolve the bystander (the stop retires the looping processing, not the
+    // window), and the looping effect must never be offered again even though the collection
+    // keeps producing fresh instances of it.
+    let instances = 0;
+    let bystanderRuns = 0;
+    let loopOffersAfterStop = 0;
+    let stopped = false;
+    const bystander: Effect = {
+      ...looperEffect,
+      effectKey: "ch18-bystander",
+      optional: false,
+      maxPerTurn: 1,
+      resolve: async () => {
+        bystanderRuns += 1;
+        stopped = true;
+      },
+    };
+    const bystanderEntry = fakeCollected("ch18-bystander-1", bystander);
+    const env = loopEnv({
+      collect: () => [fakeCollected(`loop-${(instances += 1)}`, looperEffect), bystanderEntry],
+      chooseOrder: async () => 0, // always take the looping effect while it is still offered
+      askOptional: async () => {
+        if (stopped) loopOffersAfterStop += 1;
+        return true;
+      },
+      declareDraw: async () => {
+        throw new Error("§18-3-2's draw must not be reached for a loop a player can stop");
+      },
+    });
+
+    await resolveTiming(EffectTiming.OnPlay, env);
+
+    expect(bystanderRuns).toBe(1);
+    expect(loopOffersAfterStop).toBe(0);
   });
 });
 

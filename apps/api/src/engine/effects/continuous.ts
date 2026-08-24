@@ -297,6 +297,25 @@ export interface StackEffectConferral {
 }
 
 /**
+ * A permanent whose `[On Deletion]` effects are ALSO offered at the end of its own attack
+ * (BT16-015 Phoenixmon (X Antibody): "attach [End of Attack] to all of this Digimon's
+ * [On Deletion] effects"). The projection names the permanent only — the collector re-derives
+ * which effects it reaches from live board state each pass, so an [On Deletion] gained or lost
+ * meanwhile is picked up without a second ledger.
+ *
+ * Always a CONTINUOUS entry, even when the granting clause is the discrete `[When Digivolving]`
+ * twin of the same printed sentence: the projection lasts exactly as long as its `[Your Turn]`
+ * source clause applies, and clear-then-recompute is what makes it lapse the instant that clause
+ * stops (KB BT16-015 Q2615 — a mid-attack ＜De-Digivolve＞ that removes the source clause stops
+ * the projected copies from activating).
+ */
+export interface OnDeletionAtEndOfAttackProjection {
+  permanentId: string;
+  duration: EffectDuration;
+  continuous?: boolean;
+}
+
+/**
  * A named custom effect granted onto a permanent for a duration (GrantStatic grant:"effects"
  * timing)` path — RB1-030 grants "[On Deletion] Delete 1 of your opponent's Digimon with the
  * lowest level" until the end of the opponent's turn). Unlike a stack-effect conferral this is a
@@ -470,6 +489,7 @@ export class ContinuousEffectLedger {
   private stackCardTrashLocks: StackCardTrashLock[] = [];
   private securityAttackInversions: SecurityAttackInversion[] = [];
   private stackEffectConferrals: StackEffectConferral[] = [];
+  private onDeletionAtEndOfAttackProjections: OnDeletionAtEndOfAttackProjection[] = [];
   private customEffectGrants: CustomEffectGrant[] = [];
   private memoryGainPolicies: MemoryGainPolicy[] = [];
   private costReductionBlocks: CostReductionBlock[] = [];
@@ -1208,6 +1228,9 @@ export class ContinuousEffectLedger {
     this.stackTrashLocks = this.stackTrashLocks.filter((l) => l.permanentId !== permanentId);
     this.securityAttackInversions = this.securityAttackInversions.filter((i) => i.permanentId !== permanentId);
     this.stackEffectConferrals = this.stackEffectConferrals.filter((c) => c.targetPermanentId !== permanentId);
+    this.onDeletionAtEndOfAttackProjections = this.onDeletionAtEndOfAttackProjections.filter(
+      (p) => p.permanentId !== permanentId,
+    );
     // NOTE: customEffectGrants are anchored on the granted card's INSTANCE, not its permanent, and
     // are intentionally NOT dropped here. The grant must outlive the permanent's field-leave so a
     // granted [On Deletion] still fires on the grantee's OWN deletion (the instance is in trash by
@@ -1244,6 +1267,17 @@ export class ContinuousEffectLedger {
   /** Active stack-effect conferrals (GrantStatic grant:"effects"). */
   listStackEffectConferrals(): readonly StackEffectConferral[] {
     return this.stackEffectConferrals;
+  }
+
+  /** Offer a permanent's [On Deletion] effects at the end of its own attack (BT16-015). */
+  projectOnDeletionAtEndOfAttack(permanentId: string, duration: EffectDuration): void {
+    if (this.onDeletionAtEndOfAttackProjections.some((p) => p.permanentId === permanentId)) return;
+    this.onDeletionAtEndOfAttackProjections.push({ permanentId, duration, continuous: true });
+  }
+
+  /** Permanents currently projecting their [On Deletion] effects into the end-of-attack window. */
+  listOnDeletionAtEndOfAttackProjections(): readonly OnDeletionAtEndOfAttackProjection[] {
+    return this.onDeletionAtEndOfAttackProjections;
   }
 
   /**
@@ -1385,6 +1419,7 @@ export class ContinuousEffectLedger {
     this.stackCardTrashLocks = this.stackCardTrashLocks.filter((lock) => !lock.continuous);
     this.securityAttackInversions = this.securityAttackInversions.filter((i) => !i.continuous);
     this.stackEffectConferrals = this.stackEffectConferrals.filter((c) => !c.continuous);
+    this.onDeletionAtEndOfAttackProjections = this.onDeletionAtEndOfAttackProjections.filter((p) => !p.continuous);
     this.memoryGainPolicies = this.memoryGainPolicies.filter((p) => !p.continuous);
     this.costReductionBlocks = this.costReductionBlocks.filter((b) => !b.continuous);
     this.playProhibitions = this.playProhibitions.filter((p) => !p.continuous);
@@ -1417,6 +1452,7 @@ export class ContinuousEffectLedger {
     this.stackCardTrashLocks = [];
     this.securityAttackInversions = [];
     this.stackEffectConferrals = [];
+    this.onDeletionAtEndOfAttackProjections = [];
     this.customEffectGrants = [];
     this.memoryGainPolicies = [];
     this.costReductionBlocks = [];

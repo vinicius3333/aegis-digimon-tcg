@@ -111,6 +111,21 @@ export function advance(engine: GameEngine) {
     },
 
     /**
+     * Fire the SubTrigger bus WITHOUT the leading continuous recompute.
+     *
+     * `fireSubTrigger` brackets the fire with recomputes, which is right when the watcher under
+     * test is one a resident clause re-derives every pass. It is wrong for asserting what
+     * happens to an ALREADY-ARMED watcher when the board moves under it: the leading recompute
+     * tears every continuous subscription down and re-derives it from the new board, which
+     * erases the exact transition CR §15-4-4-3 is about. Production reaches this state whenever
+     * one event arms several watchers and an earlier one's body changes the board — no
+     * recompute runs between them.
+     */
+    async fireArmedSubTriggers(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
+      await internals.fireSubTrigger(event, payload);
+    },
+
+    /**
      * Effect-driven verbs. Each recomputes first so continuous watchers installed by other
      * permanents are armed, exactly as they would be mid-resolution.
      */
