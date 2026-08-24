@@ -710,7 +710,9 @@ describe("§16-38 <Execute> (comprehensive-0257)", () => {
         "opponent's unsuspended Digimon, and at the end of the attack it is deleted",
     );
 
-    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    // Keep one security card on the defending side so the Execute attack completes its
+    // EndOfAttack window instead of ending the game immediately on an empty stack.
+    const s = setup({ 1: { security: ["BT1-090"] } }, { autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
     const executor = digimon(0, 7000, "BT20-072"); // printed <Execute>
     p0.battleArea.push(executor);

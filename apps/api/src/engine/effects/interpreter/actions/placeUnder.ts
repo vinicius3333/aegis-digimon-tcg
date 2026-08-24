@@ -344,10 +344,23 @@ export async function runPlaceUnder(
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
   if (chosen.length > 0) {
     const placementIds = action.position === "bottom" && action.order === "any" ? [...chosen].reverse() : chosen;
-    await ctx.fx.placeUnder(hostId, placementIds, {
-      belowTop: action.position !== "bottom",
-      faceUp: action.faceDown !== true,
-    });
+    if (action.position === "choice") {
+      // “As this Digimon's top or bottom digivolution cards” gives the controller a
+      // separate placement choice for every selected card. Index 0 means directly under
+      // the current top; index 1 means the true bottom of the stack.
+      for (const instanceId of placementIds) {
+        const placement = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
+        await ctx.fx.placeUnder(hostId, [instanceId], {
+          belowTop: placement === 0,
+          faceUp: action.faceDown !== true,
+        });
+      }
+    } else {
+      await ctx.fx.placeUnder(hostId, placementIds, {
+        belowTop: action.position !== "bottom",
+        faceUp: action.faceDown !== true,
+      });
+    }
     for (const instanceId of placementIds) {
       ctx.fx.conferStackEffects?.(hostId, instanceId, EffectDuration.Permanent, { inheritedOnly: true });
     }

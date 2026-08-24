@@ -508,3 +508,39 @@ for the individual evidence below.
 - **Verification:** `EX12-017.test.ts` — 16/16; leave-prevention — 10/10; DNA mechanism — 1/1;
   attack/Counter conformance — 23/23; workspace typecheck, focused formatting, focused lint,
   and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-018 — Siriusmon / Planet Punch — 10/10
+
+- **Printed contract:** Red/yellow level 6 Light Dragon/VB DUAL card, play/use cost 5 and
+  12000 DP. Normal red/yellow level-5 evolution costs 4; level-5 Gammamon-text or VB
+  alternatives cost 3. Siriusmon has Progress, Piercing, and Security Attack +1. Its shared
+  once-per-turn When Digivolving/When Attacking effect may place up to two matching Digimon
+  cards from hand/trash as top or bottom sources, then gives one opponent -2000 DP through
+  their turn end per current source. Planet Punch has a VB use requirement; its Main deletes
+  an opposing highest-DP Digimon, then one own Digimon may attack.
+- **KB evidence:** Q6747 defines text matching across all printed card fields. Q6748 forbids a
+  newly placed When Attacking inherited effect from joining the attack window already resolving.
+  Q6749 likewise forbids Arts Digivolve into Siriusmon after Planet Punch's attack from opening
+  a new When Attacking window.
+- **Correction:** both PlaceUnder actions omitted the printed per-card top-or-bottom choice and
+  always used one fixed stack position. They now carry `position:"choice"`; the shared
+  PlaceUnder runner asks separately for every selected card and inserts it directly below the
+  top or at the true bottom as chosen.
+- **Digimon-side proof:** hand and trash cards are placed together and the DP reduction scales
+  over the complete resulting stack. A Gammamon text-only card proves Q6747; no placement means
+  no reduction. A manually selected bottom placement preserves the exact stack order. EX12-024
+  placed during When Attacking does not draw from its newly gained inherited effect, proving
+  Q6748. Progress and Piercing are live, and a winning Digimon battle performs two security
+  checks through Security Attack +1.
+- **Option/ruling proof:** an own blue/purple VB Digimon waives Planet Punch's red use
+  requirement; an otherwise equivalent blue non-VB board is rejected. The highest-DP target is
+  deleted and the accepted follow-up attacker declares a real attack, while declining the attack
+  preserves the deletion. Planet Punch attacks with EX12-014, Arts Digivolves it into Siriusmon,
+  resolves the When Digivolving placement, and records only the original attack, proving Q6749.
+- **Evolution proof:** normal red AD1-003 and yellow AD1-015 pay 4; black Gammamon-text
+  BT16-062 and blue/purple VB EX12-032 pay 3; blue nonmatching BT1-038 is rejected.
+- **Verification:** `EX12-018.test.ts` — 14/14; interpreter — 171/171; advanced-keyword
+  conformance — 30/30; Arts Digivolve/basic terminology — 48/48; workspace typecheck, focused
+  formatting, focused lint, and `git diff --check` passed. The advanced-keyword Execute fixture
+  now supplies defender security so game-over cannot preempt its asserted EndOfAttack deletion.
+  No residual IR, unsupported behavior, or unresolved ruling remains.
