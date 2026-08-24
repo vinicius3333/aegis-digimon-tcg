@@ -52,6 +52,22 @@ describe("BT26-020 ShellNumemon", () => {
     expect(observe(s.engine).isRestricted(locked[0]!, "block")).toBe(false);
   });
 
+  it("still applies the Then restriction when Draw 1 cannot draw from an empty deck", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT26-020", as: "shell" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shell").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attack"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+  });
+
   it("uses the exact level-3 DS cost-2 evolution path and rejects a near-match", async () => {
     expect(digivolutionRequirementsFor("BT26-020")).toContainEqual({
       level: 3,
@@ -77,6 +93,7 @@ describe("BT26-020 ShellNumemon", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("dsBase").topCard.cardId === "BT26-020");
     expect(legal.state.memory).toBe(0);
+    expect(legal.perm("dsBase").stack.map(({ cardId }) => cardId)).toEqual(["BT26-018"]);
 
     const invalid = setupEngine({
       0: {
@@ -108,5 +125,22 @@ describe("BT26-020 ShellNumemon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Evade")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Evade")).toBe(false);
+  });
+
+  it("uses inherited Evade to suspend the host and prevent effect deletion", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT26-020" }] }] },
+    });
+    const hostId = s.perm("host").permanentId;
+    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: hostId, accept: true })).toEqual({ ok: true });
+    expect(await deletion).toBe(0);
+    await settle(() => s.perm("host").isSuspended);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.events).toContainEqual({ kind: "evadeResolved", permanentId: hostId, accepted: true });
   });
 });

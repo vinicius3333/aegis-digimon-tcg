@@ -21,7 +21,13 @@ const recovery = {
   controller: "mine",
   source: "deck",
   amount: 1,
-  cost: { kind: "return", target: { filter: trashPool, count: 3 }, to: "deckBottom" },
+  optional: true,
+  cost: {
+    kind: "return",
+    target: { filter: trashPool, count: 3 },
+    to: "deckBottom",
+    orderReturnedCards: true,
+  },
 };
 
 export const compiled: CompiledCard = {
@@ -61,7 +67,7 @@ export const compiled: CompiledCard = {
           optional: true,
           cost: {
             kind: "return",
-            target: { filter: { zone: "security", controllerDefault: "mine" }, count: 1 },
+            target: { filter: { zone: "security", controllerDefault: "mine", position: "top" }, count: 1 },
             to: "deckBottom",
           },
         },

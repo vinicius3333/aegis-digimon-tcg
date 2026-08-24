@@ -20,8 +20,10 @@ import {
 } from "../effect.js";
 import { evaluateCondition } from "../conditions.js";
 import {
+  declaresUnimplementedEngageKeyword,
   declaresExecuteKeyword,
   detectAllowDigiXrosMaterialsFromTrash,
+  engageActivatedEffect,
   executeActivatedEffect,
   isIntrinsicDigisorptionMarker,
   overclockActivatedEffect,
@@ -64,6 +66,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         )),
   );
   if (printsTraining) effects.push(trainingActivatedEffect());
+  if (declaresUnimplementedEngageKeyword(compiled)) effects.push(engageActivatedEffect());
   if (declaresExecuteKeyword(compiled)) effects.push(executeActivatedEffect());
   registerTamerOntoFromEffects(cardId, compiled.effects);
   collectWouldBePlayedSelfReducers(cardId, compiled.effects);
