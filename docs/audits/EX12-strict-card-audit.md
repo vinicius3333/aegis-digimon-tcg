@@ -2097,3 +2097,32 @@ for the individual evidence below.
   capabilities — 290/290; shared build, API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, ruling dependency, or
   unresolved limitation remains.
+
+## EX12-065 — Kaguyamon — 10/10
+
+- **Printed contract:** Purple/green level 6 Puppet/Sanmyojin/Tentei Hachibushu/Shambala/TB
+  Data Digimon, play cost 12 and 12000 DP. Normal purple/green level-5 evolution costs 4; a
+  level-5 Puppet or Shambala alternate costs 3. It has Fortitude. Its On Play, When Digivolving,
+  and When Attacking once-per-turn share one budget to play a cost-5-or-less Puppet or Shambala
+  card from trash for free. All allied Puppet/TB Digimon continuously gain Blocker and
+  Retaliation. On Deletion, it returns one opposing lowest-level Digimon to deck bottom.
+- **Implementation and behavioral proof:** direct and aggregate IR already matched and required
+  no functional correction. On Play selects a cost-5 Puppet Digimon and leaves a cost-7 match in
+  trash. When Digivolving may play the cost-5 Shambala Tamer BT26-104, proving the printed word
+  “card” is not narrowed to Digimon; explicit decline leaves the target in trash. A completed On
+  Play consumes the shared budget so When Attacking cannot play a second card. Continuous grants
+  reach Kaguyamon, a Puppet ally, and a TB ally, but not an unrelated Digimon.
+- **Deletion and Fortitude proof:** a real deletion with one source returns the unique opposing
+  lowest-level Digimon to deck bottom and replays Kaguyamon as a fresh permanent with no stack;
+  its former source remains in trash. The same real deletion with no source leaves Kaguyamon in
+  trash, proving Fortitude's source requirement and negative control.
+- **Evolution and identity proof:** purple EX12-064 and green BT1-075 pay normal cost 4; blue
+  Puppet BT1-038 and blue Shambala EX12-031 pay alternate cost 3; red nonmatching BT1-021 is
+  rejected. Catalog identity, all three shared timings, continuous filters, keyword, deletion
+  superlative, requirements, full coverage, empty residuals, exclusive IR registration, and exact
+  direct/aggregate equality are asserted.
+- **Verification:** `EX12-065.test.ts` — 8/8; advanced keywords including Fortitude and
+  Retaliation — 25/25; continuous-effect lifecycle — 5/5; digivolution action flow — 27/27;
+  interpreter — 171/171; capabilities — 290/290; API typecheck, focused formatting, focused lint,
+  and `git diff --check` passed. No residual IR, unsupported behavior, ruling dependency, or
+  unresolved limitation remains.

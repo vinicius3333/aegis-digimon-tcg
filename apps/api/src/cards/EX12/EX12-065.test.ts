@@ -1,19 +1,15 @@
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { compiledEffects, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
-import "../index.js";
+import { compiled } from "./EX12-065.js";
 
 const CARD_ID = "EX12-065";
 
 describe("EX12-065 Kaguyamon", () => {
   it("maps the catalog, evolution, Fortitude, all-turns keywords, and shared once-per-turn windows", () => {
-    const compiled = registeredCompiledCards.get(CARD_ID)!;
-    const module = getEffectModule(CARD_ID)!;
-
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual([
@@ -47,13 +43,8 @@ describe("EX12-065 Kaguyamon", () => {
       });
     }
 
-    expect(module.effectsForTiming(EffectTiming.OnPlay, { cardId: CARD_ID, ownerSeat: 0 } as never)).toHaveLength(1);
-    expect(
-      module.effectsForTiming(EffectTiming.WhenDigivolving, { cardId: CARD_ID, ownerSeat: 0 } as never),
-    ).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.OnUseAttack, { cardId: CARD_ID, ownerSeat: 0 } as never)).toHaveLength(
-      1,
-    );
+    expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("plays only a matching low-cost Puppet from trash on play", async () => {
@@ -80,6 +71,36 @@ describe("EX12-065 Kaguyamon", () => {
       expect.arrayContaining([CARD_ID, "BT1-038"]),
     );
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-063")).toBe(true);
+  });
+
+  it("may play a low-cost Shambala Tamer and may decline the shared play effect", async () => {
+    const accepted = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "source" }], trash: [{ card: "BT26-104", as: "tamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(accepted.engine).fire(EffectTiming.WhenDigivolving, accepted.perm("source"));
+    await settle(() => accepted.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-104"));
+    expect(accepted.state.players[0]!.trash).toHaveLength(0);
+
+    const declined = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "source" }], trash: [{ card: "BT1-038", as: "puppet" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const resolution = advance(declined.engine).fire(EffectTiming.WhenDigivolving, declined.perm("source"));
+    await settle(() => declined.state.pendingDecision?.kind === "optional");
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: declined.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+    expect(declined.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-038"]);
   });
 
   it("shares the once-per-turn budget across play and attacking windows", async () => {
@@ -135,10 +156,10 @@ describe("EX12-065 Kaguyamon", () => {
     }
   });
 
-  it("returns the opponent's lowest-level Digimon to the bottom of the deck on deletion", async () => {
+  it("returns the lowest level on real deletion and Fortitude replays itself when it had a source", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: CARD_ID, as: "source" }] },
+        0: { battleArea: [{ card: CARD_ID, as: "source", under: ["EX12-063"] }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "lowest" },
@@ -150,10 +171,80 @@ describe("EX12-065 Kaguyamon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnDestroyedAnyone, s.perm("source"));
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009"));
+    const sourceId = s.perm("source").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID),
+    );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(true);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-009");
+    const replayed = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === CARD_ID)!;
+    expect(replayed.permanentId).not.toBe(sourceId);
+    expect(replayed.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-063")).toBe(true);
+  });
+
+  it("stays deleted without a digivolution source", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } });
+    await s.ready();
+    const sourceId = s.perm("source").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === CARD_ID)).toBe(true);
+  });
+
+  it("uses both normal colors and both alternate traits, rejects a nonmatch, and matches the catalog", async () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Kaguyamon",
+      colors: ["Purple", "Green"],
+      kinds: ["Digimon"],
+      playCost: 12,
+      dp: 12000,
+      level: 6,
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Puppet", "Sanmyojin", "Tentei Hachibushu", "Shambala", "TB"],
+      evoCosts: [
+        { color: "Purple", level: 5, memoryCost: 4 },
+        { color: "Green", level: 5, memoryCost: 4 },
+      ],
+    });
+    for (const [baseCardId, useAlternateCost, cost] of [
+      ["EX12-064", false, 4],
+      ["BT1-075", false, 4],
+      ["BT1-038", true, 3],
+      ["EX12-031", true, 3],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: CARD_ID, as: "target" }] },
+      });
+      s.state.memory = 4;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("target").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+      expect(s.state.memory).toBe(4 - cost);
+    }
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-021", as: "base" }], hand: [{ card: CARD_ID, as: "target" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("target").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
