@@ -115,23 +115,29 @@ scenario("activate-main", () => {
 
     // Pass the turn so Meramon is attack-capable on the way back: only then does
     // the board wire the permanent for a drag (attack) rather than a click, which
-    // is the arrangement the [Main] button has to survive on touch.
+    // is the arrangement the activation has to survive on touch.
     fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
     const thirdBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
     fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
 
-    // Activate Meramon's [Main] ability through the full touch sequence, on the
-    // "⚡ Main" affordance the board renders on a permanent with an activatable
-    // effect (boardPieces.tsx). An unsuspended Digimon starts an attack drag on
-    // pointerdown, and the matching pointerup taps it open: unless the button
-    // keeps the gesture to itself, the card menu swallows the activation and the
-    // button is dead on a phone.
-    const mainButton = await screen.findByRole("button", { name: /main/i }, { timeout: 10_000 });
-    fireEvent.pointerDown(mainButton, { pointerType: "touch", clientX: 100, clientY: 100 });
-    fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
-    // No card action menu: the tap never reached the permanent underneath.
-    expect(screen.queryByRole("button", { name: /view stack/i })).toBeNull();
-    fireEvent.click(mainButton);
+    // Activate Meramon's [Main] ability the way a player does: an attack-capable
+    // Digimon is drag-wired, so a non-moving tap on it opens the card action menu
+    // (GameScreen's handleTap), and the activation is an entry in that menu, named
+    // after the effect it activates.
+    await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
+    const meramonPermEl = (await vi.waitFor(
+      () => {
+        const perm = screen
+          .getAllByRole("img", { name: /^meramon$/i })
+          .map((img) => img.closest('[data-drop="perm-you"]'))
+          .find((el): el is HTMLElement => el !== null);
+        expect(perm).toBeTruthy();
+        return perm;
+      },
+      { timeout: 10_000 },
+    ))!;
+    tap(meramonPermEl);
+    fireEvent.click(await screen.findByRole("button", { name: /^activate effect: .*delete/i }, { timeout: 10_000 }));
 
     // The activation pays its "2 cost" and deletes the sole legal opponent Digimon
     // target: proven on the protagonist's own rendered DOM by the opponent's

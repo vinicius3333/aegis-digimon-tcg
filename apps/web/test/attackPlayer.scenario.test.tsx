@@ -115,13 +115,16 @@ scenario("attack-player", () => {
     // `attack(selPerm, { kind: "player" })` while an attacker is selected).
     fireEvent.click(oppSecurity());
 
-    // The real security check resolves: the SecurityOverlay renders the revealed
+    // The real security check resolves: the centre-stage clash renders the revealed
     // card and its resolution, proving the attack actually reached the opponent's
-    // security (not just that the intent was accepted).
-    const securityToast = await screen.findByRole("status", {}, { timeout: 10_000 });
-    expect(within(securityToast).getByText(/security check/i)).toBeTruthy();
+    // security (not just that the intent was accepted). The scene is decoration —
+    // it announces itself as a live region and retires on its own timer, so nothing
+    // has to be dismissed before the match continues.
+    const clash = await screen.findByTestId("security-clash", {}, { timeout: 10_000 });
+    expect(clash.getAttribute("role")).toBe("status");
+    expect(within(clash).getByText(/security check/i)).toBeTruthy();
+    expect(within(clash).getAllByRole("img").length).toBeGreaterThan(0);
     expect(opponent.room.state.gameOver).toBe(false);
-    fireEvent.click(within(securityToast).getByRole("button", { name: /close/i }));
 
     // The opponent's security pile shrank from 5 to 4 — the answered-outcome proof.
     await vi.waitFor(() => expect(within(oppSecurity()).getByText("4")).toBeTruthy(), { timeout: 10_000 });

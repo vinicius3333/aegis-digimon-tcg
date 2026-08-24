@@ -506,7 +506,9 @@ export function CardMini({
             : "inset 0 0 0 1px rgba(255,255,255,0.06), 0 4px 10px rgba(15,23,42,0.26)",
         transform: suspended ? "rotate(90deg)" : "none",
         transformOrigin: "center",
-        transition: "transform 200ms, box-shadow 150ms, border-color 150ms",
+        // 200ms ease-in-out matches the reference client's Stand_Rest / Rest_Stand clips, whose
+        // keys are flat-tangent (Assets/Animation/Battle).
+        transition: "transform 200ms ease-in-out, box-shadow 150ms, border-color 150ms",
         cursor: onClick ? "pointer" : "default",
         overflow: "hidden",
       }}

@@ -126,12 +126,10 @@ scenario("barrier", () => {
     });
 
     // The attack checks the opponent's security — the protagonist's client also
-    // renders the real SecurityOverlay for it (broadcast to both seats); dismiss it
-    // if still showing, then hand the turn to the opponent through the
+    // stages the security clash for it (broadcast to both seats), but that scene is
+    // decoration and retires on its own. Hand the turn to the opponent through the
     // protagonist's own UI (attacking spends no memory, so the gauge never crosses
     // here on its own).
-    const continueButton = screen.queryByRole("button", { name: /continue/i });
-    if (continueButton) fireEvent.click(continueButton);
     if (opponent.room.state.turnSeat === 0) {
       fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
     }

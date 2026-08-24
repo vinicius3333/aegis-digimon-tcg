@@ -58,6 +58,18 @@ src/
     └── types.ts             # AegisJoinOptions
 ```
 
+## UI review
+
+Reviewing a match-screen styling change no longer needs a live match. The dev-only
+page `/dev/board` renders every board piece and dialog from fixtures, in labeled
+sections you can scroll.
+
+- **In a browser:** start the dev server and open http://localhost:5173/dev/board.
+- **As screenshots:** with the dev server up, run `node tools/ui-review.mjs` from the
+  repository root. It drives the Orca browser CLI over each section anchor and writes
+  one PNG per section to `ui-review/`. Override the binary and base URL with
+  `ORCA_BIN` and `UI_REVIEW_URL`.
+
 ## What renders / how to interact
 
 The board shows **both players'** synchronized zones: battle area (Digimon with

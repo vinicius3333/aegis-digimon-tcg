@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
 import { CardActionMenu, TrashViewerOverlay } from "./overlays";
+import { parseActivatable } from "./boardModel";
 
 afterEach(() => cleanup());
 
@@ -105,6 +106,106 @@ describe("field card action sheet", () => {
     cleanup();
     renderSheet({ canAttack: false });
     expect(screen.queryByText("Attack")).toBeNull();
+  });
+});
+
+/**
+ * Builds the menu's `effects` prop exactly the way GameScreen does: the synced
+ * activatable list, mapped to labelled entries that carry the source instance and
+ * effect key the activateEffect intent needs.
+ */
+function effectsOf(
+  activatableEffectsJson: string,
+  activate: (instanceId: string, effectKey: string) => void,
+): { label: string; onActivate: () => void }[] {
+  return parseActivatable(activatableEffectsJson).map((entry) => ({
+    label: entry.description,
+    onActivate: () => activate(entry.instanceId, entry.effectKey),
+  }));
+}
+
+const MEMORY_BOOST_DELAY = JSON.stringify([
+  {
+    instanceId: "blue-memory-boost-top",
+    effectKey: "P-036/0",
+    description: "[Main] <Delay> Gain 2 memory.",
+  },
+]);
+
+const TRIAL_DELAY = JSON.stringify([
+  {
+    instanceId: "trial-four-great-dragons-top",
+    effectKey: "EX3-069/1",
+    description:
+      "[Main] ＜Delay＞ Play 1 Digimon card with [Four Great Dragons] in its traits from your hand without paying the cost.",
+  },
+]);
+
+describe.each([
+  { mode: "sheet", sheet: true },
+  { mode: "anchored menu", sheet: false },
+])("field card activatable effects ($mode)", ({ sheet }) => {
+  it("does not offer a Memory Boost Delay while the engine reports it unavailable", () => {
+    renderSheet({ sheet, effects: effectsOf("[]", vi.fn()) });
+
+    expect(screen.queryByRole("button", { name: /activate effect/i })).toBeNull();
+  });
+
+  it("identifies the available Delay and sends its exact source and effect key", () => {
+    const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
+    renderSheet({ sheet, effects: effectsOf(MEMORY_BOOST_DELAY, activate) });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Activate effect: [Main] <Delay> Gain 2 memory.",
+      }),
+    );
+
+    expect(activate).toHaveBeenCalledTimes(1);
+    expect(activate).toHaveBeenCalledWith("blue-memory-boost-top", "P-036/0");
+  });
+
+  it("shows Trial's friendly Delay action and sends its exact source and effect key", () => {
+    const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
+    renderSheet({ sheet, effects: effectsOf(TRIAL_DELAY, activate) });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Activate effect: \[Main\] ＜Delay＞ Play 1 Digimon card with \[Four Great Dragons\]/,
+      }),
+    );
+
+    expect(activate).toHaveBeenCalledWith("trial-four-great-dragons-top", "EX3-069/1");
+  });
+
+  it("keeps every effect of a multi-effect permanent separately activatable", () => {
+    const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
+    renderSheet({
+      sheet,
+      effects: effectsOf(
+        JSON.stringify([
+          {
+            instanceId: "hercules-kabuterimon-top",
+            effectKey: "ST4-13/ir-27-0",
+            description: "[Main] ＜DigiBurst＞ Trash, Suspend",
+          },
+          {
+            instanceId: "hercules-kabuterimon-top",
+            effectKey: "ST4-13/ir-27-1",
+            description: "[Main] Gain 1 memory.",
+          },
+        ]),
+        activate,
+      ),
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Activate effect: [Main] ＜DigiBurst＞ Trash, Suspend",
+      }),
+    );
+
+    expect(activate).toHaveBeenCalledWith("hercules-kabuterimon-top", "ST4-13/ir-27-0");
   });
 });
 

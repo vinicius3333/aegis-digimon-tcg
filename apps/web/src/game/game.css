@@ -233,7 +233,9 @@ button.opponent-action-feed__current:focus-visible {
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--ds-space-4);
-  margin-bottom: var(--ds-space-7);
+  /* The spacing scale has no step 7 — an invalid var() collapsed this to zero
+     and glued the action buttons to the cards. */
+  margin-bottom: var(--ds-space-8);
 }
 .mulligan-card {
   flex: none;
@@ -329,68 +331,6 @@ button.opponent-action-feed__current:focus-visible {
   max-width: calc(100% - var(--ds-space-6));
   padding: 40px var(--ds-space-8);
   text-align: center;
-}
-
-.security-check-toast {
-  position: absolute;
-  z-index: var(--ds-z-toast);
-  top: var(--ds-space-4);
-  left: 50%;
-  display: grid;
-  width: min(480px, calc(100% - var(--ds-space-6)));
-  padding: var(--ds-space-3);
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--ds-space-3);
-  color: var(--ds-fg);
-  border: 1px solid var(--ds-border-strong);
-  border-radius: var(--ds-radius-md);
-  background: var(--ds-surface);
-  box-shadow: var(--ds-shadow-summary);
-  transform: translateX(-50%);
-  animation: aegis-rise 180ms ease-out;
-}
-.security-check-toast__card {
-  overflow: hidden;
-  border-radius: var(--ds-radius-sm);
-  animation: aegis-flip 420ms ease-out both;
-}
-.security-check-toast__content {
-  min-width: 0;
-}
-.security-check-toast__content > strong {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-2);
-  margin-top: var(--ds-space-2);
-  color: var(--ds-fg);
-  font-size: var(--ds-text-sm);
-}
-.security-check-toast__content p {
-  display: -webkit-box;
-  margin: var(--ds-space-1) 0 0;
-  overflow: hidden;
-  color: var(--ds-fg-muted);
-  font-size: var(--ds-text-xs);
-  line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-}
-.security-check-toast__close {
-  width: 32px;
-  height: 32px;
-  color: var(--ds-fg-muted);
-  font-size: 1.25rem;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-}
-.security-check-toast__close:hover,
-.security-check-toast__close:focus-visible {
-  color: var(--ds-fg);
-  background: var(--ds-surface-muted);
-  outline: 2px solid var(--ds-accent);
-  outline-offset: 1px;
 }
 
 .recovery-toast {
@@ -532,156 +472,6 @@ button.opponent-action-feed__current:focus-visible {
   scrollbar-width: thin;
 }
 
-/* The activate-effect pill hangs off the bottom of its permanent. It sits inside
-   the sideways-scrolling battle row, which clips vertically, so the row keeps
-   bottom room for it (see the row's inline padding). */
-.game-effect-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 26px;
-  padding: 4px 11px;
-  border: 1px solid color-mix(in srgb, #fff 55%, var(--ds-primary));
-  border-radius: 999px;
-  background: linear-gradient(180deg, color-mix(in srgb, #fff 16%, var(--ds-primary)), var(--ds-primary));
-  box-shadow:
-    0 3px 10px rgb(0 0 0 / 35%),
-    inset 0 1px 0 rgb(255 255 255 / 30%);
-  color: #fff;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition:
-    transform 120ms,
-    box-shadow 120ms,
-    filter 120ms;
-}
-
-/* A 44px-tall touch target without a 44px-tall pill: the card art around it is
-   the permanent's own hit area, and this claims the part nearest the button. */
-.game-effect-button::after {
-  content: "";
-  position: absolute;
-  inset: -9px -12px;
-}
-
-.game-effect-button:hover {
-  filter: brightness(1.08);
-}
-.game-effect-button:active {
-  filter: brightness(0.9);
-  box-shadow: 0 1px 4px rgb(0 0 0 / 35%);
-}
-.game-effect-button:focus-visible {
-  outline: 2px solid var(--ds-foreground);
-  outline-offset: 2px;
-}
-
-.game-effect-button__count {
-  min-width: 15px;
-  padding: 0 3px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 92%);
-  color: var(--ds-primary);
-  font-family: var(--ds-font-mono);
-  font-size: 0.5625rem;
-  line-height: 15px;
-}
-
-.game-effect-scrim {
-  position: fixed;
-  z-index: var(--ds-z-sheet);
-  inset: 0;
-  background: rgb(4 14 31 / 62%);
-  animation: game-effect-scrim-in 140ms ease-out;
-}
-
-@keyframes game-effect-scrim-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.game-effect-menu {
-  position: fixed;
-  z-index: calc(var(--ds-z-sheet) + 1);
-  top: 50%;
-  left: 50%;
-  display: flex;
-  width: min(24rem, calc(100vw - 2rem));
-  max-height: min(70dvh, 30rem);
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border: 1.5px solid var(--ds-primary);
-  border-radius: 14px;
-  background: var(--ds-surface);
-  box-shadow: 0 18px 44px rgb(0 0 0 / 45%);
-  transform: translate(-50%, -50%);
-  animation: game-effect-menu-in 160ms ease-out;
-}
-
-@keyframes game-effect-menu-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, calc(-50% + 10px));
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-}
-
-.game-effect-menu__title {
-  margin: 2px 4px 4px;
-  color: var(--ds-fg-muted);
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.game-effect-menu__item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 44px;
-  padding: 9px 11px;
-  border: 1px solid var(--ds-primary);
-  border-radius: 7px;
-  background: var(--ds-primary-light);
-  color: var(--ds-primary);
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.35;
-  text-align: left;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.game-effect-menu__item:active {
-  filter: brightness(0.95);
-}
-
-/* Three lines, then an ellipsis: enough of the effect text to tell two Main
-   effects apart without one long effect pushing the other off the sheet. */
-.game-effect-menu__text {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-  min-width: 0;
-}
-
 .game-memory-gauge__side {
   overflow: hidden;
   white-space: nowrap;
@@ -809,6 +599,14 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 @media (width < 960px) {
+  /* A smaller orb leaves the compact gauge its full chip row. */
+  .game-end-turn-orb {
+    width: 4.2rem;
+    height: 4.2rem;
+    margin: -0.6rem 0.6rem;
+    font-size: 0.64rem;
+  }
+
   /* Rows instead of a column: the strip is the `auto` track, so the board above it
      absorbs a short viewport rather than pushing the actions past the bottom edge. */
   .game-layout {
@@ -978,14 +776,27 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 @media (width < 600px) {
-  .security-check-toast {
-    position: fixed;
-    top: max(var(--ds-space-3), env(safe-area-inset-top));
-  }
-  .security-check-toast__card > div {
-    width: 72px !important;
+  .battle-clash__art > div {
+    width: 78px !important;
     height: auto !important;
     aspect-ratio: 5 / 7;
+  }
+  /* The end-turn orb shares the band with 21 chips; at phone widths it gives
+     most of its diameter back so the gauge keeps every chip on screen. */
+  .game-end-turn-orb {
+    width: 3.4rem;
+    height: 3.4rem;
+    padding: 0.2rem;
+    margin: -0.5rem 0.5rem;
+    font-size: 0.56rem;
+  }
+  .game-end-turn-orb--waiting,
+  .game-end-turn-orb:disabled {
+    font-size: 0.5rem;
+  }
+  .game-name-plate {
+    min-width: 0;
+    padding: 0.2rem 0.8rem;
   }
   .opponent-permanent-inspector {
     display: none;
@@ -1351,7 +1162,7 @@ button.opponent-action-feed__current:focus-visible {
      actions, so a tap target on the board is never hidden behind the menu. */
   .card-action-sheet {
     position: fixed;
-    z-index: var(--ds-z-modal);
+    z-index: var(--ds-z-dialog);
     inset: 0;
     display: grid;
     align-items: end;
@@ -1553,7 +1364,7 @@ button.opponent-action-feed__current:focus-visible {
      it; match on the panel inside instead. */
   .aegis-dialog-layer:has(.game-modal__panel) {
     position: fixed !important;
-    z-index: var(--ds-z-modal);
+    z-index: var(--ds-z-dialog);
     inset: 0 !important;
     display: flex !important;
     padding: 0 !important;
@@ -1577,7 +1388,7 @@ button.opponent-action-feed__current:focus-visible {
   /* A bare panel carries no scrim of its own, so it pins itself to the viewport. */
   .game-modal__panel--bare {
     position: fixed !important;
-    z-index: var(--ds-z-modal);
+    z-index: var(--ds-z-dialog);
     right: 0 !important;
     bottom: 0 !important;
     left: 0 !important;
@@ -1643,7 +1454,7 @@ button.opponent-action-feed__current:focus-visible {
   /* Card blow-up, above the sheet that opened it. */
   .card-zoom {
     position: fixed;
-    z-index: calc(var(--ds-z-modal) + 1);
+    z-index: calc(var(--ds-z-dialog) + 1);
     inset: 0;
     display: grid;
     padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4)
@@ -1743,5 +1554,1224 @@ button.opponent-action-feed__current:focus-visible {
   .opponent-action-feed__trail-item {
     animation: none;
     transition: none;
+  }
+}
+
+/* ============================================================================
+   Battle-board look & feel — a theme layer that restyles the match screen after the
+   reference client: split teal/red battlefield, hexagonal memory gauge with a
+   lit marker, circular end-turn orb, security shields, oversized fanned hand
+   with cyan "playable" glow, navy dialogs, and full-width turn banners.
+   Class hooks live in GameScreen/boardPieces; everything visual lives here.
+   ========================================================================= */
+
+/* The battle-board palette lives on :root because match overlays portal into
+   #aegis-stage, outside .game-layout — a scoped custom property would be
+   undefined there and silently invalidate any declaration using it. The
+   names are namespaced, so nothing outside the match screen reads them. */
+:root {
+  --battle-field-opp-a: #05303f;
+  --battle-field-opp-b: #0d6274;
+  --battle-field-you-a: #d3560f;
+  --battle-field-you-b: #8a1e02;
+  /* Memory chips follow the design system: the viewer's half carries the
+     accent, the opponent's half a quiet slate; both sit on the fixed dark
+     band, so the values only need contrast against it and white digits. */
+  --battle-memory-you: var(--ds-accent, #075ff7);
+  --battle-memory-opp: #47536b;
+  --battle-memory-zero: #f4f6fa;
+  --battle-memory-zero-ink: #23324d;
+  --battle-marker: #8fc1ff;
+  --battle-cyan: #27d6e8;
+  --battle-attack: #ff2d1f;
+  --battle-attack-glow: rgb(255 64 32 / 35%);
+  --battle-panel: #101b30;
+  --battle-panel-border: #3b5c9e;
+  --battle-header-grad: linear-gradient(180deg, #2b57a8 0%, #16336e 55%, #102450 100%);
+}
+
+/* --- Desktop header controls (the sidebar's former match-level actions) --- */
+
+.game-topbar-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.game-topbar-button {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  color: var(--ds-foreground-muted);
+  cursor: pointer;
+  border: 1.5px solid var(--ds-border-strong);
+  border-radius: 50%;
+  background: var(--ds-surface);
+  transition:
+    color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.game-topbar-button:hover {
+  color: var(--ds-primary);
+  border-color: var(--ds-primary);
+  box-shadow: 0 0 10px var(--ds-primary-light);
+}
+
+.game-topbar-button--danger:hover {
+  color: var(--ds-danger);
+  border-color: var(--ds-danger);
+  box-shadow: 0 0 10px var(--ds-danger-light);
+}
+
+/* --- Match log ticker (desktop's slim replacement for the sidebar log) ---- */
+
+/* The running log stays in the DOM as an invisible text region — assistive
+   tech and tests read the turn/memory status and every log line from it — but
+   sighted players open the history sheet from the header's log button instead
+   of a floating overlay. */
+.game-log-ticker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Name plates -------------------------------------------------------- */
+
+.game-name-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  padding: 0.3rem 1.4rem;
+  color: #fff !important;
+  letter-spacing: 0.04em;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  background: rgb(3 6 10 / 88%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
+}
+
+/* --- Memory band, gauge and end-turn orb -------------------------------- */
+
+/* The band is a flex row — gauge stretching, orb in flow at the right — so the
+   chips shrink instead of ever sliding under the orb, whatever the width. */
+.game-memory-band {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0;
+  background: linear-gradient(180deg, #0d1a30 0%, #071224 100%);
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  box-shadow: 0 4px 18px rgb(7 21 43 / 35%);
+}
+
+.game-memory-band .game-memory-gauge {
+  flex: 1;
+}
+
+.game-memory-gauge {
+  position: relative;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0 0.6rem;
+}
+
+.game-memory-gauge__phase {
+  flex-shrink: 0;
+  min-width: 5.2rem;
+  padding: 0.22rem 0.9rem;
+  font-family: var(--ds-font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--battle-marker);
+  text-align: center;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--battle-marker) 55%, transparent);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.game-memory-gauge__track {
+  gap: 0.14rem;
+  padding: 0.2rem 0.5rem;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Hexagonal chips, numbered outward from zero on both sides. They share the
+   track evenly (the base rule higher up caps their width), so the row shrinks
+   with the board instead of sliding under the end-turn orb. */
+.game-memory-coin {
+  position: relative;
+  display: grid;
+  flex: 1 1 0;
+  aspect-ratio: 0.92;
+  min-width: 0;
+  place-items: center;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+}
+
+.game-memory-coin__n {
+  font-family: var(--ds-font-mono);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+}
+
+/* The pop plays once, when the class lands on the chip the memory value just
+   moved to; the pulse then keeps running underneath it. */
+.game-memory-coin--marker {
+  z-index: 1;
+  transform: scale(1.16);
+  filter: drop-shadow(0 0 5px var(--battle-marker))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--battle-marker) 75%, transparent)) brightness(1.18);
+  animation:
+    battle-marker-pop 300ms ease-out both,
+    battle-marker-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes battle-marker-pop {
+  0% {
+    transform: scale(1);
+  }
+  55% {
+    transform: scale(1.38);
+  }
+  100% {
+    transform: scale(1.16);
+  }
+}
+
+/* The reference client lights every tab the memory value travelled across for the length of the
+   marker move (MemoryObject.cs:96-102). The per-chip delay is set inline so the
+   sweep runs outward in the direction memory actually moved. */
+.game-memory-coin--swept {
+  animation: battle-memory-sweep 120ms cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-memory-sweep {
+  0% {
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+  }
+  45% {
+    filter: drop-shadow(0 0 8px var(--battle-marker)) brightness(1.45);
+  }
+  100% {
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+  }
+}
+
+@keyframes battle-marker-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px var(--battle-marker))
+      drop-shadow(0 0 12px color-mix(in srgb, var(--battle-marker) 75%, transparent)) brightness(1.18);
+  }
+  50% {
+    filter: drop-shadow(0 0 3px var(--battle-marker))
+      drop-shadow(0 0 7px color-mix(in srgb, var(--battle-marker) 50%, transparent)) brightness(1.05);
+  }
+}
+
+.game-memory-gauge--compact .game-memory-coin {
+  flex-basis: 1.4rem;
+}
+
+.game-memory-gauge--compact .game-memory-coin__n {
+  font-size: 0.62rem;
+}
+
+.game-memory-gauge--compact .game-memory-gauge__phase {
+  min-width: 3.6rem;
+  font-size: 0.6rem;
+}
+
+/* The circular turn button rides the band's right edge, like the reference
+   client's End Turn orb. */
+.game-end-turn-orb {
+  z-index: 6;
+  flex-shrink: 0;
+  width: 5.4rem;
+  height: 5.4rem;
+  /* Taller than the band on purpose: the negative margins let the orb overhang
+     both edges (the reference client's orb rides the divider the same way). */
+  margin: -0.9rem 0.9rem;
+  padding: 0.4rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid color-mix(in srgb, var(--battle-marker) 85%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #17263e 0%, #0a1322 68%, #060b14 100%);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 16px color-mix(in srgb, var(--battle-marker) 45%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+  transition:
+    box-shadow 180ms,
+    filter 180ms;
+}
+
+.game-end-turn-orb:hover:not(:disabled) {
+  filter: brightness(1.2);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 24px color-mix(in srgb, var(--battle-marker) 75%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+.game-end-turn-orb--waiting,
+.game-end-turn-orb:disabled {
+  font-size: 0.68rem;
+  cursor: default;
+  border-color: rgb(120 135 165 / 55%);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 10px rgb(120 135 165 / 30%),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+/* --- Security shields ---------------------------------------------------- */
+
+.game-security-shield {
+  position: relative;
+  display: grid;
+  width: 4.1rem;
+  aspect-ratio: 0.86;
+  place-items: center;
+  clip-path: polygon(6% 0%, 94% 0%, 100% 14%, 100% 58%, 50% 100%, 0% 58%, 0% 14%);
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  transition: filter 200ms;
+}
+
+.game-security-shield--opp {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
+    linear-gradient(180deg, #2c7de8 0%, #123f8f 100%);
+}
+
+.game-security-shield--you {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
+    linear-gradient(180deg, #e8542c 0%, #8f1c12 100%);
+}
+
+.game-security-shield--glow {
+  filter: drop-shadow(0 0 10px var(--battle-marker)) drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  animation: aegis-pulse 1.2s ease-in-out infinite;
+}
+
+.game-security-shield__count {
+  font-family: var(--ds-font-mono);
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgb(0 0 0 / 45%),
+    0 0 10px rgb(0 0 0 / 35%);
+}
+
+.game-security-shield__label {
+  display: none;
+}
+
+/* --- Hand: oversized fan clipped at the screen's bottom edge ------------- */
+
+.game-hand-dock {
+  overflow: visible;
+}
+
+.game-hand {
+  margin-bottom: -1.7rem;
+}
+
+.game-hand-card {
+  border-radius: 0.7rem;
+}
+
+.game-hand-card--playable {
+  box-shadow:
+    0 0 0 2.5px var(--battle-cyan),
+    0 0 14px rgb(39 214 232 / 65%);
+}
+
+.game-hand-card--drawn {
+  /* The dock's inline transform carries the fan, so the slide-in animates the
+     independent `translate` property instead of fighting it.
+     the reference client drops the new hand card into its slot from 70px over 80ms Ease.OutBack
+     (CardObjectController.cs:696); 120ms is the readable web compromise. */
+  animation: battle-hand-draw 120ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes battle-hand-draw {
+  from {
+    translate: 0 70px;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+/* --- Draw: card back flying from a deck pile to its hand ------------------ */
+
+/* The board sets the launch point and the trip vector; the element is mounted
+   for one animation and unmounted by GameScreen when the beat ends. */
+.game-draw-flight {
+  position: absolute;
+  z-index: 62;
+  width: 30px;
+  height: 42px;
+  pointer-events: none;
+  border: 1px solid var(--ds-border-strong);
+  border-radius: 5px;
+  background: linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
+  animation: battle-draw-flight 340ms cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-draw-flight {
+  0% {
+    transform: translate(0, 0) scale(0.85);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--battle-flight-dx), var(--battle-flight-dy)) scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* --- Card entering the battle area --------------------------------------- */
+
+.game-card-enter {
+  animation: battle-card-enter 320ms ease-out both;
+}
+
+@keyframes battle-card-enter {
+  from {
+    scale: 0.86;
+    opacity: 0.35;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+.game-card-sparkles {
+  position: absolute;
+  inset: -22% -8% 45%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.game-card-sparkle {
+  position: absolute;
+  width: 0.55rem;
+  aspect-ratio: 1;
+  opacity: 0;
+  background: var(--battle-marker, #ffd23e);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 0 5px rgb(255 210 62 / 85%));
+  animation: battle-card-sparkle 900ms ease-out both;
+}
+
+/* The five stars sit on an arc over the card, popping outward from the centre. */
+.game-card-sparkle:nth-child(1) {
+  top: 30%;
+  left: 4%;
+  animation-delay: 180ms;
+}
+
+.game-card-sparkle:nth-child(2) {
+  top: 8%;
+  left: 26%;
+  animation-delay: 90ms;
+}
+
+.game-card-sparkle:nth-child(3) {
+  top: 0%;
+  left: 50%;
+}
+
+.game-card-sparkle:nth-child(4) {
+  top: 8%;
+  left: 74%;
+  animation-delay: 90ms;
+}
+
+.game-card-sparkle:nth-child(5) {
+  top: 30%;
+  left: 96%;
+  animation-delay: 180ms;
+}
+
+@keyframes battle-card-sparkle {
+  0% {
+    scale: 0.2;
+    opacity: 0;
+  }
+  30% {
+    scale: 1.2;
+    opacity: 1;
+  }
+  60% {
+    scale: 1;
+    opacity: 0.9;
+  }
+  100% {
+    scale: 0.45;
+    translate: 0 -35%;
+    opacity: 0;
+  }
+}
+
+/* --- Security attack: lunge, shield hit, arrow double shot ---------------- */
+
+/* The attacker leans at the shield it declared on. `translate` is used rather
+   than `transform` so the permanent's inline highlight offset still applies. */
+.game-permanent-lunge--up {
+  animation: battle-lunge-up 300ms ease-out both;
+}
+
+.game-permanent-lunge--down {
+  animation: battle-lunge-down 300ms ease-out both;
+}
+
+@keyframes battle-lunge-up {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -14px;
+  }
+}
+
+@keyframes battle-lunge-down {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 14px;
+  }
+}
+
+/* The reference client shatters the security glass pane on every check; the web port reads that
+   as a white flash plus a short shake on the shield badge. */
+.game-security-shield--hit {
+  animation: battle-security-hit 350ms ease-out both;
+}
+
+@keyframes battle-security-hit {
+  0% {
+    filter: brightness(3.2);
+    translate: 0 0;
+  }
+  20% {
+    translate: -4px 0;
+  }
+  40% {
+    filter: brightness(1.9);
+    translate: 4px 0;
+  }
+  60% {
+    translate: -3px 0;
+  }
+  80% {
+    translate: 2px 0;
+  }
+  100% {
+    filter: brightness(1);
+    translate: 0 0;
+  }
+}
+
+/* TargetArrow.cs:118-157 — the arrow extends over 85ms, holds 70ms, and repeats
+   once before it locks on. `pathLength` is normalised to 100 in the SVG. */
+.game-attack-arrow__stroke {
+  animation: battle-arrow-extend 380ms linear both;
+}
+
+.game-attack-arrow__head {
+  animation: battle-arrow-head 380ms step-end both;
+}
+
+@keyframes battle-arrow-extend {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  22.4%,
+  40.8% {
+    stroke-dashoffset: 0;
+  }
+  40.9% {
+    stroke-dashoffset: 100;
+  }
+  63.2%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes battle-arrow-head {
+  0% {
+    opacity: 0;
+  }
+  22.4% {
+    opacity: 1;
+  }
+  40.9% {
+    opacity: 0;
+  }
+  63.2% {
+    opacity: 1;
+  }
+}
+
+/* --- Turn banner --------------------------------------------------------- */
+
+.game-turn-banner {
+  position: absolute;
+  top: 24%;
+  right: 0;
+  left: 0;
+  z-index: 71;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.1rem 0;
+  pointer-events: none;
+  /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
+     the in/out clips). 1s keeps it readable in a browser without stalling. */
+  animation: battle-banner 1s ease-in-out both;
+}
+
+.game-turn-banner span {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0b0d10;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 25%);
+}
+
+/* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31). */
+.game-turn-banner--opp {
+  background: rgb(255 131 121 / 87%);
+}
+
+.game-turn-banner--you {
+  background: rgb(121 153 255 / 87%);
+}
+
+@keyframes battle-banner {
+  0% {
+    opacity: 0;
+    transform: translateX(4%);
+  }
+  16%,
+  84% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-3%);
+  }
+}
+
+/* --- Dialogs: navy panel with a gradient header bar ----------------------- */
+
+.game-modal__panel {
+  /* The panel is always navy, so its ink and inner surfaces cannot follow the
+     app theme — light-theme surfaces inside it would be white cards on navy. */
+  --ds-fg: #eaf1ff;
+  --ds-fg-secondary: #c6d4ef;
+  --ds-fg-muted: #9fb0d0;
+  --ds-fg-disabled: #5c6f92;
+  --ds-surface: #16233c;
+  --ds-surface-raised: #1b2a47;
+  --ds-surface-muted: #1e2d4a;
+  --ds-border: #334770;
+  --ds-border-strong: #46608f;
+
+  /* Above every board fixture (memory band, orb, log ticker, flights): the
+     panels portal into #aegis-stage and carry only a small inline z-index.
+     (--ds-z-modal does not exist in tokens.css — the dialog tier is the one.) */
+  z-index: var(--ds-z-dialog) !important;
+  color: var(--ds-fg);
+  border: 1px solid var(--battle-panel-border) !important;
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%) !important;
+  animation: battle-dialog-in 180ms ease-out both;
+}
+
+/* Inline flow sheets (mulligan) and floating combat prompts render inside the
+   board, where the memory band and orb carry their own z-indexes — lift them
+   into the overlay layer so board chrome can never paint across them. */
+.mulligan-sheet {
+  position: relative;
+  z-index: 90;
+}
+
+.combat-prompt {
+  --ds-fg: #eaf1ff;
+  --ds-fg-secondary: #c6d4ef;
+  --ds-fg-muted: #9fb0d0;
+  --ds-surface: #16233c;
+  --ds-surface-muted: #1e2d4a;
+
+  z-index: 90 !important;
+  color: var(--ds-fg);
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%) !important;
+}
+
+@keyframes battle-dialog-in {
+  from {
+    translate: 0 0.75rem;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+.decision-overlay__heading,
+.mulligan-title {
+  padding: 0.7rem 1.2rem;
+  margin: -0.2rem -0.2rem 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--battle-header-grad);
+}
+
+/* --- Transient card-information panels ------------------------------ */
+
+/* A right-side stack below the opponent action feed. It sits above the board
+   chrome but under --ds-z-dialog, so a decision overlay always wins. */
+.info-panel-stack {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  top: calc(13.5rem + env(safe-area-inset-top, 0px));
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+  display: flex;
+  width: min(15rem, calc(100% - var(--ds-space-8)));
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  pointer-events: none;
+}
+
+.info-panel {
+  overflow: hidden;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.5rem;
+  background: var(--battle-panel);
+  box-shadow: 0 10px 28px rgb(4 14 31 / 55%);
+  pointer-events: auto;
+  /* The reference client's SelectCommandPanel open clip runs 0.233 s. */
+  animation: info-panel-in 230ms ease-out;
+}
+
+.info-panel__header {
+  display: grid;
+  padding: 0.3rem 0.35rem 0.3rem 0.6rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--ds-space-2);
+  align-items: center;
+  background: var(--battle-header-grad);
+}
+
+.info-panel__title {
+  overflow: hidden;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-panel__owner {
+  font-size: 0.62rem;
+  color: rgb(255 255 255 / 62%);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.info-panel__close {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: #fff;
+  border: 0;
+  border-radius: 0.25rem;
+  background: rgb(255 255 255 / 12%);
+  cursor: pointer;
+  place-items: center;
+}
+
+.info-panel__close:hover {
+  background: rgb(255 255 255 / 24%);
+}
+
+.info-panel__cards {
+  display: flex;
+  padding: 0.45rem;
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+}
+
+.info-panel__card {
+  position: relative;
+  line-height: 0;
+}
+
+/* The reference client numbers each card in the panel with a blue circle at its top-left. */
+.info-panel__badge {
+  position: absolute;
+  top: -0.25rem;
+  left: -0.25rem;
+  display: grid;
+  width: 1.05rem;
+  height: 1.05rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 50%;
+  background: #2b57a8;
+  place-items: center;
+}
+
+/* The attack call-out: a glance at the attacker while the arc and lunge play. */
+.attack-announcement {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  top: calc(9.5rem + env(safe-area-inset-top, 0px));
+  left: 50%;
+  display: flex;
+  padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+  gap: var(--ds-space-2);
+  align-items: center;
+  border: 1px solid var(--battle-attack);
+  border-radius: 0.5rem;
+  background: var(--battle-panel);
+  box-shadow: 0 0 18px var(--battle-attack-glow);
+  pointer-events: none;
+  translate: -50% 0;
+  /* Centred by a translate, so its entrance can only fade — a keyframe that also
+     owned `translate` would fight the centring. */
+  animation: attack-announcement-in 140ms ease-out;
+}
+
+.attack-announcement__copy {
+  font-size: 0.8rem;
+  color: #fff;
+}
+
+@keyframes info-panel-in {
+  from {
+    translate: 0.5rem 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes attack-announcement-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- Security clash ------------------------------------------------------ */
+
+/* The reference client resolves a security check centre-stage: the attacking Digimon
+   faces the revealed card, their DP is compared, then the outcome plays between
+   them. The beats below are the ones ./securityClash.ts publishes, so the two
+   must be retimed together:
+     0ms      attacker slides in from its own half        (150ms)
+     150ms    revealed card plays the 233ms EnterSecurity clip
+     383ms    both hold, readable                         (1600ms)
+     1983ms   outcome beat, per resolution                (350ms)
+     2333ms   scene fades out                             (200ms) */
+.battle-clash {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: battle-clash-scene 2533ms linear both;
+}
+
+.battle-clash__badge {
+  display: flex;
+  margin: 0;
+  padding: 0.2rem 0.7rem;
+  gap: var(--ds-space-2);
+  align-items: center;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 999px;
+  background: var(--battle-panel);
+  box-shadow: 0 2px 12px rgb(6 12 28 / 45%);
+}
+
+.battle-clash__stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  align-items: center;
+}
+
+.battle-clash__card {
+  display: flex;
+  margin: 0;
+  gap: var(--ds-space-3);
+  align-items: center;
+}
+
+.battle-clash__art {
+  overflow: hidden;
+  border-radius: var(--ds-radius-sm);
+  box-shadow: 0 10px 26px rgb(6 12 28 / 55%);
+}
+
+.battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
+  animation: battle-clash-enter-you 150ms cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
+  animation: battle-clash-enter-opp 150ms cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* The reference client's YourEnterSecurityCard.anim (233ms): the card grows from
+   almost nothing, arcs left, and burns off a white-out — it never flips. */
+.battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation: battle-security-reveal 233ms ease-out 150ms both;
+}
+
+.battle-clash[data-resolution="effect"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal 233ms ease-out 150ms both,
+    battle-clash-glow 350ms ease-out 1983ms both;
+}
+
+.battle-clash[data-resolution="trashed"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal 233ms ease-out 150ms both,
+    battle-clash-fall 350ms cubic-bezier(0.32, 0, 0.67, 0) 1983ms both;
+}
+
+/* A battle resolution shakes both cards, so each entrance keeps its own first
+   animation and appends the impact rather than being replaced by it. */
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal 233ms ease-out 150ms both,
+    battle-clash-impact 350ms ease-out 1983ms both;
+}
+
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
+  animation:
+    battle-clash-enter-you 150ms cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact 350ms ease-out 1983ms both;
+}
+
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
+  animation:
+    battle-clash-enter-opp 150ms cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact 350ms ease-out 1983ms both;
+}
+
+.battle-clash__caption {
+  display: flex;
+  width: 11rem;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: #fff;
+  text-shadow: 0 1px 4px rgb(6 12 28 / 85%);
+}
+
+.battle-clash__role {
+  font-size: 0.68rem;
+  color: var(--battle-marker);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.battle-clash__name {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.battle-clash__dp {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--battle-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+.battle-clash__mark {
+  position: relative;
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  place-items: center;
+  border: 2px solid var(--battle-attack);
+  border-radius: 50%;
+  background: var(--battle-panel);
+  box-shadow: 0 0 16px var(--battle-attack-glow);
+}
+
+/* The clash burst: only a battle resolution has two Digimon actually trading blows. */
+.battle-clash__flash {
+  position: absolute;
+  inset: -0.6rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, var(--battle-attack) 45%, transparent 70%);
+  animation: battle-clash-burst 350ms ease-out 1983ms both;
+}
+
+.battle-clash__outcome {
+  margin: 0;
+  padding: 0.2rem 0.8rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.5rem;
+  background: var(--battle-panel);
+}
+
+@keyframes battle-clash-scene {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes battle-clash-enter-you {
+  from {
+    transform: translateY(70px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes battle-clash-enter-opp {
+  from {
+    transform: translateY(-70px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes battle-security-reveal {
+  0% {
+    transform: translate(0, 42px) scale(0.08);
+    filter: brightness(6);
+  }
+  50% {
+    transform: translate(-18px, 33px) scale(0.55);
+    filter: brightness(3);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* The reference client's BattleEffect: a 250ms claw slash plus a short shake,
+   then a 100ms settle before the objects are destroyed. */
+@keyframes battle-clash-impact {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  20% {
+    transform: translate(-6px, 2px) scale(1.05);
+  }
+  45% {
+    transform: translate(5px, -3px) scale(1.05);
+  }
+  70% {
+    transform: translate(-3px, 1px) scale(1.02);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes battle-clash-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes battle-clash-glow {
+  0% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: translate(0, 0) scale(1.06);
+    filter: brightness(1.5) drop-shadow(0 0 14px var(--battle-cyan));
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes battle-clash-fall {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 24px) scale(0.94) rotate(5deg);
+    filter: brightness(0.6) grayscale(1);
+    opacity: 0.35;
+  }
+}
+
+@media (width <= 780px) {
+  .info-panel-stack {
+    top: calc(11.5rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    width: min(11rem, calc(100% - var(--ds-space-4)));
+  }
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+/* Last in the file so it outranks the battle-board rules above, which share its
+   specificity. The entrances are decoration only: without them every element
+   still renders in its resting state and the sparkles stay invisible. */
+@media (prefers-reduced-motion: reduce) {
+  .game-card-enter,
+  .game-card-sparkle,
+  .game-hand-card--drawn,
+  .game-memory-coin--marker,
+  .game-memory-coin--swept,
+  .game-draw-flight,
+  .game-permanent-lunge--up,
+  .game-permanent-lunge--down,
+  .game-security-shield--hit,
+  .game-attack-arrow__stroke,
+  .game-attack-arrow__head,
+  .battle-clash,
+  .battle-clash__art,
+  .game-turn-banner,
+  .info-panel,
+  .attack-announcement,
+  .game-modal__panel {
+    animation: none;
+  }
+
+  /* The stroke animation is what draws the arrow in; without it the dash must
+     be closed by hand or the path would never paint. */
+  .game-attack-arrow__stroke {
+    stroke-dashoffset: 0;
+  }
+
+  /* The flying card back exists only for its trip: with no motion it would just
+     park over the board until its timer removes it. */
+  .game-draw-flight {
+    display: none;
+  }
+
+  /* The clash burst is a pure motion flourish; the scene still reads without it. */
+  .battle-clash__flash {
+    display: none;
+  }
+
+  /* CardMini sets its suspend rotation inline, so only !important can reach it. */
+  [data-state="suspended"],
+  [data-state="active"] {
+    transition: none !important;
   }
 }

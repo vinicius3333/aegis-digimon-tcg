@@ -22,6 +22,7 @@ import { useTranslation } from "../i18n";
 import { useRoom, type MatchMode, type UseRoomResult } from "../net/useRoom";
 import { intents } from "../net/intents";
 import { joinWithBot } from "../net/client";
+import type { CSSProperties } from "react";
 import type { StartMode } from "../screens/Lobby";
 import type { AegisJoinOptions } from "../net/types";
 import { Avatar, Badge, Button, Logo, type Screen } from "../design/primitives";
@@ -30,7 +31,8 @@ import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
 import type { ColorName } from "../design/theme";
-import { playSound } from "../design/sound";
+import { playSound, type SoundKind } from "../design/sound";
+import { shouldPlayCue, soundForEvent, type CueTimestamps } from "./soundEvents";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
@@ -101,7 +103,6 @@ import {
   EffectClauseToast,
   GameOverOverlay,
   MulliganOverlay,
-  SecurityOverlay,
   StackViewerOverlay,
   TrashViewerOverlay,
   WaitingOverlay,
@@ -111,6 +112,27 @@ import {
 } from "./overlays";
 import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
+import { AttackAnnouncementBanner, InfoPanelStack } from "./InfoPanelStack";
+import {
+  attackAnnouncementFromEvent,
+  buildInstanceSeatIndex,
+  dismissInfoPanel,
+  expireInfoPanels,
+  infoPanelFromEvent,
+  pushInfoPanel,
+  ATTACK_ANNOUNCE_MS,
+  INFO_PANEL_LIFETIME_MS,
+  type AttackAnnouncement,
+  type InfoPanel,
+  type InfoPanelLookup,
+} from "./infoPanels";
+import { SecurityClash } from "./SecurityClashView";
+import {
+  buildSecurityClashScene,
+  SECURITY_CLASH_TOTAL_MS,
+  type SecurityClashAttacker,
+  type SecurityClashScene,
+} from "./securityClash";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
@@ -154,6 +176,19 @@ const SHORT_BOARD_QUERY = "(height < 820px)";
 const NARROW_RAIL_QUERY = "(width < 1240px)";
 /** Slot width whose 1.16× permanent exactly fits the 104px rail's 84px content box. */
 const NARROW_RAIL_SLOT_WIDTH = 72;
+
+/** Card back sent from a deck pile to the hand that just grew, in board coordinates. */
+type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number };
+
+/** Must match `.game-draw-flight` in game.css. */
+const DRAW_FLIGHT_WIDTH = 30;
+const DRAW_FLIGHT_HEIGHT = 42;
+const DRAW_FLIGHT_MS = 340;
+/** The reference client's attack lunge is 150ms out and back (AttackProcess.cs pacing). */
+const ATTACK_LUNGE_MS = 300;
+const SECURITY_HIT_MS = 350;
+/** In 160ms, hold 300ms, out 160ms is the reference client's banner; 1s is the readable web port. */
+const TURN_BANNER_MS = 1000;
 
 /**
  * `deferred` marks a touch gesture whose direction is not yet known: the pointer is
@@ -271,7 +306,7 @@ export function GameScreen({
     nextSeat: number;
     turnCount: number;
   } | null>(null);
-  const [secReveal, setSecReveal] = useState<{ cardId: string; resolution: string } | null>(null);
+  const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
   const [recoveryToast, setRecoveryToast] = useState<{ seat: number; amount: number; key: number } | null>(null);
   const [effectNotice, setEffectNotice] = useState<{
     cardId: string;
@@ -280,13 +315,35 @@ export function GameScreen({
     key: string;
   } | null>(null);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
+  // Security-attack beats: the attacker leans at the shield, the shield flashes
+  // when a card is actually checked. Both are transient decoration.
+  const [attackLunge, setAttackLunge] = useState<{ permanentId: string; direction: "up" | "down" } | null>(null);
+  const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
+  const [drawFlights, setDrawFlights] = useState<DrawFlight[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
+  const [infoPanels, setInfoPanels] = useState<readonly InfoPanel[]>([]);
+  const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
+  const attackAnnounceTimerRef = useRef<number | undefined>(undefined);
+  const infoPanelSequenceRef = useRef(0);
+  // `cardsMoved` names only instance ids, so the panels need the board's current
+  // identity and ownership index to name the cards that just moved.
+  const infoLookupRef = useRef<InfoPanelLookup>({ cardId: () => undefined, seat: () => undefined });
   const lastNoticeEventRef = useRef<ServerEvent | undefined>(undefined);
-  const securityToastTimerRef = useRef<number | undefined>(undefined);
+  const securityClashTimerRef = useRef<number | undefined>(undefined);
+  const securityClashKeyRef = useRef(0);
+  // The card the checked player is defending against. A security check carries no
+  // attacker, so it is remembered from the attack that opened the check.
+  const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
   const recoveryToastTimerRef = useRef<number | undefined>(undefined);
   const effectNoticeTimerRef = useRef<number | undefined>(undefined);
   const inspectorTimerRef = useRef<number | undefined>(undefined);
+  const lungeTimerRef = useRef<number | undefined>(undefined);
+  const securityHitTimerRef = useRef<number | undefined>(undefined);
+  const turnBannerTimerRef = useRef<number | undefined>(undefined);
+  const drawFlightTimersRef = useRef<number[]>([]);
+  const drawFlightKeyRef = useRef(0);
+  const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
   const [evoCostChoice, setEvoCostChoice] = useState<{
     handInstanceId: string;
     permanentId: string;
@@ -321,10 +378,58 @@ export function GameScreen({
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const yourSecRef = useRef<HTMLDivElement | null>(null);
   const oppSecRef = useRef<HTMLDivElement | null>(null);
+  const yourDeckRef = useRef<HTMLDivElement | null>(null);
+  const oppDeckRef = useRef<HTMLDivElement | null>(null);
+  const yourHandDockRef = useRef<HTMLDivElement | null>(null);
+  const oppHandStripRef = useRef<HTMLDivElement | null>(null);
   const [arrow, setArrow] = useState<{ from: { x: number; y: number }; to: { x: number; y: number } } | null>(null);
 
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
   const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
+
+  // Cues are observed twice for your own actions (the intent handler fires one
+  // immediately, the server echo arrives later), so repeats are suppressed.
+  const cuePlayedAtRef = useRef<CueTimestamps>({});
+  const cueBaselineRef = useRef(false);
+  const playGameCue = (kind: SoundKind) => {
+    const now = Date.now();
+    if (!shouldPlayCue(kind, now, cuePlayedAtRef.current)) return;
+    cuePlayedAtRef.current[kind] = now;
+    playSound(kind);
+  };
+
+  /**
+   * Sends a card back from a deck pile to the hand that just grew. The reference client presents
+   * a draw centre-screen; the web port keeps the deck→hand read, which is what
+   * makes an opponent's draw visible at all.
+   */
+  const launchDrawFlight = (side: "you" | "opp") => {
+    const board = boardRef.current;
+    const source = side === "you" ? yourDeckRef.current : oppDeckRef.current;
+    const target = side === "you" ? yourHandDockRef.current : oppHandStripRef.current;
+    if (!board || !source || !target) return;
+    const boardRect = board.getBoundingClientRect();
+    const sourceRect = source.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    // Layout-free environments (jsdom) report zero boxes: no geometry, no flight,
+    // and so no timer is ever scheduled there.
+    if (!sourceRect.width || !targetRect.width) return;
+    const from = {
+      x: sourceRect.left + sourceRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
+      y: sourceRect.top + sourceRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
+    };
+    const to = {
+      x: targetRect.left + targetRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
+      y: targetRect.top + targetRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
+    };
+    const key = (drawFlightKeyRef.current += 1);
+    setDrawFlights((flights) => [...flights, { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y }]);
+    const timer = window.setTimeout(() => {
+      setDrawFlights((flights) => flights.filter((flight) => flight.key !== key));
+      drawFlightTimersRef.current = drawFlightTimersRef.current.filter((id) => id !== timer);
+    }, DRAW_FLIGHT_MS);
+    drawFlightTimersRef.current.push(timer);
+  };
 
   const ping = (message: string) => {
     playSound("error");
@@ -347,7 +452,7 @@ export function GameScreen({
     evoCostChoice ||
     digiXrosPick ||
     actionConfirm ||
-    secReveal ||
+    securityClash ||
     historyOpen ||
     hasOpenCombatPrompt(events) ||
     state?.gameOver,
@@ -358,6 +463,15 @@ export function GameScreen({
     paused: feedPaused,
     trailCapacity: narrowGameLayout ? 1 : 2,
     matchKey: room?.roomId ?? roomCode ?? "pending-match",
+  });
+
+  // Declared before the event effect below so the same commit refreshes the
+  // index first: a card is already in its new zone when its movement is narrated.
+  useEffect(() => {
+    if (!state) return;
+    const cardIds = buildInstanceIndex(state, viewerSeat);
+    const seats = buildInstanceSeatIndex(state);
+    infoLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
   });
 
   // Surface server rejections as a transient toast.
@@ -372,11 +486,69 @@ export function GameScreen({
       .reverse()
       .find((event) => event.kind === "effectResolved" && event.seat === viewerSeat);
     const turnEnd = [...fresh].reverse().find((event) => event.kind === "turnEnded");
+    const securityAttack = [...fresh]
+      .reverse()
+      .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
+    // The first pass is the baseline: a reconnect replays history, which must not
+    // replay its sounds or reopen every panel the match has ever shown.
+    const replayingHistory = !cueBaselineRef.current;
+    cueBaselineRef.current = true;
+    if (!replayingHistory) {
+      for (const event of fresh) {
+        const cue = soundForEvent(event, viewerSeat);
+        if (cue) playGameCue(cue);
+      }
+      const now = Date.now();
+      let announcement: AttackAnnouncement | null = null;
+      const opened: InfoPanel[] = [];
+      for (const event of fresh) {
+        infoPanelSequenceRef.current += 1;
+        const id = `info-panel-${infoPanelSequenceRef.current}`;
+        const panel = infoPanelFromEvent(event, viewerSeat, infoLookupRef.current, id, now);
+        if (panel) opened.push(panel);
+        announcement = attackAnnouncementFromEvent(event, viewerSeat, id, now) ?? announcement;
+      }
+      if (opened.length > 0) {
+        setInfoPanels((panels) =>
+          opened.reduce<readonly InfoPanel[]>(
+            (stack, panel) => pushInfoPanel(stack, panel),
+            expireInfoPanels(panels, now),
+          ),
+        );
+      }
+      if (announcement) {
+        if (attackAnnounceTimerRef.current) window.clearTimeout(attackAnnounceTimerRef.current);
+        setAttackAnnouncement(announcement);
+        attackAnnounceTimerRef.current = window.setTimeout(() => setAttackAnnouncement(null), ATTACK_ANNOUNCE_MS);
+      }
+    }
     if (rejection?.kind === "actionRejected") ping(rejectionMessage(rejection.reason, t));
+    if (securityAttack?.kind === "attackDeclared") {
+      if (lungeTimerRef.current) window.clearTimeout(lungeTimerRef.current);
+      setAttackLunge({
+        permanentId: securityAttack.attackerPermanentId,
+        direction: securityAttack.seat === viewerSeat ? "up" : "down",
+      });
+      lungeTimerRef.current = window.setTimeout(() => setAttackLunge(null), ATTACK_LUNGE_MS);
+      securityAttackerRef.current = { seat: securityAttack.seat, cardId: securityAttack.attackerCardId };
+    }
     if (securityCheck?.kind === "securityChecked") {
-      if (securityToastTimerRef.current) window.clearTimeout(securityToastTimerRef.current);
-      setSecReveal({ cardId: securityCheck.revealedCardId, resolution: securityCheck.resolution });
-      securityToastTimerRef.current = window.setTimeout(() => setSecReveal(null), 4500);
+      if (securityClashTimerRef.current) window.clearTimeout(securityClashTimerRef.current);
+      securityClashKeyRef.current += 1;
+      setSecurityClash(
+        buildSecurityClashScene({
+          key: securityClashKeyRef.current,
+          revealedCardId: securityCheck.revealedCardId,
+          resolution: securityCheck.resolution,
+          defenderSeat: securityCheck.seat,
+          viewerSeat,
+          attacker: securityAttackerRef.current,
+        }),
+      );
+      securityClashTimerRef.current = window.setTimeout(() => setSecurityClash(null), SECURITY_CLASH_TOTAL_MS);
+      if (securityHitTimerRef.current) window.clearTimeout(securityHitTimerRef.current);
+      setSecurityHitSeat(securityCheck.seat);
+      securityHitTimerRef.current = window.setTimeout(() => setSecurityHitSeat(null), SECURITY_HIT_MS);
     }
     if (recovery?.kind === "securityRecovered") {
       if (recoveryToastTimerRef.current) window.clearTimeout(recoveryToastTimerRef.current);
@@ -394,18 +566,35 @@ export function GameScreen({
       effectNoticeTimerRef.current = window.setTimeout(() => setEffectNotice(null), 2800);
     }
     if (turnEnd?.kind === "turnEnded") {
+      securityAttackerRef.current = undefined;
       setTurnTransition({ endingSeat: turnEnd.endingSeat, nextSeat: turnEnd.nextSeat, turnCount: turnEnd.turnCount });
-      window.setTimeout(() => setTurnTransition(null), 2500);
+      if (turnBannerTimerRef.current) window.clearTimeout(turnBannerTimerRef.current);
+      turnBannerTimerRef.current = window.setTimeout(() => setTurnTransition(null), TURN_BANNER_MS);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
 
+  // One timer for the whole stack, set to the oldest panel's remaining lifetime.
+  useEffect(() => {
+    if (infoPanels.length === 0) return;
+    const oldest = Math.min(...infoPanels.map((panel) => panel.createdAt));
+    const remaining = Math.max(0, oldest + INFO_PANEL_LIFETIME_MS - Date.now());
+    const timer = window.setTimeout(() => setInfoPanels((panels) => expireInfoPanels(panels, Date.now())), remaining);
+    return () => window.clearTimeout(timer);
+  }, [infoPanels]);
+
   useEffect(
     () => () => {
-      if (securityToastTimerRef.current) window.clearTimeout(securityToastTimerRef.current);
+      if (attackAnnounceTimerRef.current) window.clearTimeout(attackAnnounceTimerRef.current);
+      if (securityClashTimerRef.current) window.clearTimeout(securityClashTimerRef.current);
       if (recoveryToastTimerRef.current) window.clearTimeout(recoveryToastTimerRef.current);
       if (effectNoticeTimerRef.current) window.clearTimeout(effectNoticeTimerRef.current);
       if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
+      if (lungeTimerRef.current) window.clearTimeout(lungeTimerRef.current);
+      if (securityHitTimerRef.current) window.clearTimeout(securityHitTimerRef.current);
+      if (turnBannerTimerRef.current) window.clearTimeout(turnBannerTimerRef.current);
+      for (const timer of drawFlightTimersRef.current) window.clearTimeout(timer);
+      drawFlightTimersRef.current = [];
     },
     [],
   );
@@ -497,6 +686,19 @@ export function GameScreen({
 
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
+
+  // A hand that grew was drawn into. The opening hand and a mulligan redeal are
+  // not draws, so the first observed pair is only a baseline.
+  const mulliganOpen = decision?.kind === "mulligan";
+  useEffect(() => {
+    if (you === undefined || opp === undefined) return;
+    const previous = handCountsRef.current;
+    handCountsRef.current = { you: you.handCount, opp: opp.handCount };
+    if (!previous || mulliganOpen) return;
+    if (opp.handCount > previous.opp) launchDrawFlight("opp");
+    if (you.handCount > previous.you) launchDrawFlight("you");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [you?.handCount, opp?.handCount]);
 
   // ----- pre-match / connection gates -----
   if (status === "reconnecting") {
@@ -595,7 +797,7 @@ export function GameScreen({
         if (actionConfirmationsEnabled) {
           setActionConfirm({ kind: "dna", instanceId, cardId: entry.cardId, materialPermanentIds: dnaMaterials });
         } else if (room) {
-          playSound("confirm");
+          playGameCue("digivolve");
           intents.dnaDigivolve(room, dnaMaterials, instanceId);
           clearSel();
         }
@@ -668,21 +870,21 @@ export function GameScreen({
       }
     }
     if (room) {
-      playSound("confirm");
+      playGameCue("cardPlay");
       intents.playCard(room, instanceId);
     }
     clearSel();
   };
   const digivolve = (permanentId: string, instanceId: string, useAlternateCost?: boolean) => {
     if (room) {
-      playSound("confirm");
+      playGameCue("digivolve");
       intents.digivolve(room, permanentId, instanceId, useAlternateCost);
     }
     clearSel();
   };
   const attack = (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => {
     if (room) {
-      playSound("attack");
+      playGameCue("attackDeclare");
       intents.attack(room, attackerPermanentId, target, vortex);
     }
     setSelPerm(null);
@@ -1055,10 +1257,12 @@ export function GameScreen({
         canHatch: false,
         canMove: canMoveFromBreeding(perm),
       });
+    const activatable = isMyTurn ? parseActivatable(perm.activatableEffectsJson) : [];
     const destination = ownPermanentTapDestination({
       canAttack: canAttackWith(perm),
       canVortex: canVortexAttackWith(perm),
       canPromote,
+      hasEffects: activatable.length > 0,
     });
     if (destination === "menu") showCardMenu(perm.permanentId, "you");
     else setStackView(perm.permanentId);
@@ -1108,7 +1312,7 @@ export function GameScreen({
       return;
     }
     if (room) {
-      playSound("confirm");
+      playGameCue("hatch");
       intents.hatchEgg(room);
     }
   };
@@ -1235,7 +1439,7 @@ export function GameScreen({
           })()
         : null}
 
-      {state.phase === Phase.Breeding && isMyTurn && !decision && !secReveal
+      {state.phase === Phase.Breeding && isMyTurn && !decision && !securityClash
         ? (() => {
             const canHatch = you.eggDeckCount > 0 && !you.breeding;
             const canMove = canMoveFromBreeding(you.breeding);
@@ -1311,16 +1515,7 @@ export function GameScreen({
         />
       ) : null}
 
-      {secReveal && !state.gameOver ? (
-        <SecurityOverlay
-          cardId={secReveal.cardId}
-          resolution={secReveal.resolution}
-          onContinue={() => {
-            if (securityToastTimerRef.current) window.clearTimeout(securityToastTimerRef.current);
-            setSecReveal(null);
-          }}
-        />
-      ) : null}
+      {securityClash && !state.gameOver ? <SecurityClash key={securityClash.key} scene={securityClash} /> : null}
 
       {recoveryToast && !state.gameOver ? (
         <RecoveryToast
@@ -1394,7 +1589,7 @@ export function GameScreen({
                 intents.digivolve(room, actionConfirm.permanentId, actionConfirm.instanceId);
               else intents.dnaDigivolve(room, actionConfirm.materialPermanentIds, actionConfirm.instanceId);
             }
-            playSound("confirm");
+            playGameCue(actionConfirm.kind === "play" ? "cardPlay" : "digivolve");
             setActionConfirm(null);
             clearSel();
           }}
@@ -1492,6 +1687,17 @@ export function GameScreen({
                         },
                       }
                     : undefined
+                }
+                effects={
+                  mine && isMyTurn
+                    ? parseActivatable(perm.activatableEffectsJson).map((entry) => ({
+                        label: entry.description,
+                        onActivate: () => {
+                          setCardMenu(null);
+                          activateEffect(entry.instanceId, entry.effectKey);
+                        },
+                      }))
+                    : []
                 }
                 canAttack={mine && canAttackWith(perm)}
                 canVortex={mine && canVortexAttackWith(perm)}
@@ -1613,7 +1819,7 @@ export function GameScreen({
           <div className="game-opponent-identity" style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <Avatar name={opp.displayName || t("game.opponent")} color={oppColor} size={40} />
             <div>
-              <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ds-foreground)" }}>
+              <div className="game-name-plate" style={{ fontWeight: 600, fontSize: 15, color: "var(--ds-foreground)" }}>
                 {opp.displayName || t("game.opponent")}
               </div>
               <div
@@ -1638,7 +1844,11 @@ export function GameScreen({
               </div>
             </div>
           </div>
-          <div className="game-opponent-hand" style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <div
+            className="game-opponent-hand"
+            ref={oppHandStripRef}
+            style={{ display: "flex", alignItems: "center", gap: 7 }}
+          >
             {Array.from({ length: Math.min(opp.handCount, 8) }).map((_, i) => (
               <div key={i} aria-hidden style={{ marginLeft: i ? -22 : 0 }}>
                 <div
@@ -1691,7 +1901,33 @@ export function GameScreen({
                 <Icons.LogOut size={16} />
               </button>
             </>
-          ) : null}
+          ) : (
+            /* Desktop dropped the sidebar, so its match-level controls live here as
+               the reference client's circular header buttons. */
+            <div className="game-topbar-actions">
+              <button
+                className="game-topbar-button"
+                onClick={() => setHistoryOpen(true)}
+                aria-label={t("game.matchLog")}
+              >
+                <Icons.ScrollText size={17} />
+              </button>
+              <button
+                className="game-topbar-button"
+                onClick={() => setBugReportOpen(true)}
+                aria-label={t("bugReport.button")}
+              >
+                <Icons.Bug size={17} />
+              </button>
+              <button
+                className="game-topbar-button game-topbar-button--danger"
+                onClick={() => room && intents.surrender(room)}
+                aria-label={t("game.surrender")}
+              >
+                <Icons.LogOut size={17} />
+              </button>
+            </div>
+          )}
         </header>
 
         {!feedPaused && !state.gameOver ? (
@@ -1699,8 +1935,40 @@ export function GameScreen({
             current={opponentFeed.current}
             trail={opponentFeed.trail}
             pendingCount={opponentFeed.pending.length}
-            onOpenHistory={narrowGameLayout ? () => setHistoryOpen(true) : undefined}
+            onOpenHistory={() => setHistoryOpen(true)}
           />
+        ) : null}
+
+        {!state.gameOver ? (
+          <InfoPanelStack
+            panels={infoPanels}
+            onDismiss={(id: string) => setInfoPanels((panels) => dismissInfoPanel(panels, id))}
+          />
+        ) : null}
+
+        {attackAnnouncement && !state.gameOver ? <AttackAnnouncementBanner announcement={attackAnnouncement} /> : null}
+
+        {/* Desktop replaced the sidebar with this slim ticker: the turn/memory
+            readout plus the running match log, kept unobtrusive at the board's
+            right edge. The header's log button opens the full history sheet. */}
+        {!narrowGameLayout ? (
+          <aside className="game-log-ticker" aria-label={t("game.matchLog")}>
+            <div className="game-log-ticker__status">
+              <span data-my-turn={isMyTurn || undefined}>
+                {isMyTurn ? t("game.yourTurn") : t("game.opponentsTurn")}
+              </span>
+              <span>
+                {t("game.turnAndMemory", { turn: state.turnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
+              </span>
+            </div>
+            <ol className="game-log-ticker__lines">
+              {log.map((e, i) => (
+                <li key={i} data-kind={e.kind}>
+                  {e.text}
+                </li>
+              ))}
+            </ol>
+          </aside>
         ) : null}
 
         {flash ? (
@@ -1730,25 +1998,11 @@ export function GameScreen({
 
         {turnTransition ? (
           <div
-            style={{
-              position: "absolute",
-              top: 60,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 71,
-              padding: "10px 28px",
-              borderRadius: 12,
-              background:
-                turnTransition.endingSeat === viewerSeat ? "var(--ds-warning-light)" : "var(--ds-primary-light)",
-              color: turnTransition.endingSeat === viewerSeat ? "var(--ds-warning)" : "var(--ds-primary)",
-              fontSize: 15,
-              fontWeight: 700,
-              boxShadow: "var(--ds-shadow-lg)",
-              animation: "aegis-fadeIn 0.3s ease-out",
-              letterSpacing: "0.02em",
-            }}
+            className={`game-turn-banner${
+              turnTransition.nextSeat === viewerSeat ? " game-turn-banner--you" : " game-turn-banner--opp"
+            }`}
           >
-            {turnTransition.endingSeat === viewerSeat ? t("game.yourTurnEnded") : t("game.opponentsTurn")}
+            <span>{turnTransition.nextSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")}</span>
           </div>
         ) : null}
 
@@ -1769,12 +2023,20 @@ export function GameScreen({
             }}
           >
             <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-              <Pile
-                compact={compactPiles}
-                count={opp.deckCount}
-                label={t("game.pile.deck")}
-                useSelectedSleeve={false}
-              />
+              {/* The ref rides a wrapper so the pile itself keeps the exact prop
+                  shape opponentSleeves.test.ts pins for sleeve privacy. */}
+              <div
+                ref={(el) => {
+                  oppDeckRef.current = el;
+                }}
+              >
+                <Pile
+                  compact={compactPiles}
+                  count={opp.deckCount}
+                  label={t("game.pile.deck")}
+                  useSelectedSleeve={false}
+                />
+              </div>
               <Pile
                 compact={compactPiles}
                 count={opp.trash.length}
@@ -1786,9 +2048,10 @@ export function GameScreen({
             </div>
             <div style={{ flex: 1 }} />
             <Pile
-              className="game-security-pile"
+              className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
               compact={compactPiles}
               count={you.securityCount}
+              shield="you"
               label={t("game.yourSecurityPile")}
               refEl={(el) => {
                 yourSecRef.current = el;
@@ -1803,7 +2066,7 @@ export function GameScreen({
             style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
           >
             <div
-              className="game-battle-row"
+              className="game-battle-row game-battle-row--opp"
               role="group"
               aria-label={t("game.oppBattleArea")}
               style={{
@@ -1841,6 +2104,7 @@ export function GameScreen({
                     }}
                     drop={{ "data-drop": "perm-opp", "data-id": p.permanentId }}
                     candidate={isCand}
+                    lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     onClick={onOppPerm(p)}
                     onInspectStart={
                       !selPerm && !dragIsAttack
@@ -1852,12 +2116,19 @@ export function GameScreen({
                 );
               })}
             </div>
-            <div style={{ padding: "2px 0", flexShrink: 0 }}>
-              <MemoryGauge value={memory} yourColor={youColor} oppColor={oppColor} compact={compactPiles} />
+            <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
+              <MemoryGauge value={memory} compact={compactPiles} phaseLabel={t(`game.phase.${state.phase}` as const)} />
+              <button
+                className={`game-end-turn-orb${isMyTurn ? "" : " game-end-turn-orb--waiting"}`}
+                disabled={!isMyTurn}
+                onClick={() => room && intents.endPhase(room)}
+              >
+                {isMyTurn ? t("game.endPhase") : t("game.opponentsTurn")}
+              </button>
             </div>
             <div
               data-drop="battle-you"
-              className="game-battle-row"
+              className="game-battle-row game-battle-row--you"
               role="group"
               aria-label={t("game.yourBattleArea")}
               style={{
@@ -1903,13 +2174,13 @@ export function GameScreen({
                     }}
                     candidate={isBase}
                     highlight={selPerm === p.permanentId}
+                    lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     drop={{ "data-drop": "perm-you", "data-id": p.permanentId }}
                     onClick={draggable ? undefined : onYourPerm(p)}
                     onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
                     // Drag-only permanents still need a pointer-free path: Enter or
                     // Space selects them like a tap would.
                     onKeyboardActivate={draggable ? onYourPerm(p) : undefined}
-                    onActivateEffect={isMyTurn ? activateEffect : undefined}
                   />
                 );
               })}
@@ -1943,9 +2214,10 @@ export function GameScreen({
                 }
               />
               <Pile
-                className="game-security-pile"
+                className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
                 compact={compactPiles}
                 count={opp.securityCount}
+                shield="opp"
                 label={t("game.opponentSecurity")}
                 useSelectedSleeve={false}
                 refEl={(el) => {
@@ -1964,7 +2236,14 @@ export function GameScreen({
             </div>
             <div style={{ flex: 1 }} />
             <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-              <Pile compact={compactPiles} count={you.deckCount} label={t("game.pile.deck")} />
+              <Pile
+                compact={compactPiles}
+                count={you.deckCount}
+                label={t("game.pile.deck")}
+                refEl={(el) => {
+                  yourDeckRef.current = el;
+                }}
+              />
               <Pile
                 compact={compactPiles}
                 count={you.trash.length}
@@ -2032,7 +2311,11 @@ export function GameScreen({
           </div>
 
           {/* action bar + hand */}
-          <div className="game-hand-dock" style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}>
+          <div
+            className="game-hand-dock"
+            ref={yourHandDockRef}
+            style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}
+          >
             <ActionBar
               youName={you.displayName || joinOptions.displayName}
               youColor={youColor}
@@ -2067,23 +2350,43 @@ export function GameScreen({
         </footer>
 
         {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
+
+        {drawFlights.map((flight) => (
+          <div
+            key={flight.key}
+            aria-hidden="true"
+            className="game-draw-flight"
+            style={
+              {
+                left: flight.x,
+                top: flight.y,
+                "--battle-flight-dx": `${flight.dx}px`,
+                "--battle-flight-dy": `${flight.dy}px`,
+              } as CSSProperties
+            }
+          />
+        ))}
       </div>
 
-      <Sidebar
-        phase={state.phase}
-        turnCount={state.turnCount}
-        memory={memory}
-        isMyTurn={isMyTurn}
-        canMove={canMoveFromBreeding(you.breeding)}
-        hasBreeding={!!you.breeding}
-        canHatch={you.eggDeckCount > 0 && !you.breeding}
-        narrow={narrowGameLayout}
-        log={log}
-        onHatchOrMove={onBreeding}
-        onEndPhase={() => room && intents.endPhase(room)}
-        onSurrender={() => room && intents.surrender(room)}
-        onReportBug={() => setBugReportOpen(true)}
-      />
+      {/* Desktop plays without the sidebar — its controls moved to the header
+          cluster and the end-turn orb; the log opens from the header/action feed.
+          The narrow layout keeps it: there it collapses into the touch strip. */}
+      {narrowGameLayout ? (
+        <Sidebar
+          phase={state.phase}
+          turnCount={state.turnCount}
+          memory={memory}
+          isMyTurn={isMyTurn}
+          canMove={canMoveFromBreeding(you.breeding)}
+          hasBreeding={!!you.breeding}
+          canHatch={you.eggDeckCount > 0 && !you.breeding}
+          narrow
+          log={log}
+          onHatchOrMove={onBreeding}
+          onSurrender={() => room && intents.surrender(room)}
+          onReportBug={() => setBugReportOpen(true)}
+        />
+      ) : null}
 
       {stageEl ? createPortal(overlays, stageEl) : overlays}
 
@@ -2335,7 +2638,9 @@ function ActionBar({
     >
       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
         <Avatar name={youName} color={youColor} avatarId={avatarId} avatarUrl={avatarUrl} size={28} />
-        <span style={{ fontWeight: 600, fontSize: 13.5, color: "var(--ds-foreground)" }}>{youName}</span>
+        <span className="game-name-plate" style={{ fontWeight: 600, fontSize: 13.5, color: "var(--ds-foreground)" }}>
+          {youName}
+        </span>
         <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11.5, color: "var(--ds-foreground-muted)" }}>
           {t("game.handLabel", { count: handCount })}
         </span>
@@ -2357,7 +2662,6 @@ export function Sidebar({
   narrow,
   log,
   onHatchOrMove,
-  onEndPhase,
   onSurrender,
   onReportBug,
 }: {
@@ -2372,7 +2676,6 @@ export function Sidebar({
   narrow?: boolean;
   log: LogLine[];
   onHatchOrMove: () => void;
-  onEndPhase: () => void;
   onSurrender: () => void;
   onReportBug: () => void;
 }) {
@@ -2458,17 +2761,14 @@ export function Sidebar({
         >
           {t("game.actions")}
         </div>
-        {/* On a phone the action row is a bare two-button bar with no heading, so a
-            disabled button reads as an available one. Drop it instead, and let the
-            end-phase button take the width. */}
+        {/* On a phone the action row is a bare button bar with no heading, so a
+            disabled button reads as an available one. Drop it instead. Ending the
+            phase lives on the memory band's circular orb, like the reference client. */}
         {narrow && !canBreed ? null : (
           <Button size="sm" variant="secondary" full icon={Icons.Dices} onClick={onHatchOrMove} disabled={!canBreed}>
             {hasBreeding ? (canMove ? t("game.moveToBattle") : t("game.raising")) : t("game.hatchEgg")}
           </Button>
         )}
-        <Button size="md" full icon={Icons.ChevronRight} onClick={onEndPhase} disabled={!isMyTurn}>
-          {t("game.endPhase")}
-        </Button>
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 18px" }}>

@@ -37,6 +37,11 @@ const TournamentsScreen = lazy(() =>
 );
 const GameScreen = lazy(() => import("./game/GameScreen").then((m) => ({ default: m.GameScreen })));
 const CardEffectsDemo = lazy(() => import("./dev/CardEffectsDemo").then((m) => ({ default: m.CardEffectsDemo })));
+const BoardShowcase = lazy(() => import("./dev/BoardShowcase").then((m) => ({ default: m.BoardShowcase })));
+
+export function isBoardShowcasePath(pathname: string): boolean {
+  return /^\/dev\/board\/?$/i.test(pathname);
+}
 
 export function cardEffectsLabCardId(pathname: string): string | undefined {
   const match = /^\/dev\/card-effects\/([^/]+)\/?$/i.exec(pathname);
@@ -69,11 +74,18 @@ export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount
 }
 
 export function App() {
-  const labCardId = cardEffectsLabCardId(window.location.pathname);
+  const pathname = window.location.pathname;
+  const labCardId = cardEffectsLabCardId(pathname);
   return (
     <I18nProvider>
       <Suspense fallback={<ScreenFallback />}>
-        {labCardId ? <CardEffectsDemo cardId={labCardId} /> : <AppShell />}
+        {labCardId ? (
+          <CardEffectsDemo cardId={labCardId} />
+        ) : isBoardShowcasePath(pathname) ? (
+          <BoardShowcase />
+        ) : (
+          <AppShell />
+        )}
       </Suspense>
     </I18nProvider>
   );

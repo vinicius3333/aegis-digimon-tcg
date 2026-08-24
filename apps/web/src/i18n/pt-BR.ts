@@ -314,6 +314,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.playTamer": "Jogar Tamer",
   "game.playDigimon": "Jogar Digimon",
   "game.activateEffect": "Ativar efeito",
+  "game.activateMainEffect": "Ativar efeito [Main]",
   "game.inspectOpponent": "Inspecionar Digimon do oponente",
 
   "game.phase.Active": "Ativação",
@@ -551,6 +552,16 @@ export const ptBR: Record<keyof typeof en, string> = {
   "feed.openHistory": "Abrir histórico da partida",
   "feed.historyTitle": "Histórico da partida",
   "feed.noHistory": "Nenhuma ação ainda",
+
+  "panel.discardedCards": "Cartas descartadas",
+  "panel.deletedCards": "Cartas deletadas",
+  "panel.trashedCards": "Cartas enviadas ao lixo",
+  "panel.revealedCards": "Cartas reveladas",
+  "panel.playedCard": "Carta jogada",
+  "panel.dismiss": "Fechar {title}",
+  "panel.yours": "Suas",
+  "panel.opponents": "Do oponente",
+  "panel.attacking": "{card} está atacando",
 
   "reject.not-your-turn": "Não é seu turno",
   "reject.wrong-phase": "Não dá para fazer isso agora",

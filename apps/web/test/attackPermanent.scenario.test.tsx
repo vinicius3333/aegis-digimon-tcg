@@ -113,19 +113,17 @@ scenario("attack-permanent", () => {
     // finish resolving server-side, not just the immediate suspend-on-declare.
     await vi.waitFor(() => expect(opponent.room.state.players[0]!.securityCount).toBe(4), { timeout: 10_000 });
     // The attack checks the protagonist's own security — the protagonist's client
-    // renders the real SecurityOverlay for it (the revealed card, per this seed's
-    // deterministic security stack, battles Frigimon and loses). Dismissing it is
-    // mandatory, not opportunistic: `secReveal` is set by the `securityChecked`
-    // event and cleared ONLY by this click (GameScreen.tsx), and while it is set it
-    // suppresses the Breeding overlay (`!secReveal` render guard) for the rest of
-    // the match. Wait for the button instead of querying once — the securityCount
-    // assertion above observes SERVER state, which the client's event delivery and
-    // render lag behind, so a synchronous query can miss a button that is merely
-    // late and leave turn 5's Breeding overlay permanently suppressed.
+    // stages the real security clash for it (the revealed card, per this seed's
+    // deterministic security stack, battles Frigimon and loses). Wait for the scene
+    // instead of querying once: the securityCount assertion above observes SERVER
+    // state, which the client's event delivery and render lag behind. The scene
+    // retires on its own timer, so turn 5's Breeding overlay is only suppressed
+    // while it is on screen.
     expect(opponent.room.state.gameOver).toBe(false);
-    const securityToast = await screen.findByRole("status", {}, { timeout: 10_000 });
-    expect(within(securityToast).getByText(/security check/i)).toBeTruthy();
-    fireEvent.click(within(securityToast).getByRole("button", { name: /close/i }));
+    const clash = await screen.findByTestId("security-clash", {}, { timeout: 10_000 });
+    expect(clash.getAttribute("role")).toBe("status");
+    expect(within(clash).getByText(/security check/i)).toBeTruthy();
+    await vi.waitFor(() => expect(screen.queryByTestId("security-clash")).toBeNull(), { timeout: 10_000 });
 
     opponent.endPhase();
 
