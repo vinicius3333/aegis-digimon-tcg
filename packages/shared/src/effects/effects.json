@@ -134962,8 +134962,18 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "shishimamonOnPlayTarget"
+            },
             "amount": -3000,
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "shishimamonOnPlayTarget" },
+            "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security A. -1＞" },
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -134973,8 +134983,18 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "shishimamonWhenDigivolvingTarget"
+            },
             "amount": -3000,
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "shishimamonWhenDigivolvingTarget" },
+            "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security A. -1＞" },
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -134985,6 +135005,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "opponent" },
             "actions": [
               {
                 "kind": "Digivolve",
@@ -134995,6 +135016,7 @@
                   "nameOrTrait": [{ "tokens": ["TB"], "match": "trait" }]
                 },
                 "from": ["hand"],
+                "payCost": true,
                 "reduceCost": 2,
                 "optional": true
               }

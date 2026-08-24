@@ -1433,3 +1433,41 @@ for the individual evidence below.
   — 3/3; digivolution action flow — 27/27; Solarmon — 2/2; Pomumon — 1/1; shared build, API
   typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
   unsupported behavior, or unresolved ruling remains.
+
+## EX12-046 — Shishimamon — 10/10
+
+- **Printed contract:** Yellow/red level 5 Holy Beast/Shambala/TB Vaccine Digimon, play cost 7 and
+  7000 DP. Normal yellow/red level-4 evolution costs 4; alternate level-4 Shambala costs 3.
+  Assembly places one level-4-or-lower TB card for a 2-cost play reduction. On Play and When
+  Digivolving, one opposing Digimon gets Security Attack -1 and -3000 DP until the opponent's turn
+  ends. During its turn, opposing security removal lets it evolve into a TB Digimon from hand with
+  cost reduced by 2. Its inherited End of Attack once-per-turn effect plays a TB Digimon with 5000
+  DP or less from hand for free.
+- **KB evidence:** Q6728 allows the controller to order the inherited End of Attack effect and
+  Execute; resolving Execute first removes the source and prevents the inherited effect. Q6813
+  gives Security effects priority over pending security-check/removal triggers. Q6814 confirms
+  that evolving Shishimamon during its attack leaves the inherited End of Attack effect available.
+- **Corrections:** the two printed debuffs previously selected independently and could affect
+  different Digimon. Each timing now binds the chosen DP target and reuses it for Security Attack
+  -1. The aggregate IR omitted both Security Attack actions, the opponent-only security-removal
+  filter, the hand origin, and paid-cost semantics of the triggered evolution; all are restored.
+  Direct and aggregate IR match exactly, and registration remains exclusively via `registerIrCard`.
+- **Ruling and behavioral proof:** On Play and When Digivolving put both debuffs on exactly one
+  chosen target while leaving another untouched. Own security removal is ignored; opposing
+  removal evolves into EX12-047 and pays 2 after the reduction. An earlier removal with no legal
+  target does not stop a later removal from resolving. The inherited effect plays only a TB card
+  at 5000 DP or less and is once per turn; 6000-DP Manekimon is rejected. In a real attack,
+  security removal evolves Shishimamon into EX12-047, then the inherited End of Attack effect
+  still plays Wankomon, proving Q6814. The existing two-order Execute proof passes both Q6728
+  outcomes, and security-priority conformance covers Q6813.
+- **Assembly and evolution proof:** level-4 TB Manekimon assembles for a 2-cost reduction and is
+  placed under Shishimamon; level-5 Darumamon is rejected. Yellow BT1-051 and red EX12-011 use the
+  normal routes; blue Shambala EX12-025 uses the alternate route; blue nonmatching AD1-010 is
+  rejected. Catalog identity, direct/shared requirements, full coverage, empty residuals, and
+  exact IR equality are asserted.
+- **Verification:** `EX12-046.test.ts` — 10/10; interpreter capabilities — 290/290; effect
+  primitives — 126/126; interpreter — 171/171; digivolution action flow — 27/27; play/Assembly
+  action flow — 26/26; security-removal watcher scope — 3/3; combat controller — 23/23; security
+  strike count — 8/8; EX12-004 Execute ordering — 6/6; timing-priority conformance — 19/19;
+  shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.

@@ -18,6 +18,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "shishimamonOnPlayTarget",
           },
           amount: -3000,
           duration: "untilOpponentTurnEnd",
@@ -25,11 +26,9 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "shishimamonOnPlayTarget",
           },
           keyword: {
             keyword: "SecurityAttack",
@@ -51,6 +50,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "shishimamonWhenDigivolvingTarget",
           },
           amount: -3000,
           duration: "untilOpponentTurnEnd",
@@ -58,11 +58,9 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "shishimamonWhenDigivolvingTarget",
           },
           keyword: {
             keyword: "SecurityAttack",
@@ -102,6 +100,7 @@ const compiled: CompiledCard = {
                   },
                 ],
               },
+              from: ["hand"],
               payCost: true,
               reduceCost: 2,
               optional: true,
