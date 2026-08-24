@@ -602,3 +602,31 @@ for the individual evidence below.
 - **Verification:** `EX12-020.test.ts` — 9/9; SubTrigger/cost-reduction registry — 23/23;
   digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-021 — Gabumon — 10/10
+
+- **Printed contract:** Blue level 3 Reptile/VB Data Digimon, play cost 3 and 2000 DP. Normal
+  blue level-2 evolution, Tsunomon-name evolution, and level-2 VB evolution all cost 0. At the
+  start of its controller's main phase, the controller may trash one Garurumon-name or VB-trait
+  card from hand to draw 1 and gain 1 memory. Its inherited once-per-turn When Attacking draws
+  1 when its controller has 7 or fewer cards in hand.
+- **KB evidence:** the committed knowledge base has no card-specific EX12-021 ruling. The audit
+  therefore applies the printed “By trashing” activation contract, the inclusive hand threshold,
+  and the standard evolution/name/trait matching rules directly.
+- **Correction:** the leading Draw action had the exact trash filter and correctly gated the
+  memory gain on successful payment, but it was mandatory. With exactly one eligible hand card,
+  the engine discarded it automatically. The action now has `optional:true` and
+  `abortOnDecline:true`, allowing the controller to decline the cost and stopping both outcomes.
+- **Behavioral proof:** a VB-only Gammamon and a non-VB Garurumon separately pay the cost, draw
+  exactly one, and gain exactly one memory while an unrelated hand card remains untouched.
+  Declining preserves the eligible card, deck, trash, and memory; having no eligible hand card
+  likewise produces no result. A buried Gabumon draws once at the inclusive seven-card boundary,
+  cannot draw again that turn, and draws nothing when starting at eight cards.
+- **Evolution proof:** blue BT1-003, purple Tsunomon BT11-006, and yellow VB EX12-001 each evolve
+  into Gabumon for 0 through the normal, name, and trait routes respectively; red nonmatching
+  BT1-001 is rejected. Catalog identity, stats, traits, printed text, exact IR filters, full
+  coverage, and empty residuals are asserted.
+- **Verification:** `EX12-021.test.ts` — 9/9; hand-trash cost mechanism — 2/2; interpreter —
+  171/171; digivolution-candidate legality — 5/5; basic effect conformance — 8/8; digivolution
+  action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
