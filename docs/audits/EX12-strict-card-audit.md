@@ -1332,3 +1332,35 @@ for the individual evidence below.
   flow — 27/27; security checks — 11/11; shared build, API typecheck, focused formatting, focused
   lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
   remains.
+
+## EX12-043 — Hakubamon — 10/10
+
+- **Printed contract:** Yellow level 4 Holy Beast/Shambala/SW Vaccine Digimon, play cost 5 and
+  6000 DP. Normal yellow level-3 and alternate level-3 Shambala evolution both cost 2. Its Main
+  once-per-turn effect may play an SW Digimon/Tamer or use an SW Option from hand with the cost
+  reduced by 2. Its inherited effect is Barrier.
+- **KB evidence:** Q6805 forbids combining the reductions from two copies into one operation.
+  Q6806 permits the play under Solarmon but suppresses the reduction. Q6807 permits activation
+  under Pomumon but prevents the effect from playing a Digimon.
+- **Corrections:** the aggregate IR used an obsolete PlayWithoutCost plus detached replacement,
+  omitted the Option-use branch and eligible kinds, and did not bind the reduction to the chosen
+  operation. It now exactly matches the direct two-branch paid modal. The direct Option branch
+  also now permits multicolor Options, as the unrestricted printed SW predicate requires; this
+  makes committed multicolor SW Option EX12-071 executable. Registration remains exclusively
+  through `registerIrCard`.
+- **Ruling and behavioral proof:** the play branch pays printed cost minus 2. The Option branch
+  uses three-color EX12-071 for cost 1, pays its SW hand-trash cost, draws, and places the Option
+  in the battle area. One source cannot activate twice. Two Hakubamon copies independently play
+  two cost-5 targets for 3 each rather than combining into a free play, proving Q6805. Solarmon
+  forces full printed cost, proving Q6806. Under Pomumon the activation succeeds but the target
+  remains in hand and memory is unchanged, proving Q6807. A host carrying Hakubamon inherits
+  Barrier, trashes one security card at the real prompt, and survives effect deletion.
+- **Evolution proof:** yellow BT1-045 uses the normal cost-2 route; red Shambala EX12-006 proves
+  the alternate route independently of color; red nonmatching BT1-009 is rejected. Catalog
+  identity, stats, traits, direct/shared requirements, full coverage, empty residuals, and exact
+  direct/aggregate equality are asserted.
+- **Verification:** `EX12-043.test.ts` — 9/9; interpreter capabilities — 290/290; effect primitives
+  — 126/126; interpreter — 171/171; Option-use mechanism — 10/10; deletion/advanced keyword
+  conformance — 30/30; digivolution action flow — 27/27; Solarmon — 2/2; Pomumon — 1/1;
+  EX12-071 — 6/6; shared build, API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
