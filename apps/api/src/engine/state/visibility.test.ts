@@ -7,6 +7,7 @@ import {
   Permanent,
   PRIVATE_VIEW_TAG,
   PRIVATE_DECISION_VIEW_TAG,
+  CARD_ID_VIEW_TAG,
   PendingDecision,
   type Seat,
 } from "@aegis/shared";
@@ -245,6 +246,44 @@ describe("buildStateView", () => {
     expect(view.has(top)).toBe(true);
     expect(view.has(stackCard)).toBe(true);
     expect(view.has(linkedCard)).toBe(true);
+  });
+
+  it("reveals a face-down public stack card's identity only to its owner", () => {
+    const owner = state.players[0]!;
+    const top = owner.hand.pop()!;
+    const hiddenStackCard = owner.hand.pop()!;
+    hiddenStackCard.faceUp = false;
+    const permanent = new Permanent();
+    permanent.permanentId = "perm-face-down-stack";
+    permanent.controllerSeat = 0;
+    permanent.topCard = top;
+    permanent.stack = new ArraySchema<CardInstance>(hiddenStackCard);
+    owner.battleArea = new ArraySchema<Permanent>(permanent);
+
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    expect(ownerView.hasTag(hiddenStackCard, CARD_ID_VIEW_TAG)).toBe(true);
+    expect(opponentView.hasTag(hiddenStackCard, CARD_ID_VIEW_TAG)).toBe(false);
+
+    const ownerDecoder = new Decoder(new GameState());
+    encodeAllForView(state, ownerView, ownerDecoder);
+    expect(ownerDecoder.state.players[0]!.battleArea[0]!.stack[0]!.cardId).toBe("TEST-001");
+
+    const opponentDecoder = new Decoder(new GameState());
+    encodeAllForView(state, opponentView, opponentDecoder);
+    expect(opponentDecoder.state.players[0]!.battleArea[0]!.stack[0]!.cardId).toBeUndefined();
+  });
+
+  it("keeps a face-down Delay card identifiable to its owner and hidden from the opponent", () => {
+    const owner = state.players[0]!;
+    const delayCard = owner.hand.pop()!;
+    delayCard.faceUp = false;
+    owner.delayZone = new ArraySchema<CardInstance>(delayCard);
+
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    expect(ownerView.hasTag(delayCard, CARD_ID_VIEW_TAG)).toBe(true);
+    expect(opponentView.hasTag(delayCard, CARD_ID_VIEW_TAG)).toBe(false);
   });
 
   it("refreshes after a card moves between schema zones", () => {
