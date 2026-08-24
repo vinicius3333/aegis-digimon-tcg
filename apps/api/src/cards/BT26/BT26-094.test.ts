@@ -16,9 +16,11 @@ describe("BT26-094 compiled fidelity", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
-      { kind: "PlaceUnder", faceDown: true },
-      { kind: "Draw", amount: 1 },
-      { kind: "GainMemory", amount: 1 },
+      {
+        kind: "CostGatedBlock",
+        cost: { kind: "place", destination: "digivolutionStack", position: "bottom", faceDown: true },
+        actions: [{ kind: "Draw", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+      },
     ]);
     const actions = card?.effects?.find((effect) => effect.trigger === "YourTurn")?.actions ?? [];
     expect(actions).toEqual(
@@ -37,8 +39,11 @@ describe("BT26-094 compiled fidelity", () => {
     );
     for (const watcher of actions) {
       expect(irNode(watcher).actions).toMatchObject([
-        { kind: "Suspend", target: { isSelf: true } },
-        { kind: "GainKeyword", keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" },
+        {
+          kind: "CostGatedBlock",
+          cost: { kind: "suspend" },
+          actions: [{ kind: "GainKeyword", keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" }],
+        },
       ]);
     }
   });
@@ -52,7 +57,7 @@ describe("BT26-094 compiled fidelity", () => {
           deck: ["BT1-001", "BT1-002"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
 
@@ -73,7 +78,7 @@ describe("BT26-094 compiled fidelity", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 

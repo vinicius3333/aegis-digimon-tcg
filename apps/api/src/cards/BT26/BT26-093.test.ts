@@ -16,17 +16,24 @@ describe("BT26-093 compiled fidelity", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
-      { kind: "PlaceUnder", faceDown: true },
-      { kind: "Draw", amount: 1 },
-      { kind: "GainMemory", amount: 1 },
+      {
+        kind: "CostGatedBlock",
+        cost: { kind: "place", destination: "digivolutionStack", position: "bottom", faceDown: true },
+        actions: [{ kind: "Draw", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+      },
     ]);
     const watcher = card?.effects?.find((effect) => effect.trigger === "AllTurns")?.actions?.[0];
     expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenAttacking" });
     expect(irNode(watcher)?.actions).toMatchObject([
-      { kind: "Suspend", target: { isSelf: true } },
-      { kind: "PlaceUnder", fromDeckTop: true, faceDown: true },
-      { kind: "GainKeyword", keyword: { keyword: "Collision" } },
-      { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
+      {
+        kind: "CostGatedBlock",
+        cost: { kind: "suspend" },
+        actions: [
+          { kind: "PlaceUnder", fromDeckTop: true, faceDown: true },
+          { kind: "GainKeyword", keyword: { keyword: "Collision" } },
+          { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
+        ],
+      },
     ]);
   });
 
@@ -39,7 +46,7 @@ describe("BT26-093 compiled fidelity", () => {
           deck: ["BT1-001", "BT1-002"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
 
@@ -61,7 +68,7 @@ describe("BT26-093 compiled fidelity", () => {
           deck: [{ card: "BT1-001", as: "placed" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
@@ -73,5 +80,27 @@ describe("BT26-093 compiled fidelity", () => {
     expect(s.perm("reina").stack[0]).toMatchObject({ instanceId: s.inst("placed").instanceId, faceUp: false });
     expect(observe(s.engine).hasKeyword(s.perm("beatbreak"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("beatbreak"), "Blocker")).toBe(true);
+  });
+
+  it("does not place or grant keywords when the suspend cost can't be paid (Q7155)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-093", as: "reina", suspended: true },
+            { card: "BT26-052", as: "beatbreak" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("beatbreak").permanentId });
+
+    expect(s.perm("reina").stack).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("beatbreak"), "Collision")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("beatbreak"), "Blocker")).toBe(false);
   });
 });

@@ -15,9 +15,11 @@ describe("BT26-091 compiled fidelity", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
-      { kind: "PlaceUnder", faceDown: true },
-      { kind: "Draw", amount: 1 },
-      { kind: "GainMemory", amount: 1 },
+      {
+        kind: "CostGatedBlock",
+        cost: { kind: "place", destination: "digivolutionStack", position: "bottom", faceDown: true },
+        actions: [{ kind: "Draw", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+      },
     ]);
     const actions = card?.effects?.find((effect) => effect.trigger === "YourTurn")?.actions ?? [];
     expect(actions).toEqual(
@@ -54,7 +56,7 @@ describe("BT26-091 compiled fidelity", () => {
           deck: ["BT1-001", "BT1-002"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
 

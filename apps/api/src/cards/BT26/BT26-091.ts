@@ -4,6 +4,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const dataSquad = { nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] };
+const startCost = {
+  kind: "place",
+  target: { filter: { controller: "mine", zone: "hand", ...dataSquad }, count: 1 },
+  underFilter: self.filter,
+  host: "self",
+  destination: "digivolutionStack",
+  position: "bottom",
+  faceDown: true,
+};
 const digivolveInto = {
   orFilters: [
     { nameOrTrait: [{ tokens: ["Vegetation"], match: "trait" }] },
@@ -29,13 +38,12 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
-          kind: "PlaceUnder",
-          target: { filter: { controller: "mine", zone: "hand", ...dataSquad }, count: 1 },
-          underFilter: self.filter,
-          faceDown: true,
+          kind: "CostGatedBlock",
+          cost: startCost,
+          optional: true,
+          abortOnDecline: true,
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
         },
-        { kind: "Draw", controller: "mine", amount: 1 },
-        { kind: "GainMemory", amount: 1 },
       ],
     },
     {

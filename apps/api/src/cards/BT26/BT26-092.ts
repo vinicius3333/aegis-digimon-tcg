@@ -8,9 +8,7 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
-          kind: "Draw",
-          controller: "mine",
-          amount: 1,
+          kind: "CostGatedBlock",
           cost: {
             kind: "trash",
             target: {
@@ -18,9 +16,10 @@ export const compiled: CompiledCard = {
               filter: { zone: "hand", controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
             },
           },
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
         },
-        { kind: "GainMemory", amount: 1 },
       ],
     },
     {

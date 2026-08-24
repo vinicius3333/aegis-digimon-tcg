@@ -5,13 +5,21 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const beatbreak = { nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] };
 const startCost = {
-  kind: "PlaceUnder",
+  kind: "place",
   target: { filter: { controller: "mine", zone: "hand", ...beatbreak }, count: 1 },
   underFilter: self.filter,
+  host: "self",
+  destination: "digivolutionStack",
+  position: "bottom",
   faceDown: true,
 };
-const deletionBody = [
-  { kind: "Draw", controller: "mine", amount: 1, cost: { kind: "suspend", target: self } },
+const deletionBody = [{
+  kind: "CostGatedBlock",
+  cost: { kind: "suspend", target: self },
+  optional: true,
+  abortOnDecline: true,
+  actions: [
+  { kind: "Draw", controller: "mine", amount: 1 },
   { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
   {
     kind: "PlaceUnder",
@@ -28,13 +36,22 @@ const deletionBody = [
     underFilter: self.filter,
     faceDown: true,
   },
-];
+  ],
+}];
 
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
-      actions: [startCost, { kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+      actions: [
+        {
+          kind: "CostGatedBlock",
+          cost: startCost,
+          optional: true,
+          abortOnDecline: true,
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+        },
+      ],
     },
     {
       trigger: "AllTurns",
