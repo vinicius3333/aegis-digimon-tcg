@@ -268,3 +268,29 @@ for the individual evidence below.
 - **Verification:** `EX12-008.test.ts` — 9/9; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   card-specific KB ruling, or unresolved ambiguity.
+
+## EX12-009 — Wankomon — 10/10
+
+- **Printed contract:** Red level 3 Digimon, Beast/Shambala/TB, play cost 3 and
+  2000 DP. It normally digivolves from a red level 2 for cost 0 or alternatively
+  from any level-2 Shambala card for cost 0. On play it reveals the top 3 cards,
+  adds one Shambala card and one TB card, and returns the rest to deck bottom.
+  Its inherited owner-turn effect gives only its host +2000 DP.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-009` returns no card-specific
+  rulings. The two printed “1 card” selections are independent, but the same physical
+  revealed card cannot be moved to hand twice; each selected instance is removed from
+  the pool before the next selection.
+- **Implementation trace:** `RevealAdd(3)` contains sequential count-1 exact-trait
+  filters for Shambala and TB and uses `rest: deckBottom`. The shared reveal handler
+  excludes already selected instances, combines the successful selections into the
+  hand move, and bottoms all unselected cards in stable reveal order. The inherited
+  `YourTurn` modifier targets self for a permanent +2000 that is continuously re-derived.
+- **Behavioral proof:** distinct EX12-006 Shambala and EX12-011 TB cards are both added;
+  a single EX12-011 satisfying both filters enters hand once; a reveal with only the
+  Shambala category adds only that card; and a reveal with no matches bottoms all three
+  in order. A separate standalone Digimon proves the inherited DP does not leak, and
+  turn changes prove it lapses and returns. Standard red BT1-001 and off-color Shambala
+  EX12-004 evolve for 0, while off-color non-Shambala BT10-005 is rejected.
+- **Verification:** `EX12-009.test.ts` — 8/8; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No implementation correction was needed;
+  there is no residual IR, unsupported behavior, card-specific ruling, or ambiguity.
