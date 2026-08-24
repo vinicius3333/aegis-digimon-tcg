@@ -143,3 +143,33 @@ for the individual evidence below.
   18/18; combat controller — 23/23; interpreter — 171/171; primitives — 126/126;
   EX12-046 peer suite — 5/5; workspace typecheck and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved card-specific ambiguity.
+
+## EX12-005 — Agumon — 10/10
+
+- **Printed contract:** Red level 3 Digimon, Reptile/VB, play cost 3 and 2000 DP.
+  It normally digivolves from a red level 2 for cost 0 and also has two cost-0
+  alternatives: any Koromon by name, or any level-2 card with the VB trait. On play,
+  its controller may trash one Greymon-name or VB-trait card from hand to draw 2.
+  Its inherited `[Your Turn]` effect gives only its host +2000 DP.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-005` returns no card-specific
+  rulings. Comprehensive Rules §15-9 distinguishes mandatory triggering from optional
+  processing: the “By trashing” activation cost may be declined, but Draw 2 cannot
+  resolve unless that cost was paid.
+- **Implementation trace:** the hand filter is an OR of exact name containment
+  `Greymon` and exact trait `VB`, scoped to one own hand card. `optional: true` offers
+  activation only when the cost is payable and `abortOnDecline: true` prevents Draw 2
+  after refusal or failed payment. The inherited `YourTurn` permanent self modifier is
+  re-derived from the buried source and lapses outside its controller's turn.
+- **Correction:** the generated action was mandatory and forced the player to discard
+  whenever a matching hand card existed. It now uses the repository's established
+  optional paid-action shape, while retaining a fixed one-card cost when accepted.
+- **Behavioral proof:** BT1-015 proves the Greymon-name branch without VB; EX12-007
+  proves the VB branch without Greymon. Both discard exactly the selected card and draw
+  two. A dedicated refusal keeps the cost card in hand and deck unchanged; a no-match
+  control draws nothing. Evolution succeeds at zero memory through standard red
+  BT1-001, off-color Koromon BT11-005, and off-color VB EX12-001, while black non-Koromon,
+  non-VB BT10-005 is rejected. Two hosts prove the inherited DP stays scoped and turns
+  off/on with turn ownership.
+- **Verification:** `EX12-005.test.ts` — 9/9; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  card-specific KB ruling, or unresolved ambiguity.
