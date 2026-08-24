@@ -1,5 +1,6 @@
 import type { PlayerIdentity } from "./design/primitives";
 import { filterDeckToKnownCards, type DeckListing } from "./game/decks";
+import { newGuestIdentity } from "./guest";
 
 const STORAGE_KEY = "aegis:player";
 
@@ -12,6 +13,8 @@ export const DEFAULT_PLAYER: PlayerIdentity = {
   guestAvatarId: null,
 };
 
+/** First visit has no stored player, and there is no onboarding form to fill one
+    in, so a guest identity is minted and persisted on the spot. */
 export function loadIdentity(): PlayerIdentity {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -19,7 +22,9 @@ export function loadIdentity(): PlayerIdentity {
   } catch {
     // ignore malformed storage
   }
-  return DEFAULT_PLAYER;
+  const guest = newGuestIdentity(DEFAULT_PLAYER);
+  saveIdentity(guest);
+  return guest;
 }
 
 export function saveIdentity(player: PlayerIdentity): void {

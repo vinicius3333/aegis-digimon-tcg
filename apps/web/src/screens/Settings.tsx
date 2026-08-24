@@ -60,13 +60,13 @@ export function Settings({
             {account === null ? (
               <div className="settings-row">
                 <div className="settings-row__copy">
-                  <strong>{t("onboarding.nickname")}</strong>
-                  <small>{t("onboarding.nameHint")}</small>
+                  <strong>{t("profile.nickname")}</strong>
+                  <small>{t("profile.nameHint")}</small>
                 </div>
                 <div className="settings-name-row">
                   <Field
                     className="settings-name-field"
-                    label={t("onboarding.nickname")}
+                    label={t("profile.nickname")}
                     name="displayName"
                     autoComplete="nickname"
                     value={nameInput}

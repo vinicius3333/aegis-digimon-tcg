@@ -72,7 +72,7 @@ describe("responsive application state", () => {
     expect(await screen.findByText("You don't have any decks yet.")).toBeTruthy();
   });
 
-  it("does not present a famous preset as the player's active deck", async () => {
+  it("does not present a famous preset as the player's own deck", async () => {
     render(
       <I18nProvider>
         <AegisClient
@@ -84,15 +84,81 @@ describe("responsive application state", () => {
           saveDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
+          initialScreen="deck"
+        />
+      </I18nProvider>,
+    );
+
+    expect(await screen.findByText("You don't have any decks yet.")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Xros Heart" })).toBeNull();
+  });
+
+  it("lands a first-time visitor straight on the home pitch", async () => {
+    window.history.replaceState(null, "", "/");
+    render(
+      <I18nProvider>
+        <AegisClient
+          player={{ name: "Resize Tamer", color: "Blue", shards: 0 }}
+          setPlayer={() => undefined}
+          decks={[]}
+          activeDeckId=""
+          setActiveDeckId={() => undefined}
+          saveDeck={() => undefined}
+          dark={false}
+          setDark={() => undefined}
+        />
+      </I18nProvider>,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Build a deck and play live. Free." })).toBeTruthy();
+    expect(window.location.pathname).toBe("/");
+  });
+
+  it("opens the sign-in screen from the top bar", async () => {
+    render(
+      <I18nProvider>
+        <AegisClient
+          player={{ name: "Resize Tamer", color: "Blue", shards: 0 }}
+          setPlayer={() => undefined}
+          decks={[]}
+          activeDeckId=""
+          setActiveDeckId={() => undefined}
+          saveDeck={() => undefined}
+          dark={false}
+          setDark={() => undefined}
           initialScreen="home"
         />
       </I18nProvider>,
     );
 
-    expect(
-      await screen.findByRole("heading", { name: "You haven't built a deck yet. Create one to start playing." }),
-    ).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Xros Heart" })).toBeNull();
+    await screen.findByRole("heading", { name: "Build a deck and play live. Free." });
+    fireEvent.click(screen.getAllByRole("button", { name: "Sign in" })[0]!);
+
+    expect(await screen.findByRole("heading", { name: "Sign in to Aegis" })).toBeTruthy();
+  });
+
+  it("opens the player menu from the top-bar portrait", async () => {
+    render(
+      <I18nProvider>
+        <AegisClient
+          player={{ name: "Resize Tamer", color: "Blue", shards: 0 }}
+          setPlayer={() => undefined}
+          decks={[]}
+          activeDeckId=""
+          setActiveDeckId={() => undefined}
+          saveDeck={() => undefined}
+          dark={false}
+          setDark={() => undefined}
+          initialScreen="home"
+        />
+      </I18nProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "Build a deck and play live. Free." });
+    fireEvent.click(screen.getAllByRole("button", { name: "Open the player menu" })[0]!);
+
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+    expect(screen.getByText("Guest \u2014 saved on this device")).toBeTruthy();
   });
 
   it("preserves the active screen and form draft when the viewport crosses a breakpoint", async () => {

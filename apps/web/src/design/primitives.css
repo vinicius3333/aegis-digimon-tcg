@@ -427,62 +427,86 @@
   height: var(--ds-nav-height-wide);
   align-items: center;
   justify-content: space-between;
-  padding-inline: var(--ds-space-8);
+  padding-inline: var(--ds-space-6);
   background: var(--ds-brand-ink);
-  border-bottom: 3px solid var(--ds-accent);
+  border-bottom: 2px solid var(--ds-brand-ink-soft);
 }
 
 .aegis-top-nav__primary,
 .aegis-top-nav__account,
 .aegis-top-nav__links,
-.aegis-player-chip {
+.aegis-mobile-bar__actions {
   display: flex;
   align-items: center;
 }
 
 .aegis-top-nav__primary {
-  gap: var(--ds-space-10);
+  gap: var(--ds-space-8);
 }
 .aegis-top-nav__account {
-  gap: var(--ds-space-4);
+  gap: var(--ds-space-2);
 }
 .aegis-top-nav__links {
   gap: var(--ds-space-1);
 }
-.aegis-player-chip {
+.aegis-mobile-bar__actions {
   gap: var(--ds-space-2);
 }
-.aegis-player-chip > span {
+
+.aegis-sign-in-button {
+  display: flex;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: 0 var(--ds-space-4);
   color: var(--ds-brand-on-ink);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-text-sm);
   font-weight: 600;
-}
-.aegis-profile-avatar-button {
-  display: grid;
-  min-width: var(--ds-touch-target);
-  min-height: var(--ds-touch-target);
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 30%;
-  background: transparent;
+  white-space: nowrap;
+  border: 1px solid var(--ds-brand-interactive-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-brand-interactive);
   cursor: pointer;
   transition:
-    transform var(--ds-motion-instant),
-    box-shadow var(--ds-motion-fast);
+    background var(--ds-motion-fast),
+    transform var(--ds-motion-instant);
 }
-.aegis-profile-avatar-button:hover {
-  transform: scale(1.04);
+.aegis-sign-in-button:hover {
+  background: rgb(255 255 255 / 16%);
 }
-.aegis-profile-avatar-button:active {
+.aegis-sign-in-button:active {
   transform: scale(0.97);
 }
-.aegis-profile-avatar-button:focus-visible {
+.aegis-sign-in-button:focus-visible {
   outline: none;
   box-shadow: var(--ds-focus-ring);
 }
-.aegis-profile-avatar-button[aria-current="page"] {
-  box-shadow: 0 0 0 2px var(--ds-brand-accent-soft);
+
+.aegis-portrait-button {
+  display: grid;
+  width: var(--ds-touch-target);
+  height: var(--ds-touch-target);
+  flex: none;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: var(--ds-radius-md);
+  background: rgb(255 255 255 / 6%);
+  cursor: pointer;
+  transition:
+    background var(--ds-motion-fast),
+    transform var(--ds-motion-instant);
+}
+.aegis-portrait-button:hover {
+  background: rgb(255 255 255 / 14%);
+}
+.aegis-portrait-button:active {
+  transform: scale(0.96);
+}
+.aegis-portrait-button:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .aegis-brand-button,
@@ -588,7 +612,7 @@
   justify-content: space-around;
   padding: 4px max(4px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(4px, env(safe-area-inset-left));
   background: var(--ds-brand-ink);
-  border-top: 2px solid var(--ds-brand-interactive);
+  border-top: 2px solid var(--ds-brand-ink-soft);
 }
 
 .aegis-bottom-nav .aegis-nav-item {
@@ -624,23 +648,19 @@
   padding: env(safe-area-inset-top) max(var(--ds-space-3), env(safe-area-inset-right)) 0
     max(var(--ds-space-3), env(safe-area-inset-left));
   background: var(--ds-brand-ink);
-  border-bottom: 2px solid var(--ds-accent);
+  border-bottom: 2px solid var(--ds-brand-ink-soft);
 }
 
 .aegis-mobile-bar .aegis-brand-button {
-  min-width: 40px;
-  min-height: 40px;
+  min-width: auto;
+  padding-inline: var(--ds-space-1);
 }
 
-.aegis-player-chip--mobile {
-  max-width: 60%;
-  gap: var(--ds-space-2);
+.aegis-mobile-bar .aegis-logo__wordmark {
+  color: var(--ds-brand-on-ink) !important;
 }
-
-.aegis-player-chip--mobile > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.aegis-mobile-bar .aegis-logo__subtitle {
+  color: var(--ds-brand-subtitle) !important;
 }
 
 @media (width < 960px) {

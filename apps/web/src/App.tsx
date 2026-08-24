@@ -13,22 +13,17 @@ import {
 import type { AegisJoinOptions } from "./net/types";
 import type { StartMode } from "./screens/Lobby";
 import { Settings } from "./screens/Settings";
-import {
-  loadIdentity,
-  saveIdentity,
-  hasStoredIdentity,
-  loadDecks,
-  saveDecks,
-  loadActiveDeckId,
-  saveActiveDeckId,
-} from "./identity";
+import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
+import { accentForAvatar } from "./guest";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
-import { BugReportButton } from "./bugs/BugReportButton";
+import { BugReportDialog } from "./bugs/BugReportDialog";
+import { PlayerMenu } from "./account/PlayerMenu";
+import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute, type TournamentRoute } from "./routes";
 
-const Onboarding = lazy(() => import("./screens/Onboarding").then((m) => ({ default: m.Onboarding })));
-const MainMenu = lazy(() => import("./screens/MainMenu").then((m) => ({ default: m.MainMenu })));
+const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
+const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
 const Lobby = lazy(() => import("./screens/Lobby").then((m) => ({ default: m.Lobby })));
 const Collection = lazy(() => import("./screens/Collection").then((m) => ({ default: m.Collection })));
 const DeckBuilder = lazy(() => import("./screens/DeckBuilder").then((m) => ({ default: m.DeckBuilder })));
@@ -191,11 +186,12 @@ export function AegisClient({
     if (initialScreen) return { screen: initialScreen };
     const directRoute = routeFromPathname(window.location.pathname);
     if (directRoute?.screen === "game") return { screen: "lobby" };
-    if (directRoute?.screen === "home" && !hasStoredIdentity()) return { screen: "onboarding" };
-    return directRoute ?? { screen: hasStoredIdentity() ? "home" : "onboarding" };
+    return directRoute ?? { screen: "home" };
   });
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [roomCode, setRoomCode] = useState<string>();
+  const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
+  const [bugReportOpen, setBugReportOpen] = useState(false);
   const screen = route.screen;
 
   useEffect(() => {
@@ -204,8 +200,10 @@ export function AegisClient({
     if (window.location.pathname !== expectedPath) window.history.replaceState(null, "", expectedPath);
   }, []);
 
+  /* Coming back from the Discord round trip lands on /login with a session; there
+     is nothing left to sign in to, so the screen hands over to home. */
   useEffect(() => {
-    if (initialScreen || !account || screen !== "onboarding") return;
+    if (initialScreen || !account || screen !== "login") return;
     if (window.location.pathname !== pathForRoute({ screen: "home" })) {
       window.history.replaceState(null, "", pathForRoute({ screen: "home" }));
     }
@@ -234,7 +232,6 @@ export function AegisClient({
 
   const availableDecks = useMemo(() => selectableDecks(decks), [decks]);
   const activeDeck = deckById(availableDecks, activeDeckId);
-  const activePersonalDeck = decks.find((deck) => deck.id === activeDeckId);
   const collectionSize = useMemo(() => activeCollectionCards().length, []);
   const identityColor: ColorName = colorKey(player.color);
 
@@ -250,6 +247,15 @@ export function AegisClient({
 
   const showNav = NAV_SCREENS.includes(screen);
 
+  const selectAvatar = async (avatarId: DigimonWorldAvatarId) => {
+    if (account) {
+      const updated = await accountApi.updateAvatar(avatarId).catch(() => undefined);
+      if (updated) setAccount?.(updated);
+      return;
+    }
+    setPlayer((p) => ({ ...p, guestAvatarId: avatarId, color: accentForAvatar(avatarId, colorKey(p.color)) }));
+  };
+
   return (
     <Stage>
       {showNav ? (
@@ -257,32 +263,25 @@ export function AegisClient({
           screen={screen}
           onNav={navigateScreen}
           player={effectivePlayer}
-          actions={<BugReportButton signedIn={!!account} />}
+          signedIn={!!account}
+          onOpenPlayerMenu={() => setPlayerMenuOpen(true)}
         />
       ) : null}
 
       <div id="aegis-main" className={`aegis-screen-region${showNav ? " aegis-screen-region--nav" : ""}`} tabIndex={-1}>
         <Suspense fallback={<ScreenFallback />}>
-          {screen === "onboarding" && (
-            <Onboarding
-              initialColor={identityColor}
-              onEnter={({ name, color, avatarId }) => {
-                setPlayer((p) => ({ ...p, name, color, guestAvatarId: avatarId }));
-                navigateScreen("home");
-              }}
+          {screen === "home" && (
+            <Home
+              collectionSize={collectionSize}
+              signedIn={!!account}
+              onPlay={() => navigateScreen("lobby")}
+              onBuildDeck={() => navigateScreen("deck")}
+              onSignIn={() => navigateScreen("login")}
+              onReportBug={() => setBugReportOpen(true)}
             />
           )}
 
-          {screen === "home" && (
-            <MainMenu
-              player={effectivePlayer}
-              activeDeck={activePersonalDeck}
-              collectionSize={collectionSize}
-              deckCount={decks.length}
-              onNav={navigateScreen}
-              onPlay={() => navigateScreen("lobby")}
-            />
-          )}
+          {screen === "login" && <Login onBack={() => navigateScreen("home")} />}
 
           {screen === "lobby" && (
             <Lobby
@@ -350,6 +349,21 @@ export function AegisClient({
           )}
         </Suspense>
       </div>
+
+      {playerMenuOpen ? (
+        <PlayerMenu
+          player={effectivePlayer}
+          signedIn={!!account}
+          selectedAvatarId={effectivePlayer.avatarId ?? null}
+          onSelectAvatar={selectAvatar}
+          onNav={navigateScreen}
+          onSignOut={account ? () => void accountApi.logout().then(() => location.reload()) : undefined}
+          onReportBug={() => setBugReportOpen(true)}
+          onClose={() => setPlayerMenuOpen(false)}
+        />
+      ) : null}
+
+      {bugReportOpen ? <BugReportDialog signedIn={!!account} onClose={() => setBugReportOpen(false)} /> : null}
     </Stage>
   );
 }
