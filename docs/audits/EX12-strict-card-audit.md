@@ -657,3 +657,30 @@ for the individual evidence below.
 - **Verification:** `EX12-022.test.ts` — 8/8; interpreter/reveal mechanics — 171/171;
   digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-023 — Jellymon — 10/10
+
+- **Printed contract:** Blue/yellow level 3 Mollusk/DS Data Digimon, play cost 3 and 2000 DP.
+  Normal blue/yellow level-2 evolutions cost 1; Puyoyomon-name and level-2 DS alternatives cost
+  0. On play it reveals the top three cards, adds one Jellymon-text card and one DS card, and
+  returns the rest to the deck bottom. Its inherited once-per-turn When Attacking first draws 1,
+  then mandatorily trashes one hand card if the post-draw hand has 7 or more cards.
+- **KB evidence:** Q6752 defines “a card with X in its text” as the union of name, traits,
+  effects, inherited effects, Rule, and all printed evolution/material/link requirement fields.
+  The IR's `match:"text"` uses the engine's complete printed-text matcher rather than a name-only
+  or effect-only predicate.
+- **Implementation trace:** one RevealAdd action has independent count-1 Jellymon-text and DS
+  slots and returns every unselected identity to deck bottom. The inherited sequence evaluates
+  `handAtLeast:7` only after Draw 1 and shares one once-per-turn budget. Both alternate evolution
+  requirements and the two catalog evolution colors/costs are exact. No correction was needed.
+- **Ruling and behavioral proof:** non-DS BT13-028, which mentions Jellymon only in its effect,
+  is added alongside a separate DS card, proving Q6752 through live resolution. A single card
+  satisfying both slots is added only once and the other two revealed cards return to the deck.
+  At six starting hand cards, Draw 1 reaches seven and the mandatory trash returns the hand to
+  six; below that post-draw threshold nothing is trashed, and a second attack timing does nothing.
+- **Evolution proof:** normal blue BT1-003 and yellow BT1-005 each cost 1; Puyoyomon BT9-002 and
+  DS EX8-002 each use the zero-cost alternate route; red nonmatching BT1-001 is rejected. Catalog
+  identity, stats, traits, text, exact IR filters, full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-023.test.ts` — 8/8; interpreter/text/reveal mechanics — 171/171;
+  digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
