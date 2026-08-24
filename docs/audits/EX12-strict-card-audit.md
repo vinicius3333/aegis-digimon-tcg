@@ -579,3 +579,26 @@ for the individual evidence below.
   formatting, focused lint, and `git diff --check` passed. The Collision regression fixture now
   explicitly declines BT16-032's real target-switch end-attack effect before asserting its plain
   DP battle. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-020 — Gasamon — 10/10
+
+- **Printed contract:** Blue level 3 Mollusk/Shambala/TB, play cost 3 and 2000 DP. Normal blue
+  level-2 and alternate level-2 Shambala evolutions cost 0. During its controller's turn, when
+  this Digimon would evolve into a TB Digimon, that evolution costs 1 less. Its inherited
+  once-per-turn When Attacking draws 1 when its controller has 7 or fewer cards in hand.
+- **KB evidence:** Q6751 confirms the cost-reduction effect does not trigger while Gasamon is in
+  the breeding area, following the general rule that effects are inactive there.
+- **Implementation trace:** the owner-turn effect installs a self-scoped `wouldDigivolve`
+  replacement whose `into` filter requires a Digimon with exact TB trait; the nested replacement
+  contributes a cost reduction of 1. The inherited Draw 1 carries the inclusive `handAtMost:7`
+  condition and an independent once-per-turn use. The level-2 Shambala alternate requirement is
+  exact. No correction was needed.
+- **Behavioral proof:** Gasamon evolves into TB EX12-026 for 1 instead of 2, while non-TB
+  EX12-025 pays its full cost and a neighboring Digimon receives no reduction. The same TB
+  evolution from breeding pays full cost, proving Q6751. A buried Gasamon draws exactly once at
+  seven cards; a separate eight-card hand draws nothing.
+- **Evolution proof:** blue BT1-003 and off-color Shambala EX12-002 both evolve into Gasamon for
+  0 through their respective routes; red non-Shambala BT1-001 is rejected.
+- **Verification:** `EX12-020.test.ts` — 9/9; SubTrigger/cost-reduction registry — 23/23;
+  digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
