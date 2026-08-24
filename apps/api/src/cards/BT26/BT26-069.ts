@@ -5,8 +5,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const handCost = { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } };
 const deleteAction = {
   kind: "Delete",
-  target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
+  target: { filter: { controller: "any", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
   cost: handCost,
+  optional: true,
+  abortOnDecline: true,
 };
 const titanTrash = {
   filter: {

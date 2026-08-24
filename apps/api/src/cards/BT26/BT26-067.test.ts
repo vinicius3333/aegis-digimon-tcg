@@ -61,4 +61,28 @@ describe("BT26-067 Wizardmon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-002");
   });
+
+  it("returns itself to the deck before playing a red Iliad from trash with cost reduced by 4", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-067", as: "wizardmon" },
+            { card: "BT26-054", as: "yellowDigimon" },
+          ],
+          trash: [{ card: "BT26-060", as: "iliad" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const wizardId = s.perm("wizardmon").topCard.instanceId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(wizardId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-060");
+    expect(s.state.memory).toBe(8);
+  });
 });
