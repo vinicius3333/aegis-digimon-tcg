@@ -133901,7 +133901,8 @@
                     "levelComparison": { "op": "lte", "value": 5 },
                     "nameOrTrait": [{ "tokens": ["SW"], "match": "trait" }]
                   },
-                  "count": 1
+                  "count": 1,
+                  "source": "thisDigimon"
                 },
                 "from": ["hand", "digivolutionCards"],
                 "payCost": false,
@@ -196285,5 +196286,16 @@
         }
       }
     ]
+  },
+  "TOKEN-Kotenken": {
+    "effects": [
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+      }
+    ],
+    "coverage": "full",
+    "residual": []
   }
 }

@@ -33,11 +33,24 @@ export const tokenDefinitions: readonly CardDefinition[] = [
   tok("Gyuukimon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Purple] }),
   tok("Pipe Fox", { level: 4, dp: 6000, playCost: 4, colors: [CardColor.Yellow] }),
   tok("Paishu", { dp: 6000, playCost: 0, colors: [CardColor.Yellow] }),
+  tok("Kotenken", {
+    dp: 9000,
+    playCost: -1,
+    colors: [CardColor.Black],
+    effectText: "＜Blocker＞",
+  }),
 ];
 
 function tok(
   nameEn: string,
-  stats: { level?: number; dp: number; playCost: number; colors: CardColor[]; types?: string[] },
+  stats: {
+    level?: number;
+    dp: number;
+    playCost: number;
+    colors: CardColor[];
+    types?: string[];
+    effectText?: string;
+  },
 ): CardDefinition {
   const slug = nameEn.replace(/\s+/g, "-");
   return {
@@ -51,6 +64,7 @@ function tok(
     dp: stats.dp,
     evoCosts: [],
     types: stats.types,
+    effectText: stats.effectText,
     maxCountInDeck: 0,
     isToken: true,
   };

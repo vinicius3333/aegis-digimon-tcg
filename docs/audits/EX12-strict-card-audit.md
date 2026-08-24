@@ -1034,3 +1034,42 @@ for the individual evidence below.
   continuous color waiver — 2/2; interpreter — 171/171; digivolution action flow — 27/27;
   workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-034 — Erlangmon — 10/10
+
+- **Printed contract:** Blue/black level 6 Shaman/Saneiketsu/Tentei Hachibushu/Shambala/SW Data
+  Digimon, play cost 12 and 12000 DP. Normal blue/black level-5 evolutions cost 4; level-5
+  Shambala costs 3. On Play/When Digivolving, it may play one black 9000-DP Kotenken Token with
+  Blocker. Once per turn when any own Digimon is played, it returns one opposing lowest-level
+  Digimon to deck bottom. Separately once per turn, when any own Digimon would leave, it may play
+  one level-5-or-lower SW card from hand or from Erlangmon's own sources for free; the leaving
+  Digimon still leaves.
+- **KB evidence:** Q6775 confirms Erlangmon's watcher triggers from Erlangmon's own play. Q6776
+  puts its simultaneous play triggers into the controller-ordered activation window. Q6777 allows
+  the leave replacement to interrupt a zero-DP Kotenken rule deletion before the pending played
+  watcher resolves, and Q6778 performs a new rule check on a low-DP SW card played by the
+  replacement before the older played watcher activates.
+- **Corrections:** Kotenken did not exist in the token registry, making both token effects inert.
+  A canonical black 9000-DP token definition and compiled Blocker module now register through
+  `registerIrCard`, and the EX12 index loads it. The aggregate Erlangmon record also omitted
+  `source: thisDigimon`. More deeply, the loose-card resolver ignored that selector and offered
+  sources under every own permanent; it now restricts hosted candidates to the resolving source
+  while preserving the combined hand pool. The pseudo-source is represented in the shared zone
+  type, and the direct/aggregate Erlangmon records are equal.
+- **Ruling and behavioral proof:** playing Erlangmon produces a real Kotenken with 9000 DP and
+  functional Blocker, and its own-play event returns the opposing lowest-level Digimon, proving
+  Q6775. Digivolving produces the same token. Independent SW leave plays succeed from hand and
+  Erlangmon's own stack, including when Erlangmon itself leaves, without preventing that leave.
+  A qualifying card under the leaving victim is not offered, and a level-6 SW card is rejected.
+  Trigger-stack ordering and rule-check pools pass their focused regressions, covering the engine
+  seams used by Q6776–Q6778: controller ordering of simultaneous pending effects, interruption by
+  would-leave replacements, and rule checks before older pending activations.
+- **Evolution proof:** normal blue BT1-040 and black BT23-056 pay 4; Shambala EX12-031 pays 3;
+  yellow non-Shambala EX12-044 is rejected. Catalog identity, stats, traits, token identity,
+  direct/shared requirements, full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-034.test.ts` — 8/8; existing this-Digimon source consumer regression —
+  10/10; token/battle engine — 6/6; effect primitives — 126/126; SubTrigger registry — 23/23;
+  Blocker proof — 4/4; rule-check conformance — 4/4; leave replacement — 10/10; interpreter —
+  171/171; digivolution action flow — 27/27; trigger stack — 31/31; rule-check pool — 3/3;
+  workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.

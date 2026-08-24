@@ -219,6 +219,9 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
   const seats = [...seatSet];
   const seen = new Set<string>();
   const out: LooseCandidate[] = [];
+  const targetSources =
+    target.source === undefined ? [] : Array.isArray(target.source) ? target.source : [target.source];
+  const fromThisDigimon = targetSources.includes("thisDigimon");
   const contextMatches = (filter: Filter, ownerSeat: Seat): boolean => {
     const gate = filter.ownerTrashNameCountGte;
     if (gate === undefined) return true;
@@ -233,6 +236,14 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
     for (const zone of zones) {
       for (const cand of looseCardsInZone(ctx, seat, zone)) {
         if (seen.has(cand.instanceId)) continue;
+        // `target.source: "thisDigimon"` narrows only hosted-card zones. A combined
+        // hand/digivolution-card pool (EX12-034) may still use any qualifying hand card, but a
+        // digivolution-card candidate must be under the resolving source permanent rather than
+        // under the Digimon whose leave event triggered the replacement.
+        if (fromThisDigimon && (zone === "digivolutionCards" || zone === "linked")) {
+          const selfPermanentId = ctx.source.permanent()?.permanentId;
+          if (selfPermanentId === undefined || cand.hostPermanentId !== selfPermanentId) continue;
+        }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
         const branchMatches = (filter: Filter): boolean => {
           // `isSelfRef` belongs to the individual union branch, not the primary filter.
