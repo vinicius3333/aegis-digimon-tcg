@@ -3,8 +3,15 @@ import { describe, expect, it } from "vitest";
 
 const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
 const overlaysSource = readFileSync(new URL("./overlays.tsx", import.meta.url), "utf8");
+const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
+// The phone block's condition is a list — narrow, or short and on its side — so
+// the header is matched loosely up to its brace.
 const portraitRules = gameCss.match(
-  /@media \(width < 600px\) \{(?<rules>[\s\S]*?)\n\}\n\n@media \(width < 600px\) and \(height < 650px\)/,
+  /@media \(width < 600px\)[^{]*\{(?<rules>[\s\S]*?)\n\}\n\n@media \(width < 600px\) and \(height < 650px\)/,
+)?.groups?.rules;
+/** The landscape-phone block, which re-lays the board for a short viewport. */
+const landscapeRules = gameCss.match(
+  /@media \(height < 520px\) and \(orientation: landscape\) \{(?<rules>[\s\S]*?)\n\}\n/,
 )?.groups?.rules;
 
 // Where the sidebar stops being a column and becomes a strip along the bottom.
@@ -161,5 +168,118 @@ describe("the sidebar strip", () => {
     // Stacked, the report and the surrender buttons are taller than the strip itself.
     expect(stripRules).toBeDefined();
     expect(stripRules).toMatch(/\.game-sidebar__footer \{[^}]*flex-direction:\s*row/);
+  });
+});
+
+describe("the phone rules win the cascade", () => {
+  // Narrow-viewport blocks share their base rules' specificity, so they only win
+  // by coming later in the file. They used to sit in the middle of it, and every
+  // base rule written below silently defeated its own phone override — the
+  // end-turn orb, for one, kept its 5.4rem desktop diameter on a phone.
+  const responsiveStart = gameCss.indexOf("@media (width < 1240px)");
+
+  it("keeps every width-based block after the last base rule", () => {
+    expect(responsiveStart).toBeGreaterThan(-1);
+    const base = gameCss.slice(0, responsiveStart);
+    const afterResponsive = gameCss.slice(responsiveStart);
+    // Only media blocks (and the trailing reduced-motion one) may follow.
+    expect(afterResponsive.replace(/@media[^{]*\{[\s\S]*/, "")).not.toMatch(/^\s*\.[\w-]+[^{]*\{/m);
+    expect(base).toMatch(/\.game-end-turn-orb \{/);
+  });
+
+  it("shrinks the end-turn orb on a phone", () => {
+    expect(portraitRules).toMatch(/\.game-end-turn-orb \{[^}]*width:\s*3\.4rem/);
+  });
+});
+
+describe("nothing on the phone board is clipped by its neighbour", () => {
+  it("floors the hand dock so the action strip cannot squeeze it", () => {
+    expect(portraitRules).toMatch(/\.game-hand-dock \{[^}]*min-height:\s*calc\(var\(--game-hand-h\)/);
+    expect(portraitRules).toMatch(/--game-hand-h:\s*calc\(var\(--hand-card-width\)/);
+  });
+
+  it("drops the action strip while it holds no action", () => {
+    expect(portraitRules).toMatch(
+      /\.game-sidebar > div:nth-child\(2\):not\(:has\(button\)\) \{\s*display:\s*none !important/,
+    );
+  });
+
+  it("fits the security shields inside their rail", () => {
+    // The rail is 3.5rem wide; the desktop shield is 4.1rem and hung off both
+    // screen edges with a slice of the chevron cut away.
+    expect(portraitRules).toMatch(/\.game-security-shield \{[^}]*width:\s*3rem/);
+  });
+
+  it("caps the action sheet's card by height", () => {
+    // The card is a button, and the old rule still aimed at a `div`: nothing
+    // capped it and the sheet ran off the bottom of the screen.
+    expect(portraitRules).toMatch(
+      /\.card-action-sheet__body > \.card-action-sheet__zoom \{[^}]*height:\s*min\(30dvh, 12rem\)/,
+    );
+    expect(portraitRules).not.toMatch(/\.card-action-sheet__body > div:first-child \{/);
+  });
+
+  it("spans the reveal panel across the screen", () => {
+    expect(portraitRules).toMatch(/\.info-panel-stack \{[^}]*width:\s*auto/);
+  });
+});
+
+describe("landscape phone match layout", () => {
+  // A phone on its side is ~800px wide and ~390px tall. Keyed on width alone it
+  // landed in the tablet layout: the fanned hand ate the screen, the board fell
+  // off the bottom and the action strip collapsed to nothing.
+  it("keys the phone layout on the short viewport as well as the narrow one", () => {
+    expect(gameCss).toMatch(/@media \(width < 600px\), \(height < 520px\) and \(orientation: landscape\) \{/);
+    expect(gameScreenSource).toMatch(
+      /NARROW_LAYOUT_QUERY = "\(width < 600px\), \(height < 520px\) and \(orientation: landscape\)"/,
+    );
+  });
+
+  it("gives the strip a column of its own beside the board", () => {
+    expect(landscapeRules).toBeDefined();
+    expect(landscapeRules).toMatch(/\.game-layout \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/);
+    expect(landscapeRules).toMatch(/\.game-sidebar > div:nth-child\(2\) \{[^}]*width:\s*9rem/);
+    // Same collapse as portrait: no action, no column.
+    expect(landscapeRules).toMatch(
+      /\.game-sidebar > div:nth-child\(2\):not\(:has\(button\)\) \{\s*display:\s*none !important/,
+    );
+  });
+
+  it("puts the breeding area beside the hand instead of above it", () => {
+    // Stacked, the two bands leave the battle rows nothing on a 390px screen.
+    expect(landscapeRules).toMatch(/\.game-player-dock \{[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\)/);
+    expect(landscapeRules).toMatch(/\.game-breeding-dock > div:first-child \{\s*display:\s*none/);
+  });
+
+  it("keeps the memory band a single row", () => {
+    // Stacked, the end-turn orb drops below the gauge and costs the battle rows
+    // another 30px they do not have.
+    expect(landscapeRules).toMatch(/\.game-battle-zones > div:nth-child\(2\) \{[^}]*display:\s*flex/);
+  });
+
+  it("lays the rail piles two to a row", () => {
+    expect(landscapeRules).toMatch(/\.game-pile-column > div \{[^}]*flex-direction:\s*row !important/);
+  });
+
+  it("compacts the decision dialog instead of letting it swallow the board", () => {
+    // Portrait's sheet is a badge, a display-size heading and a column of
+    // full-width buttons — around 250px of a 390px screen.
+    expect(landscapeRules).toMatch(/\.game-modal__panel > \.aegis-badge \{\s*display:\s*none !important/);
+    expect(landscapeRules).toMatch(/\.game-modal__panel > h2 \{[^}]*font-size:\s*var\(--ds-text-lg\)/);
+    // The affirmative action still ends up on the right, like every choice row.
+    expect(landscapeRules).toMatch(
+      /\.game-modal__panel > div:last-child:not\(\[class\]\) \{[^}]*flex-direction:\s*row-reverse/,
+    );
+  });
+
+  it("keeps the result dialog's own buttons on screen", () => {
+    expect(landscapeRules).toMatch(/\.game-over-dialog > div:first-child \{\s*display:\s*none !important/);
+    expect(landscapeRules).toMatch(/\.game-over-dialog > h1 \{[^}]*font-size:\s*var\(--ds-text-2xl\)/);
+  });
+
+  it("names an explicit card width for the battle rows", () => {
+    // Even the compact Digimon (106px) is taller than a row here.
+    expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
+    expect(gameScreenSource).toMatch(/width=\{landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined\}/);
   });
 });
