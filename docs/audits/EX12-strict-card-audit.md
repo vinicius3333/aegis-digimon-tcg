@@ -956,3 +956,39 @@ for the individual evidence below.
   — 2/2; interpreter — 171/171; effect primitives — 126/126; digivolution action flow — 27/27;
   workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-032 — WereGarurumon — 10/10
+
+- **Printed contract:** Blue/purple level 5 Beastkin/NSo/VB Vaccine Digimon, play cost 7 and
+  7000 DP. Normal blue/purple level-4 evolutions cost 4; level-4 Garurumon-name or NSo/VB costs
+  3. Zero-cost DNA accepts Blue/Yellow level 5 plus Purple/Red level 5. On Play/When Digivolving,
+  one opposing Digimon or Tamer can't suspend through that opponent's turn end. When Attacking,
+  if any level occurs at least twice among the top and source cards, it may digivolve into a
+  Garurumon-name or NSo/VB Digimon from trash with cost reduced by 2. Its inherited effect is
+  Decode for a level-4-or-lower Gabumon/Garurumon-name or NSo/VB source.
+- **KB evidence:** Q6768 counts every card in the stack and does not require the duplicated level
+  to match the top card: either top plus one same-level source or two same-level sources satisfy
+  the condition. Q6769 applies Decode's level-4 ceiling to both the name and trait alternatives.
+- **Corrections:** inherited Decode was only an inert keyword marker. An inherited
+  other-than-battle leave replacement now plays one qualifying source without cost. The
+  aggregate IR described the same-level condition as raw text, omitted explicit paid-cost
+  semantics, omitted executable Decode, and omitted all four DNA recipes. It now carries the
+  structured `stackHasSameLevelCards` predicate, paid digivolution with reduction, inherited
+  replacement, and the same DNA requirements as the direct module/shared legality registry.
+  Direct and aggregate records are asserted equal.
+- **Ruling and behavioral proof:** the restriction resolves on play against a Digimon and on
+  digivolution against a Tamer. A level-5 top plus level-5 source enables the reduced trash
+  digivolution, as do two level-4 sources under the level-5 top; a stack with all different levels
+  does not, proving Q6768. Inherited Decode plays a level-4 Garurumon-name source and a level-4
+  NSo source after effect removal, but not after battle removal. Level-5 Garurumon-name and NSo
+  sources are both rejected, proving Q6769. Decode is absent while WereGarurumon is on top and
+  present only when it is inherited.
+- **Evolution and DNA proof:** normal blue BT1-036 and purple BT10-074 pay 4; off-color
+  Garurumon EX4-043 and VB EX12-010 pay 3. Level-5 name/trait candidates are rejected as bases.
+  All four Blue/Yellow × Purple/Red level-5 DNA combinations merge for 0; Blue + Yellow is
+  rejected. Catalog identity, stats, traits, direct/shared requirements, full coverage, and empty
+  residuals are asserted.
+- **Verification:** `EX12-032.test.ts` — 10/10; leave prevention/Decode — 10/10; DNA merge — 1/1;
+  restriction enforcement — 17/17; interpreter — 171/171; digivolution action flow — 27/27;
+  workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.

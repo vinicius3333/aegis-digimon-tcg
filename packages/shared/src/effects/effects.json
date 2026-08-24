@@ -133603,9 +133603,14 @@
               ]
             },
             "from": ["trash"],
+            "payCost": true,
             "reduceCost": 2,
             "optional": true,
-            "condition": { "kind": "raw", "raw": "this Digimon's stack has 2 or more same-level cards" }
+            "condition": {
+              "kind": "stackHasSameLevelCards",
+              "count": 2,
+              "raw": "this Digimon's stack has 2 or more same-level cards"
+            }
           }
         ]
       },
@@ -133619,6 +133624,39 @@
             "raw": "＜Decode (Lv.4 or lower w/[Gabumon]/[Garurumon] in name or w/[NSo]/[VB] trait)＞"
           }
         ]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [
+                      { "tokens": ["Gabumon", "Garurumon"], "match": "name" },
+                      { "tokens": ["NSo", "VB"], "match": "trait" }
+                    ]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "isInherited": true
       }
     ],
     "coverage": "full",
@@ -133626,6 +133664,36 @@
     "digivolutionRequirement": [
       { "level": 4, "names": ["Garurumon"], "cost": 3, "isAlternate": true },
       { "traits": ["NSo", "VB"], "cost": 3, "isAlternate": true, "level": 4 }
+    ],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 5 },
+          { "color": "Purple", "level": 5 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 5 },
+          { "color": "Red", "level": 5 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 5 },
+          { "color": "Purple", "level": 5 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 5 },
+          { "color": "Red", "level": 5 }
+        ]
+      }
     ]
   },
   "EX12-033": {
