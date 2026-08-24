@@ -2032,3 +2032,34 @@ for the individual evidence below.
   effect-firing/inherited timing — 5/5; API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, ruling dependency, or
   unresolved limitation remains.
+
+## EX12-063 — Karakurumon — 10/10
+
+- **Printed contract:** Purple/green level 5 Puppet/Shambala/TB Data Digimon, play cost 7 and
+  7000 DP. Normal purple/green level-4 evolution costs 3; the alternate costs 3 from a non-white
+  level-4 Puppet or Shambala. Assembly -2 places one level-4-or-lower Puppet or TB card. On Play
+  and When Digivolving, it suspends one opposing Digimon or Tamer, then independently prevents
+  one opposing Digimon or Tamer from unsuspending through that opponent's turn. Its principal
+  and inherited On Deletion effects may play one level-4-or-lower Puppet or TB Digimon from
+  trash for free.
+- **Corrections:** the direct module preserved the six allowed non-white colors, but the aggregate
+  IR omitted `baseColors`. The aggregate now carries the complete restriction, preventing shared
+  consumers from treating a white Puppet as legal. The direct restriction targets were also
+  normalized from `controllerDefault` to the exact aggregate `controller` form. Both sources are
+  now literally equal and registration remains exclusively through `registerIrCard`.
+- **Behavioral proof:** On Play and When Digivolving independently select one target to suspend
+  and a different target to restrict. A real suspend/unsuspend attempt leaves the restricted
+  Tamer suspended. Real effect deletion of Karakurumon plays the eligible level-4 Digimon from
+  trash; real deletion of a host carrying Karakurumon as a source does the same through the
+  inherited effect. Ineligible trash cards remain. Assembly pays 5 after the reduction and puts
+  the material underneath, while an over-level Puppet is rejected.
+- **Evolution and identity proof:** purple EX12-062 and green BT1-069 use normal cost 3; Puppet
+  BT13-039 and Shambala EX12-026 prove both alternate trait branches; white Puppet BT10-085 is
+  rejected. Catalog identity, all requirements, both action windows, both deletion effects,
+  exact filters, full coverage, empty residuals, registration, and direct/aggregate equality are
+  asserted.
+- **Verification:** `EX12-063.test.ts` — 8/8; interpreter — 171/171; capabilities — 290/290;
+  digivolution action flow — 27/27; play/Assembly conformance — 20/20; digivolution/restriction
+  conformance — 12/12; deletion conformance — 30/30; shared build, API typecheck, focused
+  formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  ruling dependency, or unresolved limitation remains.

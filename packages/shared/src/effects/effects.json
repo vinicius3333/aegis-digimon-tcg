@@ -136682,7 +136682,15 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["Puppet", "Shambala"], "cost": 3, "isAlternate": true }],
+    "digivolutionRequirement": [
+      {
+        "level": 4,
+        "traits": ["Puppet", "Shambala"],
+        "cost": 3,
+        "isAlternate": true,
+        "baseColors": ["Red", "Blue", "Yellow", "Green", "Black", "Purple"]
+      }
+    ],
     "assemblyRequirement": [
       { "materials": [{ "count": 1, "traits": ["Puppet", "TB"], "levelMax": 4 }], "reduceCost": 2 }
     ]
