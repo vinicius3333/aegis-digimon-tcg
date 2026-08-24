@@ -135446,21 +135446,27 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): When this Digimon with [Angoramon] in its text or the [NSp] trait wins a battle, trash your opponent's top security card"
+            "kind": "SubTrigger",
+            "event": "whenBattleWon",
+            "sourceFilter": {
+              "isSelfRef": true,
+              "nameOrTrait": [
+                { "tokens": ["Angoramon"], "match": "text" },
+                { "tokens": ["NSp"], "match": "trait" }
+              ]
+            },
+            "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
         "isInherited": true,
         "frequency": "OncePerTurn"
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): When this Digimon with [Angoramon] in its text or the [NSp] trait wins a battle, trash your opponent's top security card"
-    ],
+    "coverage": "full",
+    "residual": [],
     "digivolutionRequirement": [
       { "level": 4, "texts": ["Angoramon"], "cost": 3, "isAlternate": true },
-      { "traits": ["NSp"], "cost": 3, "isAlternate": true, "level": 4 }
+      { "level": 4, "traits": ["NSp"], "cost": 3, "isAlternate": true }
     ]
   },
   "EX12-052": {

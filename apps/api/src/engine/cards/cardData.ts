@@ -474,9 +474,28 @@ function matchGatedRequirement(
     // Base play-cost gate: distinguishes same-name reprints ("Play cost 12 [Ceresmon]").
     if (req.basePlayCost !== undefined && baseDef.playCost !== req.basePlayCost) continue;
 
-    // Text gate: base effectText must contain at least one token.
+    // Text gate: "[X] in its text" is the full card-information union, not effectText-only
+    // (EX12-051 Q6829). A card's name and traits count, as do every printed effect field; the
+    // catalog's requirement headers are preserved in effectText/linkRequirement. This also makes
+    // a base named SymbareAngoramon satisfy "[Angoramon] in text" even when its effectText is empty.
     if (req.texts && req.texts.length > 0) {
-      if (!baseDef.effectText || !req.texts.some((t) => baseDef.effectText!.includes(t))) continue;
+      const textUnion = [
+        ...baseEffectiveNames,
+        ...(baseDef.types ?? []),
+        ...(baseDef.forms ?? []),
+        ...(baseDef.attributes ?? []),
+        baseDef.effectText,
+        baseDef.inheritedEffectText,
+        baseDef.securityEffectText,
+        baseDef.linkEffect,
+        baseDef.linkRequirement,
+        baseDef.dualEffect,
+        baseDef.optionEffect,
+      ]
+        .filter((value): value is string => value !== undefined)
+        .join(" ")
+        .toLowerCase();
+      if (!req.texts.some((token) => textUnion.includes(token.toLowerCase()))) continue;
     }
 
     return req;

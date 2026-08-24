@@ -1627,3 +1627,45 @@ for the individual evidence below.
   flow — 27/27; Solarmon — 2/2; Pomumon — 1/1; continuous-effect lifecycle — 5/5; shared build,
   API typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
   unsupported behavior, or unresolved ruling remains.
+
+## EX12-051 — Lamortmon — 10/10
+
+- **Printed contract:** Green/black level 5 Beast/NSp Vaccine Digimon, play cost 7 and 7000 DP.
+  Normal green/black level-4 evolution costs 4; a level-4 card with Angoramon in its text or the
+  NSp trait costs 3. It has Reboot and Blocker. On Play and When Digivolving, it suspends one
+  opposing Digimon/Tamer, then independently De-Digivolves one opposing Digimon by 1. Its
+  inherited All Turns once-per-turn effect trashes the opponent's top security when its
+  Angoramon-text or NSp host wins a battle.
+- **KB evidence:** Q6829 defines “Angoramon in text” across names, traits, effects, inherited
+  effects, Rule, and every requirement form. Q6830 places the win trigger after the battle is won
+  and the loser is deleted. Q6831 includes Security Digimon battles. Q6832 makes battle-win and
+  the loser's On Deletion effects simultaneous, with turn-player priority. Q6833 gives immediate
+  would-delete/would-leave processing priority over the win trigger. Q6834 still triggers the win
+  effect when such processing prevents the loser's deletion.
+- **Corrections:** the aggregate IR held the inherited ability as RawUnparsed, partial coverage,
+  and a residual. It now carries the executable `whenBattleWon` self watcher and opposing
+  security-trash action, with exact full IR equality. The audit also exposed a systemic Q6829
+  defect: alternate evolution's `texts` matcher searched only `effectText`. It now searches the
+  full card-information union of effective names, traits, forms, attributes, all effect fields,
+  and printed requirement fields. A dedicated card-data regression proves a textless
+  SymbareAngoramon name satisfies EX12-051's alternate route. Registration remains exclusively
+  via `registerIrCard`.
+- **Ruling and behavioral proof:** both entry timings suspend a Tamer and separately
+  De-Digivolve a stacked Digimon. A non-NSp BT10-051 carrier proves Q6829 and trashes security
+  after winning a normal Digimon battle for Q6830. Winning against a real Security Digimon then
+  trashes the next security card for Q6831. Against Chirinmon, Barrier resolves first, pays one
+  security and preserves the loser, after which Lamortmon's inherited effect trashes another,
+  proving Q6833/Q6834. The combat-controller ordering suite proves the turn-player/deletion order
+  required by Q6832 and both winner-seat paths. Direct subtrigger calls prove another Digimon's
+  win is ignored and the host's second win in the same turn does not fire again.
+- **Evolution and keyword proof:** green BT1-069 and black BT10-061 use the normal cost-4 routes;
+  textless SymbareAngoramon BT10-051 and off-color NSp EX7-018 use the cost-3 alternatives; red
+  nonmatching BT1-015 is rejected. The live permanent publishes Reboot and Blocker. Catalog
+  identity, exact filters, direct/shared requirements, full coverage, empty residuals, and exact
+  IR equality are asserted.
+- **Verification:** `EX12-051.test.ts` — 8/8; card-data/text matching — 13/13; interpreter
+  capabilities — 290/290; interpreter — 171/171; subtrigger seams — 22/22; combat controller —
+  23/23; security checks — 11/11; digivolution action flow — 27/27; battle conformance — 5/5;
+  digivolution/battle-keyword conformance — 12/12; security/Blocker conformance — 10/10; shared
+  build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.
