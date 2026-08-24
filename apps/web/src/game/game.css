@@ -3091,12 +3091,47 @@ button.opponent-action-feed__current:focus-visible {
     padding: var(--ds-space-3) var(--ds-space-4) max(var(--ds-space-3), env(safe-area-inset-bottom)) !important;
     overflow-y: auto;
   }
+  /* The phase badge only repeats what the header already reads out, and the
+     display-size heading plus the portrait air is most of what makes this sheet
+     swallow the board. */
+  .game-modal__panel > .aegis-badge {
+    display: none !important;
+  }
   .game-modal__panel > h2 {
-    font-size: var(--ds-text-lg);
+    margin: 0 0 var(--ds-space-1) !important;
+    font-size: var(--ds-text-lg) !important;
+  }
+  .game-modal__panel > p {
+    margin: 0 0 var(--ds-space-3) !important;
+    font-size: var(--ds-text-sm) !important;
   }
   .game-modal__panel button {
     min-height: 40px;
     padding-block: var(--ds-space-2);
+  }
+  /* Classed action rows are rows already; the unclassed one is an inline-styled
+     column, and stacked full-width buttons are what is left of the height.
+     `row-reverse`, like every other choice row: the affirmative action leads the
+     DOM and has to end up on the right. */
+  .game-modal__panel > div:last-child:not([class]) {
+    flex-direction: row-reverse !important;
+    flex-wrap: wrap;
+  }
+  .game-modal__panel > div:last-child:not([class]) > button {
+    flex: 1 1 10rem;
+  }
+  /* The result dialog leads with a medallion and a display-size verdict; on a
+     short screen that pushed its own buttons off the bottom. The verdict still
+     reads, the medallion is decoration. */
+  .game-over-dialog > div:first-child {
+    display: none !important;
+  }
+  .game-over-dialog > h1 {
+    margin: 0 0 var(--ds-space-1) !important;
+    font-size: var(--ds-text-2xl) !important;
+  }
+  .game-over-dialog > p {
+    margin: 0 0 var(--ds-space-3) !important;
   }
   .mulligan-card {
     max-width: 84px;

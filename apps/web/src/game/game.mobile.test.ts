@@ -261,6 +261,22 @@ describe("landscape phone match layout", () => {
     expect(landscapeRules).toMatch(/\.game-pile-column > div \{[^}]*flex-direction:\s*row !important/);
   });
 
+  it("compacts the decision dialog instead of letting it swallow the board", () => {
+    // Portrait's sheet is a badge, a display-size heading and a column of
+    // full-width buttons — around 250px of a 390px screen.
+    expect(landscapeRules).toMatch(/\.game-modal__panel > \.aegis-badge \{\s*display:\s*none !important/);
+    expect(landscapeRules).toMatch(/\.game-modal__panel > h2 \{[^}]*font-size:\s*var\(--ds-text-lg\)/);
+    // The affirmative action still ends up on the right, like every choice row.
+    expect(landscapeRules).toMatch(
+      /\.game-modal__panel > div:last-child:not\(\[class\]\) \{[^}]*flex-direction:\s*row-reverse/,
+    );
+  });
+
+  it("keeps the result dialog's own buttons on screen", () => {
+    expect(landscapeRules).toMatch(/\.game-over-dialog > div:first-child \{\s*display:\s*none !important/);
+    expect(landscapeRules).toMatch(/\.game-over-dialog > h1 \{[^}]*font-size:\s*var\(--ds-text-2xl\)/);
+  });
+
   it("names an explicit card width for the battle rows", () => {
     // Even the compact Digimon (106px) is taller than a row here.
     expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
