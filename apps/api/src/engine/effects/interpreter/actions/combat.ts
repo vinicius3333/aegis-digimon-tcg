@@ -51,14 +51,19 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       if (action.attacker.isSelf || action.attacker.filter.isSelfRef) {
         attackerId = ctx.source.permanent()?.permanentId;
       } else {
-        attackerId = (await resolvePermanentTargets(ctx, action.attacker))[0];
+        attackerId = (await resolvePermanentTargets(ctx, action.attacker, { preserveUnaffectableSelection: true }))[0];
       }
       if (attackerId === undefined) return false;
       // The compiler emits the defender as either `defender` or the alternative `target`
       // (BattleAction allows both); honor whichever is present.
       const defenderTarget = action.defender ?? action.target;
       if (defenderTarget === undefined) return false;
-      const defenderId = (await resolvePermanentTargets(ctx, defenderTarget))[0];
+      // Q7016: the selection is performed by an effect, but the battle itself is rule
+      // processing. An unaffected Digimon remains a legal choice and can still lose the
+      // ensuing DP comparison, so retain chosen immune ids for both battle participants.
+      const defenderId = (
+        await resolvePermanentTargets(ctx, defenderTarget, { preserveUnaffectableSelection: true })
+      )[0];
       if (defenderId === undefined) return false;
       await ctx.fx.forceBattle?.(attackerId, defenderId);
       return false;

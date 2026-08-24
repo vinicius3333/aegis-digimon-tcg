@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appFusionCostFor, assemblyRequirementFor, EffectTiming } from "@aegis/shared";
+import { appFusionCostFor, assemblyRequirementFor, EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-037.js";
@@ -23,7 +23,15 @@ describe("BT26-037 Weatherdramon", () => {
         expect.objectContaining({
           trigger: "OnPlay",
           actions: [
-            expect.objectContaining({ kind: "Link", from: ["digivolutionCards"], payCost: false, optional: true }),
+            expect.objectContaining({
+              kind: "Link",
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              target: expect.objectContaining({
+                filter: expect.objectContaining({ hasLinkRequirement: true }),
+              }),
+            }),
           ],
         }),
         expect.objectContaining({ trigger: "WhenDigivolving" }),
@@ -40,6 +48,17 @@ describe("BT26-037 Weatherdramon", () => {
         }),
       ]),
     );
+  });
+
+  it("accepts every distinct ordered App Fusion pair and rejects duplicate names (Q7017)", () => {
+    const names = ["Weathermon", "Rocketmon", "Newsmon"];
+    for (const topName of names) {
+      for (const linkedName of names) {
+        expect(appFusionCostFor("BT26-037", { topName, linkedNames: [linkedName] })).toBe(
+          topName === linkedName ? undefined : 0,
+        );
+      }
+    }
   });
 
   it("links a legal source and resolves its linked-face battle from a recipient", async () => {
@@ -63,6 +82,29 @@ describe("BT26-037 Weatherdramon", () => {
     await advance(s.engine).fireSubTrigger("whenLinked", {
       subjectPermanentId: s.perm("recipient").permanentId,
     });
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("can battle and delete a Digimon unaffected by Digimon effects (Q7015/Q7016)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-084", as: "recipient", linked: [{ card: "BT26-037" }] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "immune", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("immune").permanentId,
+      "beAffected",
+      EffectDuration.UntilEachTurnEnd,
+      { fromSourceKind: ["Digimon"] },
+    );
+
+    await advance(s.engine).fireSubTrigger("whenLinked", {
+      subjectPermanentId: s.perm("recipient").permanentId,
+    });
+
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

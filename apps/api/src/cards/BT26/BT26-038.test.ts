@@ -19,6 +19,9 @@ describe("BT26-038 Kuwagamon", () => {
       { kind: "Suspend", optional: true },
       { kind: "ModifyDP", amount: 3000, duration: "untilOpponentTurnEnd" },
     ]);
+    expect(compiled.effects[3]?.actions).toMatchObject([
+      { kind: "SubTrigger", event: "whenBattleWon", sourceFilter: { isSelfRef: true } },
+    ]);
   });
   it("gives an eligible Insectoid its temporary DP increase on play", async () => {
     const s = setupEngine(
@@ -54,5 +57,30 @@ describe("BT26-038 Kuwagamon", () => {
 
     expect(s.perm("evolutionTarget").topCard.instanceId).toBe(s.inst("candidate").instanceId);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("does not trigger the inherited evolution when a different Digimon wins", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-008", as: "host", under: ["BT26-038"] },
+            { card: "BT1-066", as: "ally" },
+          ],
+          hand: [{ card: "BT26-038", as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenBattleWon", {
+      attackerPermanentId: s.perm("ally").permanentId,
+    });
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-008");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
+    expect(s.state.memory).toBe(1);
   });
 });

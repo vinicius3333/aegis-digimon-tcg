@@ -23,6 +23,7 @@ const clause = [
 const inheritedDigivolve = {
   kind: "SubTrigger",
   event: "whenBattleWon",
+  sourceFilter: { isSelfRef: true },
   actions: [
     {
       kind: "Digivolve",
