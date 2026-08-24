@@ -1,5 +1,6 @@
 import { EffectTiming } from "@aegis/shared";
 import type { Seat } from "@aegis/shared";
+import type { CardSource } from "./CardSource.js";
 import type { EffectContext } from "./EffectContext.js";
 import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
@@ -14,6 +15,13 @@ export type { CollectedEffect } from "./collect.js";
  * instead of a hung match.
  */
 export const MAX_RESOLUTION_PASSES = 1000;
+
+/**
+ * How many times the resolver will try to STOP a detected loop (Comprehensive Rules §18-3-3)
+ * before falling back to §18-3-2's draw. Each attempt grants a fresh `MAX_RESOLUTION_PASSES`
+ * budget, so a loop whose optional links keep being replaced by fresh ones still terminates.
+ */
+export const MAX_LOOP_STOP_ATTEMPTS = 3;
 
 /**
  * Order collected effects so the turn player's effects resolve before the
@@ -121,6 +129,40 @@ export interface ResolutionEnv {
 }
 
 /**
+ * What the effect's source card currently IS on the board: which permanent holds it, and in
+ * what role — top card, digivolution card, or linked card. `undefined` when the card sits on
+ * no permanent at all (hand, trash, security, a resolving Option).
+ *
+ * Comprehensive Rules §15-4-4-3: a card with a pending effect that becomes a new card before
+ * the effect activates can no longer activate it. A card can become a new card WITHOUT leaving
+ * the battle area, and those cases are invisible to a residency check — `isOnBattleArea()` is
+ * true for a top card, a digivolution card, and a linked card alike:
+ *
+ *  - Digivolving on top of the source turns the top card into a digivolution card. Q2738
+ *    (BT17-012): resolve the [When Attacking] effect and digivolve, and the ＜Raid＞ effect that
+ *    triggered alongside it "can no longer be activated". Q2769 (BT17-023) says the same for
+ *    that card's two [When Attacking] effects.
+ *  - Being placed under, or played out of, a different permanent moves the card to another
+ *    permanent while the role may not change at all. Q2805 (BT17-050): once the card with the
+ *    pending [All Turns] inherited effect is played, that effect can no longer be activated.
+ *
+ * Role is deliberately keyed on what the card is to its permanent rather than on stack contents:
+ * a digivolution card whose host digivolves again is still the same digivolution card of the
+ * same permanent, so an inherited effect survives its own stack growing.
+ */
+function permanentIdentityOf(source: CardSource): string | undefined {
+  const permanent = source.permanent();
+  if (permanent === undefined) return undefined;
+  const role =
+    permanent.topCard?.instanceId === source.instanceId
+      ? "top"
+      : permanent.linked.some((card) => card.instanceId === source.instanceId)
+        ? "linked"
+        : "stack";
+  return `${permanent.permanentId} ${role}`;
+}
+
+/**
  * Resolve every effect that fires at `timing`, including effects that trigger during
  * resolution.
  *
@@ -149,6 +191,14 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // for the duration of the resolution).
   const declined = new Set<string>();
   const declineKey = (c: CollectedEffect): string => `${c.source.instanceId} ${c.effect.effectKey}`;
+
+  // Effect keys retired by the §18-3-3 infinite-loop stop below. Keyed on the EFFECT, not on
+  // (instance, effect) like `declined`: the loop the stop has to break is a repeating
+  // PROCESSING, and the instance carrying it is typically a fresh one each cycle (a card
+  // replayed, recreated, or a new copy), so an instance-keyed latch would not stop anything.
+  // Retiring the effect key is §18-3-3-3's "it will not be possible to perform the actions
+  // for the same infinite loop again", scoped to this window.
+  const loopStopped = new Set<string>();
 
   // Effects already RESOLVED this window. A triggered effect activates once per
   // trigger (Comprehensive Rules §15-4-4-2) — the source `StackSkillInfos` removes
@@ -196,24 +246,32 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   const everCollected = new Set<string>();
   const departed = new Set<string>();
 
+  // The permanent identity each effect's source card had when the effect was FIRST collected
+  // this window (see `permanentIdentityOf`). The presence diff above cannot see a card that
+  // "becomes a new card" (§15-4-4-3) without leaving the battle area; this map can, so a change
+  // of identity retires the pending effect through the same `departed` latch.
+  //
+  // Why here rather than in the `onField` base guard (builders.ts): the guard is re-evaluated
+  // from live state on every pass and holds no memory, so it can only say "not activatable right
+  // now" — a card that is buried and then promoted back to top card would revive its pending
+  // trigger, which §15-4-4-3 forbids. It also never sees SubTrigger watchers, which reach the
+  // resolver as collected effects through `collectPending` rather than through a timing builder.
+  // The presence diff is the one place both kinds already pass through once per pass, and it
+  // already owns the one-way "departed" semantics this needs.
+  const identityAtFirstCollect = new Map<string, string>();
+
   // Defensive bound. The source loop relies entirely on canActivate / maxPerTurn /
   // declines to terminate; a mis-implemented card with an unlimited, always-activatable
   // mandatory effect would otherwise spin forever and hang the match. Throwing (vs
-  // silently stopping) surfaces the bug as a turn-loop error the engine reports.
+  // silently stopping) surfaces the bug as a turn-loop error the engine reports. It is
+  // also the loop DETECTOR the §18-3 handling below hangs off: a window that is still
+  // producing activatable effects after this many passes is an infinite loop (§18-3-1).
   let passes = 0;
+  let passBudget = MAX_RESOLUTION_PASSES;
+  let stopAttempts = 0;
 
   const drainCurrentTimingWindow = async (): Promise<void> => {
     while (true) {
-      if (++passes > MAX_RESOLUTION_PASSES) {
-        if (env.declareDraw !== undefined) {
-          await env.declareDraw();
-          return;
-        }
-        throw new Error(
-          `resolveTiming(${String(timing)}): exceeded ${MAX_RESOLUTION_PASSES} resolution passes — ` +
-            "likely a card effect that never clears its trigger/activation guard.",
-        );
-      }
       if (env.isGameOver()) return;
 
       // Re-collect every pass: this is the TriggeredSkillProcess re-entry.
@@ -228,15 +286,80 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       }
       for (const key of presentKeys) everCollected.add(key);
 
+      // ...and anything still collectable whose source card is no longer the same thing on the
+      // same permanent it was when the effect was first collected (§15-4-4-3, see
+      // `permanentIdentityOf`). Same exclusions as the presence diff: the effect currently
+      // executing may legitimately move its own source card as part of its body.
+      for (const c of collectedThisPass) {
+        const identity = permanentIdentityOf(c.source);
+        if (identity === undefined) continue;
+        const key = declineKey(c);
+        const first = identityAtFirstCollect.get(key);
+        if (first === undefined) identityAtFirstCollect.set(key, identity);
+        else if (first !== identity && !inProgress.has(key)) departed.add(key);
+      }
+
       const active = collectedThisPass.filter(
         (c) =>
           !declined.has(declineKey(c)) &&
           !resolved.has(declineKey(c)) &&
           !inProgress.has(declineKey(c)) &&
           !departed.has(declineKey(c)) &&
+          !loopStopped.has(c.effect.effectKey) &&
           canActivate(c.effect, env.makeContext(c), env.tracker),
       );
       if (active.length === 0) return;
+
+      // §18-3 Infinite Loops. The window is still handing out activatable effects after
+      // `passBudget` passes, which no legitimate chain reaches — so this is §18-3-1's
+      // "set of processing [that] will continue infinitely".
+      //
+      // §18-3-3 applies when one of the players HAS the ability to stop the loop; §18-3-2
+      // (draw) applies only when NEITHER does. The stop ability the resolver can see is an
+      // optional link in the cycle: an effect the controller may decline. So an optional
+      // effect among the still-active set means the loop is stoppable.
+      //
+      // What §18-3-3 prescribes is: each player declares a repeat count (turn player first,
+      // §18-3-3-1/-2), the processing runs at least that many times, and then "the player
+      // stops the processing when possible" (§18-3-3-3), after which the same loop may not
+      // be performed again. The declared repeat count only chooses HOW MANY redundant
+      // iterations happen before the stop; the terminal state it reaches is identical either
+      // way — the loop stops, with the optional link declined and unable to re-enter. This
+      // resolver therefore implements the end state directly: retire the optional link through
+      // `loopStopped` (see above), which both declines it now and forbids the same processing
+      // from being performed again in this window — §18-3-3-3 exactly.
+      //
+      // The declaration prompt itself is the piece deliberately not built: it is a
+      // player-facing count with no observable consequence here, and the protocol has no
+      // decision kind for it (see conformance/ch18-other-information.test.ts).
+      //
+      // If retiring the optional links does not converge (a cycle threading several distinct
+      // optional effects, each only revealed once the previous is gone), the attempt budget is
+      // finite and the §18-3-2 draw below is still reached.
+      //
+      // Reachability: no card in the current corpus can build a stoppable loop — every
+      // candidate cycle (self-replay from trash, the AD1-001/AD1-010 free-digivolve mirror,
+      // memory-gain engines) consumes memory, hand, trash, security, or deck, or is capped by
+      // [Once Per Turn]. This branch is therefore a correctness floor for future card sets, not
+      // live behavior; it is covered by synthetic effects in the conformance test.
+      if (++passes > passBudget) {
+        const stoppable = active.filter((c) => c.effect.optional);
+        if (stoppable.length > 0 && stopAttempts < MAX_LOOP_STOP_ATTEMPTS) {
+          stopAttempts += 1;
+          passBudget = passes + MAX_RESOLUTION_PASSES;
+          for (const c of stoppable) loopStopped.add(c.effect.effectKey);
+          continue;
+        }
+        // §18-3-2: neither player can stop it — the game ends in a draw.
+        if (env.declareDraw !== undefined) {
+          await env.declareDraw();
+          return;
+        }
+        throw new Error(
+          `resolveTiming(${String(timing)}): exceeded ${MAX_RESOLUTION_PASSES} resolution passes — ` +
+            "likely a card effect that never clears its trigger/activation guard.",
+        );
+      }
 
       // Split into freshly-active (derived this pass) vs already-pending (seen active in
       // an earlier pass), per §15-4-5-3 above. Both groups keep turn-player-first order

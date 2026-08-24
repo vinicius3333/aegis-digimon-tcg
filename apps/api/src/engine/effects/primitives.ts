@@ -51,8 +51,8 @@ import {
 } from "../combat/keywords.js";
 import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
 import { ContinuousEffectLedger } from "./continuous.js";
-import { SubTriggerRegistry } from "./subtriggers.js";
-import type { EffectContext, Primitives, Restriction } from "./EffectContext.js";
+import { SubTriggerRegistry, type SubTriggerRootZone } from "./subtriggers.js";
+import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
 import { canAttackerDeclare, canAttackTarget } from "../combat/legality.js";
 import { createBreedingVerbs } from "./breeding.js";
@@ -255,6 +255,15 @@ export interface PrimitivesEngine {
    */
   barrierFired?: (key: string) => boolean;
   markBarrierFired?: (key: string) => void;
+  /**
+   * Report cards that were JUST linked to a permanent. Comprehensive Rules §4-9-5: when
+   * linking to a Digimon that has already reached its link limit, "the same number of the
+   * EXISTING link cards are trashed at the same time as the newly linked cards" — the card
+   * that just arrived is never the one that goes. The over-limit trim itself is a rule check
+   * (§17-1-3-2-5) that runs later and cannot tell new from existing on its own, so the link
+   * verb tells it. Optional on the port: a fake that never links needs no implementation.
+   */
+  noteLinked?(instanceIds: readonly string[]): void;
 }
 
 /** The slice of MemoryGauge the primitives use (memory-gauge subsystem owns the impl). */
@@ -1792,6 +1801,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       linked.push(instance);
     }
     if (linked.length > 0) {
+      // CR 4-9-5: these cards are the newly linked ones, so the over-limit rule check must
+      // trash EXISTING link cards instead of them (see PrimitivesEngine.noteLinked).
+      engine.noteLinked?.(linked.map((c) => c.instanceId));
       // CR 4-2-4: a linked card contributes its printed linkDp, so the DP tier must be
       // re-derived here the way digivolve does after it stacks a card.
       ledger.recomputeDP(state, permanent.permanentId);
@@ -4077,6 +4089,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
   };
 
+  // Recorded as a CONTINUOUS fact regardless of which clause installs it: BT16-015 prints the
+  // projection under `[Your Turn]` and the compiler emits a `[When Digivolving]` twin of the
+  // same sentence, and Q2615 requires both to lapse the moment the condition stops holding.
+  const projectOnDeletionAtEndOfAttack = (permanentId: string, duration: EffectDuration): void => {
+    continuous.projectOnDeletionAtEndOfAttack(permanentId, durationForTarget(permanentId, duration));
+  };
+
   // A named custom effect grant is a one-shot, DURATION-scoped grant (NOT continuous): it is
   // installed once when the granting effect resolves and survives the continuous recompute, so
   // it is recorded WITHOUT continuousOpt(). It lapses at its boundary (sweep) or when the host
@@ -4405,12 +4424,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   // re-derive these subscriptions without accumulation. A one-shot install from a triggered
   // window (OnPlay/WhenDigivolving — e.g. BT23-056's granted timed trigger) carries no flag and
   // is therefore preserved across recomputes.
-  const subscribeSubTrigger: Primitives["subscribeSubTrigger"] = (sub) =>
+  const subscribeSubTrigger: Primitives["subscribeSubTrigger"] = (sub) => {
     // A scheduled one-shot consequence belongs to the triggered resolution that armed
     // it. Never inherit the engine-global continuous flag merely because its async
     // installation overlaps a recompute; otherwise a subsequent digivolution clears it
     // before its boundary fires (P-030/Q4141).
-    subTriggers.subscribe({ ...(sub.once ? {} : continuousOpt()), ...sub });
+    const install = { ...(sub.once ? {} : continuousOpt()), ...sub };
+    // The zone check reads the SETTLED `continuous` flag, so it must run on the merged
+    // install rather than on the caller's partial one.
+    return subTriggers.subscribe({ ...install, ...looseSourceRootZone(engine.state, install) });
+  };
 
   const subscribeReplacement: Primitives["subscribeReplacement"] = (sub) =>
     subTriggers.subscribeReplacement({ ...sub, ...continuousOpt() });
@@ -4621,6 +4644,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     grantKind,
     waiveColorRequirement,
     conferStackEffects,
+    projectOnDeletionAtEndOfAttack,
     grantCustomEffect,
     grantCustom,
     shuffleSecurity,
@@ -4821,6 +4845,53 @@ function peekLooseInstance(state: GameState, instanceId: string): CardInstance |
     }
   }
   return undefined;
+}
+
+/**
+ * The root zone `instanceId` sits in right now, restricted to the three a permanent-less
+ * effect source can act from: trash, hand, or FACE-UP security (a face-down security card
+ * shows no effect at all). Undefined for a card in any other zone or in none (a resolving
+ * Option, §9-1-4).
+ */
+export function rootZoneOfLooseInstance(state: GameState, instanceId: string): SubTriggerRootZone | undefined {
+  for (const owner of state.players) {
+    if (owner === undefined) continue;
+    if (owner.trash.some((c) => c.instanceId === instanceId)) return "trash";
+    if (owner.hand.some((c) => c.instanceId === instanceId)) return "hand";
+    if (owner.security.some((c) => c.instanceId === instanceId && c.faceUp === true)) return "security";
+  }
+  return undefined;
+}
+
+/**
+ * Record the install-time root zone of a watcher anchored ONLY by a loose CardInstance, so the
+ * engine can drop it once that card moves (CR §15-4-4-3; KB Q2671, Q2805).
+ *
+ * Restricted to CONTINUOUS installs, which is the whole of the residency-gated family: a
+ * `{Trash}` / `[Your Turn]` / `[All Turns]` clause on a permanent-less card is re-derived by
+ * every continuous recompute, and Q5728 says such an effect "can't be triggered or activated in
+ * areas other than the trash" — the watcher IS the pending trigger, so the zone gates it.
+ *
+ * A NON-continuous install is the opposite case: a one-shot consequence armed by an effect that
+ * has ALREADY activated, which Q2671's "pending activation" wording does not reach. BT6-111 and
+ * BT23-028 are the shape — a `[Security]` effect activates during the security check and arms
+ * `whenSecurityBattleEnded`; by the time it fires, the card has legitimately moved to the trash
+ * (Q1495: "it activates at the end of the battle, regardless of outcome"), and several such
+ * bodies then play that very card FROM the trash. Zone-checking those would cancel the effect
+ * for doing exactly what it says. Same reasoning as the deferred security-removal reactions
+ * (Q2611/Q2629).
+ *
+ * A watcher that also has a permanent anchor is already governed by `dropPermanent`, and one
+ * whose source is in no nameable zone keeps the previous unchecked lifecycle.
+ */
+function looseSourceRootZone(
+  state: GameState,
+  sub: SubTriggerInstall,
+): { sourceRootZone?: SubTriggerRootZone } | undefined {
+  if (sub.continuous !== true) return undefined;
+  if (sub.sourcePermanentId !== undefined || sub.sourceInstanceId === undefined) return undefined;
+  const zone = rootZoneOfLooseInstance(state, sub.sourceInstanceId);
+  return zone === undefined ? undefined : { sourceRootZone: zone };
 }
 
 /** The loose zone that currently contains `instanceId`, if it is in a zone we can name. */

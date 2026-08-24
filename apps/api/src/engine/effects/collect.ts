@@ -1,4 +1,4 @@
-import type { EffectTiming } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
 import type { EffectContext } from "./EffectContext.js";
@@ -81,6 +81,47 @@ export function collectGrantedCustomEffects(
       const ctx = makeContext(source, effect);
       if (canTrigger(effect, ctx, tracker)) {
         collected.push({ source, effect, timing });
+      }
+    }
+  }
+  return collected;
+}
+
+/**
+ * Collect the `[On Deletion]` effects a permanent projects into the END-OF-ATTACK window
+ * (BT16-015 Phoenixmon (X Antibody): "attach [End of Attack] to all of this Digimon's
+ * [On Deletion] effects").
+ *
+ * The projection re-times effects rather than copying them: each candidate source is asked for
+ * the SAME effects it would contribute at `OnDestroyedAnyone`, and they are reported at the
+ * end-of-attack window instead. Two properties fall out of that and are the reason it is done
+ * this way rather than through a granted-token library entry:
+ *
+ *  - Inherited `[On Deletion]` effects are reached, because a permanent's digivolution cards are
+ *    candidate sources exactly as its top card is (KB Q2614's EX4-053 / Q2615's BT13-014).
+ *  - Each projected effect keeps its own trigger condition and the inherited/printed placement
+ *    guard `canActivate` applies, so a stack card's OWN printed `[On Deletion]` is not projected
+ *    and a conditional inherited effect whose condition is unmet is collected-but-not-activatable
+ *    — which is precisely Q2614's answer ("the effect will trigger, but it can't be activated").
+ *
+ * `onDeletion`'s base guard is permissive when the firing window carries no deleted set, which an
+ * end-of-attack window never does; the caller is responsible for scoping the projection to the
+ * attacking permanent.
+ */
+export function collectProjectedOnDeletionEffects(
+  projectedPermanentIds: readonly string[],
+  sourcesOfPermanent: (permanentId: string) => readonly CardSource[],
+  makeContext: (source: CardSource, effect: Effect) => EffectContext,
+  tracker: UseTracker,
+): CollectedEffect[] {
+  const collected: CollectedEffect[] = [];
+  for (const permanentId of projectedPermanentIds) {
+    for (const source of sourcesOfPermanent(permanentId)) {
+      for (const effect of effectsOf(EffectTiming.OnDestroyedAnyone, source)) {
+        const ctx = makeContext(source, effect);
+        if (canTrigger(effect, ctx, tracker) && canActivate(effect, ctx, tracker)) {
+          collected.push({ source, effect, timing: EffectTiming.OnEndAttack });
+        }
       }
     }
   }

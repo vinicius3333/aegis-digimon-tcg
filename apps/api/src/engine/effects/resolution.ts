@@ -88,6 +88,9 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
   const grantSnapshot = {
     stackEffectConferrals: [...env.continuous.listStackEffectConferrals()],
     customEffectGrants: [...env.continuous.listCustomEffectGrants()],
+    onDeletionAtEndOfAttackProjections: env.continuous
+      .listOnDeletionAtEndOfAttackProjections()
+      .map((projection) => projection.permanentId),
   };
   return {
     turnSeat: deps.turnSeat,

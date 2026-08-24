@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardColor, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, type CardColor, type Seat } from "@aegis/shared";
 import { resolveTiming, orderTurnPlayerFirst, type ResolutionEnv } from "./stack.js";
 import type { CollectedEffect } from "./collect.js";
 import type { CardSource } from "./CardSource.js";
@@ -457,6 +457,71 @@ describe("resolveTiming: pass-cap overflow (Comprehensive Rules §18-3-2 infinit
     await expect(resolveTiming(EffectTiming.OnPlay, env)).resolves.toBeUndefined();
     expect(drawDeclared).toBe(true);
   });
+
+  it("§18-3-3: stops a loop a player CAN stop (an optional link) instead of declaring a draw", async () => {
+    // Same runaway shape as the two above — a fresh instance id every pass, so nothing
+    // dedupes against the `resolved` ledger — except the looping effect is OPTIONAL. The
+    // controller therefore HAS the ability to stop it, which puts the case under §18-3-3
+    // rather than §18-3-2: the processing is stopped ("the player stops the processing when
+    // possible", §18-3-3-3) and the same loop is not performed again, instead of the match
+    // ending in a draw.
+    const looper = fakeEffect("looper", { optional: true, maxPerTurn: -1 });
+    let n = 0;
+    let resolutions = 0;
+    let drawDeclared = false;
+    const { env } = envOver([], {
+      collect: () => [collected(0, `loop-${n++}`, looper)],
+      // The player keeps accepting, so the loop never self-limits through the ordinary
+      // decline path — the §18-3-3 stop is the only thing that can end it.
+      askOptional: async () => {
+        resolutions += 1;
+        return true;
+      },
+      declareDraw: async () => {
+        drawDeclared = true;
+      },
+    });
+
+    await expect(resolveTiming(EffectTiming.OnPlay, env)).resolves.toBeUndefined();
+    expect(drawDeclared).toBe(false);
+    // §18-3-3-3: "executed at least the number of times that was declared it would be
+    // repeated, then the player stops the processing" — it ran, then stopped.
+    expect(resolutions).toBeGreaterThan(0);
+  });
+
+  it("§18-3-3-3: the stopped loop is not re-entered later in the same window", async () => {
+    // After the stop, a mandatory effect that was pending behind the loop must still resolve
+    // (the stop retires the looping processing, not the window), and the looping effect must
+    // never be offered again even though `collect` keeps producing brand-new instances of it.
+    const looper = fakeEffect("looper", { optional: true, maxPerTurn: -1 });
+    let n = 0;
+    let bystanderRuns = 0;
+    let loopRunsAfterStop = 0;
+    let stopped = false;
+    const bystander = fakeEffect("bystander", {
+      onResolve: () => {
+        bystanderRuns += 1;
+        stopped = true;
+      },
+    });
+    const bystanderEntry = collected(0, "bystander-1", bystander);
+    const { env } = envOver([], {
+      collect: () => [collected(0, `loop-${n++}`, looper), bystanderEntry],
+      chooseOrder: async () => 0, // always prefer the looping effect while it is offered
+      askOptional: async () => {
+        if (stopped) loopRunsAfterStop += 1;
+        return true;
+      },
+      declareDraw: async () => {
+        throw new Error("§18-3-2 draw must not be reached for a stoppable loop");
+      },
+    });
+
+    await resolveTiming(EffectTiming.OnPlay, env);
+
+    expect(bystanderRuns).toBe(1);
+    expect(loopRunsAfterStop).toBe(0);
+  });
 });
 
 describe("resolveTiming: a pending effect whose source stops being collectable (§15-4-4-3/5)", () => {
@@ -512,5 +577,267 @@ describe("resolveTiming: a pending effect whose source stops being collectable (
     await resolveTiming(EffectTiming.OnPlay, env);
 
     expect(resolvedKeys).toEqual(["first", "second"]);
+  });
+});
+
+/**
+ * Permanent identity (§15-4-4-3 "becomes a new card"). These fakes model the board the way the
+ * resolver reads it: `source.permanent()` resolves live, so a body that digivolves or re-hosts a
+ * card changes what the next collection pass sees without the effect ever leaving `collect()`.
+ */
+interface FakePermanent {
+  permanentId: string;
+  topCard?: { instanceId: string };
+  stack: { instanceId: string }[];
+  linked: { instanceId: string }[];
+}
+
+/**
+ * An inherited/linked effect's placement guard reads the host top card's definition, so these
+ * scenarios need a context whose `game` answers `definitionOf` (the plain fake leaves it empty).
+ */
+const digimonHostContext = (c: CollectedEffect): EffectContext =>
+  ({
+    source: c.source,
+    trigger: {},
+    game: { definitionOf: () => ({ kinds: [CardKind.Digimon] }) },
+    fx: {},
+    ask: {},
+  }) as never;
+
+function makePermanent(permanentId: string, topInstanceId?: string): FakePermanent {
+  return {
+    permanentId,
+    ...(topInstanceId === undefined ? {} : { topCard: { instanceId: topInstanceId } }),
+    stack: [],
+    linked: [],
+  };
+}
+
+/** A CardSource whose permanent is looked up live, exactly as the engine's lookup does. */
+function sourceOnBoard(seat: Seat, instanceId: string, board: () => FakePermanent[]): CardSource {
+  return {
+    ...fakeSource(seat, instanceId),
+    permanent: () =>
+      board().find(
+        (p) =>
+          p.topCard?.instanceId === instanceId ||
+          p.stack.some((c) => c.instanceId === instanceId) ||
+          p.linked.some((c) => c.instanceId === instanceId),
+      ) as unknown as ReturnType<CardSource["permanent"]>,
+  };
+}
+
+describe("resolveTiming: a pending effect whose source card changes permanent identity (§15-4-4-3)", () => {
+  it("Q2738/Q2769: digivolving on top of the source kills its other pending [When Attacking]", async () => {
+    // BT17-023 shape: one card, two [When Attacking] effects triggered together. Resolving the
+    // digivolve one makes the attacker's top card a digivolution card. Q2769: "if you activate
+    // the 2nd [When Attacking] effect first and digivolve, the 1st [When Attacking] can no
+    // longer be activated." Q2738 is the same answer for BT17-012's ＜Raid＞.
+    const permanent = makePermanent("p1", "attacker");
+    const board = [permanent];
+    const resolvedKeys: string[] = [];
+
+    const digivolve = fakeEffect("digivolve", {
+      onResolve: () => {
+        resolvedKeys.push("digivolve");
+        permanent.stack.push({ instanceId: "attacker" });
+        permanent.topCard = { instanceId: "evolved" };
+      },
+    });
+    const draw = fakeEffect("draw", { onResolve: () => resolvedKeys.push("draw") });
+    const source = sourceOnBoard(0, "attacker", () => board);
+    const collectable: CollectedEffect[] = [
+      { source, effect: digivolve },
+      { source, effect: draw },
+    ];
+
+    const { env } = envOver([], { collect: () => collectable });
+    await resolveTiming(EffectTiming.OnUseAttack, env);
+
+    expect(resolvedKeys).toEqual(["digivolve"]);
+  });
+
+  it("Q2738/Q2769: the buried trigger stays dead even if its card becomes the top card again", async () => {
+    // The discriminator for the LATCH. While the card is a digivolution card the kernel
+    // placement guard already refuses its printed effect, but that guard has no memory: promote
+    // the card back to top card (its host's new top leaves) and it would offer the pending
+    // trigger again. §15-4-4-3 makes the promoted card a new card, so the effect is gone for good.
+    const permanent = makePermanent("p1", "attacker");
+    const board = [permanent];
+    const resolvedKeys: string[] = [];
+
+    const digivolve = fakeEffect("digivolve", {
+      onResolve: () => {
+        resolvedKeys.push("digivolve");
+        permanent.stack.push({ instanceId: "attacker" });
+        permanent.topCard = { instanceId: "evolved" };
+      },
+    });
+    const deEvolve = fakeEffect("deEvolve", {
+      onResolve: () => {
+        resolvedKeys.push("deEvolve");
+        permanent.stack = permanent.stack.filter((c) => c.instanceId !== "attacker");
+        permanent.topCard = { instanceId: "attacker" };
+      },
+    });
+    const raid = fakeEffect("raid", { onResolve: () => resolvedKeys.push("raid") });
+    const attacker = sourceOnBoard(0, "attacker", () => board);
+    const collectable: CollectedEffect[] = [
+      { source: attacker, effect: digivolve },
+      { source: attacker, effect: raid },
+      { source: sourceOnBoard(0, "de-evolver", () => board), effect: deEvolve },
+    ];
+
+    const { env } = envOver([], { collect: () => collectable });
+    await resolveTiming(EffectTiming.OnUseAttack, env);
+
+    expect(resolvedKeys).toEqual(["digivolve", "deEvolve"]);
+  });
+
+  it("Q2805: a pending effect is dropped when its card is re-hosted under another permanent", async () => {
+    // BT17-050 shape: the card carrying the pending effect is a digivolution card of one
+    // Digimon and is moved out from under it (placed under / played from the stack) before the
+    // effect activates. Same role, different permanent — still a new card (§15-4-4-3).
+    const host = makePermanent("host", "host-top");
+    const other = makePermanent("other", "other-top");
+    host.stack.push({ instanceId: "parasite" });
+    const board = [host, other];
+    const resolvedKeys: string[] = [];
+
+    const mover = fakeEffect("mover", {
+      onResolve: () => {
+        resolvedKeys.push("mover");
+        host.stack = host.stack.filter((c) => c.instanceId !== "parasite");
+        other.stack.push({ instanceId: "parasite" });
+      },
+    });
+    // Inherited: the kernel placement guard accepts a digivolution card as its source, so the
+    // only thing that can retire this effect is the identity change.
+    const pending = { ...fakeEffect("pending", { onResolve: () => resolvedKeys.push("pending") }), isInherited: true };
+    const collectable: CollectedEffect[] = [
+      { source: sourceOnBoard(0, "mover-card", () => board), effect: mover },
+      { source: sourceOnBoard(0, "parasite", () => board), effect: pending },
+    ];
+
+    const { env } = envOver([], { collect: () => collectable, makeContext: digimonHostContext });
+    await resolveTiming(EffectTiming.OnDestroyedAnyone, env);
+
+    expect(resolvedKeys).toEqual(["mover"]);
+  });
+
+  it("keeps an inherited effect pending while its own permanent's stack grows", async () => {
+    // The Q2738 nuance in reverse: an inherited effect's source is a digivolution card from the
+    // start, and digivolving the host again leaves it exactly that. Its identity is unchanged,
+    // so the pending inherited effect still activates.
+    const permanent = makePermanent("p1", "top-a");
+    permanent.stack.push({ instanceId: "inherited-card" });
+    const board = [permanent];
+    const resolvedKeys: string[] = [];
+
+    const digivolve = fakeEffect("digivolve", {
+      onResolve: () => {
+        resolvedKeys.push("digivolve");
+        permanent.stack.push({ instanceId: "top-a" });
+        permanent.topCard = { instanceId: "top-b" };
+      },
+    });
+    const inherited = {
+      ...fakeEffect("inherited", { onResolve: () => resolvedKeys.push("inherited") }),
+      isInherited: true,
+    };
+    const collectable: CollectedEffect[] = [
+      { source: sourceOnBoard(0, "top-a", () => board), effect: digivolve },
+      { source: sourceOnBoard(0, "inherited-card", () => board), effect: inherited },
+    ];
+
+    const { env } = envOver([], { collect: () => collectable, makeContext: digimonHostContext });
+    await resolveTiming(EffectTiming.OnUseAttack, env);
+
+    expect(resolvedKeys).toEqual(["digivolve", "inherited"]);
+  });
+
+  it("still collects the NEW top card's trigger after a mid-window digivolution", async () => {
+    // The new top card was never collected under the old identity, so it records its own on the
+    // pass it first appears and resolves normally.
+    const permanent = makePermanent("p1", "top-a");
+    const board = [permanent];
+    const resolvedKeys: string[] = [];
+
+    const digivolve = fakeEffect("digivolve", {
+      onResolve: () => {
+        resolvedKeys.push("digivolve");
+        permanent.stack.push({ instanceId: "top-a" });
+        permanent.topCard = { instanceId: "top-b" };
+      },
+    });
+    const whenDigivolving = fakeEffect("whenDigivolving", { onResolve: () => resolvedKeys.push("whenDigivolving") });
+    const collectable: CollectedEffect[] = [{ source: sourceOnBoard(0, "top-a", () => board), effect: digivolve }];
+
+    const { env } = envOver([], {
+      collect: () =>
+        permanent.topCard?.instanceId === "top-b"
+          ? [...collectable, { source: sourceOnBoard(0, "top-b", () => board), effect: whenDigivolving }]
+          : collectable,
+    });
+    await resolveTiming(EffectTiming.OnUseAttack, env);
+
+    expect(resolvedKeys).toEqual(["digivolve", "whenDigivolving"]);
+  });
+
+  it("leaves a linked card's pending effect alone when an unrelated permanent changes", async () => {
+    const linkHost = makePermanent("host", "host-top");
+    linkHost.linked.push({ instanceId: "link-card" });
+    const elsewhere = makePermanent("elsewhere", "elsewhere-top");
+    const board = [linkHost, elsewhere];
+    const resolvedKeys: string[] = [];
+
+    const unrelated = fakeEffect("unrelated", {
+      onResolve: () => {
+        resolvedKeys.push("unrelated");
+        elsewhere.stack.push({ instanceId: "elsewhere-top" });
+        elsewhere.topCard = { instanceId: "elsewhere-new-top" };
+      },
+    });
+    const linked = { ...fakeEffect("linked", { onResolve: () => resolvedKeys.push("linked") }), isLinked: true };
+    const collectable: CollectedEffect[] = [
+      { source: sourceOnBoard(0, "elsewhere-top", () => board), effect: unrelated },
+      { source: sourceOnBoard(0, "link-card", () => board), effect: linked },
+    ];
+
+    const { env } = envOver([], { collect: () => collectable, makeContext: digimonHostContext });
+    await resolveTiming(EffectTiming.OnDestroyedAnyone, env);
+
+    expect(resolvedKeys).toEqual(["unrelated", "linked"]);
+  });
+
+  it("does not mark the running effect departed when its own body re-hosts its source card", async () => {
+    // BT17-050's own [End of Attack] "place this card under another Digimon": the effect that is
+    // executing may move its own source. `inProgress` keeps that from retiring it mid-body, and
+    // the other pending effect on the same board is unaffected.
+    const from = makePermanent("from", "self-mover");
+    const to = makePermanent("to", "to-top");
+    const board = [from, to];
+    const resolvedKeys: string[] = [];
+
+    const selfMove = fakeEffect("selfMove", {
+      onResolve: async (ctx) => {
+        resolvedKeys.push("selfMove:start");
+        delete from.topCard;
+        to.stack.push({ instanceId: "self-mover" });
+        await ctx.drainCurrentTimingWindow?.();
+        resolvedKeys.push("selfMove:end");
+      },
+    });
+    const other = fakeEffect("other", { onResolve: () => resolvedKeys.push("other") });
+    const collectable: CollectedEffect[] = [
+      { source: sourceOnBoard(0, "self-mover", () => board), effect: selfMove },
+      { source: sourceOnBoard(0, "to-top", () => board), effect: other },
+    ];
+
+    const { env } = envOver([], { collect: () => collectable });
+    await resolveTiming(EffectTiming.OnEndAttack, env);
+
+    expect(resolvedKeys).toEqual(["selfMove:start", "other", "selfMove:end"]);
   });
 });

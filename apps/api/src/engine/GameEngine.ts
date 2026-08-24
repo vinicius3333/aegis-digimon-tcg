@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import type { Client } from "colyseus";
 import {
   CardKind,
@@ -66,7 +67,12 @@ import {
   type ActivateEffectIntent,
   type ActivateEffectDeps,
 } from "./actions/activateEffect.js";
-import { createPrimitives, ModifierLedger, dnaDigivolveCostFor } from "./effects/primitives.js";
+import {
+  createPrimitives,
+  ModifierLedger,
+  dnaDigivolveCostFor,
+  rootZoneOfLooseInstance,
+} from "./effects/primitives.js";
 import { ContinuousEffectLedger, effectiveColors, effectiveKinds, effectiveTraits } from "./effects/continuous.js";
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
@@ -264,6 +270,47 @@ interface ArmedSubTrigger {
    * already activated (KB Q2611/Q2629).
    */
   contextAtFireTime: () => EffectContext | undefined;
+}
+
+/** One deletion a rule-check sweep performed, held until the whole pass can react to it. */
+interface PooledRuleDeletion {
+  trigger: TriggerInfo;
+  ascensionCandidates: { instanceId: string; seat: Seat }[];
+}
+
+/**
+ * Fuse a rule-check pass's pooled deletions into the ONE trigger the pass's single
+ * [On Deletion] window runs on. The card sets are unioned because the window admits its
+ * candidates by them; the scalars keep the first pooled value, since a pass produces one
+ * cause (`byRule`) and the fields naming "the deleted permanent" describe a batch that is
+ * now the whole pass. `deletedByDpZero` is already a per-batch "any of them" flag inside a
+ * single sweep, and stays one across the pass; `deletedByDpZeroInstanceIds` carries the
+ * per-card truth an effect needs.
+ */
+function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDeletion {
+  const merged = pool.reduce<TriggerInfo>((into, { trigger }) => {
+    const union = (
+      key:
+        | "deletedInstanceIds"
+        | "deletedWasStackInstanceIds"
+        | "deletedWasLinkedInstanceIds"
+        | "deletedByDpZeroInstanceIds",
+    ): string[] => [...(into[key] ?? []), ...(trigger[key] ?? [])];
+    return {
+      ...trigger,
+      ...into,
+      deletedInstanceIds: union("deletedInstanceIds"),
+      deletedWasStackInstanceIds: union("deletedWasStackInstanceIds"),
+      deletedWasLinkedInstanceIds: union("deletedWasLinkedInstanceIds"),
+      deletedByDpZeroInstanceIds: union("deletedByDpZeroInstanceIds"),
+      deletedByDpZero: into.deletedByDpZero === true || trigger.deletedByDpZero === true,
+      deletedEffectiveColorsByInstanceId: {
+        ...trigger.deletedEffectiveColorsByInstanceId,
+        ...into.deletedEffectiveColorsByInstanceId,
+      },
+    };
+  }, {});
+  return { trigger: merged, ascensionCandidates: pool.flatMap((entry) => entry.ascensionCandidates) };
 }
 
 export class GameEngine {
@@ -465,6 +512,52 @@ export class GameEngine {
   private continuousMode = false;
   /** Guards against re-entrant continuous recomputes (a static effect that itself recomputes). */
   private recomputing = false;
+
+  /**
+   * Cards linked since the last over-limit rule check (fed by the link verb through
+   * `PrimitivesEngine.noteLinked`). Comprehensive Rules §4-9-5 trashes EXISTING link cards
+   * "at the same time as the newly linked cards", so {@link chooseExcessLinkCards} keeps
+   * these out of the candidate pool. Cleared by that sweep, which is the moment the rule is
+   * applied.
+   */
+  private readonly justLinked = new Set<string>();
+
+  /**
+   * Which tier the code running RIGHT HERE belongs to, carried down the async call chain
+   * rather than held in a field ({@link continuousMode}).
+   *
+   * `continuousMode` alone cannot answer the question once two flows interleave: a
+   * recompute is a long `await` chain, and a timing window resolving concurrently with it
+   * (a play whose trailing recompute is still in flight while the next window opens) would
+   * read the recompute's flag and tag its own one-shot modifiers `continuous` — the next
+   * recompute clears that tier and the "for the turn" DP grant vanishes the instant it
+   * lands. A flag flipped around the window instead has the mirror failure: the recompute's
+   * own statics would stop being tagged and accumulate forever. Only per-flow state
+   * separates them, which is what this store is.
+   *
+   * `undefined` (no enclosing scope) falls back to the field, so paths that never enter
+   * either scope behave exactly as before.
+   */
+  private readonly continuousScope = new AsyncLocalStorage<boolean>();
+
+  /**
+   * Run a TRIGGERED effect body outside the continuous tier.
+   *
+   * A triggered, duration-scoped effect is never a continuous one (Comprehensive Rules
+   * §15-8-2: persistent effects are the ones "constantly activated without being
+   * triggered"), so nothing it records may carry the `continuous` tag. This holds even
+   * when the body was reached FROM a recompute — a watcher discovered while the engine was
+   * re-deriving statics (BT8-081's inherited Digi-Burst reaction) — and when a recompute
+   * starts elsewhere while the body is mid-await.
+   */
+  private withTriggeredMutations<T>(body: () => Promise<T>): Promise<T> {
+    return this.continuousScope.run(false, body);
+  }
+
+  /** Whether what is being recorded right here belongs to the continuous tier. */
+  private inContinuousPass(): boolean {
+    return this.continuousScope.getStore() ?? this.continuousMode;
+  }
   /** Trigger payload for the timing window currently resolving. */
   /** Transient security-DP modifiers during an active security check. */
   private readonly securityDp = new SecurityDpLedger();
@@ -745,10 +838,13 @@ export class GameEngine {
         },
       },
       controllerSeat: () => this.state.turnSeat,
-      inContinuousPass: () => this.continuousMode,
+      inContinuousPass: () => this.inContinuousPass(),
       inResolvingWindow: () => this.activeWindowToken !== undefined,
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
+      noteLinked: (instanceIds) => {
+        for (const instanceId of instanceIds) this.justLinked.add(instanceId);
+      },
     });
   }
 
@@ -1723,18 +1819,31 @@ export class GameEngine {
    * so every caller (turn machine, actions, security check) shares one seam.
    */
   private async fireTiming(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
-    // A deletion caused during another effect only TRIGGERS [On Deletion] at that point.
-    // Activation waits until the causing effect has finished (§15-4-4). Re-collecting at
-    // flush time also enforces §15-4-4-3: if that card left trash meanwhile, its pending
-    // effect can no longer activate (BT26-016 Q6977).
-    if (
-      timing === EffectTiming.OnDestroyedAnyone &&
-      this.activeWindowToken !== undefined &&
-      !this.flushingDeferredTimingWindows
-    ) {
-      this.deferredTimingWindows.push({ timing, trigger: { ...trigger } });
-      return;
+    if (timing === EffectTiming.OnDestroyedAnyone) {
+      // Every deletion of ONE rule-check pass is simultaneous (§17-1-3), so its [On Deletion]
+      // effects join the pass's single pool instead of opening a window per sweep (§15-4-3-3).
+      if (this.ruleTriggerPool !== undefined) {
+        this.ruleTriggerPool.push({ trigger: { ...trigger }, ascensionCandidates: [] });
+        return;
+      }
+      // A deletion caused during another effect only TRIGGERS [On Deletion] at that point.
+      // Activation waits until the causing effect has finished (§15-4-4). Re-collecting at
+      // flush time also enforces §15-4-4-3: if that card left trash meanwhile, its pending
+      // effect can no longer activate (BT26-016 Q6977).
+      if (this.activeWindowToken !== undefined && !this.flushingDeferredTimingWindows) {
+        this.deferredTimingWindows.push({ timing, trigger: { ...trigger } });
+        return;
+      }
     }
+    await this.runTimingWindow(timing, trigger);
+  }
+
+  /**
+   * Resolve one timing window, past the deferral gates {@link fireTiming} applies. The
+   * pooled rule-check window calls this directly: at that point the fixpoint has converged
+   * and no card body is on the stack, so there is nothing left to defer behind.
+   */
+  private async runTimingWindow(timing: EffectTiming, trigger: TriggerInfo): Promise<void> {
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
@@ -1747,17 +1856,21 @@ export class GameEngine {
       //     opponent's turn" (EX3-069/EX4-058/EX4-071/EX6-070/BT16-084/BT16-085/BT16-088/
       //     BT17-025), both at the OnEndTurn window while `state.turnSeat` is still the ENDING
       //     player's seat, which is what `endOfOpponentTurnGate` reads.
-      const runWindow = async (): Promise<void> => {
-        await runTiming(
-          timing,
-          this.effectEnvironment(trigger),
-          this.resolutionDeps(undefined, { outermost: wasOutermostWindow }),
-        );
-        if (wasOutermostWindow) {
-          await this.flushDeferredTimingWindows();
-          await this.flushDeferredSecurityRemovalTriggers();
-        }
-      };
+      // Everything this window resolves is a TRIGGERED effect, so its mutations must not be
+      // tagged continuous even when a recompute is still in flight around it (see
+      // {@link withTriggeredMutations}).
+      const runWindow = async (): Promise<void> =>
+        this.withTriggeredMutations(async () => {
+          await runTiming(
+            timing,
+            this.effectEnvironment(trigger),
+            this.resolutionDeps(undefined, { outermost: wasOutermostWindow }),
+          );
+          if (wasOutermostWindow) {
+            await this.flushDeferredTimingWindows();
+            await this.flushDeferredSecurityRemovalTriggers();
+          }
+        });
       if (timing === EffectTiming.OnStartMainPhase) {
         await this.withPendingSubTriggers(["startOfYourMainPhase"], {}, runWindow);
       } else if (timing === EffectTiming.OnEndTurn) {
@@ -1778,11 +1891,24 @@ export class GameEngine {
    * Resolve the two trigger families created by one deletion. Ascension is deliberately
    * represented in the ordinary orderTriggers channel: if it resolves first, the card leaves
    * trash and the subsequent On Deletion collection correctly drops that pending effect (Q7100).
+   *
+   * `fire` opens the [On Deletion] window; the pooled rule-check flush substitutes the
+   * non-deferring runner so the whole pass resolves as one window.
    */
   private async resolveDeletionReactions(
     trigger: TriggerInfo,
     ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
+    fire: (deletionTrigger: TriggerInfo) => Promise<void> = (deletionTrigger) =>
+      this.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger),
   ): Promise<void> {
+    // A rule-check pass pools every deletion it performs, Ascension offer included, and
+    // resolves them as one simultaneous group once the fixpoint converges (§17-1-3,
+    // §15-4-3-3). Without this each sweep would resolve its own [On Deletion] effects
+    // before the next sweep even ran.
+    if (this.ruleTriggerPool !== undefined) {
+      this.ruleTriggerPool.push({ trigger: { ...trigger }, ascensionCandidates: [...ascensionCandidates] });
+      return;
+    }
     const ascend = async ({ instanceId, seat }: { instanceId: string; seat: Seat }): Promise<void> => {
       if (this.findLooseInstance(instanceId) === undefined) return;
       const response = await this.decisions.request({
@@ -1801,7 +1927,7 @@ export class GameEngine {
       return card !== undefined && definitionOf(card).effectText?.includes("[On Deletion]") === true;
     });
     if (candidate === undefined) {
-      await this.fireTiming(EffectTiming.OnDestroyedAnyone, trigger);
+      await fire(trigger);
       for (const pending of ascensionCandidates) await ascend(pending);
       return;
     }
@@ -1816,7 +1942,7 @@ export class GameEngine {
     });
     const ascensionFirst = response.kind === "orderTriggers" && response.order[0] === ascensionKey;
     if (ascensionFirst) await ascend(candidate);
-    await this.fireTiming(EffectTiming.OnDestroyedAnyone, trigger);
+    await fire(trigger);
     if (!ascensionFirst) await ascend(candidate);
     for (const pending of ascensionCandidates) {
       if (pending.instanceId !== candidate.instanceId) await ascend(pending);
@@ -1907,12 +2033,9 @@ export class GameEngine {
       return;
     }
     // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
-    // discovered while the engine was re-deriving continuous effects. Do not let primitives
-    // tag the body's mutations as continuous: the trailing recompute would otherwise clear a
-    // "for the turn" DP grant immediately (BT8-081's inherited Digi-Burst reaction).
-    const wasContinuousMode = this.continuousMode;
-    this.continuousMode = false;
-    try {
+    // discovered while the engine was re-deriving continuous effects (see
+    // {@link withTriggeredMutations}).
+    await this.withTriggeredMutations(async () => {
       // One event can arm SEVERAL watchers at once: two copies of Xeno EX11-066 both watch
       // "when your Digimon digivolves", and a link operation arms both the recipient's watchers
       // and the newly linked card's [When Linking] face. Simultaneous triggers of one player are
@@ -1946,9 +2069,7 @@ export class GameEngine {
           (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
         );
       }
-    } finally {
-      this.continuousMode = wasContinuousMode;
-    }
+    });
     // A watcher body may have moved/deleted permanents; refresh the continuous tier so a
     // subsequent read sees the post-fire board (mirrors fireTiming's trailing recompute).
     await this.recomputeContinuousEffects();
@@ -2173,6 +2294,11 @@ export class GameEngine {
       return this.buildEffectContext(this.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
     }
     if (sub.sourceInstanceId !== undefined) {
+      // `findLooseInstance` searches EVERY zone, so the zone recorded at install time is the
+      // only thing keeping a trash/hand/security watcher from firing after its card moved
+      // (CR §15-4-4-3; KB Q2671, Q2805). Checked before the lookup so a security card flipped
+      // face-down — which `findLooseInstance` simply stops seeing — still latches as departed.
+      if (this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
       const loose = this.findLooseInstance(sub.sourceInstanceId);
       if (loose === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(loose), payload);
@@ -2181,6 +2307,30 @@ export class GameEngine {
       return { ...sub.activationContext, trigger: payload, selections: new Map() };
     }
     return undefined;
+  }
+
+  /**
+   * Has this loose-anchored watcher's source card left the root zone it was installed from?
+   * CR §15-4-4-3 (KB Q2671, Q2805): the card must still be in the trash, still in the hand, or
+   * still in security AND face-up — otherwise the pending effect can no longer activate.
+   *
+   * Only a zone-resident watcher carries a recorded zone (see `SubTriggerSubscription`'s
+   * `sourceRootZone`); everything else is never dropped by this check — an already-activated
+   * effect's one-shot consequence (Q1495), a source in no nameable zone (§9-1-4), and a
+   * permanent-anchored watcher, whose lifecycle `dropPermanent` already owns.
+   *
+   * Departure LATCHES: once observed, the watcher stays dead even if the card returns, so a
+   * trash -> hand -> trash round trip inside one window cannot revive it (§15-4-4-3) — the same
+   * one-way semantics as `everCollected`/`departed` in `effects/stack.ts`. Like those sets, this
+   * can only observe moves that happen BETWEEN context builds: a move made and undone inside a
+   * single effect body is invisible to it (see the note in `stack.test.ts`).
+   */
+  private looseSourceLeftInstallZone(sub: SubTriggerSubscription, sourceInstanceId: string): boolean {
+    if (sub.sourceRootZone === undefined) return false;
+    if (sub.sourceRootZoneDeparted === true) return true;
+    if (rootZoneOfLooseInstance(this.state, sourceInstanceId) === sub.sourceRootZone) return false;
+    sub.sourceRootZoneDeparted = true;
+    return true;
   }
 
   /**
@@ -2248,107 +2398,10 @@ export class GameEngine {
       chooseOption: async () => 0,
     };
     try {
-      this.modifiers.clearContinuous(this.state);
-      this.continuous.clearContinuous();
-      this.memory.clearTurnEndMinMemoryOverrides();
-      // The SubTrigger registry holds CONTINUOUS Static/[Breeding] Replacement (reduceCost) and
-      // SubTrigger watcher installs, re-derived each recompute alongside the other continuous
-      // tiers. Clear them here so a `Static` reduceCost re-installs exactly once per recompute
-      // (CR-01) rather than accumulating to N, 2N, 3N… across the multiple recomputes per turn.
-      // One-shot installs from triggered windows (BT23-056's granted timed trigger) carry no
-      // `continuous` flag and survive.
-      this.subTriggers.clearContinuous();
-      this.deletionMaxDp.clear();
-      this.dpDeleteBudget.clear();
-      // The security-DP ledger holds the CONTINUOUS ModifySecurityDP deltas (ST3-12's
-      // [Opponent's Turn] +2000), re-derived each recompute alongside the other continuous
-      // tiers. Clear it here so a re-fire under the [Opponent's Turn] guard re-applies the
-      // delta exactly once (IR-01) rather than accumulating across recomputes.
-      this.securityDp.clearContinuous();
-
-      const continuousEffects: { source: CardSource; effect: Effect }[] = [];
-      for (const instance of this.listCandidateInstances()) {
-        const source = this.cardSourceOf(instance);
-        for (const effect of effectsOf(EffectTiming.None, source)) {
-          continuousEffects.push({ source, effect });
-        }
-      }
-      continuousEffects.sort(
-        (left, right) => (left.effect.continuousPriority ?? 0) - (right.effect.continuousPriority ?? 0),
-      );
-      for (const { source, effect } of continuousEffects) {
-        const ctx = this.buildEffectContext(source, {}, noPromptAsk);
-        // Persistent effects re-apply whenever their guard holds; canTrigger here is
-        // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
-        if (!canTrigger(effect, ctx, this.tracker)) continue;
-        if (!canActivate(effect, ctx, this.tracker)) continue;
-        await effect.resolve(ctx);
-      }
-      // A GrantStatic "gain all effects" source is established during the base static pass.
-      // Its conferred card can itself have an [All Turns]/Static watcher (EX3-013 under
-      // BT12-072), so resolve those newly-visible continuous effects in the same recompute.
-      // Triggered timings already use collectConferredEffects through the normal resolver;
-      // without this companion pass only their discrete effects existed, while leave
-      // replacements silently failed to install.
-      const candidates = this.listCandidateInstances();
-      const sourceByInstanceId = new Map(
-        candidates.map((instance) => [instance.instanceId, this.cardSourceOf(instance)] as const),
-      );
-      const conferredContinuous = collectConferredEffects(
-        EffectTiming.None,
-        this.continuous.listStackEffectConferrals(),
-        (instanceId) => sourceByInstanceId.get(instanceId),
-        (source, effect, conferredToPermanentId) => ({
-          ...this.buildEffectContext(source, {}, noPromptAsk),
-          activeTiming: EffectTiming[EffectTiming.None],
-          activeEffectText: effect.description,
-          conferredToPermanentId,
-        }),
-        this.tracker,
-      );
-      for (const { source, effect, conferredToPermanentId } of conferredContinuous) {
-        const ctx: EffectContext = {
-          ...this.buildEffectContext(source, {}, noPromptAsk),
-          activeTiming: EffectTiming[EffectTiming.None],
-          activeEffectText: effect.description,
-          conferredToPermanentId,
-        };
-        await effect.resolve(ctx);
-      }
-      // Named custom effect grants ("1 of your opponent's Digimon gains '[All Turns] When this
-      // Digimon becomes suspended, lose 2 memory.'"). Discrete timings already reach these through
-      // gatherTriggeredEffects -> collectGrantedCustomEffects, but a granted [All Turns]/Static
-      // clause lives in the CONTINUOUS window: its SubTrigger/Replacement watcher has to be
-      // installed by this pass or it is never armed at all. Without this the grant is recorded in
-      // the ledger, reads as active on the board, and silently never fires.
-      const grantedContinuous = collectGrantedCustomEffects(
-        EffectTiming.None,
-        this.continuous.listCustomEffectGrants(),
-        (instanceId) => sourceByInstanceId.get(instanceId),
-        (token, source) => grantedTokenEffectsForTiming(token, EffectTiming.None, source),
-        (source, effect) => ({
-          ...this.buildEffectContext(source, {}, noPromptAsk),
-          activeTiming: EffectTiming[EffectTiming.None],
-          activeEffectText: effect.description,
-        }),
-        this.tracker,
-      );
-      for (const { source, effect } of grantedContinuous) {
-        const ctx: EffectContext = {
-          ...this.buildEffectContext(source, {}, noPromptAsk),
-          activeTiming: EffectTiming[EffectTiming.None],
-          activeEffectText: effect.description,
-        };
-        if (!canActivate(effect, ctx, this.tracker)) continue;
-        await effect.resolve(ctx);
-      }
-
-      // BT23-024 suspend-restriction-with-superlative-exception: for every ARMED source, re-derive
-      // the affected opponent set (all opponent Digimon MINUS the highest-play-cost one) and record
-      // a CONTINUOUS `suspend` restriction per affected permanent. Done here (not in a card's
-      // resolve) because the exempt set is a computed exclusion over the live board, recomputed each
-      // pass so it tracks plays/digivolves/removals (KB Q5250/Q5252; Q6025/Q6026 all-restricted).
-      this.applySuspendRestrictionRecompute();
+      // Everything this pass records is a continuous effect, and the tier tag has to follow
+      // THIS async chain: a timing window resolving concurrently (a play whose trailing
+      // recompute is still in flight) must not read the tag from a shared field.
+      await this.continuousScope.run(true, () => this.runContinuousPass(noPromptAsk));
     } finally {
       this.continuousMode = false;
       this.recomputing = false;
@@ -2357,6 +2410,116 @@ export class GameEngine {
     this.syncKeywords();
     this.syncAttackTargets();
     this.syncHandAffordances();
+  }
+
+  /**
+   * The body of one continuous recompute: clear the continuous tier of every ledger, then
+   * re-fire the persistent (`EffectTiming.None`) effects, the effects conferred by a
+   * "gains all effects" grant, and the named custom-effect grants. Always run inside the
+   * continuous scope (see {@link recomputeContinuousEffects}).
+   */
+  private async runContinuousPass(noPromptAsk: DecisionApi): Promise<void> {
+    this.modifiers.clearContinuous(this.state);
+    this.continuous.clearContinuous();
+    this.memory.clearTurnEndMinMemoryOverrides();
+    // The SubTrigger registry holds CONTINUOUS Static/[Breeding] Replacement (reduceCost) and
+    // SubTrigger watcher installs, re-derived each recompute alongside the other continuous
+    // tiers. Clear them here so a `Static` reduceCost re-installs exactly once per recompute
+    // (CR-01) rather than accumulating to N, 2N, 3N… across the multiple recomputes per turn.
+    // One-shot installs from triggered windows (BT23-056's granted timed trigger) carry no
+    // `continuous` flag and survive.
+    this.subTriggers.clearContinuous();
+    this.deletionMaxDp.clear();
+    this.dpDeleteBudget.clear();
+    // The security-DP ledger holds the CONTINUOUS ModifySecurityDP deltas (ST3-12's
+    // [Opponent's Turn] +2000), re-derived each recompute alongside the other continuous
+    // tiers. Clear it here so a re-fire under the [Opponent's Turn] guard re-applies the
+    // delta exactly once (IR-01) rather than accumulating across recomputes.
+    this.securityDp.clearContinuous();
+
+    const continuousEffects: { source: CardSource; effect: Effect }[] = [];
+    for (const instance of this.listCandidateInstances()) {
+      const source = this.cardSourceOf(instance);
+      for (const effect of effectsOf(EffectTiming.None, source)) {
+        continuousEffects.push({ source, effect });
+      }
+    }
+    continuousEffects.sort(
+      (left, right) => (left.effect.continuousPriority ?? 0) - (right.effect.continuousPriority ?? 0),
+    );
+    for (const { source, effect } of continuousEffects) {
+      const ctx = this.buildEffectContext(source, {}, noPromptAsk);
+      // Persistent effects re-apply whenever their guard holds; canTrigger here is
+      // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
+      if (!canTrigger(effect, ctx, this.tracker)) continue;
+      if (!canActivate(effect, ctx, this.tracker)) continue;
+      await effect.resolve(ctx);
+    }
+    // A GrantStatic "gain all effects" source is established during the base static pass.
+    // Its conferred card can itself have an [All Turns]/Static watcher (EX3-013 under
+    // BT12-072), so resolve those newly-visible continuous effects in the same recompute.
+    // Triggered timings already use collectConferredEffects through the normal resolver;
+    // without this companion pass only their discrete effects existed, while leave
+    // replacements silently failed to install.
+    const candidates = this.listCandidateInstances();
+    const sourceByInstanceId = new Map(
+      candidates.map((instance) => [instance.instanceId, this.cardSourceOf(instance)] as const),
+    );
+    const conferredContinuous = collectConferredEffects(
+      EffectTiming.None,
+      this.continuous.listStackEffectConferrals(),
+      (instanceId) => sourceByInstanceId.get(instanceId),
+      (source, effect, conferredToPermanentId) => ({
+        ...this.buildEffectContext(source, {}, noPromptAsk),
+        activeTiming: EffectTiming[EffectTiming.None],
+        activeEffectText: effect.description,
+        conferredToPermanentId,
+      }),
+      this.tracker,
+    );
+    for (const { source, effect, conferredToPermanentId } of conferredContinuous) {
+      const ctx: EffectContext = {
+        ...this.buildEffectContext(source, {}, noPromptAsk),
+        activeTiming: EffectTiming[EffectTiming.None],
+        activeEffectText: effect.description,
+        conferredToPermanentId,
+      };
+      await effect.resolve(ctx);
+    }
+    // Named custom effect grants ("1 of your opponent's Digimon gains '[All Turns] When this
+    // Digimon becomes suspended, lose 2 memory.'"). Discrete timings already reach these through
+    // gatherTriggeredEffects -> collectGrantedCustomEffects, but a granted [All Turns]/Static
+    // clause lives in the CONTINUOUS window: its SubTrigger/Replacement watcher has to be
+    // installed by this pass or it is never armed at all. Without this the grant is recorded in
+    // the ledger, reads as active on the board, and silently never fires.
+    const grantedContinuous = collectGrantedCustomEffects(
+      EffectTiming.None,
+      this.continuous.listCustomEffectGrants(),
+      (instanceId) => sourceByInstanceId.get(instanceId),
+      (token, source) => grantedTokenEffectsForTiming(token, EffectTiming.None, source),
+      (source, effect) => ({
+        ...this.buildEffectContext(source, {}, noPromptAsk),
+        activeTiming: EffectTiming[EffectTiming.None],
+        activeEffectText: effect.description,
+      }),
+      this.tracker,
+    );
+    for (const { source, effect } of grantedContinuous) {
+      const ctx: EffectContext = {
+        ...this.buildEffectContext(source, {}, noPromptAsk),
+        activeTiming: EffectTiming[EffectTiming.None],
+        activeEffectText: effect.description,
+      };
+      if (!canActivate(effect, ctx, this.tracker)) continue;
+      await effect.resolve(ctx);
+    }
+
+    // BT23-024 suspend-restriction-with-superlative-exception: for every ARMED source, re-derive
+    // the affected opponent set (all opponent Digimon MINUS the highest-play-cost one) and record
+    // a CONTINUOUS `suspend` restriction per affected permanent. Done here (not in a card's
+    // resolve) because the exempt set is a computed exclusion over the live board, recomputed each
+    // pass so it tracks plays/digivolves/removals (KB Q5250/Q5252; Q6025/Q6026 all-restricted).
+    this.applySuspendRestrictionRecompute();
   }
 
   /**
@@ -3269,6 +3432,17 @@ export class GameEngine {
   private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo }[] = [];
 
   /**
+   * The deletions a rule-check fixpoint has performed but not yet reacted to, or `undefined`
+   * outside a fixpoint. Set for the whole pass, so every sweep's `deletePermanent` collects
+   * its [On Deletion] triggers here instead of resolving them (see
+   * {@link resolveDeletionReactions}); {@link flushRuleTriggerPool} then opens ONE window
+   * over the merged set. Rule checks are simultaneous (§17-1-3), and the effects they
+   * trigger are simultaneous with each other too (§15-4-3-3), which is only observable if
+   * they reach one prompt — hence one pool, whatever order the sweeps ran in.
+   */
+  private ruleTriggerPool: PooledRuleDeletion[] | undefined = undefined;
+
+  /**
    * Defensive pass cap for the rule fixpoint, mirroring the resolver's
    * `MAX_RESOLUTION_PASSES`. Each pass strictly removes at least one permanent (a deleted
    * card cannot re-enter the same condition), so termination is structural; the cap only
@@ -3332,12 +3506,37 @@ export class GameEngine {
     // fireSubTrigger while `ruleProcessing` is still true, and enqueue the same item again
     // forever (BT25-084 / Q6399).
     if (this.ruleProcessing) return;
+    // Deletions performed by ANY sweep of this fixpoint collect here instead of resolving,
+    // so the whole pass produces one simultaneous trigger group (§17-1-3, §15-4-3-3).
+    const pool: PooledRuleDeletion[] = [];
+    this.ruleTriggerPool = pool;
+    try {
+      await this.runRuleProcessFixpoint();
+    } finally {
+      this.ruleTriggerPool = undefined;
+    }
+    if (this.state.gameOver) return;
+    await this.flushRuleTriggerPool(pool);
+  }
+
+  /**
+   * The `while (doRuleProcess())` fixpoint itself: run every sweep, pass after pass, until
+   * the board holds no rule violation. Returns without reacting to anything it removed —
+   * the pass's triggers are pooled (see {@link ruleTriggerPool}).
+   */
+  private async runRuleProcessFixpoint(): Promise<void> {
     let passes = 0;
     while (this.doRuleProcess()) {
       if (++passes > GameEngine.MAX_RULE_PROCESS_PASSES) {
         // CR 18-3-2: an infinite loop neither player can stop ends the game in a draw.
         // A non-converging state-based-action fixpoint is exactly that, so resolve the
         // match rather than throwing an error the players cannot act on.
+        //
+        // §18-3-3 (a player CAN stop it, so they declare a repeat count instead) has no
+        // application here: every sweep in this fixpoint is a mandatory rule check
+        // (§17-1-3) with no optional link and no player choice, so neither player has a
+        // stop ability inside the cycle. The stoppable case lives one tier out, in the
+        // resolver's timing window (effects/stack.ts), where optional effects exist.
         this.win.declareDraw("effect");
         return;
       }
@@ -3372,13 +3571,56 @@ export class GameEngine {
         this.ruleProcessing = false;
       }
     }
-    // Rule-produced triggers are pending until the complete state-based-action fixpoint
-    // finishes. Resolve them only now, when their sources and activation conditions can be
-    // revalidated against the post-rule board.
-    while (this.deferredRuleSubTriggers.length > 0) {
-      const pending = this.deferredRuleSubTriggers.shift()!;
-      await this.fireSubTrigger(pending.event, pending.payload);
+  }
+
+  /**
+   * React, ONCE, to everything the rule-check fixpoint just did: the pooled deletions of
+   * every sweep and the watcher events they raised, as a single simultaneous group.
+   *
+   * §17-1-3 makes rule-check processing simultaneous and §15-4-3-3 makes the effects it
+   * triggers simultaneous with each other; §15-4-3-4/-3-5 then have the turn player choose
+   * an activation order for their own group and exhaust it before the opponent's. The
+   * resolver already implements that ordering for one window, so the pass merges into one
+   * window: the deleted sets are unioned (the [On Deletion] gate admits candidates by
+   * `deletedInstanceIds`) and the deferred watchers ride along as pending triggers of the
+   * same window — the seam `withPendingSubTriggers` uses for every other event. Sweep order
+   * therefore stops being observable, which is why the sweeps keep their §17-1-3 order.
+   *
+   * The window runs through {@link runTimingWindow}: the fixpoint has converged and no card
+   * body is on the stack, so the §15-4-4 "wait for the causing effect" deferral has nothing
+   * left to wait for. Deletions caused INSIDE this window are ordinary derived triggers and
+   * take the normal deferral path again (the pool is already released).
+   */
+  private async flushRuleTriggerPool(pool: readonly PooledRuleDeletion[]): Promise<void> {
+    const watcherEvents = this.deferredRuleSubTriggers.splice(0);
+    if (pool.length === 0 && watcherEvents.length === 0) return;
+    const armed = watcherEvents.flatMap(({ event, payload }) =>
+      this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload),
+    );
+    const enclosing = this.pendingWindowSubTriggers;
+    this.pendingWindowSubTriggers = [...enclosing, ...armed];
+    // Raised for both branches below so a watcher this flush resolves is recorded as consumed
+    // and the trailing bus fire does not run it twice.
+    this.subTriggerWindowDepth += 1;
+    try {
+      if (pool.length === 0) {
+        // No deletion window to fold them into, but they are still one simultaneous group and
+        // must be ordered turn-player-first rather than drained in arrival order (§15-4-3-5).
+        await this.withTriggeredMutations(() => this.runSubTriggersInChosenOrder(armed));
+      } else {
+        const merged = mergeRuleDeletions(pool);
+        await this.resolveDeletionReactions(merged.trigger, merged.ascensionCandidates, (deletionTrigger) =>
+          this.runTimingWindow(EffectTiming.OnDestroyedAnyone, deletionTrigger),
+        );
+      }
+    } finally {
+      this.pendingWindowSubTriggers = enclosing;
+      this.subTriggerWindowDepth -= 1;
     }
+    // Whatever the window did not reach still activates, on the bus, under the ordinary
+    // ordering rules — the already-consumed watchers are skipped by identity.
+    for (const { event, payload } of watcherEvents) await this.fireSubTrigger(event, payload);
+    if (this.subTriggerWindowDepth === 0) this.consumedSubTriggerKeys.clear();
   }
 
   /**
@@ -3528,19 +3770,48 @@ export class GameEngine {
 
   /**
    * §17-1-3-2-5 process — trash only the EXCESS linked cards (beyond `linkMaxOf`) per
-   * Digimon, not the whole permanent. The rule specifies a count, not an order; absent an
-   * ordering rule this trims from the end of `linked` (the most-recently-linked cards).
+   * Digimon, not the whole permanent. The rule fixes the COUNT and the controller picks
+   * WHICH (Q6370, BT25-075: "The link cards to trash are chosen by the player"), so each
+   * over-linked Digimon's controller is prompted once.
    */
   private async trashExcessLinkCards(): Promise<void> {
     const toTrash: string[] = [];
     for (const permanent of this.battleAreaPermanents()) {
       const excess = permanent.linked.length - this.linkMaxOf(permanent);
-      for (let i = 0; i < excess; i++) {
-        const card = permanent.linked[permanent.linked.length - 1 - i];
-        if (card !== undefined) toTrash.push(card.instanceId);
-      }
+      if (excess > 0) toTrash.push(...(await this.chooseExcessLinkCards(permanent, excess)));
     }
+    this.justLinked.clear();
     if (toTrash.length > 0) await this.primitives.trash(toTrash);
+  }
+
+  /**
+   * Which of `permanent`'s link cards its controller gives up to bring the count back to the
+   * limit (Q6370, BT25-075: "The link cards to trash are chosen by the player"). A choice
+   * that is not a choice — every candidate has to go — resolves without a prompt. An answer
+   * that does not name exactly `excess` of the candidates cannot be honored without leaving
+   * the rule violated, so it falls back to the oldest link cards.
+   *
+   * §4-9-5 removes the just-linked cards from the choice: linking onto a Digimon already at
+   * its limit trashes "the same number of the EXISTING link cards", so the card that caused
+   * the overflow is never the one offered up. The other route to an over-limit permanent —
+   * the limit itself shrinking (Q6370's ＜Link +1＞ wearing off) — links nothing, so every
+   * card stays a candidate there and the player picks freely. The exclusion is dropped if it
+   * would leave too few candidates to satisfy the rule.
+   */
+  private async chooseExcessLinkCards(permanent: Permanent, excess: number): Promise<string[]> {
+    const linkedIds = permanent.linked.map((card) => card.instanceId);
+    const existing = linkedIds.filter((id) => !this.justLinked.has(id));
+    const candidates = existing.length >= excess ? existing : linkedIds;
+    if (excess >= candidates.length) return candidates;
+    const response = await this.decisions.request({
+      seat: permanent.controllerSeat,
+      kind: "selectCards",
+      promptText: `Choose ${excess} link card${excess === 1 ? "" : "s"} to trash.`,
+      options: { candidateInstanceIds: candidates, min: excess, max: excess },
+    });
+    const chosen =
+      response.kind === "selectCards" ? [...new Set(response.instanceIds)].filter((id) => candidates.includes(id)) : [];
+    return chosen.length === excess ? chosen : candidates.slice(candidates.length - excess);
   }
 
   /**

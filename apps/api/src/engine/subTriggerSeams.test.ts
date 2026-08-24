@@ -555,3 +555,262 @@ describe("under-Tamer trash reaction (ST23-14) — cards placed UNDER a Tamer sh
     expect(observedSubject).toBe(tamer.permanentId); // the Tamer is the subject => isSelfRef gate holds
   });
 });
+
+/**
+ * CR §15-4-4-3 location check for LOOSE-anchored watchers (KB Q2671 BT16-082, Q2805 BT17-050).
+ *
+ * A watcher whose only anchor is a `sourceInstanceId` resolves its firing context through
+ * `findLooseInstance`, which searches EVERY zone — so it used to keep firing after its source
+ * card had moved. `Primitives.subscribeSubTrigger` now records the source card's root zone at
+ * install time and `GameEngine.buildSubTriggerSourceContext` compares at activation time: trash
+ * residency, OR security residency AND face-up, OR hand residency.
+ *
+ * The shape under test is EX7-072 (Seventh Fascination): a `{Trash} [Your Turn]` clause installs
+ * a `whenOneOfYoursDigivolves` watcher; an earlier simultaneous trigger returns the card to the
+ * hand before the watcher's turn to activate comes up. Q5728 is why that kills it — "a {Trash}
+ * effect can be triggered/activated while its card is in the trash. Such effects can't be
+ * triggered or activated in areas other than the trash."
+ *
+ * Scope: the check covers CONTINUOUS installs only, which is exactly the zone-resident family a
+ * recompute re-derives. An already-activated effect's one-shot consequence is NOT zone-checked —
+ * BT6-111 / BT23-028 arm `whenSecurityBattleEnded` from a security card that has legitimately
+ * reached the trash by the time it fires (Q1495), and several such bodies then play that card
+ * back from the trash. Both families have cases below.
+ *
+ * These fire through `fireArmedSubTriggers` (no leading recompute) because the transition under
+ * test is what happens to an ALREADY-ARMED watcher when the board moves under it; a recompute
+ * would tear the subscription down and re-derive it, erasing the transition.
+ *
+ * FAILS-WHEN-REVERTED: drop the `looseSourceLeftInstallZone` guard in
+ * `buildSubTriggerSourceContext` => every moved-card case fires again => RED.
+ */
+describe("loose-anchored SubTrigger location check (CR §15-4-4-3)", () => {
+  const EVENT = "whenOneOfYoursDigivolves";
+
+  /**
+   * The watcher under test: EX7-072's shape. `continuous: true` is what makes it the
+   * zone-resident family — a `{Trash}` / `[Your Turn]` clause on a permanent-less card is
+   * re-derived by every continuous recompute, so the watcher it installs IS the effect's
+   * pending trigger (Q5728).
+   */
+  function residentWatcher(s: Setup, instanceId: string): { fires: () => number } {
+    let fireCount = 0;
+    primitivesOf(s).subscribeSubTrigger({
+      event: EVENT,
+      sourceInstanceId: instanceId,
+      once: false,
+      continuous: true,
+      run: async () => {
+        fireCount += 1;
+      },
+      description: "test: zone-resident loose watcher",
+    });
+    return { fires: () => fireCount };
+  }
+
+  /**
+   * An EARLIER simultaneous trigger of the same event whose body moves the board. Anchored to a
+   * battle-area permanent, so it is governed by `dropPermanent` and never zone-checked itself.
+   * Installed before the watcher under test, so the ordering prompt resolves it first.
+   */
+  function moverTrigger(s: Setup, hostPermanentId: string, body: () => Promise<void>): { fires: () => number } {
+    let fireCount = 0;
+    primitivesOf(s).subscribeSubTrigger({
+      event: EVENT,
+      sourcePermanentId: hostPermanentId,
+      once: true,
+      run: async () => {
+        fireCount += 1;
+        await body();
+      },
+      description: `test: earlier simultaneous trigger ${fireCount}`,
+    });
+    return { fires: () => fireCount };
+  }
+
+  it("EX7-072 shape: a watcher armed from the trash does NOT fire after an earlier trigger returns its card to hand", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const host = permanentOf("BT1-009", 0, 3000);
+    p0.battleArea.push(host);
+    const card = instance("BT1-009", 0, true);
+    p0.trash.push(card);
+
+    const mover = moverTrigger(s, host.permanentId, async () => {
+      await primitivesOf(s).returnToHand([card.instanceId]);
+    });
+    const watcher = residentWatcher(s, card.instanceId);
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(mover.fires()).toBe(1); // the earlier trigger did resolve and did move the card
+    expect(p0.hand.some((c) => c.instanceId === card.instanceId)).toBe(true);
+    expect(watcher.fires()).toBe(0); // Q2671: pending activation, card left the area => dead
+  });
+
+  it("blocks revival: a card that left its recorded zone stays dead after an earlier trigger returns it", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const host = permanentOf("BT1-009", 0, 3000);
+    p0.battleArea.push(host);
+    const card = instance("BT1-009", 0, true);
+    p0.trash.push(card);
+
+    // Two earlier simultaneous triggers: the first takes the card out of the trash, the second
+    // puts it back. The engine re-checks every still-pending watcher between resolutions
+    // (CR §15-4-4-5), so the departure is observed and latched in between.
+    moverTrigger(s, host.permanentId, async () => {
+      await primitivesOf(s).returnToHand([card.instanceId]);
+    });
+    moverTrigger(s, host.permanentId, async () => {
+      await primitivesOf(s).trash([card.instanceId]);
+    });
+    const watcher = residentWatcher(s, card.instanceId);
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(p0.trash.some((c) => c.instanceId === card.instanceId)).toBe(true); // it did come back
+    expect(watcher.fires()).toBe(0); // §15-4-4-3: the card that returned is a NEW card
+  });
+
+  it("security: a watcher armed from face-up security dies when its card is flipped face down", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const card = instance("BT1-009", 0, true); // face up: a revealed security card
+    p0.security.push(card);
+
+    const watcher = residentWatcher(s, card.instanceId);
+    card.faceUp = false; // residency alone is not enough — a face-down security card shows nothing
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(watcher.fires()).toBe(0);
+  });
+
+  it("security: a watcher armed from face-up security dies when its card leaves the stack", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const host = permanentOf("BT1-009", 0, 3000);
+    p0.battleArea.push(host);
+    const card = instance("BT1-009", 0, true);
+    p0.security.push(card);
+
+    // Moved by an earlier simultaneous trigger rather than before the fire: a bare verb call
+    // recomputes internally, which would drop the continuous subscription for an unrelated
+    // reason and prove nothing about the zone check.
+    const mover = moverTrigger(s, host.permanentId, async () => {
+      await primitivesOf(s).returnToHand([card.instanceId]);
+    });
+    const watcher = residentWatcher(s, card.instanceId);
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(mover.fires()).toBe(1);
+    expect(watcher.fires()).toBe(0);
+  });
+
+  it("regression: a trash-resident watcher whose card never moves still fires", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const card = instance("BT1-009", 0, true);
+    p0.trash.push(card);
+
+    const watcher = residentWatcher(s, card.instanceId);
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(watcher.fires()).toBe(1);
+  });
+
+  it("regression: a hand-resident watcher whose card never moves still fires", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const card = instance("BT1-009", 0, true);
+    p0.hand.push(card);
+
+    const watcher = residentWatcher(s, card.instanceId);
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(watcher.fires()).toBe(1);
+  });
+
+  it("BT6-111 shape: an ALREADY-ACTIVATED [Security] effect's one-shot still fires from the trash", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const card = instance("BT1-009", 0, true); // revealed face up during the security check
+    p0.security.push(card);
+
+    // A [Security] effect activates during the security check and arms its end-of-battle
+    // consequence. Q1495: "it activates at the end of the battle, regardless of outcome" — and
+    // by then the security card has legitimately gone to the trash, which is where BT23-028 and
+    // BT23-052 then play the card back from. NOT continuous: the effect has already activated,
+    // so Q2671's "pending activation" check must not reach it.
+    let fireCount = 0;
+    primitivesOf(s).subscribeSubTrigger({
+      event: EVENT,
+      sourceInstanceId: card.instanceId,
+      once: true,
+      run: async () => {
+        fireCount += 1;
+      },
+      description: "test: already-activated security consequence",
+    });
+
+    await primitivesOf(s).trash([card.instanceId]);
+    expect(p0.trash.some((c) => c.instanceId === card.instanceId)).toBe(true);
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(fireCount).toBe(1);
+  });
+
+  it("regression: a permanent-anchored watcher is untouched by the loose-zone check", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const host = permanentOf("BT1-009", 0, 3000);
+    p0.battleArea.push(host);
+
+    let fireCount = 0;
+    primitivesOf(s).subscribeSubTrigger({
+      event: EVENT,
+      sourcePermanentId: host.permanentId,
+      sourceInstanceId: host.topCard?.instanceId,
+      once: false,
+      continuous: true,
+      run: async () => {
+        fireCount += 1;
+      },
+      description: "test: permanent-anchored control",
+    });
+
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(fireCount).toBe(1); // lifecycle stays with dropPermanent, no zone recorded
+  });
+
+  it("regression: an activationContext-frozen watcher is untouched by the loose-zone check", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const card = instance("BT1-009", 0, true);
+    p0.trash.push(card);
+
+    // KB Q2591 (BT15-095): a player-scoped watcher keeps the context it was activated with.
+    // Not continuous — this shape is armed by a resolving [Main] effect, not re-derived.
+    let fireCount = 0;
+    primitivesOf(s).subscribeSubTrigger({
+      event: EVENT,
+      activationContext: { trigger: {}, fx: primitivesOf(s) } as unknown as EffectContext,
+      once: false,
+      run: async () => {
+        fireCount += 1;
+      },
+      description: "test: activationContext control",
+    });
+
+    await primitivesOf(s).returnToHand([card.instanceId]);
+    await advance(s.engine).fireArmedSubTriggers(EVENT);
+
+    expect(fireCount).toBe(1); // frozen context, deliberately zone-blind
+  });
+});

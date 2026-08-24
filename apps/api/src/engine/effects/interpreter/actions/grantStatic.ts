@@ -283,6 +283,22 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         for (const id of ids) ctx.fx.restrict(id, "cantBeBlocked", grantDuration);
         return false;
       }
+      // { keyword: "EndOfAttack", targetFilter: { keyword: "OnDeletion" } } (BT16-015 Phoenixmon
+      // (X Antibody)): "attach [End of Attack] to all of this Digimon's [On Deletion] effects".
+      // Not a keyword grant at all — a TIMING projection, so it is recorded on the continuous
+      // tier and the collector re-times the target's own and inherited [On Deletion] effects into
+      // the end-of-attack window (KB Q2614 reaches the inherited ones; Q2615 makes them lapse
+      // with the source clause).
+      if (
+        typeof action.grant === "object" &&
+        action.grant !== null &&
+        (action.grant as { keyword?: string }).keyword === "EndOfAttack" &&
+        (action.grant as { targetFilter?: { keyword?: string } }).targetFilter?.keyword === "OnDeletion"
+      ) {
+        const grantDuration = toDuration(action.duration ?? "forTheTurn");
+        for (const id of ids) ctx.fx.projectOnDeletionAtEndOfAttack?.(id, grantDuration);
+        return false;
+      }
       // { immunity: true } (BT17-016, EX7-034) / { immuneToOpponentEffects: true } (BT20-019):
       // blanket "isn't affected by your opponent's effects" — the same unqualified `beAffected`
       // restriction the dedicated `GrantImmunity` action installs (line ~4210 below).
