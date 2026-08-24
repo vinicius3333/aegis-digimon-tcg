@@ -91,6 +91,9 @@ const module: EffectModule = {
               event: "whenPlayed",
               sourcePermanentId: self.permanentId,
               once: false,
+              // "by suspending this Tamer" is unpayable while it is already suspended, so this
+              // copy must not join the ordering prompt when both Xenos watch the same event.
+              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
               description: `${cardId}: When Vemmon Digimon played, suspend + reveal + place under.`,
               matches: (subCtx) => {
                 const subjectId = subCtx.trigger?.subjectPermanentId;
@@ -149,6 +152,9 @@ const module: EffectModule = {
               event: "whenOneOfYoursDigivolves",
               sourcePermanentId: self.permanentId,
               once: false,
+              // "by suspending this Tamer" is unpayable while it is already suspended, so this
+              // copy must not join the ordering prompt when both Xenos watch the same event.
+              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
               description: `${cardId}: When Vemmon Digimon digivolves, suspend + reveal + place under.`,
               matches: (subCtx) => {
                 const subjectId = subCtx.trigger?.subjectPermanentId;
