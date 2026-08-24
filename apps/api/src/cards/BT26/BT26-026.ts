@@ -9,13 +9,20 @@ const glowingDawnOption = {
   nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
 };
 const useGlowingDawn = (cost) => ({
-  kind: "UseOptionWithoutCost",
-  filter: glowingDawnOption,
-  from: ["hand"],
-  payCost: true,
-  reduceCostBy: 2,
+  kind: "CostGatedBlock",
   cost,
   optional: true,
+  abortOnDecline: true,
+  actions: [
+    {
+      kind: "UseOptionWithoutCost",
+      filter: glowingDawnOption,
+      from: ["hand"],
+      payCost: true,
+      reduceCostBy: 2,
+      optional: true,
+    },
+  ],
 });
 
 export const compiled: CompiledCard = {
