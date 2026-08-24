@@ -2183,3 +2183,29 @@ for the individual evidence below.
   legality — 5/5; interpreter — 171/171; capabilities — 290/290; security activation — 2/2;
   shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-068 — Ruli Tsukiyono — 10/10
+
+- **Printed contract:** Green cost-4 NSp Tamer. Start of Your Turn sets memory to 3 when it is 2
+  or less. During Your Turn, an attack by an allied Digimon with Angoramon in its text or the NSp
+  trait lets Ruli suspend to choose exactly one mode: evolve that attacker into a matching
+  level-6-or-lower hand card with cost reduced by 1, or use a matching Option from hand with cost
+  reduced by 2. Security plays Ruli for free.
+- **KB evidence:** Q6873 gives the complete-text meaning of “Angoramon in its text.” Q6874 makes
+  the modal one activation/one selected card and prevents simultaneous copies from consuming the
+  same card twice. Q6875 preserves evolution requirements and makes cost-reduction prohibitions
+  remove only the discount.
+- **Corrections and proof:** the stale partial aggregate with `RawUnparsed` Option text was
+  replaced by the direct module's exact suspend-cost watcher and two-branch executable Modal;
+  coverage is full and residuals are empty. A real NSp attack evolves its exact attacker with
+  -1. BT10-044 has Angoramon in text but no NSp trait and still triggers, proving Q6873. Two Rulis
+  consume the sole evolution card only once for Q6874. With a play-cost reduction block, Pyon
+  Dump is still used and pays its full cost for Q6875. An illegal evolution stays in hand, the
+  normal Option branch applies its reduction, Security plays Ruli, and memory setting has both
+  threshold controls.
+- **Identity and verification:** catalog identity, all filters/costs/modal branches, security,
+  full coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality
+  are asserted. `EX12-068.test.ts` — 10/10; subtrigger seams — 22/22; effect-driven evolution
+  legality — 5/5; interpreter — 171/171; capabilities — 290/290; security activation — 2/2;
+  shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.

@@ -1,17 +1,16 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
-import "./EX12-068.js";
+import { compiled } from "./EX12-068.js";
 import "../index.js";
 
 const CARD_ID = "EX12-068";
 
 describe("EX12-068 Ruli Tsukiyono", () => {
   it("maps the catalog, KB-backed text filters, cost, modal branches, and security", () => {
-    const compiled = registeredCompiledCards.get(CARD_ID)!;
     const attack = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     const watcher = attack.actions[0]!;
     const modal = irNode(watcher).actions[0]!;
@@ -58,6 +57,8 @@ describe("EX12-068 Ruli Tsukiyono", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
+    expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("sets memory to 3 only when the controller starts at 2 or less", async () => {
@@ -101,6 +102,95 @@ describe("EX12-068 Ruli Tsukiyono", () => {
 
     expect(s.perm("ruli").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-051");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Q6873 matches Angoramon in text even without the NSp trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "ruli" },
+            { card: "BT10-044", as: "attacker" },
+          ],
+          hand: [{ card: "BT10-051", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "BT10-051");
+    expect(s.perm("ruli").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Q6874 two copies consume one selected evolution card only once", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "first" },
+            { card: CARD_ID, as: "second" },
+            { card: "EX12-050", as: "attacker" },
+          ],
+          hand: [{ card: "EX12-051", as: "onlyTarget" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        preferOptionIndex: 0,
+      },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "EX12-051");
+    expect(s.perm("attacker").stack.filter(({ cardId }) => cardId === "EX12-050")).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("Q6875 uses the Option at full cost when play-cost reductions are prohibited", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "ruli" },
+            { card: "EX12-050", as: "attacker" },
+          ],
+          hand: [{ card: "BT10-102", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addCostReductionBlock(0, "play", EffectDuration.UntilEachTurnEnd);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.every(({ instanceId }) => instanceId !== s.inst("option").instanceId));
+    expect(s.perm("ruli").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 
@@ -177,5 +267,17 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Ruli Tsukiyono",
+      colors: ["Green"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      dp: 0,
+      evoCosts: [],
+      types: ["NSp"],
+    });
   });
 });
