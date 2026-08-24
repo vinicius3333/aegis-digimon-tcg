@@ -358,6 +358,8 @@ export class GameEngine {
   private activeWindowToken: number | undefined = undefined;
   /** Async Main verbs accepted by the server but not yet fully resolved. */
   private mainVerbContinuationsInFlight = 0;
+  /** Nesting guard that defers state-based actions until a used Option finishes routing. */
+  private optionResolutionDepth = 0;
   /**
    * Tail of the serialized Main-verb chain: each accepted verb starts only once the
    * previous one has fully settled, so two effect resolutions are never in flight at
@@ -3399,7 +3401,7 @@ export class GameEngine {
         : {}),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,
-      ruleProcess: () => this.ruleProcess(),
+      ruleProcess: () => (this.optionResolutionDepth > 0 ? Promise.resolve() : this.ruleProcess()),
       isGameOver: () => this.state.gameOver,
       chooseOrder: (seat, active, timing) => this.resolverDecisions.chooseOrder(seat, active, timing),
       askOptional: (seat, collected) => this.resolverDecisions.askOptional(seat, collected),
@@ -3517,6 +3519,26 @@ export class GameEngine {
     }
     if (this.state.gameOver) return;
     await this.flushRuleTriggerPool(pool);
+  }
+
+  /**
+   * Run the movement half of a rule check while retaining its reactions for a later
+   * trigger window. Arts Digivolve needs this split: a Digimon reduced to 0 DP by the
+   * used Option is deleted after the digivolution placement, and that deletion's
+   * reactions trigger at the same time as the new card's [When Digivolving] effects
+   * (BT26-031 Q6998). The turn player's entry effects therefore resolve first, while
+   * the opponent's retained [On Deletion] reactions follow from the same checkpoint.
+   */
+  private async collectRuleProcessMovements(): Promise<PooledRuleDeletion[]> {
+    if (this.ruleProcessing || this.ruleTriggerPool !== undefined) return [];
+    const pool: PooledRuleDeletion[] = [];
+    this.ruleTriggerPool = pool;
+    try {
+      await this.runRuleProcessFixpoint();
+    } finally {
+      this.ruleTriggerPool = undefined;
+    }
+    return pool;
   }
 
   /**
@@ -4198,6 +4220,13 @@ export class GameEngine {
       },
       fireTiming: async (_state, _seat, timing, sourceInstanceId) =>
         this.firePlayEntryWindows(timing, sourceInstanceId),
+      beginOptionResolution: () => {
+        this.optionResolutionDepth += 1;
+      },
+      finishOptionResolution: async () => {
+        this.optionResolutionDepth = Math.max(0, this.optionResolutionDepth - 1);
+        if (this.optionResolutionDepth === 0) await this.ruleProcess();
+      },
       fireOptionUsed: async (usedInstanceId, usedOptionCost) =>
         this.primitives.fireOptionUsed(usedInstanceId, usedOptionCost),
       // CR §4-19 Arts Digivolve (Task 4): a rule on DUAL cards, not a per-card effect —
@@ -4238,9 +4267,15 @@ export class GameEngine {
     const target = eligible.find((p) => p.topCard?.instanceId === chosenInstanceId);
     if (target === undefined) return false;
 
+    let artsRulePool: PooledRuleDeletion[] = [];
     const result = await this.primitives.digivolveFromInstance(target.permanentId, instance.instanceId, {
       payCost: false,
+      beforeWhenDigivolving: async () => {
+        await this.recomputeContinuousEffects();
+        artsRulePool = await this.collectRuleProcessMovements();
+      },
     });
+    if (result !== undefined && !this.state.gameOver) await this.flushRuleTriggerPool(artsRulePool);
     return result !== undefined;
   }
 

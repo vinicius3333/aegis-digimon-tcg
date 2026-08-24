@@ -142,6 +142,10 @@ export interface PlayCardDeps {
    * (subsystems: effect-framework, effect-stack-resolution).
    */
   fireTiming(state: GameState, seat: Seat, timing: EffectTiming, sourceInstanceId: string): Promise<void>;
+  /** Defer rule processing until an Option has completed its trash/Arts/Delay routing. */
+  beginOptionResolution?(): void;
+  /** Release the Option-resolution deferral and run the pending rule-process fixpoint. */
+  finishOptionResolution?(): Promise<void>;
   /** Notify armed watchers after a genuine Option use finishes resolving its [Main] effect. */
   fireOptionUsed?(usedInstanceId: string, usedOptionCost?: number): Promise<void>;
   /**
@@ -410,65 +414,70 @@ export async function applyPlayCard(
   // card lands in trash even if the effect throws — a stranded instance would otherwise
   // sit outside every zone permanently.
   player.resolvingOption = instance;
+  deps.beginOptionResolution?.();
   let routedToTrash = false;
   try {
-    await deps.fireTiming(state, seat, ON_USE_OPTION_TIMING, instance.instanceId);
-  } finally {
-    // CR §4-19 Arts Digivolve: a rule on DUAL cards, not a per-card effect. It OVERWRITES
-    // the trash step below (§4-19-2), so it must be offered BEFORE that step, while the
-    // instance still sits in resolvingOption. A DUAL card resolved via its Option side may
-    // have one of the controller's permanents digivolve into it for free instead of
-    // trashing; `artsDigivolve` claims resolvingOption itself (the same removeLooseInstance
-    // path BT18-100's self-placement uses) when a permanent accepts.
-    if (player.resolvingOption === instance && definition.isDualCard) {
-      await deps.artsDigivolve?.(state, seat, instance, definition);
+    try {
+      await deps.fireTiming(state, seat, ON_USE_OPTION_TIMING, instance.instanceId);
+    } finally {
+      // CR §4-19 Arts Digivolve: a rule on DUAL cards, not a per-card effect. It OVERWRITES
+      // the trash step below (§4-19-2), so it must be offered BEFORE that step, while the
+      // instance still sits in resolvingOption. A DUAL card resolved via its Option side may
+      // have one of the controller's permanents digivolve into it for free instead of
+      // trashing; `artsDigivolve` claims resolvingOption itself (the same removeLooseInstance
+      // path BT18-100's self-placement uses) when a permanent accepts.
+      if (player.resolvingOption === instance && definition.isDualCard) {
+        await deps.artsDigivolve?.(state, seat, instance, definition);
+      }
+      // §9-1-5's exception: the effect (or Arts Digivolve, above) may have already placed the
+      // card in a real area itself (e.g. PlaceInBattleAreaSelf turning it into an option
+      // permanent, BT18-100) via `removeLooseInstance`, which claims resolvingOption and
+      // clears it when that happens. Only route it to trash here when nothing claimed it.
+      if (player.resolvingOption === instance) {
+        player.resolvingOption = undefined;
+        insertCard(player, Zone.Trash, instance);
+        routedToTrash = true;
+      }
     }
-    // §9-1-5's exception: the effect (or Arts Digivolve, above) may have already placed the
-    // card in a real area itself (e.g. PlaceInBattleAreaSelf turning it into an option
-    // permanent, BT18-100) via `removeLooseInstance`, which claims resolvingOption and
-    // clears it when that happens. Only route it to trash here when nothing claimed it.
-    if (player.resolvingOption === instance) {
-      player.resolvingOption = undefined;
-      insertCard(player, Zone.Trash, instance);
-      routedToTrash = true;
-    }
-  }
-  if (routedToTrash) {
-    deps.emit?.({
-      kind: "cardsMoved",
-      instanceIds: [instance.instanceId],
-      from: Zone.Hand,
-      to: Zone.Trash,
-    });
-  }
-
-  // ＜Delay＞ keyword — move from trash to delay zone per Comprehensive Rules §16-17. Scoped
-  // to a PURE delay Option: EVERY non-security [Main] clause carries ＜Delay＞ (the Memory
-  // Boost family — a single ＜Delay＞ [Main] clause IS the whole card, so it never resolves an
-  // on-play body and instead rests face-down in the delay zone). An "option permanent" card
-  // (BT18-100: a plain on-play [Main] body that places itself in the battle area, PLUS a
-  // SEPARATE ＜Delay＞-keyworded [Main] clause that becomes a later activated ability once it
-  // is a real permanent — card-module contract's isOptionPlayBody family) must NOT be swept into
-  // the delay zone just because one of its OTHER clauses happens to carry the keyword; only
-  // the on-play body's own placement should route it. Checking "some" instead of "every" here
-  // previously misrouted that shape straight to the delay zone, skipping its on-play body.
-  const compiled = getCompiledCard(instance.cardId);
-  const mainClauses = (compiled?.effects ?? []).filter((eff) => eff.trigger === "Main" && !eff.isSecurity);
-  const hasDelay =
-    mainClauses.length > 0 && mainClauses.every((eff) => (eff.keywords ?? []).some((kw) => kw.keyword === "Delay"));
-  if (hasDelay) {
-    const trashIdx = player.trash.findIndex((c) => c.instanceId === instance.instanceId);
-    if (trashIdx >= 0) {
-      extractCardAt(player, Zone.Trash, trashIdx);
-      instance.faceUp = false;
-      insertCard(player, Zone.Delay, instance);
+    if (routedToTrash) {
       deps.emit?.({
         kind: "cardsMoved",
         instanceIds: [instance.instanceId],
-        from: Zone.Trash,
-        to: Zone.Delay,
+        from: Zone.Hand,
+        to: Zone.Trash,
       });
     }
+
+    // ＜Delay＞ keyword — move from trash to delay zone per Comprehensive Rules §16-17. Scoped
+    // to a PURE delay Option: EVERY non-security [Main] clause carries ＜Delay＞ (the Memory
+    // Boost family — a single ＜Delay＞ [Main] clause IS the whole card, so it never resolves an
+    // on-play body and instead rests face-down in the delay zone). An "option permanent" card
+    // (BT18-100: a plain on-play [Main] body that places itself in the battle area, PLUS a
+    // SEPARATE ＜Delay＞-keyworded [Main] clause that becomes a later activated ability once it
+    // is a real permanent — card-module contract's isOptionPlayBody family) must NOT be swept into
+    // the delay zone just because one of its OTHER clauses happens to carry the keyword; only
+    // the on-play body's own placement should route it. Checking "some" instead of "every" here
+    // previously misrouted that shape straight to the delay zone, skipping its on-play body.
+    const compiled = getCompiledCard(instance.cardId);
+    const mainClauses = (compiled?.effects ?? []).filter((eff) => eff.trigger === "Main" && !eff.isSecurity);
+    const hasDelay =
+      mainClauses.length > 0 && mainClauses.every((eff) => (eff.keywords ?? []).some((kw) => kw.keyword === "Delay"));
+    if (hasDelay) {
+      const trashIdx = player.trash.findIndex((c) => c.instanceId === instance.instanceId);
+      if (trashIdx >= 0) {
+        extractCardAt(player, Zone.Trash, trashIdx);
+        instance.faceUp = false;
+        insertCard(player, Zone.Delay, instance);
+        deps.emit?.({
+          kind: "cardsMoved",
+          instanceIds: [instance.instanceId],
+          from: Zone.Trash,
+          to: Zone.Delay,
+        });
+      }
+    }
+  } finally {
+    await deps.finishOptionResolution?.();
   }
 
   // Q6432: "when you use an Option" reactions activate only after the used Option's

@@ -2,18 +2,16 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
-const _ownDigimon = { controller: "mine", kind: ["Digimon"] };
-const _glowingDawn = { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] };
+const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
+const glowingDawn = { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] };
 const recovery = [
   {
-    kind: "TrashDigivolution",
-    target: { filter: { controller: "mine", kind: ["Tamer"], digivolutionCards: "hasAny" }, count: 1 },
-    amount: 1,
-    fromTop: false,
+    kind: "CostGatedBlock",
+    cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
     optional: true,
+    abortOnDecline: true,
+    actions: [{ kind: "Recover", controller: "mine", amount: 1 }],
   },
-  { kind: "Recover", controller: "mine", amount: 1, condition: { kind: "ifThisEffectActed" } },
 ];
 
 export const compiled: CompiledCard = {
@@ -30,14 +28,62 @@ export const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: { fromSelectionRef: "suspendLocked", filter: {}, count: 1 },
-          restriction: "beSuspended",
+          restriction: "suspend",
           duration: "untilOpponentTurnEnd",
           condition: { kind: "ifThisEffectActed" },
         },
-        ...recovery,
       ],
     },
-    { trigger: "WhenAttacking", frequency: "OncePerTurn", actions: recovery },
+    {
+      trigger: "WhenDigivolving",
+      frequency: "OncePerTurn",
+      sharedUseKey: "BT26-031/tamer-trash-recovery",
+      actions: recovery,
+    },
+    {
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      sharedUseKey: "BT26-031/tamer-trash-recovery",
+      actions: recovery,
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: { kind: "youHave", filter: glowingDawn },
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "SelectBind",
+          target: { filter: opponentDigimon, count: 1, bindAs: "murashigureTarget" },
+        },
+        {
+          kind: "ModifyDP",
+          target: { fromSelectionRef: "murashigureTarget" },
+          amount: -8000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "CostGatedBlock",
+          cost: { kind: "trashSecurityTop", controller: "mine" },
+          optional: true,
+          abortOnDecline: true,
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { fromSelectionRef: "murashigureTarget" },
+              amount: -5000,
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
