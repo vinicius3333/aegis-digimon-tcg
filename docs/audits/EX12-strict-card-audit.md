@@ -320,3 +320,25 @@ for the individual evidence below.
 - **Verification:** `EX12-010.test.ts` — 9/9; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No implementation correction was needed;
   there is no residual IR, unsupported behavior, card-specific ruling, or ambiguity.
+
+## EX12-011 — Seasarmon — 10/10
+
+- **Printed contract:** Red level 4 Digimon, Holy Beast/Shambala/TB, play cost 5 and
+  5000 DP. Its normal red level-3 and alternate level-3 Shambala evolutions both cost 2.
+  It has Raid. On play and when digivolving it deletes one opposing Digimon with 5000 DP
+  or less. Its inherited owner-turn effect gives only its host +2000 DP.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-011` returns no card-specific
+  rulings. The printed DP threshold is inclusive and the deletion is opponent- and
+  Digimon-scoped; no optional wording modifies either trigger.
+- **Implementation trace:** identical mandatory count-1 Delete actions at `OnPlay` and
+  `WhenDigivolving` filter opponent Digimon by `dp <= 5000`. A top-level Static effect
+  supplies Raid. The inherited `YourTurn` permanent self modifier is continuously
+  re-derived, and the alternate evolution requirement is exact level 3 plus Shambala.
+- **Behavioral proof:** both timing windows delete a 5000-DP boundary target while a
+  6000-DP Digimon survives; an own 1000-DP Digimon is never eligible. Separate permanents
+  prove printed Raid, host-only inherited DP, and the bonus lapsing and returning across
+  turn changes. Standard red EX12-005 and off-color Shambala EX12-006 both pay 2, while
+  off-color non-Shambala BT1-064 is rejected.
+- **Verification:** `EX12-011.test.ts` — 8/8; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No implementation correction was needed;
+  there is no residual IR, unsupported behavior, card-specific ruling, or ambiguity.
