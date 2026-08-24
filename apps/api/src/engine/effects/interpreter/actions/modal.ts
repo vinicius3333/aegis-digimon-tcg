@@ -13,14 +13,16 @@ import type { Action } from "@aegis/shared";
 /** "Activate N of the effects below" — ask the controller which option(s), run them. */
 export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<void> {
   if (action.options.length === 0) return;
-  const availableIndices = action.options
-    .map((option, idx) => ({ option, idx }))
-    .filter(({ option }) => option.some((nested) => canAttemptModalAction(ctx, nested)))
-    .map(({ idx }) => idx)
-    .filter((idx) => {
-      const condition = action.optionConditions?.[idx];
-      return condition == null || evaluateCondition(ctx, condition);
-    });
+  const availableOptionIndices = (): number[] =>
+    action.options
+      .map((option, idx) => ({ option, idx }))
+      .filter(({ option }) => option.some((nested) => canAttemptModalAction(ctx, nested)))
+      .map(({ idx }) => idx)
+      .filter((idx) => {
+        const condition = action.optionConditions?.[idx];
+        return condition == null || evaluateCondition(ctx, condition);
+      });
+  const availableIndices = availableOptionIndices();
   if (availableIndices.length === 0) return;
   if (action.chooseAll !== undefined && evaluateCondition(ctx, action.chooseAll.condition)) {
     for (const idx of availableIndices) {
@@ -33,6 +35,32 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
     return;
   }
   const rawChoose = action.chooseScaling !== undefined ? scaleFactor(ctx, action.chooseScaling) : action.choose;
+
+  // "For every N, activate 1 of the effects below" snapshots N now, then chooses and resolves
+  // one effect at a time. Unlike an ordinary "activate N of the effects" modal, each scaled
+  // activation may choose the same bullet again (EX12-037 Q6795-Q6797). Re-evaluate which
+  // bullets are executable after each resolution, but never recalculate the activation count.
+  if (action.chooseScaling !== undefined) {
+    for (let i = 0; i < rawChoose; i += 1) {
+      const currentAvailable = availableOptionIndices();
+      if (currentAvailable.length === 0) break;
+      const labels = currentAvailable.map(
+        (idx) =>
+          action.labels?.[idx] ??
+          (action.options[idx]!.length > 0
+            ? action.options[idx]!.map(describeAction).join(" · ")
+            : describeAction({ kind: "RawUnparsed", text: `option ${idx}` })),
+      );
+      const pick = await ctx.ask.chooseOption(ctx, labels);
+      const chosen = currentAvailable[pick] ?? currentAvailable[0]!;
+      for (const nestedAction of action.options[chosen]!) {
+        const abort = await runAction(ctx, nestedAction);
+        if (abort) break;
+      }
+    }
+    return;
+  }
+
   const choose = Math.min(rawChoose, availableIndices.length);
   const chosenIndices: number[] = choose === 1 && availableIndices.length === 1 ? [availableIndices[0]!] : [];
   for (let i = 0; i < choose; i++) {

@@ -1156,3 +1156,44 @@ for the individual evidence below.
   action flow — 27/27; rule-check pool — 3/3; shared build, API typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved
   ruling remains.
+
+## EX12-037 — Omnimon — 10/10
+
+- **Printed contract:** Blue/yellow/red level 7 Holy Warrior/Royal Knight/ME/VB Vaccine Digimon,
+  play cost 15 and 15000 DP. Normal blue/yellow/red level-6 evolutions and the alternate level-6
+  ME/VB route cost 5. Its four zero-cost DNA recipes combine Blue/Yellow level 6 with Red/Black
+  level 6. It has Piercing, Blocker, and Barrier. Once per turn shared across When Digivolving and
+  When Attacking, it deletes one opposing Digimon, then activates one bullet per five sources:
+  either -13000 DP through the opponent's turn end, or trash opposing top security then Recovery
+  +1.
+- **KB evidence:** Q6795 permits repeating one bullet or mixing bullets. Q6796 requires choosing
+  the next bullet only after the previous one resolves. Q6797 snapshots the number of activations
+  when the scaled clause begins. Q6798 delays DP-0 deletion until every activation in the effect
+  has resolved. Q7191 skips the scaled clause if an immediate reaction to the initial deletion
+  removes Omnimon, because its source count can no longer be referenced.
+- **Corrections:** the aggregate IR omitted the initial deletion and all four DNA recipes, fixed
+  the modal to one activation, and represented security trash as a generic card trash. It now
+  matches the direct module exactly. More deeply, the generic scaled-modal executor prohibited
+  repeated choices and collected all choices before resolving them. It now snapshots the count,
+  chooses and resolves each bullet sequentially, reevaluates availability between activations,
+  and allows repetition only for scaled modals, matching Q6795-Q6797 without changing ordinary
+  distinct-choice modals.
+- **Ruling and behavioral proof:** five sources delete the first target and apply exactly one
+  selected DP or security/Recovery bullet. Ten sources can choose the DP bullet twice and apply
+  -26000 DP. In a manually driven two-activation window, the first -13000 DP reaches 0 while the
+  Digimon remains on the field for the second choice; the security/Recovery bullet then resolves
+  and the rule check deletes it afterward, proving Q6796/Q6798. A mechanism regression removes
+  all ten sources after the first choice yet still opens the second, proving Q6797's snapshot. A
+  synthetic immediate leave reaction to Omnimon's initial deletion removes Omnimon before the
+  modal; no option is offered and the other target remains unmodified, proving Q7191.
+- **Evolution and DNA proof:** normal blue EX12-035, yellow EX12-036, and red EX12-017 routes pay
+  5; off-color purple/black VB P-240 uses the alternate route for 5. All four Blue/Yellow ×
+  Red/Black level-6 DNA combinations merge for 0, while Blue + Yellow is rejected. Catalog
+  identity, stats, traits, keywords, direct/shared requirements, full coverage, empty residuals,
+  and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-037.test.ts` — 7/7; interpreter capabilities — 290/290; DNA merge — 1/1;
+  Blocker proof — 4/4; security/Blocker/Piercing conformance — 10/10; deletion/advanced keyword
+  conformance — 30/30; rule-check pool — 3/3; interpreter — 171/171; effect primitives — 126/126;
+  digivolution action flow — 27/27; security checks — 11/11; shared build, API typecheck, focused
+  formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  or unresolved ruling remains.

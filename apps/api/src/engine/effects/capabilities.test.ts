@@ -895,7 +895,10 @@ describe("TrashDigivolution scope:acrossDigimon (EX12-035)", () => {
 // Gap #3 (EX12-ENGINE-GAPS.md): Modal.chooseScaling drives choose count from digivolution-card
 // count (EX12-037 "for every 5 of this Digimon's digivolution cards, activate 1 effect").
 describe("Modal.chooseScaling (EX12-037)", () => {
-  function makeModalCtx(stackSize: number): { ctx: EffectContext; chosen: number[] } {
+  function makeModalCtx(
+    stackSize: number,
+    afterChoice?: (choiceCount: number, source: Permanent) => void,
+  ): { ctx: EffectContext; chosen: number[] } {
     const chosen: number[] = [];
     const stack = Array.from({ length: stackSize }, (_, i) => ({
       instanceId: `st#${i}`,
@@ -924,7 +927,10 @@ describe("Modal.chooseScaling (EX12-037)", () => {
       selectCards: async () => [],
       chooseOption: async (_c, options) => {
         const pick = options.length > 0 ? 0 : -1;
-        if (pick >= 0) chosen.push(pick);
+        if (pick >= 0) {
+          chosen.push(pick);
+          afterChoice?.(chosen.length, selfPerm);
+        }
         return pick;
       },
     };
@@ -982,11 +988,23 @@ describe("Modal.chooseScaling (EX12-037)", () => {
     expect(chosen).toHaveLength(2);
   });
 
-  it("clamps choose to option count (can't activate more options than exist)", async () => {
+  it("allows the same scaled option to be activated repeatedly beyond the option count (Q6795)", async () => {
     const { ctx, chosen } = makeModalCtx(15); // floor(15/5)=3 but only 2 options
     const effects = irCardModule("EX-MODAL3", modalIr(5)).effectsForTiming(EffectTiming.OnUseOption, ctx.source);
     await effects[0]!.resolve(ctx);
-    expect(chosen).toHaveLength(2); // capped at options.length
+    expect(chosen).toEqual([0, 0, 0]);
+  });
+
+  it("snapshots the activation count before the first scaled option changes the source stack (Q6797)", async () => {
+    const { ctx, chosen } = makeModalCtx(10, (choiceCount, sourcePermanent) => {
+      if (choiceCount === 1) sourcePermanent.stack.length = 0;
+    });
+    const effects = irCardModule("EX-MODAL-SNAPSHOT", modalIr(5)).effectsForTiming(
+      EffectTiming.OnUseOption,
+      ctx.source,
+    );
+    await effects[0]!.resolve(ctx);
+    expect(chosen).toEqual([0, 0]);
   });
 });
 

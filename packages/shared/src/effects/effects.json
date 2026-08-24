@@ -134330,8 +134330,13 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+          },
+          {
             "kind": "Modal",
-            "choose": 1,
+            "choose": 0,
+            "chooseScaling": { "per": 5, "filter": {}, "unit": "digivolutionCards" },
             "options": [
               [
                 {
@@ -134342,8 +134347,8 @@
                 }
               ],
               [
-                { "kind": "Trash", "target": { "filter": { "controller": "opponent" }, "count": 1 } },
-                { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "source": "deck", "amount": 1 }
+                { "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 },
+                { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "from": ["deck"], "amount": 1 }
               ]
             ]
           }
@@ -134355,8 +134360,13 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
+            "kind": "Delete",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+          },
+          {
             "kind": "Modal",
-            "choose": 1,
+            "choose": 0,
+            "chooseScaling": { "per": 5, "filter": {}, "unit": "digivolutionCards" },
             "options": [
               [
                 {
@@ -134367,8 +134377,8 @@
                 }
               ],
               [
-                { "kind": "Trash", "target": { "filter": { "controller": "opponent" }, "count": 1 } },
-                { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "source": "deck", "amount": 1 }
+                { "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 },
+                { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "from": ["deck"], "amount": 1 }
               ]
             ]
           }
@@ -134379,7 +134389,37 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 6, "traits": ["ME", "VB"], "cost": 5, "isAlternate": true }]
+    "digivolutionRequirement": [{ "level": 6, "traits": ["ME", "VB"], "cost": 5, "isAlternate": true }],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 6 },
+          { "color": "Red", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 6 },
+          { "color": "Black", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 6 },
+          { "color": "Red", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 6 },
+          { "color": "Black", "level": 6 }
+        ]
+      }
+    ]
   },
   "EX12-038": {
     "effects": [
