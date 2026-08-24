@@ -134769,9 +134769,14 @@
               ]
             },
             "from": ["hand"],
+            "payCost": true,
             "reduceCost": 2,
             "optional": true,
-            "condition": { "kind": "raw", "raw": "this Digimon's stack has 2 or more same-level cards" }
+            "condition": {
+              "kind": "stackHasSameLevelCards",
+              "count": 2,
+              "raw": "this Digimon's stack has 2 or more same-level cards"
+            }
           }
         ]
       },
@@ -134780,6 +134785,66 @@
         "actions": [],
         "isInherited": true,
         "keywords": [{ "keyword": "Decode", "raw": "＜Decode (Lv.4 or lower w/[Holy Beast]/[NSp]/[VB] trait)＞" }]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["Holy Beast", "NSp", "VB"], "match": "trait" }]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "isInherited": true
+      }
+    ],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 4 },
+          { "color": "Green", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Yellow", "level": 4 },
+          { "color": "Black", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 4 },
+          { "color": "Green", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 4 },
+          { "color": "Black", "level": 4 }
+        ]
       }
     ],
     "coverage": "full",

@@ -1364,3 +1364,38 @@ for the individual evidence below.
   conformance — 30/30; digivolution action flow — 27/27; Solarmon — 2/2; Pomumon — 1/1;
   EX12-071 — 6/6; shared build, API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-044 — Angewomon — 10/10
+
+- **Printed contract:** Yellow level 5 Archangel/NSp/VB Vaccine Digimon, play cost 7 and 7000 DP.
+  Normal yellow level-4 and alternate level-4 NSp/VB evolution cost 3. Its DNA requirement is a
+  yellow/blue level 4 plus a green/black level 4 for cost 0. On Play, When Digivolving, and When
+  Attacking each give one opposing Digimon -4000 DP for the turn. When attacking with at least
+  two same-level cards anywhere in its stack, it may evolve into an Angel, Holy Dragon, Three
+  Great Angels, NSp, or VB Digimon from hand with the cost reduced by 2. It inherits Decode for
+  level-4-or-lower Holy Beast/NSp/VB cards.
+- **KB evidence:** Q6808 defines the stack condition across every stacked card, including the top
+  card: a level-5 top card and a level-5 digivolution card satisfy it, as do two level-4 sources.
+- **Corrections:** the aggregate IR omitted all four DNA recipes, omitted paid-cost semantics from
+  the attack digivolution, and represented Q6808 as a non-executable raw condition. The direct
+  module's condition used a tolerated but noncanonical `value` field. Both now use the executable
+  `stackHasSameLevelCards` count. Most importantly, inherited Decode was only a keyword label; an
+  inherited other-than-battle leave replacement now plays an eligible source for free and marks
+  it as played by Decode. Direct and aggregate IR match exactly, and registration remains solely
+  through `registerIrCard`.
+- **Ruling and behavioral proof:** all three -4000 DP timings execute independently. The attack
+  evolution pays 1 after reducing Seraphimon's cost by 2. Two level-4 sources satisfy the stack
+  condition, and a level-5 top Angewomon plus level-5 Sirenmon separately proves Q6808; a stack
+  with distinct levels does not offer the evolution. Inherited Decode plays level-4 Holy Beast,
+  NSp, and VB candidates when the host leaves by effect, but rejects a matching level-5 card and
+  does not run for battle deletion. The Decode keyword is absent on top and present while inherited.
+- **Evolution and DNA proof:** yellow BT1-051 uses the normal route; blue NSp EX7-018 uses the
+  alternate route; blue nonmatching AD1-010 is rejected. All four yellow/blue plus green/black DNA
+  combinations resolve for cost 0, while yellow plus blue is rejected. Catalog identity, stats,
+  traits, direct/shared requirements, full coverage, empty residuals, and exact IR equality are
+  asserted.
+- **Verification:** `EX12-044.test.ts` — 10/10; interpreter capabilities — 290/290; effect
+  primitives — 126/126; interpreter — 171/171; leave prevention — 10/10; digivolution action flow
+  — 27/27; DNA flow — 1/1; deletion/advanced keyword conformance — 30/30; shared build, API
+  typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
+  unsupported behavior, or unresolved ruling remains.
