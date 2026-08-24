@@ -238,8 +238,16 @@ export async function runSubTrigger(
           return milledSeat === wantSeat;
         }
       : undefined;
+  // `byEffect` normally describes a play event and is evaluated from `playedByEffect` by
+  // subjectMatchesFilter. A digivolution-trash event instead carries its provenance through
+  // `byEffectSeat`/`byEffectCardId`; remove only that play-specific field from the permanent
+  // match and enforce the trash provenance in the dedicated gate below.
+  const subjectFilter =
+    event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
+      ? { ...sourceFilter, byEffect: undefined }
+      : sourceFilter;
   const filterMatch =
-    sourceFilter === undefined ||
+    subjectFilter === undefined ||
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
     event === "onDiscardLibrary" ||
@@ -275,9 +283,14 @@ export async function runSubTrigger(
     event === "onDigivolutionCardDiscarded" ||
     event === "onDigivolutionCardsDiscardedBatch" ||
     event === "onDigiBurstCardDiscarded" ||
-    (event === "whenUnsuspended" && sourceFilter.isSelfRef === true && anchorPermanentId !== undefined)
+    (event === "whenUnsuspended" && subjectFilter.isSelfRef === true && anchorPermanentId !== undefined)
       ? undefined
-      : (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, sourceFilter);
+      : (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, subjectFilter);
+  const digivolutionTrashByEffectGate =
+    event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
+      : undefined;
   // `onDigivolutionCardReturnToDeckBottom` fires for EVERY watcher (the bus is not host-scoped), so
   // gate on (a) the host that lost the stack card (TriggerInfo.subjectPermanentId) being THIS
   // watcher's own anchor permanent — i.e. "this Digimon's digivolution cards" — and (b) the returned
@@ -736,6 +749,7 @@ export async function runSubTrigger(
       : undefined;
   const gates = [
     filterMatch,
+    digivolutionTrashByEffectGate,
     deletionSourceFilterGate,
     ownerMainPhaseGate,
     fireConditionGate,
@@ -865,15 +879,15 @@ export async function runSubTrigger(
       // trashing the source card the activation cost, and §16-17-3 bars activation the turn it
       // entered play.
       if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
-        const self = subCtx.source.permanent();
-        if (self === undefined) return;
-        if (self.enterFieldTurnCount === subCtx.game.state.turnCount) return;
+        const delaySource = subCtx.source.permanent();
+        if (delaySource === undefined) return;
+        if (delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return;
         const activate = await subCtx.ask.optional(
           subCtx,
           action.raw ?? "Trash this card to activate its ＜Delay＞ effect?",
         );
         if (!activate) return;
-        const trashed = await subCtx.fx.deletePermanent([self.permanentId]);
+        const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
         if (trashed <= 0) return;
       } else {
         const activationCost = action.cost as Cost | undefined;
