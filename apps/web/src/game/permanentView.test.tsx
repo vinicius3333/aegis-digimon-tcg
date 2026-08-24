@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { CardInstance, Permanent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
@@ -34,7 +34,7 @@ function blackWarGreymonWithInheritedDpUp(): Permanent {
   return permanent;
 }
 
-function memoryBoostWithDelay({ available }: { available: boolean }): Permanent {
+function memoryBoostWithDelay(): Permanent {
   const permanent = new Permanent();
   permanent.permanentId = "blue-memory-boost";
   permanent.controllerSeat = 0;
@@ -42,32 +42,11 @@ function memoryBoostWithDelay({ available }: { available: boolean }): Permanent 
     instanceId: "blue-memory-boost-top",
     cardId: "P-036",
   });
-  permanent.activatableEffectsJson = available
-    ? JSON.stringify([
-        {
-          instanceId: "blue-memory-boost-top",
-          effectKey: "P-036/0",
-          description: "[Main] <Delay> Gain 2 memory.",
-        },
-      ])
-    : "[]";
-  return permanent;
-}
-
-function trialWithDelay(): Permanent {
-  const permanent = new Permanent();
-  permanent.permanentId = "trial-four-great-dragons";
-  permanent.controllerSeat = 0;
-  permanent.topCard = Object.assign(new CardInstance(), {
-    instanceId: "trial-four-great-dragons-top",
-    cardId: "EX3-069",
-  });
   permanent.activatableEffectsJson = JSON.stringify([
     {
-      instanceId: "trial-four-great-dragons-top",
-      effectKey: "EX3-069/1",
-      description:
-        "[Main] ＜Delay＞ Play 1 Digimon card with [Four Great Dragons] in its traits from your hand without paying the cost.",
+      instanceId: "blue-memory-boost-top",
+      effectKey: "P-036/0",
+      description: "[Main] <Delay> Gain 2 memory.",
     },
   ]);
   return permanent;
@@ -261,92 +240,28 @@ describe("PermanentView resolved keywords", () => {
 });
 
 describe("PermanentView activatable effects", () => {
-  it("does not offer a Memory Boost Delay while the engine reports it unavailable", () => {
+  // The activation control itself lives in the card action menu
+  // (cardActionSheet.test.tsx); the card only shows the permanent's own state.
+  it("carries no effect control on the card", () => {
     render(
       <I18nProvider>
-        <PermanentView
-          perm={memoryBoostWithDelay({ available: false })}
-          onActivateEffect={vi.fn<(instanceId: string, effectKey: string) => void>()}
-        />
+        <PermanentView perm={memoryBoostWithDelay()} onClick={vi.fn<() => void>()} />
       </I18nProvider>,
     );
 
     expect(screen.queryByRole("button", { name: /activate effect/i })).toBeNull();
+    expect(screen.queryByText("Main")).toBeNull();
   });
 
-  it("identifies the available Delay and sends its exact source and effect key", () => {
-    const onActivateEffect = vi.fn<(instanceId: string, effectKey: string) => void>();
+  it("surfaces HerculesKabuterimon's synchronized source count and DP", () => {
     render(
       <I18nProvider>
-        <PermanentView perm={memoryBoostWithDelay({ available: true })} onActivateEffect={onActivateEffect} />
-      </I18nProvider>,
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Activate effect: [Main] <Delay> Gain 2 memory.",
-      }),
-    );
-
-    expect(onActivateEffect).toHaveBeenCalledTimes(1);
-    expect(onActivateEffect).toHaveBeenCalledWith("blue-memory-boost-top", "P-036/0");
-  });
-
-  it("shows Trial's friendly Delay action and sends its exact source and effect key", () => {
-    const onActivateEffect = vi.fn<(instanceId: string, effectKey: string) => void>();
-    render(
-      <I18nProvider>
-        <PermanentView perm={trialWithDelay()} onActivateEffect={onActivateEffect} />
-      </I18nProvider>,
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /Activate effect: \[Main\] ＜Delay＞ Play 1 Digimon card with \[Four Great Dragons\]/,
-      }),
-    );
-
-    expect(onActivateEffect).toHaveBeenCalledWith("trial-four-great-dragons-top", "EX3-069/1");
-  });
-
-  it("surfaces HerculesKabuterimon's Digi-Burst beside its synchronized source count and DP", () => {
-    const onActivateEffect = vi.fn<(instanceId: string, effectKey: string) => void>();
-    render(
-      <I18nProvider>
-        <PermanentView perm={herculesKabuterimonWithDigiBurst()} onActivateEffect={onActivateEffect} />
+        <PermanentView perm={herculesKabuterimonWithDigiBurst()} />
       </I18nProvider>,
     );
 
     expect(screen.getByText("5")).toBeTruthy();
     expect(screen.getByText("13K")).toBeTruthy();
     expect(screen.getByText((_, element) => element?.textContent === "↑DP 1K")).toBeTruthy();
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Activate effect: [Main] ＜DigiBurst＞ Trash, Suspend",
-      }),
-    );
-
-    expect(onActivateEffect).toHaveBeenCalledWith("hercules-kabuterimon-top", "ST4-13/ir-27-0");
-  });
-
-  it("keeps a touch on the effect button away from the permanent's own drag and tap", () => {
-    const onPointerDown = vi.fn<(event: React.PointerEvent) => void>();
-    render(
-      <I18nProvider>
-        <PermanentView
-          perm={memoryBoostWithDelay({ available: true })}
-          onActivateEffect={vi.fn<(instanceId: string, effectKey: string) => void>()}
-          onPointerDown={onPointerDown}
-        />
-      </I18nProvider>,
-    );
-
-    const effectButton = screen.getByRole("button", {
-      name: "Activate effect: [Main] <Delay> Gain 2 memory.",
-    });
-    fireEvent.pointerDown(effectButton, { pointerType: "touch", bubbles: true });
-    fireEvent.pointerUp(effectButton, { pointerType: "touch", bubbles: true });
-
-    expect(onPointerDown).not.toHaveBeenCalled();
   });
 });

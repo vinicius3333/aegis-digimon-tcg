@@ -5,7 +5,9 @@ import { CardInstance, Permanent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { PermanentView } from "./boardPieces";
-import { OpponentPermanentInspector, RecoveryToast, SecurityOverlay, StackViewerOverlay } from "./overlays";
+import { OpponentPermanentInspector, RecoveryToast, StackViewerOverlay } from "./overlays";
+import { SecurityClash } from "./SecurityClashView";
+import { buildSecurityClashScene } from "./securityClash";
 
 afterEach(() => cleanup());
 
@@ -31,12 +33,46 @@ describe("security feedback", () => {
   it("summarizes a revealed security card without a blocking dialog", () => {
     render(
       <I18nProvider>
-        <SecurityOverlay cardId="BT1-010" resolution="effect" onContinue={() => undefined} />
+        <SecurityClash
+          scene={buildSecurityClashScene({
+            key: 1,
+            revealedCardId: "BT1-010",
+            resolution: "effect",
+            defenderSeat: 1,
+            viewerSeat: 0,
+          })}
+        />
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("status").textContent).toContain("Security check");
+    const scene = screen.getByRole("status");
+    expect(scene.textContent).toContain("Security check");
+    expect(scene.textContent).toContain("Agumon");
+    expect(scene.textContent).toContain("Security effect triggers");
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("stages the attacker opposite the revealed card and compares their DP", () => {
+    render(
+      <I18nProvider>
+        <SecurityClash
+          scene={buildSecurityClashScene({
+            key: 2,
+            revealedCardId: "BT1-010",
+            resolution: "battle",
+            defenderSeat: 1,
+            viewerSeat: 0,
+            attacker: { seat: 0, cardId: "BT1-019" },
+          })}
+        />
+      </I18nProvider>,
+    );
+
+    const scene = screen.getByTestId("security-clash");
+    expect(scene.getAttribute("data-resolution")).toBe("battle");
+    expect(scene.querySelector('[data-role="attacker"][data-side="you"]')).toBeTruthy();
+    expect(scene.querySelector('[data-role="revealed"][data-side="opp"]')).toBeTruthy();
+    expect(screen.getAllByText(/DP$/).length).toBe(2);
   });
 
   it("announces recovery without exposing a card identity", () => {

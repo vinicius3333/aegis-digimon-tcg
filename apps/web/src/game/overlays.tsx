@@ -1,6 +1,7 @@
 /* In-game overlays, driven by real server state — mulligan window, block window,
-   security-check reveal, effect decision, game over, and the pre-match waiting
-   panel. Each maps user choices to the typed intent callbacks GameScreen passes. */
+   effect decision, game over, and the pre-match waiting panel. Each maps user
+   choices to the typed intent callbacks GameScreen passes. The security check has
+   its own centre-stage scene in ./SecurityClashView. */
 
 import { useState, useEffect, useId, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -22,7 +23,6 @@ import { formatKeyword } from "./keywordDisplay";
 import { useTranslation, type Translate } from "../i18n";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 
-const dp = (cardId: string) => getCardDefinition(cardId)?.dp ?? 0;
 const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
 
 function Scrim({
@@ -635,59 +635,6 @@ type _SupportedCombatPromptsComplete =
   Exclude<CombatPromptEvent, (typeof SUPPORTED_COMBAT_PROMPTS)[number]> extends never ? true : never;
 const _supportedCombatPromptsComplete: _SupportedCombatPromptsComplete = true;
 void _supportedCombatPromptsComplete;
-
-/* ---------------- SECURITY CHECK ---------------- */
-export function SecurityOverlay({
-  cardId,
-  resolution,
-  onContinue,
-}: {
-  cardId: string;
-  resolution: string;
-  onContinue: () => void;
-}) {
-  const { t } = useTranslation();
-  const def = getCardDefinition(cardId);
-  const variants: Record<string, { label: string; icon: typeof Icons.Swords; detail: string }> = {
-    battle: {
-      label: t("overlay.securityBattle"),
-      icon: Icons.Swords,
-      detail: t("overlay.securityBattleDetail", { name: name(cardId), dp: dp(cardId).toLocaleString() }),
-    },
-    effect: {
-      label: t("overlay.securityEffect"),
-      icon: Icons.Sparkles,
-      detail: def?.securityEffectText || t("overlay.securityEffectDetail"),
-    },
-    trashed: { label: t("overlay.securityTrashed"), icon: Icons.FileText, detail: t("overlay.securityTrashedDetail") },
-  };
-  const res = variants[resolution] ?? variants.trashed!;
-  return (
-    <div className="security-check-toast" role="status" aria-live="assertive">
-      <div className="security-check-toast__card">
-        <CardFull cardId={cardId} width={92} />
-      </div>
-      <div className="security-check-toast__content">
-        <Badge>
-          <Icons.Shield size={13} />
-          {t("overlay.securityCheck")}
-        </Badge>
-        <strong>
-          <res.icon size={16} />
-          {res.label}
-        </strong>
-        <p>{res.detail}</p>
-      </div>
-      <button
-        className="security-check-toast__close"
-        aria-label={`${t("common.close")} — ${t("overlay.continue")}`}
-        onClick={onContinue}
-      >
-        ×
-      </button>
-    </div>
-  );
-}
 
 export function RecoveryToast({
   amount,
@@ -2005,6 +1952,7 @@ export function CardActionMenu({
   stackCards,
   suspended,
   promote,
+  effects,
   canAttack,
   canVortex,
   onViewStack,
@@ -2026,6 +1974,8 @@ export function CardActionMenu({
   suspended?: boolean;
   /** Extra action for a breeding-area card (hatch / move to the battle area). */
   promote?: { label: string; onPromote: () => void };
+  /** Activatable [Main] effects of this permanent, one entry per effect. */
+  effects?: { label: string; onActivate: () => void }[];
   canAttack: boolean;
   canVortex?: boolean;
   onViewStack: () => void;
@@ -2105,6 +2055,20 @@ export function CardActionMenu({
                     {t("overlay.vortexAttack")}
                   </Button>
                 ) : null}
+                {(effects ?? []).map((effect) => (
+                  <Button
+                    key={effect.label}
+                    size="md"
+                    full
+                    variant="secondary"
+                    onClick={effect.onActivate}
+                    aria-label={`${t("game.activateEffect")}: ${effect.label}`}
+                    title={effect.label}
+                  >
+                    <span aria-hidden="true">⚡</span>
+                    <span>{t("game.activateMainEffect")}</span>
+                  </Button>
+                ))}
                 {promote ? (
                   <Button
                     size="md"
@@ -2225,6 +2189,19 @@ export function CardActionMenu({
             <Icons.Swords size={15} /> {t("overlay.vortexAttack")}
           </button>
         ) : null}
+        {(effects ?? []).map((effect) => (
+          <button
+            key={effect.label}
+            style={item}
+            onClick={effect.onActivate}
+            title={effect.label}
+            aria-label={`${t("game.activateEffect")}: ${effect.label}`}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-surface-muted)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <span aria-hidden="true">⚡</span> {t("game.activateMainEffect")}
+          </button>
+        ))}
       </div>
     </>,
     document.body,

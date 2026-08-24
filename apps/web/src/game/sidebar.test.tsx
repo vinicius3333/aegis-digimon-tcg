@@ -16,7 +16,6 @@ function renderSidebar(overrides: Partial<React.ComponentProps<typeof Sidebar>> 
     canHatch: true,
     log: [],
     onHatchOrMove: () => undefined,
-    onEndPhase: () => undefined,
     onSurrender: () => undefined,
     onReportBug: () => undefined,
     ...overrides,

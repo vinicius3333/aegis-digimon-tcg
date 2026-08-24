@@ -3,11 +3,12 @@
    interaction handlers (click / drop zones / pointer-drag) as props. */
 
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getCardDefinition, type Permanent } from "@aegis/shared";
-import { COLORS, colorKey, type ColorName } from "../design/theme";
+import { COLORS, colorKey } from "../design/theme";
 import { CardBack, CardFull, CardMini } from "../design/cards";
-import { linkCardSlots, parseActivatable, type ActivatableEntry } from "./boardModel";
+import { useEnterAnimation } from "./animations";
+import { linkCardSlots } from "./boardModel";
 import { formatKeyword } from "./keywordDisplay";
 import { useTranslation } from "../i18n";
 
@@ -35,6 +36,7 @@ export function Pile({
   dim,
   glow,
   compact,
+  shield,
   refEl,
   onClick,
   drop,
@@ -47,12 +49,44 @@ export function Pile({
   dim?: boolean;
   glow?: boolean;
   compact?: boolean;
+  /** Render as a shield-shaped security counter (red for the viewer, blue for the opponent). */
+  shield?: "you" | "opp";
   refEl?: (el: HTMLDivElement | null) => void;
   onClick?: () => void;
   drop?: DropAttrs;
   useSelectedSleeve?: boolean;
 }) {
   const w = compact ? 42 : 62;
+  if (shield) {
+    return (
+      <div
+        className={`game-security-shield game-security-shield--${shield}${glow ? " game-security-shield--glow" : ""}${className ? ` ${className}` : ""}`}
+        ref={refEl}
+        onClick={onClick}
+        onKeyDown={
+          onClick
+            ? (event) => {
+                if (event.key !== "Enter" && event.key !== " ") return;
+                event.preventDefault();
+                onClick();
+              }
+            : undefined
+        }
+        role={onClick ? "button" : "img"}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label={`${label} · ${count}`}
+        {...(drop ?? {})}
+        style={{ cursor: onClick ? "pointer" : "default", opacity: dim ? 0.5 : 1 }}
+      >
+        <span className="game-security-shield__count" aria-hidden>
+          {count}
+        </span>
+        <span className="game-security-shield__label" aria-hidden>
+          {label}
+        </span>
+      </div>
+    );
+  }
   return (
     <div
       className={className}
@@ -155,19 +189,22 @@ export function Pile({
   );
 }
 
+/** Stars in the entrance halo; each one is placed and delayed by its position in game.css. */
+const SPARKLE_INDEXES = [0, 1, 2, 3, 4];
+
 export function PermanentView({
   perm,
   highlight,
   candidate,
   dimmed,
   compact,
+  lunge,
   width,
   refCb,
   onClick,
   drop,
   onPointerDown,
   onKeyboardActivate,
-  onActivateEffect,
   onInspectStart,
   onInspectEnd,
 }: {
@@ -176,6 +213,8 @@ export function PermanentView({
   candidate?: boolean;
   dimmed?: boolean;
   compact?: boolean;
+  /** Play the attack lunge, leaning toward the security stack in this direction. */
+  lunge?: "up" | "down";
   /** Explicit card width; overrides the `compact` default. */
   width?: number;
   refCb?: (el: HTMLDivElement | null) => void;
@@ -184,13 +223,11 @@ export function PermanentView({
   onPointerDown?: (e: React.PointerEvent) => void;
   /** Keyboard fallback for drag-only interactions (select to play or attack). */
   onKeyboardActivate?: () => void;
-  onActivateEffect?: (instanceId: string, effectKey: string) => void;
   onInspectStart?: (element: HTMLDivElement, immediate: boolean) => void;
   onInspectEnd?: () => void;
 }) {
   const permanentWidth = width ?? (compact ? 76 : 116);
   const { t } = useTranslation();
-  const [showEffects, setShowEffects] = useState(false);
   const topId = perm.topCard?.cardId;
   if (!topId) return null;
   const def = getCardDefinition(topId);
@@ -198,17 +235,9 @@ export function PermanentView({
   const c = COLORS[key];
   const delta = perm.currentDP - perm.baseDP;
   const hasDpDelta = delta !== 0;
-  const activatable = onActivateEffect ? parseActivatable(perm.activatableEffectsJson) : [];
-  const hasEffects = activatable.length > 0;
   const activeKeywords = [...perm.grantedKeywords].map(formatKeyword);
   const visibleKeywords = activeKeywords.slice(0, 3);
   const hiddenKeywordCount = activeKeywords.length - visibleKeywords.length;
-
-  const handleEffectClick = (e: React.MouseEvent, entry: ActivatableEntry) => {
-    e.stopPropagation();
-    setShowEffects(false);
-    onActivateEffect!(entry.instanceId, entry.effectKey);
-  };
 
   const cardName = def?.nameEn ?? topId;
   const activate = onKeyboardActivate ?? onClick;
@@ -247,6 +276,7 @@ export function PermanentView({
             : undefined
       }
       aria-describedby={onInspectStart ? "opponent-permanent-inspector" : undefined}
+      className={lunge ? `game-permanent-lunge--${lunge}` : undefined}
       {...(drop ?? {})}
       style={{
         position: "relative",
@@ -326,7 +356,14 @@ export function PermanentView({
           </div>
         );
       })}
-      <div style={{ position: "relative", zIndex: 1 }}>
+      {/* Re-keying on the entry signature remounts the wrapper, which is what
+          restarts the CSS entrance: the card sparkles when it reaches the board
+          and again on every digivolution. */}
+      <div
+        key={`${perm.permanentId}:${perm.stack.length}`}
+        className="game-card-enter"
+        style={{ position: "relative", zIndex: 1 }}
+      >
         <CardMini
           cardId={topId}
           width={permanentWidth}
@@ -337,6 +374,11 @@ export function PermanentView({
           info
           zoomOnHover={false}
         />
+        <span className="game-card-sparkles" aria-hidden="true">
+          {SPARKLE_INDEXES.map((i) => (
+            <span key={i} className="game-card-sparkle" />
+          ))}
+        </span>
       </div>
       {perm.stack.length ? (
         <span
@@ -443,87 +485,6 @@ export function PermanentView({
           ) : null}
         </div>
       ) : null}
-      {hasEffects ? (
-        <button
-          className="game-effect-button"
-          // The permanent above starts an attack drag on pointerdown, and its
-          // pointerup tap opens the card menu — which on touch swallowed this
-          // button's click entirely. The gesture has to stop at the button.
-          onPointerDown={(e) => e.stopPropagation()}
-          onPointerUp={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (activatable.length === 1) handleEffectClick(e, activatable[0]!);
-            else setShowEffects((v) => !v);
-          }}
-          title={activatable.length === 1 ? activatable[0]!.description : t("game.activateEffect")}
-          aria-label={
-            activatable.length === 1
-              ? `${t("game.activateEffect")}: ${activatable[0]!.description}`
-              : t("game.activateEffect")
-          }
-          aria-expanded={activatable.length > 1 ? showEffects : undefined}
-          style={{
-            position: "absolute",
-            bottom: -13,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 6,
-            width: "max-content",
-            maxWidth: permanentWidth + 28,
-          }}
-        >
-          <span aria-hidden="true">⚡</span>
-          <span>Main</span>
-          {activatable.length > 1 ? (
-            <span className="game-effect-button__count" aria-hidden="true">
-              {activatable.length}
-            </span>
-          ) : null}
-        </button>
-      ) : null}
-      {/* A popover anchored to the card ran off the side of the battle row, which
-          scrolls sideways and clips vertically — on a phone the outer card's menu
-          was unreadable. A centered sheet is anchored to the viewport instead, so
-          the choice reads the same wherever the permanent sits. */}
-      {showEffects && activatable.length > 1 ? (
-        <>
-          <div
-            className="game-effect-scrim"
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerUp={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowEffects(false);
-            }}
-          />
-          <div
-            className="game-effect-menu"
-            role="menu"
-            aria-label={`${t("game.activateEffect")}: ${cardName}`}
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerUp={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="game-effect-menu__title">{cardName}</p>
-            {activatable.map((entry) => (
-              <button
-                key={entry.effectKey}
-                className="game-effect-menu__item"
-                role="menuitem"
-                onPointerDown={(e) => e.stopPropagation()}
-                onPointerUp={(e) => e.stopPropagation()}
-                onClick={(e) => handleEffectClick(e, entry)}
-                title={entry.description}
-                aria-label={`${t("game.activateEffect")}: ${entry.description}`}
-              >
-                <span aria-hidden="true">⚡</span>
-                <span className="game-effect-menu__text">{entry.description}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      ) : null}
     </div>
   );
 }
@@ -609,167 +570,85 @@ export function BreedingSlot({
   );
 }
 
+/** Total length of the reference client's tab sweep (MemoryObject.cs:113): the marker move. */
+const MEMORY_SWEEP_MS = 200;
+const MEMORY_SWEEP_CHIP_MS = 120;
+
+/**
+ * The chips memory passed over on its way to `to`, in travel order and excluding
+ * both endpoints. A single-step change traverses nothing, so it sweeps nothing.
+ * The bounds are derived rather than stepped to, so no input can outrun the loop.
+ */
+function traversedChips(from: number, to: number): number[] {
+  const first = Math.floor(Math.min(from, to)) + 1;
+  const last = Math.ceil(Math.max(from, to)) - 1;
+  const chips: number[] = [];
+  for (let v = first; v <= last; v += 1) chips.push(v);
+  return to < from ? chips.reverse() : chips;
+}
+
 export function MemoryGauge({
   value,
-  yourColor,
-  oppColor,
   compact,
+  phaseLabel,
 }: {
   value: number;
-  yourColor: ColorName;
-  oppColor: ColorName;
   compact?: boolean;
+  /** Current phase, printed as the pill at the gauge's left end (reference-client style). */
+  phaseLabel?: string;
 }) {
   const { t } = useTranslation();
   const gaugeLabel = t("game.memoryGauge", { memory: value > 0 ? `+${value}` : `${value}` });
   const ticks: number[] = [];
   for (let v = 10; v >= -10; v -= 1) ticks.push(v);
   const cv = Math.max(-10, Math.min(10, value));
-  const yc = COLORS[yourColor];
-  // Memory on the opponent's side means the viewer's turn is ending, so that half of
-  // the gauge reads as a warning rather than as the opponent's identity colour —
-  // which is whatever they picked and carries no urgency (it can even match yours).
-  const oc = { base: "var(--ds-danger)", on: "#fff" };
-  const oppIdentity = COLORS[oppColor];
-  // Each step is a numbered coin, the way the official memory gauge prints it. The
-  // coins flex to share whatever width the board gives them and stay circular via
-  // `aspect-ratio`, so the gauge can never overflow and force a horizontal scroll.
+  // Swept chips are remounted so their keyframes restart, which is why the sweep
+  // needs a generation counter rather than a class toggle on a stable element.
+  const previousValue = useRef<number | null>(null);
+  const sweepGeneration = useRef(0);
+  const previous = previousValue.current;
+  if (previous !== null && previous !== cv) sweepGeneration.current += 1;
+  previousValue.current = cv;
+  const swept = previous === null ? [] : traversedChips(previous, cv);
+  const sweepDelay = (chip: number) => {
+    const index = swept.indexOf(chip);
+    if (index < 0 || swept.length === 0) return undefined;
+    return `${Math.round(((MEMORY_SWEEP_MS - MEMORY_SWEEP_CHIP_MS) * index) / swept.length)}ms`;
+  };
+  // The gauge reads like the physical one: the viewer's half is always red and the
+  // opponent's half always blue, whatever identity colours the players picked. Only
+  // the marker moves — a yellow-lit chip on the current memory value.
   const renderCoin = (v: number) => {
-    const active = (cv >= 0 && v >= 0 && v <= cv) || (cv < 0 && v <= 0 && v >= cv);
     const isMarker = v === cv;
-    const side = v < 0 ? oc : v > 0 ? yc : null;
-    const fill = isMarker
-      ? cv < 0
-        ? oc.base
-        : cv > 0
-          ? yc.base
-          : "var(--ds-foreground)"
-      : active
-        ? side
-          ? side.base
-          : "var(--ds-border-strong)"
-        : "var(--ds-surface-muted)";
-    const ink = isMarker
-      ? cv === 0
-        ? "var(--ds-background)"
-        : cv < 0
-          ? oc.on
-          : yc.on
-      : active
-        ? side
-          ? side.on
-          : "var(--ds-background)"
-        : "var(--ds-foreground-disabled)";
+    const isSwept = swept.includes(v);
+    const side = v > 0 ? "you" : v < 0 ? "opp" : "zero";
+    const fill = v > 0 ? "var(--battle-memory-you)" : v < 0 ? "var(--battle-memory-opp)" : "var(--battle-memory-zero)";
+    const ink = v === 0 ? "var(--battle-memory-zero-ink)" : "#fff";
     return (
       <div
-        key={v}
-        className={`game-memory-coin${isMarker ? " game-memory-coin--marker" : ""}${v % 5 === 0 ? " game-memory-coin--five" : ""}`}
-        style={{
-          background: fill,
-          color: ink,
-          // A ring in the track's own colour separates the marker from the coins it
-          // sits between, which carry the same fill on the active side.
-          boxShadow: isMarker
-            ? `0 0 0 2px var(--ds-surface), 0 0 0 4px ${fill}, var(--ds-shadow-sm)`
-            : "inset 0 -1px 0 rgb(0 0 0 / 18%)",
-          border: v === 0 && !isMarker ? "1px solid var(--ds-border-strong)" : "none",
-        }}
+        key={isSwept ? `${v}:${sweepGeneration.current}` : v}
+        data-memory-side={side}
+        className={`game-memory-coin${isMarker ? " game-memory-coin--marker" : ""}${isSwept ? " game-memory-coin--swept" : ""}${v % 5 === 0 ? " game-memory-coin--five" : ""}`}
+        style={{ background: fill, color: ink, animationDelay: sweepDelay(v) }}
       >
-        <span className="game-memory-coin__n">{isMarker ? (value > 0 ? `+${value}` : value) : Math.abs(v)}</span>
+        <span className="game-memory-coin__n">{Math.abs(v)}</span>
       </div>
     );
   };
 
-  if (compact) {
-    return (
-      <div
-        className="game-memory-gauge game-memory-gauge--compact"
-        role="img"
-        aria-label={gaugeLabel}
-        style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 8px" }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.04em",
-            color: cv < 0 ? oc.base : oppIdentity.base,
-          }}
-        >
-          {t("game.opponentShort")}
-        </span>
-        <div className="game-memory-gauge__track">{ticks.map(renderCoin)}</div>
-        <span
-          style={{
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 12,
-            fontWeight: 700,
-            color: cv < 0 ? oc.base : yc.base,
-            minWidth: 24,
-            textAlign: "right",
-          }}
-        >
-          {value > 0 ? `+${value}` : value}
-        </span>
-      </div>
-    );
-  }
-  // Every part of the gauge shrinks: the labels give way first, then the ticks
-  // flex down from their full size. A fixed 986px gauge used to set the whole
-  // board's minimum width and push the right-hand pile rail off screen.
   return (
     <div
-      className="game-memory-gauge"
+      className={`game-memory-gauge${compact ? " game-memory-gauge--compact" : ""}`}
       role="img"
       aria-label={gaugeLabel}
-      style={{
-        display: "flex",
-        minWidth: 0,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 22,
-        padding: "0 30px",
-      }}
+      style={{ display: "flex", minWidth: 0, alignItems: "center", justifyContent: "center" }}
     >
-      <div className="game-memory-gauge__side" style={{ textAlign: "right", flex: "0 1 120px", minWidth: 0 }}>
-        <div
-          style={{
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 11,
-            letterSpacing: "0.12em",
-            color: yc.base,
-            fontWeight: 700,
-          }}
-        >
-          YOUR MEMORY
-        </div>
-        <div
-          style={{
-            fontSize: 13.5,
-            color: value >= 0 ? "var(--ds-foreground)" : "var(--ds-foreground-muted)",
-            fontWeight: 600,
-          }}
-        >
-          {value >= 0 ? "your turn" : "turn ending…"}
-        </div>
-      </div>
+      {phaseLabel ? (
+        <span className="game-memory-gauge__phase" aria-hidden>
+          {phaseLabel}
+        </span>
+      ) : null}
       <div className="game-memory-gauge__track">{ticks.map(renderCoin)}</div>
-      <div className="game-memory-gauge__side" style={{ flex: "0 1 120px", minWidth: 0 }}>
-        <div
-          style={{
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 11,
-            letterSpacing: "0.12em",
-            color: "var(--ds-foreground-muted)",
-          }}
-        >
-          OPPONENT
-        </div>
-        <div style={{ fontSize: 13.5, color: value < 0 ? oc.base : "var(--ds-foreground-muted)", fontWeight: 600 }}>
-          {value < 0 ? "active turn" : "waiting"}
-        </div>
-      </div>
     </div>
   );
 }
@@ -851,6 +730,7 @@ export function Hand({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null);
   const rowWidth = useElementWidth(rowEl);
+  const drawn = useEnterAnimation(cards.map((entry) => entry.instanceId));
   // The hand tightens its own fan until it fits the dock. Without this a big hand
   // simply grew past the board and painted over the sidebar.
   const overlap = handOverlap(n, rowWidth, cardWidth, minExposure);
@@ -858,6 +738,7 @@ export function Hand({
     <div
       ref={setRowEl}
       data-testid="hand"
+      className="game-hand"
       style={{
         position: "relative",
         boxSizing: "border-box",
@@ -878,6 +759,7 @@ export function Hand({
         const sel = selectedInstanceId === entry.instanceId;
         const dragging = draggingInstanceId === entry.instanceId;
         const hov = hoveredIndex === i;
+        const playable = entry.playableFromHand || entry.digivolveTargetPermanentIds.length > 0;
         const style: CSSProperties = {
           marginLeft: i === 0 ? 0 : -overlap,
           cursor: "grab",
@@ -914,6 +796,13 @@ export function Hand({
             tabIndex={0}
             aria-label={t("game.selectCard", { card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId })}
             aria-pressed={sel}
+            className={[
+              "game-hand-card",
+              playable ? "game-hand-card--playable" : "",
+              drawn.has(entry.instanceId) ? "game-hand-card--drawn" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
             style={style}
           >
             <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} />
@@ -926,21 +815,35 @@ export function Hand({
 
 export function AttackArrow({ from, to }: { from: { x: number; y: number }; to: { x: number; y: number } }) {
   const midX = (from.x + to.x) / 2;
+  const arc = `M ${from.x} ${from.y} Q ${midX} ${(from.y + to.y) / 2 - 90} ${to.x} ${to.y}`;
   return (
     <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 60, pointerEvents: "none" }}>
       <defs>
         <marker id="aegis-arrowhead" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="var(--ds-danger)" />
+          <path className="game-attack-arrow__head" d="M0,0 L6,3 L0,6 Z" fill="var(--battle-attack)" />
         </marker>
       </defs>
+      {/* Soft glow pass under the arc, the way the reference client draws attacks. */}
       <path
-        d={`M ${from.x} ${from.y} Q ${midX} ${(from.y + to.y) / 2 - 60} ${to.x} ${to.y}`}
+        className="game-attack-arrow__stroke"
+        d={arc}
+        pathLength={100}
+        strokeDasharray={100}
         fill="none"
-        stroke="var(--ds-danger)"
-        strokeWidth={4}
-        strokeDasharray="9 7"
+        stroke="var(--battle-attack-glow)"
+        strokeWidth={10}
+        strokeLinecap="round"
+      />
+      <path
+        className="game-attack-arrow__stroke"
+        d={arc}
+        pathLength={100}
+        strokeDasharray={100}
+        fill="none"
+        stroke="var(--battle-attack)"
+        strokeWidth={4.5}
+        strokeLinecap="round"
         markerEnd="url(#aegis-arrowhead)"
-        style={{ animation: "aegis-dash 0.6s linear infinite" }}
       />
     </svg>
   );

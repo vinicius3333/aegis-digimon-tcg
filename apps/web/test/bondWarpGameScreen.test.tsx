@@ -76,8 +76,10 @@ async function renderBondState({ decision }: { decision?: (s: ReturnType<typeof 
 it("exposes Tai's Bond warp as an activatable Main action", async () => {
   const s = await renderBondState();
 
-  // The button reads "Main" but names itself after the effect it activates, the
-  // convention permanentView.test.tsx pins: "Activate effect: <description>".
+  // Tapping the permanent opens its action menu; the activation is an entry there,
+  // named after the effect it activates — the convention cardActionSheet.test.tsx
+  // pins: "Activate effect: <description>".
+  fireEvent.click(screen.getByRole("button", { name: /^tai kamiya/i }));
   fireEvent.click(screen.getByRole("button", { name: /^activate effect: .*digivolve/i }));
 
   expect(mocked.activateEffect).toHaveBeenCalledWith(
