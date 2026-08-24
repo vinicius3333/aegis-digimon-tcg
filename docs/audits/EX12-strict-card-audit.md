@@ -1399,3 +1399,37 @@ for the individual evidence below.
   — 27/27; DNA flow — 1/1; deletion/advanced keyword conformance — 30/30; shared build, API
   typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
   unsupported behavior, or unresolved ruling remains.
+
+## EX12-045 — Sanzomon — 10/10
+
+- **Printed contract:** Yellow level 5 Monk/Shambala/SW Vaccine Digimon, play cost 7 and 7000 DP.
+  Normal yellow level-4 and alternate level-4 Shambala evolution cost 3. On Play and When
+  Digivolving, it may move the top security card to hand, then recovers if 2 or fewer security
+  cards remain. During its turn, once per turn when its security is removed from, it may play a
+  Digimon/Tamer with Gokuumon in its text or the SW trait from hand with cost reduced by 2. Its
+  inherited When Attacking once-per-turn effect gives one opposing Digimon -4000 DP for the turn.
+- **KB evidence:** Q6809 defines “X in its text” across names, traits, effects, inherited effects,
+  rules, and all requirement forms. Q6810 forbids combining two copies' reductions into one play.
+  Q6811 permits the play under Solarmon but suppresses the reduction. Q6812 permits activation
+  under Pomumon but prevents the effect-driven Digimon play.
+- **Corrections:** both aggregate Recovery instructions were generic optional security additions,
+  rather than the direct executable mandatory-tail Recovery keyword action. The aggregate watcher
+  also used an obsolete detached reduction that was not bound to its play. It now carries inline
+  `reduceCostBy: 2`, and both direct and aggregate explicitly restrict play candidates to Digimon
+  and Tamers. Exact IR equality is asserted; registration remains exclusively via `registerIrCard`.
+- **Ruling and behavioral proof:** both entry timings move the top security card and recover after
+  the move leaves 2; leaving 3 suppresses recovery. Declining the optional move does not abort the
+  mandatory tail, so a pre-existing count of 2 still recovers. EX6-024, a non-SW card mentioning
+  Gokuumon only in its DigiXros text, is played for 5, proving Q6809. Two copies each play a cost-3
+  target for 1 rather than combining reductions, proving Q6810. Solarmon forces full cost for
+  Q6811; Pomumon leaves the target in hand without payment for Q6812. Opposing security removal is
+  ignored, own removal is once per turn, and the inherited -4000 DP applies only once.
+- **Evolution proof:** yellow BT1-051 uses the normal route; red Shambala EX12-011 uses the
+  alternate route independently of color; blue nonmatching AD1-010 is rejected. Catalog identity,
+  stats, traits, direct/shared requirements, full coverage, empty residuals, and exact IR equality
+  are asserted.
+- **Verification:** `EX12-045.test.ts` — 11/11; interpreter capabilities — 290/290; effect
+  primitives — 126/126; interpreter — 171/171; subtriggers — 23/23; security-removal watcher scope
+  — 3/3; digivolution action flow — 27/27; Solarmon — 2/2; Pomumon — 1/1; shared build, API
+  typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
+  unsupported behavior, or unresolved ruling remains.

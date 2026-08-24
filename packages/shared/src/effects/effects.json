@@ -134865,10 +134865,10 @@
             "optional": true
           },
           {
-            "kind": "SecurityManipulation",
-            "op": "addTop",
-            "controller": "mine",
-            "source": "deck",
+            "kind": "GainKeyword",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1＞" },
+            "duration": "permanent",
             "condition": {
               "kind": "zoneCount",
               "seat": "mine",
@@ -134876,9 +134876,7 @@
               "op": "lte",
               "value": 2,
               "raw": "you have 2 or fewer security cards"
-            },
-            "optional": true,
-            "amount": 1
+            }
           }
         ]
       },
@@ -134894,10 +134892,10 @@
             "optional": true
           },
           {
-            "kind": "SecurityManipulation",
-            "op": "addTop",
-            "controller": "mine",
-            "source": "deck",
+            "kind": "GainKeyword",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1＞" },
+            "duration": "permanent",
             "condition": {
               "kind": "zoneCount",
               "seat": "mine",
@@ -134905,9 +134903,7 @@
               "op": "lte",
               "value": 2,
               "raw": "you have 2 or fewer security cards"
-            },
-            "optional": true,
-            "amount": 1
+            }
           }
         ]
       },
@@ -134923,6 +134919,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
+                    "kind": ["Digimon", "Tamer"],
                     "nameOrTrait": [
                       { "tokens": ["Gokuumon"], "match": "text" },
                       { "tokens": ["SW"], "match": "trait" }
@@ -134932,14 +134929,7 @@
                 },
                 "from": ["hand"],
                 "payCost": true,
-                "optional": true
-              },
-              {
-                "kind": "Replacement",
-                "event": "wouldBePlayed",
-                "mode": "reduceCost",
-                "amount": 2,
-                "raw": "play 1 card with [Gokuumon] in its text or the [SW] trait from your hand with the cost reduced by 2",
+                "reduceCostBy": 2,
                 "optional": true
               }
             ]
