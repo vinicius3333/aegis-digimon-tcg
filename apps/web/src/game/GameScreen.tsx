@@ -155,19 +155,32 @@ function useMediaQuery(mediaQuery: string): boolean {
   return matches;
 }
 
-/** Phone layout: touch sheets, compact everything. Mirrors `@media (width < 600px)`. */
-const NARROW_LAYOUT_QUERY = "(width < 600px)";
+/**
+ * Phone layout: touch sheets, compact everything. Mirrors the CSS blocks of the
+ * same name — a phone on its side is ~800px wide, so the layout is keyed on the
+ * short viewport as well, or a landscape phone would fall into the pointer
+ * layout and lose the action strip along with every touch sheet.
+ */
+const NARROW_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
 /**
  * Tablet and split-screen widths. The board keeps its pointer interactions but the
  * piles shrink, because the sidebar moves under the board and leaves the rails too
  * short to hold four full-size piles.
  */
-const COMPACT_PILES_QUERY = "(width < 960px)";
+const COMPACT_PILES_QUERY = "(width < 960px), (height < 520px) and (orientation: landscape)";
 /**
  * A board this short cannot show a full-size Digimon in each battle row, so the
  * permanents drop to their compact size rather than being clipped by the row.
  */
 const SHORT_BOARD_QUERY = "(height < 820px)";
+/**
+ * A phone on its side. Both battle rows, the memory band, the dock and the
+ * header share ~390px, which is under what even a compact Digimon needs, so the
+ * battle rows name their own card width.
+ */
+const LANDSCAPE_PHONE_QUERY = "(height < 520px) and (orientation: landscape)";
+/** Card width in a battle row on a landscape phone. */
+const LANDSCAPE_PHONE_PERMANENT_WIDTH = 58;
 /**
  * Split-screen and small laptops, where game.css narrows the pile rails to 104px.
  * The rail breeding slot must shrink with them or its permanent (1.16× the slot)
@@ -252,6 +265,7 @@ export function GameScreen({
   const narrowGameLayout = useMediaQuery(NARROW_LAYOUT_QUERY);
   const compactPiles = useMediaQuery(COMPACT_PILES_QUERY);
   const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
+  const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
   const narrowRail = useMediaQuery(NARROW_RAIL_QUERY);
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked") return undefined;
@@ -2099,6 +2113,7 @@ export function GameScreen({
                     key={p.permanentId}
                     perm={p}
                     compact={narrowGameLayout || shortBoard}
+                    width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
                     refCb={(el) => {
                       permRefs.current[p.permanentId] = el;
                     }}
@@ -2169,6 +2184,7 @@ export function GameScreen({
                     key={p.permanentId}
                     perm={p}
                     compact={narrowGameLayout || shortBoard}
+                    width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
                     refCb={(el) => {
                       permRefs.current[p.permanentId] = el;
                     }}

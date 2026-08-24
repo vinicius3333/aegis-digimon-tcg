@@ -1957,7 +1957,11 @@ button.opponent-action-feed__current:focus-visible {
   }
 }
 
-@media (width < 600px) {
+/* The phone block: portrait, plus a phone on its side. A landscape phone is
+   ~800px wide, so width alone would leave it in the pointer layout; the
+   landscape block further down re-lays the board for the short viewport and
+   only needs these touch surfaces — sheets, zoom, confirmations — to exist. */
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
   .battle-clash__art > div {
     width: 78px !important;
     height: auto !important;
@@ -2750,21 +2754,352 @@ button.opponent-action-feed__current:focus-visible {
   }
 }
 
-@media (width < 600px) and (orientation: landscape) {
+/* Landscape phone. Keyed on the short viewport, not on width: a phone on its
+   side is ~800px wide and used to land in the tablet layout, which assumes a
+   tall screen — the fanned hand ate half of it, the board fell off the bottom
+   edge and the action strip collapsed to nothing. GameScreen's
+   NARROW_LAYOUT_QUERY carries the same condition, so the touch sheets and the
+   strip come along with these rules. */
+@media (height < 520px) and (orientation: landscape) {
   .game-layout {
-    flex-direction: row;
+    --game-rail: 6.25rem;
+    --hand-card-width: 3.5rem;
+    --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-1));
+    height: 100dvh !important;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr);
+    /* `auto`, so the strip's own `display: none` collapses the column whenever
+       there is no action to offer. */
+    grid-template-columns: minmax(0, 1fr) auto;
     overflow: hidden !important;
+    background: var(--ds-brand-ink);
   }
-  .game-sidebar {
-    width: 210px !important;
-    max-height: none;
-    flex-direction: column !important;
+  .game-board {
+    min-height: 0;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    flex: 1 1 auto !important;
+    overflow: hidden;
+    background: var(--ds-game-surface) !important;
   }
-  .game-sidebar > div {
+  .game-opponent-bar {
+    min-height: 44px;
+    padding: var(--ds-space-1) var(--ds-space-3) !important;
+    border-bottom: 0 !important;
+    background: var(--ds-brand-ink) !important;
+  }
+  .game-opponent-identity > div:last-child > div:last-child {
+    display: none !important;
+  }
+  .game-opponent-hand {
+    display: none !important;
+  }
+  /* One column per control the bar holds, same as portrait: the turn readout and
+     both match controls are base-hidden, and only a touch layout brings them back. */
+  .game-opponent-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: var(--ds-space-2);
+  }
+  .game-mobile-turn {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    color: var(--ds-brand-on-ink);
+    font-size: 0.625rem;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .game-mobile-turn strong {
+    font-family: var(--ds-font-display);
+  }
+  .game-mobile-turn span {
+    color: var(--ds-accent);
+    font-weight: 700;
+  }
+  .game-mobile-surrender,
+  .game-mobile-bug {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    color: var(--ds-brand-on-ink);
+    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent);
+    border-radius: var(--ds-radius-sm);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+  }
+  .game-field {
+    width: 100%;
+    min-height: 0;
+    display: grid !important;
+    grid-template-columns: var(--game-rail) minmax(0, 1fr) var(--game-rail);
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: var(--ds-game-surface-strong);
+  }
+  .game-pile-column {
+    width: auto !important;
     min-width: 0;
+    padding: var(--ds-space-1) !important;
+    gap: var(--ds-space-1) !important;
+    justify-content: space-between;
+    overflow: hidden;
   }
-  .game-sidebar > div:nth-child(3) {
-    display: block;
+  .game-pile-column > div[style*="flex: 1"] {
+    display: none;
+  }
+  /* Two piles per row rather than one per line: the rail is what runs out of
+     height here, and the board has width to spare. */
+  .game-pile-column > div {
+    flex-direction: row !important;
+    justify-content: center;
+    gap: var(--ds-space-2) !important;
+  }
+  .game-security-shield {
+    width: 2.75rem;
+  }
+  .game-security-shield__count {
+    font-size: 1.3rem;
+  }
+  .game-battle-zones {
+    min-width: 0;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+  .game-battle-zones > div {
+    min-width: 0;
+    min-height: 0 !important;
+    gap: var(--ds-space-2) !important;
+    padding: var(--ds-space-1) var(--ds-space-2) !important;
+  }
+  .game-battle-zones > div:first-child,
+  .game-battle-zones > div:last-child {
+    align-items: center;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+  .game-battle-zones > div:first-child > div,
+  .game-battle-zones > div:last-child > div {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    touch-action: pan-x !important;
+  }
+  /* The band keeps its flex row here: stacked (as portrait leaves it) the orb
+     drops below the gauge and costs the battle rows another 30px. */
+  .game-battle-zones > div:nth-child(2) {
+    display: flex;
+    align-items: center;
+    padding: 0 !important;
+    overflow: visible;
+  }
+  /* Every pixel the band gives up goes to the two battle rows, which have to
+     hold a compact Digimon (106px) between them. */
+  .game-memory-gauge__track {
+    padding: 5px 10px !important;
+  }
+  .game-end-turn-orb {
+    width: 2.6rem;
+    height: 2.6rem;
+    margin: -0.3rem 0.35rem;
+    padding: 0.15rem;
+    font-size: 0.46rem;
+  }
+  .game-end-turn-orb--waiting,
+  .game-end-turn-orb:disabled {
+    font-size: 0.46rem;
+  }
+
+  /* Breeding beside the hand, not above it: stacked, the two bands left the
+     field with nothing on a 390px-tall screen. */
+  .game-player-dock {
+    display: grid !important;
+    max-height: none;
+    flex: none;
+    grid-template-columns: auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+  .game-breeding-dock {
+    width: auto !important;
+    height: auto;
+    padding: var(--ds-space-1) var(--ds-space-2) !important;
+    display: grid !important;
+    grid-template-columns: auto;
+    gap: var(--ds-space-2);
+    align-items: center;
+    overflow: hidden;
+    border-right: 1px solid var(--ds-border) !important;
+    border-bottom: 0 !important;
+  }
+  /* The sideways "breeding area" caption is ~110px of writing-mode text, which
+     is height this layout has to spend on the battle rows. The slots keep their
+     own captions. */
+  .game-breeding-dock > div:first-child {
+    display: none;
+  }
+  .game-breeding-dock > div:last-child {
+    min-width: 0;
+    flex: none !important;
+    justify-content: flex-start;
+    gap: var(--ds-space-2) !important;
+  }
+  .game-hand-dock {
+    min-width: 0 !important;
+    height: auto;
+    min-height: calc(var(--game-hand-h) + var(--ds-space-2));
+    padding: 2px var(--ds-space-2) max(2px, env(safe-area-inset-bottom)) !important;
+    overflow: hidden;
+  }
+  .game-action-bar--idle {
+    display: none !important;
+  }
+  .game-player-dock [data-testid="hand"] {
+    height: var(--game-hand-h) !important;
+    padding: 0 var(--ds-space-1) !important;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  }
+  .game-player-dock [data-testid="hand"] > div {
+    flex: 0 0 auto;
+    margin-left: var(--ds-space-1) !important;
+    transform: none !important;
+    scroll-snap-align: center;
+    touch-action: pan-x !important;
+  }
+  .game-player-dock [data-testid="hand"] > div:first-child {
+    margin-left: 0 !important;
+  }
+  .game-player-dock [data-testid="hand"] > div > div {
+    width: var(--hand-card-width) !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+
+  /* The strip becomes the right-hand column: vertical room is what this layout
+     is short of, and the board has width to spare. */
+  .game-sidebar {
+    width: auto !important;
+    height: 100dvh;
+    max-height: none;
+    flex: none !important;
+    flex-direction: column !important;
+    overflow: hidden;
+    border-top: 0 !important;
+    border-left: 1px solid var(--ds-border);
+    background: var(--ds-brand-ink) !important;
+  }
+  .game-sidebar > div:first-child,
+  .game-sidebar > div:nth-child(3),
+  .game-sidebar > div:last-child {
+    display: none;
+  }
+  .game-sidebar > div:nth-child(2):not(:has(button)) {
+    display: none !important;
+  }
+  .game-sidebar > div:nth-child(2) {
+    width: 9rem;
+    min-width: 0;
+    height: 100dvh;
+    padding: var(--ds-space-2) !important;
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: var(--ds-space-2) !important;
+    overflow-y: auto;
+    border: 0 !important;
+  }
+  .game-sidebar > div:nth-child(2) > div {
+    display: none;
+  }
+  .game-sidebar > div:nth-child(2) > button {
+    min-width: 0;
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+
+  /* Fixed panels measure themselves against the board, which is no longer the
+     whole viewport once the strip takes a column. */
+  .game-action-bar--contextual {
+    position: fixed;
+    z-index: calc(var(--ds-z-toast) - 2);
+    right: var(--ds-space-2);
+    bottom: max(var(--ds-space-2), env(safe-area-inset-bottom));
+    left: var(--ds-space-2);
+    min-height: 48px;
+    max-height: 40dvh;
+    padding: var(--ds-space-2) !important;
+    flex-wrap: wrap;
+    overflow: auto;
+    color: var(--ds-fg);
+    border: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-lg);
+  }
+  .opponent-action-feed {
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: auto;
+    width: min(20rem, 45vw);
+  }
+  .opponent-action-feed__trail {
+    display: none;
+  }
+  .info-panel-stack {
+    top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: auto;
+    width: min(18rem, 40vw);
+  }
+  /* Sheets and dialogs: a 390px-tall screen leaves no room for the phone
+     portrait sizes, so the card shrinks and the panel scrolls. */
+  .card-action-sheet__panel {
+    max-height: 92dvh;
+    padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-2), env(safe-area-inset-bottom));
+  }
+  .card-action-sheet__body > .card-action-sheet__zoom {
+    width: auto;
+    height: min(46dvh, 10rem);
+    aspect-ratio: 5 / 7;
+  }
+  .card-action-sheet__body > .card-action-sheet__zoom > * {
+    width: auto !important;
+    height: 100% !important;
+    aspect-ratio: 5 / 7;
+  }
+  .card-action-sheet__actions > button {
+    min-height: 40px;
+    padding-block: var(--ds-space-2);
+  }
+  /* A 390px-tall screen cannot spare the portrait sheet's air: the same dialog
+     shrinks its padding, heading and buttons so the board stays partly visible
+     behind it. */
+  .game-modal__panel,
+  .game-over-dialog,
+  .combat-prompt {
+    max-height: calc(100dvh - var(--ds-space-4)) !important;
+    padding: var(--ds-space-3) var(--ds-space-4) max(var(--ds-space-3), env(safe-area-inset-bottom)) !important;
+    overflow-y: auto;
+  }
+  .game-modal__panel > h2 {
+    font-size: var(--ds-text-lg);
+  }
+  .game-modal__panel button {
+    min-height: 40px;
+    padding-block: var(--ds-space-2);
+  }
+  .mulligan-card {
+    max-width: 84px;
   }
 }
 

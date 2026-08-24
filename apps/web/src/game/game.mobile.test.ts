@@ -3,8 +3,15 @@ import { describe, expect, it } from "vitest";
 
 const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
 const overlaysSource = readFileSync(new URL("./overlays.tsx", import.meta.url), "utf8");
+const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
+// The phone block's condition is a list — narrow, or short and on its side — so
+// the header is matched loosely up to its brace.
 const portraitRules = gameCss.match(
-  /@media \(width < 600px\) \{(?<rules>[\s\S]*?)\n\}\n\n@media \(width < 600px\) and \(height < 650px\)/,
+  /@media \(width < 600px\)[^{]*\{(?<rules>[\s\S]*?)\n\}\n\n@media \(width < 600px\) and \(height < 650px\)/,
+)?.groups?.rules;
+/** The landscape-phone block, which re-lays the board for a short viewport. */
+const landscapeRules = gameCss.match(
+  /@media \(height < 520px\) and \(orientation: landscape\) \{(?<rules>[\s\S]*?)\n\}\n/,
 )?.groups?.rules;
 
 // Where the sidebar stops being a column and becomes a strip along the bottom.
@@ -214,5 +221,49 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
 
   it("spans the reveal panel across the screen", () => {
     expect(portraitRules).toMatch(/\.info-panel-stack \{[^}]*width:\s*auto/);
+  });
+});
+
+describe("landscape phone match layout", () => {
+  // A phone on its side is ~800px wide and ~390px tall. Keyed on width alone it
+  // landed in the tablet layout: the fanned hand ate the screen, the board fell
+  // off the bottom and the action strip collapsed to nothing.
+  it("keys the phone layout on the short viewport as well as the narrow one", () => {
+    expect(gameCss).toMatch(/@media \(width < 600px\), \(height < 520px\) and \(orientation: landscape\) \{/);
+    expect(gameScreenSource).toMatch(
+      /NARROW_LAYOUT_QUERY = "\(width < 600px\), \(height < 520px\) and \(orientation: landscape\)"/,
+    );
+  });
+
+  it("gives the strip a column of its own beside the board", () => {
+    expect(landscapeRules).toBeDefined();
+    expect(landscapeRules).toMatch(/\.game-layout \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/);
+    expect(landscapeRules).toMatch(/\.game-sidebar > div:nth-child\(2\) \{[^}]*width:\s*9rem/);
+    // Same collapse as portrait: no action, no column.
+    expect(landscapeRules).toMatch(
+      /\.game-sidebar > div:nth-child\(2\):not\(:has\(button\)\) \{\s*display:\s*none !important/,
+    );
+  });
+
+  it("puts the breeding area beside the hand instead of above it", () => {
+    // Stacked, the two bands leave the battle rows nothing on a 390px screen.
+    expect(landscapeRules).toMatch(/\.game-player-dock \{[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\)/);
+    expect(landscapeRules).toMatch(/\.game-breeding-dock > div:first-child \{\s*display:\s*none/);
+  });
+
+  it("keeps the memory band a single row", () => {
+    // Stacked, the end-turn orb drops below the gauge and costs the battle rows
+    // another 30px they do not have.
+    expect(landscapeRules).toMatch(/\.game-battle-zones > div:nth-child\(2\) \{[^}]*display:\s*flex/);
+  });
+
+  it("lays the rail piles two to a row", () => {
+    expect(landscapeRules).toMatch(/\.game-pile-column > div \{[^}]*flex-direction:\s*row !important/);
+  });
+
+  it("names an explicit card width for the battle rows", () => {
+    // Even the compact Digimon (106px) is taller than a row here.
+    expect(gameScreenSource).toMatch(/const LANDSCAPE_PHONE_PERMANENT_WIDTH = \d+;/);
+    expect(gameScreenSource).toMatch(/width=\{landscapePhone \? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined\}/);
   });
 });
