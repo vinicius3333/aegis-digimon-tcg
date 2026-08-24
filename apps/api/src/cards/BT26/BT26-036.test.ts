@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared";
+import { Phase, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-036.js";
 import "../index.js";
 
@@ -65,21 +66,39 @@ describe("BT26-036 Lalamon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-039", as: "host", under: [{ card: "BT26-036" }] }] },
+        0: {
+          battleArea: [{ card: "BT26-039", as: "host", under: [{ card: "BT26-036" }, { card: "EX4-019" }] }],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
           ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          hand: Array.from({ length: 8 }, () => "BT1-004"),
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
-    const trigger = { attackerPermanentId: s.perm("host").permanentId };
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), trigger);
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), trigger);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("first").isSuspended && !s.perm("host").isSuspended && !observe(s.engine).isAttacking());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("first").isSuspended).toBe(true);
     expect(s.perm("second").isSuspended).toBe(false);
