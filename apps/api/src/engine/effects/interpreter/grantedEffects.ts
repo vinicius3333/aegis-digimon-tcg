@@ -5,6 +5,7 @@ import type { Effect } from "../Effect.js";
 import { describeEffect } from "./describe.js";
 import { runEffect } from "./dispatch.js";
 import { builderForTrigger, timingsForTrigger, turnOwnerGuard } from "./effect.js";
+import { executeActivatedEffect, executeDeleteEffect } from "./registration/keywords.js";
 import { EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect } from "@aegis/shared";
 
@@ -115,6 +116,11 @@ import type { Action, CardEffect } from "@aegis/shared";
  * at all.
  */
 export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
+  "__keyword/Execute/attack": {
+    ...executeActivatedEffect(),
+    condition: { kind: "selfHasKeyword", keyword: "Execute" },
+  },
+  "__keyword/Execute/delete": executeDeleteEffect(),
   "[All Turns] When this Digimon becomes suspended, lose 1 memory.": {
     trigger: "AllTurns",
     actions: [

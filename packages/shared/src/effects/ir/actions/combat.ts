@@ -12,6 +12,8 @@ export interface AttackAction extends ActionBase {
   withoutSuspending?: boolean;
   /** The attack may target the player directly. */
   attackPlayer?: boolean;
+  /** Name of the keyword mechanic that declared this attack. */
+  attackMechanic?: string;
   subject?: Target;
   /** Alternative name for `target`. */
   attacker?: Target;

@@ -25,6 +25,7 @@ import {
   detectAllowDigiXrosMaterialsFromTrash,
   engageActivatedEffect,
   executeActivatedEffect,
+  executeDeleteEffect,
   isIntrinsicDigisorptionMarker,
   overclockActivatedEffect,
   registerBlastDigivolveFromEffects,
@@ -67,7 +68,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   );
   if (printsTraining) effects.push(trainingActivatedEffect());
   if (declaresUnimplementedEngageKeyword(compiled)) effects.push(engageActivatedEffect());
-  if (declaresExecuteKeyword(compiled)) effects.push(executeActivatedEffect());
+  if (declaresExecuteKeyword(compiled)) effects.push(executeActivatedEffect(), executeDeleteEffect());
   registerTamerOntoFromEffects(cardId, compiled.effects);
   collectWouldBePlayedSelfReducers(cardId, compiled.effects);
   collectWouldDigivolveSelfReducers(cardId, compiled.effects);

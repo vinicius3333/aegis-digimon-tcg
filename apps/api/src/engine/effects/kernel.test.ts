@@ -204,13 +204,12 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     expect(passesPlacementGuard(printed, fakeContext(essSource, digimonTop))).toBe(false);
   });
 
-  it("does not gate a source that is not on any permanent (e.g. in hand)", () => {
+  it("does not gate a printed source that is not on any permanent (e.g. in hand)", () => {
     const inHand = fakeSource({ instanceId: "h#1", permanent: () => undefined });
     const eff: Effect = onPlay({
       source: inHand,
       effectKey: "k",
       description: "",
-      isInherited: true,
       resolve: async () => {},
     });
     expect(passesPlacementGuard(eff, fakeContext(inHand))).toBe(true);
@@ -246,9 +245,9 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     });
     expect(passesPlacementGuard(effStack, ctxStack)).toBe(true);
 
-    // No deletedWasStackInstanceIds in trigger → backward compatible (returns true).
+    // No deletion-role snapshot means an off-field inherited source has lost its placement.
     const ctxNoInfo = fakeContext(inTrash);
-    expect(passesPlacementGuard(eff, ctxNoInfo)).toBe(true);
+    expect(passesPlacementGuard(eff, ctxNoInfo)).toBe(false);
   });
 
   it("does not activate a buried card's own printed effect when its host is deleted", () => {

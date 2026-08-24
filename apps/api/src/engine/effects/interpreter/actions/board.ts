@@ -320,6 +320,16 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             sourceEffectText: ctx.activeEffectText,
           });
         }
+        // A gained ＜Execute＞ is behavioral, not merely a keyword label. Printed Execute on a
+        // card's own top instance is synthesized by module registration; an inherited or
+        // externally granted Execute instead installs the same two timing effects on the host.
+        if (kw === "Execute") {
+          const top = ctx.game.permanentById(id)?.topCard;
+          if (top !== undefined && top.instanceId !== ctx.source.instanceId) {
+            ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, "__keyword/Execute/attack", duration);
+            ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, "__keyword/Execute/delete", duration);
+          }
+        }
       }
       for (const extra of action.keywords ?? []) {
         if (extra.keyword === kw) continue;

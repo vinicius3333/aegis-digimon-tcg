@@ -107,3 +107,39 @@ for the individual evidence below.
 - **Verification:** `EX12-003.test.ts` — 10/10; DNA, leave-prevention, primitives, and
   capability regressions — 426/426; workspace typecheck passed. No residual IR,
   unsupported behavior, or unresolved card-specific ambiguity.
+
+## EX12-004 — Onibimon — 10/10
+
+- **Printed contract:** Purple level 2 Digi-Egg, Ghost/Shambala/TB. During its
+  controller's turn, its inherited effect grants ＜Execute＞ to the host only while
+  that Digimon has the TB trait. Execute optionally attacks at end of turn, may target
+  an unsuspended opposing Digimon, and schedules deletion of the attacker at end of attack.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-004`; Q6728 says Execute's pending
+  deletion and EX12-046 Shishimamon's inherited `[End of Attack]` trigger simultaneously
+  and may resolve in either order. If Execute deletes the host first, Shishimamon's
+  inherited effect can no longer activate.
+- **Implementation trace:** inherited `YourTurn` + `selfHasTrait(TB)` continuously grants
+  the keyword to the host. A gained Execute now installs the same generic attack and
+  end-of-attack deletion abilities used by a printed Execute card, anchored on the host's
+  top instance. The attack carries `attackMechanic: Execute` through the combat controller
+  and drains `[When Attacking]` effects before battle continues. The deletion has both
+  `triggerAttackBy(Execute)` and `triggerAttackerIsSelf` gates, so unrelated attacks and
+  other Execute users cannot delete this host.
+- **Corrections:** a granted Execute was previously only a continuous keyword label and
+  could not attack. Printed Execute also deleted after the whole combat action returned,
+  too late to share the end-of-attack activation pool. Execute is now split into its
+  optional end-turn attack and a real EndOfAttack deletion. The placement kernel now
+  rejects a pending inherited/linked effect whose source is off-field unless the current
+  deletion snapshot proves the role that made it active.
+- **Ruling proof:** a real TB host with EX12-046 and EX12-004 in its stack attacks through
+  the production end-turn/combat path. The ordering request contains exactly the inherited
+  Shishimamon effect and Execute deletion. Choosing Shishimamon first plays EX12-009 and
+  then deletes the host; choosing Execute first deletes the complete stack and leaves
+  EX12-009 in hand because the inherited source has lost its placement.
+- **Negative and mechanism proof:** non-TB hosts and the opponent's turn do not receive
+  Execute. The existing printed-Execute test still proves an attack against an unsuspended
+  Digimon and self-deletion, while a no-keyword control remains inert.
+- **Verification:** `EX12-004.test.ts` — 6/6; Execute/Partition — 6/6; placement kernel —
+  18/18; combat controller — 23/23; interpreter — 171/171; primitives — 126/126;
+  EX12-046 peer suite — 5/5; workspace typecheck and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved card-specific ambiguity.

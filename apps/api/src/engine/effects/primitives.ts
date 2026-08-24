@@ -297,6 +297,7 @@ export interface CombatPort {
     target: AttackTarget,
     opts?: {
       withoutTap?: boolean;
+      attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -4338,6 +4339,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
+      attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -4391,6 +4393,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
     await combat.resolveAttack(controllerSeat, attacker, target, {
       withoutTap: opts?.withoutSuspending ?? false,
+      attackMechanic: opts?.attackMechanic,
       afterAttackTriggers: opts?.afterAttackTriggers,
       drainTimingWindow: opts?.drainTimingWindow,
     });

@@ -94,6 +94,7 @@ export interface CombatTrigger {
   suspendedPermanentId?: string;
   attackerPermanentId?: string;
   attackSequence?: number;
+  attackMechanic?: string;
   defenderPermanentId?: string;
   blockerPermanentId?: string;
   target?: AttackTarget;
@@ -509,6 +510,7 @@ export class CombatController {
     target: AttackTarget,
     opts: {
       withoutTap?: boolean;
+      attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     } = {},
@@ -548,6 +550,7 @@ export class CombatController {
       const attackTrigger: CombatTrigger = {
         attackerPermanentId: attacker.permanentId,
         target,
+        ...(opts.attackMechanic === undefined ? {} : { attackMechanic: opts.attackMechanic }),
         ...(target.kind === "permanent" ? { defenderPermanentId: target.permanentId } : {}),
       };
       await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
@@ -657,7 +660,7 @@ export class CombatController {
       // sibling path, rather than returning silently and skipping the window.
       if (!this.attackerStillValid(attacker)) {
         await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          attackerPermanentId: attacker.permanentId,
+          ...attackTrigger,
           target: effectiveTarget,
         });
         return;
@@ -668,7 +671,7 @@ export class CombatController {
       // (AttackProcess.EndAttack). The attack does not succeed.
       if (this.endRequested) {
         await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          attackerPermanentId: attacker.permanentId,
+          ...attackTrigger,
           target: effectiveTarget,
         });
         return;
@@ -687,7 +690,7 @@ export class CombatController {
 
       if (!this.attackerStillValid(attacker)) {
         await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          attackerPermanentId: attacker.permanentId,
+          ...attackTrigger,
           target: effectiveTarget,
         });
         return;
@@ -708,7 +711,7 @@ export class CombatController {
 
       // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
       await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-        attackerPermanentId: attacker.permanentId,
+        ...attackTrigger,
         target: effectiveTarget,
       });
     } finally {

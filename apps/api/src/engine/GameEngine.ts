@@ -651,6 +651,7 @@ export class GameEngine {
           if (att !== undefined) {
             await this.fireTimingForPermanent(timing, att, {
               attackerPermanentId: trigger.attackerPermanentId,
+              attackMechanic: trigger.attackMechanic,
               defenderPermanentId: trigger.defenderPermanentId,
               blockerPermanentId: trigger.blockerPermanentId,
               ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
@@ -669,6 +670,7 @@ export class GameEngine {
           subjectPermanentId: trigger.subjectPermanentId,
           suspendedPermanentId: trigger.suspendedPermanentId,
           attackerPermanentId: trigger.attackerPermanentId,
+          attackMechanic: trigger.attackMechanic,
           defenderPermanentId: trigger.defenderPermanentId,
           blockerPermanentId: trigger.blockerPermanentId,
           ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
