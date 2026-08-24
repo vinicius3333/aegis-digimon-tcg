@@ -52,6 +52,58 @@ describe("BT26-052 Pristimon", () => {
     expect(s.state.players[0]!.deck.map((c) => c.cardId)).toEqual(["BT1-009"]);
   });
 
+  it("never adds the same revealed card twice when it qualifies for both slots", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-052", as: "played" }],
+          deck: [
+            { card: "BT26-052", as: "bothTraits" },
+            { card: "BT1-009", as: "firstRest" },
+            { card: "BT1-010", as: "secondRest" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bothTraits").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstRest").instanceId, s.inst("secondRest").instanceId]),
+    );
+  });
+
+  it("digivolves for 0 from a differently colored level 2 Glowing Dawn card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-003", as: "base" }],
+        hand: [{ card: "BT26-052", as: "pristimon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("pristimon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-052");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.at(-1)?.cardId).toBe("BT25-003");
+  });
+
   it("grants inherited Reboot to its evolution host", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-055", as: "host", under: ["BT26-052"] }] },
