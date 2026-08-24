@@ -1669,3 +1669,51 @@ for the individual evidence below.
   digivolution/battle-keyword conformance — 12/12; security/Blocker conformance — 10/10; shared
   build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-052 — Diarbbitmon / Truskmore Advance — 10/10
+
+- **Printed contract:** Green/black dual Digimon/Option, level 6 Beast Knight/NSp Vaccine,
+  play/use cost 5 and 12000 DP. Its normal green/black level-5 evolution routes cost 4; a
+  level-5 card with Angoramon in its text or the NSp trait costs 3. The Digimon face has
+  Piercing and Vortex. When Digivolving, one allied Digimon becomes unaffected by the
+  opponent's Digimon effects until that opponent's turn ends. Its shared When Digivolving,
+  When Attacking, and Counter once-per-turn clause gives one allied Digimon +3000 DP through
+  the opponent's turn, then that Digimon may directly battle an opposing Digimon. The Option
+  face has Use Req. (NSp); its Main may unsuspend one ally, suspends two opposing Digimon, and
+  independently prevents two opposing Digimon or Tamers from unsuspending through their turn.
+- **KB evidence:** Q6835 gives the complete full-text meaning of Angoramon matching. Q6836 makes
+  the direct battle mandatory after accepting the optional +3000 clause when a legal opponent
+  exists. Q6837-Q6842 define unaffected behavior, including continued targetability, immediate
+  suppression/restoration, and timing effects. Q6843/Q6844 establish that the effect conducts a
+  rules battle and may include an unaffected Digimon. Q6845 limits an attack to one Counter.
+  Q6846-Q6848 define Piercing across additional battles and opposing-turn Counter battles.
+  Q6849 confirms the Option's suspend and unsuspend-lock selections may differ.
+- **Corrections:** the direct IR's source-kind-qualified immunity omitted opponent ownership,
+  which could also block the controller's own Digimon effects. It now records
+  `byOpponentEffectsOnly: true`. The aggregate IR was substantially stale: it retained
+  RawUnparsed immunity, omitted Use Req. and the entire Option face, omitted all three direct
+  battles and their shared once-per-turn key, and remained partial with a residual. It now
+  exactly equals the direct executable IR, with full coverage and no residual. Registration
+  remains exclusively via `registerIrCard`.
+- **Ruling and behavioral proof:** accepting the shared clause gives exactly +3000 and forces
+  the selected Digimon to battle and delete a legal opponent, directly covering Q6836/Q6843.
+  The selected Digimon then accepts a modifier from its controller's Digimon, rejects the same
+  modifier from an opposing Digimon, and accepts it from an opposing Option, proving both
+  ownership and kind scoping for Q6837-Q6842. Fresh When Attacking and Counter windows each
+  perform the same buff-and-battle body, while activating When Digivolving first consumes the
+  shared budget and prevents When Attacking from applying it again. The Option is actually used
+  with an NSp permanent in play: it unsuspends the ally, suspends exactly two opposing Digimon,
+  and locks exactly two eligible opposing permanents; its independent action records preserve
+  the distinct choices permitted by Q6849.
+- **Evolution, keyword, and identity proof:** green BT1-075 and black BT10-064 use the normal
+  cost-4 routes; non-NSp BT13-055 matches Angoramon only through text and EX12-051 matches NSp,
+  each for alternate cost 3; red nonmatching BT1-020 is rejected. The live card publishes both
+  Piercing and Vortex. Catalog assertions cover the dual-card kinds, colors, stats, traits,
+  names, requirements, and both normal evolution routes. Direct registration, aggregate IR,
+  full coverage, empty residuals, and exact equality are asserted.
+- **Verification:** `EX12-052.test.ts` — 8/8; EX12 immunity seams — 9/9; effect primitives —
+  126/126; interpreter — 171/171; digivolution action flow — 27/27; deletion/advanced-keyword
+  conformance including Use Req. — 30/30; security strike count — 8/8; digivolution and battle
+  keyword conformance — 12/12; shared build, API typecheck, focused formatting, focused lint,
+  and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
+  remains.
