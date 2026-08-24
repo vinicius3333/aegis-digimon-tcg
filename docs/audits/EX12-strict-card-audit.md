@@ -1783,3 +1783,36 @@ for the individual evidence below.
   lifecycle — 5/5; security/Blocker conformance — 10/10; API typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   card-specific ruling, or unresolved ambiguity remains.
+
+## EX12-055 — Andromon — 10/10
+
+- **Printed contract:** Black/yellow level 5 Cyborg/ME Vaccine Digimon, play cost 7 and 7000 DP.
+  Its normal black/yellow level-4 evolution routes cost 4; a level-4 Machine or ME card costs 3.
+  It DNA digivolves for 0 from a black/purple level 4 plus a red/yellow level 4. On Play and
+  When Digivolving it reveals three, may play one cost-5-or-less Machine, Cyborg, or ME card for
+  free, and trashes the rest. Its Counter once per turn may digivolve another ally into a
+  level-6-or-lower ME Digimon from hand for free while retaining normal evolution legality. Its
+  inherited opponent-turn once-per-turn effect may redirect an opposing attack to its host.
+- **KB evidence:** Q6850 confirms that only one Counter effect can activate during an attack.
+  The engine's single Counter-window selection and timing-resolution conformance enforce that
+  shared rule independently of this card's own once-per-turn ledger.
+- **Corrections:** direct behavior was complete, but the aggregate IR omitted every printed DNA
+  requirement. All four expanded color pairs are now recorded, and the module exports its IR so
+  direct registration and aggregate data can be compared exactly. Coverage remains full with no
+  residual, and registration remains exclusively via `registerIrCard`.
+- **Behavioral proof:** both On Play and When Digivolving reveal exactly three, play a legal
+  cost-5 Machine/Cyborg/ME card, and trash both remainders; a reveal with no match trashes all
+  three. A real opponent attack opens the Counter window, exposes EX12-055 as eligible, and
+  evolves a different ally into legal level-6 ME EX12-059 without changing memory. A buried copy
+  redirects the first player attack to its host, where the attacker loses battle and security is
+  untouched; its second attack in the same turn is not redirected and checks security.
+- **Evolution, DNA, and identity proof:** both normal colors pay 4, Machine/ME pays alternate 3,
+  and an off-color nonmatch is rejected. Black+red, black+yellow, purple+red, and purple+yellow
+  material pairs each DNA digivolve for 0, while black+purple is rejected because both materials
+  come from the first color group. Catalog identity, direct/shared requirements, full coverage,
+  empty residuals, and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-055.test.ts` — 10/10; interpreter/reveal mechanics — 171/171;
+  digivolution action flow — 27/27; DNA digivolution seam — 1/1; subtrigger seams — 22/22;
+  timing/resolution conformance — 17/17; shared build, API typecheck, focused formatting, focused
+  lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
+  remains.

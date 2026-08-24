@@ -135799,7 +135799,37 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["Machine", "ME"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{ "level": 4, "traits": ["Machine", "ME"], "cost": 3, "isAlternate": true }],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 4 },
+          { "color": "Red", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 4 },
+          { "color": "Yellow", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 4 },
+          { "color": "Red", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 4 },
+          { "color": "Yellow", "level": 4 }
+        ]
+      }
+    ]
   },
   "EX12-056": {
     "effects": [
