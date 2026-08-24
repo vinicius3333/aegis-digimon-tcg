@@ -391,3 +391,30 @@ for the individual evidence below.
 - **Verification:** `EX12-013.test.ts` — 11/11 with no error log; workspace typecheck,
   focused formatting, focused lint, and `git diff --check` passed. No implementation
   correction was needed; there is no residual IR, unsupported behavior, or open ruling.
+
+## EX12-014 — Canoweissmon — 10/10
+
+- **Printed contract:** Red/yellow level 5 Sky Dragon/VB, play cost 7 and 7000 DP.
+  Normal red/yellow level-4 evolution costs 4; level-4 Gammamon-text or VB alternatives
+  cost 3. Printed and inherited Decode may play a level-4-or-lower Gammamon-text or VB
+  Digimon from this Digimon's sources when it would leave other than by battle. On play
+  and evolution it may place a matching level-5-or-lower Digimon from hand/trash under
+  itself; then one own Digimon may attack.
+- **KB evidence:** Q6734 defines the full text union. Q6735 confirms the level qualifier
+  applies to both sides of each OR. Decode's comprehensive rule requires a real
+  would-leave, other-than-battle replacement; the played source does not prevent the host's leave.
+- **Corrections:** both Decode placements were label-only and therefore could not execute.
+  Printed and inherited `AllTurns` replacements now play a matching source for free with
+  `playedByDecode:true` and `leaveCause:otherThanBattle`. The optional PlaceUnder actions
+  also incorrectly used `abortOnDecline`, suppressing the independent “Then” attack; that
+  abort was removed.
+- **Behavioral proof:** printed and buried EX12-014 each play EX12-013 from their stack
+  before an effect deletion while the original host still leaves; a battle deletion plays
+  nothing. Level-5 non-VB BT10-011 is accepted through Gammamon text, while level-6 VB
+  EX12-017 is rejected and the following attack still occurs (the chosen attacker reaches
+  security and is deleted in battle). Hand/trash and both entry timings are covered.
+  Normal red EX12-011 and yellow BT1-051 pay 4; text-matching BT21-019 and off-color VB
+  EX12-024 pay 3; green BT1-069 is rejected.
+- **Verification:** `EX12-014.test.ts` — 10/10 with no error log; leave-prevention mechanism
+  suite — 10/10; workspace typecheck, focused formatting, focused lint, and `git diff --check`
+  passed. No residual IR, unsupported behavior, or unresolved ruling remains.

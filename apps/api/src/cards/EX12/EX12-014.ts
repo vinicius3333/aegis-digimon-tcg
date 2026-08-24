@@ -2,11 +2,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// All auditor findings were self-corrected as false positives:
-// - digivolutionRequirement two-entry OR split (texts/trait) is correct.
-// - optional:true on Attack matches "may attack" text.
-// - PlaceUnder filter correctly encodes Gammamon-in-text OR VB-trait.
-// Fixed: stray "}" in inherited Decode raw text (cosmetic typo in auto-generated output).
+// Hand-audited IR. Decode is represented both by its visible keyword and by an executable
+// would-leave replacement in each printed placement. The optional PlaceUnder does not abort
+// the following "Then" attack when declined or unavailable.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -16,6 +14,38 @@ const compiled: CompiledCard = {
         {
           keyword: "Decode",
           raw: "＜Decode (Lv.4 or lower w/[Gammamon] in text or w/[VB] trait)＞",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 4 },
+                  nameOrTrait: [
+                    { tokens: ["Gammamon"], match: "text" },
+                    { tokens: ["VB"], match: "trait" },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
         },
       ],
     },
@@ -47,7 +77,6 @@ const compiled: CompiledCard = {
             from: ["hand", "trash"],
           },
           optional: true,
-          abortOnDecline: true,
           position: "bottom",
         },
         {
@@ -92,7 +121,6 @@ const compiled: CompiledCard = {
             from: ["hand", "trash"],
           },
           optional: true,
-          abortOnDecline: true,
           position: "bottom",
         },
         {
@@ -119,6 +147,39 @@ const compiled: CompiledCard = {
           raw: "＜Decode (Lv.4 or lower w/[Gammamon] in text or w/[VB] trait)＞",
         },
       ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 4 },
+                  nameOrTrait: [
+                    { tokens: ["Gammamon"], match: "text" },
+                    { tokens: ["VB"], match: "trait" },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
     },
   ],
   coverage: "full",
