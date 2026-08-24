@@ -14,7 +14,10 @@ describe("BT26-062 Ghostmon", () => {
       isAlternate: true,
     });
     expect(compiled.coverage).toBe("full");
-    expect(compiled.effects[0]!.actions.map((a) => a.kind)).toEqual(["Draw", "GainMemory"]);
+    expect(compiled.effects[0]!.actions).toEqual([
+      expect.objectContaining({ kind: "Draw", optional: true, abortOnDecline: true }),
+      expect.objectContaining({ kind: "GainMemory" }),
+    ]);
     expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", isInherited: true });
   });
   it("trashes a Ghost card before drawing and gaining memory", async () => {
@@ -26,7 +29,7 @@ describe("BT26-062 Ghostmon", () => {
           deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ghostmon"));
@@ -35,6 +38,25 @@ describe("BT26-062 Ghostmon", () => {
     expect(s.state.players[0]!.trash).toContainEqual(
       expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
     );
+  });
+  it("may decline the hand-trash payment without drawing or gaining memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-062", as: "ghostmon" }],
+          hand: [{ card: "BT26-062", as: "cost" }],
+          deck: [{ card: "BT1-009", as: "top" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ghostmon"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-062");
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
   });
   it("gives its evolution host the inherited 2000 DP during its controller's turn", async () => {
     const s = setupEngine({
