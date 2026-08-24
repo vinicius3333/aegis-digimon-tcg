@@ -51,6 +51,13 @@ export const compiled: CompiledCard = {
               keyword: { keyword: "Execute" },
               duration: "untilEachTurnEnd",
             },
+            {
+              kind: "GrantStatic",
+              target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
+              grant: "effects",
+              tokens: ["Execute"],
+              duration: "untilEachTurnEnd",
+            },
           ],
           fireCondition: {
             kind: "allOf",
