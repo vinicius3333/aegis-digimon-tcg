@@ -342,3 +342,27 @@ for the individual evidence below.
 - **Verification:** `EX12-011.test.ts` — 8/8; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No implementation correction was needed;
   there is no residual IR, unsupported behavior, card-specific ruling, or ambiguity.
+
+## EX12-012 — Apemon — 10/10
+
+- **Printed contract:** Red level 4 Digimon, Beastkin/Shambala/SW, play cost 4 and
+  4000 DP. Its normal red level-3 and alternate level-3 Shambala evolutions cost 2.
+  It has Raid. On play and when digivolving, its controller may trash one SW card
+  from hand to draw 2. Its inherited owner-turn effect gives only its host +2000 DP.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-012` returns no card-specific
+  rulings. The “By trashing” processing is an optional activation cost in each timing;
+  refusal or inability to pay prevents Draw 2 without suppressing the normal evolution draw.
+- **Implementation trace and correction:** both Draw actions use the same exact own-hand,
+  SW-trait, count-1 trash cost. They were incorrectly mandatory. Each now has
+  `optional:true` and `abortOnDecline:true`, so acceptance pays once before Draw 2 and
+  refusal aborts that effect body. Raid remains top-level; the inherited `YourTurn`
+  self modifier and the level-3 Shambala alternate requirement remain fully represented.
+- **Behavioral proof:** both On Play and When Digivolving pay one real SW card and draw
+  exactly two; both timings also permit explicit refusal. The evolution refusal test
+  distinguishes its mandatory rules draw from the declined effect's Draw 2. An unpayable
+  hand is inert. Separate permanents and turn changes prove inherited DP scope and timing.
+  Standard red EX12-005 and off-color Shambala EX12-006 pay 2, while green non-Shambala
+  BT1-064 is rejected.
+- **Verification:** `EX12-012.test.ts` — 9/9; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  card-specific ruling, or unresolved ambiguity.
