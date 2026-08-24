@@ -1717,3 +1717,36 @@ for the individual evidence below.
   keyword conformance — 12/12; shared build, API typecheck, focused formatting, focused lint,
   and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
   remains.
+
+## EX12-053 — Hagurumon — 10/10
+
+- **Printed contract:** Black level 3 Machine/ME Virus Digimon, play cost 3 and 2000 DP. It
+  normally evolves from a black level 2 for cost 0 or alternatively from any level-2 ME card
+  for cost 0. On Play it reveals the top three cards, adds one Machine-, Cyborg-, or Mutant-trait
+  card and one ME-trait card, then returns every remaining card to deck bottom. Its inherited
+  effect grants Blocker to its host.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-053` returns no card-specific rulings. The
+  established RevealAdd processing applies the two printed count-one slots sequentially,
+  removes a selected physical instance from later slots, and bottoms every unselected reveal in
+  stable order.
+- **Implementation trace:** the On Play `RevealAdd` has an exact three-card reveal, an OR-trait
+  first slot for Machine/Cyborg/Mutant, an exact ME second slot, and `deckBottom` remainder
+  handling. The inherited Static Blocker is scoped to the host carrying EX12-053 as a source.
+  Direct and aggregate IR already matched exactly, remained full with no residual, and required
+  no correction. Registration remains exclusively via `registerIrCard`.
+- **Behavioral proof:** a production On Play resolution independently adds Machine/ME
+  EX12-054 and ME EX12-008, bottoming the nonmatch. When one physical EX12-053 is the only card
+  satisfying both slots, it is added exactly once and both nonmatches are bottomed in order. A
+  Machine-only reveal with no ME alternative adds the available category and bottoms both
+  others. A buried copy grants Blocker only to its host; a top-level copy and unrelated
+  bystander do not receive inherited Blocker.
+- **Evolution and identity proof:** black BT2-005 uses the normal cost-0 route, ME EX12-003 uses
+  the alternate cost-0 route, and red non-ME BT1-001 is rejected. Catalog assertions cover
+  name, color, kind, costs, DP, level, form, attribute, traits, and the normal evolution route.
+  Direct registration, aggregate IR, requirements, full coverage, empty residuals, and exact
+  equality are asserted.
+- **Verification:** `EX12-053.test.ts` — 8/8; interpreter/reveal mechanics — 171/171; effect
+  primitives — 126/126; digivolution action flow — 27/27; continuous-effect lifecycle — 5/5;
+  security/Blocker conformance — 10/10; API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, card-specific ruling, or
+  unresolved ambiguity remains.
