@@ -134624,7 +134624,12 @@
         "trigger": "OnPlay",
         "actions": [
           { "kind": "SecurityManipulation", "op": "toHand", "controller": "mine", "amount": 1, "toTop": true },
-          { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "source": "deck", "amount": 1 }
+          {
+            "kind": "GainKeyword",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1＞" },
+            "duration": "permanent"
+          }
         ],
         "frequency": "OncePerTurn",
         "sharedUseKey": "ir-shared-0"
@@ -134633,7 +134638,12 @@
         "trigger": "WhenAttacking",
         "actions": [
           { "kind": "SecurityManipulation", "op": "toHand", "controller": "mine", "amount": 1, "toTop": true },
-          { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "source": "deck", "amount": 1 }
+          {
+            "kind": "GainKeyword",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1＞" },
+            "duration": "permanent"
+          }
         ],
         "frequency": "OncePerTurn",
         "sharedUseKey": "ir-shared-0"

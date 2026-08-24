@@ -1304,3 +1304,31 @@ for the individual evidence below.
   primitives — 126/126; interpreter — 171/171; digivolution action flow — 27/27; Solarmon — 2/2;
   Pomumon — 1/1; shared build, API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-042 — Gatomon — 10/10
+
+- **Printed contract:** Yellow/green level 4 Holy Beast/NSp/VB Vaccine Digimon, play cost 4 and
+  4000 DP. Normal yellow/green level-3 evolution costs 3; evolution from Salamon or a level-3
+  NSp/VB card costs 2. It has Blocker. Its shared On Play/When Attacking once-per-turn effect adds
+  the top security card to hand, then performs Recovery +1. Its inherited effect is Barrier.
+- **KB evidence:** Q6804 confirms that the effect can activate with zero security cards: the first
+  instruction moves nothing, then Recovery +1 still resolves.
+- **Corrections:** the aggregate IR encoded Recovery as generic `SecurityManipulation addTop`, while
+  the direct executable module correctly used the Recovery keyword action. Both aggregate trigger
+  branches now use the exact executable `GainKeyword` representation and direct/aggregate equality
+  is asserted. Registration remains exclusively through `registerIrCard`.
+- **Ruling and behavioral proof:** On Play moves the top security card to hand and recovers the top
+  deck card. With empty security, no card enters hand and recovery still succeeds, proving Q6804.
+  After On Play consumes the shared once-per-turn use, a same-turn When Attacking timing makes no
+  second security move or recovery. Gatomon has Blocker only while on top. A host with Gatomon
+  underneath has Barrier; accepting the real prompt trashes one security card, prevents effect
+  deletion, and leaves the host in the battle area.
+- **Evolution proof:** yellow BT1-045 and green BT1-064 use the normal cost-3 routes; purple Salamon
+  BT9-072 proves the name route independently of color; blue NSp EX7-015 proves the trait route;
+  red nonmatching BT1-009 is rejected. Catalog identity, stats, traits, direct/shared requirements,
+  full coverage, empty residuals, and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-042.test.ts` — 7/7; Blocker proof — 4/4; deletion/advanced keyword
+  conformance — 30/30; effect primitives — 126/126; interpreter — 171/171; digivolution action
+  flow — 27/27; security checks — 11/11; shared build, API typecheck, focused formatting, focused
+  lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
+  remains.
