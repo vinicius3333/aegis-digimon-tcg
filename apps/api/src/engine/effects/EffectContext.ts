@@ -1084,6 +1084,9 @@ export interface Primitives {
       specifiers?: string[];
       sourceCardId?: string;
       sourceEffectText?: string;
+      /** Controller and physical kinds of the effect that granted this keyword. */
+      sourceSeat?: Seat;
+      sourceKinds?: string[];
     },
   ): void;
   /** Treat a permanent as another level only while matching DNA requirements. */

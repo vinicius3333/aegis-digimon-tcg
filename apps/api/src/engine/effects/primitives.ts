@@ -3983,6 +3983,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const provenance = {
       sourceCardId: opts?.sourceCardId,
       sourceEffectText: opts?.sourceEffectText,
+      sourceSeat: opts?.sourceSeat,
+      sourceKinds: opts?.sourceKinds,
     };
     const continuousOpts =
       opts?.continuous === true
@@ -3993,7 +3995,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             ? { active: opts.active, specifiers: opts.specifiers, ...provenance }
             : opts?.specifiers
               ? { specifiers: opts.specifiers, ...provenance }
-              : opts?.sourceCardId !== undefined
+              : opts?.sourceCardId !== undefined || opts?.sourceSeat !== undefined
                 ? provenance
                 : undefined;
     continuous.addKeywordGrant(permanentId, keyword, durationForTarget(permanentId, duration), amount, continuousOpts);
