@@ -8,8 +8,8 @@ export interface AppRoute {
 }
 
 export const SCREEN_PATHS: Record<Screen, string> = {
-  onboarding: "/onboarding",
   home: "/",
+  login: "/login",
   lobby: "/play",
   deck: "/decks",
   collection: "/collection",
@@ -21,7 +21,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
 export function routeFromPathname(pathname: string): AppRoute | undefined {
   const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   if (normalized === "/") return { screen: "home" };
-  if (normalized === "/onboarding") return { screen: "onboarding" };
+  if (normalized === "/login") return { screen: "login" };
   if (normalized === "/play") return { screen: "lobby" };
   if (normalized === "/play/game") return { screen: "game" };
   if (normalized === "/decks") return { screen: "deck" };

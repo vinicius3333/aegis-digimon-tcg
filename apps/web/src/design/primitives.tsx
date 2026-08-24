@@ -26,12 +26,12 @@ export interface PlayerIdentity {
   shards: number;
   avatarId?: DigimonWorldAvatarId | null;
   avatarUrl?: string | null;
-  /** Portrait picked during guest onboarding; account avatars win over it. */
+  /** Portrait a guest picked on this device; account avatars win over it. */
   guestAvatarId?: DigimonWorldAvatarId | null;
 }
 
 /** A screen key in the client router. */
-export type Screen = "onboarding" | "home" | "lobby" | "deck" | "collection" | "tournaments" | "settings" | "game";
+export type Screen = "home" | "login" | "lobby" | "deck" | "collection" | "tournaments" | "settings" | "game";
 
 export function Stage({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
@@ -479,17 +479,25 @@ function NavItem({
   );
 }
 
-/* ---- Top nav (persistent app chrome) ---- */
+/* ---- Top nav (persistent app chrome) ----
+   The bar carries the brand, the section links, and — on the right — the account
+   controls: a sign-in call to action for guests and the portrait button that opens
+   the player menu. Tournaments and Settings live in that menu on narrow screens,
+   which keeps the bottom nav to the four sections a thumb reaches for. */
 export function TopNav({
   screen,
   onNav,
   player,
   actions,
+  signedIn = false,
+  onOpenPlayerMenu,
 }: {
   screen: Screen;
   onNav: (s: Screen) => void;
   player: PlayerIdentity;
   actions?: ReactNode;
+  signedIn?: boolean;
+  onOpenPlayerMenu?: () => void;
 }) {
   const { t } = useTranslation();
   const navTo = (s: Screen) => {
@@ -501,24 +509,53 @@ export function TopNav({
     { key: "lobby", label: t("nav.play"), icon: Icons.Swords },
     { key: "deck", label: t("nav.decks"), icon: Icons.LayoutDashboard },
     { key: "collection", label: t("nav.collection"), icon: Icons.BookOpen },
-    { key: "tournaments", label: t("nav.tournaments"), icon: Icons.Calendar },
   ];
+  const wideItems = [...items, { key: "tournaments" as Screen, label: t("nav.tournaments"), icon: Icons.Calendar }];
+
+  const signIn = signedIn ? null : (
+    <button className="aegis-sign-in-button" onClick={() => navTo("login")} aria-current={undefined}>
+      <Icons.LogIn size={16} />
+      <span>{t("nav.signIn")}</span>
+    </button>
+  );
+
+  const portrait = (size: number) => (
+    <button
+      className="aegis-portrait-button"
+      onClick={() => {
+        playSound("nav");
+        onOpenPlayerMenu?.();
+      }}
+      aria-haspopup="dialog"
+      aria-label={t("playerMenu.open")}
+      title={t("playerMenu.open")}
+    >
+      <Avatar
+        name={player.name}
+        color={player.color}
+        avatarId={player.avatarId}
+        avatarUrl={player.avatarUrl}
+        size={size}
+      />
+    </button>
+  );
+
   return (
     <>
       <header className="aegis-top-nav">
         <div className="aegis-top-nav__primary">
           <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}>
-            <Logo size={46} />
+            <Logo size={44} />
           </button>
           <nav className="aegis-top-nav__links" aria-label={t("nav.primaryAria")}>
-            {items.map((it) => {
-              const active = screen === it.key || (it.key === "deck" && screen === "deck");
-              return <NavItem key={it.key} item={it} active={active} onSelect={() => navTo(it.key)} />;
-            })}
+            {wideItems.map((it) => (
+              <NavItem key={it.key} item={it} active={screen === it.key} onSelect={() => navTo(it.key)} />
+            ))}
           </nav>
         </div>
         <div className="aegis-top-nav__account">
           {actions}
+          {signIn}
           <button
             className="aegis-icon-button"
             onClick={() => navTo("settings")}
@@ -527,58 +564,22 @@ export function TopNav({
           >
             <Icons.Settings size={18} />
           </button>
-          <div className="aegis-player-chip">
-            <span>{player.name}</span>
-            <button
-              className="aegis-profile-avatar-button"
-              onClick={() => navTo("settings")}
-              aria-label={t("menu.settings")}
-              aria-current={screen === "settings" ? "page" : undefined}
-            >
-              <Avatar
-                name={player.name}
-                color={player.color}
-                avatarId={player.avatarId}
-                avatarUrl={player.avatarUrl}
-                size={36}
-              />
-            </button>
-          </div>
+          {portrait(34)}
         </div>
       </header>
       <header className="aegis-mobile-bar">
         <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}>
-          <AegisMark size={30} />
+          <Logo size={20} />
         </button>
-        <div className="aegis-mobile-bar__actions">{actions}</div>
-        <div className="aegis-player-chip aegis-player-chip--mobile">
-          <span>{player.name}</span>
-          <button
-            className="aegis-profile-avatar-button"
-            onClick={() => navTo("settings")}
-            aria-label={t("menu.settings")}
-            aria-current={screen === "settings" ? "page" : undefined}
-          >
-            <Avatar
-              name={player.name}
-              color={player.color}
-              avatarId={player.avatarId}
-              avatarUrl={player.avatarUrl}
-              size={32}
-            />
-          </button>
+        <div className="aegis-mobile-bar__actions">
+          {signIn}
+          {portrait(32)}
         </div>
       </header>
       <nav className="aegis-bottom-nav" aria-label={t("nav.primaryAria")}>
         {items.map((it) => (
           <NavItem key={it.key} item={it} active={screen === it.key} onSelect={() => navTo(it.key)} compact />
         ))}
-        <NavItem
-          item={{ label: t("menu.settings"), icon: Icons.Settings }}
-          active={screen === "settings"}
-          onSelect={() => navTo("settings")}
-          compact
-        />
       </nav>
     </>
   );

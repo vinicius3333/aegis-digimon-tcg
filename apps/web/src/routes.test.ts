@@ -4,7 +4,7 @@ import { pathForRoute, routeFromPathname } from "./routes";
 describe("application routes", () => {
   it.each([
     ["/", { screen: "home" }],
-    ["/onboarding", { screen: "onboarding" }],
+    ["/login", { screen: "login" }],
     ["/play", { screen: "lobby" }],
     ["/decks", { screen: "deck" }],
     ["/collection", { screen: "collection" }],

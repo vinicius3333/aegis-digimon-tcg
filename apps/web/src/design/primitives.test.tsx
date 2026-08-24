@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { Alert, Avatar, Badge, Dialog, Field, Switch, TopNav, type Screen } from "./primitives";
 
 describe("design primitives", () => {
+  afterEach(() => cleanup());
+
   it("associates a field with its label and validation message", () => {
     render(<Field label="Room code" name="roomCode" error="Use at least four characters" />);
 
@@ -73,23 +75,44 @@ describe("design primitives", () => {
     expect(screen.getByText("TK")).toBeTruthy();
   });
 
-  it("opens settings only from the profile avatar", () => {
+  it("routes the gear to settings and the portrait to the player menu", () => {
     const onNav = vi.fn<(screen: Screen) => void>();
+    const onOpenPlayerMenu = vi.fn<() => void>();
     render(
       <I18nProvider>
         <TopNav
           screen="home"
           onNav={onNav}
+          onOpenPlayerMenu={onOpenPlayerMenu}
           player={{ name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" }}
         />
       </I18nProvider>,
     );
 
-    const playerNames = screen.getAllByText("Tai Kamiya");
-    expect(playerNames.every((name) => name.closest("button") === null)).toBe(true);
-
-    const settingsButtons = screen.getAllByRole("button", { name: "Settings" });
-    fireEvent.click(settingsButtons[1]!);
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(onNav).toHaveBeenCalledWith("settings");
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Open the player menu" })[0]!);
+    expect(onOpenPlayerMenu).toHaveBeenCalled();
+  });
+
+  it("offers a guest a way in and drops it once they are signed in", () => {
+    const player = { name: "Tai Kamiya", color: "Blue", shards: 0, avatarId: "tyrannomon" as const };
+    const onNav = vi.fn<(screen: Screen) => void>();
+    const { rerender } = render(
+      <I18nProvider>
+        <TopNav screen="home" onNav={onNav} player={player} />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Sign in" })[0]!);
+    expect(onNav).toHaveBeenCalledWith("login");
+
+    rerender(
+      <I18nProvider>
+        <TopNav screen="home" onNav={onNav} player={player} signedIn />
+      </I18nProvider>,
+    );
+    expect(screen.queryByRole("button", { name: "Sign in" })).toBeNull();
   });
 });

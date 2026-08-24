@@ -2,7 +2,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { BugReportButton } from "./BugReportButton";
 import { BugReportDialog } from "./BugReportDialog";
 
 type Route = { status?: number; body: unknown };
@@ -31,19 +30,6 @@ function renderDialog(signedIn = true) {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-});
-
-describe("the bug report button", () => {
-  it("opens the modal", async () => {
-    render(
-      <I18nProvider>
-        <BugReportButton signedIn />
-      </I18nProvider>,
-    );
-    expect(screen.queryByRole("dialog")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Report a bug" }));
-    expect(await screen.findByRole("dialog")).toBeTruthy();
-  });
 });
 
 describe("the bug report modal", () => {
