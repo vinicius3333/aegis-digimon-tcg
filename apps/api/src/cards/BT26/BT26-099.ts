@@ -4,10 +4,20 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const dm = { controller: "mine", nameOrTrait: [{ tokens: ["DM"], match: "trait" }] };
 const dmDigimon = { ...dm, kind: ["Digimon"] };
-const dmLevelSix = { ...dmDigimon, levelLte: 6 };
+const dmLevelSix = { ...dmDigimon, levelComparison: { op: "lte", value: 6 } };
 
 export const compiled: CompiledCard = {
   effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: { kind: "youHave", filter: dm },
+        },
+      ],
+    },
     {
       trigger: "Main",
       actions: [
@@ -33,7 +43,7 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "Digivolve",
-              target: { filter: { useTriggerSource: true }, count: 1 },
+              target: { filter: {}, count: 1, sourceRef: "triggerSubject" },
               into: dmLevelSix,
               from: ["hand"],
               payCost: false,

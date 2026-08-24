@@ -3,8 +3,13 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const titan = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] };
-const titanCard = { controller: "mine", levelLte: 4, nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] };
-const titanDigimon = { ...titan, levelLte: 4 };
+const titanCard = {
+  controller: "mine",
+  kind: ["Digimon", "Tamer"],
+  levelComparison: { op: "lte", value: 4 },
+  nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
+};
+const titanDigimon = { ...titan, levelComparison: { op: "lte", value: 4 } };
 const noFaceUpSecurity = { kind: "faceUpSecurityAtMost", controller: "mine", value: 0 };
 
 export const compiled: CompiledCard = {

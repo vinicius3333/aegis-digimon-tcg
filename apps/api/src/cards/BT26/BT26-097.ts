@@ -12,10 +12,7 @@ const yukiTamer = {
   controller: "mine",
   zone: "battleArea",
   kind: ["Tamer"],
-  orFilters: [
-    { nameOrTrait: [{ tokens: ["Dan Yuki"], match: "name" }] },
-    { nameOrTrait: [{ tokens: ["Kanan Yuki"], match: "name" }] },
-  ],
+  nameOrTrait: [{ tokens: ["Dan Yuki"], match: "name" }],
 };
 const jupitermon = {
   controller: "mine",
@@ -53,36 +50,56 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "PlaceUnder",
-          targetIsPermanent: true,
-          target: { filter: yukiTamer, count: 1 },
-          destination: { filter: aegiomon, count: 1 },
-          position: "bottom",
-        },
-        {
-          kind: "Digivolve",
-          target: { filter: aegiomon, count: 1 },
-          into: {
-            filter: {
-              controller: "mine",
-              zone: ["hand", "trash"],
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }],
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: {
+              filter: yukiTamer,
+              orFilters: [
+                {
+                  controller: "mine",
+                  zone: "battleArea",
+                  kind: ["Tamer"],
+                  nameOrTrait: [{ tokens: ["Kanan Yuki"], match: "name" }],
+                },
+              ],
+              count: 1,
             },
-            count: 1,
+            destination: "digivolutionStack",
+            host: { filter: aegiomon, count: 1 },
+            bindHostAs: "aegiomonHost",
+            position: "bottom",
           },
-          from: ["hand", "trash"],
-          payCost: false,
-          ignoreRequirements: true,
           optional: true,
-        },
-        {
-          kind: "PlaceUnder",
-          target: { filter: aegiocHusmon, count: 1 },
-          underFilter: jupitermon,
-          position: "top",
-          optional: true,
-          condition: { kind: "ifThisEffectDigivolved" },
+          abortOnDecline: true,
+          actions: [
+            {
+              kind: "Digivolve",
+              target: { filter: aegiomon, count: 1, fromSelectionRef: "aegiomonHost" },
+              into: {
+                filter: {
+                  controller: "mine",
+                  zone: ["hand", "trash"],
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }],
+                },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              payCost: false,
+              ignoreRequirements: true,
+              optional: true,
+            },
+            {
+              kind: "PlaceUnder",
+              target: { filter: aegiocHusmon, count: 1 },
+              underFilter: jupitermon,
+              position: "top",
+              optional: true,
+              condition: { kind: "ifThisEffectDigivolved" },
+            },
+          ],
         },
       ],
     },

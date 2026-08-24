@@ -139,7 +139,6 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // security must finish resolving when the controller has no Agumon/Gabumon to play.
     if (
       action.kind === "PlayWithoutCost" &&
-      action.cost === undefined &&
       !action.target?.isSelf &&
       action.target?.filter?.isSelfRef !== true &&
       action.fromOwnDigivolutionStack !== true

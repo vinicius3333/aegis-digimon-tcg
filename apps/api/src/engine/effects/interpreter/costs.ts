@@ -222,7 +222,15 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     // offered: enough matching loose cards in the declared source zones and a legal
     // destination host. EX3-066 otherwise asked to place a Cyborg with an empty
     // hand/trash, then opened a guaranteed no-op selection.
-    if (cost.targetIsPermanent === true) return true;
+    if (cost.targetIsPermanent === true) {
+      const required = cost.target.count === "all" ? 1 : (cost.target.count ?? 1);
+      if (candidatePermanents(ctx, cost.target).length < required) return false;
+      if (cost.destination === "security" || cost.destination === "battleArea") return true;
+      if (cost.host !== null && typeof cost.host === "object") {
+        return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
+      }
+      return ctx.source.permanent() !== undefined;
+    }
     const zones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
     const candidates = candidateLooseInstances(ctx, cost.target, zones);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
@@ -239,6 +247,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       );
     }
     if (cost.host !== null && typeof cost.host === "object") {
+      // A preceding component of a compound cost may bind this host while payment is in
+      // progress. Its loose-card half is already proven payable above; defer the exact host
+      // check until payCost, after that binding exists (BT26-098's two named materials).
+      if (cost.host.filter.boundRef !== undefined && ctx.selections?.has(cost.host.filter.boundRef) !== true)
+        return true;
       return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
     }
     return (
