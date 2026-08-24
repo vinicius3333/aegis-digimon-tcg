@@ -4,9 +4,11 @@ import {
   EffectTiming,
   Phase,
   digivolutionRequirementsFor,
+  requireCardDefinition,
   type CardDefinition,
   type Seat,
 } from "@aegis/shared";
+import { definitionMatches } from "../../engine/effects/interpreter.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -103,6 +105,13 @@ describe("BT26-018 reveal movement boundaries", () => {
 });
 
 describe("BT26-018 public engine behavior", () => {
+  it("matches its rule-granted Aquatic trait while it is a loose card", () => {
+    const sangomon = requireCardDefinition(CARD_ID);
+
+    expect(definitionMatches({ nameOrTrait: [{ tokens: ["Aquatic"], match: "trait" }] }, sangomon)).toBe(true);
+    expect(definitionMatches({ nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }] }, sangomon)).toBe(false);
+  });
+
   it("plays for 3, resolves reveal zones/order, then trashes the opponent's bottom source", async () => {
     const s = setupEngine(
       {
