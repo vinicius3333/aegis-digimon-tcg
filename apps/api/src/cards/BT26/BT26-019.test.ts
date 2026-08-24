@@ -248,6 +248,43 @@ describe("BT26-019 Mailmon", () => {
     expect(s.perm("gomimonHost").linked.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
 
+  it("prevents the chosen opposing Digimon from suspending to attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "appmonHost" }],
+          hand: [{ card: CARD_ID, as: "mailmonLink" }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "lockedAttacker" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("lockedAttacker").permanentId);
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("mailmonLink").instanceId,
+        targetPermanentId: s.perm("appmonHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("lockedAttacker"), "suspend"));
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("lockedAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.perm("lockedAttacker").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("does not retrigger an already-linked Mailmon when a different card is linked later", async () => {
     const s = setupEngine(
       {
