@@ -1248,3 +1248,28 @@ for the individual evidence below.
   exclusion — 2/2; deletion/advanced keyword conformance — 30/30; interpreter — 171/171; effect
   primitives — 126/126; API typecheck, focused formatting, focused lint, and `git diff --check`
   passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-040 — Salamon — 10/10
+
+- **Printed contract:** Yellow level 3 Mammal/VB Vaccine Digimon, play cost 3 and 2000 DP. Normal
+  yellow level-2 evolution and alternate evolution from Nyaromon or a level-2 VB card cost 0.
+  During its controller's turn and only in the battle area, evolving this Digimon into a Holy
+  Beast- or VB-trait Digimon costs 1 less. Its inherited effect is Barrier.
+- **KB evidence:** Q6800 explicitly excludes the breeding area from the cost-reduction effect.
+- **Corrections:** as on EX12-039, the direct destination filter omitted the aggregate IR's own-
+  controller and Digimon-kind constraints. The full filter is now encoded in the direct module,
+  making both executable records exactly equal. Registration remains exclusively through
+  `registerIrCard`.
+- **Ruling and behavioral proof:** from the battle area, Holy Beast BT1-051 is reduced from cost 2
+  to 1, and VB EX12-013 is independently reduced from 3 to 2. Non-Holy-Beast/non-VB BT1-053 gets
+  no reduction. From breeding, the same Holy Beast evolution pays the full cost, proving Q6800.
+  Salamon on top has no Barrier; a host carrying Salamon inherits it, can trash one security card,
+  and survives effect deletion.
+- **Evolution proof:** yellow BT1-005 uses the normal route; green Nyaromon EX5-003 proves the
+  name route independently of color; EX12-001 proves the level-2 VB route; black nonmatching
+  BT10-005 is rejected. Catalog identity, stats, traits, direct/shared requirements, full coverage,
+  empty residuals, and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-040.test.ts` — 8/8; digivolution action flow — 27/27; breeding-resident
+  exclusion — 2/2; deletion/advanced keyword conformance — 30/30; interpreter — 171/171; effect
+  primitives — 126/126; API typecheck, focused formatting, focused lint, and `git diff --check`
+  passed. No residual IR, unsupported behavior, or unresolved ruling remains.
