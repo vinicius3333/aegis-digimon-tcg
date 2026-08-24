@@ -294,10 +294,12 @@ export function unimplementedPrimitives(): Primitives {
     trashTopSecurityOfPlayerWithMostSecurity: () =>
       refuse("effect-primitives", "trashTopSecurityOfPlayerWithMostSecurity"),
     deletePermanent: () => refuse("effect-primitives", "deletePermanent"),
+    trashPermanentByRule: () => refuse("effect-primitives", "trashPermanentByRule"),
     suspend: () => refuse("effect-primitives", "suspend"),
     unsuspend: () => refuse("effect-primitives", "unsuspend"),
     returnToHand: () => refuse("effect-primitives", "returnToHand"),
     returnToDeck: () => refuse("effect-primitives", "returnToDeck"),
+    returnStackTopsToDeck: () => refuse("effect-primitives", "returnStackTopsToDeck"),
     reveal: () => refuse("effect-primitives", "reveal"),
     searchDeck: () => refuse("effect-primitives", "searchDeck"),
     addSecurity: () => refuse("effect-primitives", "addSecurity"),

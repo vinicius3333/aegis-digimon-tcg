@@ -3077,6 +3077,44 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return deletedCount;
   };
 
+  /**
+   * Rule-check trash for a position whose top card cannot legally remain in the battle area.
+   * This bypasses deletion timings, leave prevention, and "trashed from the battle area"
+   * watchers (BT21-030 Q4541/Q4542; BT26-060 Q7082/Q7083).
+   */
+  const trashPermanentByRule: Primitives["trashPermanentByRule"] = async (permanentIds) => {
+    const wanted = new Set(permanentIds);
+    const moved: CardInstance[] = [];
+    for (const owner of state.players) {
+      for (let index = owner.battleArea.length - 1; index >= 0; index -= 1) {
+        const permanent = owner.battleArea[index];
+        if (permanent === undefined || !wanted.has(permanent.permanentId)) continue;
+        const extracted = extractPermanentAt(owner, index);
+        if (extracted === undefined) continue;
+        dropPermanentLedgers(extracted.permanentId);
+        const cards = [...extracted.stack, ...(extracted.topCard ? [extracted.topCard] : []), ...extracted.linked];
+        for (const card of cards) {
+          card.faceUp = true;
+          insertCard(player(card.ownerSeat), Zone.Trash, card);
+          moved.push(card);
+        }
+      }
+    }
+    if (moved.length === 0) return [];
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
+    applyOverflow(engine.memory, moved, state.turnSeat);
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: moved.map((card) => card.instanceId),
+      from: Zone.BattleArea,
+      to: Zone.Trash,
+    });
+    return moved;
+  };
+
   // --- suspend / unsuspend ---------------------------------------------------
 
   async function fireSuspensionTriggers(
@@ -3522,6 +3560,89 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger!("onDigivolutionCardReturnToDeckBottom", {
         subjectPermanentId: ret.hostPermanentId,
         returnedToDeckCardId: ret.cardId,
+      });
+    }
+    return moved;
+  };
+
+  /**
+   * Return a suffix of each complete Digimon stack to the top of its owner's deck. Unlike the
+   * generic return verb, selecting the current top here does not bounce the whole permanent:
+   * the highest card that remains underneath is promoted. This is the movement printed on
+   * BT26-060 ("top 5 stacked cards"), whose rulings explicitly say to stop once one card
+   * remains in a short stack.
+   */
+  const returnStackTopsToDeck: Primitives["returnStackTopsToDeck"] = async (instanceIds, opts) => {
+    const requested = new Set(instanceIds);
+    const movedById = new Map<string, CardInstance>();
+    const byEffectSeat = opts?.byEffectSeat ?? effectSeatStack.at(-1);
+
+    for (const owner of state.players) {
+      for (const permanent of owner.battleArea) {
+        if (permanent.topCard === undefined) continue;
+        const completeStack = [...permanent.stack, permanent.topCard];
+        const selected = completeStack.filter((card) => requested.has(card.instanceId));
+        if (selected.length === 0) continue;
+        if (
+          byEffectSeat !== undefined &&
+          byEffectSeat !== permanent.controllerSeat &&
+          continuous.stackTrashLocked(permanent.permanentId)
+        ) {
+          continue;
+        }
+
+        const removableCount = Math.min(selected.length, completeStack.length - 1);
+        const removable = completeStack.slice(-removableCount);
+        if (removableCount === 0 || removable.some((card) => !requested.has(card.instanceId))) continue;
+
+        const remaining = completeStack.slice(0, -removableCount);
+        const promoted = remaining.at(-1);
+        if (promoted === undefined) continue;
+        permanent.stack.splice(0, permanent.stack.length, ...remaining.slice(0, -1));
+        permanent.topCard = promoted;
+        promoted.faceUp = true;
+        const promotedDefinition = requireCardDefinition(promoted.cardId);
+        permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
+        permanent.invalidNoDpStackTop =
+          !promotedDefinition.kinds.includes(CardKind.Digimon) && !promotedDefinition.kinds.includes(CardKind.DigiEgg);
+        ledger.recomputeDP(state, permanent.permanentId);
+        for (const card of removable) movedById.set(card.instanceId, card);
+      }
+    }
+
+    const moved = instanceIds.flatMap((instanceId) => {
+      const card = movedById.get(instanceId);
+      return card === undefined ? [] : [card];
+    });
+    for (const card of [...moved].reverse()) {
+      card.faceUp = false;
+      const definition = requireCardDefinition(card.cardId);
+      const deck = definition.kinds.includes(CardKind.DigiEgg)
+        ? player(card.ownerSeat).eggDeck
+        : player(card.ownerSeat).deck;
+      deck.unshift(card);
+    }
+    if (moved.length === 0) return [];
+
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
+    applyOverflow(engine.memory, moved, state.turnSeat);
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: moved.map((card) => card.instanceId),
+      from: Zone.BattleArea,
+      to: Zone.Deck,
+    });
+    await engine.recomputeContinuousEffects?.();
+
+    const recipientSeats = new Set(moved.map((card) => card.ownerSeat));
+    for (const seat of recipientSeats) {
+      await engine.fireSubTrigger?.("whenEffectAddsToDeck", {
+        effectAddedToDeckSeat: seat,
+        effectAddedToDeckBySeat: byEffectSeat ?? engine.controllerSeat(),
+        ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
       });
     }
     return moved;
@@ -4621,6 +4742,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     trashFromSecurity,
     trashTopSecurityOfPlayerWithMostSecurity,
     deletePermanent,
+    trashPermanentByRule,
     suspend,
     fireSuspensionTriggers,
     canPayActivationCost,
@@ -4629,6 +4751,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     unsuspend,
     returnToHand,
     returnToDeck,
+    returnStackTopsToDeck,
     returnToEggDeck,
     reveal,
     searchDeck,

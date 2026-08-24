@@ -640,6 +640,10 @@ function makeContext(opts: {
       rec.calls.push({ verb: "deletePermanent", args: a });
       return (a[0] as string[]).length;
     },
+    trashPermanentByRule: async (...a) => {
+      rec.calls.push({ verb: "trashPermanentByRule", args: a });
+      return [];
+    },
     suspend: async (...a) => {
       rec.calls.push({ verb: "suspend", args: a });
       return a[0] as string[];
@@ -651,6 +655,10 @@ function makeContext(opts: {
     },
     returnToDeck: async (...a) => {
       rec.calls.push({ verb: "returnToDeck", args: a });
+      return [];
+    },
+    returnStackTopsToDeck: async (...a) => {
+      rec.calls.push({ verb: "returnStackTopsToDeck", args: a });
       return [];
     },
     reveal: async (...a) => {

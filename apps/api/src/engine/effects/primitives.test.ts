@@ -765,6 +765,77 @@ describe("primitives: return to hand / deck", () => {
     expect(h.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001"]);
     expect(h.state.players[0]!.trash).toHaveLength(0);
   });
+
+  it("returnStackTopsToDeck returns the current top first, promotes the remaining source, and fires one deck-add event", async () => {
+    const h = harness({
+      turnSeat: 1,
+      board: {
+        0: {
+          battleArea: [
+            {
+              card: DIGIMON,
+              as: "host",
+              under: [
+                { card: "BT1-009", as: "bottom" },
+                { card: "BT1-010", as: "upper" },
+              ],
+            },
+          ],
+        },
+      },
+    });
+    const originalTop = h.s.perm("host").topCard;
+
+    const moved = await h.fx.returnStackTopsToDeck([originalTop.instanceId, h.s.inst("upper").instanceId], {
+      byEffectSeat: 1,
+      byEffectCardId: "BT26-060",
+    });
+
+    expect(moved.map(({ instanceId }) => instanceId)).toEqual([originalTop.instanceId, h.s.inst("upper").instanceId]);
+    expect(h.s.perm("host").topCard.instanceId).toBe(h.s.inst("bottom").instanceId);
+    expect(h.s.perm("host").stack).toHaveLength(0);
+    expect(h.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      originalTop.instanceId,
+      h.s.inst("upper").instanceId,
+    ]);
+    expect(h.subTriggerFires).toEqual([
+      {
+        event: "whenEffectAddsToDeck",
+        payload: { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 1, byEffectCardId: "BT26-060" },
+      },
+    ]);
+  });
+
+  it("trashPermanentByRule moves the whole invalid position without deletion or trash-by-effect reactions", async () => {
+    const h = harness({
+      board: {
+        0: {
+          battleArea: [
+            {
+              card: TAMER,
+              as: "invalid",
+              under: [{ card: DIGIMON, as: "source" }],
+              linked: [{ card: OPTION, as: "link" }],
+            },
+          ],
+        },
+      },
+    });
+
+    const moved = await h.fx.trashPermanentByRule([h.s.perm("invalid").permanentId]);
+
+    expect(moved.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        h.s.inst("invalid").instanceId,
+        h.s.inst("source").instanceId,
+        h.s.inst("link").instanceId,
+      ]),
+    );
+    expect(h.state.players[0]!.battleArea).toHaveLength(0);
+    expect(h.fireTimings).toEqual([]);
+    expect(h.subTriggerFires).toEqual([]);
+    expect(h.leavePreventionCalls).toEqual([]);
+  });
 });
 
 describe("primitives: reveal / searchDeck / addSecurity", () => {
@@ -2267,6 +2338,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     delayedDeletePlayed: true,
     delayedGainMemory: true,
     deletePermanent: true,
+    trashPermanentByRule: true,
     deletionMaxDpBonus: true,
     digivolveFromInstance: true,
     digiXrosExpandedZones: true,
@@ -2348,6 +2420,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     restrictSecurityAddsFromEffect: true,
     restrictUnsuspendedDigivolve: true,
     returnToDeck: true,
+    returnStackTopsToDeck: true,
     returnToEggDeck: true,
     returnToHand: true,
     reveal: true,

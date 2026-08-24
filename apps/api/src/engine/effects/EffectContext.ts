@@ -900,6 +900,8 @@ export interface Primitives {
    * `ctx.lastDeleteCount` so a subsequent "if this effect didn't delete" Condition can gate.
    */
   deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number>;
+  /** Trash an invalid battle-area position during a rule check, without deletion semantics. */
+  trashPermanentByRule(permanentIds: string[]): Promise<CardInstance[]>;
   /** Returns the permanent IDs that actually transitioned to suspended. */
   suspend(
     permanentIds: string[],
@@ -916,6 +918,16 @@ export interface Primitives {
   returnToDeck(
     instanceIds: string[],
     opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string },
+  ): Promise<CardInstance[]>;
+  /**
+   * Return the named top cards of one or more Digimon stacks to their owners' deck tops while
+   * preserving each permanent and promoting its highest remaining card. The ids must form a
+   * suffix of each complete stack (digivolution cards plus current top), and at least one card
+   * is always retained per permanent.
+   */
+  returnStackTopsToDeck(
+    instanceIds: string[],
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
   ): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;

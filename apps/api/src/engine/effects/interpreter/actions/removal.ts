@@ -28,15 +28,17 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const targetIds = await resolvePermanentTargets(ctx, action.target);
       const cards = targetIds.flatMap((id) => {
         const permanent = ctx.game.permanentById(id);
-        return permanent === undefined ? [] : Array.from(permanent.stack).slice(-action.cardsPerTarget);
+        if (permanent?.topCard === undefined) return [];
+        return [...Array.from(permanent.stack), permanent.topCard].slice(
+          -Math.min(action.cardsPerTarget, permanent.stack.length),
+        );
       });
       if (cards.length === 0) return false;
       let ordered = cards.map((card) => card.instanceId);
       if (action.order === "any" && ordered.length > 1 && ctx.ask.orderCards !== undefined) {
         ordered = await ctx.ask.orderCards(ctx, { candidates: ordered, destination: "deckTop" });
       }
-      await ctx.fx.returnToDeck([...ordered].reverse(), {
-        toTop: true,
+      await ctx.fx.returnStackTopsToDeck(ordered, {
         byEffectSeat: ctx.source.ownerSeat,
         byEffectCardId: ctx.source.cardId,
       });

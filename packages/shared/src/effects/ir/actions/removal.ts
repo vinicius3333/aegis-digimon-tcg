@@ -31,6 +31,7 @@ export interface DeleteAction extends ActionBase {
 export interface ReturnTopDigivolutionCardsAction extends ActionBase {
   kind: "ReturnTopDigivolutionCards";
   target: Target;
+  /** Number of cards removed from the top of each complete Digimon stack, always leaving one. */
   cardsPerTarget: number;
   order?: "any";
 }

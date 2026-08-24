@@ -3575,6 +3575,9 @@ export class GameEngine {
       try {
         // EndGameProcess — any player at a loss condition ⇒ EndGame, then return.
         if (this.runEndGameProcess()) return;
+        // BT26-060 Q7082: peeling a Digimon stack down to a no-DP card trashes the invalid
+        // remnant at rule-check timing; a normally played Tamer remains a legal permanent.
+        await this.trashInvalidNoDpStackTops();
         // §17-1-3-2-1 TrashNoDPPermanentProcess — raw DP < 0 ⇒ trash via deletePermanent(byRule).
         await this.trashNoDpPermanents();
         // §17-1-3-1-1 DigimonLackDPProcess — raw DP == 0 Digimon ⇒ delete via deletePermanent(byRule).
@@ -3665,6 +3668,7 @@ export class GameEngine {
     if (this.state.gameOver) return false;
     return (
       this.anyPlayerLost() ||
+      this.anyInvalidNoDpStackTop() ||
       this.anyNegativeDpToTrash() ||
       this.anyZeroDpDigimon() ||
       this.anyBreedingNonDigimon() ||
@@ -3683,6 +3687,19 @@ export class GameEngine {
   /** Any player marked lost but not yet resolved into a game-over. */
   private anyPlayerLost(): boolean {
     return this.state.players.some((p) => p?.lost === true) && !this.state.gameOver;
+  }
+
+  /** A Digimon stack peeled by an effect until its new top has no Digimon DP (BT26-060 Q7082). */
+  private anyInvalidNoDpStackTop(): boolean {
+    return this.battleAreaPermanents().some((permanent) => permanent.invalidNoDpStackTop);
+  }
+
+  /** Trash invalid no-DP remnants before the ordinary DP and kind rule checks. */
+  private async trashInvalidNoDpStackTops(): Promise<void> {
+    const ids = this.battleAreaPermanents()
+      .filter((permanent) => permanent.invalidNoDpStackTop)
+      .map((permanent) => permanent.permanentId);
+    if (ids.length > 0) await this.primitives.trashPermanentByRule(ids);
   }
 
   /** All battle-area permanents across both players (top-card present). */
