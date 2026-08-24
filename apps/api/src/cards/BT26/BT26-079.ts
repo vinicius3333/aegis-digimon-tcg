@@ -36,6 +36,7 @@ const decode = {
       target: { filter: plutomon, count: 1 },
       fromOwnDigivolutionStack: true,
       payCost: false,
+      playedByDecode: true,
       optional: true,
     },
   ],

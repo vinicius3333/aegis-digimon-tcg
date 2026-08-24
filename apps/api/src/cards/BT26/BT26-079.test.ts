@@ -65,7 +65,7 @@ describe("BT26-079 compiled behavior", () => {
       kind: "Replacement",
       event: "wouldLeavePlay",
       mode: "instead",
-      actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false }],
+      actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false, playedByDecode: true }],
     });
   });
 

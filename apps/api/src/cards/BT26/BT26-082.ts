@@ -9,6 +9,8 @@ const trashTwoTamerBottoms = { kind: "trashBottomFaceDownUnderTamer", controller
 const altCostDelete = {
   kind: "Modal",
   choose: 1,
+  optional: true,
+  abortOnDecline: true,
   options: [
     [{ kind: "Delete", target: highestDp, cost: deleteOwn }],
     [{ kind: "Delete", target: highestDp, cost: trashTwoTamerBottoms }],

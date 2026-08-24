@@ -11,7 +11,7 @@ const iliad = {
 };
 const iliadHandOrTrash = {
   controller: "mine",
-  kind: ["Digimon", "Tamer", "Option"],
+  kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
 };
 const iliadOrTs = {

@@ -34,20 +34,45 @@ describe("BT26-083 compiled fidelity", () => {
             kind: "PlayWithoutCost",
             fromOwnDigivolutionStack: true,
             payCost: false,
+            playedByDecode: true,
             optional: true,
             target: {
               filter: {
-                levelComparison: { op: "lte", value: 5 },
-                nameOrTrait: [
-                  { tokens: ["Junomon"], match: "name" },
-                  { tokens: ["Iliad"], match: "trait" },
-                ],
+                nameOrTrait: [{ tokens: ["Junomon"], match: "name" }],
               },
+              orFilters: [
+                {
+                  levelComparison: { op: "lte", value: 5 },
+                  nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }],
+                },
+              ],
             },
           },
         ],
       },
     ]);
+  });
+
+  it("recovers three even when it has no security to trash (Q7124)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-083", as: "junomon" }], deck: ["BT1-001", "BT1-002", "BT1-003"] },
+    });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("junomon"));
+
+    expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
+  it("Decode may play a level 6 Junomon even though only the Iliad branch has a level-5 ceiling", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT26-083", as: "hysteric", under: [{ card: "BT25-044" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("hysteric").permanentId], "byEffect")).toBe(0);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT25-044"]);
   });
 
   it("trashes all own security, deletes one opposing Digimon per card, and recovers three", async () => {

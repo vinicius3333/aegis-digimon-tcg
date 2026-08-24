@@ -165,9 +165,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       if (action.fromOwnDigivolutionStack) {
         const self = ctx.source.permanent();
         if (self === undefined) return false;
-        const matching = self.stack.filter((c) =>
-          definitionMatches(action.target.filter, ctx.game.definitionOf({ cardId: c.cardId } as never)),
-        );
+        const filters = [
+          action.target.filter,
+          ...(action.target.orFilters ?? []),
+          ...(action.target.filter.orFilters ?? []),
+        ];
+        const matching = self.stack.filter((c) => {
+          const definition = ctx.game.definitionOf({ cardId: c.cardId } as never);
+          return filters.some((filter) => definitionMatches(filter, definition));
+        });
         if (matching.length === 0) {
           ctx.lastEffectActed = false;
           return false;

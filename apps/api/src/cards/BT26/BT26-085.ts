@@ -6,7 +6,7 @@ const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const destroyMode = {
   controller: "mine",
   zone: "hand",
-  nameOrTrait: [{ tokens: ["Chronomon: Destroy Mode"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Chronomon: Destroy Mode"], match: "nameExact" }],
 };
 
 export const compiled: CompiledCard = {

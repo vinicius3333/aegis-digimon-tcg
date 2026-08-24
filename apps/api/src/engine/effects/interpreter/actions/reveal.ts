@@ -8,7 +8,7 @@ import { scaleFactor } from "../scaling.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
-import { isDigimon } from "@aegis/shared";
+import { CardKind, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 
 /** Cards whose rule text changes their level only while they are revealed from deck. */
@@ -287,9 +287,16 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         (choice) => choice.filter === undefined || definitionMatches(choice.filter, revealedDefinition(ctx, c)),
       );
       if (alternatives.length > 0) {
-        const choices = [disposition, ...alternatives];
+        const definition = revealedDefinition(ctx, c);
+        const choices = [disposition, ...alternatives].filter((choice) => {
+          if (choice.to === "play") {
+            return definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
+          }
+          if (choice.to === "useOption") return definition.kinds.includes(CardKind.Option);
+          return true;
+        });
         const labels = choices.map((choice) => choice.to ?? "hand");
-        const picked = await ctx.ask.chooseOption(ctx, labels);
+        const picked = choices.length > 1 ? await ctx.ask.chooseOption(ctx, labels) : 0;
         disposition = choices[picked] ?? disposition;
       }
       if (disposition.to === "play") {
