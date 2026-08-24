@@ -4436,7 +4436,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // attack target is switched", BT11-008). The attacker is the event subject; a watcher's
     // sourceFilter isSelfRef gates it to its own attack.
     if (attackerId !== undefined) {
-      await engine.fireSubTrigger?.("whenAttackTargetSwitched", { subjectPermanentId: attackerId });
+      await engine.fireSubTrigger?.("whenAttackTargetSwitched", {
+        subjectPermanentId: attackerId,
+        attackerPermanentId: attackerId,
+      });
     }
   };
 

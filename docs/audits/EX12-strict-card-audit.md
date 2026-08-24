@@ -544,3 +544,38 @@ for the individual evidence below.
   formatting, focused lint, and `git diff --check` passed. The advanced-keyword Execute fixture
   now supplies defender security so game-over cannot preempt its asserted EndOfAttack deletion.
   No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-019 — Nezhamon — 10/10
+
+- **Printed contract:** Red/black level 6 Cyborg/Saneiketsu/Tentei Hachibushu/Shambala/SW,
+  play cost 12 and 12000 DP. Normal red/black level-5 evolution costs 4; level-5 Shambala
+  costs 3. It has Rush, Collision, Piercing, Blocker, and Engage. Once per turn, whenever an
+  attack target changes, it gains +4000 DP and immunity to opposing Digimon effects through
+  the opponent's turn end. Independently once per turn, removal from either security stack
+  lets it unsuspend.
+- **KB evidence:** Q6750 establishes that a checked card's Security effect resolves immediately,
+  before the turn player and then non-turn player order their other simultaneous triggers,
+  including the generic security-stack-removal trigger.
+- **Corrections:** the security watcher omitted a direction and inherited the interpreter's
+  default “mine” gate despite the printed wording naming security stacks generically; it now
+  carries `sourceFilter.controller:"any"`. Combat also published target-switch SubTriggers only
+  for effect-driven RedirectAttack, whose payload itself omitted the attacker field required by
+  self-scoped watchers. RedirectAttack now carries both subject and attacker identity, while Raid
+  and declared blocks publish the same attacker-scoped event after a successful switch, so
+  Nezhamon and every other printed target-change watcher see all three paths.
+- **Behavioral proof:** own and opposing security removal each unsuspend Nezhamon, while a second
+  event in the same turn does not. A target switch grants exactly +4000 once, blocks opposing
+  Digimon effects, and still permits Option effects. In live combat, Collision makes a plain
+  opposing Digimon block, that switch grants the bonus, the blocker loses, and Piercing removes
+  security. Rush permits an attack on the play turn; all five printed keywords are live. Engage
+  retains its executable optional end-of-turn self-attack and is additionally covered by the
+  shared force-attack capability suite.
+- **Evolution proof:** normal red AD1-003 and black BT10-064 pay 4; off-color Shambala EX12-029
+  pays 3; blue non-Shambala BT1-038 is rejected.
+- **Verification:** `EX12-019.test.ts` — 10/10; source-kind immunity — 9/9; interpreter
+  capabilities (including Engage) — 289/289; Collision combat — 12/12; security-check ordering —
+  11/11; combat controller — 23/23; combat primitives — 126/126; advanced keyword/Raid — 25/25;
+  workspace typecheck, focused
+  formatting, focused lint, and `git diff --check` passed. The Collision regression fixture now
+  explicitly declines BT16-032's real target-switch end-attack effect before asserting its plain
+  DP battle. No residual IR, unsupported behavior, or unresolved ruling remains.

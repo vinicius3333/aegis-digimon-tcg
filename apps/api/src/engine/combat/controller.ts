@@ -622,7 +622,12 @@ export class CombatController {
           if (chosenInstanceId !== undefined) {
             const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
             if (chosen !== undefined) {
-              this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId });
+              if (this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId })) {
+                await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
+                  subjectPermanentId: attacker.permanentId,
+                  attackerPermanentId: attacker.permanentId,
+                });
+              }
             }
           }
         }
@@ -1019,6 +1024,10 @@ export class CombatController {
     };
     await this.hooks.fireTiming(EffectTiming.OnBlockAnyone, trigger);
     await this.hooks.fireTiming(EffectTiming.OnAttackTargetChanged, trigger);
+    await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
+      ...trigger,
+      subjectPermanentId: attacker.permanentId,
+    });
     // Kept alive as a genuine SubTrigger event (distinct from the OnBlockAnyone timing
     // above) to serve BT4-098's temporary grant shape ("[Your Turn] when this Digimon is
     // blocked, gain <effect> until end of turn") — a shape the timing dispatch alone can't
