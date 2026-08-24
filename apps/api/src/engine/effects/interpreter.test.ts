@@ -842,6 +842,43 @@ describe("attack cost feasibility", () => {
   });
 });
 
+describe("filtered hand-trash cost feasibility", () => {
+  const source = makeSource();
+  const cost = {
+    kind: "trash" as const,
+    target: {
+      count: 1,
+      filter: {
+        zone: "hand" as const,
+        controller: "mine" as const,
+        nameOrTrait: [{ tokens: ["NSo"], match: "trait" as const }],
+      },
+    },
+  };
+
+  it("does not offer the cost when the hand has cards but none match its filter", () => {
+    const ctx = makeContext({
+      source,
+      recorder: { calls: [] },
+      ownHand: [{ instanceId: "plain", cardId: "PLAIN", ownerSeat: 0, faceUp: true }],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, types: [] }),
+    });
+
+    expect(canPayCost(ctx, cost)).toBe(false);
+  });
+
+  it("offers the cost when enough matching hand cards exist", () => {
+    const ctx = makeContext({
+      source,
+      recorder: { calls: [] },
+      ownHand: [{ instanceId: "nso", cardId: "NSO", ownerSeat: 0, faceUp: true }],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, types: ["NSo"] }),
+    });
+
+    expect(canPayCost(ctx, cost)).toBe(true);
+  });
+});
+
 // --- Tests -----------------------------------------------------------------
 
 describe("Delete except chooser routing", () => {
