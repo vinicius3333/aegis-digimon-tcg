@@ -310,6 +310,7 @@ export const en = {
   "game.playTamer": "Play Tamer",
   "game.playDigimon": "Play Digimon",
   "game.activateEffect": "Activate effect",
+  "game.activateMainEffect": "Activate [Main] effect",
   "game.inspectOpponent": "Inspect opponent Digimon",
 
   "game.phase.Active": "Active",
@@ -545,6 +546,16 @@ export const en = {
   "feed.openHistory": "Open match history",
   "feed.historyTitle": "Match history",
   "feed.noHistory": "No actions yet",
+
+  "panel.discardedCards": "Discarded cards",
+  "panel.deletedCards": "Deleted cards",
+  "panel.trashedCards": "Cards put to trash",
+  "panel.revealedCards": "Revealed Cards",
+  "panel.playedCard": "Played Card",
+  "panel.dismiss": "Dismiss {title}",
+  "panel.yours": "Yours",
+  "panel.opponents": "Opponent's",
+  "panel.attacking": "{card} is attacking",
 
   "reject.not-your-turn": "It's not your turn",
   "reject.wrong-phase": "Can't do that right now",
