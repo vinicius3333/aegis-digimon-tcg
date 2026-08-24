@@ -1,0 +1,83 @@
+/* Dev-only layout for the board showcase page. The board pieces themselves are
+   styled by game.css; everything here is scaffolding around them. */
+
+.board-showcase {
+  min-height: 100%;
+  padding: 1.5rem 1.5rem 6rem;
+  color: var(--ds-fg);
+  overflow-y: auto;
+}
+
+.board-showcase__intro {
+  max-width: 60rem;
+  margin-bottom: 2rem;
+}
+
+.board-showcase__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.board-showcase__lead {
+  margin: 0;
+  color: var(--ds-fg-muted);
+}
+
+.board-showcase__section {
+  padding: 1.2rem 0 2rem;
+  border-top: 1px solid var(--ds-border);
+  scroll-margin-top: 1rem;
+}
+
+.board-showcase__section-title {
+  margin: 0 0 0.2rem;
+  font-family: var(--ds-font-mono);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ds-accent);
+}
+
+.board-showcase__section-note {
+  margin: 0 0 1.2rem;
+  font-size: 0.85rem;
+  color: var(--ds-fg-muted);
+}
+
+.board-showcase__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem 2.5rem;
+  align-items: flex-end;
+}
+
+.board-showcase__row--stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.board-showcase__case {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.board-showcase__case-label {
+  font-family: var(--ds-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ds-fg-muted);
+}
+
+/* Overlays and banners position themselves against the board; each gets its own
+   framed stage here so absolute coordinates land inside the case. */
+.board-showcase__stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px dashed var(--ds-border-strong);
+  border-radius: 0.75rem;
+  background: var(--ds-game-surface, var(--ds-surface));
+}
