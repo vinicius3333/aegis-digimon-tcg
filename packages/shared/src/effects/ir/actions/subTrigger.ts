@@ -106,6 +106,8 @@ export interface SubTriggerAction extends ActionBase {
   linkedCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */
   effectSourceFilter?: Filter;
+  /** Require the triggering event to carry effect attribution. */
+  requireByEffect?: boolean;
   /** Do not fire when this card's own effect caused the deck trash (EX2-039). */
   excludeSelfEffect?: boolean;
   /**

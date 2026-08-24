@@ -291,6 +291,11 @@ export async function runSubTrigger(
       ? (subCtx: EffectContext): boolean =>
           subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
       : undefined;
+  const requireByEffectGate =
+    action.requireByEffect === true
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
+      : undefined;
   // `onDigivolutionCardReturnToDeckBottom` fires for EVERY watcher (the bus is not host-scoped), so
   // gate on (a) the host that lost the stack card (TriggerInfo.subjectPermanentId) being THIS
   // watcher's own anchor permanent — i.e. "this Digimon's digivolution cards" — and (b) the returned
@@ -770,6 +775,7 @@ export async function runSubTrigger(
   const gates = [
     filterMatch,
     digivolutionTrashByEffectGate,
+    requireByEffectGate,
     deletionSourceFilterGate,
     ownerMainPhaseGate,
     fireConditionGate,

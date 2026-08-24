@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
           sourceFilter: { isSelfRef: true },
+          requireByEffect: true,
           addedDigivolutionCardFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
           actions: [
             {
@@ -65,7 +66,13 @@ export const compiled: CompiledCard = {
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
-        { kind: "RedirectAttack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            { kind: "RedirectAttack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
+          ],
+        },
       ],
     },
   ],
