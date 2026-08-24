@@ -7,7 +7,7 @@ import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
-import { permanentMatchesFilter } from "../matching/permanent.js";
+import { isPermanentUnaffectable, permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
@@ -530,6 +530,20 @@ export async function runSubTrigger(
     event === "startOfYourMainPhase"
       ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
       : undefined;
+  // A trigger granted to another permanent is installed even when that permanent can
+  // currently be selected through immunity (Q6740). At the future timing, however, the
+  // granted effect must not trigger while its recipient is unaffected by the granter's
+  // source kind. Re-evaluate that live state here rather than suppressing the original grant.
+  const grantedEffectAffectableGate =
+    action.on !== undefined && anchorPermanentId !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const recipient = subCtx.game.permanentById(anchorPermanentId);
+          if (recipient === undefined) return false;
+          const sourceKinds = ctx.effectSourceKinds ?? (ctx.source.definition.kinds as readonly string[]);
+          const relevantSourceKinds = sourceKinds.filter((kind) => kind === "Digimon" || kind === "Option");
+          return !isPermanentUnaffectable(subCtx, ctx.source, recipient, relevantSourceKinds);
+        }
+      : undefined;
   // A fire-time payload gate ("your security" + the added-card trait check for whenAddSecurity)
   // evaluated against the freshly bound context's TriggerInfo. When it does not hold the watcher
   // body is skipped entirely, so a mandatory tail never runs on an off-gate event (BT23-083).
@@ -741,6 +755,7 @@ export async function runSubTrigger(
     filterMatch,
     deletionSourceFilterGate,
     ownerMainPhaseGate,
+    grantedEffectAffectableGate,
     fireConditionGate,
     securityRemovalGate,
     discardLibraryGate,
@@ -870,15 +885,15 @@ export async function runSubTrigger(
       // trashing the source card the activation cost, and §16-17-3 bars activation the turn it
       // entered play.
       if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
-        const self = subCtx.source.permanent();
-        if (self === undefined) return;
-        if (self.enterFieldTurnCount === subCtx.game.state.turnCount) return;
+        const delaySource = subCtx.source.permanent();
+        if (delaySource === undefined) return;
+        if (delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return;
         const activate = await subCtx.ask.optional(
           subCtx,
           action.raw ?? "Trash this card to activate its ＜Delay＞ effect?",
         );
         if (!activate) return;
-        const trashed = await subCtx.fx.deletePermanent([self.permanentId]);
+        const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
         if (trashed <= 0) return;
       } else {
         const activationCost = action.cost as Cost | undefined;

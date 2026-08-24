@@ -446,3 +446,33 @@ for the individual evidence below.
 - **Verification:** `EX12-015.test.ts` — 11/11; interpreter — 171/171; DigiXros OR-material
   mechanism — 3/3; workspace typecheck, focused formatting, focused lint, and `git diff --check`
   passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-016 — MetalGreymon — 10/10
+
+- **Printed contract:** Red/black level 5 Cyborg/ME/VB, play cost 7 and 7000 DP. Normal
+  red/black level-4 evolution costs 4; level-4 Greymon-name or ME/VB alternatives cost 3.
+  Assembly -2 uses one level-4-or-lower Agumon/Greymon-name or ME/VB Digimon. It has
+  Security Attack +1. Printed and inherited Decode may play a matching level-4-or-lower
+  source when the host would leave other than by battle. On play/evolution it deletes one
+  opposing Digimon with 6000 DP or less, then gives another opposing Digimon a next-main-phase
+  mandatory attack through the end of that opponent's turn.
+- **KB evidence:** Q6740 permits granting the delayed attack text to an unaffected Digimon,
+  but the granted effect does not trigger if that Digimon is unaffected when the future timing
+  arrives. Q6741 applies the level-4 ceiling to both sides of the Assembly OR. Decode follows
+  the comprehensive other-than-battle replacement contract.
+- **Corrections:** both Decode placements were label-only. Printed and inherited `AllTurns`
+  replacements now play an eligible source for free with `playedByDecode:true` while allowing
+  the host to leave. Future granted `SubTrigger` effects also lacked a live immunity gate; the
+  interpreter now evaluates the recipient against the original Digimon/Option granter when the
+  delayed trigger would fire, without preventing the text from being granted initially.
+- **Ruling and behavioral proof:** the entry effect deletes the inclusive 6000-DP boundary and
+  grants the distinct survivor its forced next-main attack. A recipient made unaffected after
+  gaining that text neither suspends nor declares an attack at the timing, proving Q6740.
+  BT1-010 satisfies Assembly through Agumon name, while level-5 VB EX12-014 is rejected,
+  proving Q6741. Printed and buried EX12-016 each Decode a source before effect deletion; battle
+  deletion plays nothing. Security Attack +1 and both On Play/When Digivolving paths are covered.
+- **Evolution proof:** normal red EX12-011 and black BT10-061 pay 4; Greymon-name BT10-019 and
+  off-color VB EX12-024 pay 3; off-color nonmatching BT1-069 is rejected.
+- **Verification:** `EX12-016.test.ts` — 13/13; interpreter — 171/171; leave-prevention
+  mechanism — 10/10; workspace typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
