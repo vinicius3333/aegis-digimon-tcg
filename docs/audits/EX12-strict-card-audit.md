@@ -916,3 +916,43 @@ for the individual evidence below.
   126/126; security checks — 11/11; digivolution action flow — 27/27; workspace typecheck,
   focused formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported
   behavior, or unresolved ruling remains.
+
+## EX12-031 — MarineBullmon — 10/10
+
+- **Printed contract:** Blue/yellow level 5 Mollusk/Shambala/TB Data Digimon, play cost 7 and
+  7000 DP. Normal blue/yellow level-4 evolutions cost 4; level-4 Aquatic or Shambala costs 3.
+  Assembly -2 uses exactly one level-4-or-lower card with Aqua/Sea Animal in any trait or the TB
+  trait. It has Decode for a level-4-or-lower Digimon matching the same trait OR, and grants that
+  Decode as an inherited effect. On Play/When Digivolving, placing one level-6-or-lower matching
+  card from hand at its stack bottom returns one opposing Digimon with at most one source to
+  hand. Its Rule grants Aquatic.
+- **KB evidence:** Q6767 applies the preceding level ceiling to both alternatives in a phrase of
+  the form “level N or lower card with A or B.” Consequently, Assembly and the placement payment
+  cannot use an over-level Aqua/Sea Animal or TB card. “Aqua in any trait” is substring matching,
+  while TB remains an exact trait identity.
+- **Corrections:** both printed Decode instances were inert keyword markers. Executable
+  other-than-battle leave replacements now play one qualifying level-4-or-lower source for free,
+  both while MarineBullmon is on top and while it is inherited. The direct placement and
+  Assembly filters incorrectly treated Aqua as an exact trait; they now use `traitContains` for
+  Aqua/Sea Animal and exact matching for TB. The shared Assembly override received the same fix.
+  The aggregate IR was additionally stale: it omitted the target's one-source ceiling, targeted
+  the payment placement at `host: target`, used exact Aqua matching, flattened Assembly
+  incorrectly, and lacked executable Decode. It now equals the direct registered IR exactly.
+- **Ruling and behavioral proof:** Aquatic BT12-025 qualifies for Assembly through the Aqua
+  substring and reduces play cost from 7 to 5, while level-5 Aquabeast and TB materials are both
+  rejected, proving Q6767 across the OR. On Play, level-6 Aquatic BT10-027 is placed at the true
+  stack bottom and a one-source target returns to hand; level-7 TB EX12-076 cannot pay, and a
+  two-source target is ineligible. Declining the optional placement preserves the hand card and
+  suppresses the dependent return. When Digivolving repeats the sequence with a Sea Animal card.
+  Top-level Decode plays both an Aquatic and an exact-TB level-4 source after effect removal, not
+  battle removal. Inherited Decode plays from its host, while a level-5 Aquabeast source fails the
+  printed ceiling. Both top and inherited Decode keywords are observable, and the Rule grants
+  Aquatic.
+- **Evolution proof:** normal blue AD1-010 and yellow BT1-051 pay 4; Aquatic BT12-025 and
+  off-color Shambala EX12-011 pay 3; purple nonmatching BT10-074 is rejected. Catalog identity,
+  stats, traits, direct/aggregate equality, shared requirements, full coverage, and empty
+  residuals are asserted.
+- **Verification:** `EX12-031.test.ts` — 11/11; leave prevention/Decode — 10/10; Assembly engine
+  — 2/2; interpreter — 171/171; effect primitives — 126/126; digivolution action flow — 27/27;
+  workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.

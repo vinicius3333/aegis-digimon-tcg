@@ -66,7 +66,7 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
         {
           count: 1,
           nameOrTrait: [
-            { tokens: ["Aqua", "Sea Animal"], match: "trait" },
+            { tokens: ["Aqua", "Sea Animal"], match: "traitContains" },
             { tokens: ["TB"], match: "trait" },
           ],
           levelMax: 4,

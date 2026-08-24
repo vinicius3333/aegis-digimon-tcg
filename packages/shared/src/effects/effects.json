@@ -133390,21 +133390,57 @@
         ]
       },
       {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [
+                      { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
+                      { "tokens": ["TB"], "match": "trait" }
+                    ]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "trigger": "OnPlay",
         "actions": [
           {
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCardsAtMost": 1 },
+              "count": 1
+            },
             "to": "hand",
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "place",
               "target": {
                 "filter": {
-                  "zone": "hand",
                   "controller": "mine",
                   "levelComparison": { "op": "lte", "value": 6 },
                   "nameOrTrait": [
-                    { "tokens": ["Aqua", "Sea Animal"], "match": "trait" },
+                    { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
                     { "tokens": ["TB"], "match": "trait" }
                   ]
                 },
@@ -133414,10 +133450,8 @@
               "raw": "By placing 1 level 6 or lower card with [Aqua] or [Sea Animal] in any of its traits or the [TB] trait from your hand as this Digimon's bottom digivolution card",
               "destination": "digivolutionStack",
               "position": "bottom",
-              "host": "target"
-            },
-            "optional": true,
-            "abortOnDecline": true
+              "host": "self"
+            }
           }
         ]
       },
@@ -133426,17 +133460,21 @@
         "actions": [
           {
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCardsAtMost": 1 },
+              "count": 1
+            },
             "to": "hand",
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "place",
               "target": {
                 "filter": {
-                  "zone": "hand",
                   "controller": "mine",
                   "levelComparison": { "op": "lte", "value": 6 },
                   "nameOrTrait": [
-                    { "tokens": ["Aqua", "Sea Animal"], "match": "trait" },
+                    { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
                     { "tokens": ["TB"], "match": "trait" }
                   ]
                 },
@@ -133446,10 +133484,8 @@
               "raw": "By placing 1 level 6 or lower card with [Aqua] or [Sea Animal] in any of its traits or the [TB] trait from your hand as this Digimon's bottom digivolution card",
               "destination": "digivolutionStack",
               "position": "bottom",
-              "host": "target"
-            },
-            "optional": true,
-            "abortOnDecline": true
+              "host": "self"
+            }
           }
         ]
       },
@@ -133474,13 +133510,58 @@
             "raw": "＜Decode (Lv.4 or lower w/[Aqua]/[Sea Animal] in any trait or w/[TB] trait)＞"
           }
         ]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [
+                      { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
+                      { "tokens": ["TB"], "match": "trait" }
+                    ]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ],
+        "isInherited": true
       }
     ],
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 4, "traits": ["Aquatic", "Shambala"], "cost": 3, "isAlternate": true }],
     "assemblyRequirement": [
-      { "materials": [{ "count": 1, "traits": ["Aqua", "Sea Animal", "TB"], "levelMax": 4 }], "reduceCost": 2 }
+      {
+        "materials": [
+          {
+            "count": 1,
+            "nameOrTrait": [
+              { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
+              { "tokens": ["TB"], "match": "trait" }
+            ],
+            "levelMax": 4
+          }
+        ],
+        "reduceCost": 2
+      }
     ]
   },
   "EX12-032": {
