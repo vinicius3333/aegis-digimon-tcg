@@ -1197,3 +1197,29 @@ for the individual evidence below.
   digivolution action flow — 27/27; security checks — 11/11; shared build, API typecheck, focused
   formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   or unresolved ruling remains.
+
+## EX12-038 — Kokuwamon — 10/10
+
+- **Printed contract:** Yellow level 3 Machine/ME Data Digimon, play cost 3 and 2000 DP. Normal
+  yellow/black level-2 evolution and alternate level-2 ME evolution cost 0. On Play, it may trash
+  one Mutant- or ME-trait hand card as a `By` cost to draw 2. Its inherited When Attacking effect
+  gives one opposing Digimon -2000 DP for the turn, once per turn.
+- **KB evidence:** no card-specific Q&A is present in the committed knowledge base. The rules
+  interpretation required here is the standard optional activation of a `By` cost: declining or
+  lacking a payable card leaves the entire effect unprocessed.
+- **Corrections:** the direct module omitted `optional` and `abortOnDecline`, incorrectly making
+  the hand trash mandatory whenever a candidate existed and contradicting the aggregate IR. It
+  now represents an optional all-or-nothing activation and matches the aggregate record exactly.
+  Registration remains exclusively through `registerIrCard`.
+- **Behavioral proof:** accepting with a pure Mutant card and separately with an ME card trashes
+  exactly that card and draws two. Declining with a valid card neither trashes nor draws; a hand
+  containing only a nonmatching card likewise leaves the hand and deck unchanged. As an inherited
+  source, Kokuwamon applies -2000 DP on the first attack timing and a second same-turn timing does
+  not stack another reduction. The effect is asserted as inherited rather than top-level.
+- **Evolution proof:** yellow BT1-005 and black BT10-005 use the normal zero-cost routes; ME egg
+  EX12-003 uses the alternate zero-cost route; red non-ME BT1-001 is rejected for the alternate.
+  Catalog identity, stats, traits, direct/shared requirements, full coverage, empty residuals,
+  and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-038.test.ts` — 6/6; effect primitives — 126/126; interpreter — 171/171;
+  digivolution action flow — 27/27; API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
