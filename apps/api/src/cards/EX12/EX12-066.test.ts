@@ -1,17 +1,16 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
-import "./EX12-066.js";
+import { compiled } from "./EX12-066.js";
 import "../index.js";
 
 const CARD_ID = "EX12-066";
 
 describe("EX12-066 Hiro Amanokawa", () => {
   it("maps the catalog, KB-backed text filters, cost, modal branches, and security", () => {
-    const compiled = registeredCompiledCards.get(CARD_ID)!;
     const attack = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     const watcher = attack.actions[0]!;
     const modal = irNode(watcher).actions[0]!;
@@ -58,6 +57,8 @@ describe("EX12-066 Hiro Amanokawa", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
+    expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("sets memory to 3 only when the controller starts at 2 or less", async () => {
@@ -101,6 +102,104 @@ describe("EX12-066 Hiro Amanokawa", () => {
 
     expect(s.perm("hiro").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-013");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Q6867 matches Gammamon in effect text even without the VB trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "hiro" },
+            { card: "BT10-011", as: "attacker" },
+          ],
+          hand: [{ card: "AD1-007", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "AD1-007");
+
+    expect(s.perm("hiro").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-1);
+  });
+
+  it("Q6868 two copies cannot consume the same selected evolution card twice", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "firstHiro" },
+            { card: CARD_ID, as: "secondHiro" },
+            { card: "EX12-007", as: "attacker" },
+          ],
+          hand: [{ card: "EX12-013", as: "onlyTarget" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        preferOptionIndex: 0,
+      },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "EX12-013");
+
+    expect(s.perm("attacker").stack.filter(({ cardId }) => cardId === "EX12-007")).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(
+      [s.perm("firstHiro").isSuspended, s.perm("secondHiro").isSuspended].filter(Boolean).length,
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it("Q6869 activates under a reduction prohibition and pays the unreduced cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "hiro" },
+            { card: "EX12-007", as: "attacker" },
+          ],
+          hand: [{ card: "EX12-013", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addCostReductionBlock(0, "digivolve", EffectDuration.UntilEachTurnEnd);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "EX12-013");
+
+    expect(s.perm("hiro").isSuspended).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 
@@ -178,5 +277,17 @@ describe("EX12-066 Hiro Amanokawa", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Hiro Amanokawa",
+      colors: ["Red"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      dp: 0,
+      evoCosts: [],
+      types: ["VB"],
+    });
   });
 });

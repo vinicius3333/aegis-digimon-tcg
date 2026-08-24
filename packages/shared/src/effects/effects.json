@@ -136927,33 +136927,60 @@
                 { "tokens": ["VB"], "match": "trait" }
               ]
             },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
             "actions": [
               {
-                "kind": "Digivolve",
-                "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-                "into": {
-                  "controllerDefault": "mine",
-                  "levelComparison": { "op": "lte", "value": 6 },
-                  "nameOrTrait": [
-                    { "tokens": ["Gammamon"], "match": "text" },
-                    { "tokens": ["VB"], "match": "trait" }
+                "kind": "Modal",
+                "choose": 1,
+                "labels": [
+                  "Digivolve the attacking Digimon into a level 6 or lower Gammamon/VB card",
+                  "Use a Gammamon/VB Option from hand"
+                ],
+                "options": [
+                  [
+                    {
+                      "kind": "Digivolve",
+                      "target": { "sourceRef": "triggerSubject", "filter": {}, "count": 1 },
+                      "into": {
+                        "controllerDefault": "mine",
+                        "kind": ["Digimon"],
+                        "levelComparison": { "op": "lte", "value": 6 },
+                        "nameOrTrait": [
+                          { "tokens": ["Gammamon"], "match": "text" },
+                          { "tokens": ["VB"], "match": "trait" }
+                        ]
+                      },
+                      "from": ["hand"],
+                      "payCost": true,
+                      "reduceCost": 1,
+                      "optional": true,
+                      "abortOnDecline": true
+                    }
+                  ],
+                  [
+                    {
+                      "kind": "UseOptionWithoutCost",
+                      "filter": {
+                        "controller": "mine",
+                        "kind": ["Option"],
+                        "nameOrTrait": [
+                          { "tokens": ["Gammamon"], "match": "text" },
+                          { "tokens": ["VB"], "match": "trait" }
+                        ]
+                      },
+                      "from": ["hand"],
+                      "payCost": true,
+                      "reduceCostBy": 2,
+                      "optional": true
+                    }
                   ]
-                },
-                "from": ["hand"],
-                "reduceCost": 1,
-                "optional": true,
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
-                },
-                "abortOnDecline": true
+                ]
               }
             ]
-          },
-          {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): · You may use 1 Option card with [Gammamon] in its text or the [VB] trait from your hand with the cost reduced by 2"
           }
         ]
       },
@@ -136969,10 +136996,8 @@
         "isSecurity": true
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): · You may use 1 Option card with [Gammamon] in its text or the [VB] trait from your hand with the cost reduced by 2"
-    ]
+    "coverage": "full",
+    "residual": []
   },
   "EX12-067": {
     "effects": [

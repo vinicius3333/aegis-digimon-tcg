@@ -2126,3 +2126,34 @@ for the individual evidence below.
   interpreter — 171/171; capabilities — 290/290; API typecheck, focused formatting, focused lint,
   and `git diff --check` passed. No residual IR, unsupported behavior, ruling dependency, or
   unresolved limitation remains.
+
+## EX12-066 — Hiro Amanokawa — 10/10
+
+- **Printed contract:** Red cost-4 VB Tamer. At the start of the controller's turn, memory at 2
+  or less becomes 3. During that turn, when an allied Digimon with Gammamon in its text or the VB
+  trait attacks, Hiro may suspend to choose exactly one mode: digivolve that attacker into a
+  level-6-or-lower matching hand card with cost reduced by 1, or use a matching Option from hand
+  with cost reduced by 2. Its Security effect plays Hiro for free.
+- **KB evidence:** Q6867 defines “Gammamon in its text” across the card's complete text-bearing
+  identity rather than only its main effect. Q6868 keeps each Tamer trigger independent while
+  preventing two copies from consuming the same selected card. Q6869 allows activation while
+  cost reductions are prohibited; the evolution remains legal and pays the unreduced cost.
+- **Corrections:** the direct module was complete, but the aggregate still split the modal into a
+  Digivolve action plus `RawUnparsed`, marked coverage partial, and carried a residual. The
+  aggregate now exactly mirrors the executable watcher cost and one-of-two Modal, including the
+  trigger-subject evolution target, level/text/trait filters, paid reductions, optional branches,
+  security effect, full coverage, and empty residuals.
+- **Behavioral proof:** a real Gammamon/VB attack suspends Hiro, evolves the exact attacker, and
+  applies the one-memory reduction without waiving requirements. A Canoweissmon lacking VB but
+  containing Gammamon in its effect text triggers and evolves, proving Q6867. Two Hiros with only
+  one evolution card consume it once and create one evolution stack for Q6868. Under an installed
+  digivolution-reduction block, Hiro still suspends and evolves while paying the full printed
+  cost for Q6869. An illegal level/requirement target remains in hand. The Option mode uses Giant
+  Meat and applies -2, while the Security timing plays Hiro for free. Memory 2 becomes 3 and
+  memory 3 remains unchanged.
+- **Identity and verification:** catalog identity, all filters/costs/modal labels and branches,
+  security scope, full coverage, empty residuals, exclusive IR registration, and exact
+  direct/aggregate equality are asserted. `EX12-066.test.ts` — 10/10; subtrigger seams — 22/22;
+  effect-driven digivolution legality — 5/5; interpreter — 171/171; capabilities — 290/290;
+  security activation — 2/2; shared build, API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
