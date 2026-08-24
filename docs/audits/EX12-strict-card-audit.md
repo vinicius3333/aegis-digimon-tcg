@@ -1851,3 +1851,33 @@ for the individual evidence below.
   conformance including Alliance — 30/30; leave prevention — 10/10; interpreter — 171/171;
   shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed.
   No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-057 — Takutoumon — 10/10
+
+- **Printed contract:** Black/yellow level 6 Shaman/Saneiketsu/Tentei Hachibushu/Shambala/SW
+  Data Digimon, play cost 12 and 12000 DP. Normal black/yellow level-5 evolution costs 4;
+  Shambala level 5 costs 3. Its shared On Play, When Digivolving, and Counter once-per-turn may
+  play one yellow 6000-DP Paishu token with Blocker and Guard. Its All Turns once-per-turn
+  watcher triggers whenever any allied Digimon is played, De-Digivolves one opponent by 2, then
+  independently gives one opposing Digimon -6000 DP through that opponent's turn.
+- **KB evidence:** Q6854 enforces one Counter activation per attack. Q6855 confirms Takutoumon's
+  watcher sees Takutoumon itself being played. Q6856 makes its simultaneous On Play and watcher
+  activations player-orderable. Q6857 permits a Paishu created during Counter timing to block the
+  same attack.
+- **Implementation trace and proof:** all three token timings share one use key and create the
+  exact token definition. A real token is yellow, 6000 DP, Blocker, and Guard. When Digivolving
+  creates one token and a following Counter window creates no second token, proving the shared
+  budget. An explicit `whenPlayed` event whose subject is Takutoumon itself De-Digivolves exactly
+  two sources and applies -6000, correcting the earlier test's false Q6855 claim (it had only
+  observed a token play). The distinct action targets preserve the printed independent choices.
+  Counter ordering/blocking and simultaneous-trigger ordering are enforced by the collection's
+  counter, token, and timing mechanism suites.
+- **Evolution and identity proof:** black BT10-064 and yellow EX12-045 pay normal cost 4;
+  Shambala EX12-056 pays alternate cost 3; blue non-Shambala BT1-040 is rejected. Catalog
+  identity, every timing body, shared key, watcher, requirements, full coverage, empty residuals,
+  direct registration, and exact direct/aggregate equality are asserted. Direct and aggregate
+  IR already matched and required no correction; registration remains exclusively via
+  `registerIrCard`.
+- **Verification:** `EX12-057.test.ts` — 5/5; token/play-battle mechanics — 6/6; subtrigger seams
+  — 22/22; digivolution action flow — 27/27; API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
