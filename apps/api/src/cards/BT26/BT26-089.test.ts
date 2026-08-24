@@ -16,9 +16,11 @@ describe("BT26-089 compiled fidelity", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
-      { kind: "PlaceUnder", faceDown: true },
-      { kind: "Draw", amount: 1 },
-      { kind: "GainMemory", amount: 1 },
+      {
+        kind: "CostGatedBlock",
+        cost: { kind: "place", destination: "digivolutionStack", position: "bottom", faceDown: true },
+        actions: [{ kind: "Draw", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+      },
     ]);
     const watchers = card?.effects?.find((effect) => effect.trigger === "AllTurns")?.actions ?? [];
     expect(watchers).toEqual(
@@ -43,9 +45,14 @@ describe("BT26-089 compiled fidelity", () => {
     );
     expect(irNode(watchers[1])?.actions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ kind: "Suspend" }),
-        expect.objectContaining({ kind: "PlaceUnder", fromDeckTop: true, faceDown: true }),
-        expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } }),
+        expect.objectContaining({
+          kind: "CostGatedBlock",
+          cost: expect.objectContaining({ kind: "suspend" }),
+          actions: expect.arrayContaining([
+            expect.objectContaining({ kind: "PlaceUnder", fromDeckTop: true, faceDown: true }),
+            expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } }),
+          ]),
+        }),
       ]),
     );
   });
@@ -83,7 +90,7 @@ describe("BT26-089 compiled fidelity", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
@@ -94,5 +101,26 @@ describe("BT26-089 compiled fidelity", () => {
     expect(s.perm("kyo").stack[0]).toMatchObject({ instanceId: s.inst("placed").instanceId, faceUp: false });
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("cannot place a deck card or apply the debuff when this Tamer is already suspended (Q7141)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-089", as: "kyo", suspended: true }],
+          security: ["BT1-001"],
+          deck: [{ card: "BT1-002", as: "top" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+
+    expect(s.perm("kyo").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(0);
   });
 });

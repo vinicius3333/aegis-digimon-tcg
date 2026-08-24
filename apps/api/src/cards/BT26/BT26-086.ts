@@ -7,6 +7,7 @@ const appmonStack = {
   controller: "mine",
   zone: "digivolutionCards",
   hasLinkRequirement: true,
+  hostFilter: { isSelfRef: true },
   nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
 };
 
@@ -65,7 +66,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  assemblyRequirement: [{ reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] }],
+  assemblyRequirement: [
+    { reduceCost: 7, materials: [{ kinds: ["Digimon"], traits: ["Seven Code"], count: 7, differentNames: true }] },
+  ],
 };
 
 registerIrCard("BT26-086", compiled);

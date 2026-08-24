@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT26-086.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -9,7 +10,7 @@ describe("BT26-086 compiled behavior", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.assemblyRequirement).toEqual([
-      { reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] },
+      { reduceCost: 7, materials: [{ kinds: ["Digimon"], traits: ["Seven Code"], count: 7, differentNames: true }] },
     ]);
     expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords).toEqual(
       expect.arrayContaining([
@@ -31,6 +32,7 @@ describe("BT26-086 compiled behavior", () => {
             upTo: true,
             filter: expect.objectContaining({
               hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
               nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
             }),
           }),
@@ -38,6 +40,36 @@ describe("BT26-086 compiled behavior", () => {
         expect.objectContaining({ kind: "Attack", withoutSuspending: true, optional: true }),
       ]);
     }
+  });
+
+  it("rejects Seven Code PAD as an Assembly material because the header requires Digimon cards", () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-086", as: "dantemon" }],
+        trash: [
+          { card: "BT26-010", as: "first" },
+          { card: "BT26-019", as: "second" },
+          { card: "BT26-028", as: "third" },
+          { card: "BT26-037", as: "fourth" },
+          { card: "BT26-051", as: "fifth" },
+          { card: "BT26-063", as: "sixth" },
+          { card: "BT26-102", as: "option" },
+        ],
+      },
+    });
+    s.state.memory = 20;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dantemon").instanceId,
+        assembly: {
+          materialInstanceIds: ["first", "second", "third", "fourth", "fifth", "sixth", "option"].map(
+            (alias) => s.inst(alias).instanceId,
+          ),
+        },
+      } as never),
+    ).toEqual({ ok: false, reason: "invalid-material" });
   });
 
   it("keeps the different-name and seven-link conditional seams explicit", () => {
@@ -62,6 +94,27 @@ describe("BT26-086 compiled behavior", () => {
         },
       ],
     });
+  });
+
+  it("links only Appmon cards from this Digimon's own digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-086", as: "dantemon", under: [{ card: "BT26-010", as: "ownSource" }] },
+            { card: "BT1-084", as: "neighbor", under: [{ card: "BT26-019", as: "otherSource" }] },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dantemon"));
+
+    expect(s.perm("dantemon").linked.map(({ cardId }) => cardId)).toEqual(["BT26-010"]);
+    expect(s.perm("neighbor").stack.map(({ cardId }) => cardId)).toEqual(["BT26-019"]);
   });
 
   it("deletes an opposing Digimon and moves its security top card when seven links are present", async () => {

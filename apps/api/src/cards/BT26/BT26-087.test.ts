@@ -9,11 +9,22 @@ describe("BT26-087 Toya Kuga", () => {
   it("compiles start-main return/memory, on-play draw, and Security play", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "OnPlay", "Security"]);
-    expect(compiled.effects[0]?.actions[0]).toMatchObject({ optional: false });
-    expect(compiled.effects[0]?.actions[1]).toMatchObject({
-      target: { filter: { nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } },
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      kind: "CostGatedBlock",
+      optional: true,
+      abortOnDecline: true,
+      cost: { kind: "return", to: "deckBottom" },
+      actions: [
+        { kind: "GainMemory", amount: 1 },
+        { target: { filter: { nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } } },
+      ],
     });
-    expect(compiled.effects[1]?.actions[0]).toMatchObject({ optional: false });
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({
+      kind: "CostGatedBlock",
+      optional: true,
+      cost: { kind: "trash" },
+      actions: [{ kind: "Draw", amount: 2 }],
+    });
     expect(compiled.effects[2]).toMatchObject({
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
@@ -40,5 +51,19 @@ describe("BT26-087 Toya Kuga", () => {
 
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
+  it("does not return Giant Slayer when the TS return cost is unavailable", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT26-087", as: "toya" }], trash: [{ card: "BT26-085", as: "giantSlayer" }] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("toya"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-085")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });

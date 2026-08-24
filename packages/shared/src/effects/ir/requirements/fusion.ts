@@ -27,6 +27,8 @@ export interface AppFusionRequirement {
 
 /** One Assembly material slot: `count` cards matching `names`/`traits`. */
 export interface AssemblyMaterial {
+  /** Card kinds allowed as materials when the header says, for example, "Digimon cards". */
+  kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   names?: string[];
   traits?: string[];
   level?: number;

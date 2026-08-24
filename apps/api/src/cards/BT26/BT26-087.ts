@@ -6,47 +6,59 @@ const tsTrashCost = {
   kind: "trash",
   target: { count: 1, filter: { zone: "hand", controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } },
 };
+const startMainCost = {
+  kind: "return",
+  target: {
+    count: 1,
+    filter: {
+      zone: "trash",
+      controller: "mine",
+      kind: ["Digimon"],
+      nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+    },
+  },
+  to: "deckBottom",
+};
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
-          kind: "GainMemory",
-          amount: 1,
-          cost: {
-            kind: "return",
-            target: {
-              count: 1,
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
-              },
-            },
-            to: "deckBottom",
-          },
-          optional: false,
-        },
-        {
-          kind: "Return",
-          to: "hand",
-          target: {
-            count: 1,
-            filter: {
-              zone: "trash",
-              controller: "mine",
-              nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }],
-            },
-          },
+          kind: "CostGatedBlock",
+          cost: startMainCost,
           optional: true,
+          abortOnDecline: true,
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "Return",
+              to: "hand",
+              target: {
+                count: 1,
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }],
+                },
+              },
+              optional: true,
+            },
+          ],
         },
       ],
     },
     {
       trigger: "OnPlay",
-      actions: [{ kind: "Draw", controller: "mine", amount: 2, cost: tsTrashCost, optional: false }],
+      actions: [
+        {
+          kind: "CostGatedBlock",
+          cost: tsTrashCost,
+          optional: true,
+          abortOnDecline: true,
+          actions: [{ kind: "Draw", controller: "mine", amount: 2 }],
+        },
+      ],
     },
     {
       trigger: "Security",
