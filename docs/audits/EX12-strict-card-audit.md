@@ -1223,3 +1223,28 @@ for the individual evidence below.
 - **Verification:** `EX12-038.test.ts` — 6/6; effect primitives — 126/126; interpreter — 171/171;
   digivolution action flow — 27/27; API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-039 — Takinmon — 10/10
+
+- **Printed contract:** Yellow level 3 Beast/Shambala/SW Vaccine Digimon, play cost 3 and 2000 DP.
+  Normal yellow level-2 and alternate level-2 Shambala evolution cost 0. During its controller's
+  turn and only in the battle area, evolving this Digimon into an SW Digimon costs 1 less. Its
+  inherited effect is Barrier.
+- **KB evidence:** Q6799 explicitly excludes the breeding area from the cost-reduction effect.
+- **Corrections:** the direct replacement's destination filter omitted the aggregate record's
+  explicit own-controller and Digimon-kind constraints. They were behaviorally redundant for the
+  current digivolution intent but left the two executable sources unequal and weakened the
+  contract. The direct module now carries the complete filter and exactly matches the aggregate
+  IR. Registration remains exclusively through `registerIrCard`.
+- **Ruling and behavioral proof:** from the battle area, evolution into SW EX12-043 is reduced from
+  2 to 1; the same evolution from breeding costs the full 2, proving Q6799. A non-SW evolution
+  receives no reduction. Takinmon on top has no Barrier, while a host with Takinmon underneath has
+  Barrier; accepting the real prompt trashes one security card and prevents effect deletion.
+- **Evolution proof:** yellow BT1-005 uses the normal zero-cost route; purple Shambala EX12-004
+  uses the alternate zero-cost route; black non-Shambala BT10-005 is rejected for the alternate.
+  Catalog identity, stats, traits, direct/shared requirements, full coverage, empty residuals,
+  and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-039.test.ts` — 6/6; digivolution action flow — 27/27; breeding-resident
+  exclusion — 2/2; deletion/advanced keyword conformance — 30/30; interpreter — 171/171; effect
+  primitives — 126/126; API typecheck, focused formatting, focused lint, and `git diff --check`
+  passed. No residual IR, unsupported behavior, or unresolved ruling remains.
