@@ -94,7 +94,6 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
-    !costCreatesTrashCandidate &&
     !canAttemptUseOptionWithoutCost(ctx, action)
   ) {
     return action.abortOnDecline === true;

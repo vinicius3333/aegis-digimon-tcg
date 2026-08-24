@@ -7,16 +7,9 @@ const optionFromTrash = {
   controllerDefault: "mine",
   zone: "trash",
   kind: ["Option"],
+  playCostLte: 99,
   nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
 };
-const _bottomFaceDownUnderTamer = {
-  controller: "mine",
-  zone: "digivolutionCards",
-  faceDown: true,
-  position: "bottom",
-  hostFilter: { controller: "mine", kind: ["Tamer"] },
-};
-
 const drawAndTrash = [
   { kind: "Draw", controller: "mine", amount: 1 },
   { kind: "Trash", target: { filter: ownHand, count: 1 } },

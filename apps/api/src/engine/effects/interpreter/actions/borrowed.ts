@@ -223,6 +223,7 @@ export async function runActivateEffect(
 function optionUseCandidates(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
+  includePayableCostCards = false,
 ): { candidates: string[]; zones: ZoneRef[]; seat: Seat } {
   const seat = ctx.source.ownerSeat;
   const zones: ZoneRef[] =
@@ -262,24 +263,51 @@ function optionUseCandidates(
     filter?.playCostLte ??
     (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
   const candidates: string[] = [];
+  const addIfEligible = (candidate: { instanceId: string; cardId: string }) => {
+    if (candidates.includes(candidate.instanceId)) return;
+    const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+    const effectiveFilter =
+      filter === undefined ? undefined : { ...filter, playCostLte: costCap, playCostLteScaling: undefined };
+    if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) return;
+    if (!def.kinds.includes(CardKind.Option)) return;
+    if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) return;
+    if (def.playCost > costCap) return;
+    if (
+      action.waiveColorRequirement !== true &&
+      ctx.game.optionColorRequirementMet?.(seat, candidate.instanceId, def) === false
+    )
+      return;
+    if (ctx.fx.isPlayProhibited?.(seat, candidate.cardId, "play") === true) return;
+    candidates.push(candidate.instanceId);
+  };
   for (const zone of zones) {
-    for (const cand of looseCardsInZone(ctx, seat, zone)) {
-      if (candidates.includes(cand.instanceId)) continue;
-      const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
-      const effectiveFilter =
-        filter === undefined ? undefined : { ...filter, playCostLte: costCap, playCostLteScaling: undefined };
-      if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) continue;
-      if (!def.kinds.includes(CardKind.Option)) continue;
-      if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) continue;
-      if (def.playCost > costCap) continue;
-      if (
-        action.waiveColorRequirement !== true &&
-        ctx.game.optionColorRequirementMet?.(seat, cand.instanceId, def) === false
-      )
-        continue;
-      if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
-      candidates.push(cand.instanceId);
+    for (const candidate of looseCardsInZone(ctx, seat, zone)) {
+      addIfEligible(candidate);
     }
+  }
+  // Some "by trashing ..." costs can put the Option to be used into the requested
+  // trash zone (BT26-070 Q7092). Before the cost is paid, treat only an actually
+  // payable bottom card as a prospective candidate. This preserves that valid flow
+  // without consuming unrelated stack cards when neither the trash nor the cost can
+  // supply a legal Option.
+  if (
+    includePayableCostCards &&
+    zones.includes("trash") &&
+    action.cost?.controller !== "opponent" &&
+    (action.cost?.kind === "trashBottomFaceDownUnderTamer" || action.cost?.kind === "trashBottomFaceDownUnderDigimon")
+  ) {
+    const required = action.cost.count ?? 1;
+    const requiredHostKind = action.cost.kind === "trashBottomFaceDownUnderTamer" ? CardKind.Tamer : CardKind.Digimon;
+    const bottomCards = ctx.game
+      .player(seat)
+      .battleArea.filter(
+        (permanent) =>
+          permanent.topCard !== undefined &&
+          ctx.game.definitionOf(permanent.topCard).kinds.includes(requiredHostKind) &&
+          permanent.stack[0]?.faceUp === false,
+      )
+      .map((permanent) => permanent.stack[0]!);
+    if (bottomCards.length >= required) bottomCards.forEach(addIfEligible);
   }
   return { candidates, zones, seat };
 }
@@ -288,7 +316,7 @@ export function canAttemptUseOptionWithoutCost(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
 ): boolean {
-  return optionUseCandidates(ctx, action).candidates.length > 0;
+  return optionUseCandidates(ctx, action, true).candidates.length > 0;
 }
 
 export async function runUseOptionWithoutCost(
