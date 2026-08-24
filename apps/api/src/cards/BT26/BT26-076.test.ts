@@ -21,9 +21,11 @@ describe("BT26-076 Crowmon", () => {
           },
         }),
         expect.objectContaining({
-          kind: "Trash",
-          chooser: "opponent",
-          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
+          kind: "CostGatedBlock",
+          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
+          optional: true,
+          abortOnDecline: true,
+          actions: [expect.objectContaining({ kind: "Trash", chooser: "opponent" })],
         }),
       ],
     });
@@ -31,8 +33,16 @@ describe("BT26-076 Crowmon", () => {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
       actions: [
-        expect.objectContaining({ kind: "SubTrigger", event: "whenHandTrashed" }),
-        expect.objectContaining({ kind: "SubTrigger", event: "whenDigivolutionTrashed" }),
+        expect.objectContaining({
+          kind: "SubTrigger",
+          event: "whenHandTrashed",
+          fireCondition: { kind: "triggerHandTrashedSeat", seat: "opponent" },
+        }),
+        expect.objectContaining({
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
+        }),
       ],
     });
   });
@@ -57,5 +67,24 @@ describe("BT26-076 Crowmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-011");
+  });
+
+  it("reacts to the opponent's hand being trashed and pays the reduced trash digivolution cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-076", as: "crowmon" }],
+          trash: [{ card: "EX4-058", as: "ravemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+
+    expect(s.perm("crowmon").topCard.cardId).toBe("EX4-058");
+    expect(s.state.memory).toBe(3);
   });
 });

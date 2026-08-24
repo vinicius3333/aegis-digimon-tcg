@@ -727,6 +727,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       effectSourceCardId?: string;
       playedByDecode?: boolean;
       digiXrosMaterialInstanceIds?: string[];
+      assemblyMaterialInstanceIds?: string[];
       hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]> => {
@@ -816,6 +817,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         from: "various",
         to: opts?.breeding ? Zone.Breeding : Zone.BattleArea,
       });
+    }
+    if (created.length === 1 && (opts?.assemblyMaterialInstanceIds?.length ?? 0) > 0) {
+      for (const materialInstanceId of opts!.assemblyMaterialInstanceIds!) {
+        await placeUnder(created[0]!.permanentId, [materialInstanceId]);
+      }
     }
     if (created.length > 0 && !opts?.breeding) {
       // A played permanent is already in the battle area before its [On Play] resolves.

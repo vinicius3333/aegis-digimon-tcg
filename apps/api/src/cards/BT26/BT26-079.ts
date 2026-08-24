@@ -10,9 +10,19 @@ const plutomon = {
   nameOrTrait: [{ tokens: ["Plutomon"], match: "name" }],
 };
 const deleteLevel6 = {
-  kind: "Delete",
-  target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 6 } }, count: 1 },
+  kind: "CostGatedBlock",
   cost: { kind: "trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+  optional: true,
+  abortOnDecline: true,
+  actions: [
+    {
+      kind: "Delete",
+      target: {
+        filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 6 } },
+        count: 1,
+      },
+    },
+  ],
 };
 const decode = {
   kind: "Replacement",
@@ -58,6 +68,18 @@ export const compiled: CompiledCard = {
           from: ["trash"],
           payCost: true,
           reduceCostBy: 4,
+          assembly: {
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "trash",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Plutomon"], match: "nameExact" }],
+              },
+              count: 1,
+            },
+            reduceCostBy: 2,
+          },
           condition: { kind: "handAtMost", value: 5 },
         },
       ],

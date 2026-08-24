@@ -5,11 +5,17 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const opponentLv4 = { controllerDefault: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } };
 const tamerBottomCost = { kind: "trashBottomFaceDownUnderTamer", controller: "mine" };
 const trashOpponentHand = {
-  kind: "Trash",
-  chooser: "opponent",
-  target: { filter: { controllerDefault: "opponent", zone: "hand" }, count: 1 },
-  cost: tamerBottomCost,
+  kind: "CostGatedBlock",
+  cost: { ...tamerBottomCost, count: 1 },
   optional: true,
+  abortOnDecline: true,
+  actions: [
+    {
+      kind: "Trash",
+      chooser: "opponent",
+      target: { filter: { controllerDefault: "opponent", zone: "hand" }, count: 1 },
+    },
+  ],
 };
 const reactInto = {
   controllerDefault: "mine",
@@ -53,13 +59,13 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
-          sourceFilter: { isSelfRef: true },
+          fireCondition: { kind: "triggerHandTrashedSeat", seat: "opponent" },
           actions: [reactiveDigivolve],
         },
         {
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
-          sourceFilter: { isSelfRef: true },
+          sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
           actions: [reactiveDigivolve],
         },
       ],

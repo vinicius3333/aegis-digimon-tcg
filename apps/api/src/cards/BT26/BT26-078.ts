@@ -12,7 +12,7 @@ const chronomonOrTitan = {
 const eligibleTrashCard = {
   controller: "mine",
   zone: "trash",
-  kind: ["Digimon", "Tamer", "Option"],
+  kind: ["Digimon", "Tamer"],
   playCostLte: 12,
   ...chronomonOrTitan,
 };

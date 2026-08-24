@@ -21,6 +21,7 @@ describe("BT26-078 compiled behavior", () => {
             optional: true,
             target: {
               filter: {
+                kind: ["Digimon", "Tamer"],
                 playCostLte: 12,
                 nameOrTrait: [
                   { tokens: ["Chronomon"], match: "text" },
@@ -94,5 +95,22 @@ describe("BT26-078 compiled behavior", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-078");
+  });
+
+  it("can play a DUAL Digimon/Option through its Digimon type, without admitting pure Options", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-078", as: "cherubimon" }], trash: [{ card: "BT26-056", as: "dual" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
+
+    expect({
+      battleArea: s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId),
+      trash: s.state.players[0]!.trash.map(({ cardId }) => cardId),
+    }).toEqual({ battleArea: ["BT26-056"], trash: ["BT26-078"] });
   });
 });
