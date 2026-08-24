@@ -4078,8 +4078,8 @@ export class GameEngine {
           addedToSecuritySeat: info.seat,
           addedToSecurityInstanceIds: [info.instanceId],
         }),
-      resolveSecurityEffect: async (card, attackerPermanentId, wasFaceUp) =>
-        this.resolveSecurityEffect(card, attackerPermanentId, wasFaceUp),
+      resolveSecurityEffect: async (card, resolvingAttackerId, wasFaceUp) =>
+        this.resolveSecurityEffect(card, resolvingAttackerId, wasFaceUp),
       dpOf: (permanentId) => this.access.permanentById(permanentId)?.currentDP ?? 0,
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
@@ -4159,8 +4159,20 @@ export class GameEngine {
       return false;
     }
 
+    // A DUAL card's [Security] clause printed on its Digimon face resolves as a
+    // Digimon effect (BT26-075 Q7102), even though the physical card is also an
+    // Option for security-effect suppression (Q7103). Keep those two rule queries
+    // separate: the disable above reads the full definition, while effect provenance
+    // below uses only the face that owns the resolving clause.
+    const securityEffectSourceKinds =
+      def?.isDualCard === true && def.effectText?.includes("[Security]") === true
+        ? [CardKind.Digimon]
+        : [...(def?.kinds ?? source.definition.kinds)];
     for (const effect of securityEffects) {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
+      const ctx = {
+        ...this.buildEffectContext(source, { securityWasFaceUp }),
+        effectSourceKinds: securityEffectSourceKinds,
+      };
       if (!canActivate(effect, ctx, this.tracker)) {
         log("[resolveSecurityEffect]", card.cardId, `canActivate=false for ${effect.effectKey}, skipping`);
         continue;
@@ -4170,7 +4182,12 @@ export class GameEngine {
         continue;
       }
       log("[resolveSecurityEffect]", card.cardId, `resolving ${effect.effectKey}`);
-      await effect.resolve(ctx);
+      ctx.fx.enterEffectResolution?.(source.ownerSeat, securityEffectSourceKinds);
+      try {
+        await effect.resolve(ctx);
+      } finally {
+        ctx.fx.leaveEffectResolution?.();
+      }
       this.tracker.register(source.instanceId, effect.effectKey);
     }
     log("[resolveSecurityEffect]", card.cardId, "returning true");
@@ -4713,8 +4730,8 @@ export class GameEngine {
 
       default: {
         // Exhaustiveness guard: a new Intent variant must be handled above.
-        const _exhaustive: never = intent;
-        void _exhaustive;
+        const exhaustive: never = intent;
+        void exhaustive;
         return { ok: false, reason: "unknown-intent" };
       }
     }
@@ -5529,8 +5546,8 @@ function mapPlayCardReason(reason: PlayCardRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5563,8 +5580,8 @@ function mapDigiXrosReason(reason: DigiXrosRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5595,8 +5612,8 @@ function mapAssemblyReason(reason: AssemblyRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5625,8 +5642,8 @@ function mapBreedingReason(reason: BreedingRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5657,8 +5674,8 @@ function mapDigivolveReason(reason: DigivolveRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5689,8 +5706,8 @@ function mapDnaDigivolveReason(reason: DnaDigivolveRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5721,8 +5738,8 @@ function mapLinkReason(reason: LinkCardRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
