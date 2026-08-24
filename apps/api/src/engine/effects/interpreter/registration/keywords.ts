@@ -141,6 +141,7 @@ export function executeActivatedEffect(): CardEffect {
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         optional: true,
         abortOnDecline: true,
+        drainTimingWindowDuringAttack: true,
       } as Action,
       {
         kind: "Delete",

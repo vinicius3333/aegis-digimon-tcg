@@ -236,10 +236,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const faceDownCount = self?.stack.filter((c) => c.faceUp !== true).length ?? 0;
       return ctx.game.player(mine).security.length <= faceDownCount;
     }
-    case "handAtMost":
-      return ctx.game.player(mine).hand.length <= (cond.value ?? 0);
-    case "handAtLeast":
-      return ctx.game.player(mine).hand.length >= (cond.value ?? 0);
+    case "handAtMost": {
+      const seat = cond.controller === "opponent" ? opp : mine;
+      return ctx.game.player(seat).hand.length <= (cond.value ?? 0);
+    }
+    case "handAtLeast": {
+      const seat = cond.controller === "opponent" ? opp : mine;
+      return ctx.game.player(seat).hand.length >= (cond.value ?? 0);
+    }
     case "zoneCount": {
       // Generic resource-count gate: "if you/your opponent have N or more/fewer cards
       // in your/their hand|trash|security|deck". Sizes the seat's zone and compares.
