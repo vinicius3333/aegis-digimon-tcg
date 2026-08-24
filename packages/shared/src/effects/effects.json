@@ -133054,9 +133054,38 @@
         "trigger": "AllTurns",
         "actions": [
           {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["DS"], "match": "trait" }]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
             "kind": "SubTrigger",
             "event": "whenAttacking",
-            "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "sourceFilter": { "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "DeDigivolve",
@@ -133081,12 +133110,13 @@
                 },
                 "optional": true,
                 "abortOnDecline": true
+              },
+              {
+                "kind": "GainMemory",
+                "amount": 1,
+                "condition": { "kind": "memoryAtMost", "value": 0, "raw": "if you have 0 or less memory" }
               }
             ]
-          },
-          {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): After, if you have 0 or less memory, gain 1 memory"
           }
         ],
         "frequency": "OncePerTurn"
@@ -133117,8 +133147,39 @@
         "frequency": "OncePerTurn"
       }
     ],
-    "coverage": "partial",
-    "residual": ["missing-primitive(unaudited): After, if you have 0 or less memory, gain 1 memory"]
+    "coverage": "full",
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["DS"], "cost": 3, "isAlternate": true }],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 4 },
+          { "color": "Black", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 4 },
+          { "color": "Yellow", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 4 },
+          { "color": "Black", "level": 4 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 4 },
+          { "color": "Yellow", "level": 4 }
+        ]
+      }
+    ]
   },
   "EX12-029": {
     "effects": [

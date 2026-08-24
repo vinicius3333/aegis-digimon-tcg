@@ -802,3 +802,40 @@ for the individual evidence below.
   capabilities including reduced Option use — 289/289; interpreter/text matching — 171/171;
   digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-028 — Gusokumon — 10/10
+
+- **Printed contract:** Blue/black level 5 Crustacean/DS Vaccine Digimon, play cost 8 and 8000
+  DP. Normal blue/black level-4 evolutions cost 4; level-4 DS costs 3. Zero-cost DNA accepts
+  Blue/Purple level 4 plus Black/Yellow level 4. It has Blocker and Decode for level-4-or-lower
+  DS sources. Once per turn on any Digimon's attack, it may place a DS Digimon from hand at its
+  stack bottom to De-Digivolve 1 opposing Digimon; after, at 0 or less memory it gains 1. Its
+  inherited opponent-turn effect may redirect one opposing attack to an own DS Digimon once.
+- **KB evidence:** Q6758 makes every clause after the “by placing” payment dependent on actually
+  placing the card. Q6759 defines “0 or less memory” as both 0 and the opponent's side of the
+  gauge. Decode follows the comprehensive other-than-battle leave replacement contract.
+- **Corrections:** Decode was only an inert keyword marker; a self-scoped would-leave replacement
+  now optionally plays one level-4-or-lower DS source for free before non-battle removal while
+  allowing the host to leave. The direct module declared four DNA recipes, but the shared
+  legality registry returned none, which made invalid DNA pairs legal; the same four recipes now
+  exist in the shared override. The committed aggregate IR was also stale and partial: it limited
+  the any-Digimon watcher to own attacks and left the memory clause RawUnparsed. It now matches
+  the full direct IR, carries executable GainMemory, full coverage, empty residuals, evolution,
+  DNA, and Decode.
+- **Ruling and behavioral proof:** accepting the DS placement puts it at the true stack bottom,
+  De-Digivolves an opponent, and gains memory at both 0 and -2; at +1 it gains none. With no DS
+  card or when the payment is declined, neither De-Digivolve nor memory occurs, proving Q6758.
+  Both own and opposing attacks trigger the printed watcher, whose once-per-turn budget blocks a
+  second resolution. Effect removal Decodes level-4 DS EX12-027; battle removal does not, and a
+  level-5 DS source is rejected. The inherited effect redirects a live opponent attack to a DS
+  Digimon, and a second attack that turn reaches security instead.
+- **Evolution and keyword proof:** normal blue AD1-010 and black BT10-061 pay 4; off-color DS
+  EX8-058 pays 3; red non-DS BT1-014 is rejected. All four Blue/Purple × Black/Yellow DNA pairs
+  merge for 0, while Blue + Purple is rejected. Blocker and Decode appear only with Gusokumon on
+  top, not when buried. Catalog identity, stats, traits, exact IR, full coverage, and empty
+  residuals are asserted in both runtime and aggregate sources.
+- **Verification:** `EX12-028.test.ts` — 15/15; leave-prevention/Decode — 10/10; DNA merge — 1/1;
+  SubTrigger registry — 23/23; Blocker behavioral proof — 4/4; combat/effect primitives —
+  126/126; interpreter — 171/171; digivolution action flow — 27/27; workspace typecheck, focused
+  formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  or unresolved ruling remains.

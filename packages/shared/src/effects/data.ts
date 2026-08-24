@@ -213,6 +213,38 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  // EX12-028 prints Blue/Purple Lv.4 + Black/Yellow Lv.4: expand the color alternatives
+  // into the four concrete material pairings consumed by the server legality seam.
+  "EX12-028": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
+  ],
   // EX12-032 prints Blue/Yellow Lv.5 + Purple/Red Lv.5: expand the color alternatives
   // into the four concrete material pairings consumed by the server legality seam.
   "EX12-032": [
