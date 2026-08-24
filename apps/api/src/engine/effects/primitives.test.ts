@@ -1028,6 +1028,23 @@ describe("primitives: flipSecurityFaceUp (EX11-064)", () => {
 });
 
 describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
+  it("preflights a paid effect play with the same explicit reduction used by the play", async () => {
+    const h = harness({ memory: -6, board: { 0: { trash: [{ card: DIGIMON, as: "c" }] } } });
+    const instanceId = h.s.inst("c").instanceId;
+
+    expect(await h.fx.canAffordEffectPlay!(instanceId)).toBe(false);
+    expect(await h.fx.canAffordEffectPlay!(instanceId, { costDelta: 1 })).toBe(true);
+    expect(h.state.players[0]!.trash).toHaveLength(1);
+    expect(h.state.memory).toBe(-6);
+  });
+
+  it("honors play-cost reduction restrictions during affordability preflight", async () => {
+    const h = harness({ memory: -6, board: { 0: { trash: [{ card: DIGIMON, as: "c" }] } } });
+    h.fx.restrictCostReduction(0, "play", EffectDuration.UntilOwnerTurnEnd);
+
+    expect(await h.fx.canAffordEffectPlay!(h.s.inst("c").instanceId, { costDelta: 1 })).toBe(false);
+  });
+
   it("plays a chosen loose card from trash as a new permanent (free)", async () => {
     const h = harness({ board: { 0: { trash: [{ card: DIGIMON, as: "c" }] } } });
     const created = await h.fx.playInstances([h.s.inst("c").instanceId]);
@@ -2327,6 +2344,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     armSuspendRestrictionSource: true,
     ascendToSecurity: true,
     canDnaDigivolve: true,
+    canAffordEffectPlay: true,
     cannotIgnoreDigivolution: true,
     canPayActivationCost: true,
     canTrashDigivolutionCard: true,

@@ -170,9 +170,25 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      const candidates = candidateLooseInstances(ctx, action.target, zones).filter(
+      let candidates = candidateLooseInstances(ctx, action.target, zones).filter(
         (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
       );
+      // A paid play with an activation cost must be transactional: do not offer it when
+      // every legal target is unaffordable, otherwise the generic cost path below can move
+      // the source card before `playInstances` discovers that memory cannot be paid.
+      // DigiXros material selection can make an otherwise-unaffordable card legal later,
+      // so defer that more complex shape to the play resolver.
+      if (action.payCost === true && action.allowDigiXros !== true && ctx.fx.canAffordEffectPlay !== undefined) {
+        const costDelta =
+          action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+        const affordability = await Promise.all(
+          candidates.map(async (candidate) => ({
+            candidate,
+            affordable: await ctx.fx.canAffordEffectPlay!(candidate.instanceId, { costDelta }),
+          })),
+        );
+        candidates = affordability.filter(({ affordable }) => affordable).map(({ candidate }) => candidate);
+      }
       if (candidates.length === 0) return false;
     }
     // A PlaceUnder confirmation is actionable only when both sides of the move exist:

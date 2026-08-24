@@ -598,6 +598,12 @@ export interface Primitives {
   ): Promise<Permanent[]>;
   playFromSecurity(instanceId: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined>;
   /**
+   * Read-only affordability query for an effect-driven paid play. Resolves the same
+   * continuous play-cost modifiers and explicit reduction as `playInstances`, without
+   * moving the card or paying memory. Optional so narrow interpreter test ports may omit it.
+   */
+  canAffordEffectPlay?(instanceId: string, opts?: { costDelta?: number; useAsOption?: boolean }): Promise<boolean>;
+  /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
    * digivolution/linked card under another permanent). Generalizes `playFromHand` to

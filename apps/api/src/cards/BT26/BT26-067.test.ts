@@ -1,12 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-067.js";
 import "../index.js";
 
 describe("BT26-067 Wizardmon", () => {
-  it("draws then mandates one hand trash on play and digivolving", () => {
+  it("matches the catalog and mandates draw then hand trash on play and digivolving", () => {
+    expect(getCardDefinition("BT26-067")).toMatchObject({
+      nameEn: "Wizardmon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      types: ["Wizard", "Witchelny", "Iliad", "TS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(digivolutionRequirementsFor("BT26-067")).toContainEqual({
       level: 3,
       traits: ["TS"],
@@ -84,5 +95,115 @@ describe("BT26-067 Wizardmon", () => {
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(wizardId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-060");
     expect(s.state.memory).toBe(8);
+  });
+
+  it("does not return itself when there is no legal Iliad card to play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-067", as: "wizardmon" },
+            { card: "BT26-054", as: "yellowDigimon" },
+          ],
+          trash: [{ card: "BT1-009", as: "illegalTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const wizardId = s.perm("wizardmon").permanentId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+  });
+
+  it("does not return itself when the reduced play cost cannot be paid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-067", as: "wizardmon" },
+            { card: "BT26-054", as: "yellowDigimon" },
+          ],
+          trash: [{ card: "BT26-060", as: "iliad" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -10;
+    const wizardId = s.perm("wizardmon").permanentId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-060");
+  });
+
+  it("requires a blue or yellow Digimon before offering the end-turn payment", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-067", as: "wizardmon" }],
+          trash: [{ card: "BT26-060", as: "iliad" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const wizardId = s.perm("wizardmon").permanentId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("wizardmon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(wizardId);
+  });
+
+  it("digivolves for 2 from a differently colored level 3 TS card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-008", as: "base" }],
+        hand: [{ card: "BT26-067", as: "wizardmon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("wizardmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-067");
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("grants executable inherited Retaliation in battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-068", as: "host", under: ["BT26-067"] }] },
+        1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const defenderId = s.perm("defender").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(defenderId);
   });
 });

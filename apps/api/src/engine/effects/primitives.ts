@@ -624,6 +624,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return engine.finalizeEffectPlayCost?.(instanceId, reduced, useAsOption) ?? reduced;
   };
 
+  const canAffordEffectPlay: NonNullable<Primitives["canAffordEffectPlay"]> = async (instanceId, opts) => {
+    const ownerSeat = ownerSeatOfLoose(state, instanceId);
+    const instance = peekLooseInstance(state, instanceId);
+    if (ownerSeat === undefined || instance === undefined) return false;
+    const definition = requireCardDefinition(instance.cardId);
+    const cost = await effectDrivenPlayCost(instanceId, definition, ownerSeat, opts?.costDelta, opts?.useAsOption);
+    return cost >= 0 && cost <= engine.memory.maxCostFor(ownerSeat);
+  };
+
   // --- play from hand / security --------------------------------------------
 
   const playFromHand = async (
@@ -4708,6 +4717,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     setBaseDP,
     playFromHand,
     playFromSecurity,
+    canAffordEffectPlay,
     playInstances,
     placeOptionAsPermanent,
     digivolveFromInstance,
