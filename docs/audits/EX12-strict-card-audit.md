@@ -878,3 +878,41 @@ for the individual evidence below.
   decision — 1/1; restriction enforcement — 17/17; Blocker proof — 4/4; digivolution action flow
   — 27/27; workspace typecheck, focused formatting, focused lint, and `git diff --check` passed.
   No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-030 — Thetismon — 10/10
+
+- **Printed contract:** Blue/yellow level 5 Aquabeast/DS Data Digimon, play cost 7 and 7000 DP.
+  Normal blue/yellow level-4 evolutions cost 4; level-4 cards with Jellymon in their text or the
+  DS trait cost 3. It has Jamming. On Play/When Digivolving, it may trash up to three cards from
+  hand to give one opposing Digimon -2000 DP per card actually trashed, then returns one opposing
+  Digimon with 5000 DP or less to the deck bottom. Its inherited once-per-turn All Turns effect
+  may return exactly three Jellymon-text or DS cards from trash to deck bottom to unsuspend its
+  host when that host suspends.
+- **KB evidence:** Q6763 applies Jellymon matching to the complete printed-text union. Q6764
+  requires exactly three cards for the inherited payment, not “up to” three. Q6765 delays the
+  zero-DP rule check until the entire effect finishes, allowing the later return to move the
+  zero-DP Digimon instead of rule-deleting it. Q6766 routes a returned Digi-Egg to the egg deck
+  and still counts it toward the three-card payment.
+- **Correction:** the direct executable IR already bound the optional hand trash as the
+  ModifyDP cost and scaled with `usePaidCount`. The committed aggregate IR instead modeled an
+  independent optional Trash followed by a generic scaling counter, which could drift from the
+  amount actually paid. Both On Play and When Digivolving aggregate branches now match the
+  executable cost-bound action and paid-card scaling. Direct registration remains exclusively
+  through `registerIrCard`, with full coverage and no residuals.
+- **Ruling and behavioral proof:** trashing two cards produces -4000 DP before returning the
+  resulting 3000-DP target; declining the optional trash still performs the independent
+  5000-or-less return. Trashing three cards reduces a 6000-DP target to 0 and the same effect
+  returns it before the rule check, proving Q6765. The same scaled sequence resolves When
+  Digivolving. The inherited effect accepts a non-DS card matching Jellymon only in its text, a
+  DS card, and a DS Digi-Egg; the two Digimon cards reach deck bottom, the egg reaches the egg
+  deck, and the host unsuspends, proving Q6763/Q6766. Two eligible cards cannot pay, and a second
+  activation in the turn does nothing, proving Q6764 and the once-per-turn budget.
+- **Evolution and keyword proof:** normal blue AD1-010 and yellow BT1-051 pay 4; EX12-027 matches
+  Jellymon in its text and off-color EX8-058 matches DS, each paying 3; purple nonmatching
+  BT10-074 is rejected. Jamming protects a top-level Thetismon from a losing security battle and
+  is not inherited by a host. Catalog identity, stats, traits, exact direct/shared IR, full
+  coverage, and empty residuals are asserted.
+- **Verification:** `EX12-030.test.ts` — 11/11; interpreter — 171/171; effect primitives —
+  126/126; security checks — 11/11; digivolution action flow — 27/27; workspace typecheck,
+  focused formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported
+  behavior, or unresolved ruling remains.
