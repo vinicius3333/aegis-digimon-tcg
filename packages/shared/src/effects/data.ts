@@ -1112,6 +1112,7 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
         },
       ],
       count: 2,
+      maxMaterials: 1,
     },
   ],
   // EX12-015 prints the same Lv.5-or-lower Gokuumon-text OR SW slot as EX12-029.
@@ -1128,6 +1129,7 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
         },
       ],
       count: 2,
+      maxMaterials: 1,
     },
   ],
   // EX3-014: up to 5 differently named Digimon whose trait CONTAINS Dragon/saur/Ceratopsian.

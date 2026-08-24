@@ -433,7 +433,9 @@ for the individual evidence below.
   finishes.
 - **Corrections:** the executable module omitted DigiXros entirely, while the generated shared
   recipe dropped `levelMax` and ANDed split text/trait predicates. Module, committed JSON, and
-  shared override now expose one level-capped OR slot reducing cost by 2. `GainKeyword` also
+  shared override now expose one level-capped OR slot reducing cost by 2 and cap the recipe at
+  the single material printed by “1”; a later cross-card audit found and closed the missing cap.
+  `GainKeyword` also
   failed to publish `lastEffectActed`, so the conditioned same-target attack never ran; the
   shared runner now records whether a recipient was actually chosen.
 - **Ruling proof:** accepting Alliance produces `attackDeclared` for the chosen SW Digimon;
@@ -443,9 +445,11 @@ for the individual evidence below.
   accepts the 6000 boundary, rejects 7000, and a second firing cannot delete another target.
 - **Evolution proof:** normal red EX12-011 and yellow BT1-051 pay 4; off-color Shambala EX12-025
   pays 3; off-color non-Shambala BT1-069 is rejected.
-- **Verification:** `EX12-015.test.ts` — 11/11; interpreter — 171/171; DigiXros OR-material
-  mechanism — 3/3; workspace typecheck, focused formatting, focused lint, and `git diff --check`
-  passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+- **Verification:** `EX12-015.test.ts` — 12/12; interpreter — 171/171; DigiXros OR-material
+  mechanism — 3/3; interpreter capabilities — 289/289. The later single-material regression
+  passed alongside workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved
+  ruling remains.
 
 ## EX12-016 — MetalGreymon — 10/10
 
@@ -839,3 +843,38 @@ for the individual evidence below.
   126/126; interpreter — 171/171; digivolution action flow — 27/27; workspace typecheck, focused
   formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   or unresolved ruling remains.
+
+## EX12-029 — Sagomon — 10/10
+
+- **Printed contract:** Blue/yellow level 5 Wizard/Shambala/SW Virus Digimon, play cost 7 and
+  7000 DP. Normal blue/yellow level-4 evolutions cost 4; level-4 Shambala costs 3. DigiXros -2
+  accepts exactly one level-5-or-lower Digimon with Gokuumon in its full text or the SW trait.
+  It has Blocker. On Play/When Digivolving, one opposing Digimon or Tamer can't suspend through
+  their turn end; then one other own SW Digimon may gain Alliance for the turn and must attack.
+  Its inherited once-per-turn attack effect trashes two bottom sources, then prevents one
+  source-less opposing Digimon from suspending through that opponent's turn end.
+- **KB evidence:** Q6760 defines Gokuumon-text through the complete printed-text union. Q6761
+  makes the attack mandatory after accepting the Alliance grant. Q6762 applies the level-5
+  ceiling to both the Gokuumon-text and SW sides of the DigiXros OR.
+- **Corrections:** the direct DigiXros slot had the correct OR and level ceiling but, because a
+  single-slot recipe is otherwise repeatable, allowed multiple materials despite the printed
+  “1.” It now has `maxMaterials:1`. The shared override gained the same cap. The committed
+  aggregate recipe previously ANDed name, trait, and text while omitting the level ceiling; it
+  now matches the direct level-capped OR slot and one-material limit. The identical previously
+  audited EX12-015 recipe was corrected and regression-tested at the same seam.
+- **Ruling and behavioral proof:** SW EX12-006 and non-SW EX6-024 matching only through printed
+  Gokuumon text each pay DigiXros cost 5. Level-6/7 candidates on both OR branches are rejected,
+  proving Q6760/Q6762, and two individually legal materials are rejected. Accepting Alliance on
+  play produces a real forced attack by the selected ally; declining produces no attack.
+  Digivolving executes the same restriction, grant, and forced attack, proving Q6761 across both
+  timings. The inherited effect removes the true bottom two sources, independently restricts a
+  source-less Digimon, and does not resolve twice that turn.
+- **Evolution and keyword proof:** normal blue AD1-010 and yellow BT1-051 pay 4; off-color
+  Shambala EX12-011 pays 3; purple non-Shambala BT10-074 is rejected. Blocker appears only while
+  Sagomon is on top, not when buried. Catalog identity, stats, traits, exact direct/shared IR,
+  full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-029.test.ts` — 14/14; EX12-015 single-material regression — 12/12;
+  DigiXros OR mechanics — 3/3; interpreter capabilities/material caps — 289/289; Alliance
+  decision — 1/1; restriction enforcement — 17/17; Blocker proof — 4/4; digivolution action flow
+  — 27/27; workspace typecheck, focused formatting, focused lint, and `git diff --check` passed.
+  No residual IR, unsupported behavior, or unresolved ruling remains.

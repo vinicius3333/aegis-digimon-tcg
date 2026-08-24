@@ -142,6 +142,7 @@ describe("EX12-015 Gokuumon", () => {
           },
         ],
         count: 2,
+        maxMaterials: 1,
       },
     ]);
     const s = setupEngine(
@@ -188,6 +189,26 @@ describe("EX12-015 Gokuumon", () => {
         type: "playCard",
         instanceId: s.inst("source").instanceId,
         digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("rejects two DigiXros materials because the printed recipe allows exactly one", () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "EX12-015", as: "source" },
+          { card: "EX12-006", as: "first" },
+          { card: "EX12-039", as: "second" },
+        ],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("first").instanceId, s.inst("second").instanceId] },
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
   });
