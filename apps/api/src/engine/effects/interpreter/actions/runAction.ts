@@ -75,9 +75,13 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
   }
+  const costCreatesTrashCandidate =
+    action.kind !== "RawUnparsed" &&
+    (action.cost?.kind === "trashBottomFaceDownUnderTamer" || action.cost?.kind === "trashBottomFaceDownUnderDigimon");
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
+    !costCreatesTrashCandidate &&
     !canAttemptUseOptionWithoutCost(ctx, action)
   ) {
     return action.abortOnDecline === true;
@@ -147,6 +151,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // security must finish resolving when the controller has no Agumon/Gabumon to play.
     if (
       action.kind === "PlayWithoutCost" &&
+      !costCreatesTrashCandidate &&
       !action.target?.isSelf &&
       action.target?.filter?.isSelfRef !== true &&
       action.fromOwnDigivolutionStack !== true
