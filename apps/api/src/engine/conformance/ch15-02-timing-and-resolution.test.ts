@@ -266,6 +266,42 @@ describe("§15-4-5 Derived Triggering (comprehensive-0166)", () => {
     // "c" (the turn player's still-pending effect) — order should be a, d, c.
     expect(log).toEqual(["a", "d", "c"]);
   });
+
+  it("Q6723: a same-controller derived trigger cuts ahead without joining the older effect's ordering group", async () => {
+    const log: string[] = [];
+    const offered: string[][] = [];
+    let derivedArmed = false;
+    const a = fakeEffect("a", {
+      onResolve: () => {
+        derivedArmed = true;
+        log.push("a");
+      },
+    });
+    const c = fakeEffect("c", { onResolve: () => log.push("c") });
+    const d = fakeEffect("d", { canActivate: () => derivedArmed, onResolve: () => log.push("d") });
+    const seed = [collected(0, "a", a), collected(0, "c", c), collected(0, "d", d)];
+    const tracker = new UseTracker();
+    const env: ResolutionEnv = {
+      turnSeat: 0,
+      tracker,
+      collect: () => seed,
+      makeContext: (cEff) => ({ source: cEff.source, trigger: {}, game: {}, fx: {}, ask: {} }) as never,
+      ruleProcess: async () => {},
+      isGameOver: () => false,
+      chooseOrder: async (_seat, group) => {
+        const keys = group.map((entry) => entry.effect.effectKey);
+        offered.push(keys);
+        const firstIndex = keys.indexOf("a");
+        return firstIndex >= 0 ? firstIndex : keys.indexOf("c");
+      },
+      askOptional: async () => true,
+    };
+
+    await resolveTiming(EffectTiming.OnPlay, env);
+
+    expect(log).toEqual(["a", "d", "c"]);
+    expect(offered).toEqual([["a", "c"]]);
+  });
 });
 
 describe("§15-5 Trigger Conditions (comprehensive-0167)", () => {

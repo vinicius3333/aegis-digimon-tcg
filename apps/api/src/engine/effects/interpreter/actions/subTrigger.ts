@@ -156,6 +156,9 @@ export async function runSubTrigger(
     return;
   }
   const self = ctx.source.permanent();
+  const isLinkedSource = self?.linked.some((card) => card.instanceId === ctx.source.instanceId) === true;
+  const isInheritedSource =
+    !isLinkedSource && self?.stack.some((card) => card.instanceId === ctx.source.instanceId) === true;
   let anchorPermanentId = playerScoped ? undefined : self?.permanentId;
   let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
   if (action.on !== undefined) {
@@ -792,6 +795,8 @@ export async function runSubTrigger(
   const requiresSelfSuspend = (action.actions ?? []).some(costsSelfSuspend);
   ctx.fx.subscribeSubTrigger({
     event,
+    ...(isInheritedSource ? { isInheritedSource: true } : {}),
+    ...(isLinkedSource ? { isLinkedSource: true } : {}),
     ...(requiresSelfSuspend ? { canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true } : {}),
     ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
     ...(playerScoped
