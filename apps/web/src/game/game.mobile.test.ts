@@ -163,3 +163,56 @@ describe("the sidebar strip", () => {
     expect(stripRules).toMatch(/\.game-sidebar__footer \{[^}]*flex-direction:\s*row/);
   });
 });
+
+describe("the phone rules win the cascade", () => {
+  // Narrow-viewport blocks share their base rules' specificity, so they only win
+  // by coming later in the file. They used to sit in the middle of it, and every
+  // base rule written below silently defeated its own phone override — the
+  // end-turn orb, for one, kept its 5.4rem desktop diameter on a phone.
+  const responsiveStart = gameCss.indexOf("@media (width < 1240px)");
+
+  it("keeps every width-based block after the last base rule", () => {
+    expect(responsiveStart).toBeGreaterThan(-1);
+    const base = gameCss.slice(0, responsiveStart);
+    const afterResponsive = gameCss.slice(responsiveStart);
+    // Only media blocks (and the trailing reduced-motion one) may follow.
+    expect(afterResponsive.replace(/@media[^{]*\{[\s\S]*/, "")).not.toMatch(/^\s*\.[\w-]+[^{]*\{/m);
+    expect(base).toMatch(/\.game-end-turn-orb \{/);
+  });
+
+  it("shrinks the end-turn orb on a phone", () => {
+    expect(portraitRules).toMatch(/\.game-end-turn-orb \{[^}]*width:\s*3\.4rem/);
+  });
+});
+
+describe("nothing on the phone board is clipped by its neighbour", () => {
+  it("floors the hand dock so the action strip cannot squeeze it", () => {
+    expect(portraitRules).toMatch(/\.game-hand-dock \{[^}]*min-height:\s*calc\(var\(--game-hand-h\)/);
+    expect(portraitRules).toMatch(/--game-hand-h:\s*calc\(var\(--hand-card-width\)/);
+  });
+
+  it("drops the action strip while it holds no action", () => {
+    expect(portraitRules).toMatch(
+      /\.game-sidebar > div:nth-child\(2\):not\(:has\(button\)\) \{\s*display:\s*none !important/,
+    );
+  });
+
+  it("fits the security shields inside their rail", () => {
+    // The rail is 3.5rem wide; the desktop shield is 4.1rem and hung off both
+    // screen edges with a slice of the chevron cut away.
+    expect(portraitRules).toMatch(/\.game-security-shield \{[^}]*width:\s*3rem/);
+  });
+
+  it("caps the action sheet's card by height", () => {
+    // The card is a button, and the old rule still aimed at a `div`: nothing
+    // capped it and the sheet ran off the bottom of the screen.
+    expect(portraitRules).toMatch(
+      /\.card-action-sheet__body > \.card-action-sheet__zoom \{[^}]*height:\s*min\(30dvh, 12rem\)/,
+    );
+    expect(portraitRules).not.toMatch(/\.card-action-sheet__body > div:first-child \{/);
+  });
+
+  it("spans the reveal panel across the screen", () => {
+    expect(portraitRules).toMatch(/\.info-panel-stack \{[^}]*width:\s*auto/);
+  });
+});
