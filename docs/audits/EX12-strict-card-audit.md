@@ -740,3 +740,34 @@ for the individual evidence below.
   — 126/126; digivolution action flow — 27/27; workspace typecheck, focused formatting, focused
   lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling
   remains.
+
+## EX12-026 — Shellmon — 10/10
+
+- **Printed contract:** Blue level 4 Mollusk/Shambala/TB Data Digimon, play cost 5 and 5000 DP.
+  Normal blue level-3 and alternate level-3 Shambala evolutions cost 2. It has printed Blocker
+  and a Rule granting the Aquatic trait. On Play and When Digivolving, it trashes the bottom two
+  sources of one opposing Digimon; then one opposing Digimon with at most one source can't attack
+  or block through that opponent's turn end. Its inherited once-per-turn attack effect draws 1
+  at seven or fewer hand cards.
+- **KB evidence:** Q6753 confirms the attack/block restriction is granted after checking the
+  chosen target's source count and remains attached even if that Digimon later gains two or more
+  sources. The first source-trash target and the later restricted target are independent choices.
+- **Implementation trace:** both entry timings carry the same four-action sequence: bottom-first
+  TrashDigivolution for two, an independently bound at-most-one-source target, then attack and
+  block restrictions referencing that exact binding through `untilOpponentTurnEnd`. Blocker is
+  non-inherited; the Rule installs Aquatic; the inherited Draw uses `handAtMost:7` and once per
+  turn. The Shambala evolution route is exact. No correction was needed.
+- **Ruling and behavioral proof:** a three-source target loses its true bottom two cards and,
+  after reaching one source, receives both restrictions. Adding another source afterward leaves
+  both restrictions active, proving Q6753. Manual decisions also trash one Digimon's sources and
+  restrict a different eligible Digimon without restricting the first. The complete sequence
+  resolves from both On Play and When Digivolving. Top Shellmon has Blocker and Aquatic, while a
+  buried copy does not incorrectly grant Blocker. Its inherited effect draws once at seven and
+  nothing at eight.
+- **Evolution proof:** blue BT1-027 and off-color Shambala EX12-006 each pay 2; red non-Shambala
+  BT1-010 is rejected. Catalog identity, stats, traits, Rule text, exact IR bindings and
+  durations, full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-026.test.ts` — 8/8; restriction enforcement — 17/17; Blocker behavioral
+  proof — 4/4; interpreter/source-trash and binding mechanics — 171/171; digivolution action flow
+  — 27/27; workspace typecheck, focused formatting, focused lint, and `git diff --check` passed.
+  No residual IR, unsupported behavior, or unresolved ruling remains.
