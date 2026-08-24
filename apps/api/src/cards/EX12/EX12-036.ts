@@ -18,6 +18,38 @@ const compiled: CompiledCard = {
       ],
     },
     {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 5 },
+                  nameOrTrait: [
+                    { tokens: ["Aqua", "Sea Animal"], match: "traitContains" },
+                    { tokens: ["TB"], match: "trait" },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
       trigger: "Static",
       actions: [],
       keywords: [
@@ -63,7 +95,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                   {
                     tokens: ["TB"],
@@ -111,7 +143,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                   {
                     tokens: ["TB"],
@@ -159,7 +191,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                   {
                     tokens: ["TB"],

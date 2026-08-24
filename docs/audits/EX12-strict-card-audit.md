@@ -1114,3 +1114,45 @@ for the individual evidence below.
   SubTrigger registry — 23/23; effect primitives — 126/126; interpreter — 171/171; digivolution
   action flow — 27/27; shared build, API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-036 — Ryugumon — 10/10
+
+- **Printed contract:** Blue/yellow level 6 Mollusk/Sanmyojin/Tentei Hachibushu/Shambala/TB Data
+  Digimon, play cost 12 and 12000 DP. Normal blue/yellow level-5 evolutions cost 4; level-5
+  Aquatic/Shambala costs 3. It has Barrier, Evade, and Decode for a level-5-or-lower source with
+  Aqua/Sea Animal anywhere in a trait or exact TB. Once per turn shared across On Play, When
+  Digivolving, and When Attacking, placing one qualifying level-6-or-lower hand card at its stack
+  bottom may unsuspend one own Digimon. Separately once per turn, any own Digimon being played or
+  digivolving makes one opposing Digimon unable to activate When Digivolving effects or suspend
+  through that opponent's turn end. Its Rule grants Aquatic.
+- **KB evidence:** Q6785 applies the level ceiling to every Decode identity branch. Q6786 includes
+  Ryugumon's own play and evolution into Ryugumon. Q6787 makes simultaneous triggers controller
+  ordered. Q6788/Q6789 give the same repeated rule-check and Decode/Evade ordering permissions as
+  MetalGarurumon. Q6790-Q6793 define the When Digivolving prohibition as blocking normal triggers,
+  forced activations, and even the `By` cost, while allowing a multi-timing effect at When
+  Attacking. Q6794 says a blocked activation does not consume its once-per-turn use.
+- **Corrections:** top-level Decode was an inert keyword and now has an executable other-than-
+  battle replacement. All three hand-cost filters used exact trait matching for the substring
+  phrase; they now use `traitContains` for Aqua/Sea Animal while keeping TB exact. The aggregate
+  watcher had omitted the entire inability-to-suspend clause; it now applies both restrictions to
+  one shared target and matches the direct module exactly. Registration remains exclusively
+  through `registerIrCard`.
+- **Ruling and behavioral proof:** an Aquabeast hand card pays the On Play cost, reaches the true
+  stack bottom, and unsuspends Ryugumon; a second qualifying card cannot pay at When Digivolving
+  in the same turn. Decode plays level-5 Aquabeast and TB sources after effect removal, rejects
+  level-6 Aquatic/TB sources, and does not run for battle removal, proving Q6785. A suspended
+  Ryugumon uses Barrier to trash security and survive effect deletion. Its own play and its own
+  digivolution subject both arm the paired restriction, proving Q6786. A restricted opposing
+  Ryugumon's When Digivolving window neither pays its cost nor unsuspends, but its subsequent When
+  Attacking window does both, proving the observable Q6790-Q6794 contract and that the blocked
+  timing did not spend the shared use.
+- **Evolution proof:** normal blue BT1-040 and yellow EX12-044 pay 4; off-color purple Aquatic
+  BT15-078 and purple/green Shambala EX12-063 pay 3; black nonmatching BT23-056 is rejected.
+  Catalog identity, stats, traits, Rule grant, direct/shared evolution route, full coverage, and
+  empty residuals are asserted.
+- **Verification:** `EX12-036.test.ts` — 9/9; leave prevention — 10/10; deletion/advanced keyword
+  conformance — 30/30; restriction enforcement — 17/17; interpreter capabilities — 289/289;
+  SubTrigger registry — 23/23; effect primitives — 126/126; interpreter — 171/171; digivolution
+  action flow — 27/27; rule-check pool — 3/3; shared build, API typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved
+  ruling remains.

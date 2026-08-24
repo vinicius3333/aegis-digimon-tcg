@@ -134111,6 +134111,38 @@
   "EX12-036": {
     "effects": [
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }] },
+      {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 5 },
+                    "nameOrTrait": [
+                      { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
+                      { "tokens": ["TB"], "match": "trait" }
+                    ]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
       { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Evade", "raw": "＜Evade＞" }] },
       {
         "trigger": "Static",
@@ -134137,7 +134169,7 @@
                   "controller": "mine",
                   "levelComparison": { "op": "lte", "value": 6 },
                   "nameOrTrait": [
-                    { "tokens": ["Aqua", "Sea Animal"], "match": "trait" },
+                    { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
                     { "tokens": ["TB"], "match": "trait" }
                   ]
                 },
@@ -134170,7 +134202,7 @@
                   "controller": "mine",
                   "levelComparison": { "op": "lte", "value": 6 },
                   "nameOrTrait": [
-                    { "tokens": ["Aqua", "Sea Animal"], "match": "trait" },
+                    { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
                     { "tokens": ["TB"], "match": "trait" }
                   ]
                 },
@@ -134203,7 +134235,7 @@
                   "controller": "mine",
                   "levelComparison": { "op": "lte", "value": 6 },
                   "nameOrTrait": [
-                    { "tokens": ["Aqua", "Sea Animal"], "match": "trait" },
+                    { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" },
                     { "tokens": ["TB"], "match": "trait" }
                   ]
                 },
@@ -134232,6 +134264,16 @@
               {
                 "kind": "Restrict",
                 "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+                "restriction": "suspend",
+                "duration": "untilOpponentTurnEnd"
+              },
+              {
+                "kind": "Restrict",
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"] },
+                  "count": 1,
+                  "sameTarget": true
+                },
                 "restriction": "cannotActivateWhenDigivolving",
                 "duration": "untilOpponentTurnEnd"
               }
@@ -134245,6 +134287,16 @@
               {
                 "kind": "Restrict",
                 "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+                "restriction": "suspend",
+                "duration": "untilOpponentTurnEnd"
+              },
+              {
+                "kind": "Restrict",
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"] },
+                  "count": 1,
+                  "sameTarget": true
+                },
                 "restriction": "cannotActivateWhenDigivolving",
                 "duration": "untilOpponentTurnEnd"
               }
