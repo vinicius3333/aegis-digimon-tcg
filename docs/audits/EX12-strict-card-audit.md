@@ -237,3 +237,34 @@ for the individual evidence below.
 - **Verification:** `EX12-007.test.ts` — 8/8; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   or unresolved card-specific ambiguity.
+
+## EX12-008 — ToyAgumon — 10/10
+
+- **Printed contract:** Red level 3 Digimon, Puppet/ME, play cost 3 and 2000 DP. It
+  normally digivolves from a red level 2 for cost 0 or alternatively from any
+  level-2 ME card for cost 0. At the start of its controller's main phase, its
+  controller may trash one Puppet- or ME-trait card from hand to draw 1 and gain
+  1 memory. Its inherited effect grants Raid to its host.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-008` returns no card-specific
+  rulings. The optional “By trashing” activation-cost rule is the same established
+  processing audited on EX12-005 and EX12-006: refusal or failed payment stops both
+  benefits, while a successful single payment gates the complete following clause.
+- **Implementation trace:** `StartOfYourMainPhase` provides the owner-turn gate. The
+  first action is optional and aborts on refusal, pays exactly one own hand card whose
+  traits contain Puppet or ME, and attempts Draw 1. The following unconditional
+  `GainMemory(1)` remains in that accepted effect body, so it neither charges a second
+  cost nor depends on whether a card was actually available to draw. The inherited
+  static keyword is derived only from a buried EX12-008 source.
+- **Corrections:** the hand-trash cost was mandatory, its filter omitted the explicit
+  hand zone, and `ifThisEffectActed` incorrectly made memory depend on the Draw action's
+  result. The cost is now optional with `abortOnDecline`, explicitly hand-scoped, and
+  shared by both independently resolving printed benefits.
+- **Behavioral proof:** EX12-041 proves the ME-only payment branch and BT1-038 proves
+  the Puppet-only branch. Accepted payment with an empty deck still gains 1 memory;
+  refusal and an unpayable hand preserve hand, deck, trash, and memory. A manually
+  fired start-main timing during the opponent's turn stays inert. A host with buried
+  EX12-008 has Raid while a standalone EX12-008 does not. Standard red BT1-001 and
+  off-color ME EX12-003 both evolve for 0; off-color non-ME BT10-005 is rejected.
+- **Verification:** `EX12-008.test.ts` — 9/9; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  card-specific KB ruling, or unresolved ambiguity.

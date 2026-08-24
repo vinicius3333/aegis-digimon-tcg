@@ -18,6 +18,7 @@ const compiled: CompiledCard = {
             kind: "trash",
             target: {
               filter: {
+                zone: "hand",
                 controller: "mine",
                 nameOrTrait: [
                   {
@@ -30,14 +31,12 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with the [Puppet] or [ME] trait from your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "GainMemory",
           amount: 1,
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "if you did",
-          },
         },
       ],
     },
