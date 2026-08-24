@@ -18,6 +18,7 @@ import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import { runPlayAction } from "./play.js";
+import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
 import { runRestrictionAction } from "./restrictions.js";
@@ -72,6 +73,18 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     return action.abortOnDecline === true;
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
+    return action.abortOnDecline === true;
+  }
+  const structuredCost = action.kind !== "RawUnparsed" && typeof action.cost !== "number" ? action.cost : undefined;
+  const costCreatesTrashCandidate =
+    structuredCost?.kind === "trashBottomFaceDownUnderTamer" ||
+    structuredCost?.kind === "trashBottomFaceDownUnderDigimon";
+  if (
+    action.kind === "UseOptionWithoutCost" &&
+    action.cost !== undefined &&
+    !costCreatesTrashCandidate &&
+    !canAttemptUseOptionWithoutCost(ctx, action)
+  ) {
     return action.abortOnDecline === true;
   }
   // Bind a SelectBind target before paying a cost that refers to that selected host.
@@ -139,7 +152,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // security must finish resolving when the controller has no Agumon/Gabumon to play.
     if (
       action.kind === "PlayWithoutCost" &&
-      action.cost === undefined &&
+      !costCreatesTrashCandidate &&
       !action.target?.isSelf &&
       action.target?.filter?.isSelfRef !== true &&
       action.fromOwnDigivolutionStack !== true

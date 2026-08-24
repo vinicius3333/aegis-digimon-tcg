@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
               count: 1,
             },
           },
-          optional: false,
+          optional: true,
           abortOnDecline: true,
         },
         { kind: "GainMemory", amount: 1 },

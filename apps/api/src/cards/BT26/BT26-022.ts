@@ -33,20 +33,21 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: { filter: eligibleIliad, count: 1 },
-          from: ["hand"],
-          payCost: true,
-          reduceCostBy: 4,
+          kind: "CostGatedBlock",
           optional: true,
+          abortOnDecline: true,
           condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              colors: ["Red"],
-              orFilters: [{ controllerDefault: "mine", kind: ["Digimon"], colors: ["Purple"] }],
-            },
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "youHave",
+                filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Red"] },
+              },
+              {
+                kind: "youHave",
+                filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Purple"] },
+              },
+            ],
           },
           cost: {
             kind: "place",
@@ -55,6 +56,16 @@ export const compiled: CompiledCard = {
             targetIsPermanent: true,
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: eligibleIliad, count: 1 },
+              from: ["hand"],
+              payCost: true,
+              reduceCostBy: 4,
+              optional: true,
+            },
+          ],
         },
       ],
     },

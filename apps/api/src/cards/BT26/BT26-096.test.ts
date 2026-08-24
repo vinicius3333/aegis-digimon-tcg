@@ -38,4 +38,21 @@ describe("BT26-096 Kosuke Misono", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(kosukeId);
   });
+
+  it("does not return itself for an unrelated card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-096", as: "kosuke" }],
+          hand: [{ card: "BT1-009", as: "unrelated" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("kosuke"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-096");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
+  });
 });

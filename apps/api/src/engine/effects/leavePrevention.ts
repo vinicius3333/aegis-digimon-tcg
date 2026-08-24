@@ -67,6 +67,7 @@ export async function consultLeavePrevention(
   try {
     const firedAll = new Set<number>(); // affectsAll replacements that already paid this consult
     for (const leavingId of permanentIds) {
+      if (prevented.has(leavingId)) continue;
       if (host.permanentById(leavingId) === undefined) continue;
       // "instead" pass: substitute side effects that do NOT gate the removal itself.
       for (const repl of replacements) {
@@ -111,7 +112,18 @@ export async function consultLeavePrevention(
         const did = await repl.preventCheck(ctx, leavingId);
         if (did) {
           prevented.add(leavingId);
-          if (repl.affectsAll) firedAll.add(repl.id);
+          if (repl.affectsAll) {
+            firedAll.add(repl.id);
+            // "They don't leave" applies to every matching permanent in THIS simultaneous
+            // removal event. Determine that set from the activation context now: paying the
+            // shared cost may move or expose the replacement's own source card, so rebuilding
+            // its context for the second member would incorrectly make the already-activated
+            // replacement disappear mid-event (BT26-033 Q7005).
+            for (const simultaneousId of permanentIds) {
+              if (host.permanentById(simultaneousId) === undefined) continue;
+              if (repl.protects === undefined || repl.protects(ctx, simultaneousId)) prevented.add(simultaneousId);
+            }
+          }
           if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
           break;
         }

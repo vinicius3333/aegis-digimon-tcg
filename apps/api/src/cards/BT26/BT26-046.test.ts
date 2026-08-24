@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-046.js";
 import "../index.js";
 
@@ -53,5 +53,23 @@ describe("BT26-046 Gryphonmon", () => {
     ).continuous;
     expect(continuous.hasRestriction(s.perm("opponent").permanentId, "unsuspend")).toBe(true);
     expect(continuous.hasRestriction(s.perm("gryphonmon").permanentId, "beDeletedInBattle")).toBe(true);
+  });
+
+  it("reduces its play cost by 4 with two suspended Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-046", as: "gryphonmon" }],
+        battleArea: [{ card: "BT1-080", suspended: true }],
+      },
+      1: { battleArea: [{ card: "BT1-009", suspended: true }] },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gryphonmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-046"));
+    expect(s.state.memory).toBe(0);
   });
 });

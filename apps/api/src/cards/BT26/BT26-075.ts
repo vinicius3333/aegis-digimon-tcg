@@ -6,7 +6,7 @@ const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const glowingDawn = {
   controller: "mine",
   zone: "trash",
-  kind: ["Digimon", "Tamer", "Option"],
+  kind: ["Digimon", "Tamer"],
   playCostLte: 5,
   nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
 };

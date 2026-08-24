@@ -28,7 +28,11 @@ describe("BT26-044 Lilamon", () => {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
       actions: [
-        { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1 }] },
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [{ kind: "Digivolve", from: ["hand"], costDelta: -1 }],
+        },
         { kind: "SubTrigger", event: "whenDigivolutionTrashed" },
       ],
     });
@@ -76,6 +80,31 @@ describe("BT26-044 Lilamon", () => {
     });
     await settle(() => s.perm("lilamon").topCard.cardId === "BT26-049");
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("trashes the bottom face-down Tamer card to prevent an eligible inherited host from leaving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-049", as: "rosemon", under: ["BT26-044"] },
+            {
+              card: "BT1-085",
+              as: "tamer",
+              under: [{ card: "BT1-001", as: "cost", faceUp: false }],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("rosemon").permanentId], "byEffect")).toBe(0);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("rosemon").permanentId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
   });
 });

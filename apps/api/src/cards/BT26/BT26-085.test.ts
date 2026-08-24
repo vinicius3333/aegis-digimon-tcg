@@ -54,10 +54,45 @@ describe("BT26-085 compiled behavior", () => {
           payCost: false,
           optional: true,
           target: { isSelf: true },
-          into: { nameOrTrait: [{ tokens: ["Chronomon: Destroy Mode"], match: "name" }] },
+          into: { nameOrTrait: [{ tokens: ["Chronomon: Destroy Mode"], match: "nameExact" }] },
         },
       ],
     });
+  });
+
+  it("plays by Assembly with five matching cards at five different levels", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-085", as: "giantSlayer" }],
+        trash: [
+          { card: "BT26-001", as: "level2" },
+          { card: "BT26-009", as: "level3" },
+          { card: "BT26-011", as: "level4" },
+          { card: "BT26-015", as: "level5" },
+          { card: "BT26-016", as: "level6" },
+        ],
+      },
+    });
+    s.state.memory = 7;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("giantSlayer").instanceId,
+        assembly: {
+          materialInstanceIds: ["level2", "level3", "level4", "level5", "level6"].map(
+            (alias) => s.inst(alias).instanceId,
+          ),
+        },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-085"));
+
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT26-085");
+    expect(new Set(played?.stack.map(({ cardId }) => cardId))).toEqual(
+      new Set(["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-016"]),
+    );
+    expect(s.state.memory).toBe(0);
   });
 
   it("installs the opponent DP immunity restriction on play", async () => {

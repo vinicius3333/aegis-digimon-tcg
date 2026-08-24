@@ -6,35 +6,43 @@ const ownDigimon = { controller: "mine", kind: ["Digimon"] };
 const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
 const protectedTarget = { filter: ownDigimon, count: 1, bindAs: "protectedDigimon" };
 const protection = [
-  { kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1, trackCount: "trashedSecurity" },
   {
-    kind: "SelectBind",
-    target: protectedTarget,
-    condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
-  },
-  {
-    kind: "Restrict",
-    target: { fromSelectionRef: "protectedDigimon" },
-    restriction: "dpImmune",
-    duration: "untilOpponentTurnEnd",
-    byOpponentEffectsOnly: true,
-    condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
-  },
-  {
-    kind: "StackTrashLock",
-    target: { fromSelectionRef: "protectedDigimon" },
-    duration: "untilOpponentTurnEnd",
-    condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
-  },
-  {
-    kind: "Restrict",
-    target: { fromSelectionRef: "protectedDigimon" },
-    restriction: "returnToHandOrDeck",
-    duration: "untilOpponentTurnEnd",
-    byOpponentEffectsOnly: true,
-    condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
+    kind: "CostGatedBlock",
+    cost: { kind: "trashSecurityTop", controller: "mine" },
+    optional: true,
+    abortOnDecline: true,
+    actions: [
+      { kind: "SelectBind", target: protectedTarget },
+      {
+        kind: "Restrict",
+        target: { fromSelectionRef: "protectedDigimon" },
+        restriction: "dpImmune",
+        duration: "untilOpponentTurnEnd",
+        byOpponentEffectsOnly: true,
+      },
+      {
+        kind: "StackTrashLock",
+        target: { fromSelectionRef: "protectedDigimon" },
+        duration: "untilOpponentTurnEnd",
+      },
+      {
+        kind: "Restrict",
+        target: { fromSelectionRef: "protectedDigimon" },
+        restriction: "returnToHandOrDeck",
+        duration: "untilOpponentTurnEnd",
+        byOpponentEffectsOnly: true,
+      },
+    ],
   },
 ];
+
+const securityRemovalWatcher = (event, oncePerTurnKey, actions) => ({
+  kind: "SubTrigger",
+  event,
+  fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
+  oncePerTurnKey,
+  actions,
+});
 
 export const compiled: CompiledCard = {
   effects: [
@@ -91,26 +99,25 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
       actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenSecurityRemoved",
-          fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
-          oncePerTurnKey: "BT26-029/security-removed-dp",
-          actions: [
-            { kind: "ModifyDP", target: { filter: opponentDigimon, count: 3 }, amount: -5000, duration: "forTheTurn" },
-          ],
-          raw: "When your security stack is removed, 3 opponent Digimon get -5000 DP for the turn.",
-        },
-        {
-          kind: "SubTrigger",
-          event: "whenEffectRemovesFromSecurity",
-          fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
-          oncePerTurnKey: "BT26-029/security-removed-dp",
-          actions: [
-            { kind: "ModifyDP", target: { filter: opponentDigimon, count: 3 }, amount: -5000, duration: "forTheTurn" },
-          ],
-          raw: "When your security stack is removed by an effect, 3 opponent Digimon get -5000 DP for the turn.",
-        },
+        securityRemovalWatcher("whenSecurityRemoved", "BT26-029/security-removed-dp", [
+          { kind: "ModifyDP", target: { filter: opponentDigimon, count: 3 }, amount: -5000, duration: "forTheTurn" },
+        ]),
+        securityRemovalWatcher("whenEffectRemovesFromSecurity", "BT26-029/security-removed-dp", [
+          { kind: "ModifyDP", target: { filter: opponentDigimon, count: 3 }, amount: -5000, duration: "forTheTurn" },
+        ]),
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      isInherited: true,
+      actions: [
+        securityRemovalWatcher("whenSecurityRemoved", "BT26-029/inherited-security-removed-dedigivolve", [
+          { kind: "DeDigivolve", target: { filter: opponentDigimon, count: 1 }, amount: 1 },
+        ]),
+        securityRemovalWatcher("whenEffectRemovesFromSecurity", "BT26-029/inherited-security-removed-dedigivolve", [
+          { kind: "DeDigivolve", target: { filter: opponentDigimon, count: 1 }, amount: 1 },
+        ]),
       ],
     },
   ],

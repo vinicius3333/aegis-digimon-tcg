@@ -37,11 +37,8 @@ export const compiled: CompiledCard = {
           mode: "reduceCost",
           amount: 4,
           condition: {
-            kind: "zoneCount",
-            seat: "any",
-            zone: "battleArea",
+            kind: "totalDigimonGte",
             filter: { kind: ["Digimon"], suspended: true },
-            op: "gte",
             value: 2,
             raw: "there are 2 or more suspended Digimon",
           },

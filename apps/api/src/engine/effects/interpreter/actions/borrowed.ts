@@ -10,7 +10,7 @@ import { scaleFactor } from "../scaling.js";
 import { looseCardsInZone } from "../targeting/loose.js";
 import { CardKind } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
-import type { Action, CardEffect, EffectTrigger, Filter, ZoneRef } from "@aegis/shared";
+import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
 
 /** A foreign card eligible to lend a borrowed effect (its instance + the borrowable effects). */
 interface ForeignCandidate {
@@ -220,30 +220,18 @@ export async function runActivateEffect(
  * then goes to trash (the `playInstances` `isPermanentKind` gap). The use RESULT binds on
  * `ctx.lastOptionUsed` at use-time (KB EX8-037 Q4738) so an `ifThisEffectUsed` tail can gate.
  */
-export async function runUseOptionWithoutCost(
+function optionUseCandidates(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
-): Promise<void> {
-  // Bind the use OUTCOME on ctx up-front: false until an Option is actually used (read by a
-  // subsequent "if this effect used" Condition; KB EX8-037 Q3923/Q4737).
-  ctx.lastOptionUsed = false;
-  ctx.lastOptionUsedInstanceId = undefined;
-
-  const seat = ctx.source.ownerSeat; // the printed form is always "from YOUR hand"
-  // Resolve source zones: `action.from` (top-level) or `action.target.from` (wrapped form).
+): { candidates: string[]; zones: ZoneRef[]; seat: Seat } {
+  const seat = ctx.source.ownerSeat;
   const zones: ZoneRef[] =
     (action.from?.length ?? 0) > 0
       ? (action.from as ZoneRef[])
       : (action.target?.from?.length ?? 0) > 0
         ? (action.target!.from as ZoneRef[])
         : (["hand"] as ZoneRef[]);
-
-  // Resolve the eligibility filter: top-level `action.filter` (BT19-040 / EX8-037) or
-  // `action.target.filter` (BT10-039 / BT21-062 / BT24-085 / EX4-030 / ST22-07 / BT10-041).
-  // EX2-060 has neither (a minimal "any Option" shape); undefined = no filter, all Options pass.
   const filter = (action as { filter?: Filter }).filter ?? action.target?.filter;
-
-  // Cost cap: honor playCostLte from the resolved filter; fall back to 5 (historical EX8-037 default).
   const exactCosts = filter?.playCostOneOf ?? [];
   const attackerLevelCap =
     filter?.playCostLteAttackerLevel === true
@@ -259,11 +247,9 @@ export async function runUseOptionWithoutCost(
       : (filter.playCostLte ?? 0) + scaleFactor(ctx, filter.playCostLteScaling);
   const costCap =
     attackerLevelCap ?? scaledCostCap ?? filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
-  // Server-side eligibility: a single-color Option within the cost cap matching the filter, not
-  // under a CanNotPlayThisOption play restriction.
   const candidates: string[] = [];
   for (const zone of zones) {
-    for (const cand of looseCardsInZone(ctx, seat, zone as ZoneRef)) {
+    for (const cand of looseCardsInZone(ctx, seat, zone)) {
       if (candidates.includes(cand.instanceId)) continue;
       const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
       const effectiveFilter =
@@ -275,13 +261,32 @@ export async function runUseOptionWithoutCost(
       if (
         action.waiveColorRequirement !== true &&
         ctx.game.optionColorRequirementMet?.(seat, cand.instanceId, def) === false
-      ) {
+      )
         continue;
-      }
       if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
       candidates.push(cand.instanceId);
     }
   }
+  return { candidates, zones, seat };
+}
+
+export function canAttemptUseOptionWithoutCost(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
+): boolean {
+  return optionUseCandidates(ctx, action).candidates.length > 0;
+}
+
+export async function runUseOptionWithoutCost(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
+): Promise<void> {
+  // Bind the use OUTCOME on ctx up-front: false until an Option is actually used (read by a
+  // subsequent "if this effect used" Condition; KB EX8-037 Q3923/Q4737).
+  ctx.lastOptionUsed = false;
+  ctx.lastOptionUsedInstanceId = undefined;
+
+  const { candidates, zones, seat } = optionUseCandidates(ctx, action);
   if (candidates.length === 0) return;
 
   // The controller picks WHICH eligible Option (the use is optional: min 0). The client can only

@@ -45,18 +45,12 @@ export const compiled: CompiledCard = {
               revealCount: 3,
               add: [
                 {
-                  filter: { controller: "mine", kind: ["Digimon"], ...sevenCode },
+                  filter: { controller: "mine", kind: ["Digimon", "Option"], ...sevenCode },
                   count: 1,
                   to: "play",
                   costDelta: 3,
                   optional: true,
-                },
-                {
-                  filter: { controller: "mine", kind: ["Option"], ...sevenCode },
-                  count: 1,
-                  to: "useOption",
-                  costDelta: 3,
-                  optional: true,
+                  orDispositions: [{ filter: { kind: ["Option"] }, to: "useOption" }],
                 },
               ],
               rest: "deckTopOrBottom",

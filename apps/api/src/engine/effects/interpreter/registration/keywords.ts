@@ -37,6 +37,42 @@ export function trainingActivatedEffect(): CardEffect {
 }
 
 /**
+ * ＜Engage＞ (CR §16-44): at the end of the controller's turn, this Digimon may attack.
+ * Some hand-authored IR records expose the printed keyword only through root-level keyword
+ * metadata (BT26-016/BT26-033), so registration must synthesize the activated effect just as
+ * it does for other executable keyword markers.
+ */
+export function engageActivatedEffect(): CardEffect {
+  return {
+    trigger: "EndOfYourTurn",
+    actions: [
+      {
+        kind: "Attack",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        optional: true,
+      } as Action,
+    ],
+  };
+}
+
+/** True when Engage is printed but no explicit end-of-turn attack already implements it. */
+export function declaresUnimplementedEngageKeyword(compiled: CompiledCard): boolean {
+  const rootKeywords = (compiled as CompiledCard & { keywords?: Array<{ keyword?: string }> }).keywords ?? [];
+  const printed =
+    rootKeywords.some(({ keyword }) => keyword === "Engage") ||
+    compiled.effects.some(
+      (effect) => effect.isInherited !== true && (effect.keywords ?? []).some(({ keyword }) => keyword === "Engage"),
+    );
+  if (!printed) return false;
+  return !compiled.effects.some(
+    (effect) =>
+      effect.isInherited !== true &&
+      effect.trigger === "EndOfYourTurn" &&
+      (effect.actions ?? []).some(({ kind }) => kind === "Attack"),
+  );
+}
+
+/**
  * ＜Overclock ([Trait])＞ (CR §16-34): at the end of your turn, by deleting 1 of your Tokens
  * or 1 of your other [Trait] Digimon, this Digimon attacks a player without suspending. Most
  * cards compile the keyword to only a marker (a `GainKeyword` action or a `keywords` entry, no

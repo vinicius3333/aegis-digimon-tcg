@@ -38,6 +38,26 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: linkedSelf,
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" },
+                count: 1,
+              },
+            },
+          ],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

@@ -219,6 +219,10 @@ function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial
     (slot.names?.length ?? 0) > 0 || (slot.traits?.length ?? 0) > 0 || (slot.nameOrTrait?.length ?? 0) > 0;
   if (!hasNameOrTrait) return false;
 
+  if (slot.kinds && slot.kinds.length > 0 && !slot.kinds.some((kind) => def.kinds.includes(kind as never))) {
+    return false;
+  }
+
   if (slot.names && slot.names.length > 0) {
     if (!slot.names.some((n) => def.nameEn.toLowerCase().includes(n.toLowerCase()))) return false;
   }

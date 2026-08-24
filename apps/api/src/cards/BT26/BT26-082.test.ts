@@ -26,6 +26,8 @@ describe("BT26-082 compiled behavior", () => {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
         kind: "Modal",
         choose: 1,
+        optional: true,
+        abortOnDecline: true,
         options: [
           [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "deleteOwn" } }],
           [
@@ -70,7 +72,7 @@ describe("BT26-082 compiled behavior", () => {
           ],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
 
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ravemon"));
@@ -78,6 +80,22 @@ describe("BT26-082 compiled behavior", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-082")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-084")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-010")).toBe(true);
+  });
+
+  it("may decline the by-cost activation without deleting either Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        1: { battleArea: [{ card: "BT1-084", as: "highest" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ravemon"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("plays itself from face-up security at the end of the opponent's turn", async () => {

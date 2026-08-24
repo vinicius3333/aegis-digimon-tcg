@@ -1,15 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-032.js";
 import "./BT26-032.js";
+import "../BT25/BT25-077.js";
 
 describe("BT26-032 compiled fidelity", () => {
-  it("encodes Alliance/Succession, suspended-Digimon DP reduction, suspend-paid play/use, Option mode, and the explicit turn-gate seam", () => {
+  it("matches the catalog and encodes both DUAL faces without residual behavior", () => {
     const card = compiled;
+    expect(getCardDefinition("BT26-032")).toMatchObject({
+      nameEn: "Ceresmon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon", "Option"],
+      level: 6,
+      playCost: 5,
+      dp: 13000,
+      types: ["Shaman", "Olympos XII", "Iliad", "TS"],
+      isDualCard: true,
+      dualEffect: "Famis",
+      optionColorRequirements: ["Green"],
+    });
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
+    expect(card?.digivolutionRequirement).toEqual([
+      { names: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true },
+    ]);
     expect(card?.keywords?.map((keyword) => keyword.keyword)).toEqual(
       expect.arrayContaining(["Alliance", "Succession"]),
     );
@@ -22,12 +38,23 @@ describe("BT26-032 compiled fidelity", () => {
         condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "isYourTurn" }] },
       },
     ]);
-    expect(card?.effects).toHaveLength(2);
+    expect(card?.effects).toHaveLength(4);
     expect(card?.effects?.[1]?.actions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "GrantStatic", grant: "trait", tokens: ["Vegetation"] }),
       ]),
     );
+    expect(card?.effects?.[2]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
+    });
+    expect(card?.effects?.[3]).toMatchObject({
+      trigger: "Main",
+      actions: [
+        { kind: "Suspend", target: { count: 2, upTo: true } },
+        { kind: "Restrict", target: { count: 3 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
+      ],
+    });
   });
 
   it("publicly reduces every suspended opposing Digimon by 5000 on digivolution", async () => {
@@ -49,5 +76,131 @@ describe("BT26-032 compiled fidelity", () => {
 
     expect(s.perm("suspended").currentDP).toBe(6000);
     expect(s.perm("unsuspended").currentDP).toBe(11000);
+  });
+
+  it("may suspend either player's Digimon to pay the continuation (Q7001)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-032", as: "ceresmon" },
+            { card: "BT1-080", as: "mine" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "theirs" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("theirs").permanentId);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
+
+    expect(s.perm("mine").isSuspended).toBe(false);
+    expect(s.perm("theirs").isSuspended).toBe(true);
+  });
+
+  it("waits until the full effect resolves before deleting 0-DP Digimon and stacks both play reducers (Q7000/Q7002)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-032", as: "ceresmon" },
+            { card: "BT1-080", as: "levelSix" },
+          ],
+          hand: [{ card: "BT25-077", as: "bacchusmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "zeroDp", suspended: true, dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("levelSix").permanentId);
+    s.state.memory = 2;
+
+    const resolving = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("zeroDp").instanceId),
+    ).toBe(true);
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-077")).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("zeroDp").instanceId),
+    ).toBe(false);
+  });
+
+  it("uses Famis through a TS color waiver and can lock cards it did not suspend (Q7003)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-071", as: "ts" }],
+          hand: [{ card: "BT26-032", as: "famis" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "suspendA" },
+            { card: "BT1-010", as: "suspendB" },
+            { card: "BT1-011", as: "lockOnly" },
+            { card: "BT1-012", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("famis").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    let pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("suspendA").permanentId, s.perm("suspendB").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.decisionId !== pending.decisionId);
+    pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: {
+          kind: "chooseTargets",
+          instanceIds: [s.perm("suspendA").permanentId, s.perm("suspendB").permanentId, s.perm("lockOnly").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("famis").instanceId));
+
+    expect(s.perm("suspendA").isSuspended).toBe(true);
+    expect(s.perm("suspendB").isSuspended).toBe(true);
+    expect(s.perm("lockOnly").isSuspended).toBe(false);
+    expect(
+      (
+        s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }
+      ).continuous.hasRestriction(s.perm("lockOnly").permanentId, "unsuspend"),
+    ).toBe(true);
   });
 });

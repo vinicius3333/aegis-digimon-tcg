@@ -5,9 +5,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const beatbreak = { nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] };
 const placeHandCost = {
-  kind: "PlaceUnder",
+  kind: "place",
   target: { filter: { controller: "mine", zone: "hand", ...beatbreak }, count: 1 },
   underFilter: self.filter,
+  host: "self",
+  destination: "digivolutionStack",
+  position: "bottom",
   faceDown: true,
 };
 const placeDeckTop = { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true };
@@ -16,13 +19,31 @@ const nonEffectRemovalGate = {
   kind: "allOf",
   conditions: [removalGate, { kind: "not", condition: { kind: "triggerSecurityRemovedByEffect" } }],
 };
-const commonRemovalBody = [{ kind: "Suspend", target: self }, placeDeckTop];
+const suspendCost = { kind: "suspend", target: self };
+const gatedRemovalBody = (actions) => ({
+  kind: "CostGatedBlock",
+  cost: suspendCost,
+  optional: true,
+  abortOnDecline: true,
+  actions,
+});
 
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
-      actions: [placeHandCost, { kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+      actions: [
+        {
+          kind: "CostGatedBlock",
+          cost: placeHandCost,
+          optional: true,
+          abortOnDecline: true,
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
+        },
+      ],
     },
     {
       trigger: "AllTurns",
@@ -31,7 +52,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
           fireCondition: nonEffectRemovalGate,
-          actions: commonRemovalBody,
+          actions: [gatedRemovalBody([placeDeckTop])],
           raw: "When your security stack is removed from, by suspending this Tamer, place the top card of your deck face down under this Tamer.",
         },
         {
@@ -39,13 +60,15 @@ export const compiled: CompiledCard = {
           event: "whenEffectRemovesFromSecurity",
           fireCondition: removalGate,
           actions: [
-            ...commonRemovalBody,
-            {
-              kind: "GainKeyword",
-              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-              keyword: { keyword: "SecurityAttack", amount: -1 },
-              duration: "untilOpponentTurnEnd",
-            },
+            gatedRemovalBody([
+              placeDeckTop,
+              {
+                kind: "GainKeyword",
+                target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+                keyword: { keyword: "SecurityAttack", amount: -1 },
+                duration: "untilOpponentTurnEnd",
+              },
+            ]),
           ],
           raw: "When your security stack is removed from by an effect, suspend this Tamer, place the top card of your deck face down under it, then give 1 opposing Digimon Security A. -1.",
         },

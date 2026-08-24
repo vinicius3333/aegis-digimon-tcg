@@ -8,9 +8,14 @@ const placeAndRecover = [
     controller: "mine",
     source: "deck",
     amount: 1,
+    optional: true,
     cost: {
       kind: "place",
-      target: { count: 1, filter: { zone: "security", controller: "mine" }, from: ["security"] },
+      target: {
+        count: 1,
+        filter: { zone: "security", controller: "mine", position: "top" },
+        from: ["security"],
+      },
       destination: "digivolutionStack",
       position: "bottom",
       host: "target",

@@ -17,7 +17,7 @@ const shamanOrTsTrash = {
 };
 const tsPlayable = {
   controllerDefault: "mine",
-  kind: ["Digimon"],
+  kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
   playCostLte: 5,
 };
@@ -26,6 +26,8 @@ const deleteOpponent = { kind: "Delete", target: { filter: opponentLevelFive, co
 const costChoice = {
   kind: "Modal",
   choose: 1,
+  optional: true,
+  abortOnDecline: true,
   options: [
     [{ ...deleteOpponent, cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1 } } }],
     [{ ...deleteOpponent, cost: { kind: "return", target: { filter: shamanOrTsTrash, count: 1 }, to: "deckBottom" } }],

@@ -23,7 +23,7 @@ describe("BT26-081 compiled behavior", () => {
             from: ["hand", "trash"],
             payCost: false,
             totalCost: 8,
-            filter: { nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] },
+            filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] },
           },
           {
             kind: "ModifyDP",
@@ -54,6 +54,7 @@ describe("BT26-081 compiled behavior", () => {
             { card: "BT24-019", as: "handKamemon" },
             { card: "BT24-020", as: "handGomamon" },
             { card: "BT26-067", as: "wrongTrait" },
+            { card: "BT24-090", as: "pureOption" },
           ],
           trash: [{ card: "BT26-029", as: "trashAegiochusmon" }],
         },
@@ -69,6 +70,7 @@ describe("BT26-081 compiled behavior", () => {
     );
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-019")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT26-067")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-090")).toBe(true);
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(3000);
   });
 

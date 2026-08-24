@@ -19,6 +19,8 @@ describe("BT26-072 Peckmon", () => {
         {
           kind: "Modal",
           choose: 1,
+          optional: true,
+          abortOnDecline: true,
           options: [
             [expect.objectContaining({ kind: "Delete", cost: expect.objectContaining({ kind: "trash" }) })],
             [
@@ -53,5 +55,28 @@ describe("BT26-072 Peckmon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+  });
+
+  it("may instead place the hand card face down under Keenan Crier before deleting", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-072", as: "peckmon" },
+            { card: "BT26-094", as: "keenan" },
+          ],
+          hand: [{ card: "BT1-001", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("peckmon"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("keenan").stack[0]).toMatchObject({ cardId: "BT1-001", faceUp: false });
   });
 });

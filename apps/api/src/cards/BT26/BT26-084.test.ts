@@ -52,14 +52,46 @@ describe("BT26-084 compiled behavior", () => {
       to: "play",
       costDelta: 3,
       optional: true,
-      filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
+      filter: { kind: ["Digimon", "Option"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
+      orDispositions: [{ filter: { kind: ["Option"] }, to: "useOption" }],
     });
-    expect(irNode(yourTurn.actions[0]!).actions[0]!.add[1]).toMatchObject({
-      to: "useOption",
-      costDelta: 3,
-      optional: true,
-      filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
-    });
+    expect(irNode(yourTurn.actions[0]!).actions[0]!.add).toHaveLength(1);
+  });
+
+  it("selects only one Seven Code card when both a Digimon and Option are revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102" }] }],
+          deck: ["BT26-010", "BT26-102", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+
+    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("copipemon").permanentId });
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-010")).toBe(true);
+    expect(s.state.players[0]!.deck.some(({ cardId }) => cardId === "BT26-102")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-102")).toBe(false);
+  });
+
+  it("uses a revealed Seven Code Option instead of trying to play it as a permanent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102" }] }],
+          deck: ["BT26-102", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+
+    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("copipemon").permanentId });
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-102")).toBe(true);
   });
 
   it("reveals three linked-trigger cards and plays a revealed Seven Code Digimon for 3 less", async () => {

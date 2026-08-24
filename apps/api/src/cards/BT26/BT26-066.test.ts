@@ -17,6 +17,7 @@ describe("BT26-066 Salamon", () => {
               kind: "Digivolve",
               from: ["trash"],
               payCost: true,
+              useAlternateCost: true,
               costDelta: -2,
               optional: true,
               condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 },
@@ -35,8 +36,12 @@ describe("BT26-066 Salamon", () => {
                   kind: "Digivolve",
                   from: ["trash"],
                   payCost: true,
+                  useAlternateCost: true,
                   costDelta: -1,
                   optional: true,
+                  target: expect.objectContaining({
+                    filter: expect.objectContaining({ nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] }),
+                  }),
                 }),
               ],
             }),
@@ -61,11 +66,44 @@ describe("BT26-066 Salamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 5;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
 
     expect(s.perm("titanHost").topCard.cardId).toBe("BT26-059");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("allows the inherited trash evolution only when its host has the Titan trait", async () => {
+    const titan = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066"] }],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    titan.state.memory = 2;
+    await titan.ready();
+    await advance(titan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
+    expect(titan.perm("host").topCard.cardId).toBe("P-209");
+    expect(titan.state.memory).toBe(0);
+
+    const nonTitan = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-031", as: "host", under: ["BT26-066"] }],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    nonTitan.state.memory = 10;
+    await nonTitan.ready();
+    await advance(nonTitan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
+    expect(nonTitan.perm("host").topCard.cardId).toBe("BT26-031");
+    expect(nonTitan.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
   });
 });

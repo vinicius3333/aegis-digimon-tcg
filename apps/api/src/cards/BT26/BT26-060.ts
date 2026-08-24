@@ -59,7 +59,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectAddsToDeck",
-          bySourceController: "mine",
           oncePerTurnKey: "BT26-060/delete-on-effect-adds-to-deck",
           actions: [{ kind: "Delete", target: { filter: opponentDigimon, count: 1 }, optional: true }],
           raw: "When your effect adds cards to decks, you may delete 1 of your opponent's Digimon.",

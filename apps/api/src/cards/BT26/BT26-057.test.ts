@@ -16,9 +16,14 @@ describe("BT26-057 Bearcatmon", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "TrashDigivolution", fromTop: false },
-        { kind: "Restrict", restriction: "beAffected", fromSourceKind: ["Digimon"] },
-        { kind: "ModifyDP", amount: 3000 },
+        {
+          kind: "CostGatedBlock",
+          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
+          actions: [
+            { kind: "Restrict", restriction: "beAffected", fromSourceKind: ["Digimon"] },
+            { kind: "ModifyDP", amount: 3000 },
+          ],
+        },
       ],
     });
     expect(compiled.effects?.[1]).toMatchObject({
@@ -61,5 +66,28 @@ describe("BT26-057 Bearcatmon", () => {
       s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }
     ).continuous;
     expect(continuous.hasRestriction(s.perm("bearcatmon").permanentId, "beAffected", "Digimon")).toBe(true);
+  });
+
+  it("grants neither protection nor DP when the exact face-down Tamer-bottom cost is unavailable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-057", as: "bearcatmon" },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", faceUp: true }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bearcatmon"));
+
+    expect(s.perm("bearcatmon").currentDP).toBe(8000);
+    const continuous = (
+      s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }
+    ).continuous;
+    expect(continuous.hasRestriction(s.perm("bearcatmon").permanentId, "beAffected", "Digimon")).toBe(false);
   });
 });

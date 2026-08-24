@@ -55,6 +55,39 @@ describe("BT26-005 Pinamon", () => {
     );
   });
 
+  it("accepts a play-cost-5 DATA SQUAD Tamer while rejecting over-cost and unrelated cards", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "host", under: [{ card: "BT26-005" }] },
+            { card: "BT26-091", as: "costTamer", under: [{ card: "BT1-010", as: "cost", faceUp: false }] },
+          ],
+          trash: [
+            { card: "AD1-021", as: "eligibleTamer" },
+            { card: "BT26-044", as: "overCost" },
+            { card: "BT1-089", as: "unrelated" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("eligibleTamer").instanceId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("eligibleTamer").instanceId,
+      ),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-021")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("overCost").instanceId, s.inst("unrelated").instanceId]),
+    );
+  });
+
   it("may decline without trashing the Tamer-stack card or playing from trash", async () => {
     const s = setupEngine(
       {

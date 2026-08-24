@@ -24,6 +24,7 @@ export interface Cost {
     | "trashSecurityTop" // ST23-05
     | "trashBothSecurityTop" // BT19-043: trash both players' top security cards atomically
     | "trashBottomFaceDownUnderTamer"
+    | "trashBottomFaceDownUnderDigimon"
     | "securityToHand"
     | "placeAsSecurity" // move a permanent to the security stack (BT19-048)
     | "reveal" // reveal cards from a loose zone without moving them (EX4-023)

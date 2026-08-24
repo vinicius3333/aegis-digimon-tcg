@@ -6,7 +6,7 @@ import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
-import { CardKind, getCardDefinition, isTamer } from "@aegis/shared";
+import { CardKind, getCardDefinition, isDigimon, isTamer } from "@aegis/shared";
 import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -79,6 +79,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
       if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
+      return permanent.stack[0]?.faceUp === false;
+    });
+    return candidates.length >= (cost.count ?? 1);
+  }
+  if (cost.kind === "trashBottomFaceDownUnderDigimon") {
+    const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+    const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
+      if (permanent.topCard === undefined || !isDigimon(ctx.game.definitionOf(permanent.topCard))) return false;
       return permanent.stack[0]?.faceUp === false;
     });
     return candidates.length >= (cost.count ?? 1);
@@ -214,7 +222,15 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     // offered: enough matching loose cards in the declared source zones and a legal
     // destination host. EX3-066 otherwise asked to place a Cyborg with an empty
     // hand/trash, then opened a guaranteed no-op selection.
-    if (cost.targetIsPermanent === true) return true;
+    if (cost.targetIsPermanent === true) {
+      const required = cost.target.count === "all" ? 1 : (cost.target.count ?? 1);
+      if (candidatePermanents(ctx, cost.target).length < required) return false;
+      if (cost.destination === "security" || cost.destination === "battleArea") return true;
+      if (cost.host !== null && typeof cost.host === "object") {
+        return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
+      }
+      return ctx.source.permanent() !== undefined;
+    }
     const zones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
     const candidates = candidateLooseInstances(ctx, cost.target, zones);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
@@ -231,6 +247,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       );
     }
     if (cost.host !== null && typeof cost.host === "object") {
+      // A preceding component of a compound cost may bind this host while payment is in
+      // progress. Its loose-card half is already proven payable above; defer the exact host
+      // check until payCost, after that binding exists (BT26-098's two named materials).
+      if (cost.host.filter.boundRef !== undefined && ctx.selections?.has(cost.host.filter.boundRef) !== true)
+        return true;
       return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
     }
     return (
@@ -400,6 +421,40 @@ export async function payCost(
         const moved = await ctx.fx.trashDigivolutionCards(hostId, cardIds, {
           byEffectSeat: ctx.source.ownerSeat,
           byEffectCardId: ctx.source.cardId,
+        });
+        movedCount += moved.length;
+      }
+      return movedCount === count;
+    }
+    case "trashBottomFaceDownUnderDigimon": {
+      const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+      const candidates: { hostId: string; cardId: string }[] = [];
+      for (const host of ctx.game.player(seat).battleArea) {
+        if (host.topCard === undefined || !isDigimon(ctx.game.definitionOf(host.topCard))) continue;
+        const bottomFaceDown = host.stack[0]?.faceUp === false ? host.stack[0] : undefined;
+        if (bottomFaceDown !== undefined) {
+          candidates.push({ hostId: host.permanentId, cardId: bottomFaceDown.instanceId });
+        }
+      }
+      const count = cost.count ?? 1;
+      if (candidates.length < count) return false;
+      const chosen =
+        candidates.length === count
+          ? candidates
+          : (
+              await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((candidate) => candidate.cardId),
+                min: count,
+                max: count,
+              })
+            )
+              .map((cardId) => candidates.find((candidate) => candidate.cardId === cardId)!)
+              .filter(Boolean);
+      if (chosen.length !== count) return false;
+      let movedCount = 0;
+      for (const candidate of chosen) {
+        const moved = await ctx.fx.trashDigivolutionCards(candidate.hostId, [candidate.cardId], {
+          byEffectSeat: ctx.source.ownerSeat,
         });
         movedCount += moved.length;
       }

@@ -16,18 +16,23 @@ const suspendedTraits = {
   },
   count: "all",
 };
-const suspendBuff = [
-  { kind: "Suspend", target: anyDigimon, optional: true },
-  {
-    kind: "Restrict",
-    target: suspendedTraits,
-    restriction: "beAffected",
-    duration: "untilOpponentTurnEnd",
-    fromSourceKind: ["Option"],
-    byOpponentEffectsOnly: true,
-  },
-  { kind: "ModifyDP", target: suspendedTraits, amount: 3000, duration: "untilOpponentTurnEnd" },
-];
+const suspendBuff = {
+  kind: "CostGatedBlock",
+  cost: { kind: "suspend", target: anyDigimon },
+  optional: true,
+  abortOnDecline: true,
+  actions: [
+    {
+      kind: "Restrict",
+      target: suspendedTraits,
+      restriction: "beAffected",
+      duration: "untilOpponentTurnEnd",
+      fromSourceKind: ["Option"],
+      byOpponentEffectsOnly: true,
+    },
+    { kind: "ModifyDP", target: suspendedTraits, amount: 3000, duration: "untilOpponentTurnEnd" },
+  ],
+};
 const battle = {
   kind: "Battle",
   attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -36,9 +41,11 @@ const battle = {
 };
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "OnPlay", actions: [battle, ...suspendBuff] },
-    { trigger: "WhenDigivolving", actions: [battle, ...suspendBuff] },
-    { trigger: "StartOfYourMainPhase", actions: suspendBuff },
+    { trigger: "OnPlay", actions: [battle] },
+    { trigger: "WhenDigivolving", actions: [battle] },
+    { trigger: "OnPlay", actions: [suspendBuff] },
+    { trigger: "WhenDigivolving", actions: [suspendBuff] },
+    { trigger: "StartOfYourMainPhase", actions: [suspendBuff] },
   ],
   coverage: "full",
   residual: [],

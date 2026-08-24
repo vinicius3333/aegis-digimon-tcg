@@ -6,26 +6,33 @@ const iliad = { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ to
 const eligibleSecurityCard = {
   controllerDefault: "mine",
   kind: ["Digimon", "Tamer"],
+  playCostLte: 4,
   nameOrTrait: [
     { tokens: ["Angel"], match: "trait" },
     { tokens: ["TS"], match: "trait" },
   ],
 };
 const handTrash = { controller: "mine", zone: "hand" };
-const grantExecute = {
-  kind: "GainKeyword",
-  target: { filter: iliad, count: 1 },
-  keyword: { keyword: "Execute" },
-  duration: "untilEachTurnEnd",
+const grantKeywords = {
+  kind: "CostGatedBlock",
   cost: { kind: "trash", target: { filter: handTrash, count: 1 } },
-  optional: false,
+  optional: true,
   abortOnDecline: true,
-};
-const grantAscension = {
-  kind: "GainKeyword",
-  target: { filter: iliad, count: 1 },
-  keyword: { keyword: "Ascension" },
-  duration: "untilEachTurnEnd",
+  actions: [
+    { kind: "SelectBind", target: { filter: iliad, count: 1, bindAs: "pumpkinmonIliad" } },
+    {
+      kind: "GainKeyword",
+      target: { fromSelectionRef: "pumpkinmonIliad" },
+      keyword: { keyword: "Execute" },
+      duration: "untilEachTurnEnd",
+    },
+    {
+      kind: "GainKeyword",
+      target: { fromSelectionRef: "pumpkinmonIliad" },
+      keyword: { keyword: "Ascension" },
+      duration: "untilEachTurnEnd",
+    },
+  ],
 };
 
 export const compiled: CompiledCard = {
@@ -39,13 +46,12 @@ export const compiled: CompiledCard = {
           target: { filter: eligibleSecurityCard, count: 1 },
           from: ["hand", "trash"],
           payCost: false,
-          playCostCeiling: { base: 4 },
           optional: true,
         },
       ],
     },
-    { trigger: "OnPlay", actions: [grantExecute, grantAscension] },
-    { trigger: "WhenDigivolving", actions: [grantExecute, grantAscension] },
+    { trigger: "OnPlay", actions: [grantKeywords] },
+    { trigger: "WhenDigivolving", actions: [grantKeywords] },
   ],
   coverage: "full",
   residual: [],

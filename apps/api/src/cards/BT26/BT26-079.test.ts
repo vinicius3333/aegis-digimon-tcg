@@ -31,7 +31,19 @@ describe("BT26-079 compiled behavior", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
       isFromTrash: true,
       actions: [
-        { kind: "PlayWithoutCost", from: ["trash"], reduceCostBy: 4, condition: { kind: "handAtMost", value: 5 } },
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          reduceCostBy: 4,
+          condition: { kind: "handAtMost", value: 5 },
+          assembly: {
+            target: {
+              filter: { zone: "trash", nameOrTrait: [{ tokens: ["Plutomon"], match: "nameExact" }] },
+              count: 1,
+            },
+            reduceCostBy: 2,
+          },
+        },
       ],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
@@ -39,7 +51,13 @@ describe("BT26-079 compiled behavior", () => {
         frequency: "OncePerTurn",
         sharedUseKey: "bt26-079-trash-cost-delete",
         actions: [
-          { kind: "Delete", cost: { kind: "trash" }, target: { filter: { levelComparison: { op: "lte", value: 6 } } } },
+          {
+            kind: "CostGatedBlock",
+            cost: { kind: "trash" },
+            optional: true,
+            abortOnDecline: true,
+            actions: [{ kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 6 } } } }],
+          },
         ],
       });
     }
@@ -47,8 +65,30 @@ describe("BT26-079 compiled behavior", () => {
       kind: "Replacement",
       event: "wouldLeavePlay",
       mode: "instead",
-      actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false }],
+      actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false, playedByDecode: true }],
     });
+  });
+
+  it("declares Assembly during its Trash Main play and stacks the Plutomon for cost 6 (Q7110)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [
+            { card: "BT26-079", as: "zombiePlutomon" },
+            { card: "BT26-059", as: "plutomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("zombiePlutomon"));
+
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT26-079");
+    expect(played?.stack.map(({ cardId }) => cardId)).toEqual(["BT26-059"]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("uses the supported dynamic hand-trim action", () => {
@@ -83,5 +123,21 @@ describe("BT26-079 compiled behavior", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+  });
+
+  it("does not trash or delete when the activation cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-079", as: "zombiePlutomon" }], hand: [{ card: "BT1-001" }] },
+        1: { battleArea: [{ card: "BT26-074", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("zombiePlutomon"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

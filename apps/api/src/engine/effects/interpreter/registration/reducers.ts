@@ -89,6 +89,9 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
   "BT25-077", // condition: 12+ total Digimon levels -> -5 (Q7002 effect-driven stacking)
+  "BT26-045", // fewer cards in hand than opponent -> self play cost -4 (Q7036-Q7037)
+  "BT26-046", // 2+ suspended Digimon -> self play cost -4
+  "BT26-059", // fewer cards in hand than opponent -> self play cost -6
   "BT24-030", // opponent has 2+ Digimon -> self play cost -5
   "BT24-040", // 3 or fewer security cards -> self play cost -5
   "BT24-041", // own Iliad Digimon or Tamer -> self play cost -5

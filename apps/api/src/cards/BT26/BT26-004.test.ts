@@ -118,12 +118,37 @@ describe("BT26-004 Pagumon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawn").instanceId]);
   });
 
+  it("may decline the optional placement condition without moving or drawing cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", under: [CARD_ID] },
+            { card: "BT25-088", as: "tamer" },
+          ],
+          hand: [{ card: "BT1-010", as: "cost" }],
+          deck: [{ card: "BT1-011", as: "notDrawn" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawn").instanceId]);
+  });
+
   it("is compiled as a face-down placement cost under a Glowing Dawn Tamer", () => {
     const action = compiled.effects[0]!.actions[0]! as any;
     expect(compiled).toMatchObject({
       coverage: "full",
       effects: [{ trigger: "WhenAttacking", frequency: "OncePerTurn", isInherited: true }],
     });
-    expect(action.cost).toMatchObject({ faceDown: true, underFilter: { kind: ["Tamer"] } });
+    expect(action).toMatchObject({ optional: true, cost: { faceDown: true, underFilter: { kind: ["Tamer"] } } });
   });
 });

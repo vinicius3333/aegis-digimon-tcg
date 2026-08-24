@@ -94,6 +94,18 @@ describe("BT26-063 Tellermon", () => {
       revealCount: 3,
       rest: "deckTopOrBottom",
     });
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "Static",
+      isLinked: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "Delete", target: { filter: { superlative: "lowestLevel" }, count: 1 } }],
+        },
+      ],
+    });
   });
 
   it("digivolves from a non-purple level 2 Appmon for the printed alternate cost 0", async () => {
@@ -152,6 +164,38 @@ describe("BT26-063 Tellermon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("tellermon").linked.map((card) => card.instanceId)).toContain(linkId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(matchingId);
+  });
+
+  it("deletes one opposing lowest-level Digimon when Tellermon itself links", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-045", as: "host" }],
+          hand: [{ card: CARD_ID, as: "tellermon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest" },
+            { card: "BT26-060", as: "higher" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const lowestId = s.perm("lowest").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("tellermon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lowestId));
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT26-060"]);
   });
 
   it("does not reveal when another Appmon, rather than this Tellermon, gets linked", async () => {

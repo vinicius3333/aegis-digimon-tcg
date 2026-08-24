@@ -4,6 +4,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], suspended: true };
 const playable = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }] };
+const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] };
 const digivolveBody = [
   {
     kind: "ModifyDP",
@@ -63,10 +65,30 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: ts } }],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Suspend",
+          target: { filter: opponentDigimonOrTamer, count: 2, upTo: true },
+          optional: true,
+        },
+        {
+          kind: "Restrict",
+          target: { filter: opponentDigimonOrTamer, count: 3 },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 5, names: ["Ceresmon"], cost: 2, isAlternate: true }],
+  digivolutionRequirement: [{ names: ["Ceresmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
 };
 
 registerIrCard("BT26-032", compiled);

@@ -3,7 +3,12 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const ts = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
-const tsCard = { controller: "mine", playCostLte: 4, nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const tsCard = {
+  controller: "mine",
+  kind: ["Digimon", "Tamer"],
+  playCostLte: 4,
+  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+};
 const _tsDigimon = { ...ts, levelLte: 99 };
 const namedTamer = {
   controller: "mine",
@@ -13,6 +18,19 @@ const namedTamer = {
 
 export const compiled: CompiledCard = {
   effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHave",
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+          },
+        },
+      ],
+    },
     {
       trigger: "Main",
       actions: [

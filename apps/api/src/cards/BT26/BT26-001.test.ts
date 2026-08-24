@@ -98,6 +98,30 @@ describe("BT26-001 Yokomon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
   });
 
+  it("does not react when an effect adds to a deck during the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          hand: [{ card: "BT26-015", as: "candidate" }],
+          trash: [{ card: "BT1-009", as: "moved" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("moved").instanceId]);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-013");
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("moved").instanceId);
+  });
+
   it("spends its once-per-turn budget only after a successful evolution", async () => {
     const s = setupEngine(
       {

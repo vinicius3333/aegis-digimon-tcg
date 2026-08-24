@@ -48,6 +48,7 @@ describe("BT26-023 Mojyamon", () => {
     ).toEqual({ ok: true });
     await settle(() => legal.perm("redDm").topCard.cardId === "BT26-023");
     expect(legal.state.memory).toBe(0);
+    expect(legal.perm("redDm").stack.map(({ cardId }) => cardId)).toEqual(["EX9-007"]);
 
     const illegal = setupEngine({
       0: {
@@ -79,7 +80,7 @@ describe("BT26-023 Mojyamon", () => {
           deck: ["AD1-001"],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("material").instanceId, s.perm("target").permanentId);
     const materialId = s.inst("material").instanceId;
@@ -115,6 +116,27 @@ describe("BT26-023 Mojyamon", () => {
     expect(s.decisions.some(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets")).toBe(false);
   });
 
+  it("may decline the optional hand placement without returning an eligible target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-023", as: "mojyamon" }],
+          hand: [{ card: "BT1-001", as: "material" }],
+        },
+        1: { battleArea: [{ card: "BT26-039", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mojyamon"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("material").instanceId]);
+    expect(s.perm("mojyamon").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("target").instanceId,
+    ]);
+  });
+
   it("binds the main When Attacking clause to Mojyamon rather than another ally", async () => {
     const s = setupEngine(
       {
@@ -127,7 +149,7 @@ describe("BT26-023 Mojyamon", () => {
         },
         1: { battleArea: [{ card: "BT26-039", as: "target" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("ally"), {
@@ -179,6 +201,26 @@ describe("BT26-023 Mojyamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT26-023", as: "mojyamon" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("mojyamon"), "Jamming")).toBe(true);
+  });
+
+  it("uses top-card Jamming to survive a losing security battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-023", as: "mojyamon" }] },
+      1: { security: [{ card: "BT26-017", as: "securityDigimon" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mojyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityDigimon").instanceId,
+    );
   });
 
   it("inherited When Attacking draws at 7 cards and not at 8", async () => {

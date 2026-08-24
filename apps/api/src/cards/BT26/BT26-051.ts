@@ -14,6 +14,7 @@ const grantTarget = {
     ],
   },
   count: 1,
+  bindAs: "grantTarget",
 };
 export const compiled: CompiledCard = {
   effects: [
@@ -27,13 +28,19 @@ export const compiled: CompiledCard = {
           event: "whenLinked",
           sourceFilter: { isSelfRef: true },
           actions: [
+            { kind: "SelectBind", target: grantTarget },
             {
               kind: "GainKeyword",
               keyword: { keyword: "Collision" },
-              target: grantTarget,
-              duration: "untilEachTurnEnd",
+              target: { filter: { boundRef: "grantTarget" }, count: 1 },
+              duration: "forTheTurn",
             },
-            { kind: "ModifyDP", target: grantTarget, amount: 3000, duration: "untilEachTurnEnd" },
+            {
+              kind: "ModifyDP",
+              target: { filter: { boundRef: "grantTarget" }, count: 1 },
+              amount: 3000,
+              duration: "forTheTurn",
+            },
           ],
         },
       ],

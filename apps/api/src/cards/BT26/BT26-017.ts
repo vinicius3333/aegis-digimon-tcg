@@ -30,6 +30,7 @@ const playTrash = {
     count: 1,
     filter: {
       controller: "mine",
+      kind: ["Digimon", "Tamer"],
       playCostLte: 5,
       nameOrTrait: [
         { tokens: ["Shambala"], match: "trait" },

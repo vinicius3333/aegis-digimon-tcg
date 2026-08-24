@@ -21,6 +21,12 @@ export interface PlayWithoutCostAction extends ActionBase {
    * standalone CostModifier, and floored at 0. Ignored for a free play.
    */
   reduceCostBy?: number;
+  /**
+   * Optional Assembly declaration available during this effect-driven paid play. The player may
+   * select the exact material target from their trash; when selected, the material is placed under
+   * the played Digimon and the additional fixed reduction is applied.
+   */
+  assembly?: { target: Target; reduceCostBy: number };
   /** Dynamic paid-cost reduction, commonly sourced from a prior action's named count. */
   reduceCostByScaling?: Scaling;
   /**

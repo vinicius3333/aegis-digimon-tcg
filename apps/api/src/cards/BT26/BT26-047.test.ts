@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-047.js";
 import "../index.js";
 
@@ -17,17 +17,30 @@ describe("BT26-047 TyrantKabuterimon", () => {
       { reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] },
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [
-          { kind: "Battle", optional: true },
-          { kind: "Suspend", optional: true },
-          { kind: "Restrict", restriction: "beAffected", fromSourceKind: ["Option"] },
-          { kind: "ModifyDP", amount: 3000 },
-        ],
-      });
+      const effects = compiled.effects?.filter((effect) => effect.trigger === trigger) ?? [];
+      expect(effects).toHaveLength(2);
+      expect(effects).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            actions: [{ kind: "Battle", optional: true, attacker: expect.any(Object), defender: expect.any(Object) }],
+          }),
+          expect.objectContaining({
+            actions: [
+              expect.objectContaining({
+                kind: "CostGatedBlock",
+                cost: { kind: "suspend", target: expect.any(Object) },
+                actions: [
+                  expect.objectContaining({ kind: "Restrict", restriction: "beAffected", fromSourceKind: ["Option"] }),
+                  expect.objectContaining({ kind: "ModifyDP", amount: 3000 }),
+                ],
+              }),
+            ],
+          }),
+        ]),
+      );
     }
     expect(compiled.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")).toMatchObject({
-      actions: [{ kind: "Suspend" }, { kind: "Restrict" }, { kind: "ModifyDP" }],
+      actions: [{ kind: "CostGatedBlock", cost: { kind: "suspend" } }],
     });
   });
 
@@ -52,5 +65,30 @@ describe("BT26-047 TyrantKabuterimon", () => {
       s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }
     ).continuous;
     expect(continuous.hasRestriction(s.perm("eligible").permanentId, "beAffected", "Option")).toBe(true);
+  });
+
+  it("offers the two simultaneous On Play effects for ordering (Q7043)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+
+    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tyrant"));
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const pending = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+    const keys = request.options?.triggerKeys ?? [];
+    expect(keys).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "orderTriggers", order: [keys[1]!] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
   });
 });

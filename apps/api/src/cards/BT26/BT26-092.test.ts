@@ -15,11 +15,17 @@ describe("BT26-092 Shota Kuroi", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "StartOfYourMainPhase",
       actions: [
-        { kind: "Draw", cost: { kind: "trash" } },
-        { kind: "GainMemory", amount: 1 },
+        {
+          kind: "CostGatedBlock",
+          cost: { kind: "trash" },
+          optional: true,
+          actions: [
+            { kind: "Draw", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
+        },
       ],
     });
-    expect(compiled.effects[0]?.actions[0]).toMatchObject({ optional: false });
   });
   it("compiles the opponent-attack TS Tamer cost and TS Digimon redirect", () => {
     expect(compiled.effects[1]).toMatchObject({
@@ -42,7 +48,7 @@ describe("BT26-092 Shota Kuroi", () => {
           deck: ["BT1-001", "BT1-002"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
 

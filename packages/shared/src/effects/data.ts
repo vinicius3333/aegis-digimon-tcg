@@ -145,7 +145,9 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
       ],
     },
   ],
-  "BT26-086": [{ reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] }],
+  "BT26-086": [
+    { reduceCost: 7, materials: [{ kinds: ["Digimon"], traits: ["Seven Code"], count: 7, differentNames: true }] },
+  ],
 };
 
 /** BT26 App Fusion headers are absent from the historical compiled effects artifact. */

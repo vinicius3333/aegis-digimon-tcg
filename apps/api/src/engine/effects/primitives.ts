@@ -101,6 +101,10 @@ export { ModifierLedger } from "./modifiers.js";
  * a single authoritative gauge and primitives must use the real one.
  */
 export interface PrimitivesEngine {
+  /** Notify the engine that one triggered effect body has begun resolving. */
+  beginEffectBody?(): void;
+  /** Notify the engine that one triggered effect body has completely resolved. */
+  finishEffectBody?(): void;
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
@@ -355,10 +359,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const enterEffectResolution: Primitives["enterEffectResolution"] = (seat, sourceKinds = []) => {
     effectSeatStack.push(seat);
     effectSourceKindsStack.push(sourceKinds);
+    engine.beginEffectBody?.();
   };
   const leaveEffectResolution: Primitives["leaveEffectResolution"] = () => {
     effectSeatStack.pop();
     effectSourceKindsStack.pop();
+    engine.finishEffectBody?.();
   };
   const restrictSecurityAddsFromEffect: Primitives["restrictSecurityAddsFromEffect"] = (
     blockedEffectSeat,
@@ -721,6 +727,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       effectSourceCardId?: string;
       playedByDecode?: boolean;
       digiXrosMaterialInstanceIds?: string[];
+      assemblyMaterialInstanceIds?: string[];
       hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]> => {
@@ -810,6 +817,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         from: "various",
         to: opts?.breeding ? Zone.Breeding : Zone.BattleArea,
       });
+    }
+    if (created.length === 1 && (opts?.assemblyMaterialInstanceIds?.length ?? 0) > 0) {
+      for (const materialInstanceId of opts!.assemblyMaterialInstanceIds!) {
+        await placeUnder(created[0]!.permanentId, [materialInstanceId]);
+      }
     }
     if (created.length > 0 && !opts?.breeding) {
       // A played permanent is already in the battle area before its [On Play] resolves.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-098.js";
 import "../index.js";
 
@@ -47,14 +47,27 @@ describe("BT26-098 compiled fidelity", () => {
     ]);
 
     const main = card?.effects?.find((effect) => effect.trigger === "Main")?.actions ?? [];
-    expect(main[0]).toMatchObject({ kind: "PlaceUnder", position: "bottom", bindHostAs: "lalamonHost" });
-    expect(main[1]).toMatchObject({ kind: "PlaceUnder", position: "bottom", underSelectionRef: "lalamonHost" });
-    expect(main[2]).toMatchObject({
-      kind: "Digivolve",
-      from: ["hand"],
-      payCost: false,
-      ignoreRequirements: true,
+    expect(main[0]).toMatchObject({
+      kind: "CostGatedBlock",
       optional: true,
+      abortOnDecline: true,
+      cost: {
+        kind: "compound",
+        costs: [
+          { kind: "place", position: "bottom", bindHostAs: "lalamonHost" },
+          { kind: "place", position: "bottom", host: { filter: { boundRef: "lalamonHost" } } },
+        ],
+      },
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { fromSelectionRef: "lalamonHost" },
+          from: ["hand"],
+          payCost: false,
+          ignoreRequirements: true,
+          optional: true,
+        },
+      ],
     });
   });
 
@@ -75,5 +88,64 @@ describe("BT26-098 compiled fidelity", () => {
 
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT26-036")).toHaveLength(2);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-098");
+  });
+
+  it("places both named materials under one Lalamon before the free evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-036", as: "lalamon" }],
+          trash: [
+            { card: "BT26-039", as: "sunflowmon" },
+            { card: "BT26-044", as: "lilamon" },
+          ],
+          hand: [
+            { card: "BT26-098", as: "option" },
+            { card: "BT26-049", as: "rosemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("lalamon").topCard.cardId === "BT26-049");
+
+    expect(s.perm("lalamon").topCard.cardId).toBe("BT26-049");
+    expect(s.perm("lalamon").stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT26-039", "BT26-044"]),
+    );
+  });
+
+  it("Q7173: with only one named material, moves neither card and does not digivolve", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-036", as: "lalamon" }],
+          trash: [{ card: "BT26-039", as: "sunflowmon" }],
+          hand: [
+            { card: "BT26-098", as: "option" },
+            { card: "BT26-049", as: "rosemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-098"));
+
+    expect(s.perm("lalamon").topCard.cardId).toBe("BT26-036");
+    expect(s.perm("lalamon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-039");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-049");
   });
 });

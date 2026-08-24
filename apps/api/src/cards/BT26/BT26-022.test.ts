@@ -126,6 +126,67 @@ describe("BT26-022 Sorcermon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("iliad").instanceId]);
   });
 
+  it("a purple Digimon enables the cost and the nested play accepts a red Iliad card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "sorcermon" },
+            { card: "BT26-064", as: "purpleGate" },
+          ],
+          hand: [
+            { card: "BT25-008", as: "redIliad" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("sorcermon"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("redIliad").instanceId),
+    );
+
+    expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(s.inst("sorcermon").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrelated").instanceId]);
+  });
+
+  it("may pay the security cost and then decline the independent play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: CARD_ID, as: "sorcermon" },
+          { card: "BT26-009", as: "redGate" },
+        ],
+        hand: [{ card: "BT24-019", as: "eligible" }],
+      },
+    });
+    const resolving = advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("sorcermon"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const costChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costChoice.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const playChoice = s.state.pendingDecision!;
+    expect(playChoice.decisionId).not.toBe(costChoice.decisionId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playChoice.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(s.inst("sorcermon").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("eligible").instanceId]);
+  });
+
   it("encodes the ordered recovery, conditional security cost, and inherited Barrier", () => {
     expect(compiled.effects).toMatchObject([
       {
@@ -144,7 +205,13 @@ describe("BT26-022 Sorcermon", () => {
       },
       {
         trigger: "EndOfYourTurn",
-        actions: [{ kind: "PlayWithoutCost", reduceCostBy: 4, cost: { kind: "place", position: "bottom" } }],
+        actions: [
+          {
+            kind: "CostGatedBlock",
+            cost: { kind: "place", position: "bottom" },
+            actions: [{ kind: "PlayWithoutCost", reduceCostBy: 4, optional: true }],
+          },
+        ],
       },
       { trigger: "Static", isInherited: true, keywords: [{ keyword: "Barrier" }] },
     ]);
@@ -162,5 +229,29 @@ describe("BT26-022 Sorcermon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Barrier")).toBe(false);
+  });
+
+  it("uses inherited Barrier to spend top security and prevent effect deletion", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-029", as: "host", under: [{ card: CARD_ID }] }],
+        security: [
+          { card: "BT1-009", as: "barrierCost" },
+          { card: "BT1-010", as: "remaining" },
+        ],
+      },
+    });
+    const hostId = s.perm("host").permanentId;
+    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
+    expect(await deletion).toBe(0);
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
   });
 });

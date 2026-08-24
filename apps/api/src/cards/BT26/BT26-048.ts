@@ -9,19 +9,20 @@ const ver4 = {
   dp: { op: "lte", value: 6000 },
   nameOrTrait: [{ tokens: ["Ver.4"], match: "trait" }],
 };
-const trashBottomFaceDown = {
-  kind: "TrashDigivolution",
-  target: { filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasFaceDown" }, count: 1 },
-  amount: 1,
-  fromTop: false,
+const trashAndPlay = {
+  kind: "CostGatedBlock",
+  cost: { kind: "trashBottomFaceDownUnderDigimon", controller: "mine" },
   optional: true,
-};
-const play = {
-  kind: "PlayWithoutCost",
-  target: { filter: ver4, count: 1 },
-  from: ["hand"],
-  payCost: false,
-  optional: true,
+  abortOnDecline: true,
+  actions: [
+    {
+      kind: "PlayWithoutCost",
+      target: { filter: ver4, count: 1 },
+      from: ["hand"],
+      payCost: false,
+      optional: true,
+    },
+  ],
 };
 export const compiled: CompiledCard = {
   effects: [
@@ -33,8 +34,8 @@ export const compiled: CompiledCard = {
       ],
       actions: [],
     },
-    { trigger: "WhenDigivolving", actions: [trashBottomFaceDown, play] },
-    { trigger: "WhenAttacking", actions: [trashBottomFaceDown, play] },
+    { trigger: "WhenDigivolving", actions: [trashAndPlay] },
+    { trigger: "WhenAttacking", actions: [trashAndPlay] },
     {
       trigger: "AllTurns",
       actions: [

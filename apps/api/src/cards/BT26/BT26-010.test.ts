@@ -146,7 +146,7 @@ describe("BT26-010 Roleplaymon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
@@ -169,7 +169,7 @@ describe("BT26-010 Roleplaymon", () => {
           deck: ["BT1-009", "BT1-010"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
@@ -180,13 +180,16 @@ describe("BT26-010 Roleplaymon", () => {
   });
 
   it("does not trash or draw when the hand has no Game, Open, or Seven Code card", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: CARD_ID, as: "roleplay" }],
-        hand: [{ card: "BT1-009", as: "unrelated" }],
-        deck: ["BT1-010", "BT1-011"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "roleplay" }],
+          hand: [{ card: "BT1-009", as: "unrelated" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
 
@@ -195,11 +198,37 @@ describe("BT26-010 Roleplaymon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("may decline the optional attack payment without trashing or drawing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "roleplay" }],
+          hand: [{ card: "BT21-054", as: "eligibleCost" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("eligibleCost").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
   it("encodes the exact hand cost, inherited draw, and linked keywords", () => {
     expect(compiled.effects).toMatchObject([
       {
         trigger: "WhenAttacking",
-        actions: [{ kind: "Draw", amount: 2, cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } } }],
+        actions: [
+          {
+            kind: "Draw",
+            amount: 2,
+            optional: true,
+            cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } },
+          },
+        ],
       },
       { trigger: "Static", isLinked: true, keywords: [{ keyword: "Progress" }, { keyword: "Piercing" }] },
     ]);

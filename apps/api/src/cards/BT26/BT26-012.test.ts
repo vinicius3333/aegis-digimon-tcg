@@ -1,14 +1,14 @@
 import { EffectDuration, EffectTiming, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-012.js";
 import "../index.js";
 
 const CARD_ID = "BT26-012";
 
 describe("BT26-012 Manekimon", () => {
-  it("uses the exact off-color Lv.3 [Shambala] cost-2 evolution path and rejects a near-match", () => {
+  it("uses the exact off-color Lv.3 [Shambala] cost-2 evolution path and rejects a near-match", async () => {
     expect(compiled.digivolutionRequirement).toContainEqual({
       level: 3,
       traits: ["Shambala"],
@@ -30,6 +30,9 @@ describe("BT26-012 Manekimon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
+    await settle(() => legal.perm("shambala").topCard.cardId === CARD_ID);
+    expect(legal.perm("shambala").stack.at(-1)?.cardId).toBe("BT26-008");
+    expect(legal.state.memory).toBe(0);
 
     const illegal = setupEngine({
       0: {
@@ -120,6 +123,33 @@ describe("BT26-012 Manekimon", () => {
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("Q6966 does not combine reductions from two copies into one play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "first" },
+            { card: CARD_ID, as: "second" },
+          ],
+          hand: [{ card: "BT26-014", as: "costSevenTb" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("costSevenTb").instanceId);
+    s.state.memory = 3;
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("first"));
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("second"));
+
+    expect(s.state.memory).toBe(-2);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("costSevenTb").instanceId),
+    ).toBe(true);
   });
 
   it("Q6968 leaves a selected Digimon in hand when effect-driven plays are prohibited", async () => {

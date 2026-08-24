@@ -8,26 +8,47 @@ const beatbreak = {
   count: 1,
 };
 const startCost = {
-  kind: "PlaceUnder",
+  kind: "place",
   target: {
     filter: { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] },
     count: 1,
   },
   underFilter: self.filter,
+  host: "self",
+  destination: "digivolutionStack",
+  position: "bottom",
   faceDown: true,
 };
 const attackBody = [
-  { kind: "Suspend", target: self },
-  { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true },
-  { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Collision" }, duration: "untilEachTurnEnd" },
-  { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Blocker" }, duration: "untilEachTurnEnd" },
+  {
+    kind: "CostGatedBlock",
+    cost: { kind: "suspend", target: self },
+    optional: true,
+    abortOnDecline: true,
+    actions: [
+      { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true },
+      { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Collision" }, duration: "untilEachTurnEnd" },
+      { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Blocker" }, duration: "untilEachTurnEnd" },
+    ],
+  },
 ];
 
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
-      actions: [startCost, { kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+      actions: [
+        {
+          kind: "CostGatedBlock",
+          cost: startCost,
+          optional: true,
+          abortOnDecline: true,
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
+        },
+      ],
     },
     {
       trigger: "AllTurns",

@@ -15,13 +15,18 @@ const startDigivolve = {
   into: trashTitan,
   from: ["trash"],
   payCost: true,
+  useAlternateCost: true,
   costDelta: -2,
   optional: true,
   condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 },
 };
 const inheritedDigivolve = {
   kind: "Digivolve",
-  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+  target: {
+    filter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] },
+    count: 1,
+    isSelf: true,
+  },
   into: {
     controllerDefault: "mine",
     zone: "trash",
@@ -33,6 +38,7 @@ const inheritedDigivolve = {
   },
   from: ["trash"],
   payCost: true,
+  useAlternateCost: true,
   costDelta: -1,
   optional: true,
 };

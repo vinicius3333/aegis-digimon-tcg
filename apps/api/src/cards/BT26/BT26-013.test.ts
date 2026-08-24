@@ -26,6 +26,44 @@ describe("BT26-013 Musyamon", () => {
     });
   });
 
+  it("digivolves for 2 over an off-color TS Lv.3 and rejects a non-trait peer", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-019", as: "tsBase" }],
+        hand: [{ card: "BT26-013", as: "musyamon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    legal.state.memory = 2;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsBase").permanentId,
+        instanceId: legal.inst("musyamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsBase").topCard.cardId === "BT26-013");
+    expect(legal.perm("tsBase").stack.at(-1)?.cardId).toBe("BT24-019");
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-030", as: "plainBlue" }],
+        hand: [{ card: "BT26-013", as: "musyamon" }],
+      },
+    });
+    illegal.state.memory = 2;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("plainBlue").permanentId,
+        instanceId: illegal.inst("musyamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("trashes one hand card and deletes an opponent Digimon at 6000 DP or less", async () => {
     const s = setupEngine(
       {
@@ -42,7 +80,7 @@ describe("BT26-013 Musyamon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
@@ -65,7 +103,7 @@ describe("BT26-013 Musyamon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const selfId = s.perm("self").topCard.instanceId;
     const safeId = s.perm("safe").topCard.instanceId;
@@ -88,7 +126,7 @@ describe("BT26-013 Musyamon", () => {
         },
         1: { battleArea: [{ card: "BT26-014", as: "safe", dp: 7000 }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("self"));
@@ -104,6 +142,27 @@ describe("BT26-013 Musyamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT26-013", as: "self" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("self"), "Blocker")).toBe(true);
+  });
+
+  it("may decline the optional hand-trash payment without deleting a legal target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-013", as: "self" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT26-012", as: "target", dp: 6000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("self"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("target").instanceId,
+    ]);
   });
 
   it("applies inherited +2000 DP only on the owner's turn", async () => {

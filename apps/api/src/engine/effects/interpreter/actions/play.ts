@@ -121,10 +121,24 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // silent no-op; the trash-activation half of the eighth engine gap). Route
           // through the zone-agnostic `playInstances` instead, which locates a loose
           // instance in ANY zone.
+          const assemblyTarget = action.assembly?.target;
+          const assemblyCandidates =
+            assemblyTarget === undefined ? [] : candidateLooseInstances(ctx, assemblyTarget, ["trash"]);
+          const selectedAssembly =
+            assemblyTarget === undefined
+              ? []
+              : await pickLoose(ctx, { ...assemblyTarget, upTo: true }, assemblyCandidates, undefined, ctx.ask);
+          const assemblyComplete =
+            assemblyTarget !== undefined &&
+            typeof assemblyTarget.count === "number" &&
+            selectedAssembly.length === assemblyTarget.count;
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined || assemblyComplete
+              ? { costDelta: (action.reduceCostBy ?? 0) + (assemblyComplete ? action.assembly!.reduceCostBy : 0) }
+              : {}),
+            ...(assemblyComplete ? { assemblyMaterialInstanceIds: selectedAssembly } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
@@ -151,9 +165,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       if (action.fromOwnDigivolutionStack) {
         const self = ctx.source.permanent();
         if (self === undefined) return false;
-        const matching = self.stack.filter((c) =>
-          definitionMatches(action.target.filter, ctx.game.definitionOf({ cardId: c.cardId } as never)),
-        );
+        const filters = [
+          action.target.filter,
+          ...(action.target.orFilters ?? []),
+          ...(action.target.filter.orFilters ?? []),
+        ];
+        const matching = self.stack.filter((c) => {
+          const definition = ctx.game.definitionOf({ cardId: c.cardId } as never);
+          return filters.some((filter) => definitionMatches(filter, definition));
+        });
         if (matching.length === 0) {
           ctx.lastEffectActed = false;
           return false;
@@ -368,11 +388,18 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         // Option definitions, so routing every PlayWithoutCost target through it silently
         // dropped effects such as BT4-089 using Hell's Gate from hand. Preserve the Option
         // lifecycle here: resolve [Main], move it to trash, and fire whenOptionUsed. The
-        // printed cost is still reported to watchers even though this action pays no cost.
+        // printed cost is still reported to watchers even though this action pays no cost. A DUAL
+        // Digimon/Option selected through a Digimon/Tamer filter is played by its permanent side;
+        // it is used as an Option only when the filter requests Option without a permanent kind.
+        const requestedKinds = action.target?.filter?.kind ?? [];
+        const explicitlyUsesOption =
+          requestedKinds.includes("Option") && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
         const optionIds = chosen.filter((instanceId) => {
           const candidate = candidates.find((c) => c.instanceId === instanceId);
           if (candidate === undefined) return false;
-          return ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds.includes(CardKind.Option);
+          const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
+          const hasPermanentSide = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
+          return kinds.includes(CardKind.Option) && (!hasPermanentSide || explicitlyUsesOption);
         });
         for (const optionId of optionIds) {
           const candidate = candidates.find((c) => c.instanceId === optionId);

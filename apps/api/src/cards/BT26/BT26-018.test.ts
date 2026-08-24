@@ -180,6 +180,35 @@ describe("BT26-018 public engine behavior", () => {
     expect(observe(s.engine).hasKeyword(s.perm("topSangomon"), "Jamming")).toBe(false);
   });
 
+  it("uses inherited Jamming to survive a losing security battle while a top-card copy does not", async () => {
+    const inherited = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: CARD_ID }] }] },
+      1: { security: [{ card: "BT26-017", as: "securityDigimon" }] },
+    });
+    expect(
+      inherited.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: inherited.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => inherited.state.players[1]!.security.length === 0);
+    expect(inherited.state.players[0]!.battleArea).toHaveLength(1);
+
+    const topCard = setupEngine({
+      0: { battleArea: [{ card: CARD_ID, as: "sangomon" }] },
+      1: { security: [{ card: "BT26-017", as: "securityDigimon" }] },
+    });
+    expect(
+      topCard.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: topCard.perm("sangomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => topCard.state.players[0]!.battleArea.length === 0);
+  });
+
   it("uses the normalized Lv.2 DS alternate requirement at exact cost 0", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual([{ level: 2, traits: ["DS"], cost: 0, isAlternate: true }]);
     const s = setupEngine({

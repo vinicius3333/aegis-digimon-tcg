@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-097.js";
 import "../index.js";
 
@@ -28,19 +28,22 @@ describe("BT26-097 compiled fidelity", () => {
       { kind: "CostModifier", costType: "use", handResident: true, amount: 1, scaling: { unit: "security", per: 1 } },
     ]);
     const main = card?.effects?.find((effect) => effect.trigger === "Main")?.actions ?? [];
-    expect(main[0]).toMatchObject({ kind: "PlaceUnder", targetIsPermanent: true, position: "bottom" });
-    expect(main[1]).toMatchObject({
-      kind: "Digivolve",
-      from: ["hand", "trash"],
-      payCost: false,
-      ignoreRequirements: true,
+    expect(main[0]).toMatchObject({
+      kind: "CostGatedBlock",
       optional: true,
-    });
-    expect(main[2]).toMatchObject({
-      kind: "PlaceUnder",
-      position: "top",
-      optional: true,
-      condition: { kind: "ifThisEffectDigivolved" },
+      abortOnDecline: true,
+      cost: { kind: "place", targetIsPermanent: true, position: "bottom", bindHostAs: "aegiomonHost" },
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { fromSelectionRef: "aegiomonHost" },
+          from: ["hand", "trash"],
+          payCost: false,
+          ignoreRequirements: true,
+          optional: true,
+        },
+        { kind: "PlaceUnder", position: "top", optional: true, condition: { kind: "ifThisEffectDigivolved" } },
+      ],
     });
     expect(card.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
       scaling: { unit: "security", per: 1 },
@@ -64,5 +67,58 @@ describe("BT26-097 compiled fidelity", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-009");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-097");
+  });
+
+  it("places the Tamer under and digivolves the same Aegiomon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-034", as: "aegiomon" },
+            { card: "BT24-085", as: "tamer" },
+          ],
+          hand: [
+            { card: "BT26-097", as: "option" },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("aegiomon").topCard.cardId === "BT24-101");
+
+    expect(s.perm("aegiomon").topCard.cardId).toBe("BT24-101");
+    expect(s.perm("aegiomon").stack.map(({ cardId }) => cardId)).toContain("BT24-085");
+  });
+
+  it("cannot digivolve when the Tamer placement cost is unavailable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-034", as: "aegiomon" }],
+          hand: [
+            { card: "BT26-097", as: "option" },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-097"));
+
+    expect(s.perm("aegiomon").topCard.cardId).toBe("BT24-034");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT24-101");
   });
 });

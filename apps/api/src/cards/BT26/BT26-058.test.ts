@@ -50,4 +50,26 @@ describe("BT26-058 HiAndromon", () => {
     ).continuous;
     expect(continuous.hasRestriction(s.perm("hiAndromon").permanentId, "beAffected", "Digimon")).toBe(true);
   });
+
+  it("prevents a CS Digimon leaving by rotating HiAndromon's top card to its stack bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-058", as: "hiAndromon", under: [{ card: "BT26-054", as: "rotation" }] },
+            { card: "BT26-054", as: "protected" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const protectedId = s.perm("protected").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([protectedId], "byEffect")).toBe(0);
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === protectedId)).toBe(true);
+    expect(s.perm("hiAndromon").topCard.cardId).toBe("BT26-054");
+    expect(s.perm("hiAndromon").stack[0]?.cardId).toBe("BT26-058");
+  });
 });

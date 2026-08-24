@@ -4,10 +4,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const playable = {
   controllerDefault: "mine",
-  orFilters: [
-    { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] },
-    { kind: ["Tamer"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
-  ],
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }],
 };
 
 export const compiled: CompiledCard = {
@@ -21,7 +19,13 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: playable, count: 1 },
+          target: {
+            filter: playable,
+            orFilters: [
+              { controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+            ],
+            count: 1,
+          },
           from: ["hand", "trash"],
           payCost: true,
           reduceCostBy: 2,

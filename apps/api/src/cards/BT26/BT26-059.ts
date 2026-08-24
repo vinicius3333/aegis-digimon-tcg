@@ -14,19 +14,24 @@ const titan = {
 };
 const shared = [
   {
-    kind: "Trash",
-    target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+    kind: "CostGatedBlock",
+    cost: {
+      kind: "trash",
+      target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+    },
     optional: true,
-    condition: { kind: "isYourTurn", raw: "if it is your turn" },
-  },
-  {
-    kind: "PlayWithoutCost",
-    target: titan,
-    from: ["trash"],
-    payCost: true,
-    reduceCostBy: 7,
-    optional: true,
-    condition: { kind: "isYourTurn", raw: "if it is your turn" },
+    abortOnDecline: true,
+    actions: [
+      {
+        kind: "PlayWithoutCost",
+        target: titan,
+        from: ["trash"],
+        payCost: true,
+        reduceCostBy: 7,
+        optional: true,
+        condition: { kind: "isYourTurn", raw: "if it is your turn" },
+      },
+    ],
   },
 ];
 export const compiled: CompiledCard = {

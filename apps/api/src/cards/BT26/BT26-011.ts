@@ -22,7 +22,7 @@ const drawTwoWithCost = {
   controller: "mine",
   amount: 2,
   cost: trashChronomonOrShaman,
-  optional: false,
+  optional: true,
   abortOnDecline: true,
 };
 

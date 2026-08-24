@@ -265,6 +265,11 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         if (matchedFilter?.faceUp === true && cand.faceUp !== true) continue;
         if (matchedFilter?.faceUp === false && cand.faceUp === true) continue;
         if (matchedFilter?.faceDown === true && cand.faceUp === true) continue;
+        if (zone === "security" && (matchedFilter?.position === "top" || matchedFilter?.position === "bottom")) {
+          const security = ctx.game.player(seat).security;
+          const positioned = matchedFilter.position === "top" ? security[0] : security.at(-1);
+          if (positioned?.instanceId !== cand.instanceId) continue;
+        }
         const hostFilter = matchedFilter?.hostFilter;
         if ((zone === "digivolutionCards" || zone === "linked") && hostFilter && cand.hostPermanentId) {
           if (hostFilter.isSelfRef === true) {

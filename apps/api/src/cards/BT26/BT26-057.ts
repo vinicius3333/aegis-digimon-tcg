@@ -21,13 +21,12 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "TrashDigivolution",
-          target: { filter: { controller: "mine", kind: ["Tamer"], digivolutionCards: "hasAny" }, count: 1 },
-          amount: 1,
-          fromTop: false,
+          kind: "CostGatedBlock",
+          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
           optional: true,
+          abortOnDecline: true,
+          actions: immuneAndDp,
         },
-        ...immuneAndDp,
       ],
     },
     {

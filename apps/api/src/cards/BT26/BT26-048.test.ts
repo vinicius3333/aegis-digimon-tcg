@@ -22,8 +22,11 @@ describe("BT26-048 BloomLordmon", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"])
       expect(compiled.effects?.find((e) => e.trigger === trigger)).toMatchObject({
         actions: [
-          { kind: "TrashDigivolution", fromTop: false },
-          { kind: "PlayWithoutCost", payCost: false },
+          {
+            kind: "CostGatedBlock",
+            cost: { kind: "trashBottomFaceDownUnderDigimon" },
+            actions: [{ kind: "PlayWithoutCost", payCost: false }],
+          },
         ],
       });
     expect(compiled.effects?.[3]).toMatchObject({
@@ -59,5 +62,36 @@ describe("BT26-048 BloomLordmon", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-023");
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(s.perm("opponent").currentDP).toBe(4000);
+  });
+
+  it("cannot pay with a face-up bottom card even when a higher stack card is face-down", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-048", as: "bloomLordmon" },
+            {
+              card: "BT1-009",
+              as: "host",
+              under: [
+                { card: "BT1-010", as: "faceUpBottom", faceUp: true },
+                { card: "BT1-011", as: "faceDownUpper", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT26-023", as: "ver4" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ver4").instanceId);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("faceUpBottom").instanceId,
+      s.inst("faceDownUpper").instanceId,
+    ]);
   });
 });
