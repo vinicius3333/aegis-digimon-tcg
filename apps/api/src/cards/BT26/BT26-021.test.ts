@@ -109,14 +109,20 @@ describe("BT26-021 public engine behavior", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-008", as: "ownTs" },
+            { card: "BT26-013", as: "ownTs" },
             { card: "BT1-009", as: "nonTs" },
           ],
           hand: [{ card: CARD_ID, as: "gekomon" }],
         },
-        1: { battleArea: [{ card: "BT25-008", as: "opponentTs" }] },
+        1: {
+          battleArea: [
+            { card: "BT25-008", as: "opponentTs" },
+            { card: "BT26-017", as: "blocker" },
+          ],
+          security: ["BT1-001"],
+        },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("ownTs").permanentId);
     s.state.memory = 4;
@@ -137,6 +143,16 @@ describe("BT26-021 public engine behavior", () => {
     expect(observe(s.engine).isRestricted(s.perm("ownTs"), "attackTargetChange")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("nonTs"), "attackTargetChange")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("opponentTs"), "attackTargetChange")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ownTs").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.perm("blocker").isSuspended).toBe(false);
 
     advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 0);
     expect(observe(s.engine).isRestricted(s.perm("ownTs"), "attackTargetChange")).toBe(false);
@@ -275,10 +291,12 @@ describe("BT26-021 public engine behavior", () => {
             { card: "BT1-010", as: "firstCost" },
             { card: "BT1-011", as: "secondCost" },
           ],
+          security: ["BT1-015", "BT1-016"],
         },
         1: {
           battleArea: [
-            { card: "BT1-013", as: "attacker" },
+            { card: "BT1-013", as: "firstAttacker" },
+            { card: "BT1-014", as: "secondAttacker" },
             {
               card: "BT1-083",
               as: "target",
@@ -295,16 +313,24 @@ describe("BT26-021 public engine behavior", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").permanentId);
-    await s.ready();
+    s.state.turnSeat = 1;
 
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    await settle(() => s.perm("target").stack.length === 2);
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-    await settle();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 2 && s.state.players[0]!.security.length === 1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
 
     expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([
       s.inst("third").instanceId,
