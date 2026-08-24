@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
@@ -69,6 +69,110 @@ describe("EX12-013 BetelGammamon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.perm("source").currentDP).toBe(8000);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("plays a non-VB card whose effect text contains Gammamon (Q6730)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-013", as: "source" }],
+          hand: [{ card: "AD1-007", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-007"));
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not combine reductions from two copies for one play (Q6731)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-013", as: "source" },
+            { card: "EX12-013", as: "second" },
+          ],
+          hand: [{ card: "EX12-007", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-007"));
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("plays for full printed cost when Solarmon forbids reduction (Q6732)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-013", as: "source" }],
+          hand: [{ card: "EX12-007", as: "target" }],
+        },
+        1: { battleArea: ["ST12-03"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-007"));
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("activates but cannot play through Pomumon's effect-play lock (Q6733)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-013", as: "source" }],
+          hand: [{ card: "EX12-007", as: "target" }],
+        },
+        1: { battleArea: ["BT9-047"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("source").topCard!.instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("enforces Once Per Turn across two activations", async () => {
@@ -171,5 +275,54 @@ describe("EX12-013 BetelGammamon", () => {
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
       keywords: [{ keyword: "Barrier" }],
     });
+  });
+
+  it("grants inherited Barrier only to its host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX12-007", as: "host", under: ["EX12-013"] },
+          { card: "EX12-007", as: "control" },
+        ],
+      },
+    });
+    await s.ready();
+
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
+      .continuous;
+    expect(continuous.hasKeyword(s.perm("host").permanentId, "Barrier")).toBe(true);
+    expect(continuous.hasKeyword(s.perm("control").permanentId, "Barrier")).toBe(false);
+  });
+
+  it("uses both normal colors and both printed cost-2 alternatives", async () => {
+    expect(digivolutionRequirementsFor("EX12-013")).toEqual([
+      { names: ["Gammamon"], cost: 2, isAlternate: true },
+      { level: 3, traits: ["VB"], cost: 2, isAlternate: true },
+    ]);
+
+    for (const [baseCardId, useAlternateCost, startingMemory] of [
+      ["EX12-005", false, 3],
+      ["EX12-040", false, 3],
+      ["RB1-005", true, 2],
+      ["EX12-021", true, 2],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "EX12-013", as: "betel" }],
+        },
+      });
+      s.state.memory = startingMemory;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("betel").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX12-013");
+      expect(s.state.memory).toBe(0);
+    }
   });
 });

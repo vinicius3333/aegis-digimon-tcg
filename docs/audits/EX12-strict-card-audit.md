@@ -366,3 +366,28 @@ for the individual evidence below.
 - **Verification:** `EX12-012.test.ts` — 9/9; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   card-specific ruling, or unresolved ambiguity.
+
+## EX12-013 — BetelGammamon — 10/10
+
+- **Printed contract:** Red/yellow level 4 Dragonkin/VB, play cost 5 and 6000 DP.
+  Normal red/yellow level-3 evolution costs 3; Gammamon-name or level-3 VB alternatives
+  cost 2. Its once-per-turn Main may play a matching Digimon/Tamer or use a matching
+  Option from hand, paying its cost reduced by 2. Its inherited effect grants Barrier.
+- **KB evidence:** Q6730 defines the complete card-text union; Q6731 forbids combining
+  two copies' activations for one play/use; Q6732 permits the play under Solarmon but
+  suppresses reduction; Q6733 permits activation under Pomumon but blocks the effect play.
+- **Implementation trace:** a count-1 Modal separates play from Option use. Both branches
+  match Gammamon text or exact VB trait, pay cost with `reduceCostBy:2`, and remain optional.
+  Main is `OncePerTurn`; the inherited Static effect installs Barrier. Alternate evolution
+  requirements independently cover name and level-3 VB.
+- **Ruling proof:** AD1-007 proves effect-text matching without Gammamon in its name or VB
+  trait. Two EX12-013 copies still reduce one EX12-007 by only 2. With opposing ST12-03,
+  EX12-007 is played for its full cost 3; with opposing BT9-047, activation succeeds but
+  the target stays in hand and no memory is paid. A VB Digimon and Gammamon-text Option
+  prove both modal branches, and a second activation is rejected.
+- **Placement and evolution proof:** a buried EX12-013 grants Barrier only to its host.
+  Normal red EX12-005 and yellow EX12-040 pay 3; Gammamon RB1-005 and off-color VB
+  EX12-021 pay 2.
+- **Verification:** `EX12-013.test.ts` — 11/11 with no error log; workspace typecheck,
+  focused formatting, focused lint, and `git diff --check` passed. No implementation
+  correction was needed; there is no residual IR, unsupported behavior, or open ruling.
