@@ -133702,17 +133702,22 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 3, "upTo": true },
-            "optional": true
-          },
-          {
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "untilYourTurnEnd",
             "optional": true,
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine" }, "unit": "cards" }
+            "cost": {
+              "kind": "trash",
+              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 3, "upTo": true },
+              "raw": "By trashing up to 3 cards from your hand"
+            },
+            "scaling": {
+              "per": 1,
+              "usePaidCount": true,
+              "filter": { "controllerDefault": "mine" },
+              "unit": "cards"
+            }
           }
         ]
       },
@@ -133720,17 +133725,22 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 3, "upTo": true },
-            "optional": true
-          },
-          {
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "untilYourTurnEnd",
             "optional": true,
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine" }, "unit": "cards" }
+            "cost": {
+              "kind": "trash",
+              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 3, "upTo": true },
+              "raw": "By trashing up to 3 cards from your hand"
+            },
+            "scaling": {
+              "per": 1,
+              "usePaidCount": true,
+              "filter": { "controllerDefault": "mine" },
+              "unit": "cards"
+            }
           }
         ]
       },
@@ -133738,17 +133748,22 @@
         "trigger": "Counter",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 3, "upTo": true },
-            "optional": true
-          },
-          {
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "untilYourTurnEnd",
             "optional": true,
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine" }, "unit": "cards" }
+            "cost": {
+              "kind": "trash",
+              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 3, "upTo": true },
+              "raw": "By trashing up to 3 cards from your hand"
+            },
+            "scaling": {
+              "per": 1,
+              "usePaidCount": true,
+              "filter": { "controllerDefault": "mine" },
+              "unit": "cards"
+            }
           }
         ]
       },
@@ -133758,6 +133773,7 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
+            "affectsAll": true,
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -133801,12 +133817,30 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 }
+            "kind": "TrashDigivolution",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": ["Digimon", "Tamer"],
+                "digivolutionCards": "hasAny"
+              },
+              "count": "any"
+            },
+            "scope": "acrossDigimon",
+            "amount": 4,
+            "fromTop": false,
+            "distributed": true
           },
           {
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": ["Digimon", "Tamer"],
+                "digivolutionCards": "none"
+              },
+              "count": 1
+            },
             "to": "hand",
             "optional": true
           }

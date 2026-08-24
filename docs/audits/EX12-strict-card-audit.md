@@ -992,3 +992,45 @@ for the individual evidence below.
   restriction enforcement — 17/17; interpreter — 171/171; digivolution action flow — 27/27;
   workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-033 — Amphimon / Frozen Crystal — 10/10
+
+- **Printed contract:** Blue/yellow level 6 Cyborg/DS Data dual Digimon/Option, play cost 5 and
+  12000 DP. Normal blue/yellow level-5 evolutions cost 4; level-5 Jellymon-text or DS costs 3.
+  Its Digimon effect at When Digivolving, When Attacking, and Counter may trash up to three hand
+  cards to give one opposing Digimon -4000 DP per card actually trashed through the end of the
+  user's turn. Once per turn, when any own Jellymon-text or DS Digimon would leave, returning
+  exactly three trash cards to deck bottom prevents every matching Digimon in that simultaneous
+  batch from leaving. Frozen Crystal has a DS use requirement; its Main effect trashes any four
+  sources distributed across opposing Digimon/Tamers, then may return one source-less opposing
+  Digimon/Tamer to hand.
+- **KB evidence:** Q6770 defines Jellymon-text as the complete printed-text union. Q6771 requires
+  all three cards for the prevention payment. Q6772 confirms that a Digi-Egg routed to the egg
+  deck still pays. Q6773 permits only one Counter activation per attack. Q6774 makes one
+  prevention payment protect all simultaneously leaving qualifying Digimon rather than one.
+- **Corrections:** the replacement lacked `affectsAll`, so it could not express Q6774, and its
+  payment was not explicitly optional/abortable in the direct module. Both are now encoded. The
+  aggregate IR separately trashed hand cards before each DP modifier and scaled generically,
+  rather than scaling from the attached paid cost; all three timings now use `usePaidCount`. Its
+  Frozen Crystal action incorrectly trashed one generic target and could return a target that
+  still had sources; it now matches the distributed four-source removal and source-less filter.
+  Direct and aggregate records are asserted equal.
+- **Ruling and behavioral proof:** both When Digivolving and When Attacking scale from the actual
+  number of hand cards trashed. A non-DS BT13-028 qualifies only through Jellymon in its printed
+  text. One three-card payment protects Amphimon, that text-only Digimon, and a DS Digimon from
+  the same batched deletion, proving Q6770/Q6774. Two cards cannot pay and the target leaves;
+  two normal cards plus a Digi-Egg do pay, with the normal cards reaching deck bottom and the egg
+  reaching the egg deck, proving Q6771/Q6772. A later leave in the same turn is not prevented.
+  The real Counter window activates Amphimon once and rejects a second Counter response for that
+  attack, proving Q6773. An off-color purple DS Digimon waives Frozen Crystal's blue requirement;
+  without DS the use is rejected. The Main effect removes four sources across two stacks and
+  returns an eligible source-less permanent.
+- **Evolution proof:** normal blue BT1-040 and yellow EX12-044 pay 4; text-only BT13-028 and
+  off-color DS EX8-061 pay 3; black nonmatching BT23-056 is rejected. Catalog dual identity,
+  stats, traits, use requirement, direct/shared evolution routes, full coverage, and empty
+  residuals are asserted.
+- **Verification:** `EX12-033.test.ts` — 10/10; leave prevention — 10/10; attack/Counter
+  conformance — 23/23; effect primitives — 126/126; interpreter capabilities — 289/289;
+  continuous color waiver — 2/2; interpreter — 171/171; digivolution action flow — 27/27;
+  workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.
