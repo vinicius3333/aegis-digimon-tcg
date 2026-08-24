@@ -88,10 +88,10 @@ describe("BT26-102 compiled fidelity", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("host").topCard.cardId === "BT26-086");
+    await settle(() => s.perm("host").topCard.cardId === "BT26-086" && s.perm("host").linked.length === 7);
 
-    expect(s.perm("host").stack).toHaveLength(6);
-    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.perm("host").linked.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"]),
     );
   });

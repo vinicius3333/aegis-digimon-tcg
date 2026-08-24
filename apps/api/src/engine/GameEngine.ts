@@ -2301,6 +2301,7 @@ export class GameEngine {
       const sourceInstance = [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
         (card) => card.instanceId === sub.sourceInstanceId,
       );
+      if (sub.sourceInstanceId !== undefined && sourceInstance === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
     }
     if (sub.sourceInstanceId !== undefined) {

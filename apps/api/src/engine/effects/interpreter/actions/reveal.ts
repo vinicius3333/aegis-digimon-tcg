@@ -389,7 +389,33 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const card = ctx.game.definitionOf({
         cardId: revealed.find((item) => item.instanceId === entry.instanceId)!.cardId,
       } as never);
-      await ctx.fx.useOptionFromHand(ctx, entry.instanceId, card.playCost, {
+      // An Option used from the reveal can digivolve as part of its Main effect. Its bonus draw
+      // must skip the still-revealed remainder, just like the direct reveal-digivolve path below
+      // (BT26-084/BT26-102 Q7127), then the remainder is returned after the Option finishes.
+      const revealedRestIds = revealed.filter((item) => !taken.has(item.instanceId)).map((item) => item.instanceId);
+      const digivolveFromInstance = ctx.fx.digivolveFromInstance.bind(ctx.fx);
+      const optionContext = {
+        ...ctx,
+        fx: {
+          ...ctx.fx,
+          digivolveFromInstance: (
+            targetPermanentId: Parameters<typeof digivolveFromInstance>[0],
+            sourceInstanceId: Parameters<typeof digivolveFromInstance>[1],
+            opts: Parameters<typeof digivolveFromInstance>[2],
+          ) =>
+            opts?.draw === false
+              ? digivolveFromInstance(targetPermanentId, sourceInstanceId, opts)
+              : digivolveFromInstance(targetPermanentId, sourceInstanceId, {
+                  ...opts,
+                  draw: false,
+                  beforeWhenDigivolving: async () => {
+                    await ctx.fx.draw(ctx.source.ownerSeat, 1, { excludeInstanceIds: revealedRestIds });
+                    await opts?.beforeWhenDigivolving?.();
+                  },
+                }),
+        },
+      };
+      await ctx.fx.useOptionFromHand(optionContext, entry.instanceId, card.playCost, {
         payCost: entry.payCost !== false,
         costDelta: entry.costDelta,
       });
