@@ -8,7 +8,7 @@ import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
 import { runControlFlowAction } from "./controlFlow.js";
@@ -58,6 +58,20 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     !returnsLooseCard &&
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
     (await resolvePermanentTargets(ctx, action.target)).length === 0
+  ) {
+    return action.abortOnDecline === true;
+  }
+  const dynamicallyScaledDeleteTarget =
+    action.kind === "Delete" &&
+    (action.dpCeilingScaling !== undefined ||
+      action.totalDpCapScaling !== undefined ||
+      action.playCostCeiling !== undefined ||
+      action.scaling !== undefined);
+  if (
+    action.kind === "Delete" &&
+    action.cost !== undefined &&
+    !dynamicallyScaledDeleteTarget &&
+    candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;
   }
