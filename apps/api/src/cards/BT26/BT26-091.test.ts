@@ -190,11 +190,20 @@ describe("BT26-091 compiled fidelity", () => {
     s.state.memory = 2;
     await s.ready();
 
-    await (s.engine as any).primitives.trashDigivolutionCards(
-      s.perm("yoshino").permanentId,
-      [s.inst("trashed").instanceId],
-      { byEffectSeat: 0 },
-    );
+    const primitives = (
+      s.engine as unknown as {
+        primitives: {
+          trashDigivolutionCards: (
+            hostPermanentId: string,
+            instanceIds: string[],
+            options: { byEffectSeat: number },
+          ) => Promise<unknown>;
+        };
+      }
+    ).primitives;
+    await primitives.trashDigivolutionCards(s.perm("yoshino").permanentId, [s.inst("trashed").instanceId], {
+      byEffectSeat: 0,
+    });
     await settle(() => s.perm("base").topCard.cardId === "BT26-044");
 
     expect(s.state.players[0]!.trash).toContainEqual(
