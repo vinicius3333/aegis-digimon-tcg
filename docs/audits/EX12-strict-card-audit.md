@@ -2157,3 +2157,29 @@ for the individual evidence below.
   effect-driven digivolution legality — 5/5; interpreter — 171/171; capabilities — 290/290;
   security activation — 2/2; shared build, API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-067 — Kiyoshiro Higashimitarai — 10/10
+
+- **Printed contract:** Blue cost-4 DS Tamer. Start of Your Turn sets memory to 3 when it is 2 or
+  less. During Your Turn, an attack by an allied Digimon with Jellymon in its text or the DS
+  trait lets Kiyoshiro suspend to choose exactly one mode: evolve that attacker into a matching
+  level-6-or-lower hand card with cost reduced by 1, or use a matching Option from hand with cost
+  reduced by 2. Security plays Kiyoshiro for free.
+- **KB evidence:** Q6870 gives the complete-text meaning of “Jellymon in its text.” Q6871 makes
+  the modal one activation/one selected card and prevents simultaneous copies from consuming the
+  same card twice. Q6872 preserves requirements and says a cost-reduction prohibition removes
+  the discount rather than the activation.
+- **Corrections and proof:** the aggregate's partial Digivolve-plus-`RawUnparsed` representation
+  was replaced with the exact executable suspend-cost watcher and two-branch Modal from the
+  direct module; coverage is full and residuals are empty. A real DS attack evolves the exact
+  attacker with the reduction. BT13-023 has Jellymon in text but no DS trait and still triggers,
+  proving Q6870. Two Kiyoshiros consume the single evolution card only once for Q6871. With a
+  play-cost reduction block installed, Startling Thunder is still used and pays its full cost for
+  Q6872. An illegal evolution remains in hand, the ordinary Option branch applies -2 and resolves
+  its bounce, Security plays the Tamer, and the memory setter has positive and negative controls.
+- **Identity and verification:** catalog identity, all filters/costs/modal branches, security,
+  full coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality
+  are asserted. `EX12-067.test.ts` — 10/10; subtrigger seams — 22/22; effect-driven evolution
+  legality — 5/5; interpreter — 171/171; capabilities — 290/290; security activation — 2/2;
+  shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.
