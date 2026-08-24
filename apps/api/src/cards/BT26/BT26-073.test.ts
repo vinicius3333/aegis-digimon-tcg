@@ -242,7 +242,7 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
   it("executes inherited Security A. +1 for two security checks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-060", as: "host", under: ["BT26-073"] }] },
+        0: { battleArea: [{ card: "BT26-103", as: "host", under: ["BT26-073"] }] },
         1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

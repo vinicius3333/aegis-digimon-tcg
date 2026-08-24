@@ -70,6 +70,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !dynamicallyScaledDeleteTarget &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
@@ -89,11 +90,11 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
   }
-  // A redirect's activation cost is payable only when the attack can actually be
-  // redirected. Preflight candidates before the optional prompt and generic cost path;
-  // otherwise a card such as BT26-092 can return its Tamer even though no eligible TS
-  // Digimon exists to receive the attack.
-  if (action.kind === "RedirectAttack" && action.includePlayer !== true) {
+  // Unless a ruling explicitly allows paying the processing condition by itself, a redirect's
+  // activation cost is payable only when the attack can actually be redirected. Preflight
+  // candidates before the optional prompt and generic cost path; otherwise a card such as
+  // BT26-092 can return its Tamer even though no eligible TS Digimon exists to receive the attack.
+  if (action.kind === "RedirectAttack" && action.includePlayer !== true && action.allowCostWithoutTarget !== true) {
     const target =
       action.chooser === "opponent"
         ? { ...action.target, filter: { ...action.target.filter, controller: "opponent" as const } }

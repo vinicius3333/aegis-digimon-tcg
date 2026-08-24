@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
               cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
               optional: true,
               abortOnDecline: true,
+              allowCostWithoutTarget: true,
             },
           ],
         },

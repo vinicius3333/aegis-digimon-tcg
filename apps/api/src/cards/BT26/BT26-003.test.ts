@@ -13,6 +13,7 @@ describe("BT26-003 Kyaromon", () => {
       kind: "RedirectAttack",
       optional: true,
       abortOnDecline: true,
+      allowCostWithoutTarget: true,
     });
   });
 

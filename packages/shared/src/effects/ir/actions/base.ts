@@ -27,6 +27,11 @@ export interface ActionBase {
    * trash prevents Y from firing).
    */
   abortOnDecline?: boolean;
+  /**
+   * The action's activation cost may be paid even when its following target currently has no
+   * candidates. Used only where a card ruling explicitly permits that processing condition.
+   */
+  allowCostWithoutTarget?: boolean;
   /** Diagnostic / provenance text from runtime record (ignored at runtime). */
   raw?: string;
 }
