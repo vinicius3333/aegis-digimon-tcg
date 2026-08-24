@@ -136715,7 +136715,10 @@
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1,
-            "condition": { "kind": "raw", "raw": "this effect didn't delete" }
+            "condition": {
+              "kind": "ifThisEffectDidNotDelete",
+              "raw": "if this effect didn't delete a Digimon"
+            }
           }
         ]
       },
@@ -136737,7 +136740,10 @@
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1,
-            "condition": { "kind": "raw", "raw": "this effect didn't delete" }
+            "condition": {
+              "kind": "ifThisEffectDidNotDelete",
+              "raw": "if this effect didn't delete a Digimon"
+            }
           }
         ]
       },
@@ -136745,8 +136751,14 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): When any of your [Machine], [Cyborg] or [ME] trait Digimon are played, you may activate 1 of this Digimon's [When Digivolving] effects"
+            "kind": "SubTrigger",
+            "event": "whenPlayed",
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Machine", "Cyborg", "ME"], "match": "trait" }]
+            },
+            "actions": [{ "kind": "ReactivateEffect", "fromTrigger": "WhenDigivolving", "count": 1, "optional": true }]
           }
         ],
         "frequency": "OncePerTurn"
@@ -136760,7 +136772,11 @@
               "filter": { "controller": "mine", "kind": ["Digimon"], "superlative": "lowestPlayCost" },
               "count": 1
             },
-            "cost": { "kind": "raw", "raw": "By unsuspending this Digimon" },
+            "cost": {
+              "kind": "unsuspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "By unsuspending this Digimon"
+            },
             "optional": true,
             "abortOnDecline": true
           }
@@ -136769,11 +136785,12 @@
         "frequency": "OncePerTurn"
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): When any of your [Machine], [Cyborg] or [ME] trait Digimon are played, you may activate 1 of this Digimon's [When Digivolving] effects"
-    ],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["Machine", "ME"], "cost": 3, "isAlternate": true }]
+    "coverage": "full",
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["Machine", "ME"], "cost": 3, "isAlternate": true }],
+    "assemblyRequirement": [
+      { "reduceCost": 2, "materials": [{ "count": 1, "traits": ["Machine", "Cyborg", "ME"], "levelMax": 4 }] }
+    ]
   },
   "EX12-065": {
     "effects": [

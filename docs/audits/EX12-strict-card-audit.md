@@ -2063,3 +2063,37 @@ for the individual evidence below.
   conformance — 12/12; deletion conformance — 30/30; shared build, API typecheck, focused
   formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   ruling dependency, or unresolved limitation remains.
+
+## EX12-064 — Megadramon — 10/10
+
+- **Printed contract:** Purple/black level 5 Cyborg/ME Virus Digimon, play cost 7 and 7000 DP.
+  Normal purple/black level-4 evolution costs 4; a level-4 Machine or ME alternate costs 3.
+  Assembly -2 uses one level-4-or-lower Machine, Cyborg, or ME card. On Play and When
+  Digivolving, it deletes one opposing level-4-or-lower Digimon; only if none was deleted does it
+  De-Digivolve one opponent by 1. Its All Turns once-per-turn watcher may reactivate one When
+  Digivolving effect when an allied Machine/Cyborg/ME Digimon is played. Its inherited End of
+  Attack once-per-turn may unsuspend its host as a cost to delete one allied lowest-play-cost
+  Digimon.
+- **Corrections:** the aggregate record was still partial, with a raw watcher, raw inherited cost,
+  raw fallback condition, no Assembly requirement, and a residual marker. It now exactly matches
+  the executable module: structured `SubTrigger`/`ReactivateEffect`, structured result binding,
+  structured unsuspend cost, Assembly, full coverage, and no residual. The direct module gained
+  the missing Assembly and makes the inherited activation cost explicitly optional with decline
+  abort semantics.
+- **Behavioral proof:** a successful low-level deletion leaves a separate stacked opponent fully
+  intact, proving the fallback does not run. With no low-level target, De-Digivolve 1 resolves.
+  Actually playing a matching Machine triggers the optional reactivation and deletes once; a
+  second matching play in the same turn does not reactivate, and explicit decline preserves the
+  target. A suspended inherited host may accept the cost, unsuspend, and delete the unique
+  lowest-cost ally; declining leaves both unchanged, and an already active host cannot pay.
+  Assembly pays 5 and places the eligible level-4 material, while a level-6 material is rejected.
+- **Evolution and identity proof:** purple EX12-062 and black BT10-061 pay normal cost 4; blue
+  Machine BT10-021 and red ME EX12-010 pay alternate cost 3; red nonmatching BT1-014 is rejected.
+  Catalog identity, requirements, every branch and watcher filter, inherited scope/OPT, full
+  coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality are
+  asserted.
+- **Verification:** `EX12-064.test.ts` — 9/9; result binding — 4/4; subtrigger seams — 22/22;
+  play/Assembly conformance — 20/20; digivolution action flow — 27/27; interpreter — 171/171;
+  capabilities — 290/290; shared build, API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, ruling dependency, or
+  unresolved limitation remains.
