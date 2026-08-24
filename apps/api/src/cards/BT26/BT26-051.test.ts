@@ -101,8 +101,8 @@ describe("BT26-051 Gomimon", () => {
         ).length === 1,
     );
 
-    const buffed = [s.perm("gomimon"), s.perm("otherEligible")].filter(
-      (permanent) => observe(s.engine).hasKeyword(permanent, "Collision"),
+    const buffed = [s.perm("gomimon"), s.perm("otherEligible")].filter((permanent) =>
+      observe(s.engine).hasKeyword(permanent, "Collision"),
     );
     expect(buffed).toHaveLength(1);
     expect(observe(s.engine).hasKeyword(buffed[0]!, "Collision")).toBe(true);

@@ -104,9 +104,7 @@ describe("BT26-015 compiled fidelity", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("butenmon"));
 
     expect(s.perm("target").currentDP).toBe(5000);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("notReturned").instanceId,
-    ]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("notReturned").instanceId]);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 

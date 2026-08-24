@@ -206,9 +206,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("notRecovered").instanceId,
-    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notRecovered").instanceId]);
   });
 
   it("Q6980 counts a Digi-Egg returned to its Egg Deck toward the three-card recovery cost", async () => {
@@ -305,9 +303,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     await settle();
 
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("firstSecurity").instanceId,
-    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("firstSecurity").instanceId);
   });
 
   it("may decline the leave replacement without moving security", async () => {
@@ -320,7 +316,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       },
       { autoDeclineOptional: true },
     );
-    expect(await advance(declined.engine).verb.deletePermanent([declined.perm("holy").permanentId], "byEffect")).toBe(1);
+    expect(await advance(declined.engine).verb.deletePermanent([declined.perm("holy").permanentId], "byEffect")).toBe(
+      1,
+    );
     expect(declined.state.players[0]!.battleArea).toHaveLength(0);
     expect(declined.state.players[0]!.security).toHaveLength(1);
   });

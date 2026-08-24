@@ -187,9 +187,7 @@ describe("BT26-014 Darumamon", () => {
     await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === selfId));
 
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(selfId);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("playCandidate").instanceId,
-    ]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("playCandidate").instanceId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });

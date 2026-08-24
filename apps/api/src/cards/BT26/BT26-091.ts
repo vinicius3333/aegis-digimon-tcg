@@ -42,7 +42,10 @@ export const compiled: CompiledCard = {
           cost: startCost,
           optional: true,
           abortOnDecline: true,
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
         },
       ],
     },

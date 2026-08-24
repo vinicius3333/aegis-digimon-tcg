@@ -40,7 +40,12 @@ describe("BT26-071 Flarerizamon", () => {
   it("may decline without deleting either player's Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-071", as: "flarerizamon" }, { card: "BT26-012", as: "own" }] },
+        0: {
+          battleArea: [
+            { card: "BT26-071", as: "flarerizamon" },
+            { card: "BT26-012", as: "own" },
+          ],
+        },
         1: { battleArea: [{ card: "BT26-020", as: "opponent" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

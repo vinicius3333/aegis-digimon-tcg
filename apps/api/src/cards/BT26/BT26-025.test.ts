@@ -131,13 +131,9 @@ describe("BT26-025 Liollmon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("liollmon"));
 
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("security").instanceId,
-    ]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("security").instanceId]);
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("notRecovered").instanceId,
-    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notRecovered").instanceId]);
   });
 
   it("may decline inherited security-to-hand without recovering while security remains", async () => {
@@ -155,13 +151,9 @@ describe("BT26-025 Liollmon", () => {
       attackerPermanentId: s.perm("host").permanentId,
     });
 
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("security").instanceId,
-    ]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("security").instanceId]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("notRecovered").instanceId,
-    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notRecovered").instanceId]);
   });
 
   it("inherited attack may take the last security, then recovers, only once that turn", async () => {

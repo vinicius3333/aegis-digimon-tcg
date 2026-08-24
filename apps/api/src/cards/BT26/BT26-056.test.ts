@@ -27,10 +27,7 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
     expect(compiled.effects?.[2]?.actions).toContainEqual(expect.objectContaining({ kind: "WaiveColorRequirement" }));
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "Main",
-      actions: [
-        { kind: "Trash" },
-        { kind: "DeDigivolve", amount: 3 },
-      ],
+      actions: [{ kind: "Trash" }, { kind: "DeDigivolve", amount: 3 }],
     });
   });
 
@@ -55,7 +52,10 @@ describe("BT26-056 Cerberusmon: Werewolf Mode", () => {
       {
         0: {
           battleArea: [{ card: "BT25-071", as: "ts" }],
-          hand: [{ card: "BT26-056", as: "infernoDivide" }, { card: "BT1-001", as: "handTrash" }],
+          hand: [
+            { card: "BT26-056", as: "infernoDivide" },
+            { card: "BT1-001", as: "handTrash" },
+          ],
         },
         1: { battleArea: [{ card: "BT26-060", as: "target", under: ["BT26-059", "BT26-058", "BT26-057"] }] },
       },

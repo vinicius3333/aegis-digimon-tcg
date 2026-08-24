@@ -53,7 +53,12 @@ describe("BT26-055 Giromon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-055", as: "giromon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "lowA" }, { card: "BT1-009", as: "lowB" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowA" },
+            { card: "BT1-009", as: "lowB" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

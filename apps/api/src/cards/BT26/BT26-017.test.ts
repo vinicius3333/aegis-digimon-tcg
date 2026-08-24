@@ -73,10 +73,7 @@ describe("BT26-017 Zanbamon", () => {
         type: "playCard",
         instanceId: invalid.inst("zanbamon").instanceId,
         assembly: {
-          materialInstanceIds: [
-            invalid.inst("firstLevelFour").instanceId,
-            invalid.inst("secondLevelFour").instanceId,
-          ],
+          materialInstanceIds: [invalid.inst("firstLevelFour").instanceId, invalid.inst("secondLevelFour").instanceId],
         },
       } as never),
     ).toEqual(expect.objectContaining({ ok: false }));
@@ -216,7 +213,8 @@ describe("BT26-017 Zanbamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () => retaliating.state.players[0]!.battleArea.length === 0 && retaliating.state.players[1]!.battleArea.length === 0,
+      () =>
+        retaliating.state.players[0]!.battleArea.length === 0 && retaliating.state.players[1]!.battleArea.length === 0,
     );
   });
 
@@ -262,7 +260,9 @@ describe("BT26-017 Zanbamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    expect(await advance(accepted.engine).verb.deletePermanent([accepted.perm("self").permanentId], "byEffect")).toBe(1);
+    expect(await advance(accepted.engine).verb.deletePermanent([accepted.perm("self").permanentId], "byEffect")).toBe(
+      1,
+    );
     await settle(() =>
       accepted.state.players[0]!.battleArea.some(
         ({ topCard }) => topCard.instanceId === accepted.inst("tsOnly").instanceId,
@@ -281,7 +281,9 @@ describe("BT26-017 Zanbamon", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    expect(await advance(declined.engine).verb.deletePermanent([declined.perm("self").permanentId], "byEffect")).toBe(1);
+    expect(await advance(declined.engine).verb.deletePermanent([declined.perm("self").permanentId], "byEffect")).toBe(
+      1,
+    );
     expect(declined.state.players[0]!.battleArea).toHaveLength(0);
     expect(declined.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
       declined.inst("eligible").instanceId,

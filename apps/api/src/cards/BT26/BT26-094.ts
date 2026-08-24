@@ -14,15 +14,17 @@ const startCost = {
   position: "bottom",
   faceDown: true,
 };
-const executeReaction = [{
-  kind: "CostGatedBlock",
-  cost: { kind: "suspend", target: self },
-  optional: true,
-  abortOnDecline: true,
-  actions: [
-    { kind: "GainKeyword", target: executeTarget, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" },
-  ],
-}];
+const executeReaction = [
+  {
+    kind: "CostGatedBlock",
+    cost: { kind: "suspend", target: self },
+    optional: true,
+    abortOnDecline: true,
+    actions: [
+      { kind: "GainKeyword", target: executeTarget, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" },
+    ],
+  },
+];
 
 export const compiled: CompiledCard = {
   effects: [
@@ -34,7 +36,10 @@ export const compiled: CompiledCard = {
           cost: startCost,
           optional: true,
           abortOnDecline: true,
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
         },
       ],
     },

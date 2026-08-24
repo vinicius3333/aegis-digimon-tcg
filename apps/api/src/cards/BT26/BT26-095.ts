@@ -13,31 +13,33 @@ const startCost = {
   position: "bottom",
   faceDown: true,
 };
-const deletionBody = [{
-  kind: "CostGatedBlock",
-  cost: { kind: "suspend", target: self },
-  optional: true,
-  abortOnDecline: true,
-  actions: [
-  { kind: "Draw", controller: "mine", amount: 1 },
-  { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+const deletionBody = [
   {
-    kind: "PlaceUnder",
-    target: {
-      filter: {
-        controller: "mine",
-        zone: "trash",
-        kind: ["Digimon", "Tamer", "Option"],
-        ...beatbreak,
-        isDigiEgg: false,
+    kind: "CostGatedBlock",
+    cost: { kind: "suspend", target: self },
+    optional: true,
+    abortOnDecline: true,
+    actions: [
+      { kind: "Draw", controller: "mine", amount: 1 },
+      { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+      {
+        kind: "PlaceUnder",
+        target: {
+          filter: {
+            controller: "mine",
+            zone: "trash",
+            kind: ["Digimon", "Tamer", "Option"],
+            ...beatbreak,
+            isDigiEgg: false,
+          },
+          count: 1,
+        },
+        underFilter: self.filter,
+        faceDown: true,
       },
-      count: 1,
-    },
-    underFilter: self.filter,
-    faceDown: true,
+    ],
   },
-  ],
-}];
+];
 
 export const compiled: CompiledCard = {
   effects: [
@@ -49,7 +51,10 @@ export const compiled: CompiledCard = {
           cost: startCost,
           optional: true,
           abortOnDecline: true,
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
         },
       ],
     },

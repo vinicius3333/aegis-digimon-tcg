@@ -19,7 +19,10 @@ describe("BT26-092 Shota Kuroi", () => {
           kind: "CostGatedBlock",
           cost: { kind: "trash" },
           optional: true,
-          actions: [{ kind: "Draw", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+          actions: [
+            { kind: "Draw", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
         },
       ],
     });

@@ -77,7 +77,9 @@ describe("BT26-005 Pinamon", () => {
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("eligibleTamer").instanceId),
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("eligibleTamer").instanceId,
+      ),
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-021")).toBe(true);

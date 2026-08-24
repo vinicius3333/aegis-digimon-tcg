@@ -192,12 +192,12 @@ describe("BT26-024 Tinkermon", () => {
     const hostId = s.perm("host").permanentId;
     const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
-    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
+      ok: true,
+    });
     expect(await deletion).toBe(0);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("remaining").instanceId,
-    ]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
   });
 });

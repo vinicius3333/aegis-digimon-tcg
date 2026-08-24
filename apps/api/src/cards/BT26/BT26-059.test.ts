@@ -21,7 +21,12 @@ describe("BT26-059 Plutomon", () => {
       expect.objectContaining({
         kind: "CostGatedBlock",
         cost: expect.objectContaining({ kind: "trash" }),
-        actions: [expect.objectContaining({ kind: "PlayWithoutCost", condition: expect.objectContaining({ kind: "isYourTurn" }) })],
+        actions: [
+          expect.objectContaining({
+            kind: "PlayWithoutCost",
+            condition: expect.objectContaining({ kind: "isYourTurn" }),
+          }),
+        ],
       }),
     ]);
     expect(compiled.effects?.[4]).toMatchObject({
@@ -99,7 +104,9 @@ describe("BT26-059 Plutomon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
 
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT26-021"]));
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT26-021"]),
+    );
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-021");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

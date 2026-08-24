@@ -19,7 +19,10 @@ describe("BT26-094 compiled fidelity", () => {
       {
         kind: "CostGatedBlock",
         cost: { kind: "place", destination: "digivolutionStack", position: "bottom", faceDown: true },
-        actions: [{ kind: "Draw", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+        actions: [
+          { kind: "Draw", amount: 1 },
+          { kind: "GainMemory", amount: 1 },
+        ],
       },
     ]);
     const actions = card?.effects?.find((effect) => effect.trigger === "YourTurn")?.actions ?? [];

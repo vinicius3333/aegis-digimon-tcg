@@ -78,14 +78,7 @@ describe("BT26-069 Dobermon", () => {
   it("draws when this card is trashed from hand and five cards remain, but not when six remain", async () => {
     const qualifying = setupEngine({
       0: {
-        hand: [
-          { card: "BT26-069", as: "dobermon" },
-          "BT1-001",
-          "BT1-002",
-          "BT1-003",
-          "BT1-004",
-          "BT1-005",
-        ],
+        hand: [{ card: "BT26-069", as: "dobermon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
         deck: [{ card: "BT1-006", as: "drawn" }],
       },
     });
@@ -95,15 +88,7 @@ describe("BT26-069 Dobermon", () => {
 
     const tooMany = setupEngine({
       0: {
-        hand: [
-          { card: "BT26-069", as: "dobermon" },
-          "BT1-001",
-          "BT1-002",
-          "BT1-003",
-          "BT1-004",
-          "BT1-005",
-          "BT1-006",
-        ],
+        hand: [{ card: "BT26-069", as: "dobermon" }, "BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
         deck: [{ card: "BT1-007", as: "top" }],
       },
     });

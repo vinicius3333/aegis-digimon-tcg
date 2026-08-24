@@ -19,17 +19,19 @@ const startCost = {
   position: "bottom",
   faceDown: true,
 };
-const attackBody = [{
-  kind: "CostGatedBlock",
-  cost: { kind: "suspend", target: self },
-  optional: true,
-  abortOnDecline: true,
-  actions: [
-  { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true },
-  { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Collision" }, duration: "untilEachTurnEnd" },
-  { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Blocker" }, duration: "untilEachTurnEnd" },
-  ],
-}];
+const attackBody = [
+  {
+    kind: "CostGatedBlock",
+    cost: { kind: "suspend", target: self },
+    optional: true,
+    abortOnDecline: true,
+    actions: [
+      { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true },
+      { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Collision" }, duration: "untilEachTurnEnd" },
+      { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Blocker" }, duration: "untilEachTurnEnd" },
+    ],
+  },
+];
 
 export const compiled: CompiledCard = {
   effects: [
@@ -41,7 +43,10 @@ export const compiled: CompiledCard = {
           cost: startCost,
           optional: true,
           abortOnDecline: true,
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }],
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
         },
       ],
     },

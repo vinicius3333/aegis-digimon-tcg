@@ -147,9 +147,9 @@ describe("BT26-012 Manekimon", () => {
 
     expect(s.state.memory).toBe(-2);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("costSevenTb").instanceId)).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("costSevenTb").instanceId),
+    ).toBe(true);
   });
 
   it("Q6968 leaves a selected Digimon in hand when effect-driven plays are prohibited", async () => {

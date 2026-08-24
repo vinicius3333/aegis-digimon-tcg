@@ -135,7 +135,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...((action.reduceCostBy !== undefined || assemblyComplete)
+            ...(action.reduceCostBy !== undefined || assemblyComplete
               ? { costDelta: (action.reduceCostBy ?? 0) + (assemblyComplete ? action.assembly!.reduceCostBy : 0) }
               : {}),
             ...(assemblyComplete ? { assemblyMaterialInstanceIds: selectedAssembly } : {}),
@@ -393,9 +393,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         // it is used as an Option only when the filter requests Option without a permanent kind.
         const requestedKinds = action.target?.filter?.kind ?? [];
         const explicitlyUsesOption =
-          requestedKinds.includes("Option") &&
-          !requestedKinds.includes("Digimon") &&
-          !requestedKinds.includes("Tamer");
+          requestedKinds.includes("Option") && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
         const optionIds = chosen.filter((instanceId) => {
           const candidate = candidates.find((c) => c.instanceId === instanceId);
           if (candidate === undefined) return false;
