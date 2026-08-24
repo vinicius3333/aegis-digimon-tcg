@@ -105,6 +105,8 @@ export interface UseOptionWithoutCostAction extends ActionBase {
   waiveColorRequirement?: boolean;
   /** Permit multi-color Options when the printed effect has no single-color restriction. */
   allowMultiColor?: boolean;
+  /** Once this enclosing optional activation is accepted, require choosing one legal Option. */
+  selectionRequired?: boolean;
   /** Defaults to ["hand"], the only printed form. */
   from?: ZoneRef[];
   /** Alternative to `filter`. */

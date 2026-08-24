@@ -29,7 +29,13 @@ export const compiled: CompiledCard = {
               optional: true,
               abortOnDecline: true,
               actions: [
-                { kind: "UseOptionWithoutCost", from: ["hand"], payCost: false, optional: true, filter: option.filter },
+                {
+                  kind: "UseOptionWithoutCost",
+                  from: ["hand"],
+                  payCost: false,
+                  selectionRequired: true,
+                  filter: option.filter,
+                },
               ],
             },
           ],
@@ -37,9 +43,10 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "None",
+      trigger: "Static",
       isInherited: true,
-      actions: [{ kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "permanent" }],
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
   ],
   coverage: "full",

@@ -305,7 +305,7 @@ export async function runUseOptionWithoutCost(
 
   // The controller picks WHICH eligible Option (the use is optional: min 0). The client can only
   // name an engine-offered candidate; it never injects an effect.
-  const picked = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
+  const picked = await ctx.ask.selectCards(ctx, { candidates, min: action.selectionRequired === true ? 1 : 0, max: 1 });
   const chosenId = picked[0];
   if (chosenId === undefined || !candidates.includes(chosenId)) return;
 

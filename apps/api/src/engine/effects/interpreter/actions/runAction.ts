@@ -79,6 +79,18 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   const costCreatesTrashCandidate =
     structuredCost?.kind === "trashBottomFaceDownUnderTamer" ||
     structuredCost?.kind === "trashBottomFaceDownUnderDigimon";
+  const nestedRequiredOptionUse =
+    action.kind === "CostGatedBlock" &&
+    action.actions.length === 1 &&
+    action.actions[0]?.kind === "UseOptionWithoutCost"
+      ? action.actions[0]
+      : undefined;
+  if (
+    nestedRequiredOptionUse?.selectionRequired === true &&
+    !canAttemptUseOptionWithoutCost(ctx, nestedRequiredOptionUse)
+  ) {
+    return action.kind === "CostGatedBlock" && action.abortOnDecline === true;
+  }
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
