@@ -1,16 +1,11 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-016.js";
 import "../index.js";
 
 const CARD_ID = "BT26-016";
-
-function primitives(s: ReturnType<typeof setupEngine>): Primitives {
-  return (s.engine as unknown as { primitives: Primitives }).primitives;
-}
 
 describe("BT26-016 Chronomon: Holy Mode", () => {
   it("evolves from an off-color Lv.5 TS Digimon for exactly 3", async () => {
@@ -209,6 +204,56 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notRecovered").instanceId]);
   });
 
+  it("shares one use across the On Play and When Attacking windows", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "holy" }],
+          trash: [
+            { card: "BT1-009", as: "firstReturn" },
+            { card: "BT1-010", as: "secondReturn" },
+            { card: "BT1-011", as: "thirdReturn" },
+            "BT1-012",
+            "BT1-013",
+            "BT1-014",
+          ],
+          deck: [
+            { card: "BT1-015", as: "firstRecovery" },
+            { card: "BT1-016", as: "secondRecovery" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstVictim", dp: 1000 },
+            { card: "BT1-010", as: "secondVictim", dp: 1000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.perm("firstVictim").permanentId,
+      s.inst("firstReturn").instanceId,
+      s.inst("secondReturn").instanceId,
+      s.inst("thirdReturn").instanceId,
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    await settle(() => s.state.players[0]!.security.length === 1);
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("holy"), {
+      attackerPermanentId: s.perm("holy").permanentId,
+    });
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("secondVictim").permanentId,
+    ]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("firstRecovery").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("secondRecovery").instanceId);
+  });
+
   it("Q6980 counts a Digi-Egg returned to its Egg Deck toward the three-card recovery cost", async () => {
     const s = setupEngine(
       {
@@ -323,7 +368,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     expect(declined.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("only prevents one leave per turn and blindly returns the top security card", async () => {
+  it("Q6981 only prevents one leave per turn and blindly returns the top security card", async () => {
     const once = setupEngine({
       0: {
         battleArea: [{ card: CARD_ID, as: "holy" }],
