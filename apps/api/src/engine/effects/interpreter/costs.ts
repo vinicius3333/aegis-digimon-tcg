@@ -53,6 +53,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return self !== undefined && (ctx.game.canDeclareAttack?.(self) ?? true);
   }
   if (cost.kind === "digivolveSelf") return ctx.source.permanent() !== undefined;
+  if (cost.kind === "placeOwnTopAtStackBottom") {
+    if (cost.target === undefined) return false;
+    return candidatePermanents(ctx, cost.target).some((permanent) => permanent.stack.length > 0);
+  }
   if (cost.kind === "reveal") {
     if (cost.target === undefined) return false;
     const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
