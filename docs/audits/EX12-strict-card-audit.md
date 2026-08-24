@@ -1949,3 +1949,37 @@ for the individual evidence below.
   formatting, focused lint, and `git diff --check` passed. The full-file GameEngine lint reports
   only its pre-existing no-shadow/underscore warnings. No residual IR, unsupported behavior, or
   unresolved card-specific ruling remains.
+
+## EX12-060 — Chaosdramon — 10/10
+
+- **Printed contract:** Black/purple/red level 7 Machine/ME Virus Digimon, play cost 15, 15000
+  DP, and normal level-6 evolution cost 5 in each of its three colors. Its four expanded DNA
+  routes pair red/black level 6 with purple/yellow level 6 for cost 0. Assembly -8 requires six
+  differently named level-6-or-lower Machine, Cyborg, or ME cards. It has Piercing, Security
+  Attack +1, Fragment (2), and Engage. Its shared On Play, When Digivolving, and When Attacking
+  once-per-turn De-Digivolves all opposing Digimon by 2, then may place exactly two eligible
+  cards from hand or trash under itself to delete two opposing Digimon whose play cost is at
+  most its resulting source count.
+- **KB evidence:** Q6860 forbids paying the conditional clause with only one eligible card; both
+  cards must be placed or neither card moves.
+- **Corrections and behavioral proof:** all three Delete actions are now explicitly optional,
+  matching the printed “by placing” choice, and their place costs use the canonical root-level
+  destination, position, and host representation. A mixed hand/trash payment places exactly two
+  sources after De-Digivolve and deletes two eligible Digimon. Explicit refusal preserves both
+  materials and both targets after De-Digivolve resolves. With exactly one material, no card
+  moves and no deletion occurs, proving Q6860. When Digivolving consumes the shared budget and a
+  following When Attacking timing cannot apply De-Digivolve again. A real end-of-turn Engage
+  attack suspends Chaosdramon and Security Attack +1 performs two checks. Fragment (2) pays two
+  sources and prevents a real deletion attempt.
+- **Assembly, evolution, DNA, and identity proof:** six distinct eligible names from trash play
+  Chaosdramon for 7 after Assembly -8 and become its sources; two different card IDs sharing the
+  name MetalGreymon are rejected. All four DNA color pairs resolve for 0, while red plus black
+  (two first-group materials) is rejected. Black BT11-072, purple BT10-082, and red BT1-025 each
+  pay normal cost 5; yellow BT1-062 is rejected. Catalog identity, every keyword and timing body,
+  requirements, full coverage, empty residuals, exclusive IR registration, and exact
+  direct/aggregate equality are asserted.
+- **Verification:** `EX12-060.test.ts` — 11/11; interpreter — 171/171; capabilities — 290/290;
+  digivolution action flow — 27/27; DNA action flow — 1/1; advanced keywords including Piercing
+  and Fragment — 25/25; security strike count — 8/8; play/Assembly conformance — 20/20; shared
+  build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved card-specific ruling remains.

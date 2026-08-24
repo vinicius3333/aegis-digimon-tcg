@@ -136373,7 +136373,8 @@
               "position": "bottom",
               "host": "self",
               "raw": "by placing 2 level 5 or lower [Machine], [Cyborg] or [ME] trait cards from your hand or trash as this Digimon's bottom digivolution cards"
-            }
+            },
+            "optional": true
           }
         ],
         "frequency": "OncePerTurn",
@@ -136414,7 +136415,8 @@
               "position": "bottom",
               "host": "self",
               "raw": "by placing 2 level 5 or lower [Machine], [Cyborg] or [ME] trait cards from your hand or trash as this Digimon's bottom digivolution cards"
-            }
+            },
+            "optional": true
           }
         ],
         "frequency": "OncePerTurn",
@@ -136455,7 +136457,8 @@
               "position": "bottom",
               "host": "self",
               "raw": "by placing 2 level 5 or lower [Machine], [Cyborg] or [ME] trait cards from your hand or trash as this Digimon's bottom digivolution cards"
-            }
+            },
+            "optional": true
           }
         ],
         "frequency": "OncePerTurn",
