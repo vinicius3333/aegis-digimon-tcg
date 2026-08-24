@@ -134548,22 +134548,42 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mutant", "ME"], "match": "trait" }] },
-              "count": 1
-            },
-            "from": ["hand"],
-            "payCost": true,
-            "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 2,
-            "raw": "play or use 1 card with the [Mutant] or [ME] trait from your hand with the cost reduced by 2",
-            "optional": true
+            "kind": "Modal",
+            "choose": 1,
+            "labels": ["Play a matching card", "Use a matching Option"],
+            "options": [
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon", "Tamer"],
+                      "nameOrTrait": [{ "tokens": ["Mutant", "ME"], "match": "trait" }]
+                    },
+                    "count": 1
+                  },
+                  "from": ["hand"],
+                  "payCost": true,
+                  "reduceCostBy": 2,
+                  "optional": true
+                }
+              ],
+              [
+                {
+                  "kind": "UseOptionWithoutCost",
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Option"],
+                    "nameOrTrait": [{ "tokens": ["Mutant", "ME"], "match": "trait" }]
+                  },
+                  "from": ["hand"],
+                  "payCost": true,
+                  "reduceCostBy": 2,
+                  "optional": true
+                }
+              ]
+            ]
           }
         ],
         "frequency": "OncePerTurn"

@@ -1273,3 +1273,34 @@ for the individual evidence below.
   exclusion — 2/2; deletion/advanced keyword conformance — 30/30; interpreter — 171/171; effect
   primitives — 126/126; API typecheck, focused formatting, focused lint, and `git diff --check`
   passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-041 — Thundermon — 10/10
+
+- **Printed contract:** Yellow/black level 4 Mutant/ME Data Digimon, play cost 5 and 6000 DP.
+  Normal yellow/black level-3 evolution costs 3; level-3 ME evolution costs 2. Its Main once per
+  turn may play a Mutant/ME Digimon or Tamer, or use a Mutant/ME Option, from hand with cost
+  reduced by 2. Its Rule also treats it as Mamemon. Its inherited When Attacking effect gives one
+  opposing Digimon -2000 DP for the turn, once per turn.
+- **KB evidence:** Q6801 forbids combining two copies' effects into one play/use with -4. Q6802
+  allows the play under Solarmon but removes the discount. Q6803 allows activation under Pomumon
+  but prevents the effect from playing a Digimon.
+- **Corrections:** the aggregate IR used an obsolete PlayWithoutCost plus detached replacement,
+  could not use Options, omitted the eligible kind split, and did not bind the reduction to the
+  selected operation. It now uses the same two-branch paid modal as the direct module, with
+  `reduceCostBy: 2` on each branch and exact direct/aggregate equality. Registration remains
+  exclusively through `registerIrCard`.
+- **Ruling and behavioral proof:** the play branch pays printed cost minus 2 and the Option branch
+  uses EX12-072 with the same reduction. Two Thundermon copies independently play two cost-5
+  targets for 3 each; neither target receives a combined -4, proving Q6801. With opposing Solarmon,
+  EX12-038 plays for its full cost 3, proving Q6802. With opposing Pomumon, the Main activation is
+  accepted but the Digimon remains in hand and no memory is paid, proving Q6803. One source cannot
+  activate Main twice in the turn, while separate copies retain their own use. The Rule name grant
+  is structurally asserted. As an inherited source, two attack timings apply only one -2000 DP.
+- **Evolution proof:** yellow EX12-038 and black EX12-053 use the normal cost-3 routes; red ME
+  EX12-008 uses the alternate cost-2 route; blue non-ME BT1-009 is rejected. Catalog identity,
+  stats, traits, direct/shared requirements, full coverage, empty residuals, and exact IR equality
+  are asserted.
+- **Verification:** `EX12-041.test.ts` — 10/10; interpreter capabilities — 290/290; effect
+  primitives — 126/126; interpreter — 171/171; digivolution action flow — 27/27; Solarmon — 2/2;
+  Pomumon — 1/1; shared build, API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
