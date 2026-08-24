@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
             },
             faceDown: true,
           },
-          optional: false,
+          optional: true,
           abortOnDecline: true,
         },
       ],
