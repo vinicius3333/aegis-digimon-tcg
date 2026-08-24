@@ -1073,3 +1073,44 @@ for the individual evidence below.
   171/171; digivolution action flow — 27/27; trigger stack — 31/31; rule-check pool — 3/3;
   workspace typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-035 — MetalGarurumon — 10/10
+
+- **Printed contract:** Blue/purple level 6 Cyborg/ME/VB Data Digimon, play cost 12 and 12000 DP.
+  Normal blue/purple level-5 evolutions cost 4; level-5 Garurumon-name or ME/VB costs 3. Its four
+  zero-cost DNA recipes combine Blue/Black level 5 with Purple/Yellow level 5. Assembly reduces
+  play cost by 6 using exactly one qualifying level 5, level 4, and level 3. It has Evade and
+  Decode for a level-5-or-lower Gabumon/Garurumon-name or ME/VB source. On Play/When Digivolving,
+  it trashes any four opposing sources across Digimon, then returns one opposing Digimon with no
+  more sources than MetalGarurumon to deck bottom. Once per turn, any Digimon being played or
+  digivolving makes one opposing Digimon unable to suspend through that opponent's turn end.
+- **KB evidence:** Q6779 applies Decode's level ceiling to both identity branches. Q6780 requires
+  every Assembly material independently to have its exact level and qualifying name/trait.
+  Q6781 includes MetalGarurumon's own play and digivolution. Q6782 makes its simultaneous effects
+  controller ordered. Q6783 permits Decode again at the next zero-DP rule check after Decode then
+  Evade; Q6784 permits Decode and Evade in the reverse activation order as well.
+- **Corrections:** top-level Decode previously existed only as an inert keyword marker; it now has
+  an executable other-than-battle leave replacement. The aggregate IR omitted all four DNA
+  recipes, limited the four-source trash to one Digimon, and watched only the controller's plays
+  and digivolutions under the wrong event name. It now matches the direct module exactly, using a
+  distributed source pool and both-player event filters. Registration remains exclusively through
+  `registerIrCard`.
+- **Ruling and behavioral proof:** Decode plays both a level-5 Garurumon-name source and a level-5
+  VB source after effect deletion, but not after battle deletion; level-6 name and ME/VB cards are
+  rejected, proving Q6779. Decode and accepted Evade both resolve in one deletion window, and a
+  second rule-deletion attempt can Decode the remaining source before MetalGarurumon leaves,
+  proving the observable Q6783/Q6784 outcomes. The On Play effect removes four cards distributed
+  across two stacks, preserves an over-ceiling target, and returns an eligible target. Fresh
+  watcher scenarios cover own/opponent play and own/opponent digivolution, including the source
+  itself. The Once Per Turn marker is asserted structurally.
+- **Evolution, DNA, and Assembly proof:** normal blue BT1-040 and purple BT2-078 pay 4; black
+  Garurumon BT23-056 and yellow VB EX12-044 pay 3; a red nonmatching level 5 is rejected. All four
+  Blue/Black × Purple/Yellow DNA pairs merge for 0 and Blue + Black is rejected. Assembly pays 6
+  using level-5 Garurumon, level-4 ME/VB, and level-3 Gabumon materials; wrong identity at each
+  level and a wrong-level material are independently rejected, proving Q6780. Catalog identity,
+  stats, traits, direct/shared requirements, full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-035.test.ts` — 9/9; leave prevention — 10/10; deletion/advanced keyword
+  conformance — 30/30; DNA merge — 1/1; Assembly — 2/2; restriction enforcement — 17/17;
+  SubTrigger registry — 23/23; effect primitives — 126/126; interpreter — 171/171; digivolution
+  action flow — 27/27; shared build, API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.

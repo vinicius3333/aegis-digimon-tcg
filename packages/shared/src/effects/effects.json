@@ -133932,15 +133932,48 @@
         ]
       },
       {
+        "trigger": "AllTurns",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "leaveCause": "otherThanBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 5 },
+                    "nameOrTrait": [
+                      { "tokens": ["Gabumon", "Garurumon"], "match": "name" },
+                      { "tokens": ["ME", "VB"], "match": "trait" }
+                    ]
+                  },
+                  "count": 1
+                },
+                "from": ["digivolutionCards"],
+                "payCost": false,
+                "playedByDecode": true,
+                "optional": true
+              }
+            ]
+          }
+        ]
+      },
+      {
         "trigger": "OnPlay",
         "actions": [
           {
             "kind": "TrashDigivolution",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
-              "count": 1
+              "count": "all"
             },
-            "amount": 4
+            "amount": 4,
+            "scope": "acrossDigimon"
           },
           {
             "kind": "Return",
@@ -133959,9 +133992,10 @@
             "kind": "TrashDigivolution",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
-              "count": 1
+              "count": "all"
             },
-            "amount": 4
+            "amount": 4,
+            "scope": "acrossDigimon"
           },
           {
             "kind": "Return",
@@ -133979,7 +134013,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "Restrict",
@@ -133991,8 +134025,8 @@
           },
           {
             "kind": "SubTrigger",
-            "event": "whenOneOfYoursDigivolves",
-            "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "event": "whenAnyDigivolves",
+            "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "Restrict",
@@ -134011,6 +134045,36 @@
     "digivolutionRequirement": [
       { "level": 5, "names": ["Garurumon"], "cost": 3, "isAlternate": true },
       { "traits": ["ME", "VB"], "cost": 3, "isAlternate": true, "level": 5 }
+    ],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 5 },
+          { "color": "Purple", "level": 5 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 5 },
+          { "color": "Yellow", "level": 5 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 5 },
+          { "color": "Purple", "level": 5 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 5 },
+          { "color": "Yellow", "level": 5 }
+        ]
+      }
     ],
     "assemblyRequirement": [
       {
