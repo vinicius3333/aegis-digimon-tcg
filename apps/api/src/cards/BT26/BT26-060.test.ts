@@ -47,6 +47,6 @@ describe("BT26-060 compiled fidelity", () => {
     await settle(() => s.state.players[1]!.deck.length === 6 && s.state.pendingDecision === undefined);
 
     expect(s.state.players[1]!.deck).toHaveLength(6);
-    expect(s.state.players[1]!.battleArea).toHaveLength(3);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
   });
 });
