@@ -14,7 +14,14 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenBattleWon", actions: [{ kind: "GainMemory", amount: 1 }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenBattleWon",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     },
   ],
   coverage: "full",

@@ -152,6 +152,7 @@ describe("BT26-042 Okuwamon", () => {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
         },
       ],
@@ -285,5 +286,24 @@ describe("BT26-042 Okuwamon", () => {
     expect(s.state.players[1]!.trash.some((instance) => instance.instanceId === topId)).toBe(true);
 
     expect(compiled.effects?.[4]).toMatchObject({ isInherited: true, frequency: "OncePerTurn" });
+  });
+
+  it("does not trash security when a different Digimon wins the battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-081", under: [CARD_ID], as: "host" },
+          { card: "BT1-080", as: "ally" },
+        ],
+      },
+      1: { security: [{ card: "BT1-009", as: "topSecurity" }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      attackerPermanentId: s.perm("ally").permanentId,
+    });
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

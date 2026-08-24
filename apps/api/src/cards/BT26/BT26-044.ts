@@ -7,7 +7,8 @@ const altDigivolve = {
   kind: "Digivolve",
   from: ["hand"],
   payCost: true,
-  reduceCost: 1,
+  costDelta: -1,
+  useAlternateCost: true,
   optional: true,
   abortOnDecline: true,
   target: { filter: { isSelfRef: true }, count: 1 },
@@ -57,22 +58,17 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          sourceFilter: { isSelfRef: true },
-          actions: [
-            {
-              kind: "Prevent",
-              optional: true,
-              abortOnDecline: true,
-              condition: {
-                kind: "sourceNameOrTrait",
-                nameOrTrait: [
-                  { tokens: ["Rosemon"], match: "name" },
-                  { tokens: ["DATA SQUAD"], match: "trait" },
-                ],
-              },
-              cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
-            },
-          ],
+          mode: "prevent",
+          optional: true,
+          sourceFilter: {
+            isSelfRef: true,
+            nameOrTrait: [
+              { tokens: ["Rosemon"], match: "name" },
+              { tokens: ["DATA SQUAD"], match: "trait" },
+            ],
+          },
+          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
+          actions: [],
         },
       ],
     },

@@ -54,4 +54,23 @@ describe("BT26-041 Hudiemon", () => {
 
     expect(s.state.memory).toBe(1);
   });
+
+  it("does not gain memory when a different Digimon wins a battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-044", as: "host", under: ["BT26-041"] },
+          { card: "BT1-080", as: "ally" },
+        ],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenBattleWon", {
+      attackerPermanentId: s.perm("ally").permanentId,
+    });
+
+    expect(s.state.memory).toBe(0);
+  });
 });

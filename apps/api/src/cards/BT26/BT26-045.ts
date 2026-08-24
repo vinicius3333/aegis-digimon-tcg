@@ -11,7 +11,7 @@ const insectoidTitan = {
       { tokens: ["Titan"], match: "trait" },
     ],
   },
-  count: 1,
+  count: "all",
 };
 const freePlay = {
   kind: "PlayWithoutCost",
