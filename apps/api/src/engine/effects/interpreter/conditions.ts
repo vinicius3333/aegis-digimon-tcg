@@ -806,6 +806,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "triggerSecurityRemovedByEffect":
       return ctx.trigger.securityRemovedByEffect === true;
     case "triggerHandTrashedSeat": {
+      if (cond.seat === "any") return ctx.trigger.handTrashedSeat !== undefined;
       const seat = cond.seat === "opponent" ? opp : mine;
       return ctx.trigger.handTrashedSeat === seat;
     }

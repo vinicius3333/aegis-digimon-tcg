@@ -8,7 +8,7 @@ const titan = {
     zone: "trash",
     kind: ["Digimon"],
     nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
-    excludeCardId: "BT26-059",
+    excludeNames: ["Plutomon"],
   },
   count: 1,
 };
@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
+          fireCondition: { kind: "triggerHandTrashedSeat", seat: "any" },
           actions: [
             {
               kind: "Delete",
