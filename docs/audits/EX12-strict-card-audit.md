@@ -1515,3 +1515,49 @@ for the individual evidence below.
   timing/resolution conformance — 17/17; shared build, API typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved
   ruling remains.
+
+## EX12-048 — SeitenGokuumon — 10/10
+
+- **Printed contract:** Yellow/red/blue level 6 Tathāgata/Shambala/SW Virus Digimon, play cost 5
+  and 12000 DP. Its three normal level-5 color routes cost 5; a level-5 card with Gokuumon in
+  text or the Shambala trait costs 3. Assembly places three differently named Gokuumon,
+  Sangomon, Cho-Hakkaimon, or Sanzomon cards for a 6-cost reduction. It has Rush, Raid,
+  Piercing, and Security Attack +1. On Play and When Digivolving, one opposing Digimon gets
+  -8000 DP until its turn ends and a further -3000 per level-5 source, then SeitenGokuumon may
+  attack. When it would leave other than by its controller's effects, it may play up to two
+  eligible level-5 sources for free.
+- **KB evidence:** Q6821 defines “Gokuumon in text” across names, traits, effects, inherited
+  effects, Rule, and every requirement form. Q6822 delays the 0-DP rule check until the entire
+  activated effect finishes. Q6823 applies the shared “level 5” qualifier to both the
+  Gokuumon-text and SW-trait alternatives.
+- **Corrections:** the aggregate IR applied the scaled -3000 permanently to SeitenGokuumon
+  itself instead of the selected opponent, and its scaling counted the wrong board shape. It
+  also represented the leave-play ability as RawUnparsed, lacked the exclusion for its
+  controller's effects, omitted the executable source filter and free-play action, remained
+  partial with a residual, and omitted Assembly entirely. Both timings now reuse the first
+  selected target via `sameTarget`, count only this Digimon's level-5 sources, and last until the
+  opponent's turn ends. The aggregate replacement, full coverage, empty residual, evolution,
+  and Assembly records now exactly match the direct IR. Registration remains exclusively via
+  `registerIrCard`.
+- **Ruling and behavioral proof:** two opposing Digimon prove both reductions land on exactly the
+  same choice at each printed timing. With no level-5 source, -8000 places an 8000-DP Digimon at
+  0 but Q6822 keeps it present for the following attack: Raid still redirects onto it, the
+  battle deletes it, and Piercing plus Security Attack +1 checks two security cards. EX6-024,
+  eligible only through Gokuumon in its DigiXros text, is played from the stack for Q6821; a
+  level-3 SW card and an unrelated level-5 card remain in trash, proving Q6823. The replacement
+  plays two eligible sources after an opposing effect and after battle, but never after its
+  controller's effect.
+- **Assembly, evolution, and keyword proof:** three allowed different names assemble for the
+  full reduction, clamp the cost from 5 to 0, become sources, and the newly played Digimon may
+  immediately attack through Rush. Three Gokuumon copies are rejected by the different-name
+  constraint. Yellow, red, and blue level-5 bases each pay 5; EX6-024 proves the Gokuumon-text
+  alternate and purple/green EX12-063 proves Shambala, each for 3; green nonmatching BT1-075 is
+  rejected. The live Q6822 combat simultaneously proves Raid, Piercing, and Security Attack +1.
+  Catalog identity, direct/shared requirements, full coverage, empty residuals, and exact IR
+  equality are asserted.
+- **Verification:** `EX12-048.test.ts` — 11/11; interpreter capabilities — 290/290; effect
+  primitives — 126/126; interpreter — 171/171; leave prevention — 10/10; play/Assembly action
+  flow — 26/26; digivolution action flow — 27/27; advanced keywords — 25/25; security strike
+  count — 8/8; playing/Assembly conformance — 20/20; rule-check conformance — 4/4; shared build,
+  API typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
+  unsupported behavior, or unresolved ruling remains.

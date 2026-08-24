@@ -135192,14 +135192,14 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "sameTarget": true
+            },
             "amount": -3000,
-            "duration": "permanent",
-            "scaling": {
-              "per": 1,
-              "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "levels": [5] },
-              "unit": "digivolutionCards"
-            }
+            "duration": "untilOpponentTurnEnd",
+            "scaling": { "per": 1, "filter": { "levels": [5] }, "unit": "digivolutionCards" }
           },
           {
             "kind": "Attack",
@@ -135220,14 +135220,14 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "sameTarget": true
+            },
             "amount": -3000,
-            "duration": "permanent",
-            "scaling": {
-              "per": 1,
-              "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "levels": [5] },
-              "unit": "digivolutionCards"
-            }
+            "duration": "untilOpponentTurnEnd",
+            "scaling": { "per": 1, "filter": { "levels": [5] }, "unit": "digivolutionCards" }
           },
           {
             "kind": "Attack",
@@ -135243,11 +135243,27 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
+            "leaveCause": "otherThanYourEffect",
             "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
-                "kind": "RawUnparsed",
-                "text": "missing-primitive(unaudited): play 2 level 5 cards with [Gokuumon] in their texts or the [SW] trait from its digivolution cards without paying the costs",
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "levels": [5],
+                    "nameOrTrait": [
+                      { "tokens": ["Gokuumon"], "match": "text" },
+                      { "tokens": ["SW"], "match": "trait" }
+                    ]
+                  },
+                  "count": 2,
+                  "upTo": true
+                },
+                "from": ["digivolutionCards"],
+                "fromOwnDigivolutionStack": true,
+                "payCost": false,
                 "optional": true
               }
             ]
@@ -135255,13 +135271,23 @@
         ]
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): When this Digimon would leave the battle area other than by your effects, you may play 2 level 5 cards with [Gokuumon] in their texts or the [SW] trait from its digivolution cards without paying the costs"
-    ],
+    "coverage": "full",
+    "residual": [],
     "digivolutionRequirement": [
       { "level": 5, "texts": ["Gokuumon"], "cost": 3, "isAlternate": true },
-      { "traits": ["Shambala"], "cost": 3, "isAlternate": true, "level": 5 }
+      { "level": 5, "traits": ["Shambala"], "cost": 3, "isAlternate": true }
+    ],
+    "assemblyRequirement": [
+      {
+        "materials": [
+          {
+            "count": 3,
+            "names": ["Gokuumon", "Sangomon", "Cho-Hakkaimon", "Sanzomon"],
+            "differentNames": true
+          }
+        ],
+        "reduceCost": 6
+      }
     ]
   },
   "EX12-049": {
