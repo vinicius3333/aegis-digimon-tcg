@@ -104,20 +104,42 @@ describe("BT26-021 inherited watcher boundaries", () => {
 
 describe("BT26-021 public engine behavior", () => {
   it("plays for 4 and locks one owned TS Digimon's attack target for the turn", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: CARD_ID, as: "gekomon" }] } }, { autoSelectCards: true });
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-008", as: "ownTs" },
+            { card: "BT1-009", as: "nonTs" },
+          ],
+          hand: [{ card: CARD_ID, as: "gekomon" }],
+        },
+        1: { battleArea: [{ card: "BT25-008", as: "opponentTs" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("ownTs").permanentId);
     s.state.memory = 4;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gekomon").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => {
-      const permanent = s.state.players[0]!.battleArea.find((candidate) => candidate.topCard.cardId === CARD_ID);
-      return permanent !== undefined && observe(s.engine).isRestricted(permanent, "attackTargetChange");
+      return observe(s.engine).isRestricted(s.perm("ownTs"), "attackTargetChange");
     });
 
-    const gekomon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === CARD_ID)!;
     expect(s.state.memory).toBe(0);
-    expect(observe(s.engine).isRestricted(gekomon, "attackTargetChange")).toBe(true);
+    const targetRequest = s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req;
+    const gekomon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CARD_ID)!;
+    expect(new Set(targetRequest?.options?.candidateInstanceIds)).toEqual(
+      new Set([s.perm("ownTs").permanentId, gekomon.permanentId]),
+    );
+    expect(observe(s.engine).isRestricted(s.perm("ownTs"), "attackTargetChange")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("nonTs"), "attackTargetChange")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("opponentTs"), "attackTargetChange")).toBe(false);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 0);
+    expect(observe(s.engine).isRestricted(s.perm("ownTs"), "attackTargetChange")).toBe(false);
   });
 
   it("uses the Lv.3 TS alternate evolution on a red base for exact cost 2 and rejects a near-miss", async () => {
@@ -215,6 +237,32 @@ describe("BT26-021 public engine behavior", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-083")).toBe(true);
+  });
+
+  it("may decline the Main play without moving the Tamer or paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "gekomon" }],
+          trash: [{ card: "BT24-083", as: "tsTamer" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("gekomon").topCard.instanceId,
+        effectKey: `${CARD_ID}/${MAIN_KEY}`,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("tsTamer").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
   it("on either player's attack pays one hand card, trashes exactly the bottom 2 sources, and is once per turn", async () => {

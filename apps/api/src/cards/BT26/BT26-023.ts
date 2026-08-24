@@ -19,6 +19,7 @@ const returnLevelFour = {
   },
   to: "deckBottom",
   cost: handCardCost,
+  optional: true,
 };
 
 export const compiled: CompiledCard = {
