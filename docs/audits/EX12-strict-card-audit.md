@@ -173,3 +173,34 @@ for the individual evidence below.
 - **Verification:** `EX12-005.test.ts` — 9/9; workspace typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
   card-specific KB ruling, or unresolved ambiguity.
+
+## EX12-006 — Kakamon — 10/10
+
+- **Printed contract:** Red level 3 Digimon, Beast/Shambala/SW, play cost 3 and
+  2000 DP. It normally digivolves from a red level 2 for cost 0 or alternatively
+  from any level-2 Shambala card for cost 0. At the start of its controller's main
+  phase, its controller may trash one SW card from hand to draw 1 and gain 1 memory.
+  Its inherited `[Your Turn]` effect gives its host +2000 DP.
+- **KB evidence:** `node tools/kb/query.mjs card EX12-006` returns no card-specific
+  rulings. Comprehensive Rules §15-9 governs the optional “By trashing” processing:
+  one accepted and successfully paid cost gates both following benefits.
+- **Implementation trace:** `StartOfYourMainPhase` supplies the owner-turn gate. The
+  first action is optional with `abortOnDecline`, pays exactly one own hand card with
+  the exact SW trait, then draws 1. `GainMemory(1)` is the second action in the same
+  body, so it follows only after the first action's accepted cost without paying that
+  cost twice. The inherited continuous DP modifier is self-scoped and owner-turn gated.
+- **Corrections:** the generated action forced the hand discard whenever payable and
+  relied on `ifThisEffectActed` on GainMemory. The action now permits refusal, explicitly
+  fixes the cost zone to hand, aborts the whole clause on refusal or failed payment, and
+  lets both printed benefits follow the single successful cost rather than making memory
+  conditional on the Draw action's result receipt.
+- **Behavioral proof:** a real EX12-022 SW card is trashed once, exactly one card is
+  drawn, and memory increases by 1. Refusal preserves hand, deck, trash, and memory;
+  a non-SW hand has the same no-benefit result without a payable cost. The effect is
+  silent during the opponent's turn. Standard red BT1-001 and off-color Shambala
+  EX12-004 both evolve for 0, while off-color non-Shambala BT10-005 is rejected. A
+  second host proves the inherited +2000 does not leak and the bonus lapses/reappears
+  as turn ownership changes.
+- **Verification:** `EX12-006.test.ts` — 8/8; workspace typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior,
+  card-specific KB ruling, or unresolved ambiguity.
