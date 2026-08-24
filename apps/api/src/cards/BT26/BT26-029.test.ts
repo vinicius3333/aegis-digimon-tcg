@@ -198,6 +198,48 @@ describe("BT26-029 compiled fidelity", () => {
     ).toHaveLength(3);
   });
 
+  it("reacts to a real security check through the non-effect removal window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-029", as: "holy" }],
+          security: ["BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", dp: 6000 },
+            { card: "BT1-010", as: "second", dp: 6000 },
+            { card: "BT1-011", as: "third", dp: 6000 },
+            { card: "BT1-012", as: "fourth", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 0 &&
+        [s.perm("attacker"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter(
+          (permanent) => permanent.currentDP === 1000,
+        ).length === 3,
+    );
+
+    expect(
+      [s.perm("attacker"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter(
+        (permanent) => permanent.currentDP === 1000,
+      ),
+    ).toHaveLength(3);
+  });
+
   it("inherits a once-per-turn De-Digivolve when its controller's security is removed", async () => {
     const s = setupEngine(
       {
