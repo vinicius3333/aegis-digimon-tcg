@@ -629,8 +629,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const instance = peekLooseInstance(state, instanceId);
     if (ownerSeat === undefined || instance === undefined) return false;
     const definition = requireCardDefinition(instance.cardId);
-    const cost = await effectDrivenPlayCost(instanceId, definition, ownerSeat, opts?.costDelta, opts?.useAsOption);
-    return cost >= 0 && cost <= engine.memory.maxCostFor(ownerSeat);
+    const controllerSeat = opts?.controllerSeat ?? ownerSeat;
+    const cost = await effectDrivenPlayCost(instanceId, definition, controllerSeat, opts?.costDelta, opts?.useAsOption);
+    return cost >= 0 && cost <= engine.memory.maxCostFor(controllerSeat);
   };
 
   // --- play from hand / security --------------------------------------------

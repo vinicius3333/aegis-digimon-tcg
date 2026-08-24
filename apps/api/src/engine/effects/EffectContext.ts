@@ -602,7 +602,10 @@ export interface Primitives {
    * continuous play-cost modifiers and explicit reduction as `playInstances`, without
    * moving the card or paying memory. Optional so narrow interpreter test ports may omit it.
    */
-  canAffordEffectPlay?(instanceId: string, opts?: { costDelta?: number; useAsOption?: boolean }): Promise<boolean>;
+  canAffordEffectPlay?(
+    instanceId: string,
+    opts?: { costDelta?: number; useAsOption?: boolean; controllerSeat?: Seat },
+  ): Promise<boolean>;
   /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a

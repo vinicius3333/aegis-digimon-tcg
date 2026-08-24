@@ -312,11 +312,28 @@ function optionUseCandidates(
   return { candidates, zones, seat };
 }
 
-export function canAttemptUseOptionWithoutCost(
+export async function canAttemptUseOptionWithoutCost(
   ctx: EffectContext,
   action: Extract<Action, { kind: "UseOptionWithoutCost" }>,
-): boolean {
-  return optionUseCandidates(ctx, action, true).candidates.length > 0;
+): Promise<boolean> {
+  const candidates = optionUseCandidates(ctx, action, true).candidates;
+  if (candidates.length === 0) return false;
+  if (action.payCost !== true || ctx.fx.canAffordEffectPlay === undefined) return true;
+  const dynamicReduction =
+    action.reduceCostByOpponentMemory === true
+      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(ctx.source.ownerSeat)))
+      : 0;
+  const costDelta = (action.reduceCostBy ?? 0) + dynamicReduction;
+  const affordability = await Promise.all(
+    candidates.map((instanceId) =>
+      ctx.fx.canAffordEffectPlay!(instanceId, {
+        costDelta,
+        useAsOption: true,
+        controllerSeat: ctx.source.ownerSeat,
+      }),
+    ),
+  );
+  return affordability.some(Boolean);
 }
 
 export async function runUseOptionWithoutCost(

@@ -101,14 +101,14 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       : undefined;
   if (
     nestedRequiredOptionUse?.selectionRequired === true &&
-    !canAttemptUseOptionWithoutCost(ctx, nestedRequiredOptionUse)
+    !(await canAttemptUseOptionWithoutCost(ctx, nestedRequiredOptionUse))
   ) {
     return action.kind === "CostGatedBlock" && action.abortOnDecline === true;
   }
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
-    !canAttemptUseOptionWithoutCost(ctx, action)
+    !(await canAttemptUseOptionWithoutCost(ctx, action))
   ) {
     return action.abortOnDecline === true;
   }
