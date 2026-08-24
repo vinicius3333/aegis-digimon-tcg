@@ -771,3 +771,34 @@ for the individual evidence below.
   proof — 4/4; interpreter/source-trash and binding mechanics — 171/171; digivolution action flow
   — 27/27; workspace typecheck, focused formatting, focused lint, and `git diff --check` passed.
   No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-027 — TeslaJellymon — 10/10
+
+- **Printed contract:** Blue/yellow level 4 Mollusk/DS Data Digimon, play cost 5 and 6000 DP.
+  Normal blue/yellow level-3 evolutions cost 3; Jellymon-name and level-3 DS alternatives cost 2.
+  Its optional Main once per turn plays or uses one Jellymon-text or DS card from hand with cost
+  reduced by 2. Its inherited once-per-turn When Attacking draws 1, then trashes one hand card
+  when the post-draw hand has at least seven cards.
+- **KB evidence:** Q6754 applies full printed-text matching. Q6755 forbids combining the
+  reductions of two TeslaJellymon effects into one play/use. Q6756 permits activation and play
+  through Solarmon but requires the full printed play cost. Q6757 permits activation through
+  Pomumon but prevents the effect-play itself.
+- **Implementation trace:** one once-per-turn Main Modal chooses exactly one branch. The play
+  branch accepts matching Digimon/Tamers through PlayWithoutCost with real payment reduced by 2;
+  the use branch is Option-only and uses the same real-payment reduction. Both filters OR
+  Jellymon full-text and exact DS trait. The inherited sequence checks `handAtLeast:7` only after
+  Draw 1. Both alternate evolution routes are exact. No correction was needed.
+- **Ruling and behavioral proof:** a non-DS BT13-028 matching only through effect text is played
+  for 5, proving Q6754. With two TeslaJellymon copies, one EX12-023 still costs 1 rather than 0,
+  proving Q6755. Solarmon makes that card cost its full 3 while allowing the play, proving Q6756;
+  Pomumon allows activation but leaves the target in hand and memory unchanged, proving Q6757.
+  A matching DS Option costs 1 and resolves its Main effect. A second activation of the same
+  source is rejected. The inherited effect trashes after drawing from six to seven, but not when
+  drawing from five to six, and cannot resolve twice that turn.
+- **Evolution proof:** normal blue BT1-027 and yellow BT1-045 pay 3; Jellymon EX12-023 and
+  off-color DS EX8-056 pay 2; red nonmatching BT1-010 is rejected. Catalog identity, stats,
+  traits, exact modal filters, full coverage, and empty residuals are asserted.
+- **Verification:** `EX12-027.test.ts` — 13/13; play-card action flow — 26/26; interpreter
+  capabilities including reduced Option use — 289/289; interpreter/text matching — 171/171;
+  digivolution action flow — 27/27; workspace typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
