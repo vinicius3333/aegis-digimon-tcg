@@ -101,6 +101,10 @@ export { ModifierLedger } from "./modifiers.js";
  * a single authoritative gauge and primitives must use the real one.
  */
 export interface PrimitivesEngine {
+  /** Notify the engine that one triggered effect body has begun resolving. */
+  beginEffectBody?(): void;
+  /** Notify the engine that one triggered effect body has completely resolved. */
+  finishEffectBody?(): void;
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
@@ -355,10 +359,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const enterEffectResolution: Primitives["enterEffectResolution"] = (seat, sourceKinds = []) => {
     effectSeatStack.push(seat);
     effectSourceKindsStack.push(sourceKinds);
+    engine.beginEffectBody?.();
   };
   const leaveEffectResolution: Primitives["leaveEffectResolution"] = () => {
     effectSeatStack.pop();
     effectSourceKindsStack.pop();
+    engine.finishEffectBody?.();
   };
   const restrictSecurityAddsFromEffect: Primitives["restrictSecurityAddsFromEffect"] = (
     blockedEffectSeat,

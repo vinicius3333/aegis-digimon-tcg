@@ -360,6 +360,8 @@ export class GameEngine {
   private mainVerbContinuationsInFlight = 0;
   /** Nesting guard that defers state-based actions until a used Option finishes routing. */
   private optionResolutionDepth = 0;
+  /** Nesting guard that keeps rule checks outside an effect body's atomic resolution. */
+  private effectResolutionDepth = 0;
   /**
    * Tail of the serialized Main-verb chain: each accepted verb starts only once the
    * previous one has fully settled, so two effect resolutions are never in flight at
@@ -767,6 +769,12 @@ export class GameEngine {
     const getCombat = () => this.combat;
     return createPrimitives({
       state: this.state,
+      beginEffectBody: () => {
+        this.effectResolutionDepth += 1;
+      },
+      finishEffectBody: () => {
+        this.effectResolutionDepth = Math.max(0, this.effectResolutionDepth - 1);
+      },
       baseGrantedDigivolve: (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
       emit: (event) => this.hooks.emit(event),
       nextPermanentId: () => this.nextPermanentId(),
@@ -3401,7 +3409,8 @@ export class GameEngine {
         : {}),
       turnSeat: this.state.turnSeat,
       listCandidateInstances: listCandidate,
-      ruleProcess: () => (this.optionResolutionDepth > 0 ? Promise.resolve() : this.ruleProcess()),
+      ruleProcess: () =>
+        this.optionResolutionDepth > 0 || this.effectResolutionDepth > 0 ? Promise.resolve() : this.ruleProcess(),
       isGameOver: () => this.state.gameOver,
       chooseOrder: (seat, active, timing) => this.resolverDecisions.chooseOrder(seat, active, timing),
       askOptional: (seat, collected) => this.resolverDecisions.askOptional(seat, collected),

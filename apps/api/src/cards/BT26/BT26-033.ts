@@ -4,7 +4,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 const iliad = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
-const _opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
+const opponentLowestDpDigimon = {
+  controller: "opponent",
+  kind: ["Digimon"],
+  superlative: "lowestDP",
+};
 
 export const compiled: CompiledCard = {
   keywords: [
@@ -55,8 +59,9 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldLeavePlay",
           mode: "prevent",
+          affectsAll: true,
           sourceFilter: ts,
-          target: { filter: ts, count: 1 },
+          target: { filter: ts, count: "all" },
           raw: "When your TS Digimon or Tamer would leave, by placing this Digimon's top stacked card as bottom security, it doesn't leave.",
           cost: {
             kind: "placeAsSecurity",
@@ -65,6 +70,32 @@ export const compiled: CompiledCard = {
           },
           actions: [],
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "CostModifier",
+          costType: "use",
+          mode: "delta",
+          amount: 1,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          handResident: true,
+          duration: "permanent",
+          scaling: { per: 1, unit: "security", filter: { controller: "mine" } },
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: ts } }],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        { kind: "Delete", target: { filter: opponentLowestDpDigimon, count: "all" } },
+        { kind: "Recover", controller: "mine", amount: 1 },
       ],
     },
   ],
