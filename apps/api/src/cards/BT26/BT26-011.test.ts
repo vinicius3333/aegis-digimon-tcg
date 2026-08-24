@@ -67,7 +67,7 @@ describe("BT26-011 Buraimon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("buraimon").instanceId })).toEqual({
@@ -97,7 +97,7 @@ describe("BT26-011 Buraimon", () => {
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("shamanCost").instanceId);
     s.state.memory = 2;
@@ -136,6 +136,80 @@ describe("BT26-011 Buraimon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Raid")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
+  });
+
+  it("accepts a card that mentions Chronomon only in inherited text", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "buraimon" },
+            { card: "BT26-001", as: "textCost" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("buraimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 0);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("textCost").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
+  it("may decline the optional payment without trashing or drawing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "buraimon" },
+            { card: "BT26-016", as: "eligibleCost" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("buraimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CARD_ID));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligibleCost").instanceId);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("does nothing after accepting when no hand card matches the payment filter", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "buraimon" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("buraimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CARD_ID));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
   it("uses printed Raid to redirect a player attack to the highest-DP unsuspended Digimon", async () => {

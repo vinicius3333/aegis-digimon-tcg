@@ -21,7 +21,12 @@ const onPlayBody = [
 ];
 
 const reactiveBuff = [
-  { kind: "SelectBind", target: { filter: ownDigimon, count: 1, bindAs: "buffTarget" } },
+  {
+    kind: "SelectBind",
+    target: { filter: ownDigimon, count: 1, bindAs: "buffTarget" },
+    optional: true,
+    abortOnDecline: true,
+  },
   {
     kind: "ModifyDP",
     target: { filter: { boundRef: "buffTarget" }, count: 1 },

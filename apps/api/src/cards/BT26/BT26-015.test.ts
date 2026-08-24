@@ -24,6 +24,44 @@ describe("BT26-015 compiled fidelity", () => {
     ]);
   });
 
+  it("digivolves for 3 over an off-color TS Lv.4 and rejects a non-TS peer", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-022", as: "tsBase" }],
+        hand: [{ card: "BT26-015", as: "butenmon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    legal.state.memory = 3;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsBase").permanentId,
+        instanceId: legal.inst("butenmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsBase").topCard.cardId === "BT26-015");
+    expect(legal.perm("tsBase").stack.at(-1)?.cardId).toBe("BT24-022");
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-032", as: "plainBlue" }],
+        hand: [{ card: "BT26-015", as: "butenmon" }],
+      },
+    });
+    illegal.state.memory = 3;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("plainBlue").permanentId,
+        instanceId: illegal.inst("butenmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("publicly applies the play/evolution debuff, returns trash to deck, and deletes only after that return", async () => {
     const s = setupEngine(
       {
@@ -51,12 +89,117 @@ describe("BT26-015 compiled fidelity", () => {
     expect(s.perm("high").currentDP).toBe(9000);
   });
 
+  it("may decline the trash return while still applying the mandatory DP reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-015", as: "butenmon" }],
+          trash: [{ card: "BT1-011", as: "notReturned" }],
+        },
+        1: { battleArea: [{ card: "BT26-014", as: "target", dp: 9000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("butenmon"));
+
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("notReturned").instanceId,
+    ]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("Q6971 finishes the effect before the zero-DP rule check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-015", as: "butenmon" }],
+          trash: [{ card: "BT1-011", as: "returned" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "zeroDpTarget", dp: 4000 },
+            { card: "BT1-010", as: "deleteBoundary", dp: 5000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const zeroDpTargetId = s.perm("zeroDpTarget").permanentId;
+    const deleteBoundaryId = s.perm("deleteBoundary").permanentId;
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("butenmon"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    const targetDecisions = s.decisions.filter(({ req }) => req.kind === "chooseTargets");
+    expect(targetDecisions).toHaveLength(2);
+    expect(new Set(targetDecisions[1]!.req.options?.candidateInstanceIds)).toEqual(
+      new Set([zeroDpTargetId, deleteBoundaryId]),
+    );
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("returned").instanceId);
+  });
+
+  it("Q6972/Q6975 optionally buffs a chosen Digimon, then makes it attack when your effect adds to either deck", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-015", as: "butenmon" },
+            { card: "BT26-014", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("attacker").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
+      effectAddedToDeckSeat: 1,
+      effectAddedToDeckBySeat: 0,
+      byEffectCardId: "BT26-015",
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("attacker").currentDP).toBe(10000);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("may decline the deck-add buff without gaining DP or attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-015", as: "butenmon" },
+            { card: "BT26-014", as: "candidate" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
+      effectAddedToDeckSeat: 0,
+      effectAddedToDeckBySeat: 0,
+      byEffectCardId: "BT26-015",
+    });
+
+    expect(s.perm("candidate").currentDP).toBe(7000);
+    expect(s.perm("candidate").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
   it("unsuspends an inherited host when your effect adds to your deck, only once per turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT26-060", as: "host", suspended: true, under: [{ card: "BT26-015" }] },
+            { card: "BT26-009", as: "host", suspended: true, under: [{ card: "BT26-015" }] },
             { card: "BT1-009", as: "plainHost", suspended: true, under: [{ card: "BT26-015" }] },
           ],
           trash: [

@@ -28,6 +28,52 @@ describe("BT26-014 Darumamon", () => {
     ]);
   });
 
+  it("assembles with exactly one Lv.4-or-lower TB card and rejects a Lv.5 TB near-match", async () => {
+    const legal = setupEngine({
+      0: {
+        hand: [{ card: "BT26-014", as: "darumamon" }],
+        trash: [
+          { card: "BT26-013", as: "legalMaterial" },
+          { card: "BT26-014", as: "levelFive" },
+        ],
+      },
+    });
+    legal.state.memory = 5;
+
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: legal.inst("darumamon").instanceId,
+        assembly: { materialInstanceIds: [legal.inst("legalMaterial").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => legal.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-014"));
+    const assembled = legal.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === legal.inst("darumamon").instanceId,
+    )!;
+    expect(legal.state.memory).toBe(0);
+    expect(assembled.stack.map(({ instanceId }) => instanceId)).toContain(legal.inst("legalMaterial").instanceId);
+    expect(legal.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      legal.inst("levelFive").instanceId,
+    );
+
+    const illegal = setupEngine({
+      0: {
+        hand: [{ card: "BT26-014", as: "darumamon" }],
+        trash: [{ card: "BT26-014", as: "levelFive" }],
+      },
+    });
+    illegal.state.memory = 5;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: illegal.inst("darumamon").instanceId,
+        assembly: { materialInstanceIds: [illegal.inst("levelFive").instanceId] },
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(illegal.state.memory).toBe(5);
+  });
+
   it("deletes an opposing Digimon at 7000 DP or less on play", async () => {
     const s = setupEngine(
       {
@@ -123,5 +169,27 @@ describe("BT26-014 Darumamon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([hostId, sourceId]),
     );
+  });
+
+  it("may decline both optional On Deletion branches", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-014", as: "self" }],
+          hand: [{ card: "BT26-012", as: "playCandidate" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const selfId = s.inst("self").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === selfId));
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(selfId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("playCandidate").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });
