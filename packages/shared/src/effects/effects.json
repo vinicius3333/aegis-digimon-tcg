@@ -135073,17 +135073,27 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "amount": 6000,
-            "duration": "permanent",
+            "duration": "forTheTurn",
             "cost": {
               "kind": "return",
               "target": { "filter": { "zone": "trash", "controller": "opponent" }, "count": 2 },
+              "trackColors": "returnedCardColors",
               "raw": "by returning 2 cards from their trash to the bottom of the deck"
-            },
-            "optional": true,
-            "abortOnDecline": true,
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine" }, "unit": "colors" }
+            }
+          },
+          {
+            "kind": "ModifyDP",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "amount": -5000,
+            "duration": "forTheTurn",
+            "scaling": {
+              "per": 1,
+              "countSource": "returnedCardColors",
+              "unit": "namedCount",
+              "raw": "for each of those returned cards' colors"
+            }
           }
         ]
       },
@@ -135099,17 +135109,27 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "amount": 6000,
-            "duration": "permanent",
+            "duration": "forTheTurn",
             "cost": {
               "kind": "return",
               "target": { "filter": { "zone": "trash", "controller": "opponent" }, "count": 2 },
+              "trackColors": "returnedCardColors",
               "raw": "by returning 2 cards from their trash to the bottom of the deck"
-            },
-            "optional": true,
-            "abortOnDecline": true,
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine" }, "unit": "colors" }
+            }
+          },
+          {
+            "kind": "ModifyDP",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "amount": -5000,
+            "duration": "forTheTurn",
+            "scaling": {
+              "per": 1,
+              "countSource": "returnedCardColors",
+              "unit": "namedCount",
+              "raw": "for each of those returned cards' colors"
+            }
           }
         ]
       },

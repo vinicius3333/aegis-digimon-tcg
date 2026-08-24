@@ -1471,3 +1471,47 @@ for the individual evidence below.
   strike count — 8/8; EX12-004 Execute ordering — 6/6; timing-priority conformance — 19/19;
   shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-047 — Amaterasumon — 10/10
+
+- **Printed contract:** Yellow/red level 6 Shaman/Sanmyojin/Tentei Hachibushu/Shambala/TB
+  Vaccine Digimon, play cost 12 and 12000 DP. Normal yellow/red level-5 evolution costs 4;
+  alternate level-5 Shambala evolution costs 3. It has Piercing, Security Attack +1, and
+  Ascension. On Play and When Digivolving, it deletes one opposing lowest-DP Digimon; then, by
+  returning exactly two cards from the opponent's trash to deck bottom, it gains +6000 DP and
+  gives one opposing Digimon -5000 DP per distinct color among those cards for the turn. On
+  Deletion, it may recover one TB card from trash, then may play a level-5-or-lower TB Digimon
+  from hand for free.
+- **KB evidence:** Q6815 permits either ordering of Ascension and On Deletion but invalidates the
+  latter if Ascension moves the source first. Q6816 assigns selection and deck-bottom ordering to
+  the activating player. Q6817 says a Digi-Egg routed to the Egg Deck still satisfies the cost.
+  Q6818 requires exactly two cards. Q6819 invalidates a deleted card's pending On Deletion if the
+  same resolving effect returns it from trash first. Q6820 counts distinct colors across both
+  returned cards, so red/blue plus blue/yellow produces -15000 DP. Q7192 confirms that a started
+  effect finishes resolving even if an immediate leave response removes its source.
+- **Corrections:** the aggregate IR applied +6000 permanently to an arbitrary allied Digimon,
+  treated the printed cost as an optional action, omitted color tracking, and entirely omitted
+  the opposing -5000-per-color action. Both entry timings now exactly match the direct executable
+  IR: the source receives +6000 for the turn only after the exact two-card cost, colors are
+  recorded from the moved cards, and a separately selected opposing Digimon receives the scaled
+  turn modifier. Registration remains exclusively via `registerIrCard`.
+- **Ruling and behavioral proof:** the activating seat manually chooses two cards from four legal
+  opposing trash candidates for Q6816. Returning a Digi-Egg to its Egg Deck still grants +6000
+  and enables the color-scaled reduction for Q6817. With only one available card neither
+  follow-up modifier resolves, proving Q6818. Deleting Leomon and returning it before its pending
+  On Deletion activation prevents its memory gain for Q6819. Returning red/blue Veemon and
+  blue/yellow Patamon produces exactly -15000 for Q6820. Explicit trigger ordering proves both
+  Q6815 branches: On Deletion first recovers and plays Wankomon, while Ascension first moves
+  Amaterasumon to security and drops the pending effect. The effect stack's collectability and
+  sequential-body suites cover the pending-source and full-resolution rules used by Q7192.
+- **Evolution and keyword proof:** yellow/red Shishimamon and Gokuumon use the normal cost-4
+  routes; off-color blue/yellow Shambala MarineBullmon uses the alternate cost-3 route. Printed
+  keyword parsing and compiled IR expose Piercing, Security Attack +1, and Ascension, while the
+  real deletion flow places Amaterasumon on top of security. Catalog identity, direct/shared
+  requirements, full coverage, empty residuals, and exact direct/aggregate equality are asserted.
+- **Verification:** `EX12-047.test.ts` — 11/11; interpreter capabilities — 290/290; effect
+  primitives — 126/126; interpreter — 171/171; digivolution action flow — 27/27; advanced
+  keywords — 25/25; deletion/advanced-keyword conformance — 30/30; effect stack — 31/31;
+  timing/resolution conformance — 17/17; shared build, API typecheck, focused formatting,
+  focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved
+  ruling remains.
