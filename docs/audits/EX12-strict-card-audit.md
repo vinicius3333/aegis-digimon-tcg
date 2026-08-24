@@ -1561,3 +1561,34 @@ for the individual evidence below.
   count — 8/8; playing/Assembly conformance — 20/20; rule-check conformance — 4/4; shared build,
   API typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
   unsupported behavior, or unresolved ruling remains.
+
+## EX12-049 — Angoramon — 10/10
+
+- **Printed contract:** Green/black level 3 Beast/NSp Vaccine Digimon, play cost 3 and 2000 DP.
+  Normal green/black level-2 evolution costs 1; Bosamon by name or a level-2 NSp card costs 0.
+  On Play, it reveals the top three cards, adds one card with Angoramon in its text and one
+  NSp-trait card, and returns the rest to deck bottom. Its inherited All Turns effect gives only
+  its host +1000 DP.
+- **KB evidence:** Q6824 defines “Angoramon in text” across the card name, traits, effects,
+  inherited effects, Rule, and every requirement form. The executable `match:"text"` predicate
+  uses that full catalog-text union rather than only name matching.
+- **Implementation trace:** the two ordered RevealAdd slots independently cap at one card. The
+  first uses the Angoramon full-text matcher and the second exact NSp trait matching; the reveal
+  handler removes a selected physical instance from later slots, so one dual-matching card cannot
+  be added twice. The inherited permanent self modifier is correctly marked inherited and has no
+  turn gate. Direct and aggregate IR already matched exactly, remained full with no residual, and
+  required no correction. Registration remains exclusively via `registerIrCard`.
+- **Ruling and behavioral proof:** non-NSp Option BT10-102 is found solely through Angoramon in
+  its printed effect for Q6824. A separate reveal adds BT10-102 and NSp EX12-050 through their
+  respective slots. When EX12-050 is the only matching card, it enters hand exactly once even
+  though it satisfies both filters, and both unmatched cards return to deck bottom in order. A
+  reveal with only an NSp match adds that card and bottoms the other two. A buried Angoramon gives
+  its host +1000 on both turns, while a top Angoramon and an unrelated bystander receive no bonus.
+- **Evolution proof:** green BT1-007 and black BT10-005 pay the normal cost 1; Bosamon BT10-004
+  and off-color NSp P-148 use their zero-cost alternate routes; red nonmatching BT1-001 is
+  rejected. Catalog identity, stats, traits, exact reveal filters, direct/shared requirements,
+  full coverage, empty residuals, and exact IR equality are asserted.
+- **Verification:** `EX12-049.test.ts` — 8/8; interpreter/reveal mechanics — 171/171; effect
+  primitives — 126/126; digivolution action flow — 27/27; continuous-effect lifecycle — 5/5;
+  API typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
+  unsupported behavior, or unresolved ruling remains.
