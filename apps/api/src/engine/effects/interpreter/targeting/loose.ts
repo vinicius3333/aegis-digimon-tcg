@@ -265,6 +265,9 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
         const branchMatches = (filter: Filter): boolean => {
+          const branchZones =
+            filter.zone === undefined ? undefined : Array.isArray(filter.zone) ? filter.zone : [filter.zone];
+          if (branchZones !== undefined && !branchZones.includes(zone)) return false;
           // A union branch qualified by its host can only match a hosted-card zone. Without
           // this gate, BT13-019's Royal Knight-from-breeding branch also admitted Royal
           // Knights from trash merely because definitionMatches ignores hostFilter.

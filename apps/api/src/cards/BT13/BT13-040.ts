@@ -37,15 +37,17 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [
+                  or: [
                     {
-                      tokens: ["Veemon"],
-                      match: "name",
+                      zone: "hand",
+                      nameOrTrait: [{ tokens: ["Veemon"], match: "name" }],
+                    },
+                    {
+                      zone: "digivolutionCards",
+                      nameOrTrait: [{ tokens: ["Veemon"], match: "name" }],
+                      hostFilter: { isSelfRef: true },
                     },
                   ],
-                  hostFilter: {
-                    isSelfRef: true,
-                  },
                 },
                 count: 1,
               },

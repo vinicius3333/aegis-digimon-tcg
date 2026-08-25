@@ -29,8 +29,14 @@ describe("BT13-040 Magnamon", () => {
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [{ match: "name", tokens: ["Veemon"] }],
-                  hostFilter: { isSelfRef: true },
+                  or: [
+                    { zone: "hand", nameOrTrait: [{ match: "name", tokens: ["Veemon"] }] },
+                    {
+                      zone: "digivolutionCards",
+                      nameOrTrait: [{ match: "name", tokens: ["Veemon"] }],
+                      hostFilter: { isSelfRef: true },
+                    },
+                  ],
                 },
                 count: 1,
               },
@@ -86,6 +92,64 @@ describe("BT13-040 Magnamon", () => {
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("source-veemon").instanceId)).toBe(
       false,
     );
+  });
+
+  it("plays an existing Veemon from hand when leaving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-040", as: "magna" }],
+          hand: [{ card: "BT12-021", as: "hand-veemon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("hand-veemon").instanceId)).toBe(
+      true,
+    );
+  });
+
+  it("may play a Veemon drawn by the preceding mandatory draw", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-040", as: "magna" }],
+          deck: [{ card: "BT12-021", as: "drawn-veemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId));
+    expect(
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("drawn-veemon").instanceId),
+    ).toBe(true);
+  });
+
+  it("does not offer a Veemon from another Digimon's sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-040", as: "magna" },
+            { card: "BT13-041", as: "other-host", under: [{ card: "BT12-021", as: "wrong-host-veemon" }] },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+    expect(s.perm("other-host").stack.some(({ instanceId }) => instanceId === s.inst("wrong-host-veemon").instanceId)).toBe(
+      true,
+    );
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
   });
 
   it("may decline the Veemon play after drawing and Magnamon still leaves", async () => {
