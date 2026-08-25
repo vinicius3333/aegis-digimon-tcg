@@ -124,4 +124,23 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
 
     expect(s.state.players[0]!.deck.length).toBe(deckBefore - 1);
   });
+
+  it("does not draw when deleting the host moves Tokomon to trash as collateral", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: ["BT10-006"] }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.turnSeat = 1;
+    const deckBefore = s.state.players[0]!.deck.length;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], {
+      kind: "effect",
+      bySeat: 1,
+    });
+
+    expect(s.state.players[0]!.deck).toHaveLength(deckBefore);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });
