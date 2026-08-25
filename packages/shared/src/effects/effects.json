@@ -4484,14 +4484,7 @@
     "effects": [
       {
         "trigger": "Static",
-        "actions": [
-          {
-            "kind": "GrantStatic",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "grant": "name",
-            "tokens": ["MetalGreymon", "Cyberdramon"]
-          }
-        ],
+        "actions": [],
         "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }]
       },
       {
@@ -9720,7 +9713,18 @@
   },
   "BT11-030": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "GrantStatic",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "grant": "name",
+            "tokens": ["MetalGreymon", "Cyberdramon"]
+          }
+        ],
+        "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }]
+      },
       {
         "trigger": "OnPlay",
         "actions": [

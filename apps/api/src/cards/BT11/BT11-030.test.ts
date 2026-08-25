@@ -1,4 +1,4 @@
-import { digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
+import { compiledEffects, digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -34,6 +34,12 @@ describe("BT11-030 MetalGreymon + Cyber Launcher", () => {
       ],
       coverage: "full",
       residual: [],
+    });
+    expect(compiledEffects["BT11-030"]).toEqual(compiled);
+    expect(compiledEffects["BT10-012"]?.effects[0]).toEqual({
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Armor Purge", raw: "＜Armor Purge＞" }],
     });
   });
 
@@ -117,6 +123,41 @@ describe("BT11-030 MetalGreymon + Cyber Launcher", () => {
     expect(launcher.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(targetInstanceId);
+  });
+
+  it("places Blue Flare from hand, always returns level 3, and leaves level 4 without Cyberdramon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT11-030", as: "launcher" },
+            { card: "BT10-019", as: "material" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT11-024", as: "level3" },
+            { card: "AD1-001", as: "level4" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const level3Id = s.inst("level3").instanceId;
+    const level4Id = s.inst("level4").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("launcher").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === level3Id));
+
+    const launcher = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard?.instanceId === s.inst("launcher").instanceId,
+    )!;
+    expect(launcher.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).not.toContain(level4Id);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(level4Id);
   });
 
   it("uses Armor Purge to survive deletion by trashing its top card", async () => {
