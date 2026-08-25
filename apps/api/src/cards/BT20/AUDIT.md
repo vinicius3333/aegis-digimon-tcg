@@ -407,3 +407,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-034.test.ts`).
+
+## BT20-035 — Kazuchimon
+
+- Catalog contract: yellow/green level 6 Vaccine Shaman/Abadin Electronics/SEEKERS, play cost 12/12000 DP, purple or green level-5 evolution cost 4 plus level-5 Pulsemon-text or SEEKERS alternate cost 3; Fortitude; When Digivolving suspends one opposing Digimon/Tamer, then independently prevents one from unsuspending through its turn end; a Tamer entering its stack reactivates one When Digivolving effect, then optionally attacks an opposing Digimon; inherited Fenriloogamon recovers once per turn when own security is removed.
+- Knowledge base: Q4342 defines Pulsemon in text across complete printed text; Q4343 explicitly permits different suspend and unsuspend-lock targets; Q4344 gives Security effects priority over the inherited security-removal trigger.
+- Implementation evidence: Fortitude is direct; the When Digivolving body uses two independent target resolutions for Q4343 and canonical unsuspend restriction duration. The Tamer-source watcher reactivates self's When Digivolving effect before its separate optional attack. The inherited watcher checks live Fenriloogamon name, own security removal, deck recovery, and once-per-turn; alternate requirements and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: placing BT20-085 under Kazuchimon reactivates the payload, observably suspending and locking an opposing Digimon while the optional attack is declined. Kazuchimon beneath BT14-081 Fenriloogamon recovers BT20-010 from deck after an own-security removal event and cannot recover again that turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-035.test.ts` — 3 passed.
+- Clause scores: stats/alternate full-text evolution/Fortitude 2/2; suspend target 2/2; independent unsuspend lock/duration 2/2; Tamer-source reactivation/optional attack 2/2; inherited Fenriloogamon recovery/scope/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: Q4344 is an engine-wide trigger-order rule; the focused test isolates the card's pending inherited response after that priority window.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-035.test.ts`).
