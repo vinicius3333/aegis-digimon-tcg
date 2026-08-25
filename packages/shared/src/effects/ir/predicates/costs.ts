@@ -54,6 +54,8 @@ export interface Cost {
    */
   optional?: boolean;
   raw?: string;
+  /** Named procedure that caused a deletion cost, when later effects distinguish it. */
+  mechanic?: "Overclock";
   /** For `return` costs; `"deckBottom"` sends the card under its owner's deck (BT19-002). */
   to?: "hand" | "deckBottom" | "deckTop" | "deckTopOrBottom";
   /**

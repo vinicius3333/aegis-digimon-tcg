@@ -815,7 +815,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.trigger.handTrashedSeat === seat;
     }
     case "triggerRemovalCause":
-      return ctx.trigger.removalCause === cond.removalCause;
+      return (
+        ctx.trigger.removalCause === cond.removalCause &&
+        (cond.removalMechanic === undefined || ctx.trigger.removalMechanic === cond.removalMechanic)
+      );
     case "triggerDeletedByDpZero":
       return ctx.trigger.deletedByDpZero === true;
     case "triggerIsFirstDeletedPermanent": {

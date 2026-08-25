@@ -2585,6 +2585,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const deletePermanent = async (
     permanentIds: string[],
     cause: import("./EffectContext.js").RemovalCause = "byEffect",
+    opts?: { mechanic?: "Overclock" },
   ): Promise<number> => {
     // "Can't be deleted" (Comprehensive Rules §15-1-3: a prohibiting effect takes precedence).
     // Filtered FIRST: an outright prohibition means the deletion never approaches, so neither
@@ -2858,6 +2859,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           deletedControllerSeat: deleted.controllerSeat,
           deletedTopCardId: deleted.topCard?.cardId,
           removalCause: cause,
+          removalMechanic: opts?.mechanic,
           deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
         });
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
@@ -2974,6 +2976,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
         deletedInstanceIds: tokenDeletionIds,
         removalCause: cause,
+        removalMechanic: opts?.mechanic,
       });
     }
     const movedByPermanent = access.deletePermanentsBatched(toDelete);
@@ -3029,6 +3032,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedWasStackInstanceIds: allStackInstanceIds,
         deletedWasLinkedInstanceIds: allLinkedInstanceIds,
         removalCause: cause,
+        removalMechanic: opts?.mechanic,
       };
       if (engine.resolveDeletionReactions) {
         await engine.resolveDeletionReactions(

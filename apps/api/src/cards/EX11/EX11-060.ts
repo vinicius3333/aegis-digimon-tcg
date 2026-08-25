@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
@@ -82,6 +82,7 @@ const compiled: CompiledCard = {
               condition: {
                 kind: "triggerRemovalCause",
                 removalCause: "byEffect",
+                removalMechanic: "Overclock",
                 raw: "if deleted by ＜Overclock＞",
               },
             },
