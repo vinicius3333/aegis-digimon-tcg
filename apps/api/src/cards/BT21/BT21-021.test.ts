@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -106,7 +107,7 @@ describe("BT21-021 OmniShoutmon", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fire("EndOfAttack", s.perm("omni"));
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("omni"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-007"));
     expect(s.state.memory).toBe(3);
   });
@@ -118,7 +119,7 @@ describe("BT21-021 OmniShoutmon", () => {
     ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: "BT21-021", as: "omni" }], hand: [{ card }] } }, options);
       await s.ready();
-      await advance(s.engine).fire("EndOfAttack", s.perm("omni"));
+      await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("omni"));
       await settle(() => s.state.pendingDecision === undefined);
       expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-021")).toBe(true);
     }
