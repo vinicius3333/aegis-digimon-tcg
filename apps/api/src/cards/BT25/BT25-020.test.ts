@@ -17,7 +17,12 @@ describe("BT25-020 Marsmon", () => {
       instanceId: "marsmon-1",
       ownerSeat: 0,
       definition: { cardId: "BT25-020", colors: [CardColor.Red], kinds: ["Digimon"] },
-      permanent: () => ({ permanentId: "marsmon-p", topCard: { instanceId: "marsmon-i", cardId: "BT25-020" } }),
+      permanent: () => ({
+        permanentId: "marsmon-p",
+        topCard: { instanceId: "marsmon-i", cardId: "BT25-020" },
+        stack: [],
+        linked: [],
+      }),
     } as never;
     const effects = module?.effectsForTiming(EffectTiming.None, source) ?? [];
     expect(effects).toHaveLength(2);
