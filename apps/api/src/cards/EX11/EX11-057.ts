@@ -1,141 +1,78 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard, Filter } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX11-057";
-
-function hasIceSnow(def: CardDefinition): boolean {
-  return isDigimon(def) && (def.types ?? []).includes("Ice-Snow");
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-gain-memory`,
-          description: "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.",
-          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          canActivate: (ctx) => {
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
-            return Array.from(ctx.game.player(opponent).battleArea).some(
-              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-            );
-          },
-          resolve: async (ctx) => {
-            ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-trash-digi`,
-          description:
-            "[On Play] For each of your [Ice-Snow] trait Digimon, trash any 1 digivolution " +
-            "card from your opponent's Digimon.",
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const iceSnowCount = Array.from(owner.battleArea).filter(
-              (p) => p.topCard !== undefined && hasIceSnow(ctx.game.definitionOf(p.topCard)),
-            ).length;
-            if (iceSnowCount === 0) return;
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
-            const oppDigimon = Array.from(ctx.game.player(opponent).battleArea).filter(
-              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
-            );
-            if (oppDigimon.length === 0) return;
-            const chosen = await ctx.ask.chooseTargets(ctx, {
-              candidates: oppDigimon.map((p) => p.permanentId),
-              min: 1,
-              max: 1,
-            });
-            if (chosen.length === 0) return;
-            const target = ctx.game.permanentById(chosen[0]!);
-            if (target === undefined) return;
-            const toTrash = target.stack.slice(0, Math.min(iceSnowCount, target.stack.length));
-            if (toTrash.length > 0) {
-              await ctx.fx.trashDigivolutionCards(
-                chosen[0]!,
-                toTrash.map((c) => c.instanceId),
-              );
-            }
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/digivolution-trashed-gain-memory`,
-          description:
-            "[All Turns] When effects trash digivolution cards from your opponent's Digimon, " +
-            "by suspending this Tamer, gain 1 memory.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenDigivolutionTrashed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // A self-suspend cost is unpayable while this card is already suspended, so this watcher
-              // must not pad the prompt when several watchers order off one event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When opponent digivolution trashed, suspend + gain memory.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined) return false;
-                return subject.controllerSeat !== source.ownerSeat;
-              },
-              run: async (subCtx) => {
-                const selfPerm = subCtx.source.permanent();
-                if (selfPerm === undefined || selfPerm.isSuspended) return;
-                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
-                // choice: ask before suspending, and leave the Tamer untouched on a decline.
-                const willSuspend = await subCtx.ask.optional(subCtx, "Suspend Suzune Kazuki to gain 1 memory?");
-                if (!willSuspend) return;
-                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-                if (!paid) return;
-                // [All Turns]: the trashing effect can resolve on either player's turn.
-                subCtx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+const opponentDigimon: Filter = { controller: "opponent", kind: ["Digimon"] };
+const iceSnowDigimon: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ match: "trait", tokens: ["Ice-Snow"] }],
 };
 
-registerCard(module);
-export default module;
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: opponentDigimon,
+            raw: "your opponent has a Digimon",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: { filter: { ...opponentDigimon, digivolutionCards: "hasAny" }, count: "all" },
+          amount: 1,
+          scaling: { per: 1, filter: iceSnowDigimon, unit: "cards" },
+          scope: "acrossDigimon",
+          choose: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: opponentDigimon,
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("EX11-057", compiled);

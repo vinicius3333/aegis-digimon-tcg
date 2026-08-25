@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
-import "./EX11-057.js";
+import { compiled } from "./EX11-057.js";
 
 describe("EX11-057 Suzune Kazuki", () => {
   it("gains memory at the start of your main phase when the opponent has a Digimon", async () => {
@@ -54,5 +54,53 @@ describe("EX11-057 Suzune Kazuki", () => {
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("suzune").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("trashes one freely chosen source per Ice-Snow Digimon across opposing stacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["EX11-014", "EX11-015"],
+          hand: [{ card: "EX11-057", as: "suzune" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", under: ["BT1-001"], as: "first" },
+            { card: "BT1-011", under: ["BT1-002"], as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suzune").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("first").stack.length === 0 && s.perm("second").stack.length === 0);
+
+    expect(s.perm("first").stack).toHaveLength(0);
+    expect(s.perm("second").stack).toHaveLength(0);
+  });
+
+  it("publishes exclusive full IR with pooled scaling and the paid opponent-source watcher", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([
+      {
+        kind: "TrashDigivolution",
+        target: { filter: { controller: "opponent", digivolutionCards: "hasAny" }, count: "all" },
+        amount: 1,
+        scope: "acrossDigimon",
+        choose: true,
+      },
+    ]);
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toMatchObject([
+      {
+        kind: "SubTrigger",
+        event: "whenDigivolutionTrashed",
+        sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+        actions: [{ kind: "GainMemory", cost: { kind: "suspend" }, abortOnDecline: true }],
+      },
+    ]);
   });
 });
