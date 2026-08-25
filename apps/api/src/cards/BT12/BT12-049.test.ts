@@ -1,29 +1,31 @@
-import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-049.js";
-
-describe("BT12-049 handwritten module", () => {
-  it("registers its printed timing without declarative effect record", () => {
-    const module = getEffectModule("BT12-049");
-    expect(module?.cardId).toBe("BT12-049");
-    const source = {
-      instanceId: "source-049",
-      cardId: "BT12-049",
-      ownerSeat: 0,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      permanent: () => undefined,
-    } as unknown as CardSource;
-    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThan(0);
-  });
-});
 
 it("provides Blocker as a public keyword", async () => {
   const s = setupEngine({ 0: { battleArea: [{ card: "BT12-049", as: "yaki" }] } });
   await s.ready();
   expect(observe(s.engine).hasKeyword(s.perm("yaki"), "Blocker")).toBe(true);
+});
+
+it("redirects a public opposing attack and suspends to block", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-049", as: "yaki" }] },
+    1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+  });
+  s.state.turnSeat = 1;
+  expect(
+    s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => observe(s.engine).blockingSeat() === 0);
+  expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("yaki").permanentId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
+  expect(s.perm("yaki").isSuspended).toBe(true);
 });
