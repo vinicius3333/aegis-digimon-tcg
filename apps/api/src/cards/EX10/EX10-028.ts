@@ -30,8 +30,8 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            bindAs: "chosen",
           },
-          selectionRef: "chosen",
           keyword: {
             keyword: "Reboot",
             raw: "＜Reboot＞",
@@ -95,8 +95,8 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            bindAs: "chosen",
           },
-          selectionRef: "chosen",
           keyword: {
             keyword: "Reboot",
             raw: "＜Reboot＞",
@@ -148,8 +148,9 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "onDigivolutionCardDiscarded",
-          sourceFilter: {
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: { isSelfRef: true },
+          hostFilter: {
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
