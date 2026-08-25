@@ -115,3 +115,30 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-004.
+
+## BT9-005 — Tumblemon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Black level-2 Digi-Egg, `In-Training` form, `Rock` type, no evolution recipe, no main or Security text, and the complete inherited text were checked in the catalog.
+2. **Inherited placement (1/1):** The compiled effect is inherited and focused proof uses Tumblemon underneath a live Digimon carrier.
+3. **Opponent-turn timing (1/1):** `OpponentsTurn` grants the modifier when the opposing seat owns the turn and rejects the same Blocker stack on Tumblemon's controller's turn.
+4. **Blocker-positive boundary (1/1):** A Monochromon carrier exposes its printed Blocker keyword through the live keyword service and receives the bonus.
+5. **Blocker-negative boundary (1/1):** An Elecmon carrier without Blocker remains at printed DP during the otherwise valid opponent-turn window.
+6. **Amount (1/1):** The qualifying 6000-DP carrier becomes exactly 7000 DP, proving the printed +1000 value.
+7. **Recipient isolation (1/1):** The `Aura` targets `isSelfRef`; the nearby non-Blocker carrier is unchanged.
+8. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT9-005` returns no rulings, errata, restrictions, or unresolved ambiguity.
+9. **Direct IR and registration (1/1):** `BT9-005.ts` has full coverage, no residual clauses, and exactly one `registerIrCard("BT9-005", compiled)` registration with no legacy `registerCard` call.
+10. **Reproducible verification (1/1):** BT9-005 focused proof passed 3/3; the symmetric BT2-005 keyword-aura peer passed 3/3; workspace typecheck and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-005
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-005.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-005.test.ts src/cards/BT2/BT2-005.test.ts --reporter=dot
+pnpm typecheck
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-005.
