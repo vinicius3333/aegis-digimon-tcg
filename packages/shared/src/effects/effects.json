@@ -78582,10 +78582,15 @@
                   "kind": "youHave",
                   "filter": {
                     "controllerDefault": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [
-                      { "tokens": ["Yuuko Kamishiro"], "match": "name" },
-                      { "tokens": ["CS"], "match": "trait" }
+                    "or": [
+                      {
+                        "kind": ["Tamer"],
+                        "nameOrTrait": [{ "tokens": ["Yuuko Kamishiro"], "match": "name" }]
+                      },
+                      {
+                        "kind": ["Digimon"],
+                        "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
+                      }
                     ]
                   },
                   "raw": "you have [Yuuko Kamishiro] or a [CS] trait Digimon"

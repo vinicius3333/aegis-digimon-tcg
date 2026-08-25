@@ -389,6 +389,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; observes Blocker on only a friendly Royal Base; proves CannonBeemon flips security and survives an opposing deletion but leaves normally under its owner's deletion with security untouched; proves the inherited carrier protects another Royal Base through the same cost; and accepts 3-cost evolution independently from level-4 Royal Base and CS bases.
 - Verification: focused suite — 9 passed; shared face-up-security, Blocker, leave-replacement, effect-controller, simultaneous-leave, inherited, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-044 — Lilamon — 10/10
+
+- Catalog evidence: Green level 5, play cost 7, 7000 DP, standard green-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Data`, types `Fairy` and `CS`; hand play costs 3 less while controlling Yuuko Kamishiro or a CS Digimon; On Play/When Digivolving may suspend any player's Digimon as a cost to protect one friendly Vegetation, Plant, Fairy, or CS Digimon from opposing hand/deck returns through the opponent's turn end; inherited once per turn trashes opposing top security after its carrier deletes an opponent in battle.
+- Knowledge base: Q5305 permits either player's Digimon to pay the suspension cost. Q5306 forbids the inherited trigger when the carrier and opposing battle target are deleted simultaneously, because the source no longer remains to activate.
+- Defect corrected: the reducer encoded Yuuko inside a Digimon-only filter, so the named Tamer could never satisfy the printed OR, and BT23-044 was absent from the verified pay-time self-reducer registry. The audit replaces the gate with a kind-correct Tamer-or-CS-Digimon filter, registers the verified self reducer, synchronizes committed effects JSON, and preserves exclusive `registerIrCard("BT23-044", compiled)` registration with full coverage and no residual clauses.
+- Primitive trace: the pay-time reducer now reads a friendly Yuuko Tamer or CS Digimon and subtracts exactly 3; both entry timings may suspend either controller's Digimon before binding the duration restriction to one eligible friendly target; the inherited battle-won watcher is physical-source once per turn and acts only while the carrier survives the battle timing.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; charges 4 with Yuuko, charges 4 with a CS Digimon, and the printed 7 with neither; proves a realistic inherited carrier trashes the exact opposing top security after winning battle; verifies all cost, target, trait, duration, and causality structures; and accepts off-color level-4 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 9 passed; shared pay-time reducer, suspension-cost, return restriction, battle-won survival, security-trash, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-044 through BT23-102.
+BT23-045 through BT23-102.

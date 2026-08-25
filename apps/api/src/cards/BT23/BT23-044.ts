@@ -27,15 +27,14 @@ export const compiled: CompiledCard = {
                 kind: "youHave",
                 filter: {
                   controllerDefault: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
+                  or: [
                     {
-                      tokens: ["Yuuko Kamishiro"],
-                      match: "name",
+                      kind: ["Tamer"],
+                      nameOrTrait: [{ tokens: ["Yuuko Kamishiro"], match: "name" }],
                     },
                     {
-                      tokens: ["CS"],
-                      match: "trait",
+                      kind: ["Digimon"],
+                      nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
                     },
                   ],
                 },
