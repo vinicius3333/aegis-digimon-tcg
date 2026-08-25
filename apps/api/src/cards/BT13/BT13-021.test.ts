@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-021.js";
@@ -47,12 +47,43 @@ describe("BT13-021 Gaomon", () => {
     expect(s.state.players[1]!.hand).toHaveLength(2);
   });
 
+  it("draws for both players only once across two attack timings in the same turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-021", as: "gaomon" }], deck: ["BT1-001", "BT1-002"] },
+      1: { deck: ["BT1-003", "BT1-004"] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("gaomon"), {
+      attackerPermanentId: s.perm("gaomon").permanentId,
+    });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("gaomon"), {
+      attackerPermanentId: s.perm("gaomon").permanentId,
+    });
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[1]!.hand).toHaveLength(1);
+  });
+
   it("gains 1000 DP as an inherited effect while the opponent has at least 8 cards", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-021"] }] },
       1: { hand: Array.from({ length: 8 }, () => "BT1-001") },
     });
     await s.ready();
+    expect(s.perm("host").currentDP).toBe(4000);
+  });
+
+  it("does not gain inherited DP at 7 opposing hand cards and gains it immediately at 8", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-021"] }] },
+      1: { hand: Array.from({ length: 7 }, () => "BT1-001") },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(3000);
+
+    s.give(1, Zone.Hand, "BT1-002");
+    await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(4000);
   });
 });
