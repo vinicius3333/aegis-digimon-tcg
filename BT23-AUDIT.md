@@ -191,6 +191,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR, proves all six App Fusion combinations plus duplicate rejection, links Dosukomon onto an Appmon for exactly 2 with +3000 DP and observable immunity, rejects a non-Appmon recipient without mutation, links a valid level-3 card for free When Digivolving, and excludes a level-3 card without Link.
 - Verification: focused suite — 6 passed; `git diff --check` — passed.
 
+## BT23-022 — Oujamon — 10/10
+
+- Catalog evidence: Blue/red level 5, play cost 9, 9000 DP, standard blue- or red-level-4 evolution for 4; forms `Ult.` and `Appmon`, attribute `Game`, type `Battle`; zero-cost App Fusion from Dosukomon and Coachmon; Raid; shared once-per-turn When Digivolving/When Attacking may link one level-4-or-lower Digimon with Link from hand or sources for free; All Turns once per turn may unsuspend when linked; Link onto Appmon costs 3, contributes 4000 DP, and grants Security Attack +1.
+- Knowledge base: Q5243 excludes cards without Link from the free link effect; there are no other local rulings, errata, restrictions, or unresolved ambiguities.
+- Defect corrected: the direct IR omitted the complete Link recipe and linked Security Attack +1 clause. The audited IR restores both; registration remains exclusively `registerIrCard("BT23-022", compiled)` with full coverage and no residual clauses.
+- Primitive trace: App Fusion accepts either material ordering and costs 0; the effect Link searches hand and Oujamon's sources, enforces the inclusive level-4 boundary, and filters to printed Link cards; player Link validates an Appmon recipient and pays exactly 3; the linked static keyword contributes one extra security check; the self-filtered linked watcher offers unsuspension and shares one per-source turn frequency.
+- Behavioral proof: the focused suite checks catalog and complete IR, observes a cost-3 Link with +4000 DP and Security Attack +1, rejects a non-Appmon recipient without mutation, links a level-4 Link card for free When Digivolving while excluding a same-level no-Link card, and proves both accepting and refusing the optional unsuspend.
+- Verification: focused suite — 7 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-022 through BT23-102.
+BT23-023 through BT23-102.

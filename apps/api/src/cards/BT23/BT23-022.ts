@@ -10,6 +10,12 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static",
       actions: [],
+      isLinked: true,
+      keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" }],
+    },
+    {
+      trigger: "Static",
+      actions: [],
       keywords: [
         {
           keyword: "Raid",
@@ -92,6 +98,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
   appFusionRequirement: [
     {
       names: ["Dosukomon", "Coachmon"],
