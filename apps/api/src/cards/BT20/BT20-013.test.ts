@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -59,7 +60,7 @@ describe("BT20-013 BaoHuckmon", () => {
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonMatch").instanceId);
 
-    const second = s.give(0, "hand", { card: "BT20-084", as: "second" });
+    const second = s.give(0, Zone.Hand, { card: "BT20-084", as: "second" });
     const retry = s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("bao").topCard.instanceId,
