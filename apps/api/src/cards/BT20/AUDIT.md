@@ -1019,3 +1019,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-085.test.ts`).
+
+## BT20-086 — Altea
+
+- Catalog contract: black LIBERATOR Tamer, play cost 4; start of own turn sets memory to 3 when at 2 or less; start of own main phase may place one black cost-4-or-less Cyborg/Machine Digimon card from hand or trash at the bottom of an own Digimon with either trait as cost to flip the opponent's top face-down security face up; Security free-plays itself.
+- Knowledge base: Q4422 confirms the Cyborg/Machine union for the placed card. Q4423 selects the first face-down security from the top, and Q4424-Q4427 define persistence, checking, Security activation, and reset-on-shuffle for face-up security.
+- Implementation evidence: audit removed a duplicate start-main effect whose placement defaulted under the Tamer, and routed the single optional cost explicitly to a chosen own Cyborg/Machine host's evolution-stack bottom. The source card retains exact black, kind, play-cost, trait, and hand/trash filters. Memory and Security effects are direct; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: source and host trait filters are intentionally separate, permitting either trait on each while requiring the source alone to be black and cost 4 or less; the shared flip operation chooses the topmost face-down security per Q4423.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-086.test.ts` — 2 passed.
+- Clause scores: stats/Security 2/2; memory setter boundary 2/2; source color/cost/trait/zone union 2/2; destination host/stack-bottom paid cost 2/2; optional face-up security operation/Q4423-Q4427 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-086.test.ts`).

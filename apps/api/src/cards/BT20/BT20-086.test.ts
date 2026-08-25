@@ -9,8 +9,20 @@ describe("BT20-086 Altea", () => {
   });
 
   it("places the qualifying black Digimon at the bottom before flipping security", () => {
-    expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase")).toMatchObject({
-      actions: [{ kind: "SecurityManipulation", op: "flipFaceUp", cost: { kind: "place", position: "bottom" } }],
+    const effects = compiled.effects.filter((entry) => entry.trigger === "StartOfYourMainPhase");
+    expect(effects).toHaveLength(1);
+    expect(effects[0]).toMatchObject({
+      actions: [{
+        kind: "SecurityManipulation",
+        op: "flipFaceUp",
+        optional: true,
+        cost: {
+          kind: "place",
+          destination: "digivolutionStack",
+          position: "bottom",
+          host: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Cyborg", "Machine"] }] } },
+        },
+      }],
     });
   });
 });

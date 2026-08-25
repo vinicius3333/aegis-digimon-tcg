@@ -30,37 +30,16 @@ export const compiled: CompiledCard = {
           controller: "opponent",
           cost: {
             kind: "place",
+            destination: "digivolutionStack",
             position: "bottom",
-            target: {
+            host: {
               filter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                colors: ["Black"],
-                playCostLte: 4,
-                nameOrTrait: [
-                  {
-                    tokens: ["Cyborg", "Machine"],
-                    match: "trait",
-                  },
-                ],
+                nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }],
               },
               count: 1,
-              from: ["hand", "trash"],
             },
-            raw: "By placing 1 black Digimon card with the [Cyborg]/[Machine] trait with a play cost of 4 or less from your hand or trash at the bottom of your Digimon with such trait",
-          },
-        },
-      ],
-    },
-    {
-      trigger: "StartOfYourMainPhase",
-      actions: [
-        {
-          kind: "SecurityManipulation",
-          op: "flipFaceUp",
-          controller: "opponent",
-          cost: {
-            kind: "place",
             target: {
               filter: {
                 controller: "mine",
