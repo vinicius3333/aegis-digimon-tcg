@@ -313,6 +313,14 @@ export async function runSecurityManipulation(
           }
         }
         const chosen = await pickLoose(ctx, scaledSource, candidates);
+        // "Do I reveal the card to my opponent? Yes" (LM-023 Q4025): the card is shown before it
+        // goes face down onto the stack, so a hidden-zone placement stays public information.
+        if (action.revealChosen === true) {
+          for (const instanceId of chosen) {
+            const card = candidates.find((candidate) => candidate.instanceId === instanceId);
+            if (card !== undefined) ctx.fx.revealCard(ctx.source.ownerSeat, card.cardId, ctx.source.cardId);
+          }
+        }
         if (chosen.length > 0)
           await ctx.fx.addSecurity(seat, chosen, { toTop: action.toTop ?? true, faceUp: action.faceUp });
         return;
