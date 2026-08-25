@@ -46270,7 +46270,7 @@
             "into": {
               "controllerDefault": "mine",
               "nameOrTrait": [{ "tokens": ["Lucemon: Chaos Mode"], "match": "name" }],
-              "exclude": [{ "cardID": "BT7-111" }]
+              "excludeCardIds": ["BT7-111"]
             },
             "payCost": false,
             "from": ["trash"],

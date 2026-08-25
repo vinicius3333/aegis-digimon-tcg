@@ -162,6 +162,9 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
     const name = (def.nameEn ?? "").toLowerCase();
     if (filter.excludeNames.some((n) => name.includes(n.toLowerCase()))) return false;
   }
+  if (filter.excludeCardIds && filter.excludeCardIds.length > 0 && def.cardId !== undefined) {
+    if (filter.excludeCardIds.includes(def.cardId)) return false;
+  }
   // Name/trait/text-spanning exclusion ("other than Digimon with [Dark Masters] in their texts",
   // EX10-035): reject when the card's definition matches any ref via the shared name/trait/text
   // union. A `match:"any"` ref spans name ∪ trait ∪ effect text.
