@@ -239,3 +239,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-020.test.ts`).
+
+## BT20-021 — Jesmon GX
+
+- Catalog contract: red/black level 7 Data Holy Warrior/X Antibody/Royal Knight ACE, play cost 9/16000 DP, red or black level-6 evolution cost 6, Blast Digivolve, Overflow -5; entry/attack shared once per turn may place a Royal Knight from hand/trash at stack bottom to delete an opposing Digimon at or below self DP; separate attack once per turn unsuspends self, then trashes top security once per two Royal Knight sources.
+- Knowledge base: Q4310 forbids combining Blast Digivolve with a DNA requirement; Q4311 makes the two attack effects simultaneous and controller-ordered.
+- Implementation evidence: the three timings share one use key and an optional paid `place` cost with hand/trash source, self host, and bottom position before source-relative deletion. The independent attack effect unsuspends self and scales top-security trash from Royal Knight cards in the live source stack. The security primitive now multiplies an explicit top-position trash count by action scale; Blast Digivolve and exclusive `registerIrCard` registration remain direct.
+- Peer/stack evidence: On Play places BT20-017 beneath an existing source at the actual bottom and deletes the inclusive 16000-DP boundary while preserving 17000 DP; a later timing cannot reuse the shared clause. Four distinct Royal Knight sources under a suspended GX produce an observable unsuspend and exactly two top-security trashes through the simultaneous attack timing.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-021.test.ts` — 3 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts` — 173 passed.
+- Clause scores: stats/ACE/Blast metadata 2/2; three shared timings/once-per-turn 2/2; Royal Knight hand-trash bottom cost 2/2; source-DP deletion boundary 2/2; independent unsuspend/scaled top-security trash 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-021.test.ts`).
