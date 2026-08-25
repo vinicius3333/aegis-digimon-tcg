@@ -80910,7 +80910,11 @@
             "actions": [
               {
                 "kind": "ModifyDP",
-                "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "target": {
+                  "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+                  "count": 1,
+                  "sourceRef": "triggerSubject"
+                },
                 "amount": 3000,
                 "duration": "untilOpponentTurnEnd",
                 "cost": {
@@ -80920,13 +80924,15 @@
                 },
                 "optional": true,
                 "abortOnDecline": true
+              },
+              {
+                "kind": "AppFuse",
+                "source": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "into": { "controllerDefault": "mine", "kind": ["Digimon"] },
+                "from": ["hand"],
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "AppFuse",
-            "source": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "optional": true
           }
         ]
       },

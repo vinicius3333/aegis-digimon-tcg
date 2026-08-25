@@ -704,6 +704,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field, erratum spelling, and complete IR; gains memory on its controller's start-main but not the opponent's; accepts a qualifying CS play, returns the exact Tamer, gives +3000 DP, and produces a live attack suspension; declines the return and proves no movement, boost, or attack; and rejects a Sea Animal-only trigger subject.
 - Verification: focused suite — 5 passed after refreshing shared runtime data; shared start-main guards, trait union/exclusion, compound cost, abort-on-decline, temporary DP, optional attack, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-079 — Eri Karan — 10/10
+
+- Catalog evidence: Blue cost-3 Tamer, types `App Driver` and `Appmon`; Start of Your Main Phase gains 1 memory if the opponent has a Digimon; Your Turn when a friendly Digimon gets linked, may suspend this Tamer to give that exact Digimon +3000 DP through the opponent's turn, then one friendly Digimon may app fuse into a hand Digimon; Security plays this card for free.
+- Knowledge base: Q5354 makes suspending Eri the required “by” cost and forbids the App Fuse tail when that cost is not paid.
+- Defects corrected: authoritative shared IR selected an arbitrary friendly Digimon for the boost and placed App Fuse outside the linked listener. It now binds `triggerSubject` and nests the fully filtered hand App Fuse after the paid boost, matching the executable module; registration remains exclusively `registerIrCard("BT23-079", compiled)` with full coverage/no residuals.
+- Primitive trace: the start-main guard checks turn ownership and opponent board presence; the link listener binds the exact linked permanent, pays suspension of the physical Tamer, grants +3000 through opponent turn end, and only then offers an App Fuse from hand; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves guarded start-main memory; links one Digimon among two, suspends Eri, and boosts only that subject; declines suspension and observes neither suspension nor boost; and structurally proves the hand App Fuse remains nested behind the aborting cost.
+- Verification: focused suite — 7 passed after refreshing shared runtime data; shared link-subject binding, Tamer suspension cost, abort-on-decline, duration DP, nested App Fuse, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-079 through BT23-102.
+BT23-080 through BT23-102.
