@@ -77,6 +77,8 @@ export interface Cost {
   leaveInZone?: number;
   /** Do not reveal selected loose-card definitions to the player paying this cost. */
   selectionHidden?: boolean;
+  /** Privately show a hidden selection to the cards' owner for acknowledgement before moving it. */
+  ownerInspectsSelection?: boolean;
   /**
    * Store how many cards the cost actually moved, for a later scaling or `countSource`
    * ("by placing up to N cards ... reduce by X for each card placed").

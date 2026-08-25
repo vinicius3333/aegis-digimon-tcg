@@ -40,6 +40,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
             to: "deckBottom",
             leaveInZone: 8,
             selectionHidden: true,
+            ownerInspectsSelection: true,
             orderReturnedCards: true,
           }),
         }),
@@ -124,17 +125,17 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     expect(s.state.memory).toBe(7);
   });
 
-  it("returns the hidden excess to deck bottom until exactly eight remain, then unsuspends (Q2285/Q2286)", async () => {
+  it("lets the activator select/order opaque positions, privately shows the owner, and preserves exact bottom order (Q2285/Q2286)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-033", as: "burst" }] },
         1: {
-          hand: Array.from({ length: 11 }, (_, index) => ({ card: "BT13-021", as: `hand-${index}` })),
+          hand: Array.from({ length: 11 }, (_, index) => ({ card: `BT13-0${21 + index}`, as: `hand-${index}` })),
           deck: ["BT1-001"],
           security: ["BT1-002"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+      { autoAcceptOptional: true, autoOrderCards: false },
     );
     expect(
       s.engine.applyIntent(0, {
@@ -143,17 +144,63 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req, seat }) => req.kind === "selectCards" && seat === 0));
+
+    const activatorSelection = s.decisions.find(({ req, seat }) => req.kind === "selectCards" && seat === 0)!.req;
+    expect(activatorSelection.options?.visibleCards ?? []).toEqual([]);
+    const chosen = [s.inst("hand-8").instanceId, s.inst("hand-1").instanceId, s.inst("hand-4").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activatorSelection.decisionId,
+        response: { kind: "selectCards", instanceIds: chosen },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req, seat }) => req.kind === "selectCards" && seat === 1));
+    const ownerInspection = s.decisions.find(({ req, seat }) => req.kind === "selectCards" && seat === 1)!.req;
+    expect(ownerInspection.options).toMatchObject({
+      candidateInstanceIds: [],
+      visibleInstanceIds: chosen,
+      min: 0,
+      max: 0,
+    });
+    expect(ownerInspection.options?.visibleCards).toEqual([
+      { instanceId: s.inst("hand-1").instanceId, cardId: "BT13-022" },
+      { instanceId: s.inst("hand-4").instanceId, cardId: "BT13-025" },
+      { instanceId: s.inst("hand-8").instanceId, cardId: "BT13-029" },
+    ]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: ownerInspection.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
+    const activatorOrderDecision = s.decisions.find(({ req }) => req.kind === "orderCards")!;
+    const activatorOrder = activatorOrderDecision.req;
+    expect(activatorOrderDecision.seat).toBe(0);
+    expect(activatorOrder.options?.candidateInstanceIds).toEqual(chosen);
+    expect(activatorOrder.options?.visibleCards ?? []).toEqual([]);
+    const exactOrder = [s.inst("hand-4").instanceId, s.inst("hand-8").instanceId, s.inst("hand-1").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: activatorOrder.decisionId,
+        response: { kind: "orderCards", order: exactOrder },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.length === 8 && !s.perm("burst").isSuspended);
 
     expect(s.state.players[1]!.hand).toHaveLength(8);
     expect(s.state.players[1]!.deck.slice(-3).map(({ cardId }) => cardId)).toEqual([
-      "BT13-021",
-      "BT13-021",
-      "BT13-021",
+      "BT13-025",
+      "BT13-029",
+      "BT13-022",
     ]);
     expect(s.perm("burst").isSuspended).toBe(false);
-    const selection = s.decisions.find(({ req }) => req.kind === "selectCards")?.req;
-    expect(selection?.options?.visibleCards ?? []).toEqual([]);
   });
 
   it("allows the attack effect to be declined without moving hand cards or unsuspending", async () => {

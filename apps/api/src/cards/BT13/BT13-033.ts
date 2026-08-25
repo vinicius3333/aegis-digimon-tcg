@@ -42,6 +42,7 @@ export const compiled: CompiledCard = {
             to: "deckBottom",
             leaveInZone: 8,
             selectionHidden: true,
+            ownerInspectsSelection: true,
             orderReturnedCards: true,
           },
           optional: true,

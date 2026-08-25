@@ -1,6 +1,7 @@
 // Checking and paying an action's cost.
 
 import { MEMORY_MIN } from "../../MemoryGauge.js";
+import { requireOpponentAsk } from "../../decisions/decisionApi.js";
 import type { EffectContext } from "../EffectContext.js";
 import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
@@ -1051,6 +1052,18 @@ export async function payCost(
           cost.selectionHidden === true ? [] : undefined,
         );
         if (chosen.length < n) return false;
+        if (cost.ownerInspectsSelection === true) {
+          const selectedCards = candidates
+            .filter((candidate) => chosen.includes(candidate.instanceId))
+            .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId }));
+          await requireOpponentAsk(ctx).selectCards(ctx, {
+            candidates: [],
+            min: 0,
+            max: 0,
+            visible: chosen,
+            visibleCards: selectedCards,
+          });
+        }
         if (cost.orderReturnedCards === true && chosen.length > 1) {
           chosen =
             (await ctx.ask.orderCards?.(ctx, {
