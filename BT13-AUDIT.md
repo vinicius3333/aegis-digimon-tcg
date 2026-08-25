@@ -85,9 +85,14 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Behavioral proof: isolated `BT13-010.test.ts` passed 4 tests in its own Vitest process: a real Security effect plays Biyomon, returns Kristy, evolves to Garudamon for free ignoring requirements, and retains Biyomon underneath; Q2269 returns Kristy even with no Garudamon in hand; a normal play neither returns Kristy nor evolves; and deletion of a host carrying Biyomon draws exactly one card. Reverting entry provenance, return-cost ordering, free/ignore flags, target names, or inherited deletion draw makes a focused observable assertion fail.
 - Revalidation result: 10/10; no remaining card-specific queue.
 
-## BT13-011 — Aquilamon — Pending
+## BT13-011 — Aquilamon — 10/10
 
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+- Catalog evidence: Red level 4 Digimon, play cost 5, 5000 DP; Champion/Free/Giant Bird; evolves from red level 3 for 2. Printed clauses independently checked: both On Play and When Digivolving delete one opposing Digimon with 3000 DP or less; inherited On Deletion draws 1.
+- Knowledge base: `node tools/kb/query.mjs card BT13-011` reviewed; no card-specific entries exist and the printed thresholds and timings are unambiguous.
+- Implementation and primitive trace: `BT13-011.ts` carries distinct On Play and When Digivolving records with identical opponent/Digimon/DP-at-most-3000 single-target `Delete` actions, plus inherited On Deletion owner `Draw 1`. Traced through timing registration and source anchoring, opponent ownership, effective DP matching at the inclusive boundary, target selection, deletion/leave processing, inherited-effect survival into the deletion window, and deck-to-hand draw. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-011", compiled)`.
+- Peers, traits, evolution, timing, ownership, and frequency: the focused evolution stack uses a real red level 3 base and preserves it under Aquilamon after paying the catalog cost; the mixed opponent board distinguishes the eligible 3000-DP Digimon from an ineligible 4000-DP Digimon. BT13-008 and BT13-012 use the same inclusive 3000-DP deletion vocabulary, confirming consistent filter semantics. Neither printed effect is optional or frequency-limited.
+- Behavioral proof: isolated `BT13-011.test.ts` passed 3 tests in its own Vitest process: On Play deletes the 3000-DP opposing Digimon and preserves the 4000-DP near-match; a real evolution fires the independent When Digivolving deletion and leaves Aquilamon atop its base; and deletion of a host carrying Aquilamon draws exactly one card. Reverting either timing record, the DP/controller boundary, deletion primitive, or inherited draw makes a focused observable assertion fail.
+- Revalidation result: 10/10; no remaining card-specific queue.
 
 ## BT13-012 — GeoGreymon — Pending
 
