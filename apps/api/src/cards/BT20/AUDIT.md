@@ -323,3 +323,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-027.test.ts`).
+
+## BT20-028 — GigaSeadramon
+
+- Catalog contract: blue/black level 7 Data Aquatic/Machine, play cost 13/13000 DP, blue or black level-6 evolution cost 5 plus MetalSeadramon alternate cost 2; Security Attack +1, Reboot, Blocker; shared once-per-turn When Digivolving/When Attacking may play one level-5-or-lower Digimon from this stack only if MetalSeadramon/X Antibody is a source; playing any allied Digimon from sources de-digivolves an opponent by 2 once per turn.
+- Knowledge base: Q4320 makes the source-stack condition mandatory; Q4321 confirms the removal watcher also sees GigaSeadramon itself when it is played from sources.
+- Implementation evidence: the generated play searched default hand/trash because its source zone was incorrectly nested under the target, used a non-consumed level shape, and could scan every allied stack. Both timings now use action-level `from: [digivolutionCards]`, canonical level comparison, `source: thisDigimon`, and direct source-stack condition. The from-digivolution watcher, three keywords, alternate requirement, and exclusive `registerIrCard` registration remain direct.
+- Peer/stack evidence: legal evolution over MetalSeadramon plays BT20-026 only from GigaSeadramon's own stack, preserves an eligible card under another host, and triggers De-Digivolve 2. A stack with eligible but nonqualifying Coredramon/Wingdramon cards plays nothing. All three keywords are observable.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-028.test.ts` — 3 passed.
+- Clause scores: stats/three keywords/alternate evolution 2/2; shared timing/once-per-turn 2/2; Q4320 source condition 2/2; own-stack level-5-or-lower free play 2/2; from-source play watcher/De-Digivolve 2 2/2.
+- Score: 10/10.
+- Ambiguity: Q4321 is covered by the same `fromDigivolution` production event seam; a direct self-play fixture is not independently constructible without another card's compatible level-7 source-play effect.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-028.test.ts`).

@@ -54,22 +54,20 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               kind: ["Digimon"],
-              level: {
-                max: 5,
-              },
+              levelComparison: { op: "lte", value: 5 },
             },
             count: 1,
-            from: ["digivolutionCards"],
+            source: "thisDigimon",
           },
+          from: ["digivolutionCards"],
           payCost: false,
           optional: true,
         },
       ],
       condition: {
-        kind: "youHave",
+        kind: "selfDigivolutionStackHasTrait",
         filter: {
-          isSelfRef: true,
-          digivolutionStackNameOrTrait: [
+          nameOrTrait: [
             {
               tokens: ["MetalSeadramon"],
               match: "name",
@@ -93,22 +91,20 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               kind: ["Digimon"],
-              level: {
-                max: 5,
-              },
+              levelComparison: { op: "lte", value: 5 },
             },
             count: 1,
-            from: ["digivolutionCards"],
+            source: "thisDigimon",
           },
+          from: ["digivolutionCards"],
           payCost: false,
           optional: true,
         },
       ],
       condition: {
-        kind: "youHave",
+        kind: "selfDigivolutionStackHasTrait",
         filter: {
-          isSelfRef: true,
-          digivolutionStackNameOrTrait: [
+          nameOrTrait: [
             {
               tokens: ["MetalSeadramon"],
               match: "name",
