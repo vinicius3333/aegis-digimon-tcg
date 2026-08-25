@@ -87,3 +87,31 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-003.
+
+## BT9-004 — Motimon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Green level-2 Digi-Egg, `In-Training` form, `Lesser` type, no evolution recipe, no main or Security text, and the complete inherited text were checked in the catalog.
+2. **Inherited placement (1/1):** The compiled effect is marked `isInherited`; focused proof uses Motimon buried in realistic carrier stacks rather than as a top card.
+3. **Turn timing (1/1):** `YourTurn` grants the modifier only while Motimon's controller owns the turn; the same stack remains at printed DP during the opponent's turn.
+4. **Exact trait branch (1/1):** A carrier whose sole relevant type is `Insectoid` receives exactly +1000 DP.
+5. **Complete trait-union branch (1/1):** A carrier with `Insectoid` plus `X Antibody` also matches, proving the condition checks the full trait union rather than a single fixed slot.
+6. **Negative trait boundary (1/1):** An otherwise valid Digimon carrier without `Insectoid` remains at printed DP.
+7. **Amount and recipient (1/1):** The continuous `Aura` applies `modifyDP: 1000` to `isSelfRef`, modifying only the Motimon carrier.
+8. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT9-004` returns no rulings, errata, restrictions, or unresolved ambiguity.
+9. **Direct IR and registration (1/1):** `BT9-004.ts` has full coverage, no residual clauses, and exactly one `registerIrCard("BT9-004", compiled)` registration with no legacy `registerCard` call.
+10. **Reproducible verification (1/1):** Focused proof passed 3/3; the shared `condition.selfHasTrait` regression passed 3/3 with 287 unrelated cases skipped; a clean rerun of workspace typecheck and `git diff --check` passed (the preceding attempt was host-killed with exit 137 and emitted no diagnostic).
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-004
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-004.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-004.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/effects/capabilities.test.ts -t 'condition.selfHasTrait' --reporter=dot
+pnpm typecheck
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-004.
