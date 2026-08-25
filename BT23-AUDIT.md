@@ -335,6 +335,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; charges 2 for Tentomon-to-Kabuterimon from battle area but the printed 3 from breeding; plays only the eligible cost-5 Hudie from a realistic inherited stack, observes its evolution lock, preserves it through the owner's end, and deletes it at the opponent's end; and accepts off-color level-2 CS evolution for 0 while rejecting a non-CS peer.
 - Verification: focused suite — 7 passed; shared replacement, binding, play, restriction, delayed-deletion, end-turn ordering, and inherited-frequency mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-038 — FunBeemon — 10/10
+
+- Catalog evidence: Green/black level 3, play cost 3, 1000 DP, standard green- or black-level-2 evolution for 1 plus alternate level-2 Royal Base-or-CS evolution for 0; form `Rookie`, attribute `Virus`, types `Insectoid`, `X Antibody`, `Royal Base`, and `CS`; its face-up Security All Turns effect gives every friendly Royal Base Digimon +1000 DP; On Play reveals three, independently adds one Royal Base-in-text card and one CS-trait card, then bottoms the rest; inherited All Turns gives its carrier +1000 DP.
+- Knowledge base: Q5301 defines “X in its text” across names, traits, effects, inherited effects, Rule text, and all evolution, DigiXros, Burst, App Fusion, Link, and Assembly requirement fields, including substring name matches such as DarkKnightmon for Knightmon.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-038", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live face-up-security ownership/trait boundaries, both alternate-evolution branches, and exact reveal partition evidence without changing execution.
+- Primitive trace: the security-static builder activates only for the face-up security source and continuously re-derives the all-target friendly Royal Base DP bonus; RevealAdd holds one shared reveal pool, makes distinct filtered additions in printed order using the broad text matcher for the first group and exact CS trait for the second, then places every unchosen reveal at deck bottom; the inherited continuous modifier binds only its real carrier.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; adds distinct Royal Base-in-text and CS cards while bottoming the exact remainder; observes the face-up security aura on a friendly Royal Base while excluding a friendly non-Royal-Base and an opposing Royal Base; observes inherited +1000 on a realistic carrier; and accepts zero-cost evolution from independent level-2 CS and Royal Base bases.
+- Verification: focused suite — 9 passed; shared face-up-security, broad-text matching, RevealAdd partitioning, continuous DP, and inherited-effect mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-038 through BT23-102.
+BT23-039 through BT23-102.
