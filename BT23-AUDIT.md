@@ -173,6 +173,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR, plays Gekomon and observes exactly two sources enter the opponent's trash, proves the one-source mandatory clamp, and accepts the off-color CS evolution recipe while rejecting a same-level non-CS base.
 - Verification: focused suite — 4 passed; shared trash-digivolution mechanism regression — covered by the interpreter suite; `git diff --check` — passed.
 
+## BT23-020 — Seadramon — 10/10
+
+- Catalog evidence: Blue/purple level 4, play cost 5, 5000 DP, standard blue- or purple-level-3 evolution for 3 plus alternate level-3 CS evolution for 2; form `Champion`, attribute `Data`, types `Aquatic`, `Hudie`, and `CS`; Alliance; and an All Turns once-per-turn watcher draws one when Seadramon itself suspends.
+- Knowledge base: `node tools/kb/query.mjs card BT23-020` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-020", compiled)` with full coverage and no residual clauses; the audit strengthens reproducible behavioral evidence without changing execution.
+- Primitive trace: the static Alliance keyword is collected only from Seadramon as the top card; the `whenSuspended` watcher matches the live source permanent by self reference, draws through the normal deck-to-hand primitive, and its once-per-turn key is scoped to Seadramon's source instance.
+- Behavioral proof: the focused suite checks catalog and IR, observes Alliance on Seadramon while proving it is not inherited, ignores another friendly Digimon's suspension, draws exactly once when Seadramon suspends, and rejects a second trigger in the same turn.
+- Verification: focused suite — 4 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-020 through BT23-102.
+BT23-021 through BT23-102.
