@@ -1898,6 +1898,20 @@ export class GameEngine {
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
+      // A phase-boundary event has one fixed set of card sources: a Tamer played by an
+      // earlier start-of-turn/start-of-main effect did not exist when that boundary
+      // occurred and cannot retroactively trigger (BT24-082/Q5664, BT24-083/Q5667).
+      // Keep ordinary timing windows live because derived triggers and mid-window
+      // digivolutions intentionally join those resolution fixpoints.
+      const phaseBoundaryRootZones =
+        timing === EffectTiming.OnStartTurn || timing === EffectTiming.OnStartMainPhase
+          ? new Map(
+              this.listCandidateInstances().map((instance) => [
+                instance.instanceId,
+                rootZoneOfLooseInstance(this.state, instance.instanceId),
+              ]),
+            )
+          : undefined;
       // GRANTED timed triggers fired at the same physical point as the matching window, and
       // therefore simultaneous with the printed effects it collects:
       //   - "[Start of Your Main Phase]" granted onto a permanent (BT23-056); the per-install
@@ -1915,7 +1929,17 @@ export class GameEngine {
           await runTiming(
             timing,
             this.effectEnvironment(trigger),
-            this.resolutionDeps(undefined, { outermost: wasOutermostWindow }),
+            this.resolutionDeps(
+              phaseBoundaryRootZones === undefined
+                ? undefined
+                : () =>
+                    this.instancesById([...phaseBoundaryRootZones.keys()]).filter(
+                      (instance) =>
+                        rootZoneOfLooseInstance(this.state, instance.instanceId) ===
+                        phaseBoundaryRootZones.get(instance.instanceId),
+                    ),
+              { outermost: wasOutermostWindow },
+            ),
           );
           if (wasOutermostWindow) {
             await this.flushDeferredTimingWindows();
