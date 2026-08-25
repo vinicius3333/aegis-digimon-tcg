@@ -4151,6 +4151,7 @@ export class GameEngine {
         const permanent = this.access.permanentById(permanentId);
         return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
       },
+      hasRestriction: (permanentId, restriction) => this.continuous.hasRestriction(permanentId, restriction),
       securityCardDp: (card) => {
         const owner = card.ownerSeat;
         return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
