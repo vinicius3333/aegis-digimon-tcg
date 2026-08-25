@@ -292,8 +292,8 @@
 
 - Catalog contract: blue/red level 5 Vaccine Sky Dragon, play cost 7/7000 DP, blue or red level-4 evolution cost 4 plus Coredramon alternate cost 3; On Play/When Digivolving deletes one opposing Digimon at 6000 DP or less; in the battle area it is also level-6 Slayerdramon for Examon DNA evolution; inherited Security Attack +1.
 - Knowledge base: Q4314 confines the Slayerdramon identity/level treatment to the battle area and forbids using a hand Wingdramon as the Slayerdramon material for BT20-045 Blast DNA Digivolve.
-- Implementation evidence: both entry timings share the inclusive DP deletion, the All Turns field effect grants the additional name to self through the continuous ledger, and the inherited keyword records Security Attack +1. The Coredramon alternate requirement and exclusive `registerIrCard` registration are direct; no hand-zone static is installed, preserving Q4314.
-- Peer/stack evidence: On Play deletes the 6000-DP boundary and preserves a 7000-DP peer. A field Wingdramon observably carries the normalized Slayerdramon granted name, while Wingdramon under Slayerdramon produces inherited Security Attack +1.
+- Implementation evidence: both entry timings share the inclusive DP deletion; the All Turns field effect grants the Slayerdramon name and an Examon-scoped DNA level-6 override through the continuous ledger; the inherited keyword records Security Attack +1. The Coredramon alternate requirement and exclusive `registerIrCard` registration are direct; no hand-zone static is installed, preserving Q4314.
+- Peer/stack evidence: On Play deletes the 6000-DP boundary and preserves a 7000-DP peer. A field Wingdramon observably carries the normalized Slayerdramon granted name and supplies the level-6 material requirement for Examon DNA, while Wingdramon under Slayerdramon produces inherited Security Attack +1.
 - Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-025.test.ts` — 3 passed.
 - Clause scores: stats/alternate evolution 2/2; dual deletion timings 2/2; exact 6000-DP boundary 2/2; field-only Slayerdramon identity/Q4314 2/2; inherited Security Attack/stack behavior 2/2.
 - Score: 10/10.

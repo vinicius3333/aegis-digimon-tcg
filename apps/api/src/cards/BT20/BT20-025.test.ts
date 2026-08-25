@@ -19,7 +19,13 @@ describe("BT20-025 Wingdramon", () => {
       });
     }
     expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
-      actions: [{ kind: "GrantStatic", target: { isSelf: true }, grant: "name", tokens: ["Slayerdramon"] }],
+      actions: [
+        { kind: "GrantStatic", target: { isSelf: true }, grant: "name", tokens: ["Slayerdramon"] },
+        {
+          kind: "GrantStatic",
+          grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] },
+        },
+      ],
     });
     expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toEqual([
       { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
