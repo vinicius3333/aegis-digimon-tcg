@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-053.js";
 
@@ -29,6 +30,7 @@ describe("EX8-053", () => {
     await high.ready();
     await settle(() => high.perm("bancho").currentDP === 16000);
     expect(high.perm("bancho").currentDP).toBe(16000);
+    expect(observe(high.engine).hasKeyword(high.perm("bancho"), "Blocker")).toBe(true);
 
     const low = setupEngine({
       0: { battleArea: [{ card: "EX8-053", as: "bancho" }] },
