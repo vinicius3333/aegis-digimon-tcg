@@ -54,26 +54,50 @@ export const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              excludeNameOrTrait: [
-                {
-                  tokens: ["Sea Animal"],
-                  match: "trait",
-                },
-              ],
               controller: "mine",
               kind: ["Digimon"],
               levelComparison: {
                 op: "lte",
                 value: 4,
               },
-              nameOrTrait: [
+              or: [
                 {
-                  tokens: ["CS"],
-                  match: "trait",
+                  nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
                 },
                 {
-                  tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"],
-                  match: "trait",
+                  nameOrTrait: [
+                    { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
+                  ],
+                  excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      isInherited: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
+              or: [
+                { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+                {
+                  nameOrTrait: [
+                    { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
+                  ],
+                  excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
                 },
               ],
             },

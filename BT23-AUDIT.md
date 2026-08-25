@@ -101,6 +101,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog and IR field, proves On Play deletes exactly 4000 DP while preserving 5000 DP and charges the printed play cost, proves the same deletion boundary after off-color CS evolution for 2, separately plays a red non-CS Tamer and an off-color CS Tamer from a realistic deleted stack without cost, rejects a blue non-CS Tamer without even offering a prompt, and proves optional refusal leaves the qualifying Tamer and memory unchanged.
 - Verification: focused suite — 7 passed; affected deletion regressions — 7 passed (111 unrelated tests skipped); API typecheck — passed; `git diff --check` — passed.
 
+## BT23-012 — Garudamon — 10/10
+
+- Catalog evidence: Red level 5, play cost 7, 7000 DP, standard red-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Vaccine`, types `Birdkin` and `CS`; On Play and When Digivolving grant one friendly Digimon Raid for the turn; top-card and inherited On Deletion each may play a level-4-or-lower CS Digimon or an Avian/Bird/Beast/Animal/Sovereign-trait Digimon other than Sea Animal from hand without cost.
+- Knowledge base: Q5220 defines the top-card On Deletion target union and Q5221 confirms the inherited effect uses the identical union. Both require level 4 or lower, accept CS as an independent branch, and apply the Sea Animal exclusion to the Animal-family branch.
+- Defects corrected: the generated IR omitted the complete inherited On Deletion clause and applied `exclude Sea Animal` globally, incorrectly excluding a hypothetical CS + Sea Animal card from the independent CS branch. Both top-card and inherited effects now share the exact parent level/kind/controller gates with two disjunctive trait branches, placing the exclusion only inside the Animal-family branch; registration remains exclusively `registerIrCard("BT23-012", compiled)` with full coverage and no residual clauses.
+- Primitive trace: On Play/When Digivolving use the temporary keyword ledger on exactly one friendly permanent; alternate evolution validates the live level-4 CS definition; deleted-stack collection preserves both top-card and inherited source contexts; loose-card definition matching applies parent constraints before its `or` branches; effect play runs from hand without memory payment; optional preflight suppresses prompts when neither branch has a legal card.
+- Behavioral proof: the focused suite checks exact catalog/IR and both deletion faces, grants observable Raid through real play and off-color CS evolution, proves Q5220 with a Bird-trait card from top-card deletion, proves Q5221 with an off-color CS card from inherited deletion, rejects both an exact Sea Animal and a level-5 CS card without offering a prompt, and proves optional refusal preserves hand and memory.
+- Verification: focused suite — 7 passed; API typecheck — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-012 through BT23-102.
+BT23-013 through BT23-102.
