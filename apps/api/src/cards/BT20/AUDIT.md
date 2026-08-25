@@ -95,3 +95,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-008.test.ts`).
+
+## BT20-009 — Veemon
+
+- Catalog contract: red level 3 Free-attribute Mini Dragon Digimon, play cost 3/1000 DP, red or purple level-2 evolution cost 0; your-turn watcher optionally evolves self from hand into a Free-trait Digimon for 1 less when an allied purple Digimon is played; inherited your-turn +2000 DP.
+- Knowledge base: no card-specific entries; color and structural Free matching use the shared catalog predicates.
+- Implementation evidence: the generated triggered Digivolve omitted `payCost`, silently waiving the entire evolution cost rather than reducing it by 1. It now explicitly pays the legal cost with a -1 folded delta; the purple controlled-play watcher, optional self target, Free destination, hand source, inherited DP effect, and exclusive `registerIrCard` registration remain faithful.
+- Peer/stack evidence: playing purple ST6-03 alongside Veemon observably evolves it into BT20-011 ExVeemon and spends exactly 1 evolution memory after the reduction; playing black BT20-010 does not trigger. Veemon under an evolved host grants +2000 only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-009.test.ts` — 3 passed.
+- Clause scores: stats/evolution colors 2/2; your-turn purple allied-play trigger 2/2; optional Free hand evolution 2/2; exact reduced payment 2/2; inherited self DP and stack scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-009.test.ts`).
