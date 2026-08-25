@@ -84,3 +84,15 @@ export function dragIntentLabelKey(intent: DragIntent): (typeof INTENT_LABEL_KEY
  * pointer, so the label clears both it and the finger holding it.
  */
 export const DRAG_INTENT_LABEL_OFFSET_PX = 108;
+
+/**
+ * The same label on a touch screen. A fingertip covers roughly a 40px disc around
+ * the contact point and the hand holding it covers everything below, so the mouse
+ * offset — which only has to clear the ghost — leaves the label under the knuckle.
+ */
+export const DRAG_INTENT_LABEL_OFFSET_TOUCH_PX = 156;
+
+/** How far above the pointer the intent label sits for the pointer in use. */
+export function dragIntentLabelOffsetPx(coarsePointer: boolean): number {
+  return coarsePointer ? DRAG_INTENT_LABEL_OFFSET_TOUCH_PX : DRAG_INTENT_LABEL_OFFSET_PX;
+}

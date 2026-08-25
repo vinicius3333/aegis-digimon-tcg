@@ -25,3 +25,10 @@ export function useMediaQuery(mediaQuery: string): boolean {
  * decision dialog keeps its compact card size so the grid still fits the sheet.
  */
 export const WIDE_DIALOG_QUERY = "(width >= 1100px) and (height >= 760px)";
+
+/**
+ * The pointer is a finger rather than a mouse. Chrome that has to stay clear of
+ * the contact point — a label floated over a dragged card, for one — reads this
+ * instead of guessing from the viewport, because a touchscreen laptop is wide.
+ */
+export const COARSE_POINTER_QUERY = "(pointer: coarse)";

@@ -468,6 +468,19 @@ button.opponent-action-feed__current:focus-visible {
     translate: 0 -50%;
   }
 }
+/* The same prompt as a bottom sheet, which is what a phone in portrait gets: the
+   rail's slide is sideways and its resting offset is a vertical centring, neither
+   of which survives being anchored above the hand. */
+@keyframes battle-board-sheet-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
 .board-prompt__back {
   align-self: flex-start;
 }
@@ -2080,6 +2093,11 @@ button.opponent-action-feed__current:focus-visible {
    half by `noticeAnchor`) reads next to the card that raised it. */
 
 .battle-security-branch {
+  /* How far above the board's middle the card holds. A short viewport cannot spend
+     8rem above centre without pushing the card off the top edge, so the lift is a
+     property the narrow blocks retune rather than a number baked into the keyframe. */
+  --security-branch-lift: 8rem;
+
   position: absolute;
   top: 50%;
   z-index: calc(var(--ds-z-dialog) - 5);
@@ -2110,22 +2128,22 @@ button.opponent-action-feed__current:focus-visible {
 
 @keyframes battle-security-branch {
   0% {
-    translate: -2.5rem calc(-50% - 8rem);
+    translate: -2.5rem calc(-50% - var(--security-branch-lift));
     opacity: 0;
     scale: 0.72;
   }
   11.3% {
-    translate: 0 calc(-50% - 8rem);
+    translate: 0 calc(-50% - var(--security-branch-lift));
     opacity: 1;
     scale: 1;
   }
   88.7% {
-    translate: 0 calc(-50% - 8rem);
+    translate: 0 calc(-50% - var(--security-branch-lift));
     opacity: 1;
     scale: 1;
   }
   100% {
-    translate: 0 calc(-50% - 10.5rem);
+    translate: 0 calc(-50% - var(--security-branch-lift) - 2.5rem);
     opacity: 0;
     scale: 0.82;
   }
@@ -3328,6 +3346,13 @@ button.opponent-action-feed__current:focus-visible {
     flex: 0 1 calc((100% - var(--ds-space-2) * 2) / 3);
     max-width: 128px;
   }
+  /* The centre-stage card is sized by the viewport rather than by the 190px the
+     component asks for, so a narrow screen scales it instead of cropping it. */
+  .battle-showcase__art > div {
+    width: min(190px, 46vw) !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
   .combat-prompt {
     position: fixed !important;
     right: var(--ds-space-3) !important;
@@ -4091,6 +4116,65 @@ button.opponent-action-feed__current:focus-visible {
   }
 }
 
+/* Phone portrait. Both floating stacks span the width here (a capped column cut
+   the panel headings), so they can no longer be told apart by which side they sit
+   on: each gets a band of its own down the screen instead, notices hugging the
+   edge and the card panels inboard of them, and neither may grow into the other. */
+@media (width < 600px) and (orientation: portrait) {
+  .match-notice-stack,
+  .side-panel-stack {
+    max-height: 7rem;
+    overflow: hidden;
+  }
+  .side-panel-stack[data-side="opp"] {
+    top: calc(17rem + env(safe-area-inset-top, 0px));
+  }
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* The board-mode rail becomes a bottom sheet above the hand: as a left rail it
+     covered the half of the field the prompt is asking the player to read, and the
+     cards a hand selection picks are in the dock right under it either way.
+     It outranks the notice and panel stacks because it is the pending decision's
+     only exit — nothing transient may land on top of its buttons. */
+  .board-prompt {
+    top: auto;
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    bottom: calc(var(--game-hand-h) + 10rem + env(safe-area-inset-bottom, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    z-index: calc(var(--ds-z-dialog) - 3);
+    width: auto;
+    max-height: 38dvh;
+    overflow-y: auto;
+    translate: none;
+    animation-name: battle-board-sheet-in;
+  }
+  /* Side by side: the sheet spends width it has and height it does not. */
+  .board-prompt__actions {
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+  }
+  .board-prompt__actions > button {
+    flex: 1 1 8rem;
+    min-width: 0;
+    min-height: 44px;
+  }
+}
+
+/* Keyed on width alone: a landscape phone is ~844px wide and fits all three
+   mulligan actions in one row, where 390px does not — the two labels that answer
+   the mulligan kept their width and the peek button was painted underneath them.
+   It takes a line of its own instead (it is last in the DOM, so it wraps). */
+@media (width < 600px) {
+  .mulligan-actions {
+    flex-wrap: wrap;
+  }
+  .mulligan-actions > button:last-child {
+    flex-basis: 100%;
+  }
+}
+
 /* Landscape phone. Keyed on the short viewport, not on width: a phone on its
    side is ~800px wide and used to land in the tablet layout, which assumes a
    tall screen — the fanned hand ate half of it, the board fell off the bottom
@@ -4243,10 +4327,13 @@ button.opponent-action-feed__current:focus-visible {
     --memory-track-pad-y: 5px;
     padding: var(--memory-track-pad-y) var(--memory-track-pad-x) !important;
   }
+  /* 2.75rem is 44px: the orb is the turn's only control and has to stay a finger
+     wide. The extra overhang keeps the band exactly as tall as it was, so the two
+     battle rows lose nothing to it. */
   .game-end-turn-orb {
-    width: 2.6rem;
-    height: 2.6rem;
-    margin: -0.3rem 0.35rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -0.375rem 0.35rem;
     padding: 0.15rem;
     font-size: 0.46rem;
   }
@@ -4413,6 +4500,37 @@ button.opponent-action-feed__current:focus-visible {
   .match-notice-stack[data-anchor^="bottom-"] {
     bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
   }
+  /* The band with the memory gauge and the turn orb sits at the middle of a 390px
+     screen, which is where the default 9.5rem put the opponent's notices. They ride
+     under the header instead, in the left column the side panels leave free. */
+  .match-notice-stack[data-anchor^="top-"] {
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+  }
+  /* Same reason, and the attack call-out is centred, so it cannot dodge the band
+     sideways: it takes the top-left corner for the length of the arc. */
+  .attack-announcement {
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    translate: none;
+  }
+  /* 8rem above the middle of a 390px board puts the branch card's top edge off the
+     screen. A smaller card and a shorter lift keep the whole of it in view; it still
+     crosses the band, which is a two-second centre-stage beat like the clash. */
+  .battle-security-branch {
+    --security-branch-lift: 2.5rem;
+  }
+  .battle-security-branch__frame > div {
+    width: 92px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  /* The showcase card is scaled by the short side here: 46vw of an 844px-wide
+     landscape phone is wider than the screen is tall. */
+  .battle-showcase__art > div {
+    width: auto !important;
+    height: min(58dvh, 266px) !important;
+    aspect-ratio: 5 / 7;
+  }
   /* Sheets and dialogs: a 390px-tall screen leaves no room for the phone
      portrait sizes, so the card shrinks and the panel scrolls. */
   .card-action-sheet__panel {
@@ -4487,6 +4605,21 @@ button.opponent-action-feed__current:focus-visible {
   }
   .mulligan-card {
     max-width: 84px;
+  }
+}
+
+/* Pointer widths keep the full-size hand (132px cards), whose fanned row is ~75px
+   taller than the compact one the narrower blocks use. The base 11rem left the
+   viewer's panels and notices sitting on the top of that fan on a 900px-tall
+   laptop; 13rem clears the row at every height the desktop layout is used at.
+   Last in the responsive run so it outranks the blocks above without reaching
+   the narrow viewports they own. */
+@media (width >= 960px) {
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
+  }
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -4570,7 +4703,7 @@ button.opponent-action-feed__current:focus-visible {
   /* The branch card carries the revealed card, so it keeps its full reading time and
      only loses the slide — which is also why its resting offset is restated here. */
   .battle-security-branch {
-    translate: 0 calc(-50% - 8rem);
+    translate: 0 calc(-50% - var(--security-branch-lift));
     animation: none;
   }
 

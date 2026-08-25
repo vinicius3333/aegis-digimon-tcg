@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { dragIntentFor, dragIntentLabelKey, type DragIntent } from "./dragIntents";
+import {
+  DRAG_INTENT_LABEL_OFFSET_PX,
+  DRAG_INTENT_LABEL_OFFSET_TOUCH_PX,
+  dragIntentFor,
+  dragIntentLabelKey,
+  dragIntentLabelOffsetPx,
+  type DragIntent,
+} from "./dragIntents";
 
 const playing = { kind: "play" as const, isOption: false, isDigiEgg: false };
 const option = { kind: "play" as const, isOption: true, isDigiEgg: false };
@@ -62,5 +69,15 @@ describe("dragIntentLabelKey", () => {
   it("gives every intent its own label", () => {
     const intents: DragIntent[] = ["play", "evolve", "breeding", "use", "attack"];
     expect(new Set(intents.map(dragIntentLabelKey)).size).toBe(intents.length);
+  });
+});
+
+describe("dragIntentLabelOffsetPx", () => {
+  it("floats the label further above a finger than above a cursor", () => {
+    // A mouse offset only has to clear the ghost card; a fingertip covers a ~40px
+    // disc around the contact point and the hand covers everything below it.
+    expect(dragIntentLabelOffsetPx(false)).toBe(DRAG_INTENT_LABEL_OFFSET_PX);
+    expect(dragIntentLabelOffsetPx(true)).toBe(DRAG_INTENT_LABEL_OFFSET_TOUCH_PX);
+    expect(DRAG_INTENT_LABEL_OFFSET_TOUCH_PX).toBeGreaterThan(DRAG_INTENT_LABEL_OFFSET_PX + 40);
   });
 });

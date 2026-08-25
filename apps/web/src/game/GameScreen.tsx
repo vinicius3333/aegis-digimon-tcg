@@ -50,8 +50,8 @@ import {
   type HandEntry,
 } from "./boardPieces";
 import {
-  DRAG_INTENT_LABEL_OFFSET_PX,
   dragIntentFor,
+  dragIntentLabelOffsetPx,
   dragIntentLabelKey,
   type DragIntent,
   type DropTarget,
@@ -131,7 +131,7 @@ import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
-import { useMediaQuery } from "../design/useMediaQuery";
+import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import {
   decisionPresentation,
@@ -268,6 +268,7 @@ export function GameScreen({
   const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
   const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
   const narrowRail = useMediaQuery(NARROW_RAIL_QUERY);
+  const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
@@ -2475,7 +2476,7 @@ export function GameScreen({
             <span
               className="game-drag-intent"
               data-intent={hoveredDragIntent}
-              style={{ left: drag!.x, top: drag!.y - DRAG_INTENT_LABEL_OFFSET_PX }}
+              style={{ left: drag!.x, top: drag!.y - dragIntentLabelOffsetPx(coarsePointer) }}
             >
               {t(dragIntentLabelKey(hoveredDragIntent))}
             </span>,
