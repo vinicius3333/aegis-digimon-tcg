@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT9-061.js";
 import { compiled } from "./BT9-005.js";
 
@@ -62,5 +62,24 @@ describe("BT9-005 Tumblemon", () => {
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(6000);
+  });
+
+  it("preserves Tumblemon through a legal black breeding evolution", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT9-005", as: "tumblemon" },
+        hand: [{ card: "BT9-057", as: "bearmon" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tumblemon").permanentId,
+        instanceId: s.inst("bearmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tumblemon").topCard.instanceId === s.inst("bearmon").instanceId);
+    expect(s.perm("tumblemon").stack.map((card) => card.cardId)).toContain("BT9-005");
+    expect(s.state.memory).toBe(0);
   });
 });
