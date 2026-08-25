@@ -78,9 +78,13 @@ describe("ST24-15 DNA Charge", () => {
         }),
       ).toEqual({ ok: true });
     }
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId),
+    );
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("declinedCard").instanceId);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId),
+    ).toBe(true);
   });
 });
