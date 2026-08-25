@@ -551,6 +551,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; grants live Blocker on play; deletes Ghostmon and grants Blocker to a surviving Ghost despite preferring a non-Ghost candidate, proving that peer remains excluded; and deletes a realistic Bakemon-over-Ghostmon stack to observe exactly 1 inherited memory.
 - Verification: focused suite — 5 passed; shared On Deletion gathering, trait targeting, keyword grants, duration, inherited-source ownership, and memory mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-062 — Dracmon — 10/10
+
+- Catalog evidence: Purple level 3, play cost 3, 1000 DP, standard purple-level-2 evolution for 0 plus alternate level-2 CS evolution for 0; form `Rookie`, attribute `Virus`, types `Undead` and `CS`; Start of Your Main Phase trashes one Undead, Dark Animal, or CS card from hand as a cost to gain 1 memory; inherited When Attacking once per turn may evolve one friendly Digimon into an Undead or Dark Animal Digimon from trash, paying its cost.
+- Knowledge base: Q5333 confirms that an inherited When Attacking effect acquired only after Dracmon's attack-time evolution cannot trigger retroactively in the same attack window.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-062", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, unavailable-cost, realistic inherited trash-evolution, paid-cost, and alternate-evolution evidence without changing execution.
+- Primitive trace: the start-main action filters a single matching hand card, trashes it as an all-or-nothing cost, and only then grants 1 memory; the inherited physical-source watcher gathers at attack declaration, selects one friendly carrier and a legal Undead/Dark Animal trash card, pays its ordinary evolution cost, and cannot add newly acquired attack triggers to the already gathered window.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; trashes exactly one matching card, preserves a plain peer, and gains exactly 1 memory; proves a nonmatching-only hand changes neither hand nor memory; attacks with a realistic Bakemon-over-Dracmon stack, evolves it into trash Matadormon for exactly 3 memory, and preserves the full stack; and performs the off-color level-2 CS alternate evolution.
+- Verification: focused suite — 7 passed; shared filtered hand cost, cost abort, memory, inherited attack gathering, trash evolution, paid evolution, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-062 through BT23-102.
+BT23-063 through BT23-102.
