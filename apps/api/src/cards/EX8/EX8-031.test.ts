@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-031.js";
@@ -43,5 +44,21 @@ describe("EX8-031", () => {
     });
     await settle(() => player.hand.some((card) => card.instanceId === s.inst("plugin").instanceId));
     expect(player.hand.some((card) => card.instanceId === s.inst("plugin").instanceId)).toBe(true);
+  });
+
+  it("applies the inherited DP loss only after a qualifying Option use", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-031"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenOptionUsed", { usedOptionCost: 1, subjectPermanentId: "cheap" });
+    expect(s.perm("target").currentDP).toBe(3000);
+    await advance(s.engine).fireSubTrigger("whenOptionUsed", { usedOptionCost: 2, subjectPermanentId: "qualifying" });
+    expect(s.perm("target").currentDP).toBe(1000);
   });
 });
