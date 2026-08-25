@@ -1,5 +1,7 @@
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT14-008.js";
 
@@ -35,4 +37,70 @@ it("deletes one opposing Digimon at 3000 DP or less when the host attacks", asyn
   await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === lowPermanentId));
   expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowPermanentId)).toBe(false);
   expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highPermanentId)).toBe(true);
+});
+
+it("deletes exactly one 3000 DP target once from a legal Gizamon evolution stack", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        breeding: { card: "BT14-001", as: "egg" },
+        hand: [
+          { card: "BT14-008", as: "gizamon" },
+          { card: "BT1-015", as: "greymon" },
+        ],
+        deck: ["BT1-001", "BT1-001"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "boundary", dp: 3000 },
+          { card: "BT1-009", as: "secondBoundary", dp: 3000 },
+          { card: "BT1-009", as: "overBoundary", dp: 4000 },
+        ],
+        security: ["BT1-001", "BT1-001"],
+      },
+    },
+    { autoSelectCards: true },
+  );
+  s.state.memory = 5;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("egg").permanentId,
+      instanceId: s.inst("gizamon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("egg").topCard.cardId === "BT14-008");
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("egg").permanentId,
+      instanceId: s.inst("greymon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("egg").topCard.cardId === "BT1-015");
+  expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT14-001", "BT14-008"]);
+
+  s.state.phase = Phase.Breeding;
+  expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+    ok: true,
+  });
+  await settle(() => !s.perm("egg").inBreeding);
+  s.state.phase = Phase.Main;
+  const boundaryId = s.perm("boundary").permanentId;
+  const secondBoundaryId = s.perm("secondBoundary").permanentId;
+  const overBoundaryId = s.perm("overBoundary").permanentId;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("egg").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === boundaryId));
+
+  expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === overBoundaryId)).toBe(true);
+  await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("egg"));
+  await settle();
+  expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondBoundaryId)).toBe(true);
+  assertNoLoudGap(s);
 });
