@@ -1031,3 +1031,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-086.test.ts`).
+
+## BT20-087 — Kota Domoto & Yuji Musya
+
+- Catalog contract: black/red Chronicle Tamer, play cost 5; start of own turn sets memory to 3 at 2 or less; on own turn when an own Chronicle Digimon attacks, may suspend this Tamer as cost so an own Digimon on the field evolves into a hand level-6-or-lower Chronicle with evolution cost reduced by 1; Security free-plays itself.
+- Knowledge base: Q4428 defines field as battle plus breeding area. Q4429 says a breeding-area evolution through this effect does not activate When Digivolving effects.
+- Implementation evidence: audit removed an unprinted reduced evolution nested under the memory setter and a duplicate non-Security Security effect. The attack watcher is own/Chronicle scoped; its evolution target now explicitly includes breeding alongside battle, with exact hand/trait/level/reduction and paid suspension semantics. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the attacking Digimon only triggers the watcher, while the evolution recipient may be a different own Digimon; explicit breeding enumeration aligns with later field-aware peer implementations and Q4428.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-087.test.ts` — 3 passed.
+- Clause scores: stats/Security 2/2; memory boundary/no nested effect 2/2; Chronicle attack watcher 2/2; paid optional level/trait/reduction evolution 2/2; battle-plus-breeding field coverage Q4428-Q4429 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-087.test.ts`).
