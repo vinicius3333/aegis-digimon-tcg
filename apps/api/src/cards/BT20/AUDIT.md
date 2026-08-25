@@ -971,3 +971,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-081.test.ts`).
+
+## BT20-082 — DeathXmon
+
+- Catalog contract: purple/black level 7 Virus Unanalyzable/X Program, play cost 15/15000 DP and purple level-6 evolution cost 5; Security Attack +1, Reboot, Blocker; when it would leave battle by an effect, may bottom-deck exactly three Dex/DeathX-named trash cards to prevent departure; end of every turn once per turn deletes all Digimon tied for lowest level.
+- Knowledge base: Q4408 requires the full three-card replacement cost and forbids partial payment.
+- Implementation evidence: all resident keywords are static. The self-bound would-leave replacement is effect-cause scoped and uses an atomic count-three return cost with the correct name union, trash source, and deck-bottom destination. The end timing uses a global lowest-level superlative with all targets. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: name matching covers either Dex or DeathX while excluding trait-only similarities; shared replacement payment checks availability before moving any card, satisfying Q4408, and lowest-level selection spans both controllers and preserves higher levels.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-082.test.ts` — 3 passed.
+- Clause scores: stats/evolution 2/2; three live keywords 2/2; self/effect-only leave replacement 2/2; exact atomic name/count/zone cost Q4408 2/2; end-of-all-turns global lowest-level deletion 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-082.test.ts`).
