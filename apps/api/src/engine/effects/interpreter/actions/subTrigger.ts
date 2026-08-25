@@ -67,6 +67,9 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenMovedFromBreeding: "whenMovedFromBreeding",
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",
   onDeletionOf: "onDeletionOf",
+  // GainTriggeredEffect uses printed timing names, while the deletion bus uses the
+  // event-shaped spelling. Both describe the same deleted-permanent payload.
+  OnDeletion: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
   whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
