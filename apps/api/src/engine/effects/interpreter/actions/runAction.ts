@@ -83,7 +83,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.totalDpCapScaling !== undefined ||
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
-      action.target.filter.playCostLteScaling !== undefined);
+      action.target.filter?.playCostLteScaling !== undefined);
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
