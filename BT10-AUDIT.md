@@ -171,3 +171,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: a real Bebydomon blue level 2 base proves the exact evolution recipe and source transition, while a second physical Bulucomon proves direct play independently in the same fixture.
 - Behavioral proof: the focused suite asserts every catalog identity and evolution field, exact empty IR, exact-cost evolution, exact-cost play, final memory, zones, and absence of an effect decision.
 - Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
+
+## BT10-018 — Gaossmon — 10/10
+
+- Catalog evidence: blue level 3 Digimon, play cost 3, 1000 DP; evolves from blue level 2 for 0; form `Rookie`, attribute `Virus`, types `Reptile` and `BlueFlare`. On Deletion may play one level 4 Blue Flare Digimon from hand suspended without paying its cost.
+- Knowledge base: Q4661 and Q4665 confirm that opponent-facing “can't play by effects” restrictions prevent Gaossmon's On Deletion play while leaving ordinary plays legal. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: one On Deletion effect exposes an optional hand-only PlayWithoutCost action filtered to Digimon, exact level 4, and normalized Blue Flare trait, with `suspended: true`. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-018", compiled)`.
+- Primitive trace: deletion retains the source identity through the On Deletion window; the no-cost play validates the acting player against effect-play restrictions, selects only eligible hand cards, pays no memory, creates the permanent suspended, and runs the normal play lifecycle. The restriction ledger affects only effect-driven play, so a later ordinary play remains legal under Q4661/Q4665.
+- Cross-card and stack proof: real BT10 Greymon proves the eligible level/trait path, Gaossmon and an unrelated level 4 prove each filter boundary, and BT9 Pomumon proves the effect-play floodgate plus ordinary-play distinction; a Bebydomon base proves the printed zero-cost evolution route.
+- Behavioral proof: the focused suite proves structural action fidelity, suspended no-cost play and unchanged memory, optional refusal, exact level/trait filtering, floodgate rejection, ordinary play legality, and catalog evolution.
+- Verification: focused suite — 5 passed; Pomumon floodgate peer regression — 1 passed; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
