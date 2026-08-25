@@ -7,7 +7,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  digivolutionRequirement: [{ level: 5, cost: 3, isAlternate: true }],
+  digivolutionRequirement: [],
   effects: [
     {
       trigger: "Static",
@@ -60,6 +60,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing any 3 [Mineral] or [Rock] trait cards from your Digimon's digivolution cards",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       frequency: "OncePerTurn",
@@ -95,6 +97,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing any 3 [Mineral] or [Rock] trait cards from your Digimon's digivolution cards",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       frequency: "OncePerTurn",
@@ -130,6 +134,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing any 3 [Mineral] or [Rock] trait cards from your Digimon's digivolution cards",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       frequency: "OncePerTurn",
@@ -143,13 +149,14 @@ const compiled: CompiledCard = {
           event: "whenDigivolutionTrashed",
           sourceFilter: {
             isSelfRef: true,
+            byEffect: true,
           },
           actions: [
             {
               kind: "PlaceUnder",
               target: {
                 filter: {
-                  controller: "mine",
+                  controllerDefault: "mine",
                   nameOrTrait: [
                     {
                       tokens: ["Mineral", "Rock"],
@@ -159,7 +166,6 @@ const compiled: CompiledCard = {
                 },
                 from: ["trash"],
                 count: 3,
-                upTo: true,
               },
               underFilter: {
                 isSelfRef: true,
