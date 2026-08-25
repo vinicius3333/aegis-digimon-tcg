@@ -1,7 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-096.js";
+import "../index.js";
 
 describe("BT21-096 The Champion Ultimate Fighter!", () => {
   it("turns a Marcus Damon into a 12000 DP Rush Digimon and starts its Digimon attack", async () => {
@@ -46,5 +49,49 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
       { kind: "GrantCanAttackUnsuspended" },
       { kind: "Attack", attackPlayer: false, optional: true },
     ]);
+  });
+
+  it("Q4620 may decline the attack while retaining the temporary Digimon treatment", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "color" },
+            { card: "BT2-033", as: "yellow" },
+            { card: "BT4-092", as: "marcus" },
+          ],
+          hand: [{ card: "BT21-096", as: "option" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("marcus").currentDP === 12000);
+    expect(s.perm("marcus").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+  });
+
+  it("Security plays Marcus from trash for free, then adds itself to hand", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-096", as: "option" }],
+          trash: [{ card: "BT4-092", as: "marcus" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("marcus").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 });
