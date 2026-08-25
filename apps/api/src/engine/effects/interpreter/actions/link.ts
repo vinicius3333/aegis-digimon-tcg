@@ -76,8 +76,7 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     const matches = (p: Permanent, f: Filter): boolean => permanentMatchesFilter(ctx, p, f, ctx.source);
     const triggerRecipientId =
       action.recipient.sourceRef === "triggerSubject" ? ctx.trigger.subjectPermanentId : undefined;
-    const triggerRecipient =
-      triggerRecipientId === undefined ? undefined : ctx.game.permanentById(triggerRecipientId);
+    const triggerRecipient = triggerRecipientId === undefined ? undefined : ctx.game.permanentById(triggerRecipientId);
     const recipientPool =
       action.recipient.sourceRef === "triggerSubject"
         ? triggerRecipient === undefined

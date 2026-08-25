@@ -982,7 +982,10 @@ export async function runSubTrigger(
         const digivolveActions = action.actions.filter(
           (candidate): candidate is Extract<Action, { kind: "Digivolve" }> => candidate.kind === "Digivolve",
         );
-        if (digivolveActions.length > 0 && !digivolveActions.some((candidate) => canAttemptDigivolve(subCtx, candidate)))
+        if (
+          digivolveActions.length > 0 &&
+          !digivolveActions.some((candidate) => canAttemptDigivolve(subCtx, candidate))
+        )
           return;
         const linkActions = action.actions.filter(
           (candidate): candidate is Extract<Action, { kind: "Link" }> => candidate.kind === "Link",
