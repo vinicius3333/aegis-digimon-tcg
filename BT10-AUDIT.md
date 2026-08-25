@@ -31,3 +31,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: a Pickmons-under-Shoutmon stack proves the exact Xros Heart match, while a Deckerdramon host with Xros Heart Shoutmon lower in its stack proves that a matching source card does not make the current Digimon an Xros Heart Digimon.
 - Behavioral proof: the focused suite proves the positive trait path, the current-top versus lower-stack boundary, and ownership by showing an opponent's attack does not activate the controller's inherited effect.
 - Verification: focused suite — 3 passed; workspace typecheck — pending collection gate; `git diff --check` — passed.
+
+## BT10-004 — Bosamon — 10/10
+
+- Catalog and errata evidence: green level 2 Digi-Egg; form `In-Training`, type `Lesser`; inherited text after the 2022-10-28 errata is `[Your Turn] [Once Per Turn] When an effect suspends a Digimon, this Digimon gets +1000 DP for the turn`; it has no main or Security effect and no evolution requirements.
+- Knowledge base: Q1930 confirms that a controller's own Digimon being suspended by an effect activates the inherited effect. The catalog uses the errata image and text; no restriction or unresolved ambiguity remains.
+- Implementation: an inherited `YourTurn`, `OncePerTurn` watcher listens for `whenEffectSuspends` on any Digimon and grants its own host +1000 DP for the turn. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT10-004", compiled)`.
+- Primitive trace: only the effect-driven suspend primitive emits `whenEffectSuspends` after a real unsuspended-to-suspended transition; the explicit Digimon source filter intentionally has no controller restriction, covering both players and Q1930; inherited frequency is keyed by Bosamon's source instance; the DP modifier ledger expires at its controller's turn end.
+- Cross-card and stack proof: realistic Bosamon-under-Digimon stacks suspend both a friendly Digimon and an opposing Digimon, prove a single grant across both events, prove two physical Bosamon sources arm independently without watcher duplication, and reject activation outside the source controller's turn.
+- Behavioral proof: the focused suite proves the errata once-per-turn limit, Q1930 ownership breadth, source-instance frequency, recompute idempotence, exact +1000 amount, turn restriction, and duration expiry.
+- Verification: focused suite — 3 passed; `whenEffectSuspends` primitive regression — 4 passed (126 unrelated tests skipped); workspace typecheck — pending collection gate; `git diff --check` — passed.
