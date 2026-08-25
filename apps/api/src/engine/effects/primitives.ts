@@ -636,6 +636,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return cost >= 0 && cost <= engine.memory.maxCostFor(controllerSeat);
   };
 
+  const effectivePlayCost: NonNullable<Primitives["effectivePlayCost"]> = (permanent) => {
+    const definition = requireCardDefinition(permanent.topCard.cardId);
+    return ledger.playCostFor(
+      { def: definition, controllerSeat: permanent.controllerSeat },
+      normalizeCost(definition.playCost),
+    );
+  };
+
   // --- play from hand / security --------------------------------------------
 
   const playFromHand = async (
@@ -4828,6 +4836,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     playFromHand,
     playFromSecurity,
     canAffordEffectPlay,
+    effectivePlayCost,
     playInstances,
     placeOptionAsPermanent,
     digivolveFromInstance,

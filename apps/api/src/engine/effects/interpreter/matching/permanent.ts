@@ -536,6 +536,17 @@ export function permanentMatchesFilter(
     return definitionMatches(rest, def);
   }
 
+  // A live Digimon's "play cost" observes active modifiers (EX10-028 Q5100), unlike a loose
+  // hand/trash/deck card whose filter necessarily uses its printed definition. Resolve and strip
+  // these bounds here so definitionMatches does not reapply them to the printed value.
+  if (filter.playCostLte !== undefined || filter.playCostGte !== undefined) {
+    const cost = ctx.fx.effectivePlayCost?.(permanent) ?? def.playCost;
+    if (filter.playCostLte !== undefined && cost > filter.playCostLte) return false;
+    if (filter.playCostGte !== undefined && cost < filter.playCostGte) return false;
+    const { playCostLte: _lte, playCostGte: _gte, ...rest } = filter;
+    filter = rest;
+  }
+
   // Runtime-scaled printed-DP cap for hand/deck play candidates (BT11-016).
   if (filter.dpAtMostScaling) {
     const base = filter.dpAtMost ?? 0;
