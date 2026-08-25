@@ -211,9 +211,14 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Behavioral proof: isolated `BT13-024.test.ts` passed 3 tests: exact full-coverage IR; public observer exposure; and a real player attack where the defending player declares Gawappamon, it suspends and redirects the attack, survives against a 4000 DP attacker, deletes that attacker, and prevents a security check. Reverting keyword installation, ownership/zone eligibility, block timing, suspension, target switching, or combat/security routing makes a focused observable assertion fail.
 - Revalidation result: 10/10; no remaining card-specific queue.
 
-## BT13-025 — GaoGamon — Pending
+## BT13-025 — GaoGamon — 10/10
 
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+- Catalog evidence: Blue level 4 Digimon, play cost 5, 5000 DP; Champion/Data/Beast; evolves from blue level 3 for 2. Printed clauses checked independently: optional When Digivolving play 1 Thomas H. Norstein from hand without cost only if its controller has none, and inherited All Turns +1000 DP while the opponent has at least 8 hand cards.
+- Knowledge base: `node tools/kb/query.mjs card BT13-025` reviewed; no card-specific entries exist. The exact Thomas name, controller-scoped absence condition, hand origin, optionality, free play, inherited self anchor, opponent hand perspective, and inclusive threshold are explicit.
+- Implementation and primitive trace: `BT13-025.ts` maps When Digivolving to optional `PlayWithoutCost` from hand with a Thomas name filter and `youHaveNone` condition, then maps the inherited All Turns clause to a self `Aura(modifyDP +1000)` under opponent `zoneCount(hand) >= 8`. Traced through evolution legality/payment and timing, source/controller condition evaluation, optional decision, hand candidate selection, Tamer permanent creation without play cost, inherited host resolution, live zone counting, continuous re-derivation, and DP calculation. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-025", compiled)`.
+- Peers, traits, evolution, timing, ownership, and frequency: BT13-021 carries the identical inherited hand-size aura and is a valid blue level-3 predecessor; its independent proof corroborates the shared primitive without substituting for this card. BT13-097 is the exact Tamer candidate. Positive, existing-Tamer, and refusal fixtures isolate condition/ownership/optionality; a seven-to-eight transition isolates the threshold. Neither clause is once per turn.
+- Behavioral proof: isolated `BT13-025.test.ts` passed 5 tests: full IR; a real legal evolution that plays Thomas from hand for free; an existing controlled Thomas prevents a second copy from leaving hand; explicit refusal leaves Thomas in hand; and an inherited host remains at 5000 DP with seven opposing hand cards then becomes 6000 immediately at eight. Reverting timing, exact-name/controller condition, origin, optionality, free play, inherited anchor, opponent seat, threshold, amount, or continuous refresh makes a focused observable assertion fail.
+- Revalidation result: 10/10; no remaining card-specific queue.
 
 ## BT13-026 — TeslaJellymon — Pending
 

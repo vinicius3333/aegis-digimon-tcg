@@ -1,3 +1,4 @@
+import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-025.js";
@@ -23,7 +24,7 @@ describe("BT13-025 GaoGamon", () => {
     });
   });
 
-  it("plays Thomas on digivolution only when none is already present", async () => {
+  it("plays Thomas from hand without cost on digivolution when none is present", async () => {
     const s = setupEngine(
       {
         0: {
@@ -51,14 +52,74 @@ describe("BT13-025 GaoGamon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-097")).toBe(true);
   });
 
-  it("gains the inherited 1000 DP while the opponent has eight cards in hand", async () => {
+  it("does not play another Thomas when its controller already has one", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-021", as: "gaomon" },
+            { card: "BT13-097", as: "existing-thomas" },
+          ],
+          hand: [
+            { card: "BT13-025", as: "gaogamon" },
+            { card: "BT13-097", as: "hand-thomas" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gaomon").permanentId,
+        instanceId: s.inst("gaogamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").topCard.cardId === "BT13-025");
+
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT13-097")).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toContain(s.inst("hand-thomas"));
+  });
+
+  it("allows its controller to decline the free Thomas play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-021", as: "gaomon" }],
+          hand: [
+            { card: "BT13-025", as: "gaogamon" },
+            { card: "BT13-097", as: "thomas" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gaomon").permanentId,
+        instanceId: s.inst("gaogamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gaomon").topCard.cardId === "BT13-025");
+
+    expect(s.state.players[0]!.hand).toContain(s.inst("thomas"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT13-097")).toBe(false);
+  });
+
+  it("gains the inherited 1000 DP exactly when the opponent reaches eight cards in hand", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "gaogamon", dp: 5000, under: ["BT13-025"] }] },
-      1: { hand: Array.from({ length: 8 }, (_, index) => ({ card: "BT13-021", as: `opponent-${index}` })) },
+      1: { hand: Array.from({ length: 7 }, (_, index) => ({ card: "BT13-021", as: `opponent-${index}` })) },
     });
     await s.ready();
-    expect(s.state.players[1]!.hand).toHaveLength(8);
+    expect(s.perm("gaogamon").currentDP).toBe(5000);
+
+    s.give(1, Zone.Hand, "BT1-002");
     await s.engine.recomputeContinuousEffects();
+    expect(s.state.players[1]!.hand).toHaveLength(8);
     expect(s.perm("gaogamon").currentDP).toBe(6000);
   });
 });
