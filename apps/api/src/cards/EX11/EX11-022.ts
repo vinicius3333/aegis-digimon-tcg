@@ -101,6 +101,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -111,21 +112,16 @@ const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 excludeSelf: true,
-                or: [
-                  {
-                    isToken: true,
-                  },
-                  {
-                    kind: ["Digimon"],
-                    nameOrTrait: [
-                      {
-                        tokens: ["Puppet"],
-                        match: "trait",
-                      },
-                    ],
-                  },
-                ],
+                isToken: true,
               },
+              orFilters: [
+                {
+                  controller: "mine",
+                  excludeSelf: true,
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }],
+                },
+              ],
               count: 1,
             },
             raw: "by deleting 1 of your Tokens or other [Puppet] trait Digimon, it doesn't leave",

@@ -465,6 +465,9 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
   ],
   "EX12-037": [{ level: 6, traits: ["ME", "VB"], cost: 5, isAlternate: true }],
+  // EX11-022: the committed generated fallback predates the compiler's base-color support.
+  // Preserve the printed yellow/purple restriction for both server legality and client previews.
+  "EX11-022": [{ level: 4, traits: ["Puppet"], cost: 3, isAlternate: true, baseColors: ["Yellow", "Purple"] }],
   // BT12-081: Astamon's Save alternate path is restricted to yellow, green, or purple Lv.4 bases.
   "BT12-081": [{ cost: 3, isAlternate: true, level: 4, texts: ["Save"], colors: ["Yellow", "Green", "Purple"] }],
   // BT12-083: the Save alternate path is restricted to red, black, or purple Lv.4 bases.

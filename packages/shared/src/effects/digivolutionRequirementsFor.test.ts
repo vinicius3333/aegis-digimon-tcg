@@ -8,6 +8,12 @@ import { digiXrosRequirementFor } from "./data.js";
 // exist via ALTERNATE_DIGIVOLUTION_OVERRIDES or the generated fallback map. Every BT26 card that
 // prints such a header must resolve to a non-empty requirement list.
 describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () => {
+  it("preserves EX11-022's yellow/purple base-color gate", () => {
+    expect(digivolutionRequirementsFor("EX11-022")).toEqual([
+      { level: 4, traits: ["Puppet"], cost: 3, isAlternate: true, baseColors: ["Yellow", "Purple"] },
+    ]);
+  });
+
   it("keeps BT24-059's Aqua and Sea Animal substring route alongside its TS route", () => {
     expect(digivolutionRequirementsFor("BT24-059")).toEqual([
       { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
