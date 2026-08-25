@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-060.js";
 import { compiled } from "./BT9-003.js";
 
 function primitivesOf(setup: EngineSetup): Primitives {
@@ -69,6 +70,27 @@ describe("BT9-003 Tokomon (X Antibody)", () => {
     await primitivesOf(s).addSecurity(0, [s.inst("recovered").instanceId], { toTop: true });
     await settle(() => s.perm("target").currentDP === 2000);
     expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("target").currentDP).toBe(2000);
+  });
+
+  it("triggers from a public On Play Recovery intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-034", as: "host", under: ["BT9-003"] }],
+          hand: [{ card: "BT1-060", as: "magnaAngemon" }],
+          deck: [{ card: "BT1-009", as: "recovered" }],
+        },
+        1: { battleArea: [{ card: "BT1-028", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magnaAngemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 2000);
+    expect(s.state.players[0]!.security).toContainEqual(s.inst("recovered"));
     expect(s.perm("target").currentDP).toBe(2000);
   });
 
