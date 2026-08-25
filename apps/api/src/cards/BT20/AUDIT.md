@@ -935,3 +935,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-078.test.ts`).
+
+## BT20-079 — Necromon
+
+- Catalog contract: purple level 6 Virus Ghost/LIBERATOR, play cost 12/12000 DP and purple level-5 evolution cost 4; Security Attack +1; Execute; On Play/When Digivolving deletes one opposing lowest-level Digimon; On Play/On Deletion may free-play one level-5-or-lower Ghost Digimon from own trash.
+- Knowledge base: Q4403 confirms its two On Play effects trigger simultaneously and their controller chooses activation order; separate IR effects preserve that timing contract.
+- Implementation evidence: both resident keywords are direct, both deletion timings share the exact opposing lowest-level filter, and both play timings share the optional trash/Ghost/inclusive-level/free-cost action. Shared keyword, superlative selection, and free-play primitives were traced; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the Ghost trait uses semantic trait matching rather than a name substring, the level ceiling is inclusive, and the digivolving clause remains available in a normal purple level-5 stack.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-079.test.ts` — 3 passed.
+- Clause scores: stats/evolution 2/2; Security Attack +1/Execute 2/2; dual lowest-level deletion timing 2/2; dual optional Ghost free play 2/2; zones/level boundary/Q4403 ordering 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-079.test.ts`).
