@@ -431,3 +431,15 @@
 - Score: 10/10.
 - Ambiguity: Q4345 ordering is controlled by the shared simultaneous trigger stack after the DNA action; the focused fixture proves the complete DNA-then-attack production chain.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-036.test.ts`).
+
+## BT20-037 — Chaosmon: Valdur Arm
+
+- Catalog contract: yellow/green level 7 Vaccine Unique, play cost 15/15000 DP, yellow or green level-6 evolution cost 5; Security Attack +1; Partition (yellow level 6 + green/black level 6); When Digivolving, for each level-6 source suspend one opposing Digimon/Tamer and gain 1 memory, then all opposing Digimon/Tamers lose On Play activation and cannot unsuspend through their turn end.
+- Knowledge base: Q4347 confirms two level-6 sources produce two suspensions and 2 memory; Q4348–Q4354 define complete On Play timing suppression and its combined-timing/usage boundaries; Q4605 confirms rule-deletion at 0 DP triggers Partition; Q4718 explicitly includes both opposing Digimon and Tamers; Q4841 keeps a placed card's On Play activation suppressed.
+- Implementation evidence: both scaled actions count only level-6 cards in this Digimon's live stack. The following all-target actions use the dedicated On Play timing disable and unsuspend restriction with cross-turn duration. Both printed keywords are direct Static entries, and registration is exclusively `registerIrCard`.
+- Peer/stack evidence: evolving over Kazuchimon with BanchoLeomon underneath counts two level-6 sources, suspends both an opposing Digimon and Tamer, pays 5 then gains 2 memory, and observably locks both On Play and unsuspend. Security Attack +1 and Partition are live; opponent-effect deletion replays the specified Kazuchimon and BanchoLeomon as two fresh permanents.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-037.test.ts` — 3 passed.
+- Clause scores: stats/evolution/Security Attack 2/2; level-6 scaling 2/2; repeated suspension/memory 2/2; global Digimon/Tamer On Play and unsuspend locks 2/2; Partition composition/observable replay 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-037.test.ts`).
