@@ -220,9 +220,14 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Behavioral proof: isolated `BT13-025.test.ts` passed 5 tests: full IR; a real legal evolution that plays Thomas from hand for free; an existing controlled Thomas prevents a second copy from leaving hand; explicit refusal leaves Thomas in hand; and an inherited host remains at 5000 DP with seven opposing hand cards then becomes 6000 immediately at eight. Reverting timing, exact-name/controller condition, origin, optionality, free play, inherited anchor, opponent seat, threshold, amount, or continuous refresh makes a focused observable assertion fail.
 - Revalidation result: 10/10; no remaining card-specific queue.
 
-## BT13-026 — TeslaJellymon — Pending
+## BT13-026 — TeslaJellymon — 10/10
 
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+- Catalog evidence: Blue level 4 Digimon, play cost 5, 5000 DP; Champion/Data/Mollusk; evolves from blue level 3 for 2. Printed clauses independently checked: When Attacking Draw 1, and inherited When Attacking trash the bottom digivolution card of 1 opposing Digimon.
+- Knowledge base: `node tools/kb/query.mjs card BT13-026` reviewed; no card-specific entries exist. Draw ownership/amount, the absence of a once-per-turn marker, inherited anchoring, opponent ownership, one-target count, and bottom direction are explicit.
+- Implementation and primitive trace: `BT13-026.ts` maps the main When Attacking clause to owner `Draw 1` and the inherited clause to `TrashDigivolution` with opponent Digimon/has-sources/count-1 filtering, `amount: 1`, and `fromTop: false`. Traced through attack timing/source anchoring, repeated trigger dispatch without a frequency ledger, deck-to-hand movement, inherited host/source discovery, opponent candidate resolution, bottom detachment, and owner-trash routing. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-026", compiled)`.
+- Peers, traits, evolution, timing, ownership, and frequency: BT13-023 is the same-set inherited bottom-source peer, while BT13-021 supplies a contrasting once-per-turn attack draw. TeslaJellymon's test uses real attack flow for the printed draw, two direct attack timings for the non-once-per-turn distinction, and a real inherited stack with only the opponent eligible; its own source remains attached. There are no trait/name conditions or alternate evolution routes.
+- Behavioral proof: isolated `BT13-026.test.ts` passed 4 tests: exact full IR; a real attack moves the controller's top deck card to hand; two same-turn attack timings draw twice; and an inherited attack removes only the opponent's bottom source to that owner's trash while retaining the opponent's top source and the host's own stack. Reverting timing, draw controller/amount/frequency, inherited anchoring, opponent filter, bottom direction, amount, or trash ownership makes a focused observable assertion fail.
+- Revalidation result: 10/10; no remaining card-specific queue.
 
 ## BT13-027 — Shaujinmon — Pending
 

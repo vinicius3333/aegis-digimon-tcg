@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-026.js";
 
@@ -34,6 +36,22 @@ describe("BT13-026 TeslaJellymon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
   });
 
+  it("draws again at a second attack timing because the effect is not once per turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-026", as: "tesla" }], deck: ["BT1-001", "BT1-002"] },
+    });
+    const tesla = s.perm("tesla");
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, tesla, {
+      attackerPermanentId: tesla.permanentId,
+    });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, tesla, {
+      attackerPermanentId: tesla.permanentId,
+    });
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT1-001", "BT1-002"]);
+  });
+
   it("trashes the opponent's bottom evolution card through its inherited effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-026"] }] },
@@ -50,5 +68,6 @@ describe("BT13-026 TeslaJellymon", () => {
     await settle(() => s.perm("target").stack.length === 1, 3000);
     expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT13-026"]);
   });
 });
