@@ -12,11 +12,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
-      level: 3,
-      cost: 2,
-      isAlternate: true,
-    },
-    {
       names: ["Maquinamon"],
       cost: 2,
       isAlternate: true,

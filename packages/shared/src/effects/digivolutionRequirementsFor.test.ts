@@ -26,6 +26,12 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     expect(digivolutionRequirementsFor("EX11-028")).toEqual([]);
   });
 
+  it("keeps only EX11-029's named Maquinamon alternate route", () => {
+    expect(digivolutionRequirementsFor("EX11-029")).toEqual([
+      { names: ["Maquinamon"], cost: 2, isAlternate: true },
+    ]);
+  });
+
   it("keeps BT24-059's Aqua and Sea Animal substring route alongside its TS route", () => {
     expect(digivolutionRequirementsFor("BT24-059")).toEqual([
       { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
