@@ -218,6 +218,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; proves both App Fusion material orders; observes the paid unsuspend and lower-cost restriction while preserving the highest-cost exception; and proves an already-unsuspended Poseidomon cannot pay the cost or arm the restriction.
 - Verification: focused suite — 5 passed after rebuilding shared data; shared package build — passed; `git diff --check` — passed.
 
+## BT23-025 — MarineAngemon — 10/10
+
+- Catalog evidence: Blue/yellow level 6, play cost 11, 11000 DP, standard blue- or yellow-level-5 evolution for 3 plus alternate level-5 CS evolution for 3; form `Mega`, attribute `Vaccine`, types `Fairy` and `CS`; its hand Main requires a friendly CS Digimon or Tamer and one 5-memory payment to give up to three opposing Digimon Security Attack -1 through their turn end, then place MarineAngemon at security top; On Play/When Digivolving returns one opposing lowest-level Digimon; Security plays it after battle and deletes that played Digimon at turn end.
+- Knowledge base: Q5253 makes the self-security placement contingent on paying the activation cost; Q5254 forbids even declaring the hand Main without a friendly CS permanent; Q5563 requires deletion of the Security-played Digimon; Q5564 makes that deletion simultaneous with other turn-end triggers.
+- Defects corrected: the hand Main encoded the cost and condition only on its first action, allowing the trailing self-placement to resolve independently; its self-placement used a battle-area target shape that could not move the hand source; and shared compiled data still marked the Security deletion unsupported/partial. The audited IR uses one condition-bearing `CostGatedBlock`, the resolving-card self-placement seam, and `DelayedDeletePlayed`, synchronized in direct and shared IR.
+- Primitive trace: declaration-time condition filtering hides the hand Main without a CS permanent; the cost-gated block pays memory exactly once and aborts its whole body if unpayable; self security placement relocates the resolving hand instance to stack top; lowest-level targeting recomputes the live superlative; Security play binds the resulting permanent and arms its deletion for the ordinary simultaneous end-turn queue.
+- Behavioral proof: the focused suite checks catalog and complete IR; pays exactly 5, applies Security Attack -1, and moves MarineAngemon from hand to security; rejects declaration without CS and rejects unaffordable activation without zone changes; returns only a lowest-level opponent; and plays from Security then deletes the bound Digimon at turn end.
+- Verification: focused suite — 6 passed; shared package build — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-025 through BT23-102.
+BT23-026 through BT23-102.

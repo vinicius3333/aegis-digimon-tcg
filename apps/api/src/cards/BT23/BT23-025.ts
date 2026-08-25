@@ -7,12 +7,18 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       isFromHand: true,
+      condition: {
+        kind: "youHave",
+        filter: {
+          controllerDefault: "mine",
+          kind: ["Digimon", "Tamer"],
+          nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+        },
+        raw: "you have a Digimon or Tamer with the [CS] trait",
+      },
       actions: [
         {
-          kind: "GainKeyword",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 },
-          keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
-          duration: "untilOpponentTurnEnd",
+          kind: "CostGatedBlock",
           condition: {
             kind: "youHave",
             filter: {
@@ -23,13 +29,21 @@ const compiled: CompiledCard = {
             raw: "you have a Digimon or Tamer with the [CS] trait",
           },
           cost: { kind: "payMemory", memory: 5, raw: "by paying 5 cost" },
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "placeAsSecurity",
-          controller: "mine",
-          source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          toTop: true,
+          abortOnDecline: true,
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 },
+              keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              toTop: true,
+            },
+          ],
         },
       ],
     },
