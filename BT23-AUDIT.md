@@ -776,6 +776,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; sets memory from 2 to 3 while preserving 4; pays with the exact security top and places a hand Zaxon face up at bottom while preserving a non-Zaxon, repeats from trash, and proves zone removal; uses a real level-6 Machine at end turn, suspends Yuugo/attacker, and consumes opposing security; and structurally checks all boundaries.
 - Verification: focused suite — 8 passed after refreshing shared runtime data; shared memory setting, security-to-hand cost, hand/trash loose selection, face-up bottom placement, level/trait attack filtering, player attack, Tamer suspension cost, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-087 — Violet Inboots — 10/10
+
+- Catalog evidence: Purple cost-3 Tamer, type `LIBERATOR`; Start of Your Main Phase may return this Tamer to deck bottom to play one Violet Inboots from hand for free, then only if no Digimon is controlled may play one Ghostmon from trash for free; Your Turn when a friendly Digimon evolves into Ghost, may suspend this Tamer to give that exact Digimon Rush for the turn; Security plays this card for free.
+- Knowledge base: Q5362 makes returning Violet the required “by” cost and forbids the Ghostmon tail when it is not paid. Q5569 confirms a Violet played during the start-main window cannot activate its own start-main effect in that already-open window.
+- Defects corrected: authoritative shared IR omitted the return cost's deck-bottom destination, granted Rush to an arbitrary friendly Digimon, and attached the suspension cost/optional abort to the inner grant rather than the listener. It now mirrors exact trigger-subject binding and paid listener structure; registration remains exclusively `registerIrCard("BT23-087", compiled)` with full coverage/no residuals.
+- Primitive trace: start-main selects a hand Violet only after preflighting/paying exact self return to deck bottom, then reevaluates the live no-Digimon board before optional trash Ghostmon play; newly played Violet does not recollect the current window; the evolution listener filters the event subject by friendly Ghost, suspends the source Tamer, and grants Rush only to that subject until turn end; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; returns the exact field Violet to deck bottom, plays a different hand instance, then plays trash Ghostmon; declines the return and proves neither movement nor Ghostmon tail; fires a Ghost evolution with another Digimon present, suspends Violet, observes Rush only on the Ghost subject; and structurally checks all clauses.
+- Verification: focused suite — 6 passed after refreshing shared runtime data; shared start-main snapshot behavior, deck-bottom cost, conditional trash play, abort-on-decline, physical evolution-subject binding, Tamer suspension, Rush duration, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-087 through BT23-102.
+BT23-088 through BT23-102.
