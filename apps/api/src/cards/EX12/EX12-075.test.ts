@@ -1,8 +1,9 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-075.js";
 import "../index.js";
 
@@ -47,6 +48,8 @@ describe("EX12-075 Kunlun's Imperial Decree", () => {
       kind: "WaiveColorRequirement",
       condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }] } },
     });
+    expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("reveals three, adds one Shambala card, returns the rest to deck bottom, and places itself", async () => {
@@ -83,6 +86,29 @@ describe("EX12-075 Kunlun's Imperial Decree", () => {
       ok: false,
       reason: "color-requirement-unmet",
     });
+  });
+
+  it("returns all three revealed cards to deck bottom when none has the Shambala trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "shambala" }],
+          hand: [{ card: CARD_ID, as: "option" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("arms Delay only after entering the battle area and gains 2 memory on a later turn", async () => {
@@ -136,5 +162,17 @@ describe("EX12-075 Kunlun's Imperial Decree", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Kunlun's Imperial Decree",
+      colors: ["White"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      types: ["Shambala", "SW", "TB"],
+    });
   });
 });

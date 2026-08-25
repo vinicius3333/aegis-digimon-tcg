@@ -2370,3 +2370,25 @@ for the individual evidence below.
   — 126/126; derived timing — 17/17; security activation — 2/2; interpreter — 171/171;
   capabilities — 290/290; shared build, API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-075 — Kunlun's Imperial Decree — 10/10
+
+- **Printed contract:** White cost-3 Shambala/SW/TB Option with a Shambala Use Requirement. Main
+  reveals the top 3, adds exactly one Shambala card, sends every other reveal to deck bottom,
+  then places the Option in the battle area. On a later turn, Main Delay trashes it to gain 2
+  memory. Security places the checked Option in the battle area.
+- **Fidelity result:** direct and aggregate executable IR were already complete and exactly equal;
+  no functional correction was needed. The audit adds exact registration/catalog equality and
+  explicit selection, miss-path, placement, Delay-lifecycle, and negative Use Requirement proof.
+- **Behavioral proof:** a red Shambala card independently waives the white color requirement, while
+  no Shambala rejects play. With two matching cards among the top 3, exactly one enters hand and
+  the other matching card plus the miss return to deck bottom. When all three miss, none enters
+  hand, all return to the deck, and placement still resolves. Delay is hidden during the entry
+  turn; once aged, it trashes the exact Option and adds 2 memory. Security moves the same checked
+  instance into the battle area.
+- **Identity and verification:** catalog identity, reveal/add/rest routing, filters, Delay,
+  Security, full coverage, empty residuals, exclusive IR registration, and exact direct/aggregate
+  equality are asserted. `EX12-075.test.ts` — 10/10; advanced keyword conformance — 30/30;
+  `PlaceInBattleAreaSelf` — 4/4; security activation — 2/2; interpreter — 171/171; capabilities —
+  290/290; API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, ruling dependency, or unresolved limitation remains.
