@@ -58,7 +58,9 @@ describe("EX10-072 Spiral Mountain", () => {
     const s = setupEngine({ 0: { hand: [{ card: CARD_ID, as: "spiral" }], deck: ["BT1-001", "BT1-002"] } });
     s.state.memory = 3;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("spiral").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("spiral").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(true);

@@ -201,11 +201,10 @@ describe("EX10-018 Astamon", () => {
     await withSource.ready();
     expect(observe(withSource.engine).hasKeyword(withSource.perm("astamon"), "Fortitude")).toBe(true);
     const astamonId = withSource.inst("astamon").instanceId;
-    expect(await advance(withSource.engine).verb.deletePermanent([withSource.perm("astamon").permanentId], "byEffect"))
-      .toBe(1);
-    await settle(() =>
-      withSource.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === astamonId),
-    );
+    expect(
+      await advance(withSource.engine).verb.deletePermanent([withSource.perm("astamon").permanentId], "byEffect"),
+    ).toBe(1);
+    await settle(() => withSource.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === astamonId));
     expect(withSource.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
       withSource.inst("source").instanceId,
     );

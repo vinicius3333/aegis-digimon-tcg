@@ -110,7 +110,12 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
 
   it("ignores suspension of a non-Close card", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "emblem" }, { card: "EX10-025", as: "ordinary" }] },
+      0: {
+        battleArea: [
+          { card: CARD_ID, as: "emblem" },
+          { card: "EX10-025", as: "ordinary" },
+        ],
+      },
     });
     s.perm("emblem").placedByEffect = true;
     await s.ready();
@@ -127,9 +132,6 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     );
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("emblem"));
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([
-      "EX10-025",
-      CARD_ID,
-    ]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX10-025", CARD_ID]);
   });
 });

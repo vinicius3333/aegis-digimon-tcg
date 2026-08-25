@@ -85,9 +85,9 @@ describe("EX10-014 Weatherdramon", () => {
     expect(checkedIndex).toBeGreaterThanOrEqual(0);
     expect(playedIndex).toBeGreaterThan(checkedIndex);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(CARD_ID);
-    expect(
-      advance(s.engine).ledgers.continuous.grantedKeywords(s.perm("attacker").permanentId),
-    ).toEqual(expect.arrayContaining([expect.objectContaining({ keyword: "SecurityAttack", amount: -1 })]));
+    expect(advance(s.engine).ledgers.continuous.grantedKeywords(s.perm("attacker").permanentId)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ keyword: "SecurityAttack", amount: -1 })]),
+    );
   });
 
   it("debuffs exactly 2 targets through their turn and then lapses", async () => {
@@ -129,7 +129,12 @@ describe("EX10-014 Weatherdramon", () => {
           hand: [{ card: CARD_ID, as: "weatherdramon" }],
           deck: ["BT1-001"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

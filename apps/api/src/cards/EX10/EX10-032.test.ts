@@ -11,9 +11,14 @@ const CARD_ID = "EX10-032";
 describe("EX10-032 Proganomon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
-      colors: ["Black"], level: 5, playCost: 7, dp: 7000,
+      colors: ["Black"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
       evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }],
-      forms: ["Ultimate"], attributes: ["Virus"], types: ["Mineral", "LIBERATOR"],
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Mineral", "LIBERATOR"],
     });
   });
 
@@ -38,7 +43,11 @@ describe("EX10-032 Proganomon", () => {
 
     expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
       actions: [
-        { kind: "SubTrigger", event: "onDigivolutionCardsDiscardedBatch", actions: [{ kind: "DeDigivolve", amount: 1 }] },
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardsDiscardedBatch",
+          actions: [{ kind: "DeDigivolve", amount: 1 }],
+        },
       ],
     });
   });
@@ -59,17 +68,30 @@ describe("EX10-032 Proganomon", () => {
   });
 
   it("Q5091 places Landramon under Sunarizamon and hand-digivolves for the reduced cost 2", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "BT21-055", as: "suna" }, { card: "EX10-063", as: "close" }],
-      hand: [{ card: CARD_ID, as: "proganomon" }], trash: [{ card: "EX10-028", as: "landramon" }],
-    } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-055", as: "suna" },
+            { card: "EX10-063", as: "close" },
+          ],
+          hand: [{ card: CARD_ID, as: "proganomon" }],
+          trash: [{ card: "EX10-028", as: "landramon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
     await s.ready();
     const [entry] = JSON.parse(s.inst("proganomon").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
     expect(entry).toBeDefined();
-    expect(s.engine.applyIntent(0, {
-      type: "activateEffect", sourceInstanceId: s.inst("proganomon").instanceId, effectKey: entry!.effectKey,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("proganomon").instanceId,
+        effectKey: entry!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("suna").topCard.cardId === CARD_ID);
     expect(s.state.memory).toBe(1);
     expect(s.perm("suna").stack[0]?.instanceId).toBe(s.inst("landramon").instanceId);
@@ -77,11 +99,19 @@ describe("EX10-032 Proganomon", () => {
 
   it("Q5093 trashes a Mineral source from another stack and gives all buffs to one target", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({ 0: { battleArea: [
-      { card: CARD_ID, as: "source" },
-      { card: "EX10-028", as: "costHost", under: [{ card: "EX10-025", as: "cost" }] },
-      { card: "EX10-028", as: "target" }, { card: "BT1-009", as: "near" },
-    ] } }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "source" },
+            { card: "EX10-028", as: "costHost", under: [{ card: "EX10-025", as: "cost" }] },
+            { card: "EX10-028", as: "target" },
+            { card: "BT1-009", as: "near" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.inst("cost").instanceId, s.perm("near").permanentId, s.perm("target").permanentId);
     await s.ready();
     const baseDp = s.perm("target").currentDP;
@@ -95,15 +125,16 @@ describe("EX10-032 Proganomon", () => {
 
   it("the inherited watcher De-Digivolves only from a Mineral/Rock host", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX10-028", as: "host", under: [{ card: CARD_ID, as: "source" }] }] },
-      1: { battleArea: [{ card: "BT1-019", as: "target", under: [{ card: "BT1-009", as: "base" }] }] },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX10-028", as: "host", under: [{ card: CARD_ID, as: "source" }] }] },
+        1: { battleArea: [{ card: "BT1-019", as: "target", under: [{ card: "BT1-009", as: "base" }] }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("target").permanentId);
     await s.ready();
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId, [s.inst("source").instanceId], 0,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("source").instanceId], 0);
     expect(s.perm("target").topCard.instanceId).toBe(s.inst("base").instanceId);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-019");
 
@@ -113,7 +144,9 @@ describe("EX10-032 Proganomon", () => {
     });
     await blocked.ready();
     await advance(blocked.engine).verb.trashDigivolutionCards(
-      blocked.perm("host").permanentId, [blocked.inst("source").instanceId], 0,
+      blocked.perm("host").permanentId,
+      [blocked.inst("source").instanceId],
+      0,
     );
     expect(blocked.perm("target").topCard.cardId).toBe("BT1-019");
   });

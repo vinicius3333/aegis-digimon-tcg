@@ -47,9 +47,9 @@ describe("EX10-004 Cupimon compiled contract", () => {
     s.state.phase = Phase.Breeding;
     const memoryBefore = s.state.memory;
 
-    expect(
-      s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         s.state.memory === memoryBefore + 1 &&
@@ -105,9 +105,9 @@ describe("EX10-004 Cupimon compiled contract", () => {
     s.state.phase = Phase.Breeding;
     const memoryBefore = s.state.memory;
 
-    expect(
-      s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
 
     expect(s.state.players[0]!.hand).toHaveLength(1);

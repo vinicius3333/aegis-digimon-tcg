@@ -102,7 +102,14 @@ describe("EX10-067 Ryoma Mogami", () => {
 
   it("pays none of the compound cost when no saved card exists under a Tamer", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: CARD_ID, as: "ryoma" }, { card: "EX10-027", as: "digivolved" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "ryoma" },
+            { card: "EX10-027", as: "digivolved" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

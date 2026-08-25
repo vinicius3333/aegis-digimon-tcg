@@ -151,8 +151,9 @@ describe("EX10-015 Psychemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const acceptedId = accepted.inst("psychemon").instanceId;
-    expect(await advance(accepted.engine).verb.deletePermanent([accepted.perm("psychemon").permanentId], "byEffect"))
-      .toBe(1);
+    expect(
+      await advance(accepted.engine).verb.deletePermanent([accepted.perm("psychemon").permanentId], "byEffect"),
+    ).toBe(1);
     await settle(() => accepted.perm("tamer").stack.some(({ instanceId }) => instanceId === acceptedId));
     expect(accepted.perm("tamer").stack.map(({ instanceId }) => instanceId)).toContain(acceptedId);
     expect(accepted.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(acceptedId);
@@ -169,8 +170,9 @@ describe("EX10-015 Psychemon", () => {
       { autoDeclineOptional: true },
     );
     const declinedId = declined.inst("psychemon").instanceId;
-    expect(await advance(declined.engine).verb.deletePermanent([declined.perm("psychemon").permanentId], "byEffect"))
-      .toBe(1);
+    expect(
+      await advance(declined.engine).verb.deletePermanent([declined.perm("psychemon").permanentId], "byEffect"),
+    ).toBe(1);
     expect(declined.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(declinedId);
     expect(declined.perm("tamer").stack.map(({ instanceId }) => instanceId)).not.toContain(declinedId);
     assertNoLoudGap(accepted);

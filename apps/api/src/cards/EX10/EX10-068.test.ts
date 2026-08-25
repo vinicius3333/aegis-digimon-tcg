@@ -73,7 +73,12 @@ describe("EX10-068 Digimon Emperor", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: CARD_ID, as: "emperor" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "cheap" }, { card: "EX10-023", as: "expensive" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "cheap" },
+            { card: "EX10-023", as: "expensive" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

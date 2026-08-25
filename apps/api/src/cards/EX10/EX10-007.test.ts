@@ -44,7 +44,12 @@ describe("EX10-007 Greymon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX10-007", as: "greymon" }, { card: "BT1-009", as: "ally" }] },
+        0: {
+          battleArea: [
+            { card: "EX10-007", as: "greymon" },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -92,7 +97,9 @@ describe("EX10-007 Greymon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("agumon").topCard.cardId === "EX10-007" && s.perm("ally").currentDP === allyBaseDp + 3000);
+    await settle(
+      () => s.perm("agumon").topCard.cardId === "EX10-007" && s.perm("ally").currentDP === allyBaseDp + 3000,
+    );
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("ally").currentDP).toBe(allyBaseDp + 3000);

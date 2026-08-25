@@ -21,9 +21,7 @@ describe("EX10-016 Mirrormon", () => {
       linkDp: 2000,
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 2, traits: ["Appmon"], cost: 0, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }]);
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
     expect(compiled.effects?.find((effect) => effect.isLinked)).toMatchObject({
       trigger: "WhenAttacking",
@@ -169,7 +167,9 @@ describe("EX10-016 Mirrormon", () => {
         targetPermanentId: s.perm("neighbor").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("neighbor").linked.some(({ instanceId }) => instanceId === s.inst("neighborLink").instanceId));
+    await settle(() =>
+      s.perm("neighbor").linked.some(({ instanceId }) => instanceId === s.inst("neighborLink").instanceId),
+    );
     expect(s.perm("firstTarget").isSuspended).toBe(false);
 
     expect(
@@ -259,7 +259,12 @@ describe("EX10-016 Mirrormon", () => {
             },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
@@ -290,7 +295,12 @@ describe("EX10-016 Mirrormon", () => {
     const declined = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-009", as: "host", linked: [{ card: CARD_ID, as: "mirror" }] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
       },
       { autoDeclineOptional: true },
     );

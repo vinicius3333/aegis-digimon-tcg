@@ -11,15 +11,21 @@ const CARD_ID = "EX10-034";
 describe("EX10-034 Blastmon compiled contract", () => {
   it("records the exact catalog and evolution routes", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
-      colors: ["Black", "Purple"], level: 6, playCost: 13, dp: 13000,
+      colors: ["Black", "Purple"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
       evoCosts: [
         { color: "Black", level: 5, memoryCost: 5 },
         { color: "Purple", level: 5, memoryCost: 5 },
       ],
-      forms: ["Mega"], attributes: ["Vaccine"], types: ["Mineral", "Bagra Army"],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Mineral", "Bagra Army"],
     });
     expect(compiled.digivolutionRequirement).toEqual([
-      { level: 5, colors: ["Black"], cost: 5 }, { level: 5, colors: ["Purple"], cost: 5 },
+      { level: 5, colors: ["Black"], cost: 5 },
+      { level: 5, colors: ["Purple"], cost: 5 },
     ]);
   });
 
@@ -72,10 +78,13 @@ describe("EX10-034 Blastmon compiled contract", () => {
 
   it("Q5101 grants the selected opposing Digimon a start-main forced-attack subscription", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "blast" }], security: ["BT1-009"] },
-      1: { battleArea: [{ card: "BT5-082", as: "target" }] },
-    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "blast" }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT5-082", as: "target" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("target").permanentId);
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("blast"));
@@ -83,12 +92,25 @@ describe("EX10-034 Blastmon compiled contract", () => {
   });
 
   it("Q5102/Q5103 pays exactly 2 of Blastmon's sources on either player's attack and buffs itself once", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "blast", under: [
-        { card: "EX10-025", as: "first" }, { card: "EX10-028", as: "second" }, { card: "EX10-003", as: "third" },
-      ] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
-    }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "blast",
+              under: [
+                { card: "EX10-025", as: "first" },
+                { card: "EX10-028", as: "second" },
+                { card: "EX10-003", as: "third" },
+              ],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
     await s.ready();
     const baseDp = s.perm("blast").currentDP;
     const attackerId = s.perm("attacker").permanentId;
@@ -101,15 +123,27 @@ describe("EX10-034 Blastmon compiled contract", () => {
   });
 
   it("DigiXroses with exactly 2 Bagra Army cards for 4 less", async () => {
-    const s = setupEngine({ 0: { hand: [
-      { card: CARD_ID, as: "blast" }, { card: "EX10-026", as: "first" }, { card: "EX10-027", as: "second" },
-    ] } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "blast" },
+            { card: "EX10-026", as: "first" },
+            { card: "EX10-027", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 13;
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "playCard", instanceId: s.inst("blast").instanceId,
-      digiXros: { materialInstanceIds: [s.inst("first").instanceId, s.inst("second").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("blast").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("first").instanceId, s.inst("second").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
     expect(s.state.memory).toBe(4);
   });

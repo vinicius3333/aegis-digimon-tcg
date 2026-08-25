@@ -39,7 +39,9 @@ describe("EX10-074 Beelzemon", () => {
       }),
     ]);
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger && effect.actions.length === 2)).toMatchObject({
+      expect(
+        compiled.effects.find((effect) => effect.trigger === trigger && effect.actions.length === 2),
+      ).toMatchObject({
         actions: [
           { kind: "TrashTopDeck", amount: 2 },
           { kind: "Delete", playCostCeiling: { base: 6, raise: 3, per: 10, unit: "cards" } },

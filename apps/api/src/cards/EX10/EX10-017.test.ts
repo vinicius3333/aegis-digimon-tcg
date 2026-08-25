@@ -108,18 +108,13 @@ describe("EX10-017 Mienumon", () => {
 
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "EX10-016", as: "fuser", linked: [{ card: "EX10-024", as: "kabemon" }] },
-        ],
+        battleArea: [{ card: "EX10-016", as: "fuser", linked: [{ card: "EX10-024", as: "kabemon" }] }],
         hand: [{ card: CARD_ID, as: "mienumon" }],
         deck: [{ card: "BT1-001", as: "drawn" }],
       },
     });
     s.state.memory = 1;
-    const result = await advance(s.engine).verb.appFuseInto(
-      s.perm("fuser").permanentId,
-      s.inst("mienumon").instanceId,
-    );
+    const result = await advance(s.engine).verb.appFuseInto(s.perm("fuser").permanentId, s.inst("mienumon").instanceId);
 
     expect(result?.topCard.cardId).toBe(CARD_ID);
     expect(result?.stack.map(({ cardId }) => cardId)).toContain("EX10-016");
@@ -197,7 +192,9 @@ describe("EX10-017 Mienumon", () => {
         targetPermanentId: s.perm("mienumon").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("yujin").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("yujin").instanceId),
+    );
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("wrongTamer").instanceId);
   });
 

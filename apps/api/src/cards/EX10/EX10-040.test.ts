@@ -10,9 +10,14 @@ const CARD_ID = "EX10-040";
 describe("EX10-040 DemiDevimon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
-      colors: ["Purple"], level: 3, playCost: 3, dp: 1000,
+      colors: ["Purple"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
       evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
-      forms: ["Rookie"], attributes: ["Virus"], types: ["Evil"],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Evil"],
     });
   });
   it("proves conditional mill-then-memory sequencing and inherited once-per-turn mill", () => {
@@ -68,13 +73,20 @@ describe("EX10-040 DemiDevimon", () => {
 
   it("the realistic inherited stack mills both decks only once per turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX10-041", as: "host", under: [{ card: CARD_ID, as: "demi" }] }], deck: ["BT1-009", "BT1-010"] },
+      0: {
+        battleArea: [{ card: "EX10-041", as: "host", under: [{ card: CARD_ID, as: "demi" }] }],
+        deck: ["BT1-009", "BT1-010"],
+      },
       1: { deck: ["BT1-009", "BT1-010"], security: ["BT1-009", "BT1-010"] },
     });
     await s.ready();
-    expect(s.engine.applyIntent(0, {
-      type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 1);
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.trash).toHaveLength(1);

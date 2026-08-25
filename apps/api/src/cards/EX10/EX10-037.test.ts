@@ -10,9 +10,14 @@ const CARD_ID = "EX10-037";
 describe("EX10-037 Impmon", () => {
   it("records the exact catalog", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
-      colors: ["Purple"], level: 3, playCost: 4, dp: 2000,
+      colors: ["Purple"],
+      level: 3,
+      playCost: 4,
+      dp: 2000,
       evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
-      forms: ["Rookie"], attributes: ["Virus"], types: ["Evil"],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Evil"],
     });
   });
 
@@ -48,27 +53,42 @@ describe("EX10-037 Impmon", () => {
 
   it("Q5116 deletes only from a direct top-deck trash and respects the level-4 ceiling", async () => {
     const preferred: string[] = [];
-    const s = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "source" }], deck: [
-        { card: CARD_ID, as: "trashedImpmon" }, { card: "BT1-009", as: "otherMill" },
-      ] },
-      1: { battleArea: [{ card: "EX10-028", as: "level4" }, { card: "EX10-030", as: "level5" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          deck: [
+            { card: CARD_ID, as: "trashedImpmon" },
+            { card: "BT1-009", as: "otherMill" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "EX10-028", as: "level4" },
+            { card: "EX10-030", as: "level5" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
     preferred.push(s.perm("level5").permanentId, s.perm("level4").permanentId);
     await s.ready();
     const level4Id = s.perm("level4").permanentId;
     const level5Id = s.perm("level5").permanentId;
     await advance(s.engine).fireForPermanent(EffectTiming.StartOfYourMainPhase, s.perm("source"));
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === level4Id));
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining([
-      s.inst("trashedImpmon").instanceId, s.inst("otherMill").instanceId,
-    ]));
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("trashedImpmon").instanceId, s.inst("otherMill").instanceId]),
+    );
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(level5Id);
 
-    const declined = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "source" }], deck: [CARD_ID, "BT1-009"] },
-      1: { battleArea: [{ card: "EX10-028", as: "target" }] },
-    }, { autoDeclineOptional: true });
+    const declined = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "source" }], deck: [CARD_ID, "BT1-009"] },
+        1: { battleArea: [{ card: "EX10-028", as: "target" }] },
+      },
+      { autoDeclineOptional: true },
+    );
     await declined.ready();
     const targetId = declined.perm("target").permanentId;
     await advance(declined.engine).fireForPermanent(EffectTiming.StartOfYourMainPhase, declined.perm("source"));
@@ -77,9 +97,12 @@ describe("EX10-037 Impmon", () => {
 
   it("the inherited Your Turn buff scales by complete groups of 10 trash cards", async () => {
     const trash = Array.from({ length: 20 }, () => "BT1-009");
-    const s = setupEngine({ 0: {
-      battleArea: [{ card: "EX10-030", as: "host", under: [{ card: CARD_ID, as: "impmon" }] }], trash,
-    } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX10-030", as: "host", under: [{ card: CARD_ID, as: "impmon" }] }],
+        trash,
+      },
+    });
     s.state.turnSeat = 0;
     await s.ready();
     const base = getCardDefinition("EX10-030")!.dp!;

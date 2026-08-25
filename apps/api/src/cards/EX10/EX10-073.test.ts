@@ -152,7 +152,10 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
           {
             card: "EX10-073",
             as: "deusmon",
-            linked: [{ card: "BT24-036", as: "oldLink1" }, { card: "BT26-010", as: "oldLink2" }],
+            linked: [
+              { card: "BT24-036", as: "oldLink1" },
+              { card: "BT26-010", as: "oldLink2" },
+            ],
           },
         ],
         hand: [{ card: "BT24-036", as: "newLink" }],

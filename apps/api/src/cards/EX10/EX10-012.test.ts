@@ -241,9 +241,9 @@ describe("EX10-012 MetalSeadramon — card-specific effects", () => {
     const metalInstanceId = s.inst("metal").instanceId;
     const effectKey = reducedCostPlayEffectKey(s, s.inst("metal"), "EX10-012");
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: metalInstanceId, effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: metalInstanceId, effectKey })).toEqual({
+      ok: true,
+    });
     await settle(() => onField(s, metalInstanceId));
     await settle(() => false, 200);
     const host = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === metalInstanceId)!;
