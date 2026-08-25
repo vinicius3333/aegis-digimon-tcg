@@ -161,3 +161,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: a real Jesmon base plus played Sistermon simultaneously satisfies both gates yet produces exactly +2000 under Q1944; a current ally and later-played ally prove Q1945 persistence and sickness; a second Jesmon X proves both exact-name negatives; the Jesmon GX/Royal Knights deck regression proves borrowed Jesmon X, Sistermon play, Piercing, Blitz, and deferred trigger ordering in the Q2044/Q2045 mechanism family.
 - Behavioral proof: the focused suite proves zero-cost exact evolution, near-name rejection, Sistermon play, one non-stacking +2000 grant, unsuspended-target permission for current and later Digimon, source-removal persistence, summoning-sickness preservation, and Piercing.
 - Verification: focused suite — 5 passed; Jesmon GX integration regression — 1 passed; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
+
+## BT10-017 — Bulucomon — 10/10
+
+- Catalog evidence: blue level 3 Digimon, play cost 2, 5000 DP; evolves from blue level 2 for 2; form `Rookie`, attribute `Data`, type `Mini Dragon`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-017` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-017", compiled)`. Its only executable behavior is the catalog-driven ordinary play and evolution lifecycle.
+- Primitive trace: normal play validates hand ownership and affordability, charges printed cost 2, and creates a 5000-DP permanent without an effect window; normal evolution matches exact blue level 2, charges 2, retains the base as a source, and likewise opens no card effect.
+- Cross-card and stack proof: a real Bebydomon blue level 2 base proves the exact evolution recipe and source transition, while a second physical Bulucomon proves direct play independently in the same fixture.
+- Behavioral proof: the focused suite asserts every catalog identity and evolution field, exact empty IR, exact-cost evolution, exact-cost play, final memory, zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
