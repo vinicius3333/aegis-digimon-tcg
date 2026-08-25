@@ -137,6 +137,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog/IR field; pays exactly 6 with a Zaxon Tamer and proves an unaffordable unreduced play leaves hand/memory unchanged; deletes at exactly 9000 DP and proves Q5230 by returning Garudamon before its pending On Deletion can play Birdramon; returns exactly three Digimon/Tamer/Option cards without requiring a deletion while leaving a fourth card and Digi-Egg in trash; proves optional refusal; proves shared Once Per Turn across all timings and independent source identity; places Phoenixmon face up behind existing security, checks it while revealed, and proves a shuffle turns it face down; and proves both alternate-evolution boundaries.
 - Verification: focused suite — 8 passed; affected reducer and security regressions — 14 passed (13 unrelated tests skipped); API typecheck — passed; `git diff --check` — passed.
 
+## BT23-016 — Dokamon — 10/10
+
+- Catalog evidence: Blue level 3, play cost 3, 2000 DP, standard blue-level-2 evolution for 0 plus alternate level-2 Appmon evolution for 0; forms `Stnd.` and `Appmon`, attribute `Game`, type `Action`; its Your Turn once-per-turn watcher may play Eri Karan from hand without cost when Dokamon gets linked while its controller has at most one Tamer; Link onto Appmon costs 1, contributes 2000 DP, and draws 1 when linking.
+- Knowledge base: `node tools/kb/query.mjs card BT23-016` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defect corrected: the generated IR omitted the complete Link requirement and When Linking draw clause. The audited IR now declares the Appmon cost-1 link recipe and linked draw effect; registration remains exclusively `registerIrCard("BT23-016", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the Link action validates the live host's Appmon trait, spends exactly 1, moves Dokamon from hand into the linked zone, and applies catalog `linkDp`; `WhenLinking` resolves from the linked source and draws exactly one; the `whenLinked` watcher matches Dokamon as the receiving permanent, checks the live friendly Tamer count at the inclusive one-Tamer boundary, and offers the exact-name hand play without memory payment; frequency is keyed to Dokamon's source instance.
+- Behavioral proof: the focused suite checks every catalog and IR field, proves a valid Link costs exactly 1, contributes exactly 2000 DP, and draws exactly one; plays Eri Karan for free with exactly one Tamer; rejects the play with two Tamers; proves optional refusal; rejects a non-Appmon Link without changing memory or zones; and proves the off-color alternate evolution boundary while rejecting an off-color non-Appmon.
+- Verification: focused suite — 7 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-016 through BT23-102.
+BT23-017 through BT23-102.
