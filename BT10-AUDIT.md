@@ -21,3 +21,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: realistic Bebydomon-under-level-6 stacks prove the inherited source is the effect owner; a mixed opposing Digimon/Tamer board proves the kind boundary, and two separate Bebydomon sources prove independent frequency identity.
 - Behavioral proof: the focused suite proves the exact two-Digimon positive, suppresses a repeated activation from the same source, rejects an opponent attack, rejects one Digimon plus one Tamer, and permits two distinct sources to draw once each.
 - Verification: focused suite — 4 passed; workspace typecheck — pending collection gate; `git diff --check` — passed.
+
+## BT10-003 — Pickmons — 10/10
+
+- Catalog evidence: yellow level 2 Digi-Egg; form `In-Training`, types `Minor` and `Xros Heart`; inherited text is `[When Attacking] If this Digimon has [Xros Heart] in its traits, <Draw 1>`; it has no main or Security effect and no evolution requirements.
+- Knowledge base: `node tools/kb/query.mjs card BT10-003` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: one inherited `WhenAttacking` effect draws exactly one for its controller when `selfHasTrait` matches `Xros Heart`. It has no frequency limit, matching the print, and the module has full coverage, no residual clauses, and exclusive `registerIrCard("BT10-003", compiled)` registration.
+- Primitive trace: `selfHasTrait` resolves the inherited source's live host and checks only that permanent's top-card identity; `selfTopMatchesTrait` uses `matchNameOrTrait` over the complete form/attribute/type trait union, without treating lower stack cards as the current Digimon's traits; `Draw` credits the source controller.
+- Cross-card and stack proof: a Pickmons-under-Shoutmon stack proves the exact Xros Heart match, while a Deckerdramon host with Xros Heart Shoutmon lower in its stack proves that a matching source card does not make the current Digimon an Xros Heart Digimon.
+- Behavioral proof: the focused suite proves the positive trait path, the current-top versus lower-stack boundary, and ownership by showing an opponent's attack does not activate the controller's inherited effect.
+- Verification: focused suite — 3 passed; workspace typecheck — pending collection gate; `git diff --check` — passed.

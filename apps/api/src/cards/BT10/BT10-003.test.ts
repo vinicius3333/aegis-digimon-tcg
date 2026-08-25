@@ -13,10 +13,10 @@ describe("BT10-003 Pickmons", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
-  it("does not draw for a host without the Xros Heart trait", async () => {
+  it("checks the host's current identity instead of an Xros Heart card lower in its stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-020", as: "host", under: ["BT10-003"] }],
+        battleArea: [{ card: "BT10-020", as: "host", under: ["BT10-009", "BT10-003"] }],
         deck: ["BT1-001"],
       },
     });
