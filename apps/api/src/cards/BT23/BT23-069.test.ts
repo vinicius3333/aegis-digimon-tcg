@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type {
   DecisionApi,
@@ -9,6 +9,8 @@ import type {
   SubTriggerInstall,
 } from "../../engine/effects/EffectContext.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as bt23069 } from "./BT23-069.js";
 
 /**
@@ -150,6 +152,87 @@ async function installWatcher(ctx: EffectContext, installed: SubTriggerInstall[]
 }
 
 describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it didn't", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-069")).toMatchObject({
+      cardId: "BT23-069",
+      nameEn: "Necromon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Ghost", "LIBERATOR"],
+    });
+    expect(bt23069.coverage).toBe("full");
+    expect(bt23069.residual).toEqual([]);
+  });
+
+  it("exposes Execute through the live keyword seam", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-069", as: "necromon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("necromon"), "Execute")).toBe(true);
+  });
+
+  it("deletes itself and an eligible opponent, plays a Ghost on deletion, and lets the attack continue", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-069", as: "necromon" },
+            { card: "BT23-061", as: "attacker" },
+          ],
+          trash: [{ card: "BT23-064", as: "ghost" }],
+        },
+        1: {
+          battleArea: [{ card: "BT23-068", as: "target" }],
+          security: ["BT1-028", "BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const ghostId = s.inst("ghost").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-069")).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ghostId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("deletes itself and ends the attack when no eligible opponent can be deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-069", as: "necromon" },
+            { card: "BT23-061", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT1-028", "BT1-028"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-069")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
   it("the effect deletes the opponent's Lv.<=6 Digimon (count 1) => the attack CONTINUES (no endAttack)", async () => {
     const self = makePermanent("BT23-069", 0 as Seat);
     const oppLow = makePermanent("OPP-L6", 1 as Seat);
