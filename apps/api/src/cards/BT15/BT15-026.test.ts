@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -169,5 +170,159 @@ describe("BT15-026", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId));
 
     expect(s.state.memory).toBe(-3);
+  });
+
+  it("requires an explicit one-card trash choice at the exact post-draw boundary", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT15-026", as: "wereGarurumon" }],
+        hand: [
+          { card: "BT1-009", as: "chosenTrash" },
+          { card: "BT1-009", as: "keptOne" },
+          { card: "BT1-009", as: "keptTwo" },
+          { card: "BT1-009", as: "keptThree" },
+        ],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+    });
+
+    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+    const pending = s.decisions.find(({ req }) => req.kind === "selectCards")!;
+    expect(pending.req.options).toMatchObject({ min: 1, max: 1 });
+    expect(pending.req.options?.candidateInstanceIds).toHaveLength(5);
+    expect(
+      s.engine.applyIntent(pending.seat, {
+        type: "respondDecision",
+        decisionId: pending.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("chosenTrash").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("chosenTrash").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(4);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
+  it("ignores cards added by an owned non-Digimon effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT15-026", as: "wereGarurumon" }],
+        hand: [{ card: "BT1-097", as: "option" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(false);
+  });
+
+  it("ignores cards added by an opponent's Digimon effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-026", as: "watcher" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target" }],
+          hand: [{ card: "BT15-026", as: "opponentWereGarurumon" }],
+          deck: [{ card: "BT1-009", as: "opponentDraw" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentWereGarurumon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentDraw").instanceId));
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(false);
+  });
+
+  it("ignores the ordinary rule draw from digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-026", as: "watcher" },
+            { card: "BT15-020", as: "base" },
+          ],
+          hand: [{ card: "BT15-025", as: "seadramon" }],
+          deck: [{ card: "BT1-009", as: "normalDraw" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("seadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalDraw").instanceId));
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(false);
+  });
+
+  it("rejects a second qualifying addition in the turn and resets on the next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-026", as: "wereGarurumon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-009", as: "secondTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const firstId = s.perm("firstTarget").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("firstTarget"), "suspend"));
+    await advance(s.engine).verb.deletePermanent([firstId]);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
+
+    expect(observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend")).toBe(false);
+    advance(s.engine).ledgers.tracker.resetForNewTurn();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend"));
+
+    expect(observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend")).toBe(true);
+  });
+
+  it("keeps the suspend lock through the opponent turn and expires at its exact end boundary", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-026", as: "wereGarurumon" }], deck: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "suspend"));
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(false);
   });
 });
