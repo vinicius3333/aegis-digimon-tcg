@@ -407,6 +407,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; pays with a hand Zaxon and returns an eligible opponent; separately pays from trash, returns only the eligible target, and preserves a 13000-DP opponent; flips top face-up security down to unsuspend after the source suspends; and accepts 3-cost evolution independently from level-5 Royal Base and CS bases.
 - Verification: focused suite — 9 passed; shared Blast Digivolve, ACE overflow, face-up-security, placement-cost, relative DP, Return, suspension, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-046 — Rosemon — 10/10
+
+- Catalog evidence: Green level 6, play cost 11, 11000 DP, standard green-level-5 evolution for 3 plus alternate level-5 CS evolution for 3; form `Mega`, attribute `Data`, types `Fairy` and `CS`; Fortitude; On Play/When Digivolving may suspend either player's Digimon or Tamer as a cost to prevent one opposing Digimon or Tamer from unsuspending through the opponent's turn end; Opponent's Turn once per turn may redirect an opposing attack to a suspended friendly Vegetation, Plant, Fairy, or CS Digimon.
+- Knowledge base: Q5311 explicitly permits either player's Digimon or Tamer for the suspension cost. Q5312 limits redirect destinations to suspended friendly Digimon carrying Vegetation, Plant, Fairy, or CS, excluding Tamers and nonmatching Digimon.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-046", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live Fortitude, and alternate-evolution evidence without changing execution.
+- Primitive trace: Fortitude is projected through the live keyword seam; both entry timings select the cost across both controllers and both permanent kinds before binding an opposing Digimon/Tamer to the duration-scoped unsuspend restriction; the opponent-turn watcher fires at attack declaration, filters suspended friendly Digimon by the printed trait union, redirects optionally, and consumes its physical-source turn budget.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; suspends an opposing Digimon as the cost and observes the unsuspend lock; redirects a player attack to suspended Rosemon and resolves the redirected battle; observes Fortitude live; verifies the exact permanent-kind, ownership, trait, suspended, duration, optional, and frequency boundaries; and accepts off-color level-5 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 7 passed; shared Fortitude, cross-controller suspension, unsuspend restriction, attack redirect, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-046 through BT23-102.
+BT23-047 through BT23-102.
