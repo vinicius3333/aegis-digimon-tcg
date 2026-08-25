@@ -109,7 +109,7 @@ describe("BT11-032 UlforceVeedramon", () => {
     expect(s.perm("ulforce").isSuspended).toBe(false);
   });
 
-  it("does not unsuspend for a non-blue Tamer or during the opponent's turn", async () => {
+  it("does not unsuspend for a non-blue Tamer or a blue Tamer played during the opponent's turn", async () => {
     const wrongColor = setupEngine({
       0: {
         battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }],
@@ -125,11 +125,18 @@ describe("BT11-032 UlforceVeedramon", () => {
 
     const opponentTurn = setupEngine({
       0: { battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }] },
-      1: { battleArea: [{ card: "BT11-023", as: "target" }] },
+      1: { hand: [{ card: "BT11-090", as: "blueTamer" }] },
     });
     opponentTurn.state.turnSeat = 1;
-    await advance(opponentTurn.engine).verb.unsuspend([opponentTurn.perm("ulforce").permanentId]);
-    expect(opponentTurn.state.players[1]!.battleArea).toHaveLength(1);
+    opponentTurn.state.memory = 10;
+    expect(
+      opponentTurn.engine.applyIntent(1, {
+        type: "playCard",
+        instanceId: opponentTurn.inst("blueTamer").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponentTurn.state.players[1]!.battleArea.length === 1);
+    expect(opponentTurn.perm("ulforce").isSuspended).toBe(true);
   });
 
   it("returns up to level 3 plus one level for each blue Tamer when it unsuspends", async () => {
@@ -183,20 +190,44 @@ describe("BT11-032 UlforceVeedramon", () => {
 
     const frequency = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }] },
+        0: {
+          battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
         1: {
           battleArea: [
             { card: "BT11-023", as: "first" },
             { card: "BT11-023", as: "second" },
+            { card: "BT11-023", as: "third" },
           ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
         },
       },
       { autoSelectCards: true },
     );
+    frequency.state.memory = 3;
+    const firstTurn = frequency.engine.runOneTurn();
+    await advance(frequency.engine).waitForMainPhase(0);
     await advance(frequency.engine).verb.unsuspend([frequency.perm("ulforce").permanentId]);
-    expect(frequency.state.players[1]!.battleArea).toHaveLength(1);
+    expect(frequency.state.players[1]!.battleArea).toHaveLength(2);
+    await advance(frequency.engine).verb.suspend([frequency.perm("ulforce").permanentId]);
+    await advance(frequency.engine).verb.unsuspend([frequency.perm("ulforce").permanentId]);
+    expect(frequency.state.players[1]!.battleArea).toHaveLength(2);
+    advance(frequency.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    frequency.state.turnSeat = 1;
+    frequency.state.memory = 3;
+    await advance(frequency.engine).runTurn(1);
+
+    frequency.state.turnSeat = 0;
+    frequency.state.memory = 3;
+    const laterTurn = frequency.engine.runOneTurn();
+    await advance(frequency.engine).waitForMainPhase(0);
     await advance(frequency.engine).verb.suspend([frequency.perm("ulforce").permanentId]);
     await advance(frequency.engine).verb.unsuspend([frequency.perm("ulforce").permanentId]);
     expect(frequency.state.players[1]!.battleArea).toHaveLength(1);
+    advance(frequency.engine).endMainPhaseIfOpen(0);
+    await laterTurn;
   });
 });
