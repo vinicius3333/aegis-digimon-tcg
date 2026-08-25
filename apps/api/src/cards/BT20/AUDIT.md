@@ -803,3 +803,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-067.test.ts`).
+
+## BT20-068 — Bakemon
+
+- Catalog contract: purple level 4 Virus Ghost/LIBERATOR, play cost 4/4000 DP, purple level-3 evolution cost 2; When Digivolving, at 1 or fewer own Tamers may free-play Violet Inboots from hand; inherited On Deletion gains 1 memory.
+- Knowledge base: Q4285 makes a pending inherited effect lapse if deleted Bakemon, the host carrying it, leaves trash before activation; Q4286 preserves the pending effect if only Ghostmon's source card moves. The shared timing resolver's first-permanent identity and one-way departure latch implements this host/source distinction.
+- Implementation evidence: the entry action is optional, hand-only, exact-name, cost-free, and gates on an inclusive own-Tamer count of 1. The inherited memory action is stack scoped and resolves from the deleted host snapshot. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: evolution over BT20-063 free-plays BT20-088 at exactly 0 and 1 Tamer, but not at 2; explicit refusal leaves Violet in hand. Deleting neutral BT20-069 with Bakemon underneath gains exactly 1 memory, exercising the inherited host snapshot without another deletion trigger obscuring the result.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-068.test.ts` — 6 passed.
+- Clause scores: stats/evolution route 2/2; exact Violet/name/hand/free play 2/2; 0/1/2-Tamer boundary 2/2; optional refusal 2/2; inherited deletion memory/Q4285-Q4286 source identity 2/2.
+- Score: 10/10.
+- Ambiguity: the rendered Q&A's “this card” does not identify the other inherited source, but its host-versus-source movement rule is explicit.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-068.test.ts`).
