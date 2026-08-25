@@ -551,3 +551,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-046.test.ts`).
+
+## BT20-047 — Solarmon
+
+- Catalog contract: black level 3 Vaccine Machine, play cost 3/2000 DP, black level-2 evolution cost 0; resident Blocker and inherited Reboot.
+- Knowledge base: the card query has no card-specific entries; the comprehensive keyword behavior is exercised through the production combat and active-phase seams.
+- Implementation evidence: two independent static IR effects publish resident Blocker and inherited Reboot, with no residual text. The module registers exclusively through `registerIrCard`.
+- Peer/stack evidence: like BT2-065, the resident keyword opens a real optional block window and redirects an opposing attack. Unlike a standalone Solarmon, a BT20-050 host with Solarmon underneath receives Reboot and unsuspends during the opponent's active phase.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-047.test.ts` — 3 passed.
+- Clause scores: stats/evolution route 2/2; resident Blocker publication 2/2; optional attack redirection/security protection 2/2; inherited-only Reboot stack boundary 2/2; opponent active-phase unsuspend 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-047.test.ts`).
