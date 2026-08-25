@@ -1188,6 +1188,19 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-010: the generated aggregate retained only the first of the four printed slots.
+  // Preserve the full X4 recipe for the play subsystem and client material projection.
+  "BT19-010": [
+    {
+      materials: [
+        { names: ["Shoutmon"] },
+        { names: ["Ballistamon"] },
+        { names: ["Dorulumon"] },
+        { names: ["Starmons"] },
+      ],
+      count: 2,
+    },
+  ],
   "BT11-030": [
     {
       materials: [{ names: ["MetalGreymon"] }, { names: ["Cyberdramon"] }],
