@@ -380,6 +380,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; plays a Royal Base-in-text Tamer for free at the allowed boundary and leaves it in hand at two Tamers; observes the face-up security aura only on a friendly Royal Base; observes inherited +1000 on a realistic carrier; and accepts the 2-cost alternate evolution independently from level-3 Royal Base and CS bases.
 - Verification: focused suite — 10 passed; shared face-up-security, text matching, permanent-count, free-play, inherited-continuous, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-043 — CannonBeemon — 10/10
+
+- Catalog evidence: Green/black level 5, play cost 8, 8000 DP, standard green- or black-level-4 evolution for 4 plus alternate level-4 Royal Base-or-CS evolution for 3; form `Ultimate`, attribute `Virus`, types `Cyborg`, `X Antibody`, `Royal Base`, `CS`, and `Insectoid`; its face-up Security Opponent's Turn effect gives friendly Royal Base Digimon Blocker; its own once-per-turn leave replacement flips the top face-up security card down to prevent leaving other than by its owner's effects; inherited All Turns provides the same cost to save one affected friendly Royal Base Digimon.
+- Knowledge base: Q5304 confirms simultaneous leave replacements remain independent: CannonBeemon can prevent its own deletion first, then BT19-053 QueenBeemon can still place all Royal Base Digimon affected by the original mass deletion into security afterward.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-043", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live security Blocker scope, own/opposing-effect causality, and both alternate-evolution branch evidence without changing execution.
+- Primitive trace: the face-up security source grants Blocker continuously only during the opponent's turn and only to its owner's Royal Base Digimon; both leave replacements inspect the actual effect controller, pay only by flipping the top face-up security card, prevent exactly the selected leave, and use physical-source once-per-turn identity without erasing the original simultaneous affected set.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; observes Blocker on only a friendly Royal Base; proves CannonBeemon flips security and survives an opposing deletion but leaves normally under its owner's deletion with security untouched; proves the inherited carrier protects another Royal Base through the same cost; and accepts 3-cost evolution independently from level-4 Royal Base and CS bases.
+- Verification: focused suite — 9 passed; shared face-up-security, Blocker, leave-replacement, effect-controller, simultaneous-leave, inherited, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-043 through BT23-102.
+BT23-044 through BT23-102.
