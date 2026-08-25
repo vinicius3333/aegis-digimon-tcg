@@ -563,3 +563,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-047.test.ts`).
+
+## BT20-048 — Dorumon
+
+- Catalog contract: black/yellow level 3 Data Beast/X Antibody/Chronicle, play cost 3/1000 DP, black or yellow level-2 evolution cost 1 plus black level-2 X Antibody alternate cost 0; On Play reveals 3, independently adds 1 X Antibody card and 1 Chronicle Tamer/Option, bottoms the rest; inherited Opponent's Turn +2000 DP.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: `RevealAdd` exposes exactly three cards, evaluates two independent count-1 filters, excludes already-taken cards from later slots, and routes the remainder to deck bottom. The alternate requirement combines black, level 2, and X Antibody; the inherited modifier is self-scoped and opponent-turn gated. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: a mixed reveal adds BT20-010 as the X Antibody card and BT20-087 as the Chronicle Tamer while bottoming nonmatching BT20-047. BT13-005 receives the alternate cost 0 while BT20-005 uses the ordinary cost 1; a 6000-DP BT20-051 host is 6000 on its controller's turn and 8000 on the opponent's.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-048.test.ts` — 5 passed.
+- Clause scores: stats/ordinary evolution routes 2/2; exact alternate trait route 2/2; reveal-three/X Antibody slot 2/2; Chronicle Tamer-or-Option slot/rest bottoming 2/2; inherited opponent-turn +2000/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-048.test.ts`).
