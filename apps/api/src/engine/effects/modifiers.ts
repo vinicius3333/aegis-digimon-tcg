@@ -163,6 +163,7 @@ export interface PlayCostAdjustment {
 export interface PlayCostFacts {
   def: CardDefinition;
   controllerSeat: Seat;
+  permanentId?: string;
 }
 
 /**

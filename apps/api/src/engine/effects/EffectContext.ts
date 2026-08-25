@@ -990,9 +990,9 @@ export interface Primitives {
    * the adjustment applies to; `setFixed` makes `delta` an absolute cost. Mirrors the
    */
   changePlayCost(
-    filter: (facts: { def: CardDefinition; controllerSeat: Seat }) => boolean,
+    filter: (facts: { def: CardDefinition; controllerSeat: Seat; permanentId?: string }) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean },
+    opts?: { setFixed?: boolean; continuous?: boolean },
   ): void;
 
   // --- continuous / static (static-continuous-effects subsystem) -------------

@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
+          position: "bottom",
           target: {
             filter: {
               zone: "trash",
@@ -36,6 +37,7 @@ const compiled: CompiledCard = {
             },
             count: 3,
             upTo: true,
+            minimum: 1,
             from: ["trash"],
           },
         },
@@ -49,6 +51,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
+          position: "bottom",
           target: {
             filter: {
               zone: "trash",
@@ -62,6 +65,7 @@ const compiled: CompiledCard = {
             },
             count: 3,
             upTo: true,
+            minimum: 1,
             from: ["trash"],
           },
         },
@@ -78,6 +82,7 @@ const compiled: CompiledCard = {
           mode: "reduce",
           costType: "play",
           amount: 2,
+          existingPermanent: true,
           target: {
             filter: {
               controller: "opponent",
@@ -91,7 +96,6 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Mineral", "Rock"],
@@ -101,6 +105,8 @@ const compiled: CompiledCard = {
               },
               count: 3,
               upTo: true,
+              minimum: 1,
+              from: ["digivolutionCards"],
             },
             raw: "By trashing up to 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },
@@ -123,6 +129,7 @@ const compiled: CompiledCard = {
           mode: "reduce",
           costType: "play",
           amount: 2,
+          existingPermanent: true,
           target: {
             filter: {
               controller: "opponent",
@@ -136,7 +143,6 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Mineral", "Rock"],
@@ -146,6 +152,8 @@ const compiled: CompiledCard = {
               },
               count: 3,
               upTo: true,
+              minimum: 1,
+              from: ["digivolutionCards"],
             },
             raw: "By trashing up to 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },

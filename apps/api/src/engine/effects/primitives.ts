@@ -601,7 +601,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   const changePlayCost: Primitives["changePlayCost"] = (filter, delta, opts) => {
-    ledger.addPlayCostAdjustment(filter, delta, opts?.setFixed ?? false, continuousOpt());
+    ledger.addPlayCostAdjustment(filter, delta, opts?.setFixed ?? false, {
+      ...(opts?.continuous !== undefined ? { continuous: opts.continuous } : (continuousOpt() ?? {})),
+    });
   };
 
   /**
@@ -639,7 +641,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const effectivePlayCost: NonNullable<Primitives["effectivePlayCost"]> = (permanent) => {
     const definition = requireCardDefinition(permanent.topCard.cardId);
     return ledger.playCostFor(
-      { def: definition, controllerSeat: permanent.controllerSeat },
+      { def: definition, controllerSeat: permanent.controllerSeat, permanentId: permanent.permanentId },
       normalizeCost(definition.playCost),
     );
   };

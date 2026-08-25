@@ -87,6 +87,8 @@ export interface CostModifierAction extends ActionBase {
   amount: number;
   /** Defaults to the source card for the self form. */
   target: Target;
+  /** Modify the selected battle-area permanent's current play cost, not matching cards in loose zones. */
+  existingPermanent?: boolean;
   /**
    * For hand-resident effects: `target` is the card in hand whose cost changes, while this is the
    * permanent that may evolve into it (BT3-031).

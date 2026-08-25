@@ -114,6 +114,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
   }
+  if (
+    action.kind === "CostModifier" &&
+    action.existingPermanent === true &&
+    candidatePermanents(ctx, action.target).length === 0
+  ) {
+    return action.abortOnDecline === true;
+  }
   // Unless a ruling explicitly allows paying the processing condition by itself, a redirect's
   // activation cost is payable only when the attack can actually be redirected. Preflight
   // candidates before the optional prompt and generic cost path; otherwise a card such as
@@ -171,12 +178,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.mode === "reduce" &&
     action.duration === "nextDigivolveThisTurn" &&
     action.cost?.kind === "trash";
+  let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
     if (action.optional && !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))) {
       return action.abortOnDecline === true;
     }
-    const paid = await payCost(ctx, action.cost, { paidCount: 0 });
+    const payment = { paidCount: 0 };
+    const paid = await payCost(ctx, action.cost, payment);
     if (!paid) return action.abortOnDecline === true;
+    costModifierPaidCount = payment.paidCount;
   }
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
@@ -388,7 +398,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "DigivolveViaPlacement" &&
     action.cost?.kind === "trash" &&
     action.cost.target?.upTo === true
-      ? costPayment.paidCount
+      ? (costModifierPaidCount ?? costPayment.paidCount)
       : undefined;
   // The upTo-Digi-Burst paid count and a `scaling` ("for each") hint are two
   // independent multipliers; the current catalog never carries both (BT7-040 is the
@@ -404,8 +414,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // A `usePaidCount` scaling reads the count of cards actually paid by THIS action's cost
   // ("for every Tamer this effect suspended", BT17-041) rather than re-counting the board.
   const paidCountScale =
-    action.kind !== "RawUnparsed" && action.scaling?.usePaidCount === true
-      ? Math.floor(costPayment.paidCount / (action.scaling.per > 0 ? action.scaling.per : 1))
+    action.kind !== "RawUnparsed" && (action.scaling?.usePaidCount === true || costModifierPaidCount !== undefined)
+      ? Math.floor((costModifierPaidCount ?? costPayment.paidCount) / (action.scaling?.per && action.scaling.per > 0 ? action.scaling.per : 1))
       : undefined;
   const scale =
     digiBurstScale !== undefined
