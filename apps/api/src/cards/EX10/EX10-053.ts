@@ -49,6 +49,7 @@ const compiled: CompiledCard = {
             distinctNames: true,
             from: ["trash"],
           },
+          position: "bottom",
           optional: true,
         },
         {
@@ -90,6 +91,7 @@ const compiled: CompiledCard = {
             distinctNames: true,
             from: ["trash"],
           },
+          position: "bottom",
           optional: true,
         },
         {
