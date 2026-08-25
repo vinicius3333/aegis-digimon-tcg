@@ -92,6 +92,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog and IR field, performs a real security battle and post-battle play with unchanged memory, proves both off-color alternate evolution boundaries and an off-color nonmatch, executes Raid and preserves security while deleting its redirected target, proves Blocker is observable on both the top card and a realistic evolved host, and uses the inherited Blocker to intercept a real player attack without a security check.
 - Verification: focused suite — 5 passed; Blocker/Raid mechanism checks — 5 passed (29 unrelated tests skipped); API typecheck — passed; `git diff --check` — passed.
 
+## BT23-011 — Birdramon — 10/10
+
+- Catalog evidence: Red level 4, play cost 4, 4000 DP, standard red-level-3 evolution for 2 plus alternate level-3 CS evolution for 2; form `Champion`, attribute `Vaccine`, types `Giant Bird` and `CS`; On Play and When Digivolving delete one opposing Digimon with 4000 DP or less; inherited On Deletion may play one red or CS-trait Tamer from hand without cost.
+- Knowledge base: `node tools/kb/query.mjs card BT23-011` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defect corrected: the generated IR omitted the complete inherited On Deletion Tamer play. The audited IR adds an inherited optional `PlayWithoutCost` from hand whose parent filter restricts Tamer/controller and whose disjunction accepts either red color or CS trait; registration remains exclusively `registerIrCard("BT23-011", compiled)` with full coverage and no residual clauses.
+- Primitive trace: On Play and When Digivolving share the exact opponent/Digimon/DP-lte-4000 removal predicate and route through deletion; the alternate CS recipe remains distinct from the standard red recipe; deleted-stack effect collection preserves Birdramon as an inherited source; loose-card targeting applies the common Tamer/controller gates and the red-or-CS definition disjunction before the optional prompt; effect play moves the selected hand card through the normal play lifecycle without memory payment.
+- Behavioral proof: the focused suite checks every catalog and IR field, proves On Play deletes exactly 4000 DP while preserving 5000 DP and charges the printed play cost, proves the same deletion boundary after off-color CS evolution for 2, separately plays a red non-CS Tamer and an off-color CS Tamer from a realistic deleted stack without cost, rejects a blue non-CS Tamer without even offering a prompt, and proves optional refusal leaves the qualifying Tamer and memory unchanged.
+- Verification: focused suite — 7 passed; affected deletion regressions — 7 passed (111 unrelated tests skipped); API typecheck — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-011 through BT23-102.
+BT23-012 through BT23-102.
