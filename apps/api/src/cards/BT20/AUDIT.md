@@ -695,3 +695,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-058.test.ts`).
+
+## BT20-059 — Gankoomon (X Antibody)
+
+- Catalog contract: black level 6 Data Holy Warrior/X Antibody/Royal Knight, play cost 13/13000 DP, black or red level-5 evolution cost 5 plus Gankoomon alternate cost 2; When Digivolving de-digivolves 2, then if Gankoomon/X Antibody is in its evolution cards all allies are immune to opposing Digimon effects through the opponent's turn; opponent-turn all Sistermon/Huckmon-named or Royal Knight allies gain Reboot and Blocker; inherited opponent-turn while host is Jesmon GX, all allies gain both.
+- Knowledge base: Q4392-Q4397 define immunity as allowing selection/grant while suppressing effects, immediately suppressing already-applied effects when gained, restoring them when immunity ends, and suppressing granted triggered effects at their timing.
+- Implementation evidence: the entry sequence keeps de-digivolve unconditional and gates only a board-wide opponent-Digimon `beAffected` restriction on the source stack's Gankoomon-name/X Antibody-trait union. Resident and inherited opponent-turn keyword grants have distinct exact populations, durations, and host condition. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: evolution over BT20-057 pays 2 and proves the Gankoomon arm; BT20-053 pays 5 and proves X Antibody; BT20-054 pays 5 and remains unprotected. All three de-digivolve a legal stack by 2. On the opponent's turn, source/Royal Knight, Sistermon, and SaviorHuckmon gain both keywords while Dorumon does not; with BT20-059 under BT20-021 Jesmon GX, Dorumon also gains both, but under BT20-060 it does not.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-059.test.ts` — 6 passed.
+- Clause scores: stats/ordinary and Gankoomon evolution 2/2; unconditional de-digivolve 2/2; stack-union board immunity/duration 2/2; resident opponent-turn population keywords 2/2; inherited Jesmon GX/all-allies boundary 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-059.test.ts`).
