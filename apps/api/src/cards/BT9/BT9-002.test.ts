@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-029.js";
 import { compiled } from "./BT9-002.js";
 
 describe("BT9-002 Puyoyomon", () => {
@@ -77,6 +78,25 @@ describe("BT9-002 Puyoyomon", () => {
     await advance(s.engine).verb.returnToHand([s.inst("returned").instanceId]);
     await settle();
     expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.perm("host").currentDP).toBe(baseline + 1000);
+  });
+
+  it("triggers from a public On Play Draw intent", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-028", as: "host", under: ["BT9-002"] }],
+        hand: [{ card: "BT1-029", as: "gabumon" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const baseline = s.perm("host").currentDP;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gabumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").currentDP === baseline + 1000);
+    expect(s.state.players[0]!.hand).toContainEqual(s.inst("drawn"));
     expect(s.perm("host").currentDP).toBe(baseline + 1000);
   });
 
