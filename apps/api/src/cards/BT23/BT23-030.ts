@@ -29,61 +29,60 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              playCostLte: 3,
-              nameOrTrait: [
-                { tokens: ["Chuumon", "Sukamon"], match: "name" },
-                { tokens: ["CS"], match: "trait" },
-              ],
-            },
-            count: 1,
-            upTo: true,
-          },
-          from: ["hand"],
-          payCost: false,
+          kind: "CostGatedBlock",
           cost: {
             kind: "payMemory",
             memory: 1,
             raw: "By paying 1 cost",
           },
-          optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              levelComparison: { op: "gte", value: 3 },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  playCostLte: 3,
+                  nameOrTrait: [
+                    { tokens: ["Chuumon", "Sukamon"], match: "name" },
+                    { tokens: ["CS"], match: "trait" },
+                  ],
+                },
+                count: 1,
+                upTo: true,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
             },
-            count: 1,
-          },
-          keyword: {
-            keyword: "Reboot",
-            raw: "＜Reboot＞",
-          },
-          duration: "untilOpponentTurnEnd",
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              levelComparison: { op: "gte", value: 3 },
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "gte", value: 3 },
+                },
+                count: 1,
+              },
+              keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
+              duration: "untilOpponentTurnEnd",
             },
-            count: 1,
-            sameTarget: true,
-          },
-          keyword: {
-            keyword: "Blocker",
-            raw: "＜Blocker＞",
-          },
-          duration: "untilOpponentTurnEnd",
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "gte", value: 3 },
+                },
+                count: 1,
+                sameTarget: true,
+              },
+              keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
         },
       ],
       frequency: "OncePerTurn",

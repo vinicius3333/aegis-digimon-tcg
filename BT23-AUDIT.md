@@ -263,6 +263,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; proves Antylamon's own play; independently plays Beast, Beastkin, and CS peers from a mixed pool and observes suppression; rejects a nonmatching peer; ignores the inherited carrier's own suspension; and applies -4000 only for another friendly Digimon.
 - Verification: focused suite — 10 passed; timing-disable semantics are covered by the shared restriction capability suite; `git diff --check` — passed.
 
+## BT23-030 — Etemon — 10/10
+
+- Catalog evidence: Yellow/black level 5, play cost 7, 7000 DP, standard yellow- or black-level-4 evolution for 4 plus alternate level-4 Sukamon-name or CS evolution for 3; form `Ultimate`, attribute `Virus`, types `Puppet` and `CS`; Alliance; Main once per turn pays 1, may play a cost-3-or-lower Chuumon-name, Sukamon-name, or CS card from hand without cost, then mandatorily gives the same friendly level-3-or-higher Digimon Reboot and Blocker through the opponent's turn end; inherited Alliance.
+- Knowledge base: Q5273 forbids declaring the Main effect and skipping its 1-memory activation cost; Q5274 makes the trailing keyword grants contingent on that payment; Q5275 confirms the play filter is any card, not only Digimon, matching either name group or CS at the inclusive cost-3 ceiling.
+- Defect corrected: the optional play action owned the memory cost and `abortOnDecline`, so refusing the optional play skipped payment and incorrectly aborted the mandatory keyword grants. The audited direct and shared IR wrap all processing in one mandatory `CostGatedBlock`, leaving only the play optional while preserving the same-target keyword pair.
+- Primitive trace: declaration pays exactly 1 before choices; the nested loose-card filter includes every card kind and applies the cost/name-or-trait boundary; refusal leaves the candidate in hand but does not refund the paid cost; both keyword grants resolve on one bound target and expire together at the source controller's opponent-turn end; direct and inherited Alliance are collected independently.
+- Behavioral proof: the focused suite checks catalog and complete IR; pays exactly 1, excludes an over-cost peer, plays an eligible card, and grants both keywords to exactly one Digimon; then separately declines the play, proves memory was still paid and the card stayed in hand, and observes both mandatory keywords.
+- Verification: focused suite — 6 passed; shared package build — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-030 through BT23-102.
+BT23-031 through BT23-102.
