@@ -659,3 +659,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-055.test.ts`).
+
+## BT20-056 — Alphamon
+
+- Catalog contract: black/yellow level 6 Vaccine Holy Warrior/X Antibody/Royal Knight/Chronicle, play cost 12/11000 DP, black or yellow level-5 evolution cost 3; Barrier; On Play/When Digivolving Recovery +1, then during an attack may free-evolve an allied breeding Digimon into a level-6-or-lower Chronicle from hand/trash; all-turn once per turn, any security removal gives 1 opponent -8000 DP for the turn; inherited once per turn protects Alphamon: Ouryuken from non-own-effect leaving by trashing own top security.
+- Knowledge base: Q4389 suppresses When Digivolving effects for this breeding evolution; Q4390 orders Security effects before check/removal triggers; Q4724 confirms effect-driven evolution into Alphamon during an opposing attack satisfies the attack condition.
+- Implementation evidence: audit found the Digivolve action named the breeding zone but omitted `targetBreeding`, so generic field resolution found no target. Adding that existing flag routes through the breeding-safe primitive, which evolves in place, pays no cost, and sets `suppressWhenDigivolving`. Recovery precedes it. Barrier, the global security-removal watcher, and the qualified paid leave-prevention replacement are direct; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: Q4724's payload recovers a deck card and evolves breeding BT20-051 into BT20-053 free, while Q4389 prevents Grademon's +5000/immunity entry branch. Two security-removal events apply -8000 only once. A BT20-060 host with Alphamon underneath survives an opposing effect by trashing security, but own effects, empty security, and a non-Ouryuken host all leave normally.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-056.test.ts` — 8 passed.
+- Clause scores: stats/evolution/Barrier 2/2; dual entry Recovery ordering 2/2; Q4389/Q4724 breeding evolution 2/2; global security-removal -8000/frequency 2/2; inherited name/cause/cost/frequency prevention 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-056.test.ts`).
