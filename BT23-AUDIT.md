@@ -569,6 +569,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; evolves attacking Sangloupmon into trash Matadormon through the Undead branch and independently into LadyDevimon through the CS-only branch, paying exactly 3 in each case; verifies the inherited target/trait/frequency structure; and accepts off-color level-3 CS evolution while rejecting a non-CS peer.
 - Verification: focused suite — 6 passed; shared attack-trigger snapshot, direct/inherited source binding, trash evolution, paid evolution, trait unions, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-064 — Bakemon — 10/10
+
+- Catalog evidence: Purple level 4, play cost 4, 4000 DP, standard purple-level-3 evolution for 2; form `Champion`, attribute `Virus`, types `Ghost` and `LIBERATOR`; On Play/When Digivolving may delete one friendly Digimon as a cost to delete one opposing level-4-or-lower Digimon; inherited On Deletion gains 1 memory.
+- Knowledge base: `node tools/kb/query.mjs card BT23-064` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-064", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, optional-refusal, and realistic inherited-stack evidence without changing execution.
+- Primitive trace: both entry timings offer one friendly Digimon deletion as an all-or-nothing cost before selecting one opponent at the inclusive level-4 ceiling; refusal aborts without moving either permanent; the inherited effect is gathered from Bakemon beneath the deleted carrier and grants exactly 1 memory.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; deletes one friendly Digimon before deleting an opposing level 4; proves declining the cost preserves both source and target; and deletes a realistic Phantomon-over-Bakemon stack to observe exactly 1 inherited memory.
+- Verification: focused suite — 5 passed; shared own-deletion cost, optional refusal, level ceiling, entry timing, inherited On Deletion, and memory mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-064 through BT23-102.
+BT23-065 through BT23-102.
