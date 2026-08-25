@@ -517,10 +517,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
   };
 
-  const isPlayProhibited: Primitives["isPlayProhibited"] = (seat, cardId, mode) => {
+  const isPlayProhibited: Primitives["isPlayProhibited"] = (seat, cardId, mode, fromZone) => {
     const def = requireCardDefinition(cardId);
     // Pass effectPlay=true so byEffectOnly prohibitions are honored on the effect-play path.
-    return continuous.isPlayBlocked(seat, def, mode, true);
+    return continuous.isPlayBlocked(seat, def, mode, true, fromZone);
   };
 
   const disableSecurityEffect: Primitives["disableSecurityEffect"] = (attackerPermanentId, sourceKind, duration) => {
@@ -649,7 +649,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const { owner, index } = located;
       const definition = requireCardDefinition(owner.hand[index]!.cardId);
       if (!isPermanentKind(definition)) continue; // only permanents are "played" onto the field
-      if (continuous.isPlayBlocked(owner.seat, definition, "play", true)) continue;
+      const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
+      if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "hand")) continue;
       if (opts?.payCost) {
         const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat, opts.costDelta);
         if (engine.memory.maxCostFor(owner.seat) < cost) continue; // unaffordable: skip (no partial pay)
@@ -681,7 +682,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const { owner, index } = located;
     const definition = requireCardDefinition(owner.security[index]!.cardId);
     if (!isPermanentKind(definition)) return undefined;
-    if (continuous.isPlayBlocked(owner.seat, definition, "play", true)) return undefined;
+    const effectSeat = effectSeatStack.at(-1) ?? owner.seat;
+    if (continuous.isPlayBlocked(effectSeat, definition, "play", true, "security")) return undefined;
     if (opts?.payCost) {
       const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat);
       if (engine.memory.maxCostFor(owner.seat) < cost) return undefined;
@@ -763,7 +765,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
 
       if (!isPermanentKind(definition)) continue;
-      if (continuous.isPlayBlocked(ownerPlayer.seat, definition, "play", true)) continue;
+      const effectSeat = effectSeatStack.at(-1) ?? ownerPlayer.seat;
+      if (continuous.isPlayBlocked(effectSeat, definition, "play", true, originByInstance.get(instanceId))) continue;
       if (opts?.payCost) {
         const requirement = digiXrosRequirementFor(definition.cardId)?.[0];
         const materialCount = opts.digiXrosMaterialInstanceIds?.length ?? 0;

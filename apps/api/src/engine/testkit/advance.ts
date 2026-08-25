@@ -195,10 +195,15 @@ export function advance(engine: GameEngine) {
         await internals.primitives.returnToHand(instanceIds);
         await internals.recomputeContinuousEffects();
       },
-      async playInstances(instanceIds: string[], effectSourceCardId?: string): Promise<void> {
+      async playInstances(
+        instanceIds: string[],
+        effectSourceCardId?: string,
+        opts?: { breeding?: boolean },
+      ): Promise<void> {
         await internals.recomputeContinuousEffects();
         await internals.primitives.playInstances(instanceIds, {
           payCost: false,
+          ...(opts?.breeding === true ? { breeding: true } : {}),
           ...(effectSourceCardId !== undefined ? { effectSourceCardId } : {}),
         });
         await internals.recomputeContinuousEffects();
