@@ -4,9 +4,43 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST1/ST1-13.js";
 import "../ST1/ST1-14.js";
-import "./BT10-032.js";
+import { compiled } from "./BT10-032.js";
 
 describe("BT10-032 Renamon", () => {
+  it("encodes both reveal buckets and an inherited owner-turn cost-2 once-per-turn watcher", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OnPlay",
+        actions: [
+          expect.objectContaining({
+            kind: "RevealAdd",
+            revealCount: 4,
+            add: [
+              expect.objectContaining({ count: 1, filter: expect.objectContaining({ kind: ["Option"] }) }),
+              expect.objectContaining({
+                count: 1,
+                filter: expect.objectContaining({ kind: ["Tamer"], colors: ["Yellow"] }),
+              }),
+            ],
+            rest: "deckBottom",
+          }),
+        ],
+      }),
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenOptionUsed",
+            fireCondition: expect.objectContaining({ kind: "triggerOptionCostAtLeast", value: 2 }),
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("adds a Plug-In Option and yellow Tamer from four revealed cards", async () => {
     const s = setupEngine(
       {
