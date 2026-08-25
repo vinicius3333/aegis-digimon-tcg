@@ -33,9 +33,12 @@ const compiled: CompiledCard = {
             {
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", kind: ["Digimon"] },
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Lopmon"], match: "name" }],
+                },
                 orFilters: [
-                  { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Lopmon"], match: "name" }] },
                   {
                     controller: "mine",
                     kind: ["Digimon"],

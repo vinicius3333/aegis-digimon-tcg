@@ -81126,12 +81126,36 @@
             "sourceFilter": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Beastkin"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Beastkin", "Holy Beast", "Cherub", "CS"], "match": "trait" }]
             },
             "actions": [
               {
-                "kind": "RawUnparsed",
-                "text": "missing-primitive(unaudited): [Holy Beast], [Cherub] or [CS] trait, by returning this Tamer to the hand, you may play 1 [Lopmon] or level 3 Digimon card with the [CS] trait from your hand without paying the cost"
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Lopmon"], "match": "name" }]
+                  },
+                  "orFilters": [
+                    {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "levels": [3],
+                      "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
+                    }
+                  ],
+                  "count": 1
+                },
+                "from": ["hand"],
+                "payCost": false,
+                "optional": true,
+                "abortOnDecline": true,
+                "cost": {
+                  "kind": "return",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                  "raw": "by returning this Tamer to the hand"
+                }
               }
             ]
           }
@@ -81149,10 +81173,8 @@
         "isSecurity": true
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): When any of your Digimon digivolve into a Digimon with the [Beastkin], [Holy Beast], [Cherub] or [CS] trait, by returning this Tamer to the hand, you may play 1 [Lopmon] or level 3 Digimon card with the [CS] trait from your hand without paying the cost"
-    ]
+    "coverage": "full",
+    "residual": []
   },
   "BT23-083": {
     "effects": [

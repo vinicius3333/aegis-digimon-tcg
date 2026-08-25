@@ -731,6 +731,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves the positive and absent-CS start-main boundary; plays an exact cost-5 Hudie from a mixed hand while preserving the non-Hudie and separately refuses the play; accepts a Hudie suspension to suspend Chitose and reduce an opposing 3000-DP Digimon to 0; and proves a non-Hudie suspension produces neither cost nor reduction.
 - Verification: focused suite — 7 passed; shared start-main possession gate, inclusive free-play filter, optional refusal, suspension-subject trait filter, Tamer suspension cost, temporary negative DP, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-082 — Makiko Date — 10/10
+
+- Catalog evidence: Yellow cost-3 Tamer, type `CS`; Start of Your Main Phase gains 1 memory if the opponent has a Digimon; Your Turn when a friendly Digimon evolves into Beastkin/Holy Beast/Cherub/CS, may return this Tamer to hand to play one Lopmon-name or level-3 CS Digimon from hand for free; Security plays this card for free.
+- Knowledge base: no card-specific rulings are recorded locally; the exact catalog text and general event-subject, alternative-filter, “by” cost, optional free-play, and Security rules therefore control.
+- Defects corrected: the direct IR's broad primary branch made every Digimon eligible before evaluating `orFilters`, while authoritative shared IR retained a Beastkin-only trigger and unsupported raw payload with partial coverage. The audit makes Lopmon the primary branch, level-3 CS the alternative, and ports the full trigger/cost/play clause into shared data; registration remains exclusively `registerIrCard("BT23-082", compiled)` with full coverage/no residuals.
+- Primitive trace: guarded start-main memory checks turn ownership and opponent presence; the digivolution listener filters the exact new top card by the four printed traits, pays by returning Makiko to hand, unions a Lopmon-name hand search with the independently constrained level-3 CS branch, and optionally plays one eligible instance for free; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves start-main turn ownership; uses a qualifying CS evolution to return Makiko and play a non-CS Lopmon, separately plays a level-3 CS while preserving an arbitrary non-Lopmon/non-CS Digimon, and proves a nonqualifying evolution leaves Makiko in play.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared multi-trait trigger filtering, exact alternative loose-card union, return-to-hand cost, optional free play, negative eligibility, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-082 through BT23-102.
+BT23-083 through BT23-102.
