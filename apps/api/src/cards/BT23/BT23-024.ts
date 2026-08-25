@@ -106,18 +106,14 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "Unsuspend",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-            },
-            {
               kind: "ArmSuspendRestriction",
               duration: "untilOpponentTurnEnd",
+              cost: {
+                kind: "unsuspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              },
+              optional: true,
+              abortOnDecline: true,
             },
           ],
           raw: "When this Digimon gets linked, by unsuspending it, other than their highest play cost Digimon, none of your opponent's Digimon can suspend until their turn ends",
@@ -128,6 +124,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  appFusionRequirement: [{ names: ["Oujamon", "Beautymon"], cost: 0 }],
 };
 
 registerIrCard("BT23-024", compiled);

@@ -77246,7 +77246,7 @@
           {
             "kind": "GainKeyword",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Evade" },
+            "keyword": { "keyword": "Evade", "raw": "＜Evade＞" },
             "duration": "permanent"
           }
         ],
@@ -77258,7 +77258,7 @@
           {
             "kind": "GainKeyword",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Link" },
+            "keyword": { "keyword": "Link", "amount": 1, "raw": "＜Link +1＞" },
             "duration": "permanent"
           }
         ],
@@ -77306,9 +77306,18 @@
           {
             "kind": "SubTrigger",
             "event": "whenLinked",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
-              { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
-              { "kind": "ArmSuspendRestriction", "duration": "untilOpponentTurnEnd" }
+              {
+                "kind": "ArmSuspendRestriction",
+                "duration": "untilOpponentTurnEnd",
+                "cost": {
+                  "kind": "unsuspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
+                },
+                "optional": true,
+                "abortOnDecline": true
+              }
             ],
             "raw": "When this Digimon gets linked, by unsuspending it, other than their highest play cost Digimon, none of your opponent's Digimon can suspend until their turn ends"
           }
@@ -77317,7 +77326,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "appFusionRequirement": [{ "names": ["Oujamon", "Beautymon"], "cost": 0 }]
   },
   "BT23-025": {
     "effects": [

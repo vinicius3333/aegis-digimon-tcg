@@ -209,6 +209,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog, complete IR, and alternate evolution metadata; plays a blue card at the exact level-4 boundary before Whamon leaves to an opposing effect; proves the inherited clause can instead play an off-color CS source from a realistic carrier stack; and proves a controller-owned removal does not trigger the reaction.
 - Verification: focused suite — 4 passed; shared leave-reaction mechanism peer BT23-032 covers final-removal ordering; `git diff --check` — passed.
 
+## BT23-024 — Poseidomon — 10/10
+
+- Catalog evidence: Blue/white level 6, play cost 12, 12000 DP, standard blue-level-5 evolution for 4; forms and attribute `God`/`Appmon`, type `Invincible`; zero-cost App Fusion from Oujamon and Beautymon; Evade and Link +1; When Digivolving/When Attacking may link one Appmon Digimon card with Link from hand or sources for free; All Turns once per turn, when linked, may pay by unsuspending Poseidomon to prevent every opposing Digimon except those tied for highest printed play cost from suspending through that opponent's turn end.
+- Knowledge base: Q5246 excludes cards without Link; Q5247-Q5252 establish a continuously recomputed highest-play-cost exception, including ties, new higher-cost plays/evolutions, and removal of the prior maximum; Q6025-Q6026 establish that Digimon without play costs are never the highest and remain restricted.
+- Defects corrected: the linked watcher treated unsuspension as an unconditional first effect instead of the activation cost, allowing the restriction to arm while Poseidomon was already unsuspended; the direct module and shared compiled catalog also omitted App Fusion metadata, and shared metadata lost Link +1's amount. The audited IR makes `unsuspend` an optional aborting cost on the arm action and synchronizes the catalog entry.
+- Primitive trace: free Link filters both the Appmon trait and server-authoritative printed Link eligibility; the unsuspend cost is payable only while Poseidomon is suspended; the arm marker is duration-scoped to the opponent's turn end; continuous recomputation derives the maximum live printed play cost on every pass, exempts all ties, and restricts every other opposing Digimon, including no-play-cost permanents.
+- Behavioral proof: the focused suite checks catalog and complete IR; proves both App Fusion material orders; observes the paid unsuspend and lower-cost restriction while preserving the highest-cost exception; and proves an already-unsuspended Poseidomon cannot pay the cost or arm the restriction.
+- Verification: focused suite — 5 passed after rebuilding shared data; shared package build — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-024 through BT23-102.
+BT23-025 through BT23-102.
