@@ -155,6 +155,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR, pays the exact hand cost and returns one CS Tamer while excluding a CS Digi-Egg, proves optional refusal preserves both zones, plays an exact-ceiling Hudie while excluding a more expensive peer, observes the permanent digivolution restriction and both turn-end duration boundaries, and proves the off-color CS evolution recipe against a same-level non-CS negative.
 - Verification: focused suite — 5 passed; shared bound-play peer regression is covered by BT23-048; `git diff --check` — passed.
 
+## BT23-018 — Garurumon — 10/10
+
+- Catalog evidence: Blue level 4, play cost 6, 5000 DP, standard blue- or red-level-3 evolution for 2 plus alternate level-3 Gabumon-in-name or CS evolution for 2; form `Champion`, attribute `Vaccine`, types `Beast` and `CS`; Jamming; Main once per turn places its top stacked card as its bottom digivolution card to optionally play Agumon or Nokia Shiramine from hand with play cost reduced by 2; inherited Opponent's Turn gives the host +2000 DP.
+- Knowledge base: Q5236 permits Garurumon itself to become the bottom source before the discounted play; Q5237 forbids declaration with no digivolution cards; Q5238 permits an egg-only stack and then applies the no-DP rule check; Q5239 permits a 1000-DP source despite an outstanding reduction and then applies the 0-DP rule check.
+- Defect corrected: the direct IR omitted the complete inherited +2000 DP clause. The audited IR adds the inherited `OpponentsTurn` continuous modifier; registration remains exclusively `registerIrCard("BT23-018", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the shared self-restack cost precheck requires at least one source, payment moves the current top card to the bottom before the optional discounted play resolves, ordinary play payment applies the exact reduction, and continuous-effect recomputation scopes the inherited DP modifier to the opponent's turn. The symmetric BT23-008 seam supplies explicit egg-only and reduced-1000-DP rule-check regressions for the identical cost vocabulary.
+- Behavioral proof: the focused suite checks every catalog/IR clause, pays the restack cost and exact discounted memory, proves the no-source declaration boundary and optional refusal, observes the bottom-source ordering, and proves the inherited DP bonus switches on only during the opponent's turn.
+- Verification: focused suite — 6 passed; symmetric self-restack mechanism regression BT23-008 — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-018 through BT23-102.
+BT23-019 through BT23-102.
