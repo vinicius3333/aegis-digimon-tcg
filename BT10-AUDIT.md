@@ -321,3 +321,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: mixed reveal cards prove both Q1953 buckets and bottom remainder; real cost-2 Options prove one -2000 application across two uses, a cost-1 Option proves the threshold negative, and a direct no-payment use event proves Q5450; shared use-option and subtrigger seam regressions prove post-Main emission and genuine-use scope.
 - Behavioral proof: the focused suite proves structural reveal/watcher fidelity, both added card kinds, exact opponent target amount/duration, once-per-turn frequency, below-cost rejection, and no-payment qualifying use.
 - Verification: focused suite — 5 passed; use-option lifecycle regression — 1 passed (9 unrelated skipped); whenOptionUsed seam regression — 1 passed (21 unrelated skipped); workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
+
+## BT10-033 — Shortmon — 10/10
+
+- Catalog evidence: yellow level 4 Digimon, play cost 3, 3000 DP; evolves from yellow level 3 for 1; form `Champion`, attribute `Data`, type `Food`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-033` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-033", compiled)`. All executable behavior is catalog-driven ordinary play and evolution.
+- Primitive trace: normal evolution validates exact yellow level 3, charges 1, and retains the base as a source; normal play validates affordability, charges printed cost 3, and creates a 3000-DP permanent without an effect window.
+- Cross-card and stack proof: a real yellow level 3 Tinkermon base proves the catalog evolution transition, while a second physical Shortmon proves direct play independently in the same fixture.
+- Behavioral proof: the focused suite asserts complete catalog identity, exact empty IR, printed-cost evolution, printed-cost play, final memory and zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
