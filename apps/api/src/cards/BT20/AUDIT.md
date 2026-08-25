@@ -875,3 +875,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-073.test.ts`).
+
+## BT20-074 — Dinobeemon
+
+- Catalog contract: purple/red level 5 Free Mutant, play cost 8/8000 DP, purple or red level-4 evolution cost 4; On Play/When Digivolving may return 1 Imperialdramon-named or Free-trait Digimon from own trash to hand; all-turn, when an own Dinobeemon/Paildramon would return to hand/deck, 2 own Digimon may DNA digivolve into hand Imperialdramon: Dragon Mode; inherited Your Turn suppresses checked Option Security effects.
+- Knowledge base: Q4400 says DNA digivolving with the Digimon that would return creates a different Digimon, so the DNA result does not leave battle.
+- Implementation evidence: entry Returns use the exact name/trait union, source zone, destination, and optionality. The would-return watcher gates own exact names and hand/deck destinations, then delegates two-material legality and payment to the DNA primitive. Audit exposed that `returnToHand` re-found the originally targeted card inside the new DNA stack and extracted it. The primitive now binds the selected permanent identity before the watcher and cancels movement when that permanent/top identity no longer exists. The inherited suppression is stack/turn/Option scoped; registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: hard play recovers BT20-076 by Imperialdramon name and evolution recovers BT20-066 by Free trait while preserving Machine BT20-047. Q4400 returning BT20-074 with BT20-016 present produces BT20-076 whose stack retains both materials; neither result nor original material reaches hand. Under BT20-076, Option BT20-096 is suppressed only on the host controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-074.test.ts` — 7 passed; `pnpm --filter @aegis/api exec vitest run src/engine/subTriggerSeams.test.ts -t 'Q4400 returnToHand'` — 1 passed, 22 skipped; `pnpm typecheck` — passed.
+- Clause scores: stats/evolution routes 2/2; dual entry optional return union/zones 2/2; would-return name/destination/DNA contract 2/2; Q4400 different-Digimon leave cancellation 2/2; inherited turn/Option Security suppression 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-074.test.ts`).

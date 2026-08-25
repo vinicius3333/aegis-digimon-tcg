@@ -15,6 +15,7 @@ import type { EffectContext, Primitives } from "./effects/EffectContext.js";
 // Self-register every compiled-IR card module (so real definitions resolve in the deck).
 import "../cards/index.js";
 import { advance } from "./testkit/advance.js";
+import { setupEngine } from "./testkit/harness.js";
 
 /**
  * A3 for the three Phase-8 Wave-1 SubTrigger event seams, following the Phase-7
@@ -444,6 +445,29 @@ describe("whenEffectAddsToHand / whenEffectAddsToOpponentHand — fx.draw and re
 
     expect(moved.length).toBe(1); // the bounce moved a battle-area permanent's top card to hand
     expect(trashFireCount).toBe(0); // origin was NOT trash => no fire
+  });
+
+  it("Q4400 returnToHand loses the old target when a wouldBeReturned watcher DNA digivolves it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [{ card: "BT20-076", as: "dragonMode" }],
+          deck: ["BT20-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.returnToHand([s.inst("dinobeemon").instanceId]);
+
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-076");
+    expect(result?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-074");
   });
 });
 

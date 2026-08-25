@@ -3388,6 +3388,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   ): Promise<CardInstance[]> => {
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
     instanceIds = await filterBouncePrevented(instanceIds);
+    // Bind each battle-area target to the permanent identity selected by the return effect.
+    // A would-be-returned reaction can replace that Digimon with a new permanent (BT20-074
+    // DNA digivolving one of the materials; Q4400). The original return must then lose its
+    // target rather than re-finding the same card instance underneath the new Digimon.
+    const targetedPermanentByInstance = new Map<string, string>();
     // Fire `wouldBeReturned` for each battle-area permanent whose top-card is about to land in
     // hand (CAP-C-11). Fires BEFORE the move so a watcher (BT20-074 DNA digivolve) can respond.
     if (engine.fireSubTrigger) {
@@ -3402,6 +3407,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           }
         }
         if (foundPermId !== undefined) {
+          targetedPermanentByInstance.set(instanceId, foundPermId);
           await engine.fireSubTrigger("wouldBeReturned", {
             subjectPermanentId: foundPermId,
             returnDestination: "hand",
@@ -3409,6 +3415,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    instanceIds = instanceIds.filter((instanceId) => {
+      const targetedPermanentId = targetedPermanentByInstance.get(instanceId);
+      if (targetedPermanentId === undefined) return true;
+      return access.permanentById(targetedPermanentId)?.topCard?.instanceId === instanceId;
+    });
     await fireWhenReturnedPermanentsLeave(instanceIds);
     // Record which of the requested instances start in TRASH before the move, for
     // whenCardReturnsFromTrashToHand (BT15-082/BT16-011: "a card returns from your trash to
