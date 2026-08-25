@@ -180,6 +180,8 @@ export interface TriggerInfo {
   deletedInstanceIds?: string[];
   /** Printed card id of the deleted permanent's top card, captured before it leaves play. */
   deletedTopCardId?: string;
+  /** Number of digivolution cards under the deleted permanent, captured before it leaves play. */
+  deletedDigivolutionCardCount?: number;
   /** Effective host colors captured before deletion, keyed by every moved card instance. */
   deletedEffectiveColorsByInstanceId?: Record<string, import("@aegis/shared").CardColor[]>;
   /**

@@ -11,7 +11,6 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
-import { KIND_MAP } from "../maps.js";
 import { findLooseCandidateByInstance } from "../targeting/loose.js";
 
 /** Does this cost suspend the effect's OWN source ("by suspending this Tamer")? */
@@ -330,12 +329,30 @@ export async function runSubTrigger(
             scope === "any" ||
             (deletedSeat === subCtx.source.ownerSeat) === (scope === "mine");
           if (!seatMatches) return false;
+
+          const deletedPermanentId = subCtx.trigger.deletedPermanentId;
+          const deletedPermanent =
+            deletedPermanentId === undefined ? undefined : subCtx.game.permanentById(deletedPermanentId);
+          if (deletedPermanent !== undefined) {
+            return permanentMatchesFilter(subCtx, deletedPermanent, sourceFilter, subCtx.source);
+          }
+
           const deletedCardId = subCtx.trigger.deletedTopCardId;
-          if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
+          if (deletedCardId === undefined) return false;
           const definition = getCardDefinition(deletedCardId);
-          return (
-            definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(KIND_MAP[kind]))
-          );
+          if (definition === undefined || !definitionMatches(sourceFilter, definition as DefinitionFacts)) return false;
+
+          const sourceCount = subCtx.trigger.deletedDigivolutionCardCount;
+          if (sourceFilter.digivolutionCards === "hasAny" && !(sourceCount !== undefined && sourceCount > 0))
+            return false;
+          if (
+            (sourceFilter.digivolutionCards === "none" || sourceFilter.digivolutionCards === "hasNone") &&
+            sourceCount !== 0
+          )
+            return false;
+          if (sourceFilter.hasDigivolutionCards === true && !(sourceCount !== undefined && sourceCount > 0))
+            return false;
+          return true;
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
