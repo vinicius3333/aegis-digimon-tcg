@@ -9,13 +9,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      trigger: "BeforePayCost",
       actions: [
         {
           kind: "CostModifier",
           costType: "use",
           mode: "reduce",
           amount: 4,
+          handResident: true,
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           duration: "permanent",
           condition: {
