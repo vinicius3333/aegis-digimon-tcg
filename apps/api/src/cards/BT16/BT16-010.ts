@@ -22,6 +22,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Delete",
+          allowCostWithoutTarget: true,
           target: {
             filter: {
               controller: "opponent",
