@@ -35,7 +35,6 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Mineral", "Rock"],
@@ -44,6 +43,7 @@ const compiled: CompiledCard = {
                 ],
               },
               count: 3,
+              from: ["digivolutionCards"],
             },
             raw: "By trashing 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },
@@ -74,7 +74,6 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Mineral", "Rock"],
@@ -83,6 +82,7 @@ const compiled: CompiledCard = {
                 ],
               },
               count: 3,
+              from: ["digivolutionCards"],
             },
             raw: "By trashing 3 [Mineral] or [Rock] trait cards from any of your Digimon's digivolution cards",
           },
@@ -181,7 +181,8 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Close", "Proganomon"],
+      namesExact: ["Proganomon"],
+      controllerControls: { kind: ["Tamer"], namesExact: ["Close"], min: 1 },
       cost: 6,
       isAlternate: true,
     },
