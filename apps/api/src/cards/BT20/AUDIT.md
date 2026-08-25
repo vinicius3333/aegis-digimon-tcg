@@ -1127,3 +1127,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-094.test.ts`).
+
+## BT20-095 — Fellowship of Hope's Keepers
+
+- Catalog contract: black cost-3 X-Antibody/Chronicle Option; Main reveals top 3, adds one Chronicle card, returns the rest to top or bottom, then places itself in battle; own Chronicle deletion enables Delay, whose errata cost moves any own level-3-or-higher breeding Digimon to battle and then may free-evolve it into a hand/trash Chronicle; Security may free-play a cost-5-or-less Chronicle card from hand/trash, then places itself in battle.
+- Knowledge base: 2025-04-18 errata removes Chronicle from the breeding Digimon used for the move cost while retaining Chronicle on the evolution destination.
+- Implementation evidence: audit corrected the invalid `breedingArea` zone token to the engine's real `breeding` zone, making the errata move/evolution target observable. Reveal/add/rest ordering, Chronicle deletion watcher, cost-free two-zone evolution, Security filters, and battle placement are direct. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the moving source requires only Digimon and level 3+, deliberately accepting a non-Chronicle peer per errata; the hand/trash destination independently requires Chronicle.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-095.test.ts` — 2 passed.
+- Clause scores: stats/Main reveal/search/rest 2/2; mandatory battle placement 2/2; Chronicle deletion/Delay 2/2; errata breeding move and Chronicle free evolution 2/2; Security cost/trait/zones/free play/placement 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-095.test.ts`).

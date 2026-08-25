@@ -16,7 +16,7 @@ describe("BT20-095 Fellowship of Hope's Keepers", () => {
       actions: [
         {
           kind: "Digivolve",
-          target: { filter: { zone: "breedingArea", levelComparison: { op: "gte", value: 3 } } },
+          target: { filter: { zone: "breeding", levelComparison: { op: "gte", value: 3 } } },
           into: { nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }] },
           cost: { kind: "moveToBattleArea" },
           abortOnDecline: true,
