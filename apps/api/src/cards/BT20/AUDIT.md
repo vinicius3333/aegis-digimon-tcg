@@ -215,3 +215,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-018.test.ts`).
+
+## BT20-019 — Jesmon (X Antibody)
+
+- Catalog contract: red level 6 Data Holy Warrior/X Antibody/Royal Knight, play cost 12/12000 DP, red level-5 evolution cost 4 plus Jesmon alternate cost 1; Alliance; When Digivolving conditionally gives one allied Digimon opponent-effect immunity for the turn, then independently lets one allied Digimon attack; your-turn aura gives Sistermon-name/Royal Knight Digimon Piercing and permission to attack unsuspended Digimon; inherited version gives both to all allies while the host is Jesmon GX.
+- Knowledge base: Q4302 permits different immunity and attack recipients; Q4303-Q4308 define immunity as suppression rather than untargetability, including already/granted effects and trigger timing; Q4717 explicitly makes the post-`then` attack available when the stack condition fails.
+- Implementation evidence: the direct IR correctly gates only `GrantStatic`, leaves the optional Attack independent, uses the full Jesmon-name/X Antibody-trait stack union, and installs both aura capabilities over the exact name/trait population. The inherited effects share the Jesmon GX name gate; Alliance and the alternate requirement are direct metadata. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: evolution over Jesmon for alternate cost produces observable opponent-effect immunity while allowing attack refusal; evolution over nonmatching SaviorHuckmon produces no immunity but still carries out the accepted attack per Q4717. Mixed Sistermon/Royal Knight/nonmatch peers prove both positive capabilities and exclusion, while a Jesmon GX stack proves the inherited all-allies expansion and off-turn expiry.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-019.test.ts` — 5 passed.
+- Clause scores: stats/Alliance/alternate evolution 2/2; conditional immunity/stack union 2/2; independent optional attack/Q4717 2/2; Sistermon/Royal Knight dual aura 2/2; inherited Jesmon GX all-allies aura/turn scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-019.test.ts`).
