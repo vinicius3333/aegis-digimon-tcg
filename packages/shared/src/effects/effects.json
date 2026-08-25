@@ -137583,7 +137583,7 @@
             "actions": [
               {
                 "kind": "Digivolve",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "target": { "filter": { "sourceRef": "triggerSubject" }, "count": 1 },
                 "into": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
@@ -137607,7 +137607,6 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "toTop": false,
             "faceUp": true
           },

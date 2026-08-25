@@ -2339,3 +2339,34 @@ for the individual evidence below.
   `PlaceInBattleAreaSelf` — 4/4; security activation — 2/2; interpreter — 171/171; capabilities —
   290/290; API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, ruling dependency, or unresolved limitation remains.
+
+## EX12-074 — Genshi Continent & Ashino Island — 10/10
+
+- **Printed contract:** White cost-3 Shambala/SW/TB Option with a Shambala Use Requirement. While
+  face up in security, during the controller's turn and once per turn, an allied Shambala
+  attack may evolve that attacker into a hand Shambala with cost reduced by 1. Main performs the
+  bottom-security exchange, then may play a hand Shambala with cost reduced by 3. Security may
+  play a play-cost-5-or-lower Shambala from hand or trash for free.
+- **KB evidence:** Q6892 permits Main at zero security and resolves only placement before the
+  optional play. Q6893-Q6894 keep face-up cards revealed under ordinary check rules; Q6895 still
+  activates Security on that check; Q6896 turns them face down before shuffling. Q7190 confirms
+  the attack evolution can occur during Execute's end-turn attack and that effects newly caused
+  by the evolution follow derived-trigger ordering before older pending activations.
+- **Corrections:** the direct module was executable, but the aggregate's attack Digivolve targeted
+  `isSelfRef`—the Option in security—instead of `sourceRef:triggerSubject`, the actual attacker.
+  The aggregate also supplied an invalid explicit self source to transient Main placement. Both
+  are now synchronized exactly with the direct IR.
+- **Behavioral proof:** no Shambala rejects the white Option, while a red Shambala permits it.
+  Main returns the true bottom card, places itself face up, and plays a Shambala at -3; from zero
+  security it still places itself for Q6892. A real Shambala attack evolves that exact attacker
+  at -1, and two real attacks in one turn evolve only the first. Security plays a qualifying
+  trash card but leaves an over-cost card, and a real check of the already-face-up Option still
+  activates that play for Q6895. Shared tests prove face-up checks, re-hiding on shuffle, and
+  derived-trigger priority required by Q7190.
+- **Identity and verification:** catalog identity, filters/zones/costs, attack subject, turn/OPT
+  scope, Security, full coverage, empty residuals, exclusive IR registration, and exact
+  direct/aggregate equality are asserted. `EX12-074.test.ts` — 11/11; subtrigger seams — 22/22;
+  effect-driven digivolution legality — 5/5; security checks — 11/11; primitives/security shuffle
+  — 126/126; derived timing — 17/17; security activation — 2/2; interpreter — 171/171;
+  capabilities — 290/290; shared build, API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
