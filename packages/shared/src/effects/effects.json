@@ -47501,7 +47501,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["Kazemon"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["Kazemon"] }, { "names": ["Zephyrmon"] }], "count": 2 }]
   },
   "BT18-055": {
     "effects": [
