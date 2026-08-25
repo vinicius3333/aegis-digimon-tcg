@@ -284,7 +284,7 @@ export async function runReplacement(
           if (source === undefined) return false;
           if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
           const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
-          if (trashed <= 0) return false;
+          if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
         }
         const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
         if (preventCosts.length > 0) {

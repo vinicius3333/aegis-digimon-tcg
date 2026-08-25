@@ -812,6 +812,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves memory 2 becomes 3 while 4 remains 4; atomically suspends Keisuke, returns Hudiemon, and plays Chitose for free; with no Hudie proves neither suspension nor play occurs; and observes Hudiemon at base +1000 while a non-Hudie remains at base DP.
 - Verification: focused suite — 7 passed after refreshing shared runtime data; shared memory setting, compound transactional preflight/payment, battle-area return, CS Tamer free play, continuous all-target Hudie DP, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-091 — Wolkenapalm — 10/10
+
+- Catalog evidence: Red cost-5 CS Option; color requirements may be ignored while a CS Digimon/Tamer is on the field; Main deletes one opposing lowest-DP Digimon then places this Option in battle; Your Turn when a friendly CS Digimon attacks may activate Delay by trashing this card to delete one opposing lowest-DP Digimon; Security performs the same deletion then places this card in battle.
+- Knowledge base: Q5364 defines “on the field” as battle area or breeding area, so the color waiver checks both zones.
+- Defects corrected: authoritative shared IR omitted the field-zone scope and split the Delay payload outside its attack listener while incorrectly granting Delay as an action. It now matches the intrinsic keyword listener. Intrinsic Delay also treated Option trash as failure because `deletePermanent` returns a Digimon-deletion count of zero; all Delay gates now accept verified source departure as the cost receipt; registration remains exclusively `registerIrCard("BT23-091", compiled)` with full coverage/no residuals.
+- Primitive trace: static color waiver checks live CS Digimon/Tamers across battle/breeding; Main/Security select one member of the complete lowest-DP tie set, delete it, then move the physical Option to battle; the Your Turn listener filters the exact friendly CS attacker, enforces the established-card Delay turn gate, optionally trashes the Option, and only after successful departure deletes one lowest-DP opponent.
+- Behavioral proof: the focused suite checks catalog/coverage and exact field scope; places an established Wolkenapalm beside a CS attacker, fires the attack event, trashes the exact Option as intrinsic Delay, deletes only the lower-DP opponent, and preserves the higher-DP Digimon; structurally verifies identical Main/Security deletion and battle placement.
+- Verification: focused suite — 4 passed after refreshing shared runtime data; CAP-E14 intrinsic Delay regressions — 13 passed; shared field color waiver, attack-subject listener, Delay age/cost, Option departure receipt, lowest-DP deletion, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-091 through BT23-102.
+BT23-092 through BT23-102.

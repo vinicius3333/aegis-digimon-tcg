@@ -81859,6 +81859,7 @@
             "condition": {
               "kind": "youHave",
               "filter": {
+                "zone": "field",
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
@@ -81894,21 +81895,17 @@
             },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Delete",
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+                  "count": 1
+                }
               }
-            ]
-          },
-          {
-            "kind": "Delete",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
-              "count": 1
-            }
+            ],
+            "raw": "When one of your [CS] trait Digimon attacks, ＜Delay＞"
           }
-        ]
+        ],
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
       },
       {
         "trigger": "Security",
