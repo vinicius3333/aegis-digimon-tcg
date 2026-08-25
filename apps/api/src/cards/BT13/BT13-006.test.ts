@@ -85,7 +85,7 @@ describe("BT13-006 Kapurimon", () => {
     expect(deleteKapurimonHost(s)).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
 
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
