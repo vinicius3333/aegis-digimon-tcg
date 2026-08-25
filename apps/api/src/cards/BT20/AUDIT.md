@@ -155,3 +155,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-013.test.ts`).
+
+## BT20-014 — SaviorHuckmon
+
+- Catalog contract: red level 5 Data Dragonkin, play cost 7/7000 DP and red level-4 evolution cost 3; On Play/When Digivolving deletes 1 opposing Digimon at 5000 DP or less; End of Your Turn may suspend another allied Digimon to evolve self from hand into Jesmon without cost; inherited your-turn grants Alliance only when the host is Royal Knight.
+- Knowledge base: no card-specific entries; “By suspending” is the optional processing cost and must not suspend self.
+- Implementation evidence: `BT20-014.ts` exclusively registers through `registerIrCard`; both entry timings share the exact deletion boundary, the end-turn Digivolve is self/hand/Jesmon filtered with `payCost: false`, an exclude-self suspend cost, optional refusal/abort semantics, and the inherited continuous keyword action reads the host's live Royal Knight trait.
+- Peer/stack evidence: playing SaviorHuckmon deletes a 5000-DP target while preserving a 6000-DP peer; its end-turn resolution suspends a different ally and evolves into BT20-017 Jesmon without additional memory. SaviorHuckmon under Jesmon gains Alliance, while the same source under Chronicle Hisyaryumon does not, and the grant clears off-turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-014.test.ts` — 3 passed.
+- Clause scores: stats/evolution 2/2; dual deletion timings/boundary 2/2; optional other-Digimon suspend cost 2/2; free Jesmon hand evolution/end-turn timing 2/2; inherited Royal Knight Alliance/turn scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-014.test.ts`).
