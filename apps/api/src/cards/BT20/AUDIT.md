@@ -863,3 +863,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-072.test.ts`).
+
+## BT20-073 — MetalPhantomon
+
+- Catalog contract: purple/black level 5 Data Cyborg/X-Antibody/Ghost, play cost 7/7000 DP, purple or black level-4 evolution cost 4; Blocker; On Play/When Digivolving may delete 1 own Digimon as cost to delete 1 opposing level-5-or-lower Digimon; inherited On Deletion de-digivolves 1 opposing Digimon by 1.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: Blocker is a live resident keyword. Both entry effects share the optional paid Delete action, whose `deleteOwn` cost is completed before the inclusive level-5 opponent target is removed and whose refusal aborts both moves. The inherited action is stack scoped and routes through the shared one-card de-digivolve primitive. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: hard play and evolution over BT20-068 delete own BT20-063 and opposing level-5 BT20-071 while preserving level-6 BT20-076; refusal preserves both cost and target. Deleting BT20-074 with MetalPhantomon underneath removes exactly the BT20-071 top from the opposing stack and promotes BT20-070.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-073.test.ts` — 7 passed.
+- Clause scores: stats/evolution routes 2/2; live Blocker 2/2; dual entry own-deletion cost 2/2; opponent level boundary/refusal/order 2/2; inherited stack De-Digivolve 1 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-073.test.ts`).
