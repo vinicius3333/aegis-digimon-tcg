@@ -851,3 +851,15 @@
 - Score: 10/10.
 - Ambiguity: catalog colors are purple/red while ordinary evolution entries are red/yellow; committed fields are kept distinct.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-071.test.ts`).
+
+## BT20-072 — Phantomon
+
+- Catalog contract: purple level 5 Virus Ghost/LIBERATOR, play cost 7/7000 DP, purple level-4 evolution cost 3; Execute; main and inherited On Deletion each may free-play 1 level-4-or-lower Ghost Digimon from own trash.
+- Knowledge base: the card query has no card-specific entries; its inherited replay is the other pending effect implicated by BT20-063/068 Q4285-Q4286, so the shared timing resolver's host-identity/departure latch governs whether a later inherited trigger remains pending after the replay moves a deleted-stack card.
+- Implementation evidence: Execute is a live static keyword. The main and inherited effects are separate, identically bounded optional PlayWithoutCost actions with own-trash source, Digimon/Ghost filters, inclusive level 4, and no payment. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: deleting standalone Phantomon proves the main face; deleting BT20-073 with Phantomon underneath proves the inherited face. Each free-plays BT20-068 while preserving level-5 Phantomon and non-Ghost BT20-047 in trash. Explicit refusal leaves the eligible Ghost in trash.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-072.test.ts` — 5 passed.
+- Clause scores: stats/evolution route 2/2; live Execute 2/2; main On Deletion replay 2/2; inherited stack replay/level-trait boundaries 2/2; optional refusal/free cost/final zones 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-072.test.ts`).
