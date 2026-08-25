@@ -17,6 +17,7 @@ export const compiled: CompiledCard = {
             kind: ["Digimon"],
           },
           mode: "play",
+          byEffectOnly: true,
           duration: "permanent",
         },
       ],
