@@ -857,6 +857,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage and field scope; trashes an established Crescent Leaf on a CS attack, returns the exact suspended opponent to deck bottom, and preserves an unsuspended opponent; structurally verifies Delay nesting and Main/Security order.
 - Verification: focused suite — 3 passed after refreshing shared runtime data; shared intrinsic Delay, suspension filtering, stack return, deck-bottom ordering, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-096 — Comet Hammer — 10/10
+
+- Catalog evidence: Black cost-5 CS Option; color requirements may be ignored while a CS Digimon/Tamer is on the field; Main De-Digivolves one opposing Digimon by 4 then places this Option in battle; Your Turn on a friendly CS attack may activate Delay for the same De-Digivolve 4; Security repeats Main.
+- Knowledge base: Q5384 defines “on the field” as battle area or breeding area; exact catalog and general De-Digivolve, Delay, stack-floor, and placement rules otherwise control.
+- Defects corrected: authoritative shared IR omitted field-zone scope and detached De-Digivolve from a marker-style Delay grant. It now mirrors the executable intrinsic listener; registration remains exclusively `registerIrCard("BT23-096", compiled)` with full coverage/no residuals.
+- Primitive trace: static waiver checks both field zones; Main/Security choose one opposing Digimon, remove up to four top stack cards without deleting through the floor, then place the Option; the CS attack listener pays established-card Delay and performs the same De-Digivolve.
+- Behavioral proof: the focused suite checks catalog/coverage and field scope; trashes an established Comet Hammer on a CS attack and moves a five-card realistic opposing stack down to its deepest card; structurally verifies amount 4, Delay nesting, and Main/Security order.
+- Verification: focused suite — 4 passed after refreshing shared runtime data; shared intrinsic Delay, CS attack filter, De-Digivolve stack handling/floor, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-096 through BT23-102.
+BT23-097 through BT23-102.
