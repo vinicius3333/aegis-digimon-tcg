@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "./BT23-083.js";
+import { compiled } from "./BT23-083.js";
 
 /**
  * Full-engine A3 for BT23-083 Fei's [All Turns] when-add-security clause (plan 08-02),
@@ -38,6 +38,19 @@ const PLAIN = "AD1-001"; // neither [Zaxon] nor [Royal Base]
 const FEI = "BT23-083";
 
 describe("A3 BT23-083 — whenAddSecurity consumer: suspend Fei to gain 1 memory on a [Zaxon] add", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition(FEI)).toMatchObject({
+      cardId: FEI,
+      nameEn: "Fei",
+      colors: ["Green", "Black"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["Zaxon", "CS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("gains start-main memory only during Fei's controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: FEI }, { card: ZAXON }] },
@@ -55,7 +68,13 @@ describe("A3 BT23-083 — whenAddSecurity consumer: suspend Fei to gain 1 memory
 
   it("a [Zaxon] card added face up to YOUR security suspends Fei and gains 1 memory", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: FEI, dp: 4000, as: "fei" }], hand: [{ card: ZAXON, as: "zaxon" }] } },
+      {
+        0: {
+          battleArea: [{ card: FEI, dp: 4000, as: "fei" }],
+          hand: [{ card: ZAXON, as: "zaxon" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
       { autoAcceptOptional: true },
     );
     const p0 = s.state.players[0];
@@ -71,6 +90,7 @@ describe("A3 BT23-083 — whenAddSecurity consumer: suspend Fei to gain 1 memory
     // FAILS-WHEN-REVERTED: drop the whenAddSecurity consumer => no suspend, no memory.
     expect(Math.abs(s.state.memory - memoryBefore)).toBe(1); // +1 memory (toward seat 0)
     expect(s.perm("fei").isSuspended).toBe(true); // the "by suspending this Tamer" cost was paid
+    expect(p0?.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 
   it("declining the suspend gains NO memory (Q5356 — the 'by' cost gates the tail)", async () => {
@@ -102,6 +122,25 @@ describe("A3 BT23-083 — whenAddSecurity consumer: suspend Fei to gain 1 memory
 
     expect(s.state.memory).toBe(memoryBefore); // suspend declined => no memory (Q5356)
     expect(s.perm("fei").isSuspended).toBe(false);
+  });
+
+  it("gains memory but does not draw when 8 cards remain in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: FEI, as: "fei" }],
+          hand: [{ card: ZAXON, as: "zaxon" }, ...Array.from({ length: 8 }, () => PLAIN)],
+          deck: [{ card: "BT1-009", as: "deckTop" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    const before = s.state.memory;
+    await s.ready();
+    await primitivesOf(s).addSecurity(0 as Seat, [s.inst("zaxon").instanceId], { faceUp: true });
+    expect(s.state.memory).toBe(before + 1);
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.deck[0]?.cardId).toBe("BT1-009");
   });
 
   it("a NON-[Zaxon]/[Royal Base] add gains no memory (trait gate)", async () => {

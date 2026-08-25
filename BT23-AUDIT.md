@@ -740,6 +740,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves start-main turn ownership; uses a qualifying CS evolution to return Makiko and play a non-CS Lopmon, separately plays a level-3 CS while preserving an arbitrary non-Lopmon/non-CS Digimon, and proves a nonqualifying evolution leaves Makiko in play.
 - Verification: focused suite — 5 passed after refreshing shared runtime data; shared multi-trait trigger filtering, exact alternative loose-card union, return-to-hand cost, optional free play, negative eligibility, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-083 — Fei — 10/10
+
+- Catalog evidence: Green/black cost-4 Tamer, types `Zaxon` and `CS`; Start of Your Main Phase gains 1 memory while controlling a Royal Base/CS Digimon; All Turns when a Zaxon/Royal Base card is placed face up in your security, may suspend this Tamer to gain 1 memory, then draws 1 only with 7 or fewer cards in hand; Security plays this card for free.
+- Knowledge base: Q5356 makes suspending Fei the required “by” cost and forbids both the memory gain and conditional Draw tail when suspension is not paid.
+- Defect corrected: authoritative shared IR encoded unconditional continuous GainMemory/Draw actions with no security event, ownership, face-up trait gate, suspension cost, or shared acted condition. It now mirrors the executable `whenAddSecurity` listener and its complete conditional chain; registration remains exclusively `registerIrCard("BT23-083", compiled)` with full coverage/no residuals.
+- Primitive trace: start-main checks the live Royal Base/CS board; the all-turns listener validates the added-security seat and face-up Zaxon/Royal Base card, optionally suspends the physical Tamer, gates memory and Draw on that successful action, and evaluates hand count after the security move; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves start-main turn ownership; adds a face-up Zaxon to friendly security, suspends Fei, gains memory, and draws at the <=7 boundary; at 8 cards gains memory without drawing; declines suspension and gets neither tail; and independently rejects wrong trait, opponent security, and face-down additions.
+- Verification: focused suite — 8 passed after refreshing shared runtime data; shared security-add event receipts, ownership/face-up/trait gates, suspension cost, acted-result chaining, hand-count boundary, memory, Draw, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-083 through BT23-102.
+BT23-084 through BT23-102.
