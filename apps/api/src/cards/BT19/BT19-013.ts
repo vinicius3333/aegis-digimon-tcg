@@ -13,8 +13,7 @@ const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldLeavePlay",
           sourceFilter: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
+            isSelfRef: true,
           },
           actions: [
             {
@@ -34,6 +33,10 @@ const compiled: CompiledCard = {
                 upTo: true,
               },
               from: ["digivolutionCards"],
+              underFilter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+              },
               optional: true,
             },
           ],

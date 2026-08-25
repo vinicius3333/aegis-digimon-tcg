@@ -34,6 +34,17 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     ]);
   });
 
+  it("keeps BT19-013's five distinct named DigiXros slots", () => {
+    expect(digiXrosRequirementFor("BT19-013")).toEqual([
+      {
+        count: 2,
+        materials: ["Shoutmon", "Ballistamon", "Dorulumon", "Starmons", "Sparrowmon"].map((name) => ({
+          names: [name],
+        })),
+      },
+    ]);
+  });
+
   it("keeps BT18-065's four Vemmon recipe and intrinsic trash gate", () => {
     expect(digiXrosRequirementFor("BT18-065")).toEqual([
       { materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 },
