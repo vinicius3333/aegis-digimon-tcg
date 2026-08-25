@@ -13,6 +13,8 @@ export {
   BASE_GRANTED_DIGIVOLVE,
   digiXrosRequirementFor,
   DIGIXROS_REQUIREMENT_OVERRIDES,
+  digiXrosTrashNameAllowanceFor,
+  DIGIXROS_TRASH_NAME_ALLOWANCES,
   assemblyRequirementFor,
 } from "./data.js";
 export { canAssignDistinctColors, filterToDistinctColors } from "./differentColors.js";

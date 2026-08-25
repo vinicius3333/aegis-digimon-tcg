@@ -35,11 +35,14 @@
   display: none;
 }
 
+/* The board's left edge, not its right: the opponent digivolves and plays into
+   the right half of the field, and a feed anchored over it hid the very move it
+   was narrating. */
 .opponent-action-feed {
   position: absolute;
   z-index: calc(var(--ds-z-toast) - 3);
   top: calc(7.5rem + env(safe-area-inset-top, 0px));
-  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
   width: min(22rem, calc(100% - var(--ds-space-8)));
   pointer-events: none;
 }
@@ -1160,39 +1163,6 @@ button.opponent-action-feed__current:focus-visible {
   }
 }
 
-.game-memory-glow {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  width: 3rem;
-  height: 3rem;
-  pointer-events: none;
-  border-radius: 50%;
-  /* Screened over the chip rather than painted behind it, so the chip under the
-     marker brightens instead of the halo being hidden by it. */
-  mix-blend-mode: screen;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--battle-memory-glow) 85%, transparent) 0%,
-    color-mix(in srgb, var(--battle-memory-glow) 45%, transparent) 38%,
-    transparent 72%
-  );
-  translate: -50% -50%;
-  animation: battle-memory-glow var(--t-memory-glow, 1600ms) ease-in-out infinite;
-}
-
-@keyframes battle-memory-glow {
-  0%,
-  100% {
-    opacity: 0.55;
-    scale: 0.86;
-  }
-  50% {
-    opacity: 1;
-    scale: 1.08;
-  }
-}
-
 /* Hexagonal chips, numbered outward from zero on both sides. They share the
    track evenly (the base rule higher up caps their width), so the row shrinks
    with the board instead of sliding under the end-turn orb. */
@@ -1214,16 +1184,58 @@ button.opponent-action-feed__current:focus-visible {
   text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
 }
 
-/* The pop plays once, when the class lands on the chip the memory value just
-   moved to; the pulse then keeps running underneath it. */
+/* The current value is told three ways, none of them blurred: the chip is bigger
+   than its neighbours, it wears a crisp ring in the marker colour, and it carries
+   one tight shadow to lift it off the band. The pop plays once, when the class
+   lands on the chip memory just moved to. */
 .game-memory-coin--marker {
+  --memory-marker-ring: 2px;
   z-index: 1;
-  transform: scale(1.16);
-  filter: drop-shadow(0 0 5px var(--battle-marker))
-    drop-shadow(0 0 12px color-mix(in srgb, var(--battle-marker) 75%, transparent)) brightness(1.18);
-  animation:
-    battle-marker-pop var(--t-memory-marker-pop, 300ms) ease-out both,
-    battle-marker-pulse 1.4s ease-in-out infinite;
+  transform: scale(1.22);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 65%)) brightness(1.06);
+  animation: battle-marker-pop var(--t-memory-marker-pop, 300ms) ease-out both;
+}
+
+/* The ring is the chip's own hexagon painted one step larger, with the chip's fill
+   laid back over it: a band that follows the hexagon exactly instead of a glow
+   bleeding past its edges. Both halves are clipped by the chip, so nothing leaks. */
+.game-memory-coin--marker::before,
+.game-memory-coin--marker::after {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  content: "";
+}
+
+.game-memory-coin--marker::before {
+  background: var(--battle-memory-glow);
+  animation: battle-marker-ring var(--t-memory-glow, 1600ms) ease-in-out infinite;
+}
+
+.game-memory-coin--marker::after {
+  /* The chip's own side colour, whichever half of the gauge it sits on. */
+  inset: var(--memory-marker-ring);
+  background: inherit;
+}
+
+/* The digits are painted after both ring layers rather than under them. */
+.game-memory-coin--marker .game-memory-coin__n {
+  position: relative;
+  z-index: 1;
+}
+
+.game-memory-gauge--compact .game-memory-coin--marker {
+  --memory-marker-ring: 1.5px;
+}
+
+@keyframes battle-marker-ring {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.66;
+  }
 }
 
 @keyframes battle-marker-pop {
@@ -1231,10 +1243,10 @@ button.opponent-action-feed__current:focus-visible {
     transform: scale(1);
   }
   55% {
-    transform: scale(1.38);
+    transform: scale(1.4);
   }
   100% {
-    transform: scale(1.16);
+    transform: scale(1.22);
   }
 }
 
@@ -1254,18 +1266,6 @@ button.opponent-action-feed__current:focus-visible {
   }
   100% {
     filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
-  }
-}
-
-@keyframes battle-marker-pulse {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 5px var(--battle-marker))
-      drop-shadow(0 0 12px color-mix(in srgb, var(--battle-marker) 75%, transparent)) brightness(1.18);
-  }
-  50% {
-    filter: drop-shadow(0 0 3px var(--battle-marker))
-      drop-shadow(0 0 7px color-mix(in srgb, var(--battle-marker) 50%, transparent)) brightness(1.05);
   }
 }
 
@@ -1391,6 +1391,24 @@ button.opponent-action-feed__current:focus-visible {
   to {
     opacity: 1;
   }
+}
+
+/* The egg deck is the hatch button during the breeding step, so it wears the same
+   amber ring the board uses for "this is the thing to press". */
+.game-egg-deck--hatchable .game-pile__top {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 4px;
+  animation: aegis-pulse 1.2s ease-in-out infinite;
+}
+
+/* The guidance the breeding dialog used to carry, now a line under the dock. It
+   never takes a pointer event — every breeding action is on the board itself. */
+.game-breeding-hint {
+  margin: 0;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: var(--ds-foreground-muted);
+  pointer-events: none;
 }
 
 .game-breeding-slot--focus .game-breeding-slot__box {
@@ -1933,7 +1951,7 @@ button.opponent-action-feed__current:focus-visible {
   place-items: center;
   pointer-events: none;
   animation: battle-showcase-fade var(--t-showcase-out, 160ms) cubic-bezier(0.32, 0, 0.67, 0)
-    var(--t-showcase-out-at, 1060ms) both;
+    var(--t-showcase-out-at, 1660ms) both;
 }
 
 .battle-showcase__frame {
@@ -2402,9 +2420,16 @@ button.opponent-action-feed__current:focus-visible {
 
 /* --- Dialogs: navy panel with a gradient header bar ----------------------- */
 
-.game-modal__panel {
-  /* The panel is always navy, so its ink and inner surfaces cannot follow the
-     app theme — light-theme surfaces inside it would be white cards on navy. */
+/* Every navy surface in the match carries the same ink. These panels are navy
+   whichever theme the app is in, so the tokens their contents read cannot follow
+   the theme — light-theme surfaces inside them would be white cards on navy, and
+   the light theme's accent (#075ff7, tuned for white) reads 3.0:1 against this
+   panel, which is where the outlined secondary buttons, the primary badges and
+   the play-log card links were failing. The dark theme's values are the ones
+   that belong here, so the whole ramp comes from there. */
+.game-modal__panel,
+.mulligan-sheet,
+.combat-prompt {
   --ds-fg: #eaf1ff;
   --ds-fg-secondary: #c6d4ef;
   --ds-fg-muted: #9fb0d0;
@@ -2414,7 +2439,39 @@ button.opponent-action-feed__current:focus-visible {
   --ds-surface-muted: #1e2d4a;
   --ds-border: #334770;
   --ds-border-strong: #46608f;
+  --ds-accent: #60a5fa;
+  --ds-accent-hover: #93c5fd;
+  --ds-accent-active: #bfdbfe;
+  --ds-accent-surface: rgb(59 130 246 / 15%);
+  --ds-on-accent: #07101f;
+  --ds-focus-color: #60a5fa;
+  /* The semantic ramp for the same reason: the light theme's success, warning and
+     danger are near-black inks meant for white cards (2.4–2.6:1 here), and their
+     surfaces are pale chips that would punch holes in the panel. */
+  --ds-success: #4ade80;
+  --ds-success-hover: #86efac;
+  --ds-success-active: #bbf7d0;
+  --ds-success-surface: rgb(34 197 94 / 15%);
+  --ds-success-border: rgb(74 222 128 / 52%);
+  --ds-on-success: #04160a;
+  --ds-warning: #fbbf24;
+  --ds-warning-hover: #fcd34d;
+  --ds-warning-active: #fde68a;
+  --ds-warning-surface: rgb(245 158 11 / 15%);
+  --ds-warning-border: rgb(251 191 36 / 52%);
+  --ds-on-warning: #211502;
+  --ds-danger: #f87171;
+  --ds-danger-hover: #fca5a5;
+  --ds-danger-active: #fecaca;
+  --ds-danger-surface: rgb(239 68 68 / 15%);
+  --ds-danger-border: rgb(248 113 113 / 52%);
+  --ds-on-danger: #190707;
+  --ds-info: #60a5fa;
+  --ds-info-surface: rgb(59 130 246 / 15%);
+  --ds-info-border: rgb(96 165 250 / 52%);
+}
 
+.game-modal__panel {
   /* Above every board fixture (memory band, orb, log ticker, flights): the
      panels portal into #aegis-stage and carry only a small inline z-index.
      (--ds-z-modal does not exist in tokens.css — the dialog tier is the one.) */
@@ -2431,19 +2488,25 @@ button.opponent-action-feed__current:focus-visible {
 
 /* Inline flow sheets (mulligan) and floating combat prompts render inside the
    board, where the memory band and orb carry their own z-indexes — lift them
-   into the overlay layer so board chrome can never paint across them. */
+   into the overlay layer so board chrome can never paint across them.
+
+   The mulligan sheet also needed the panel itself: only its title carried a dark
+   bar, so the badge, the turn-order line and the detail paragraph sat on nothing
+   but the scrim, and over a light --ds-bg that scrim resolves to mid grey and the
+   text fell under 4.5:1. */
 .mulligan-sheet {
   position: relative;
   z-index: 90;
+  color: var(--ds-fg);
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%);
 }
 
 .combat-prompt {
-  --ds-fg: #eaf1ff;
-  --ds-fg-secondary: #c6d4ef;
-  --ds-fg-muted: #9fb0d0;
-  --ds-surface: #16233c;
-  --ds-surface-muted: #1e2d4a;
-
   z-index: 90 !important;
   color: var(--ds-fg);
   background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
@@ -2477,10 +2540,13 @@ button.opponent-action-feed__current:focus-visible {
 
 /* --- Timed side panels ---------------------------------------------- */
 
-/* Two columns at the board's right edge: the opponent's movements stack down
-   from the top, the viewer's up from the bottom, so a glance at the column says
-   whose cards moved. Both sit above the board chrome but under --ds-z-dialog,
-   so a decision overlay always wins. */
+/* Two columns down the board's edges: the opponent's movements stack down the
+   left, under the opponent action feed, and the viewer's up from the bottom
+   right, so a glance at the column says whose cards moved. The opponent's column
+   is on the left because the right half of the field is where the opponent plays
+   and digivolves — a panel there covered the move it was reporting. Both sit
+   above the board chrome but under --ds-z-dialog, so a decision overlay always
+   wins. */
 .side-panel-stack {
   position: absolute;
   z-index: calc(var(--ds-z-dialog) - 5);
@@ -2491,8 +2557,12 @@ button.opponent-action-feed__current:focus-visible {
   pointer-events: none;
 }
 
+/* The left anchor is carried on the [data-side] selector so it outranks the
+   narrower blocks below, which only move the shared right edge inboard. */
 .side-panel-stack[data-side="opp"] {
   top: calc(13.5rem + env(safe-area-inset-top, 0px));
+  right: auto;
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
   flex-direction: column;
 }
 
@@ -2616,7 +2686,7 @@ button.opponent-action-feed__current:focus-visible {
 /* --- Framed notices -------------------------------------------------- */
 
 /* Anchored to the corner belonging to whoever caused the moment: the viewer's
-   effects bottom-left, the opponent's top-left, and anything a security card
+   effects bottom-left, the opponent's top-right, and anything a security card
    raised in the middle of the half the side panels do not occupy. */
 .match-notice-stack {
   position: absolute;
@@ -3151,6 +3221,7 @@ button.opponent-action-feed__current:focus-visible {
   }
   .side-panel-stack[data-side="opp"] {
     top: calc(11.5rem + env(safe-area-inset-top, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
   }
   .side-panel-stack[data-side="you"] {
     bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
@@ -3331,6 +3402,12 @@ button.opponent-action-feed__current:focus-visible {
     grid-template-rows: auto auto auto minmax(0, 1fr) auto;
     align-content: start;
     overflow: hidden;
+    /* The takeover scrim is already the opaque ink the panel would provide, so
+       the sheet drops the framing and keeps only the panel's ink tokens. */
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
   }
   .mulligan-badge {
     margin-bottom: var(--ds-space-2);
@@ -3585,6 +3662,11 @@ button.opponent-action-feed__current:focus-visible {
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     width: auto;
+  }
+  /* The opponent's column is left-anchored at pointer widths; here it spans like
+     the rest, so the left anchor it carries has to be spent back. */
+  .side-panel-stack[data-side="opp"] {
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
   }
   .game-field {
     width: 100%;
@@ -4559,8 +4641,8 @@ button.opponent-action-feed__current:focus-visible {
   }
   .opponent-action-feed {
     top: calc(3.25rem + env(safe-area-inset-top, 0px));
-    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
-    left: auto;
+    right: auto;
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     width: min(20rem, 45vw);
   }
   .opponent-action-feed__trail {
@@ -4574,6 +4656,7 @@ button.opponent-action-feed__current:focus-visible {
   }
   .side-panel-stack[data-side="opp"] {
     top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
   }
   .side-panel-stack[data-side="you"] {
     bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
@@ -4587,7 +4670,8 @@ button.opponent-action-feed__current:focus-visible {
   }
   /* The band with the memory gauge and the turn orb sits at the middle of a 390px
      screen, which is where the default 9.5rem put the opponent's notices. They ride
-     under the header instead, in the left column the side panels leave free. */
+     under the header instead, in the right column the opponent's feed and panels
+     leave free. */
   .match-notice-stack[data-anchor^="top-"] {
     top: calc(3.25rem + env(safe-area-inset-top, 0px));
   }
@@ -4718,6 +4802,7 @@ button.opponent-action-feed__current:focus-visible {
   .game-card-sparkle,
   .game-hand-card--drawn,
   .game-memory-coin--marker,
+  .game-memory-coin--marker::before,
   .game-memory-coin--swept,
   .game-draw-flight,
   .game-permanent-lunge--up,
@@ -4729,7 +4814,6 @@ button.opponent-action-feed__current:focus-visible {
   .battle-clash__art,
   .game-turn-banner,
   .game-turn-banner span,
-  .game-memory-glow,
   .game-memory-gauge__phase--sweeping,
   .game-breeding-mode,
   .side-panel,

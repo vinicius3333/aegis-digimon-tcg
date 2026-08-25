@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -91,8 +92,7 @@ scenario("digivolve-alternate", () => {
     // immediately crosses the gauge and ends the Main phase, which is fine: Agumon
     // is already placed, and the crossing simply hands the turn to the opponent
     // (whose own pass banks the protagonist's next-turn +3 bonus).
-    const firstBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(firstBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     // Clicking "end phase" only sends the intent; wait for the server round-trip to
     // actually land before interacting further (see digivolveNormal.scenario.test.tsx).
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
@@ -112,8 +112,7 @@ scenario("digivolve-alternate", () => {
     // plain onClick digivolve-target handler — the production gesture for
     // digivolving onto a battle-area Digimon is therefore a drag-and-drop (see
     // digivolveNormal.scenario.test.tsx / dragDrop.ts).
-    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(0);

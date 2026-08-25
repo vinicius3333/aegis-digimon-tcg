@@ -3,8 +3,12 @@
    own placement and its own timer.
 
    A notice is anchored by whose moment it is — the viewer's effects sit
-   bottom-left, the opponent's top-left — so a glance at the corner says whose
-   turn to read it is. A notice raised while a security card resolves mirrors to
+   bottom-left, the opponent's top-right — so a glance at the corner says whose
+   turn to read it is. The opponent's corner is the right one because the
+   opponent's action feed and card panels own the board's left edge, where they
+   sit clear of the half of the field the opponent plays into.
+
+   A notice raised while a security card resolves mirrors to
    the side opposite the panel stack, because the revealed card and its panels
    already own that half of the screen.
 
@@ -123,12 +127,13 @@ export function rejectionNotice(reason: string, id: string, nowMs: number): Matc
 
 /**
  * Where a notice sits. The viewer reads from the bottom-left and the opponent's
- * moments arrive top-left; anything a security card raised mirrors to the half
- * the panel stack does not occupy.
+ * moments arrive top-right, clear of the opponent feed and panels on the left;
+ * anything a security card raised mirrors to the half the panel stack does not
+ * occupy.
  */
 export function noticeAnchor(notice: MatchNotice, panelSide: NoticeHorizontal = "right"): NoticeAnchor {
   if (notice.fromSecurity) return `middle-${panelSide === "right" ? "left" : "right"}`;
-  return notice.side === "you" ? "bottom-left" : "top-left";
+  return notice.side === "you" ? "bottom-left" : "top-right";
 }
 
 /** How long a notice gets to be read, given how many share the screen. */

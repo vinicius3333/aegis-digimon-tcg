@@ -40,10 +40,10 @@ describe("NoticeStack", () => {
     expect(shown.textContent).toContain("Draw 1 card.");
   });
 
-  it("anchors the viewer's effects bottom-left and the opponent's top-left", () => {
+  it("anchors the viewer's effects bottom-left and the opponent's top-right", () => {
     renderStack([notice({ id: "mine", side: "you" }), notice({ id: "theirs", side: "opp" })]);
     const anchors = screen.getAllByTestId("match-notice-stack").map((node) => node.getAttribute("data-anchor"));
-    expect(anchors).toEqual(["top-left", "bottom-left"]);
+    expect(anchors).toEqual(["bottom-left", "top-right"]);
   });
 
   it("mirrors a security effect to the middle of the opposite half", () => {

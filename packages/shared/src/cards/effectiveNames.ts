@@ -20,7 +20,10 @@ const STATIC_NAME_ALIASES_BY_CARD_ID: Record<string, string[]> = {
 function parsedStaticNameAliases(def: CardDefinition): string[] {
   const text = def.effectText ?? "";
   const aliases: string[] = [];
-  const aliasPhrases = text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? [];
+  const aliasPhrases = [
+    ...(text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? []),
+    ...(text.match(/\(Rule\)\s*Name:\s*(?:Also\s+)?treated as(?:\s+having)?[^.。]*/gi) ?? []),
+  ];
   for (const phrase of aliasPhrases) {
     for (const match of phrase.matchAll(/\[([^\]]+)\]/g)) {
       aliases.push(match[1]!.trim());

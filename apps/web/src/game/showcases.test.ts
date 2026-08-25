@@ -22,14 +22,16 @@ const DIGIVOLVED: ServerEvent = {
 };
 
 describe("centre-screen showcase", () => {
-  it("announces the opponent's play and digivolution", () => {
-    expect(zoneShowcaseFromEvent(PLAYED, VIEWER, 1)).toMatchObject({ key: 1, kind: "play", cardId: "BT1-010" });
-    expect(zoneShowcaseFromEvent(DIGIVOLVED, VIEWER, 2)).toMatchObject({ kind: "digivolve", cardId: "BT1-011" });
+  it("announces the opponent's play", () => {
+    expect(zoneShowcaseFromEvent(PLAYED, VIEWER, 1)).toMatchObject({ key: 1, cardId: "BT1-010" });
   });
 
-  it("stays out of the way of the viewer's own moves", () => {
+  it("stays out of the way of the viewer's own play", () => {
     expect(zoneShowcaseFromEvent({ ...PLAYED, seat: VIEWER }, VIEWER, 1)).toBeNull();
-    expect(zoneShowcaseFromEvent({ ...DIGIVOLVED, seat: VIEWER }, VIEWER, 1)).toBeNull();
+  });
+
+  it("leaves a digivolution to the board, which shows the stack change in place", () => {
+    expect(zoneShowcaseFromEvent(DIGIVOLVED, VIEWER, 1)).toBeNull();
   });
 
   it("announces nothing for an event that changes no zone", () => {

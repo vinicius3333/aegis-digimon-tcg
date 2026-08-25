@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -80,11 +81,11 @@ scenario("target-decision", () => {
     // checkTurnEnd — verified interactively: a second play attempt the same turn
     // is rejected "wrong-phase" once the first crossed). So turn 1 plays nothing
     // and just passes, banking the +3 bonus for turn 2.
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
-    // The board's own turn control reads "End breeding" while the breeding sheet is
-    // open, so waiting for the sheet to close is what leaves one "End phase" button.
-    await vi.waitFor(() => expect(screen.queryByRole("heading", { name: /breeding area/i })).toBeNull(), {
+    await endBreedingStep();
+    // The board's one turn control reads "End breeding" during the breeding step
+    // and "End phase" after it, so waiting for the first label to go is what
+    // proves the step closed.
+    await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), {
       timeout: 10_000,
     });
     fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
@@ -94,11 +95,7 @@ scenario("target-decision", () => {
     // (cost 2, memory 1 -> -1, crosses — the turn ends right after, which is fine,
     // both Digimon are already placed).
     for (let i = 0; i < 2; i += 1) {
-      const secondBreedingHeading =
-        i === 0 ? await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 }) : undefined;
-      if (secondBreedingHeading) {
-        fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
-      }
+      if (i === 0) await endBreedingStep();
       const [monodramonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /monodramon/i });
       tap(monodramonImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
@@ -109,8 +106,7 @@ scenario("target-decision", () => {
     }
 
     // Turn 3 (memory +3 again): skip breeding, play Brave Shield (cost 5).
-    const thirdBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
 
     const [braveShieldImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /brave shield/i });
     tap(braveShieldImg!);

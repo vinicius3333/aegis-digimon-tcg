@@ -47,4 +47,26 @@ describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
       s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT11-061").length,
     ).toBeGreaterThanOrEqual(2);
   });
+
+  it("plays EX11-066 Xeno from trash because its Rule also treats its name as Zenith", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-061", as: "host" }],
+          hand: [{ card: "P-244", as: "option" }],
+          trash: [{ card: "EX11-066", as: "xeno" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-244"), 500);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX11-066")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX11-066")).toBe(false);
+  });
 });

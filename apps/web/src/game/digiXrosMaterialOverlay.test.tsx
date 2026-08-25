@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { digiXrosRequirementFor } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider, translator } from "../i18n";
 import { DigiXrosMaterialOverlay } from "./overlays";
@@ -48,5 +49,30 @@ describe("DigiXrosMaterialOverlay accessibility", () => {
       "[Dragon/saur/Ceratopsian] nas características",
     );
     expect(translator("pt-BR")("overlay.xrosDifferentNames")).toBe("nomes diferentes");
+  });
+
+  it("shows Snatchmon trash materials without asking for an expander Tamer", () => {
+    render(
+      <I18nProvider>
+        <DigiXrosMaterialOverlay
+          playingCardId="BT18-065"
+          requirements={digiXrosRequirementFor("BT18-065")!}
+          candidates={[]}
+          lockedCandidates={[{ instanceId: "trash-vemmon", cardId: "BT18-060", zone: "trash" }]}
+          eligibleExpanders={[]}
+          intrinsicTrashMax={4}
+          onConfirm={vi.fn<(materialInstanceIds: string[], expanderPermanentIds: string[]) => void>()}
+          onSkip={vi.fn<() => void>()}
+          onCancel={vi.fn<() => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByText(/Suspend an eligible Tamer/i)).toBeNull();
+    expect(screen.getByText(/Accepted: Vemmon\./)).toBeTruthy();
+    const material = screen.getByRole("button", { name: "Vemmon (trash)" });
+    expect(material.hasAttribute("disabled")).toBe(false);
+    fireEvent.click(material);
+    expect(screen.getByRole("button", { name: "DigiXros (1 card)" }).hasAttribute("disabled")).toBe(false);
   });
 });

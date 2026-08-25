@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { hatchDigiEgg } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -65,8 +66,7 @@ scenario("modal-choice", () => {
     // §4-21-2: playing an Option needs a Digimon or Tamer of its own color already
     // on the field. A Digi-Egg card alone is not a Digimon, so hatch and then
     // digivolve a Red Lv.3 in the breeding area before using Hero of the Skies!.
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /hatch digi-egg/i }));
+    await hatchDigiEgg();
     await screen.findByRole("img", { name: /yokomon|bebydomon/i }, { timeout: 10_000 });
 
     const yourBreedingSlot = () => document.querySelector('[data-drop="breeding-you"]') as HTMLElement;
