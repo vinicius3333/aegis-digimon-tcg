@@ -284,3 +284,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-010.
+
+## BT9-011 — Growlmon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-4 Digimon, play cost 5, 6000 DP, `Champion`/`Virus`, complete `Dark Dragon`/`X Antibody` traits, standard red-level-3 evolution for 2, and all printed text were checked.
+2. **Effect placement and timing (1/1):** The sole effect is inherited and active during its controller's turn; it is not encoded as an unconditional DP modifier or top-card effect.
+3. **Alternate evolution route (1/1):** Public intents build a complete Koromon-to-Guilmon-X-to-Growlmon-to-Growlmon-X breeding stack and exercise the exact Growlmon alternate recipe for 0.
+4. **Standard evolution route (1/1):** The catalog and public stack continuations prove the ordinary red level-3 recipe and its printed 2-memory cost.
+5. **Stack preservation (1/1):** The alternate route asserts the ordered three-card source stack beneath Growlmon X after all evolution effects settle.
+6. **Q1801 fixed-ceiling ruling (1/1):** On a legal stack carrying Growlmon X, WarGrowlmon's printed 4000-DP deletion removes a 5000-DP target, proving the inherited +1000 applies to numeric maxima.
+7. **Q1802 relative-ceiling ruling (1/1):** The same legal chain continues to WarGreymon X; its public attack leaves a 13000-DP target outside its source-relative 12000-DP deletion, proving the modifier is not applied to nonnumeric thresholds.
+8. **Knowledge base (1/1):** Both local rulings, their fixed-versus-relative distinction, and the absence of errata or restrictions were inspected with the card query.
+9. **Direct IR and registration (1/1):** `BT9-011.ts` has full coverage, no residual clauses, the exact alternate requirement, and exactly one `registerIrCard("BT9-011", compiled)` call with no legacy registration; the set index imports it.
+10. **Reproducible verification (1/1):** Focused proof passed 4/4; the shared deletion-DP mechanism suite, workspace typecheck, focused formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-011
+rg -n 'Q1801|Q1802' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-011.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-011.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/cards/deletionDpCluster.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-011.ts apps/api/src/cards/BT9/BT9-011.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-011.
