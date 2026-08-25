@@ -1,8 +1,11 @@
-import { describe, it, expect } from "vitest";
-import type { Primitives } from "../../engine/effects/EffectContext.js";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-// Boot side-effect: self-register every compiled-IR card module (so EX10-062's real IR loads).
-import "./EX10-062.js";
+import { compiled } from "./EX10-062.js";
+import "../index.js";
+
+const CARD_ID = "EX10-062";
 
 /**
  * Full-engine A3 for EX10-062 Yujin Ozora's [All Turns] trash-link-card-trigger clause
@@ -25,11 +28,49 @@ import "./EX10-062.js";
  * fireSubTrigger at the trash seam, the 08-01 lever, also turns this RED.)
  */
 
-function primitivesOf(s: { engine: unknown }): Primitives {
-  return (s.engine as unknown as { primitives: Primitives }).primitives;
-}
-
 describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 1>", () => {
+  it("records the exact catalog and compiled IR contract", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      colors: ["Black"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["App Driver", "Appmon", "Leviathan"],
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "StartOfYourMainPhase",
+          actions: [expect.objectContaining({ kind: "GainMemory", amount: 1 })],
+        }),
+        expect.objectContaining({
+          trigger: "EndOfYourTurn",
+          frequency: "OncePerTurn",
+          actions: [expect.objectContaining({ kind: "AppFuse", from: ["hand"], optional: true })],
+        }),
+        expect.objectContaining({ trigger: "Security", isSecurity: true }),
+      ]),
+    );
+  });
+
+  it("gains 1 memory at start-main only while the opponent has a Digimon", async () => {
+    const withTarget = setupEngine({
+      0: { battleArea: [{ card: CARD_ID, as: "tamer" }] },
+      1: { battleArea: ["BT1-009"] },
+    });
+    await withTarget.ready();
+    await advance(withTarget.engine).fireForPermanent(EffectTiming.OnStartMainPhase, withTarget.perm("tamer"));
+    expect(withTarget.state.memory).toBe(1);
+
+    const withoutTarget = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "tamer" }] } });
+    await withoutTarget.ready();
+    await advance(withoutTarget.engine).fireForPermanent(EffectTiming.OnStartMainPhase, withoutTarget.perm("tamer"));
+    expect(withoutTarget.state.memory).toBe(0);
+  });
+
   it("trashing a friendly Digimon's link card suspends the Tamer and draws 1", async () => {
     // EX10-062 Yujin Ozora (a Tamer) on the controller's field — the watcher anchor + suspend cost.
     // A friendly Digimon (host) carries a LINK card (the genuine link-trash subject).
@@ -57,7 +98,7 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
     await s.engine.recomputeContinuousEffects();
 
     // Trash the link card via the REAL production seam (fires whenLinkTrashed).
-    await primitivesOf(s).trash([linkCard.instanceId]);
+    await advance(s.engine).verb.trash([linkCard.instanceId]);
     await settle(() => p0.hand.length > handBefore);
 
     expect(host.linked.length).toBe(0); // the link card genuinely left the linked list
@@ -84,7 +125,7 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
     const handBefore = p0.hand.length;
     await s.engine.recomputeContinuousEffects();
 
-    await primitivesOf(s).trash([handCard.instanceId]);
+    await advance(s.engine).verb.trash([handCard.instanceId]);
     await settle(() => false, 30);
 
     // The hand card was trashed (hand shrinks), but no link-card trash => no whenLinkTrashed
@@ -111,11 +152,39 @@ describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 
     const handBefore = p0.hand.length;
 
     await s.engine.recomputeContinuousEffects();
-    await primitivesOf(s).trash([s.inst("linkCard").instanceId]);
+    await advance(s.engine).verb.trash([s.inst("linkCard").instanceId]);
     await settle(() => false, 30);
 
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(tamer.isSuspended).toBe(false);
     expect(p0.hand.length).toBe(handBefore);
+  });
+
+  it("app fuses a chosen Digimon into a legal hand card without paying at end of turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "tamer" },
+            { card: "EX10-017", as: "host", linked: [{ card: "EX10-043", as: "sakusimon" }] },
+          ],
+          hand: [{ card: "EX10-019", as: "warudamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => s.perm("host").topCard?.cardId === "EX10-019");
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("warudamon").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("plays itself from security without paying", async () => {
+    const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "tamer" }] } });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tamer"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID));
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
