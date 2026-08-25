@@ -1,26 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-043.js";
 
-describe("BT12-043 handwritten module", () => {
-  it("registers its printed timing without declarative effect record", () => {
-    const module = getEffectModule("BT12-043");
-    expect(module?.cardId).toBe("BT12-043");
-    const source = {
-      instanceId: "source-043",
-      cardId: "BT12-043",
-      ownerSeat: 0,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      permanent: () => undefined,
-    } as unknown as CardSource;
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThan(0);
-    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThan(0);
+describe("BT12-043 ShineGreymon", () => {
+  it("has the printed 3-cost RizeGreymon-name evolution route", () => {
+    expect(digivolutionRequirementsFor("BT12-043")).toContainEqual({
+      level: 5,
+      names: ["RizeGreymon"],
+      cost: 3,
+      isAlternate: true,
+    });
   });
 });
 
@@ -35,7 +27,7 @@ it("gives Marcus cards Security Attack +1 but only gives DP to effective Digimon
   });
   await s.ready();
   expect(s.perm("marcus").currentDP).toBe(s.perm("marcus").baseDP);
-  expect(observe(s.engine).hasKeyword(s.perm("marcus"), "SecurityAttack")).toBe(true);
+  expect(observe(s.engine).keywordAmount(s.perm("marcus"), "SecurityAttack")).toBe(1);
 });
 
 it("scales the digivolution DP reduction for each yellow or red Tamer", async () => {
