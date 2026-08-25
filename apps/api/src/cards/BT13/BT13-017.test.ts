@@ -90,6 +90,48 @@ describe("BT13-017 Jesmon", () => {
     expect(tooLarge.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("may delete multiple Digimon whose combined DP fits the budget, or choose none", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT13-017", as: "jesmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-012", as: "first" },
+            { card: "BT1-012", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    const declined = setupEngine(
+      {
+        0: { hand: [{ card: "BT13-017", as: "jesmon" }] },
+        1: { battleArea: [{ card: "BT1-012", as: "target" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    declined.state.memory = 20;
+    await declined.ready();
+
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: declined.inst("jesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.state.players[0]!.battleArea.length === 1);
+    await settle();
+    expect(declined.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("gives all allied Digimon +1000 DP for each other Sistermon or Royal Knight", async () => {
     const s = setupEngine({
       0: {
