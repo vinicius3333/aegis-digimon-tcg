@@ -1079,3 +1079,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-090.test.ts`).
+
+## BT20-091 — Cool Boy
+
+- Catalog contract: white LIBERATOR Tamer, play cost 4; on own turn when an own Digimon is played or evolves, if an event subject is Royal Knight, suspend this Tamer as cost to draw 1 and gain 1 memory; opponent's turn once per turn when an own Royal Knight would leave battle may free-play hand Omekamon; Security free-plays itself.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: audit found suspension modeled as an independent action, allowing draw/memory to continue when the cost could not be paid, and found the leave watcher missing Once Per Turn. Both play/evolution watchers now use an atomic paid Draw whose successful action gates memory, and the opponent-turn replacement has printed frequency. Royal Knight and Omekamon filters, turn gates, and Security remain direct; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: AD1-008 triggers both benefits while BT3-073 does not; the observable leave path free-plays Omekamon only on the opponent's turn and allows the Royal Knight to leave because this is a reaction, not prevention.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-091.test.ts` — 5 passed.
+- Clause scores: stats/Security 2/2; dual played/evolved Royal Knight event filter 2/2; atomic suspend/draw/memory chain 2/2; opponent-turn would-leave scope 2/2; once-per-turn optional Omekamon free play 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-091.test.ts`).

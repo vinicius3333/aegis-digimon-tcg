@@ -55,8 +55,15 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
       actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead" }],
     });
+    for (const watcher of compiled.effects[0]?.actions ?? []) {
+      expect((watcher as { actions?: unknown[] }).actions).toMatchObject([
+        { kind: "Draw", cost: { kind: "suspend", target: { isSelf: true } }, abortOnDecline: true },
+        { kind: "GainMemory", condition: { kind: "ifThisEffectActed" } },
+      ]);
+    }
     expect(compiled.effects[2]).toMatchObject({
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false }],
