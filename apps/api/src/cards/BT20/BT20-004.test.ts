@@ -17,6 +17,8 @@ describe("BT20-004 Pinamon", () => {
     expect(irNode(watcher)?.actions[0]).toMatchObject({
       kind: "Digivolve",
       optional: true,
+      payCost: true,
+      useAlternateCost: true,
       reduceCost: 2,
       into: { nameOrTrait: [{ tokens: ["ACCEL"], match: "trait" }] },
       from: ["hand"],
