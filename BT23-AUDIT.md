@@ -605,6 +605,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; independently plays for 4 with Angewomon and with Mirei Mikagura, while the no-enabler branch pays the printed 7; deletes level 4 while preserving level 6; observes Blocker directly and Scapegoat from a realistic GranDracmon-over-LadyDevimon stack; and accepts off-color level-4 CS evolution while rejecting a non-CS peer.
 - Verification: focused suite — 7 passed; shared conditional pay-time reduction, exact-name board predicates, Blocker, inherited Scapegoat, level deletion, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-068 — GranDracmon — 10/10
+
+- Catalog evidence: Purple level 6, play cost 13, 13000 DP, standard purple-level-5 evolution for 5 plus alternate level-5 Undead-or-CS evolution for 4; form `Mega`, attribute `Virus`, types `Dark Animal` and `CS`; Start of Your Main Phase/On Deletion may evolve one friendly Digimon into a level-6-or-lower Undead or Dark Animal from trash for free; When Digivolving may play a level-4-or-lower purple Digimon from trash for free; All Turns once per turn, when any friendly Digimon evolves from trash, deletes every opposing Digimon tied for lowest level.
+- Knowledge base: Q5336 confirms the All Turns watcher also triggers when the trash evolution's destination is GranDracmon itself, including a newly evolved GranDracmon.
+- Implementation result: every printed clause was already present in the hand-authored compiled IR and registration is exclusively `registerIrCard("BT23-068", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, self-destination ruling, free evolution, all-tied deletion, and alternate-evolution evidence without changing execution.
+- Primitive trace: both free-evolution timings bind any friendly Digimon, filter trash at level 6 by the Undead/Dark Animal union, waive cost but preserve requirements unless the effect's legal path supplies them; When Digivolving independently plays one purple level 4 or lower; the physical-source watcher consumes one turn use for a friendly trash-origin evolution and resolves the minimum opposing level across all ties, including when the watcher was acquired by that evolution.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; plays only the eligible purple level-4 card on evolution; deletes the original GranDracmon, evolves another Digimon into a specifically selected trash GranDracmon for zero memory, then proves that newly acquired watcher deletes both tied level-3 opponents while preserving level 4; and accepts off-color level-5 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 7 passed; shared free trash evolution, origin event, newly acquired watcher, all-tied level superlative, free trash play, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-068 through BT23-102.
+BT23-069 through BT23-102.
