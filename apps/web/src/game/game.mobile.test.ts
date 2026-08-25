@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
 const overlaysSource = readFileSync(new URL("./overlays.tsx", import.meta.url), "utf8");
 const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.url), "utf8");
+const boardPiecesSource = readFileSync(new URL("./boardPieces.tsx", import.meta.url), "utf8");
 // The phone block's condition is a list — narrow, or short and on its side — so
 // the header is matched loosely up to its brace.
 const portraitRules = gameCss.match(
@@ -168,7 +169,6 @@ describe("match overlays opt into the mobile sheet", () => {
   // the board but the full-screen result splash, which owns the whole viewport
   // and scrolls itself (asserted below) rather than sitting in a sheet.
   const OVERLAYS = [
-    "BreedingOverlay",
     "StackViewerOverlay",
     "TrashViewerOverlay",
     "DigiXrosMaterialOverlay",
@@ -317,6 +317,33 @@ describe("the board-mode rail becomes a bottom sheet on a phone in portrait", ()
 
   it("leaves the landscape phone with the left rail it was tuned for", () => {
     expect(landscapeRules).not.toMatch(/\.board-prompt \{/);
+  });
+});
+
+describe("a board-mode hand selection is answered by the finger that makes it", () => {
+  it("takes the pick from the pointer instead of the click a touch may never send", () => {
+    // The hand is a `pan-x` scroll-snap row on a phone, so the browser may turn a
+    // tap into a scroll or retarget the trailing click at the row. Reading the
+    // pointer is how every other tap on this screen is resolved (pressGesture.ts).
+    expect(boardPiecesSource).toMatch(/onPointerUp=\{selection && pickable \? \(e\) => finishPick\(/);
+    expect(boardPiecesSource).toMatch(/onPointerCancel=\{selection \?/);
+    expect(boardPiecesSource).toMatch(/pressGesture\(\{ dx: event\.clientX - press\.x/);
+    // The click trailing that same gesture must not toggle the card back, while a
+    // click that is the only signal (keyboard, assistive) still picks.
+    expect(boardPiecesSource).toMatch(/if \(pointerPicked\.current === entry\.instanceId\)/);
+  });
+
+  it("keeps the row pannable while it is a selection surface", () => {
+    // Nothing is dragged out of a hand answering a decision, so `touch-action: none`
+    // would only cost the row the sideways swipe that reaches the buried cards.
+    expect(boardPiecesSource).toMatch(/cursor: pickable \? "pointer" : "default", touchAction: "pan-x"/);
+  });
+
+  it("still refuses to start a drag out of a hand that is picking", () => {
+    // A pick that became a play would answer the decision by putting the card on
+    // the board — the one thing the selection must not do.
+    expect(boardPiecesSource).toMatch(/: \(e\) => startDrag\(i, e\)\n/);
+    expect(boardPiecesSource).not.toMatch(/selection \? \(e\) => startDrag/);
   });
 });
 

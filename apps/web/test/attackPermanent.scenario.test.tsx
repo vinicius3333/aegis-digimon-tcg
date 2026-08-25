@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -68,8 +69,7 @@ scenario("attack-permanent", () => {
 
     // Turn 1 (protagonist): skip breeding, play Muchomon (cost 3, memory 0 -> -3,
     // crosses — fine, Muchomon is already placed).
-    const t1Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(t1Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
     const [muchomonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^muchomon$/i });
@@ -98,8 +98,7 @@ scenario("attack-permanent", () => {
     // opponent's pass-turn +3 for turn 4 (not needed for an attack, but keeps the
     // match moving identically to the other scenarios' pattern).
     await vi.waitFor(() => expect(opponent.room.state.turnSeat).toBe(0), { timeout: 10_000 });
-    const t3Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(t3Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
 
     // Turn 4 (opponent): Frigimon entered turn 2, so summoning sickness has cleared
@@ -135,8 +134,7 @@ scenario("attack-permanent", () => {
     // GameScreen.tsx's handleTap still routes a non-moving tap to the card menu).
     await vi.waitFor(() => expect(opponent.room.state.turnSeat).toBe(0), { timeout: 10_000 });
     if (opponent.room.state.phase === "Breeding") {
-      const t5Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(t5Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+      await endBreedingStep();
     }
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 

@@ -8,6 +8,7 @@ import {
   opponentActionFromEvent,
   type OpponentActionItem,
 } from "./opponentActionFeed";
+import { TIMINGS } from "./timings";
 
 function event(value: unknown): ServerEvent {
   return value as ServerEvent;
@@ -16,38 +17,57 @@ function event(value: unknown): ServerEvent {
 function item(id: string): OpponentActionItem {
   return {
     id,
-    kind: "played",
+    kind: "movedFromBreeding",
     cardId: "BT1-010",
-    titleKey: "feed.opponentPlayed",
+    titleKey: "feed.movedFromBreeding",
     titleParams: { card: id },
-    durationMs: 2800,
+    durationMs: TIMINGS.feedAction,
   };
 }
 
 describe("opponent action narration", () => {
   it("maps public opponent actions and ignores the viewer's own actions", () => {
     expect(
-      opponentActionFromEvent(event({ kind: "cardPlayed", seat: 1, cardId: "BT1-010" }), 0, "event-1"),
+      opponentActionFromEvent(
+        event({ kind: "movedFromBreeding", seat: 1, permanentId: "p1", cardId: "BT1-010" }),
+        0,
+        "event-1",
+      ),
     ).toMatchObject({
       id: "event-1",
-      kind: "played",
+      kind: "movedFromBreeding",
       cardId: "BT1-010",
-      titleKey: "feed.opponentPlayed",
+      titleKey: "feed.movedFromBreeding",
       titleParams: { card: "Agumon" },
     });
 
-    expect(opponentActionFromEvent(event({ kind: "cardPlayed", seat: 0, cardId: "BT1-010" }), 0, "event-2")).toBeNull();
+    expect(
+      opponentActionFromEvent(
+        event({ kind: "movedFromBreeding", seat: 0, permanentId: "p1", cardId: "BT1-010" }),
+        0,
+        "event-2",
+      ),
+    ).toBeNull();
   });
 
-  it("uses actor metadata instead of guessing from the current board", () => {
+  it("leaves the moves the centre-screen showcase already announces out of the feed", () => {
+    // A play, a hatch and a digivolution are shown as the card itself, centre
+    // screen, plus the burst where it lands. A corner line repeating them was
+    // the same moment twice.
+    expect(opponentActionFromEvent(event({ kind: "cardPlayed", seat: 1, cardId: "BT1-010" }), 0, "play")).toBeNull();
+    expect(
+      opponentActionFromEvent(event({ kind: "hatched", seat: 1, permanentId: "egg", cardId: "BT1-010" }), 0, "hatch"),
+    ).toBeNull();
     expect(
       opponentActionFromEvent(
         event({ kind: "digivolved", seat: 1, permanentId: "gone", cardId: "AD1-001" }),
         0,
-        "event-3",
+        "digivolve",
       ),
-    ).toMatchObject({ kind: "digivolved", titleParams: { card: "Greymon" } });
+    ).toBeNull();
+  });
 
+  it("uses actor metadata instead of guessing from the current board", () => {
     expect(
       opponentActionFromEvent(
         event({

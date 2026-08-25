@@ -18,6 +18,7 @@ import {
   shouldDrawMemoryArc,
   shouldDrawMemoryPrediction,
 } from "./memoryArc";
+import { pressGesture } from "./pressGesture";
 import { turnControlLabelKey, type TurnControlState } from "./turnControl";
 import { formatKeyword } from "./keywordDisplay";
 import { hasBlocker, sourceCountBadge } from "./fieldBadges";
@@ -962,19 +963,12 @@ export function MemoryGauge({
         </span>
       ) : null}
       <div className="game-memory-gauge__track">
+        {/* The current value is lit by the chip itself — a wider hexagon wearing a
+            crisp ring (game.css). The halo that used to ride over it was positioned
+            by cell fraction, which the marker's own extra width puts it beside, and
+            a blurred disc that wide washed over its neighbours either way. */}
         {ticks.map(renderCoin)}
-        {/* The glow rides over the chip rather than inside it: a chip is clipped to
-            its hexagon, which would cut the halo off at its own edges. */}
-        <span
-          className="game-memory-glow"
-          // Placed over the row of chips rather than the padded track, which is the
-          // same box the arc is drawn in.
-          style={{
-            left: `calc(var(--memory-track-pad-x) + (100% - var(--memory-track-pad-x) * 2) * ${memoryCellCenterFraction(cv)})`,
-          }}
-          aria-hidden="true"
-        />
-        {arcEnds ? <MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
+        {arcEnds ?<MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
         {prediction !== undefined && shouldDrawMemoryPrediction(cv, prediction) ? (
           <MemoryPredictionArc from={cv} to={prediction} />
         ) : null}
@@ -1018,15 +1012,17 @@ export function TurnControl({
   // The cover is also lifted the moment the control's own state changes, which is
   // the board confirming the click landed. Without that, a player who ends the
   // breeding step and then means to end the turn would have their second — and
-  // entirely different — action swallowed by a guard meant for a stutter.
-  const [cover, setCover] = useState<{ id: number; ms: number } | null>(null);
+  // entirely different — action swallowed by a guard meant for a stutter. It
+  // carries the state it was raised in as well, so the lift happens in the same
+  // render as the label change rather than one effect behind it.
+  const [cover, setCover] = useState<{ id: number; ms: number; state: TurnControlState } | null>(null);
   useEffect(() => {
     if (!cover) return;
     const timer = setTimeout(() => setCover((current) => (current?.id === cover.id ? null : current)), cover.ms);
     return () => clearTimeout(timer);
   }, [cover]);
   useEffect(() => setCover(null), [state]);
-  const covered = coveredOverride ?? (!waiting && cover !== null);
+  const covered = coveredOverride ?? (!waiting && cover?.state === state);
   return (
     <button
       type="button"
@@ -1040,7 +1036,7 @@ export function TurnControl({
         // Covered means the previous click is still in flight; swallow this one
         // rather than disabling the button, which would read as "not your turn".
         if (covered) return;
-        setCover({ id: Date.now(), ms: TIMINGS.turnControlCover });
+        setCover({ id: Date.now(), ms: TIMINGS.turnControlCover, state });
         onEndPhase();
       }}
     >
@@ -1170,6 +1166,43 @@ export function Hand({
   // The hand tightens its own fan until it fits the dock. Without this a big hand
   // simply grew past the board and painted over the sidebar.
   const overlap = handOverlap(n, rowWidth, cardWidth, minExposure);
+  // A pick is taken from the pointer, not from the click that may follow it. On
+  // touch the hand is a `pan-x` scroll-snap row, so the browser is free to turn a
+  // tap into a scroll or to retarget the trailing click at the row — which left a
+  // board-mode selection unanswerable with a finger. Every other tap on this
+  // screen is already read this way (see GameScreen's drag/tap recognizer).
+  const pickPress = useRef<{
+    pointerId: number;
+    instanceId: string;
+    x: number;
+    y: number;
+    touch: boolean;
+  } | null>(null);
+  /* The card the pointer has just picked, so the click that trails the same
+     gesture cannot toggle it straight back. Only the click is dropped — a browser
+     that sends no `pointerup` on the card still answers through its click. */
+  const pointerPicked = useRef<string | null>(null);
+  const beginPick = (instanceId: string, event: React.PointerEvent) => {
+    // No capture and no preventDefault: the row must stay pannable, exactly as it
+    // is while a card is being dragged out of the hand.
+    pointerPicked.current = null;
+    pickPress.current = {
+      pointerId: event.pointerId,
+      instanceId,
+      x: event.clientX,
+      y: event.clientY,
+      touch: event.pointerType !== "mouse",
+    };
+  };
+  const finishPick = (instanceId: string, event: React.PointerEvent) => {
+    const press = pickPress.current;
+    pickPress.current = null;
+    if (!press || press.pointerId !== event.pointerId || press.instanceId !== instanceId) return;
+    const gesture = pressGesture({ dx: event.clientX - press.x, dy: event.clientY - press.y, touch: press.touch });
+    if (gesture !== "press") return;
+    pointerPicked.current = instanceId;
+    selection?.onToggle(instanceId);
+  };
   return (
     <div
       ref={setRowEl}
@@ -1220,7 +1253,11 @@ export function Hand({
         return (
           <div
             key={entry.instanceId}
-            onPointerDown={selection ? undefined : (e) => startDrag(i, e)}
+            onPointerDown={
+              selection ? (pickable ? (e) => beginPick(entry.instanceId, e) : undefined) : (e) => startDrag(i, e)
+            }
+            onPointerUp={selection && pickable ? (e) => finishPick(entry.instanceId, e) : undefined}
+            onPointerCancel={selection ? () => (pickPress.current = null) : undefined}
             onKeyDown={(event) => {
               if (event.key !== "Enter" && event.key !== " ") return;
               event.preventDefault();
@@ -1232,6 +1269,13 @@ export function Hand({
             }}
             onClick={(event) => {
               if (selection) {
+                // The gesture that already answered on `pointerup` sends this click
+                // too; anything else (keyboard, assistive activation, a browser that
+                // reports no pointerup here) is still a pick.
+                if (pointerPicked.current === entry.instanceId) {
+                  pointerPicked.current = null;
+                  return;
+                }
                 if (pickable) selection.onToggle(entry.instanceId);
                 return;
               }
@@ -1270,7 +1314,14 @@ export function Hand({
             ]
               .filter(Boolean)
               .join(" ")}
-            style={selection ? { ...style, cursor: pickable ? "pointer" : "default" } : style}
+            style={
+              selection
+                ? // Nothing is dragged out of a hand that is answering a decision, so
+                  // the row keeps its sideways pan on touch instead of claiming the
+                  // gesture for a drag that cannot happen.
+                  { ...style, cursor: pickable ? "pointer" : "default", touchAction: "pan-x" }
+                : style
+            }
           >
             <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} zoomOnHover={false} />
             {picked ? (

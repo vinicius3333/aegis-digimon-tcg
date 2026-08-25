@@ -115,9 +115,9 @@ describe("rejectionNotice", () => {
 });
 
 describe("noticeAnchor", () => {
-  it("reads the viewer's effects from the bottom and the opponent's from the top", () => {
+  it("reads the viewer's effects from the bottom left and the opponent's from the top right", () => {
     expect(noticeAnchor(notice({ side: "you" }))).toBe("bottom-left");
-    expect(noticeAnchor(notice({ side: "opp" }))).toBe("top-left");
+    expect(noticeAnchor(notice({ side: "opp" }))).toBe("top-right");
   });
 
   it("mirrors a security effect away from the panel stack", () => {
@@ -177,7 +177,7 @@ describe("grouping by anchor", () => {
       notice({ id: "theirs", side: "opp", createdAt: 1 }),
       notice({ id: "mine-old", side: "you", createdAt: 2 }),
     ];
-    expect(occupiedAnchors(stack)).toEqual(["top-left", "bottom-left"]);
+    expect(occupiedAnchors(stack)).toEqual(["bottom-left", "top-right"]);
     expect(noticesAt(stack, "bottom-left").map((n) => n.id)).toEqual(["mine-old", "mine-new"]);
   });
 });

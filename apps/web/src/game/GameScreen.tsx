@@ -100,7 +100,6 @@ import {
   ActionConfirmationOverlay,
   BarrierOverlay,
   BlockOverlay,
-  BreedingOverlay,
   CardActionMenu,
   CardZoomOverlay,
   CounterOverlay,
@@ -142,6 +141,7 @@ import { buildPermanentDetail } from "./permanentDetail";
 import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
 import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
 import { predictedMemory } from "./memoryArc";
+import { memoryCostPreview, type MemoryDropTarget } from "./memoryCostPreview";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import {
   decisionPresentation,
@@ -857,6 +857,12 @@ export function GameScreen({
 
   const isMyTurn = state.turnSeat === viewerSeat;
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
+  // The breeding step is answered on the board rather than in a dialog: the egg
+  // deck hatches, the raising slot moves out and the turn control ends the step.
+  // These drive the highlights and the hint that stand in for the old modal.
+  const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
+  const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
+  const breedingActionsOpen = breedingWindow && !decision && !securityClash && !state.gameOver;
   const memory = displayMemory(state, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
   const youColor = identityColor;
@@ -1559,28 +1565,57 @@ export function GameScreen({
   };
   const spotlightOpen = spotlightIds.length > 0;
 
-  // Where memory would land if the card in hand were played. The server projects the
-  // cost with its active continuous reducers already applied (`projectedPlayCost`), and
-  // the printed figure is only the fallback for a card it did not project. Still a
-  // dashed prediction that gates nothing: a [BeforePayCost] reducer can lower it again
-  // at pay time, which the server cannot resolve without prompting the player.
-  const predictionEntry = (() => {
-    if (drag?.kind === "play" && drag.started) {
-      return handEntries.find((candidate) => candidate.cardId === drag.cardId);
-    }
-    if (hoveredHandInstanceId === undefined) return undefined;
-    const entry = handEntries.find((candidate) => candidate.instanceId === hoveredHandInstanceId);
-    return entry?.playableFromHand === true ? entry : undefined;
+  // Where memory would land if the action the pointer is offering were taken. Which
+  // action that is changes with the pointer: a hovered or selected hand card prices its
+  // play, a drag over a base prices the digivolution onto that base, and a drag over an
+  // area that would refuse the drop prices nothing. The costs are the server's own
+  // (`projectedPlayCost`, and the paths `getDigivolveCostOptions` reads off the routes
+  // the server offered); the printed figure is only the fallback for a card it did not
+  // project. Still a dashed prediction that gates nothing: a [BeforePayCost] reducer can
+  // lower it again at pay time, which the server cannot resolve without prompting.
+  const previewEntry = (() => {
+    if (dragIsPlay && drag) return handEntries.find((candidate) => candidate.instanceId === drag.instanceId);
+    const instanceId = hoveredHandInstanceId ?? handSel ?? undefined;
+    if (instanceId === undefined) return undefined;
+    return handEntries.find((candidate) => candidate.instanceId === instanceId);
   })();
-  const predictionCardId = predictionEntry?.cardId;
-  const predictionCost =
-    predictionEntry && predictionEntry.projectedPlayCost >= 0
-      ? predictionEntry.projectedPlayCost
-      : predictionCardId
-        ? getCardDefinition(predictionCardId)?.playCost
-        : undefined;
-  const memoryPrediction =
-    predictionCost !== undefined && predictionCost >= 0 ? predictedMemory(memory, predictionCost) : undefined;
+  const previewPlayCost = (() => {
+    if (!previewEntry) return undefined;
+    if (previewEntry.projectedPlayCost >= 0) return previewEntry.projectedPlayCost;
+    const printed = getCardDefinition(previewEntry.cardId)?.playCost;
+    return printed !== undefined && printed >= 0 ? printed : undefined;
+  })();
+  /** The cheapest priced digivolution path onto `base`, or undefined when none is priced. */
+  const cheapestDigivolveCost = (cardId: string, base: Permanent | undefined): number | undefined => {
+    if (!base) return undefined;
+    const costs = getDigivolveCostOptions(cardId, base, you, opp).map((option) => option.cost);
+    return costs.length > 0 ? Math.min(...costs) : undefined;
+  };
+  // What the hovered area would do with the card in the air, priced. Read off the same
+  // intent the board paints, so the preview and the drop can never disagree.
+  const previewDropTarget = ((): MemoryDropTarget | undefined => {
+    if (!dragIsPlay || !drag || !dragHover) return undefined;
+    switch (hoveredDragIntent) {
+      case "play":
+      case "use":
+        return { kind: "field" };
+      case "evolve": {
+        const base = you.battleArea.find((permanent) => permanent.permanentId === dragHover.id);
+        return { kind: "permanent", digivolve: { cost: cheapestDigivolveCost(drag.cardId, base) } };
+      }
+      case "breeding":
+        return { kind: "breeding", digivolve: { cost: cheapestDigivolveCost(drag.cardId, you.breeding) } };
+      default:
+        return { kind: "refused" };
+    }
+  })();
+  const memoryCostCandidate = memoryCostPreview({
+    heldCard: previewEntry
+      ? { playable: previewEntry.playableFromHand === true, playCost: previewPlayCost }
+      : undefined,
+    dropTarget: previewDropTarget,
+  });
+  const memoryPrediction = memoryCostCandidate ? predictedMemory(memory, memoryCostCandidate.cost) : undefined;
 
   const triggerDetails =
     viewerDecision?.kind === "orderTriggers"
@@ -1725,23 +1760,6 @@ export function GameScreen({
       {state.pendingDecision && state.pendingDecision.seat !== viewerSeat && !state.gameOver ? (
         <OpponentSelectingPill />
       ) : null}
-
-      {state.phase === Phase.Breeding && isMyTurn && !decision && !securityClash
-        ? (() => {
-            const canHatch = you.eggDeckCount > 0 && !you.breeding;
-            const canMove = canMoveFromBreeding(you.breeding);
-            if (!canHatch && !canMove) return null;
-            return (
-              <BreedingOverlay
-                canHatch={canHatch}
-                canMove={canMove}
-                onHatch={() => room && intents.hatchEgg(room)}
-                onMove={() => room && you.breeding && intents.moveFromBreeding(room, you.breeding.permanentId)}
-                onSkip={() => room && intents.endPhase(room)}
-              />
-            );
-          })()
-        : null}
 
       {blockWindow ? (
         <BlockOverlay
@@ -2632,11 +2650,16 @@ export function GameScreen({
               {t("game.breedingArea")}
             </div>
             <div style={{ flex: 1, display: "flex", gap: 8, alignItems: "center" }}>
+              {/* Hatching is the egg deck's own click during the breeding step —
+                  the step used to open a dialog to ask for the same thing. */}
               <Pile
+                className={breedingActionsOpen && canHatchEgg ? "game-egg-deck--hatchable" : undefined}
                 compact={compactPiles}
                 count={you.eggDeckCount}
                 label={t("game.pile.eggs")}
+                glow={breedingActionsOpen && canHatchEgg}
                 riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
+                onClick={breedingActionsOpen && canHatchEgg ? onBreeding : undefined}
               />
               <BreedingSlot
                 perm={you.breeding}
@@ -2647,15 +2670,32 @@ export function GameScreen({
                 // its height back to the battle rows while staying a 44px+ target.
                 width={narrowGameLayout ? 46 : undefined}
                 candidate={
-                  !!you.breeding &&
-                  (eligibleBase(you.breeding) ||
-                    (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId)))
+                  (breedingActionsOpen && canMoveOutOfBreeding) ||
+                  (!!you.breeding &&
+                    (eligibleBase(you.breeding) ||
+                      (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId))))
                 }
                 focused={breedingWindow}
                 drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
-                onClick={you.breeding ? onYourPerm(you.breeding) : onBreeding}
+                // Inside the breeding step the slot is the move-out action itself
+                // rather than the card menu — `onBreeding` still digivolves first
+                // when a hand card is selected.
+                onClick={
+                  you.breeding && !(breedingActionsOpen && canMoveOutOfBreeding) ? onYourPerm(you.breeding) : onBreeding
+                }
               />
             </div>
+            {/* What the old breeding dialog said, beside the pieces that answer it
+                instead of on top of the board. */}
+            {breedingActionsOpen ? (
+              <p className="game-breeding-hint" role="status">
+                {canHatchEgg
+                  ? t("game.breedingHint.hatch")
+                  : canMoveOutOfBreeding
+                    ? t("game.breedingHint.move")
+                    : t("game.breedingHint.end")}
+              </p>
+            ) : null}
           </div>
 
           {/* action bar + hand */}

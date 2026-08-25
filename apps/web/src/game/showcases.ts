@@ -16,12 +16,8 @@ import type { Seat, ServerEvent } from "@aegis/shared";
 import { getCardDefinition } from "@aegis/shared";
 import { COLORS, colorKey, type ColorName } from "../design/theme";
 
-/** What the centre-screen card is announcing. */
-export type ZoneShowcaseKind = "play" | "digivolve";
-
 export interface ZoneShowcase {
   key: number;
-  kind: ZoneShowcaseKind;
   cardId: string;
   seat: Seat;
   /** Card colour, so the halo behind the card matches the card. */
@@ -48,18 +44,17 @@ export function burstColorFor(cardId: string): ColorName {
 /**
  * The centre-screen showcase an event earns, or null when it earns none.
  *
- * Only the opponent's moves are announced this way: the viewer dragged their own
- * card and already watched it leave their hand, so their play keeps the field
- * burst and skips the hold. An evolution the viewer's own effect performed is
- * not distinguishable from a dragged one on the event payload alone, so it is
- * left out rather than guessed at.
+ * Only the opponent playing a card is announced this way: the viewer dragged
+ * their own card and already watched it leave their hand, so their play keeps
+ * the field burst and skips the hold. A digivolution is read off the board
+ * itself — the stack changes where it stands, under its own burst — so it is
+ * never held up centre-screen.
  */
 export function zoneShowcaseFromEvent(event: ServerEvent, viewerSeat: Seat, key: number): ZoneShowcase | null {
-  if (event.kind !== "cardPlayed" && event.kind !== "digivolved") return null;
+  if (event.kind !== "cardPlayed") return null;
   if (event.seat === viewerSeat) return null;
   return {
     key,
-    kind: event.kind === "cardPlayed" ? "play" : "digivolve",
     cardId: event.cardId,
     seat: event.seat,
     color: burstColorFor(event.cardId),

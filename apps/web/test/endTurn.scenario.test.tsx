@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -55,19 +56,14 @@ scenario("end-turn", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-    // The first player's Breeding window opens automatically (the egg deck is
-    // non-empty). Wait for the overlay's own heading — the board also has a
-    // persistent (always-rendered) "Breeding area" panel label sharing the same
-    // text, so a plain text query would resolve too early and the "End phase"
-    // click below would land on the wrong element.
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    // The first player's breeding step opens automatically (the egg deck is
+    // non-empty) and is ended on the board's own turn control.
+    await endBreedingStep();
 
-    // Wait for the overlay to close (state.phase left Breeding) before treating
-    // the sidebar's own "End phase" button as the only one in the DOM — the
-    // sidebar badge reads "Your turn" for the whole of the protagonist's turn,
-    // including while still in Breeding, so it can't stand in for "now in Main".
-    await vi.waitFor(() => expect(screen.queryByRole("heading", { name: /breeding area/i })).toBeNull(), {
+    // The turn control only reads "End phase" once the step has closed, so wait
+    // for its breeding label to go — the sidebar badge reads "Your turn" for the
+    // whole of the protagonist's turn, Breeding included, and can't stand in.
+    await vi.waitFor(() => expect(screen.queryByRole("button", { name: /^end breeding$/i })).toBeNull(), {
       timeout: 10_000,
     });
 

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -84,8 +85,7 @@ scenario("barrier", () => {
     const oppSecurity = () => document.querySelector('[data-drop="opp-security"]') as HTMLElement;
 
     // Turn 1 (protagonist): skip breeding, play Unimon (cost 4).
-    const t1Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(t1Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
     const [unimonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^unimon$/i });
@@ -110,8 +110,7 @@ scenario("barrier", () => {
     // only be the target of a permanent-attack while suspended).
     await vi.waitFor(() => expect(opponent.room.state.turnSeat).toBe(0), { timeout: 10_000 });
     if (opponent.room.state.phase === "Breeding") {
-      const t3Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(t3Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+      await endBreedingStep();
     }
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
