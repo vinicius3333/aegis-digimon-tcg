@@ -794,6 +794,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; trashes a real Undead while preserving an ineligible hand card and gains exactly 1 memory; deletes K and evolves Dracmon into trash Sangloupmon for zero; supplies only an otherwise matching level-6 GranDracmon and proves K is not deleted and the base remains unchanged; and structurally checks all clauses.
 - Verification: focused suite — 6 passed; shared hand-trash cost, trait union, memory gain, transactional optional digivolution preflight, self-deletion cost, level ceiling, trash evolution, free payment, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-089 — Takumi Aiba — 10/10
+
+- Catalog evidence: White cost-4 Tamer, type `CS`; Start of Your Main Phase gains 1 memory if the opponent has a Digimon; All Turns when a friendly CS Digimon would leave battle, may suspend Takumi and trash two same-level digivolution cards from one friendly CS Digimon as a compound cost to prevent that departure; Security plays this card for free.
+- Knowledge base: no card-specific rulings are recorded locally; the exact catalog text and general replacement, compound-cost atomicity, same-host/same-level selection, optional refusal, and Security rules therefore control.
+- Defects corrected: authoritative shared IR modeled only the suspension half of the cost inside a nested Prevent. The audit ports the exact compound cost and direct replacement shape. Shared cost preflight/payment also ignored `sameLevelPair` for pooled digivolution sources; it now requires, exposes, and server-revalidates one same-level group from one host; registration remains exclusively `registerIrCard("BT23-089", compiled)` with full coverage/no residuals.
+- Primitive trace: guarded start-main memory checks turn ownership/opponent presence; the leave listener filters the pending friendly CS subject, preflights Takumi unsuspended plus a two-card same-level group under one friendly CS host, atomically suspends/trashes the selected pair, and prevents the departure; failed preflight or refusal preserves all costs and allows ordinary departure; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves guarded start-main memory; pays with two level-3 sources under one CS host, suspends Takumi, trashes exactly those sources, and preserves the host; supplies different-level sources and proves departure with neither cost paid; and declines an otherwise payable replacement with the same result.
+- Verification: focused suite — 6 passed after refreshing shared runtime data; shared would-leave replacement, compound atomic cost, same-host/same-level loose preflight and hostile-selection validation, optional refusal, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-089 through BT23-102.
+BT23-090 through BT23-102.

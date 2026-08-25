@@ -197,12 +197,24 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : cost.target.count;
     if (required <= 0) return false;
     if (cost.target.filter.sameHost !== true) return candidates.length >= required;
-    const counts = new Map<string, number>();
+    const byHost = new Map<string, LooseCandidate[]>();
     for (const candidate of candidates) {
       if (candidate.hostPermanentId === undefined) continue;
-      counts.set(candidate.hostPermanentId, (counts.get(candidate.hostPermanentId) ?? 0) + 1);
+      const group = byHost.get(candidate.hostPermanentId) ?? [];
+      group.push(candidate);
+      byHost.set(candidate.hostPermanentId, group);
     }
-    return [...counts.values()].some((count) => count >= required);
+    if (cost.target.filter.sameLevelPair !== true) {
+      return [...byHost.values()].some((group) => group.length >= required);
+    }
+    return [...byHost.values()].some((group) => {
+      const levels = new Map<number, number>();
+      for (const candidate of group) {
+        const level = getCardDefinition(candidate.cardId)?.level;
+        if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
+      }
+      return [...levels.values()].some((count) => count >= required);
+    });
   }
   if (cost.kind === "securityToHand") {
     return ctx.game.player(ctx.source.ownerSeat).security.length > 0;
@@ -821,7 +833,16 @@ export async function payCost(
             group.push(candidate);
             byHost.set(candidate.hostPermanentId, group);
           }
-          const eligibleHosts = [...byHost.entries()].filter(([, group]) => group.length >= n);
+          const requiresSameLevelPair = cost.target.filter.sameLevelPair === true;
+          const eligibleHosts = [...byHost.entries()].filter(([, group]) => {
+            if (!requiresSameLevelPair) return group.length >= n;
+            const levels = new Map<number, number>();
+            for (const candidate of group) {
+              const level = getCardDefinition(candidate.cardId)?.level;
+              if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
+            }
+            return [...levels.values()].some((count) => count >= n);
+          });
           if (eligibleHosts.length === 0) return false;
           const hostId =
             eligibleHosts.length === 1
@@ -835,6 +856,17 @@ export async function payCost(
                 )[0];
           if (hostId === undefined) return false;
           candidates = byHost.get(hostId) ?? [];
+          if (requiresSameLevelPair) {
+            const levels = new Map<number, number>();
+            for (const candidate of candidates) {
+              const level = getCardDefinition(candidate.cardId)?.level;
+              if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
+            }
+            candidates = candidates.filter((candidate) => {
+              const level = getCardDefinition(candidate.cardId)?.level;
+              return level !== undefined && (levels.get(level) ?? 0) >= n;
+            });
+          }
           if (cost.bindHostAs !== undefined) {
             ctx.selections ??= new Map();
             ctx.selections.set(cost.bindHostAs, hostId);
@@ -842,6 +874,13 @@ export async function payCost(
         }
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
+        if (cost.target.filter.sameLevelPair === true) {
+          const selectedLevels = chosen.map((id) => {
+            const candidate = candidates.find((entry) => entry.instanceId === id);
+            return candidate === undefined ? undefined : getCardDefinition(candidate.cardId)?.level;
+          });
+          if (selectedLevels.some((level) => level === undefined) || new Set(selectedLevels).size !== 1) return false;
+        }
         const byHost = new Map<string, string[]>();
         const loose: string[] = [];
         for (const id of chosen) {
