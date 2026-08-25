@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-001.js";
 
 describe("BT9-001 Koromon", () => {
@@ -65,5 +65,24 @@ describe("BT9-001 Koromon", () => {
 
       expect(s.perm("host").currentDP).toBe(turnSeat === 0 ? 3000 : 2000);
     }
+  });
+
+  it("preserves Koromon as the inherited source through a legal breeding evolution", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT9-001", as: "koromon" },
+        hand: [{ card: "BT9-008", as: "agumon" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("koromon").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("koromon").topCard.instanceId === s.inst("agumon").instanceId);
+    expect(s.perm("koromon").stack.map((card) => card.cardId)).toContain("BT9-001");
+    expect(s.state.memory).toBe(0);
   });
 });
