@@ -257,11 +257,17 @@ function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]
 /**
  * A watcher's identity ACROSS continuous recomputes. Every recompute clears the continuous
  * subscriptions and re-installs them, so `sub.id` is stable only within one recompute cycle;
- * the (event, anchor, description) triple is what `SubTriggerRegistry.subscribe` itself treats
- * as "the same subscription", and it survives the reinstall.
+ * the (event, anchor, description, per-turn identity) tuple is what distinguishes the same
+ * watcher across reinstalls while preserving separately conferred copies (BT10-011 Q1943).
  */
 function subTriggerIdentity(sub: SubTriggerSubscription): string {
-  return [sub.event, sub.sourcePermanentId ?? "", sub.sourceInstanceId ?? "", sub.description].join("|");
+  return [
+    sub.event,
+    sub.sourcePermanentId ?? "",
+    sub.sourceInstanceId ?? "",
+    sub.description,
+    sub.oncePerTurnKey ?? "",
+  ].join("|");
 }
 
 /** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
@@ -2668,20 +2674,22 @@ export class GameEngine {
       EffectTiming.None,
       this.continuous.listStackEffectConferrals(),
       (instanceId) => sourceByInstanceId.get(instanceId),
-      (source, effect, conferredToPermanentId) => ({
+      (source, effect, conferredToPermanentId, conferralGranterInstanceId) => ({
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         conferredToPermanentId,
+        conferralGranterInstanceId,
       }),
       this.tracker,
     );
-    for (const { source, effect, conferredToPermanentId } of conferredContinuous) {
+    for (const { source, effect, conferredToPermanentId, conferralGranterInstanceId } of conferredContinuous) {
       const ctx: EffectContext = {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         conferredToPermanentId,
+        conferralGranterInstanceId,
       };
       await effect.resolve(ctx);
     }

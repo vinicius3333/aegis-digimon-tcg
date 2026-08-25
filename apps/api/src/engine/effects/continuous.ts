@@ -305,6 +305,8 @@ export interface StackEffectConferral {
   /** Limit the copied effects to the printed trigger (for example, only [Main]). */
   trigger?: string;
   inheritedOnly?: boolean;
+  /** Physical source of the grant; distinct grant sources confer distinct effect copies (Q1943). */
+  granterInstanceId?: string;
 }
 
 /**
@@ -1299,14 +1301,15 @@ export class ContinuousEffectLedger {
   conferStackEffects(
     targetPermanentId: string,
     stackInstanceId: string,
-    opts?: { continuous?: boolean; trigger?: string; inheritedOnly?: boolean },
+    opts?: { continuous?: boolean; trigger?: string; inheritedOnly?: boolean; granterInstanceId?: string },
   ): void {
     const exists = this.stackEffectConferrals.some(
       (c) =>
         c.targetPermanentId === targetPermanentId &&
         c.stackInstanceId === stackInstanceId &&
         c.trigger === opts?.trigger &&
-        c.inheritedOnly === opts?.inheritedOnly,
+        c.inheritedOnly === opts?.inheritedOnly &&
+        c.granterInstanceId === opts?.granterInstanceId,
     );
     if (exists) return;
     this.stackEffectConferrals.push({
@@ -1315,6 +1318,7 @@ export class ContinuousEffectLedger {
       continuous: opts?.continuous,
       trigger: opts?.trigger,
       inheritedOnly: opts?.inheritedOnly,
+      granterInstanceId: opts?.granterInstanceId,
     });
   }
 

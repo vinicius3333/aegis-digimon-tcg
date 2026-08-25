@@ -190,7 +190,8 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // timing window finishes (the source removes a declined optional from the bucket
   // for the duration of the resolution).
   const declined = new Set<string>();
-  const declineKey = (c: CollectedEffect): string => `${c.source.instanceId} ${c.effect.effectKey}`;
+  const declineKey = (c: CollectedEffect): string =>
+    `${c.source.instanceId} ${c.effect.effectKey} ${c.conferralGranterInstanceId ?? ""}`;
 
   // Effect keys retired by the §18-3-3 infinite-loop stop below. Keyed on the EFFECT, not on
   // (instance, effect) like `declined`: the loop the stop has to break is a repeating

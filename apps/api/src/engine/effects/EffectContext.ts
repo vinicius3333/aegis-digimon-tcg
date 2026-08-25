@@ -1218,7 +1218,7 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string; inheritedOnly?: boolean },
+    opts?: { trigger?: string; inheritedOnly?: boolean; granterInstanceId?: string },
   ): void;
   /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
   stackEffectConferrals?(): readonly {
@@ -1226,6 +1226,7 @@ export interface Primitives {
     stackInstanceId: string;
     trigger?: string;
     inheritedOnly?: boolean;
+    granterInstanceId?: string;
   }[];
   /**
    * Also offer a permanent's `[On Deletion]` effects — its own printed ones AND the inherited
@@ -1758,6 +1759,8 @@ export interface EffectContext {
    * `conferredToPermanentId` (GrantStatic grant:"effects").
    */
   conferredToPermanentId?: string;
+  /** Physical source of the GrantStatic copy, used to preserve independent Q1943 frequency. */
+  conferralGranterInstanceId?: string;
   /**
    * Effect-RESULT bindings, scoped to the CURRENT effect resolution (fresh per `runEffect`,
    * like `selections`). A producing action writes its outcome here so a SUBSEQUENT gating

@@ -222,6 +222,7 @@ export function createEffectContext(parts: {
   activeTiming?: string;
   activeEffectText?: string;
   conferredToPermanentId?: string;
+  conferralGranterInstanceId?: string;
 }): EffectContext {
   return {
     source: parts.source,
@@ -233,6 +234,7 @@ export function createEffectContext(parts: {
     activeTiming: parts.activeTiming,
     activeEffectText: parts.activeEffectText,
     conferredToPermanentId: parts.conferredToPermanentId,
+    conferralGranterInstanceId: parts.conferralGranterInstanceId,
   };
 }
 
@@ -397,7 +399,13 @@ export function gatherTriggeredEffects(
   timing: EffectTiming,
   candidateInstances: readonly CardInstance[],
   grantSnapshot?: {
-    stackEffectConferrals: readonly { targetPermanentId: string; stackInstanceId: string; trigger?: string }[];
+    stackEffectConferrals: readonly {
+      targetPermanentId: string;
+      stackInstanceId: string;
+      trigger?: string;
+      inheritedOnly?: boolean;
+      granterInstanceId?: string;
+    }[];
     customEffectGrants: readonly { instanceId: string; token: string }[];
     onDeletionAtEndOfAttackProjections: readonly string[];
   },
@@ -427,7 +435,12 @@ export function gatherTriggeredEffects(
 
   const sources: CardSource[] = candidateInstances.map((instance) => createCardSource(instance, lookup));
 
-  const makeContext = (source: CardSource, effect: Effect, conferredToPermanentId?: string): EffectContext =>
+  const makeContext = (
+    source: CardSource,
+    effect: Effect,
+    conferredToPermanentId?: string,
+    conferralGranterInstanceId?: string,
+  ): EffectContext =>
     createEffectContext({
       source,
       trigger: env.triggerInfo ?? {},
@@ -441,6 +454,7 @@ export function gatherTriggeredEffects(
       activeTiming: effect.irTrigger ?? EffectTiming[timing],
       activeEffectText: effect.description,
       conferredToPermanentId,
+      conferralGranterInstanceId,
     });
 
   const base = collectTriggeredEffects(timing, sources, (s, e) => makeContext(s, e), env.tracker);
@@ -456,7 +470,7 @@ export function gatherTriggeredEffects(
     timing,
     grantSnapshot?.stackEffectConferrals ?? env.continuous.listStackEffectConferrals(),
     instanceById,
-    (s, e, permanentId) => makeContext(s, e, permanentId),
+    (s, e, permanentId, granterInstanceId) => makeContext(s, e, permanentId, granterInstanceId),
     env.tracker,
   );
 
