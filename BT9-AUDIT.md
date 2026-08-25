@@ -121,7 +121,7 @@ No ambiguity or unsupported behavior remains for BT9-004.
 ### Clause-by-clause score
 
 1. **Catalog identity (1/1):** Black level-2 Digi-Egg, `In-Training` form, `Rock` type, no evolution recipe, no main or Security text, and the complete inherited text were checked in the catalog.
-2. **Inherited placement (1/1):** A public legal black breeding evolution preserves Tumblemon beneath Bearmon at cost 0; the compiled effect is inherited and the aura cases keep it underneath live carriers.
+2. **Inherited placement (1/1):** A public legal black breeding evolution preserves Tumblemon beneath the printed-Blocker Gotsumon at cost 0; after the public breeding-area move, that same constructed stack is observed at 4000 DP on the opponent's turn and 3000 on its controller's turn.
 3. **Opponent-turn timing (1/1):** `OpponentsTurn` grants the modifier when the opposing seat owns the turn and rejects the same Blocker stack on Tumblemon's controller's turn.
 4. **Blocker-positive boundary (1/1):** A Monochromon carrier exposes its printed Blocker keyword through the live keyword service and receives the bonus.
 5. **Blocker-negative boundary (1/1):** An Elecmon carrier without Blocker remains at printed DP during the otherwise valid opponent-turn window.

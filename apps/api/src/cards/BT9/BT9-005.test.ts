@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT9-061.js";
@@ -64,22 +64,33 @@ describe("BT9-005 Tumblemon", () => {
     expect(s.perm("host").currentDP).toBe(6000);
   });
 
-  it("preserves Tumblemon through a legal black breeding evolution", async () => {
+  it("applies only on the opponent's turn to the Blocker reached by a legal black evolution", async () => {
     const s = setupEngine({
       0: {
         breeding: { card: "BT9-005", as: "tumblemon" },
-        hand: [{ card: "BT9-057", as: "bearmon" }],
+        hand: [{ card: "BT2-054", as: "gotsumon" }],
       },
     });
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("tumblemon").permanentId,
-        instanceId: s.inst("bearmon").instanceId,
+        instanceId: s.inst("gotsumon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tumblemon").topCard.instanceId === s.inst("bearmon").instanceId);
+    await settle(() => s.perm("tumblemon").topCard.instanceId === s.inst("gotsumon").instanceId);
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("tumblemon").permanentId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.state.players[0]!.breeding === undefined);
     expect(s.perm("tumblemon").stack.map((card) => card.cardId)).toContain("BT9-005");
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("tumblemon").currentDP).toBe(4000);
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(s.perm("tumblemon").currentDP).toBe(3000);
     expect(s.state.memory).toBe(0);
   });
 });
