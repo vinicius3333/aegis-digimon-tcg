@@ -93,7 +93,7 @@ No ambiguity or unsupported behavior remains for BT9-003.
 ### Clause-by-clause score
 
 1. **Catalog identity (1/1):** Green level-2 Digi-Egg, `In-Training` form, `Lesser` type, no evolution recipe, no main or Security text, and the complete inherited text were checked in the catalog.
-2. **Inherited placement (1/1):** A public legal green breeding evolution preserves Motimon beneath Elecmon at cost 0; the effect is marked `isInherited` and the focused aura scenarios use Motimon buried beneath live carriers.
+2. **Inherited placement (1/1):** A public legal green breeding evolution preserves Motimon beneath the Insectoid Tentomon at cost 0; after the public breeding-area move, that same constructed stack is observed at 3000 DP from the inherited +1000 aura.
 3. **Turn timing (1/1):** `YourTurn` grants the modifier only while Motimon's controller owns the turn; the same stack remains at printed DP during the opponent's turn.
 4. **Exact trait branch (1/1):** A carrier whose sole relevant type is `Insectoid` receives exactly +1000 DP.
 5. **Complete trait-union branch (1/1):** A carrier with `Insectoid` plus `X Antibody` also matches, proving the condition checks the full trait union rather than a single fixed slot.
