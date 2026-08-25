@@ -45228,7 +45228,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["Grumblemon"] }], "count": 2 }]
+    "digiXrosRequirement": [
+      { "materials": [{ "names": ["Grumblemon"] }, { "names": ["Gigasmon"] }], "count": 2 }
+    ]
   },
   "BT18-018": {
     "effects": [

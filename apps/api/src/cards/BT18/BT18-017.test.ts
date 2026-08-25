@@ -114,4 +114,58 @@ describe("BT18-017 AncientVolcanomon", () => {
     );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(false);
   });
+
+  it("DigiXroses with one Grumblemon and one Gigasmon for 2 less per material", async () => {
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["Grumblemon"] }, { names: ["Gigasmon"] }], count: 2 },
+    ]);
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT18-017", as: "ancient" },
+          { card: "BT18-012", as: "grumblemon" },
+          { card: "BT18-014", as: "gigasmon" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("ancient").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("grumblemon").instanceId, s.inst("gigasmon").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId).sort()).toEqual([
+      "BT18-012",
+      "BT18-014",
+    ]);
+  });
+
+  it("rejects two Grumblemon as materials for the distinct Grumblemon and Gigasmon slots", () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT18-017", as: "ancient" },
+          { card: "BT18-012", as: "grumbleA" },
+          { card: "BT18-012", as: "grumbleB" },
+        ],
+      },
+    });
+    s.state.memory = 20;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("ancient").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("grumbleA").instanceId, s.inst("grumbleB").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+  });
 });
