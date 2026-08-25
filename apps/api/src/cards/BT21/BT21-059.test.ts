@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-059.js";
+import "../index.js";
 
 describe("BT21-059 Timemon", () => {
   it("preserves Blocker, App Fusion, and Appmon Link requirements", () => {
@@ -49,18 +50,58 @@ describe("BT21-059 Timemon", () => {
     );
   });
 
-  it("de-digivolves an opposing stack when the linked card triggers", async () => {
+  it("links for 2, grants 3000 DP, and resolves its linked De-Digivolve", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT21-009", as: "host", linked: [{ card: "BT21-059", as: "timemon" }] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }] },
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT21-059", as: "timemon" }],
+        },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
+    s.state.memory = 3;
+    await s.ready();
+    const baseDp = s.perm("host").currentDP;
 
-    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("host").permanentId });
-    await settle(() => s.perm("opponent").stack.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("timemon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-044");
 
-    expect(s.perm("opponent").stack).toHaveLength(1);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").currentDP).toBe(baseDp + 3000);
+  });
+
+  it("de-digivolves once when Timemon itself receives a real link card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-059", as: "timemon" }],
+          hand: [{ card: "BT21-053", as: "watchmon" }],
+        },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("watchmon").instanceId,
+        targetPermanentId: s.perm("timemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-044");
+
+    expect(s.state.memory).toBe(1);
+    expect(observe(s.engine).hasKeyword(s.perm("timemon"), "Blocker")).toBe(true);
   });
 });
