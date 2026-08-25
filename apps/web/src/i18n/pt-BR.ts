@@ -587,6 +587,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "feed.historyTitle": "Histórico da partida",
   "feed.noHistory": "Nenhuma ação ainda",
 
+  "showcase.opponentPlayed": "O oponente jogou {card}",
+  "showcase.opponentDigivolved": "O oponente digivolveu para {card}",
+
   "panel.discardedCards": "Cartas descartadas",
   "panel.cardsAddedToHand": "Cartas adicionadas à mão",
   "panel.selectedCards": "Cartas selecionadas",

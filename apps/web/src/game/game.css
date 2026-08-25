@@ -1382,6 +1382,302 @@ button.opponent-action-feed__current:focus-visible {
   }
 }
 
+/* --- Colour-keyed burst ---------------------------------------------------
+   One component for every landing, coloured by the moment rather than by the
+   element it sits behind (battle-animation-spec.md, "Effect colour vocabulary"):
+   an arrival takes the card's own colour, an evolution burns red into orange, a
+   hatch opens white into blue. The two tones arrive as custom properties from
+   `burstPalette`, so the vocabulary has one home in TypeScript. */
+
+.battle-burst {
+  position: absolute;
+  z-index: 0;
+  inset: -28%;
+  display: block;
+  pointer-events: none;
+}
+
+.battle-burst__core {
+  position: absolute;
+  inset: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--battle-burst-base) 0%, transparent 68%);
+  animation: battle-burst-core var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__rays {
+  position: absolute;
+  inset: 0;
+}
+
+/* Eight rays on a 45° wheel, each grown lengthwise from the centre and then
+   rotated into its spoke — the scale runs before the transform, so the ray
+   stretches along its own axis rather than along the board's. */
+.battle-burst__rays i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5%;
+  height: 46%;
+  margin-left: -2.5%;
+  background: linear-gradient(180deg, var(--battle-burst-base) 0%, transparent 100%);
+  transform: rotate(var(--battle-burst-ray, 0deg));
+  transform-origin: 50% 0;
+  animation: battle-burst-ray var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__ring {
+  position: absolute;
+  inset: 20%;
+  border: 2px solid var(--battle-burst-edge);
+  border-radius: 50%;
+  animation: battle-burst-ring var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__ring--late {
+  border-color: var(--battle-burst-base);
+  animation-delay: 140ms;
+}
+
+/* An evolution reads as arcs rather than closed rings: two sides of each ring
+   are dropped and the pair counter-rotates. */
+.battle-burst--evolve .battle-burst__ring {
+  border-width: 3px;
+  border-inline-color: transparent;
+  animation-name: battle-burst-arc;
+}
+
+.battle-burst--evolve .battle-burst__ring--late {
+  animation-name: battle-burst-arc-reverse;
+}
+
+.battle-burst--hatch .battle-burst__core {
+  background: radial-gradient(circle, var(--battle-burst-base) 0%, var(--battle-burst-edge) 38%, transparent 72%);
+}
+
+/* The flying card back is a thumbnail, so the starburst reaches well past it to
+   read as an arrival rather than a speck. */
+.battle-burst--draw {
+  inset: -90%;
+}
+
+.battle-burst--draw .battle-burst__core,
+.battle-burst--draw .battle-burst__rays i,
+.battle-burst--draw .battle-burst__ring {
+  animation-duration: var(--t-draw-burst, 600ms);
+}
+
+@keyframes battle-burst-core {
+  0% {
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    scale: 1.1;
+    opacity: 0.85;
+  }
+  100% {
+    scale: 1.35;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-ray {
+  0% {
+    scale: 1 0;
+    opacity: 0;
+  }
+  25% {
+    scale: 1 1;
+    opacity: 0.95;
+  }
+  100% {
+    scale: 1 0.3;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-ring {
+  0% {
+    scale: 0.25;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    scale: 1.5;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-arc {
+  0% {
+    rotate: -60deg;
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    rotate: 40deg;
+    scale: 1.55;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-arc-reverse {
+  0% {
+    rotate: 70deg;
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    rotate: -30deg;
+    scale: 1.4;
+    opacity: 0;
+  }
+}
+
+/* --- Hatching and breeding-slot spotlight --------------------------------- */
+
+.game-breeding-slot {
+  position: relative;
+}
+
+.game-breeding-slot__burst {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The reference client darkens everything around the egg and opens a white
+   starburst behind it, so the hatch reads even on a busy board. */
+.game-breeding-slot--lit[data-burst="hatch"]::before {
+  position: absolute;
+  z-index: 0;
+  inset: -26%;
+  background: radial-gradient(circle, rgb(4 8 18 / 80%) 28%, transparent 70%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+}
+
+.game-breeding-slot--lit[data-burst="evolve"]::before {
+  position: absolute;
+  z-index: 0;
+  inset: -20%;
+  background: radial-gradient(circle, rgb(240 138 36 / 35%) 22%, transparent 68%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+}
+
+@keyframes battle-hatch-vignette {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- Turn-start draw starburst -------------------------------------------- */
+
+/* Sized to the flying card back so the burst opens exactly where it landed. */
+.game-draw-burst {
+  position: absolute;
+  z-index: 62;
+  width: 30px;
+  height: 42px;
+  pointer-events: none;
+}
+
+/* --- Centre-screen zone showcase ------------------------------------------
+   Sits above the board-mode decision rail and below the dialogs: it is the
+   opponent's moment, and no decision of the viewer's is ever waiting under it. */
+
+.battle-showcase {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 1);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: battle-showcase-fade var(--t-showcase-out, 160ms) cubic-bezier(0.32, 0, 0.67, 0)
+    var(--t-showcase-out-at, 1060ms) both;
+}
+
+.battle-showcase__frame {
+  position: relative;
+  display: flex;
+  margin: 0;
+  gap: var(--ds-space-2);
+  flex-direction: column;
+  align-items: center;
+  animation: battle-showcase-in var(--t-showcase-in, 160ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.battle-showcase__halo {
+  position: absolute;
+  z-index: 0;
+  inset: 8% 0 22%;
+  pointer-events: none;
+}
+
+.battle-showcase__art {
+  position: relative;
+  z-index: 1;
+  border-radius: var(--ds-radius-sm);
+  filter: drop-shadow(0 22px 44px rgb(4 8 18 / 70%));
+}
+
+.battle-showcase__caption {
+  position: relative;
+  z-index: 1;
+  padding: 0.25rem 0.85rem;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 999px;
+  background: var(--battle-panel);
+  box-shadow: 0 2px 12px rgb(6 12 28 / 45%);
+}
+
+@keyframes battle-showcase-in {
+  from {
+    scale: 0.78;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+@keyframes battle-showcase-fade {
+  from {
+    scale: 1;
+    opacity: 1;
+  }
+  to {
+    scale: 1.06;
+    opacity: 0;
+  }
+}
+
 /* --- Security attack: lunge, shield hit, arrow double shot ---------------- */
 
 /* The attacker leans at the shield it declared on. `translate` is used rather
@@ -3761,6 +4057,22 @@ button.opponent-action-feed__current:focus-visible {
   /* The clash burst is a pure motion flourish; the scene still reads without it. */
   .battle-clash__flash {
     display: none;
+  }
+
+  /* Every burst is pure motion with nothing to read, so it is dropped rather
+     than frozen — the side panel and the effect notice carry the information.
+     The queue skips the same cues in drain mode, so nothing is left mid-state. */
+  .battle-burst,
+  .game-draw-burst,
+  .game-breeding-slot--lit::before {
+    display: none;
+  }
+
+  /* The showcase is text-free motion; the queue never enqueues it under reduced
+     motion, and this covers the showcase page rendering one statically. */
+  .battle-showcase,
+  .battle-showcase__frame {
+    animation: none;
   }
 
   /* CardMini sets its suspend rotation inline, so only !important can reach it. */

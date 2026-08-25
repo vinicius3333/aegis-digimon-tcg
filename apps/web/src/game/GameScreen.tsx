@@ -114,6 +114,8 @@ import { hasOpenCombatPrompt } from "./opponentActionFeed";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
 import { NoticeStack } from "./NoticeStack";
 import { SecurityClash } from "./SecurityClashView";
+import { ZoneShowcase } from "./ZoneShowcase";
+import { CardBurst } from "./CardBurst";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
@@ -351,8 +353,19 @@ export function GameScreen({
     },
     onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
   });
-  const { attackAnnouncement, attackLunge, drawFlights, securityClash, securityHitSeat, sidePanels, turnTransition } =
-    cues;
+  const {
+    attackAnnouncement,
+    attackLunge,
+    drawBursts,
+    drawFlights,
+    pendingPermanentIds,
+    permanentBursts,
+    securityClash,
+    securityHitSeat,
+    sidePanels,
+    turnTransition,
+    zoneShowcase,
+  } = cues;
   const playGameCue = cues.playCue;
 
   const clearSel = () => {
@@ -1403,6 +1416,10 @@ export function GameScreen({
 
       {securityClash && !state.gameOver ? <SecurityClash key={securityClash.key} scene={securityClash} /> : null}
 
+      {zoneShowcase && !securityClash && !state.gameOver ? (
+        <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} />
+      ) : null}
+
       {historyOpen ? <MatchHistorySheet log={log} onClose={() => setHistoryOpen(false)} /> : null}
 
       {bugReportOpen ? <BugReportDialog signedIn={signedIn} onClose={() => setBugReportOpen(false)} /> : null}
@@ -1676,6 +1693,10 @@ export function GameScreen({
       <div
         className="game-board"
         ref={boardRef}
+        // Clicking through an opponent's sequence fast-forwards it, the way the
+        // reference client lets a player skip their cut-ins. Capture-phase and
+        // passive: it never swallows the click the board was going to handle.
+        onPointerDownCapture={() => cues.skipAnimations()}
         style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", ...battlefield }}
       >
         {/* opponent identity bar */}
@@ -1952,6 +1973,8 @@ export function GameScreen({
                     drop={{ "data-drop": "perm-opp", "data-id": p.permanentId }}
                     candidate={isCand}
                     highlight={decisionHighlightPermanentId === p.permanentId}
+                    burst={permanentBursts.get(p.permanentId)}
+                    pending={pendingPermanentIds.has(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     onClick={onOppPerm(p)}
                     onInspectStart={
@@ -2025,6 +2048,8 @@ export function GameScreen({
                     // A board-mode optional prompt points at the permanent whose
                     // effect is asking, so the rail and the field read as one.
                     highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}
+                    burst={permanentBursts.get(p.permanentId)}
+                    pending={pendingPermanentIds.has(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     drop={{ "data-drop": "perm-you", "data-id": p.permanentId }}
                     onClick={draggable ? undefined : onYourPerm(p)}
@@ -2059,6 +2084,7 @@ export function GameScreen({
                 perm={opp.breeding}
                 label={t("game.pile.raising")}
                 compact={compactPiles}
+                burst={opp.breeding ? permanentBursts.get(opp.breeding.permanentId) : undefined}
                 width={compactPiles ? 42 : narrowRail ? NARROW_RAIL_SLOT_WIDTH : undefined}
                 onClick={
                   narrowGameLayout && opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, "opp") : undefined
@@ -2147,6 +2173,7 @@ export function GameScreen({
                 perm={you.breeding}
                 label={t("game.pile.raising")}
                 compact={compactPiles}
+                burst={you.breeding ? permanentBursts.get(you.breeding.permanentId) : undefined}
                 // On a phone the dock is a row above the hand; a smaller slot gives
                 // its height back to the battle rows while staying a 44px+ target.
                 width={narrowGameLayout ? 46 : undefined}
@@ -2210,6 +2237,12 @@ export function GameScreen({
         </footer>
 
         {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
+
+        {drawBursts.map((burst) => (
+          <span key={burst.key} aria-hidden="true" className="game-draw-burst" style={{ left: burst.x, top: burst.y }}>
+            <CardBurst variant="draw" />
+          </span>
+        ))}
 
         {drawFlights.map((flight) => (
           <div

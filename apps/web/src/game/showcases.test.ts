@@ -1,0 +1,101 @@
+import { describe, expect, it } from "vitest";
+import type { ServerEvent } from "@aegis/shared";
+import { COLORS } from "../design/theme";
+import { burstPalette, hasTurnStartDraw, permanentBurstFromEvent, zoneShowcaseFromEvent } from "./showcases";
+
+const VIEWER = 0;
+const OPPONENT = 1;
+
+const PLAYED: ServerEvent = { kind: "cardPlayed", seat: OPPONENT, cardId: "BT1-010", permanentId: "perm-1" };
+const DIGIVOLVED: ServerEvent = { kind: "digivolved", seat: OPPONENT, permanentId: "perm-1", cardId: "BT1-011" };
+
+describe("centre-screen showcase", () => {
+  it("announces the opponent's play and digivolution", () => {
+    expect(zoneShowcaseFromEvent(PLAYED, VIEWER, 1)).toMatchObject({ key: 1, kind: "play", cardId: "BT1-010" });
+    expect(zoneShowcaseFromEvent(DIGIVOLVED, VIEWER, 2)).toMatchObject({ kind: "digivolve", cardId: "BT1-011" });
+  });
+
+  it("stays out of the way of the viewer's own moves", () => {
+    expect(zoneShowcaseFromEvent({ ...PLAYED, seat: VIEWER }, VIEWER, 1)).toBeNull();
+    expect(zoneShowcaseFromEvent({ ...DIGIVOLVED, seat: VIEWER }, VIEWER, 1)).toBeNull();
+  });
+
+  it("announces nothing for an event that changes no zone", () => {
+    expect(zoneShowcaseFromEvent({ kind: "memoryChanged", from: 3, to: -1, reason: "cost" }, VIEWER, 1)).toBeNull();
+  });
+});
+
+describe("field burst", () => {
+  it("bursts in the card's own colour where a permanent lands", () => {
+    expect(permanentBurstFromEvent(PLAYED, 1)).toMatchObject({
+      permanentId: "perm-1",
+      variant: "play",
+      inBreeding: false,
+    });
+  });
+
+  it("burns over an evolution and opens in the breeding slot for a hatch", () => {
+    expect(permanentBurstFromEvent(DIGIVOLVED, 1)).toMatchObject({ variant: "evolve", inBreeding: false });
+    expect(
+      permanentBurstFromEvent({ kind: "hatched", seat: VIEWER, permanentId: "perm-egg", cardId: "ST1-01" }, 1),
+    ).toMatchObject({ variant: "hatch", inBreeding: true });
+  });
+
+  it("treats a move out of breeding as an arrival in the battle area", () => {
+    expect(
+      permanentBurstFromEvent({ kind: "movedFromBreeding", seat: VIEWER, permanentId: "perm-2", cardId: "ST1-03" }, 1),
+    ).toMatchObject({ permanentId: "perm-2", variant: "play", inBreeding: false });
+  });
+
+  it("bursts for both seats, because the field is shared", () => {
+    expect(permanentBurstFromEvent({ ...PLAYED, seat: VIEWER }, 1)).not.toBeNull();
+  });
+
+  it("leaves an Option alone: it never becomes a permanent", () => {
+    expect(permanentBurstFromEvent({ kind: "cardPlayed", seat: OPPONENT, cardId: "BT1-090" }, 1)).toBeNull();
+  });
+});
+
+describe("burst palette", () => {
+  it("takes the card's own colour for an arrival", () => {
+    expect(burstPalette("play", "Green")).toEqual({ base: COLORS.Green.base, edge: COLORS.Green.edge });
+  });
+
+  it("keeps the fixed vocabulary for evolution, hatch and draw", () => {
+    // The spec keys these to the moment, not to the card: an evolution always
+    // burns red/orange and a hatch always opens white/blue.
+    expect(burstPalette("evolve", "Green")).toEqual(burstPalette("evolve", "Blue"));
+    expect(burstPalette("hatch", "Red")).toEqual(burstPalette("hatch", "Black"));
+    expect(burstPalette("draw")).toEqual(burstPalette("draw", "Yellow"));
+  });
+});
+
+describe("turn-start draw", () => {
+  const DRAW_PHASE: ServerEvent = { kind: "phaseChanged", phase: "Draw", turnSeat: VIEWER, turnCount: 3 };
+
+  it("recognises the draw the turn opens with", () => {
+    expect(hasTurnStartDraw([DRAW_PHASE], VIEWER)).toBe(true);
+  });
+
+  it("leaves an effect draw to its notice", () => {
+    const effect: ServerEvent = {
+      kind: "effectResolved",
+      seat: VIEWER,
+      sourceCardId: "BT1-010",
+      effectKey: "k",
+      description: "Draw 1.",
+    };
+    expect(hasTurnStartDraw([effect], VIEWER)).toBe(false);
+  });
+
+  it("keeps the cue on the drawing seat", () => {
+    expect(hasTurnStartDraw([DRAW_PHASE], OPPONENT)).toBe(false);
+    expect(hasTurnStartDraw([{ ...DRAW_PHASE, turnSeat: OPPONENT }], OPPONENT)).toBe(true);
+  });
+
+  it("ignores any other phase", () => {
+    expect(hasTurnStartDraw([{ kind: "phaseChanged", phase: "Main", turnSeat: VIEWER, turnCount: 3 }], VIEWER)).toBe(
+      false,
+    );
+  });
+});

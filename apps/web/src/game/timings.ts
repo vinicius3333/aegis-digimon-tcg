@@ -43,6 +43,16 @@ export const TIMINGS = {
   clashOutcome: 350,
   /** The scene fading back out. */
   clashExit: 200,
+  /** The centre-screen card growing in on a zone change. */
+  showcaseIn: 160,
+  /** How long the announced card is held centre-screen before the board takes over. */
+  showcaseHold: 900,
+  /** The centre-screen card clearing out of the way. */
+  showcaseOut: 160,
+  /** The colour-keyed rays and rings behind a card that just landed. */
+  cardBurst: 800,
+  /** The starburst at the hand slot where a turn-start draw lands. */
+  drawBurst: 600,
   /** The full-width turn banner. */
   turnBanner: 1000,
   /** How long a framed notice stays readable on its own. */
@@ -80,6 +90,12 @@ export const CLASH_OUTCOME_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal + TI
 /** End to end, which is also how long the scene stays mounted. */
 export const CLASH_TOTAL_MS = CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
 
+/** The centre-screen showcase, end to end: how long it stays mounted. */
+export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIMINGS.showcaseOut;
+
+/** When the showcase starts clearing out, which is also when the field may reveal. */
+export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
+
 /** The custom properties game.css reads, and the milliseconds behind each one. */
 export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-draw-flight": TIMINGS.drawFlight,
@@ -97,6 +113,11 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-clash-outcome": TIMINGS.clashOutcome,
   "--t-clash-outcome-at": CLASH_OUTCOME_AT_MS,
   "--t-clash-total": CLASH_TOTAL_MS,
+  "--t-showcase-in": TIMINGS.showcaseIn,
+  "--t-showcase-out": TIMINGS.showcaseOut,
+  "--t-showcase-out-at": SHOWCASE_OUT_AT_MS,
+  "--t-card-burst": TIMINGS.cardBurst,
+  "--t-draw-burst": TIMINGS.drawBurst,
   "--t-turn-banner": TIMINGS.turnBanner,
   "--t-side-panel-in": TIMINGS.sidePanelIn,
   "--t-notice-in": TIMINGS.noticeIn,

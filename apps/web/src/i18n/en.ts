@@ -581,6 +581,9 @@ export const en = {
   "feed.historyTitle": "Match history",
   "feed.noHistory": "No actions yet",
 
+  "showcase.opponentPlayed": "Opponent played {card}",
+  "showcase.opponentDigivolved": "Opponent digivolved into {card}",
+
   "panel.discardedCards": "Discarded cards",
   "panel.cardsAddedToHand": "Cards added to hand",
   "panel.selectedCards": "Selected Cards",

@@ -90,3 +90,23 @@
   animation-delay: -1200ms;
   animation-play-state: paused;
 }
+
+/* Same trick for the bursts and the centre-screen showcase: a live burst ends
+   invisible, so each one is wound to its brightest frame and paused. */
+.board-showcase .battle-burst__core,
+.board-showcase .battle-burst__rays i,
+.board-showcase .battle-burst__ring,
+.board-showcase .game-breeding-slot--lit::before {
+  animation-delay: -200ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .battle-showcase {
+  position: absolute;
+  animation: none;
+}
+
+.board-showcase .battle-showcase__frame {
+  animation-delay: -160ms;
+  animation-play-state: paused;
+}

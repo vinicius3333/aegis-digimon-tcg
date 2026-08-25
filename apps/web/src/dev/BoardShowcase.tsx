@@ -8,6 +8,9 @@ import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis
 import { AttackArrow, BreedingSlot, Hand, MemoryGauge, PermanentView, Pile, type HandEntry } from "../game/boardPieces";
 import { BlockOverlay, DecisionOverlay, GameOverOverlay, MulliganOverlay } from "../game/overlays";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../game/BoardDecisionRail";
+import { CardBurst } from "../game/CardBurst";
+import { ZoneShowcase } from "../game/ZoneShowcase";
+import type { PermanentBurst, ZoneShowcase as ZoneShowcaseModel } from "../game/showcases";
 import { NoticeStack } from "../game/NoticeStack";
 import { SidePanelStack } from "../game/SidePanelStack";
 import type { MatchNotice } from "../game/notices";
@@ -325,6 +328,21 @@ const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
   },
 ];
 
+function showcaseBurst(variant: PermanentBurst["variant"], overrides: Partial<PermanentBurst> = {}): PermanentBurst {
+  return { key: 1, permanentId: "p-burst", variant, color: "Blue", inBreeding: false, ...overrides };
+}
+
+const ZONE_SHOWCASES: { label: string; showcase: ZoneShowcaseModel }[] = [
+  {
+    label: "opponent played a card",
+    showcase: { key: 1, kind: "play", cardId: CARDS.opponentChampion, seat: 1, color: "Blue" },
+  },
+  {
+    label: "opponent digivolved",
+    showcase: { key: 2, kind: "digivolve", cardId: CARDS.opponentUltimate, seat: 1, color: "Red" },
+  },
+];
+
 /* ---------------- scaffolding ---------------- */
 
 function Section({
@@ -527,6 +545,62 @@ export function BoardShowcase() {
         <Case label="deck pile, compact">
           <Pile count={12} label="Egg" compact />
         </Case>
+      </Section>
+
+      <Section
+        id="showcase-zone-showcase"
+        title="centre-screen showcase"
+        note="What the board holds up when the opponent plays or digivolves: the card large in the middle, its destination hidden behind it, and the colour-keyed halo underneath. Held still here; in a match it grows in, waits ~900 ms and clears — a click anywhere skips it, and reduced motion drops it entirely."
+        stacked
+      >
+        {ZONE_SHOWCASES.map(({ label, showcase }) => (
+          <Stage key={label} label={label} height={700}>
+            <ZoneShowcase showcase={showcase} />
+          </Stage>
+        ))}
+      </Section>
+
+      <Section
+        id="showcase-bursts"
+        title="colour-keyed bursts"
+        note="One burst component for every landing, coloured by the moment: an arrival takes the card's colour, an evolution burns red into orange, a hatch opens white into blue behind a darkened slot, and a turn-start draw lands on the same blue starburst."
+      >
+        <Case label="play (card colour)">
+          <PermanentView
+            perm={permanent({ permanentId: "p-burst-play", cardId: CARDS.champion, baseDP: 4000 })}
+            burst={showcaseBurst("play", { permanentId: "p-burst-play", color: "Green" })}
+          />
+        </Case>
+        <Case label="evolution (arc rings)">
+          <PermanentView
+            perm={permanent({
+              permanentId: "p-burst-evolve",
+              cardId: CARDS.ultimate,
+              baseDP: 6000,
+              stackCardIds: [CARDS.rookie],
+            })}
+            burst={showcaseBurst("evolve", { permanentId: "p-burst-evolve" })}
+          />
+        </Case>
+        <Case label="hatch (breeding slot)">
+          <BreedingSlot
+            label="Breeding"
+            perm={permanent({ permanentId: "p-burst-hatch", cardId: CARDS.egg, baseDP: 0 })}
+            burst={showcaseBurst("hatch", { permanentId: "p-burst-hatch", inBreeding: true })}
+          />
+        </Case>
+        <Case label="breeding evolution (spotlight)">
+          <BreedingSlot
+            label="Breeding"
+            perm={permanent({ permanentId: "p-burst-breed", cardId: CARDS.rookie, baseDP: 3000 })}
+            burst={showcaseBurst("evolve", { permanentId: "p-burst-breed", inBreeding: true })}
+          />
+        </Case>
+        <Stage label="turn-start draw lands" height={180}>
+          <span className="game-draw-burst" style={{ left: 90, top: 66 }}>
+            <CardBurst variant="draw" />
+          </span>
+        </Stage>
       </Section>
 
       <Section

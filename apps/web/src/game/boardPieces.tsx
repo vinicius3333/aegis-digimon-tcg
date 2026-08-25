@@ -8,6 +8,8 @@ import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { COLORS, colorKey } from "../design/theme";
 import { CardBack, CardFull, CardMini } from "../design/cards";
 import { useEnterAnimation } from "./animations";
+import { CardBurst } from "./CardBurst";
+import type { PermanentBurst } from "./showcases";
 import { linkCardSlots } from "./boardModel";
 import { formatKeyword } from "./keywordDisplay";
 import { useTranslation } from "../i18n";
@@ -199,6 +201,8 @@ export function PermanentView({
   dimmed,
   compact,
   lunge,
+  burst,
+  pending,
   width,
   refCb,
   onClick,
@@ -215,6 +219,10 @@ export function PermanentView({
   compact?: boolean;
   /** Play the attack lunge, leaning toward the security stack in this direction. */
   lunge?: "up" | "down";
+  /** The colour-keyed burst this permanent is playing, behind the card. */
+  burst?: PermanentBurst;
+  /** Held back while the card is still being announced centre-screen. */
+  pending?: boolean;
   /** Explicit card width; overrides the `compact` default. */
   width?: number;
   refCb?: (el: HTMLDivElement | null) => void;
@@ -283,6 +291,9 @@ export function PermanentView({
         cursor: onPointerDown ? "grab" : onClick ? "pointer" : "default",
         touchAction: "none",
         opacity: dimmed ? 0.4 : 1,
+        // The reference client hides the destination until the centre-screen
+        // announcement is over, rather than flying the card across the board.
+        visibility: pending ? "hidden" : undefined,
         transform: highlight ? "translateY(-6px)" : "none",
         transition: "transform 160ms, opacity 160ms",
       }}
@@ -364,6 +375,7 @@ export function PermanentView({
         className="game-card-enter"
         style={{ position: "relative", zIndex: 1 }}
       >
+        {burst ? <CardBurst key={burst.key} variant={burst.variant} color={burst.color} /> : null}
         <CardMini
           cardId={topId}
           width={permanentWidth}
@@ -494,6 +506,7 @@ export function BreedingSlot({
   label,
   candidate,
   compact,
+  burst,
   width,
   onClick,
   drop,
@@ -502,6 +515,11 @@ export function BreedingSlot({
   label: string;
   candidate?: boolean;
   compact?: boolean;
+  /**
+   * The burst the slot is playing: a hatch opens white into blue behind a dark
+   * vignette, an evolution in breeding takes the same centre-lit treatment.
+   */
+  burst?: PermanentBurst;
   /** Explicit slot width; overrides the `compact` default. */
   width?: number;
   onClick?: () => void;
@@ -511,7 +529,8 @@ export function BreedingSlot({
   const w = width ?? (compact ? 66 : 100);
   return (
     <div
-      className="game-breeding-slot"
+      className={`game-breeding-slot${burst ? " game-breeding-slot--lit" : ""}`}
+      data-burst={burst?.variant}
       style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 2 : 5 }}
     >
       <div
@@ -530,6 +549,7 @@ export function BreedingSlot({
         aria-label={onClick ? label : undefined}
         {...(drop ?? {})}
         style={{
+          position: "relative",
           width: w,
           height: Math.round(w * 1.34),
           borderRadius: compact ? 8 : 12,
@@ -541,6 +561,11 @@ export function BreedingSlot({
           animation: candidate ? "aegis-pulse 1.2s ease-in-out infinite" : "none",
         }}
       >
+        {burst ? (
+          <span className="game-breeding-slot__burst" aria-hidden="true">
+            <CardBurst key={burst.key} variant={burst.variant} color={burst.color} />
+          </span>
+        ) : null}
         {perm && perm.topCard?.cardId ? (
           <PermanentView perm={perm} compact={compact} width={Math.round(w * 1.16)} />
         ) : (

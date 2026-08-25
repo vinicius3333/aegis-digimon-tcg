@@ -49,8 +49,15 @@ import {
   type MatchNotice,
 } from "./notices";
 import { buildSecurityClashScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
+import {
+  hasTurnStartDraw,
+  permanentBurstFromEvent,
+  zoneShowcaseFromEvent,
+  type PermanentBurst,
+  type ZoneShowcase,
+} from "./showcases";
 import { createAnimationQueue, type AnimationQueueMode, type AnimationStep } from "./animationQueue";
-import { CLASH_TOTAL_MS, TIMINGS } from "./timings";
+import { CLASH_TOTAL_MS, SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
 
 /** Card back sent from a deck pile to the hand that just grew, in board coordinates. */
 export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number };
@@ -59,7 +66,17 @@ export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: nu
 const DRAW_FLIGHT_WIDTH = 30;
 const DRAW_FLIGHT_HEIGHT = 42;
 
+/** Starburst left where a turn-start draw lands, in board coordinates. */
+export type DrawBurst = { key: number; x: number; y: number };
+
 export type AttackLunge = { permanentId: string; direction: "up" | "down" };
+
+/**
+ * The centre-screen showcase and the security clash share one track, so the
+ * board never holds two cards up at once — a security check replaces whatever
+ * showcase was mid-flight rather than painting over it.
+ */
+const CENTER_STAGE_TRACK = "centerStage";
 export type TurnTransitionCue = { endingSeat: number; nextSeat: number; turnCount: number };
 
 /** The board elements a draw flight is measured between. */
@@ -83,9 +100,16 @@ export interface MatchCues {
   attackAnnouncement: AttackAnnouncement | null;
   turnTransition: TurnTransitionCue | null;
   securityClash: SecurityClashScene | null;
+  /** The opponent's card, held centre-screen while its zone change is announced. */
+  zoneShowcase: ZoneShowcase | null;
+  /** The colour-keyed burst each permanent is currently playing, by permanent id. */
+  permanentBursts: ReadonlyMap<string, PermanentBurst>;
+  /** Permanents held back from the board while their showcase is still up. */
+  pendingPermanentIds: ReadonlySet<string>;
   attackLunge: AttackLunge | null;
   securityHitSeat: number | null;
   drawFlights: readonly DrawFlight[];
+  drawBursts: readonly DrawBurst[];
   /** Plays a cue for a locally triggered action, sharing the repeat suppression with the event fan-out. */
   playCue: (kind: SoundKind) => void;
   /** Fast-forward the decorative cues currently in flight. */
@@ -97,6 +121,13 @@ const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
   return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function remove(ids: ReadonlySet<string>, id: string): ReadonlySet<string> {
+  if (!ids.has(id)) return ids;
+  const next = new Set(ids);
+  next.delete(id);
+  return next;
 }
 
 function documentHidden(): boolean {
@@ -139,6 +170,10 @@ export function useMatchCues({
   const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
   const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
   const [drawFlights, setDrawFlights] = useState<readonly DrawFlight[]>([]);
+  const [drawBursts, setDrawBursts] = useState<readonly DrawBurst[]>([]);
+  const [zoneShowcase, setZoneShowcase] = useState<ZoneShowcase | null>(null);
+  const [permanentBursts, setPermanentBursts] = useState<ReadonlyMap<string, PermanentBurst>>(new Map());
+  const [pendingPermanentIds, setPendingPermanentIds] = useState<ReadonlySet<string>>(new Set());
 
   // Cues are observed twice for your own actions (the intent handler fires one
   // immediately, the server echo arrives later), so repeats are suppressed.
@@ -158,7 +193,11 @@ export function useMatchCues({
   const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
   const securityClashKeyRef = useRef(0);
   const drawFlightKeyRef = useRef(0);
+  const showcaseKeyRef = useRef(0);
   const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
+  // Set when the draw phase is announced and spent by the hand that grows in the
+  // same commit, which is what tells a turn-start draw from an effect draw.
+  const turnStartDrawRef = useRef({ you: false, opp: false });
 
   const playCue = (kind: SoundKind) => {
     const now = Date.now();
@@ -242,6 +281,22 @@ export function useMatchCues({
           raised.push(notice);
         }
       }
+      // Zone changes own the centre of the screen: the opponent's card is held
+      // up, the destination stays hidden behind it, and only then does the
+      // permanent reveal on its burst. The viewer's own moves keep the burst and
+      // skip the hold — they watched the card leave their own hand.
+      let showcased = false;
+      for (const event of fresh) {
+        showcaseKeyRef.current += 1;
+        const key = showcaseKeyRef.current;
+        const showcase = zoneShowcaseFromEvent(event, viewerSeat, key);
+        const burst = permanentBurstFromEvent(event, key);
+        if (!showcase && !burst) continue;
+        showcased ||= showcase !== null;
+        enqueue(zoneChangeStep(key, showcase, burst));
+      }
+      if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
+      if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
       if (opened.length > 0) {
         setSidePanels((panels) =>
           opened.reduce<readonly SidePanel[]>(
@@ -250,7 +305,21 @@ export function useMatchCues({
           ),
         );
       }
-      for (const notice of raised) openNotice(notice);
+      // An On Play / When Digivolving notice reads as the consequence of the card
+      // that was just announced, so it waits for the reveal instead of talking
+      // over the showcase. Its clock starts when it is finally raised.
+      if (showcased && raised.length > 0) {
+        enqueue({
+          id: `showcase-notices-${showcaseKeyRef.current}`,
+          track: CENTER_STAGE_TRACK,
+          skippable: false,
+          run() {
+            for (const notice of raised) openNotice({ ...notice, createdAt: Date.now() });
+          },
+        });
+      } else {
+        for (const notice of raised) openNotice(notice);
+      }
       if (announcement) {
         const shown = announcement;
         enqueue({
@@ -298,7 +367,7 @@ export function useMatchCues({
       });
       enqueue({
         id: `security-clash-${scene.key}`,
-        track: "securityClash",
+        track: CENTER_STAGE_TRACK,
         replace: true,
         // The revealed card has to stay readable, motion preference or not.
         skippable: false,
@@ -391,18 +460,73 @@ export function useMatchCues({
     if (you === undefined || opp === undefined) return;
     const previous = handCountsRef.current;
     handCountsRef.current = { you: you.handCount, opp: opp.handCount };
-    if (!previous || mulliganOpen) return;
-    if (opp.handCount > previous.opp) launchDrawFlight("opp");
-    if (you.handCount > previous.you) launchDrawFlight("you");
+    if (!previous || mulliganOpen) {
+      turnStartDrawRef.current = { you: false, opp: false };
+      return;
+    }
+    const turnStart = turnStartDrawRef.current;
+    turnStartDrawRef.current = { you: false, opp: false };
+    if (opp.handCount > previous.opp) launchDrawFlight("opp", turnStart.opp);
+    if (you.handCount > previous.you) launchDrawFlight("you", turnStart.you);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.handCount, opp?.handCount]);
+
+  /**
+   * One zone change, in the order the reference client plays it: the card is held
+   * centre-screen while its destination stays hidden, then the permanent reveals
+   * on its colour-keyed burst.
+   *
+   * The whole sequence is pure motion — the side panel and the effect notice
+   * carry the information — so reduced motion, a hidden tab and replayed history
+   * all drop it rather than flashing it past.
+   */
+  function zoneChangeStep(key: number, showcase: ZoneShowcase | null, burst: PermanentBurst | null): AnimationStep {
+    return {
+      id: `zone-change-${key}`,
+      track: CENTER_STAGE_TRACK,
+      async run(context) {
+        if (context.mode !== "live") return;
+        if (showcase) {
+          try {
+            if (burst) setPendingPermanentIds((held) => new Set(held).add(burst.permanentId));
+            setZoneShowcase(showcase);
+            await context.wait(SHOWCASE_TOTAL_MS);
+          } finally {
+            // A replacing cue (a security check) cancels the wait, and the board
+            // must not be left holding a card up or hiding a permanent.
+            setZoneShowcase((current) => (current?.key === showcase.key ? null : current));
+            if (burst) setPendingPermanentIds((held) => remove(held, burst.permanentId));
+          }
+          if (context.cancelled) return;
+        }
+        if (!burst) return;
+        setPermanentBursts((bursts) => new Map(bursts).set(burst.permanentId, burst));
+        // The burst plays out on the permanent's own track, so the centre of the
+        // screen is free for the next announcement the moment this one reveals.
+        queue.enqueue({
+          id: `burst-${burst.key}`,
+          track: `burst-${burst.permanentId}`,
+          replace: true,
+          async run(burstContext) {
+            await burstContext.wait(TIMINGS.cardBurst);
+            setPermanentBursts((bursts) => {
+              if (bursts.get(burst.permanentId)?.key !== burst.key) return bursts;
+              const next = new Map(bursts);
+              next.delete(burst.permanentId);
+              return next;
+            });
+          },
+        });
+      },
+    };
+  }
 
   /**
    * Sends a card back from a deck pile to the hand that just grew. The reference
    * client presents a draw centre-screen; the web port keeps the deck→hand read,
    * which is what makes an opponent's draw visible at all.
    */
-  function launchDrawFlight(side: "you" | "opp") {
+  function launchDrawFlight(side: "you" | "opp", turnStart = false) {
     const board = anchors.board.current;
     const source = side === "you" ? anchors.yourDeck.current : anchors.oppDeck.current;
     const target = side === "you" ? anchors.yourHandDock.current : anchors.oppHandStrip.current;
@@ -432,6 +556,12 @@ export function useMatchCues({
         setDrawFlights((flights) => [...flights, flight]);
         await context.wait(TIMINGS.drawFlight);
         setDrawFlights((flights) => flights.filter((candidate) => candidate.key !== key));
+        // Only the draw the turn opens with gets the starburst: an effect draw is
+        // already narrated by its own notice, and two cues would read as two draws.
+        if (!turnStart || context.mode !== "live" || context.cancelled) return;
+        setDrawBursts((bursts) => [...bursts, { key, x: to.x, y: to.y }]);
+        await context.wait(TIMINGS.drawBurst);
+        setDrawBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
       },
     });
   }
@@ -454,9 +584,13 @@ export function useMatchCues({
     attackAnnouncement,
     turnTransition,
     securityClash,
+    zoneShowcase,
+    permanentBursts,
+    pendingPermanentIds,
     attackLunge,
     securityHitSeat,
     drawFlights,
+    drawBursts,
     playCue,
     skipAnimations: () => queue.skip(),
   };
