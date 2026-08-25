@@ -227,3 +227,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-019.test.ts`).
+
+## BT20-020 — Imperialdramon: Fighter Mode
+
+- Catalog contract: red/purple level 6 Virus Ancient Dragonkin, play cost 13/13000 DP, red or purple level-5 evolution cost 5 plus Dragon Mode alternate cost 2; Raid and Piercing; When Digivolving prevents the opponent from effect-playing Digimon/Tamers through their turn end, then trashes top opposing security if Dragon Mode is a source; all turns once per turn, opposing-security removal deletes one opposing Digimon at or below this Digimon's DP.
+- Knowledge base: Q4309 establishes Security-effect priority over removal watchers; Q4665-Q4668 define the player-scoped effect-play restriction by the controller of the play rather than the effect owner; Q6245 confirms the restriction also covers effect plays into breeding.
+- Implementation evidence: `RestrictPlay` is opponent-seat, Digimon/Tamer filtered, by-effect-only, and lasts through opponent turn end; its consumer gates effect placements including breeding. The conditional security action reads the live source stack, and the removal watcher uses source-relative DP with once-per-turn identity. Raid, Piercing, alternate evolution, and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: a legal BT20-076 Dragon Mode stack evolves for exactly 2, retains its source, trashes one security, and observes both keywords. A separate opponent Hisyaryumon entry effect cannot place Ryudamon into empty breeding under the restriction. Mixed 13000/14000/7000-DP peers prove the inclusive source-DP boundary, exclusion, and second-event once-per-turn gate.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-020.test.ts` — 4 passed.
+- Clause scores: stats/keywords/alternate evolution 2/2; effect-play restriction/controller scope 2/2; duration and breeding coverage/Q6245 2/2; Dragon Mode source/security trash 2/2; source-DP deletion boundary/once-per-turn 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-020.test.ts`).
