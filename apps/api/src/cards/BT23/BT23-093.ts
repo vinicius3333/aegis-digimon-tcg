@@ -89,7 +89,6 @@ export const compiled: CompiledCard = {
                   isTriggerSource: true,
                 },
                 count: 1,
-                isSelf: true,
               },
               from: ["hand"],
               payCost: false,

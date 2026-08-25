@@ -830,6 +830,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage and exact field scope; with an established Ice Archery and CS attacker, fires the attack event, trashes the Option, and observes live suspend restrictions on both a real opposing Digimon and Tamer; structurally verifies independent Main targets, ordered battle placement, Delay nesting, and Security sequence.
 - Verification: focused suite — 4 passed after refreshing shared runtime data; shared field color waiver, intrinsic Delay, independent kind targets, duration restrictions, Option departure, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-093 — Big Bang Punch! — 10/10
+
+- Catalog evidence: Blue cost-2 Appmon Option; color requirements may be ignored while an Appmon Digimon/Tamer is on the field; Main draws 1 then places this Option in battle; All Turns when a friendly Appmon Digimon suspends may activate Delay to link one Appmon Digimon card from hand to one of those Digimon without paying the cost; Security places this card in battle.
+- Knowledge base: Q5366 defines “on the field” as battle area or breeding area. Q5367 confirms a card without the Link mechanic cannot be selected by the Delay effect even if it otherwise has the Appmon trait.
+- Defects corrected: authoritative shared IR omitted field-zone scope and detached Link from its suspension listener. Both representations now nest Link under intrinsic Delay and bind its recipient to the suspension subject. The direct/shared recipient also incorrectly carried `isSelf`, which resolves to the Option source and leaves no recipient after paying Delay; removing it preserves the exact trigger-source filter. Registration remains exclusively `registerIrCard("BT23-093", compiled)` with full coverage/no residuals.
+- Primitive trace: static color waiver checks Appmon Digimon/Tamers across battle/breeding; Main draws then places the physical Option; the all-turns listener filters the friendly Appmon suspension subject, enforces the established-card Delay gate/cost, scans hand for Appmon cards, applies server-authoritative Link-mechanic eligibility, binds the recipient to the exact suspending Digimon, and waives link cost; Security places the Option in battle.
+- Behavioral proof: the focused suite checks catalog/coverage and field scope; with an established Big Bang Punch and Appmon recipient, fires the suspension event, trashes the Option, links a real Link-capable Appmon from hand to that exact recipient for free, and preserves an Appmon card lacking Link; structurally verifies nesting, source binding, and unrestricted Link-card filter delegation.
+- Verification: focused suite — 3 passed after refreshing shared runtime data; shared intrinsic Delay, suspension-subject filtering, trigger-source targeting, Link-mechanic eligibility, free linking, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-093 through BT23-102.
+BT23-094 through BT23-102.
