@@ -275,3 +275,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-023.test.ts`).
+
+## BT20-024 — Seadramon (X Antibody)
+
+- Catalog contract: blue level 4 Data Aquatic/X Antibody, play cost 6/6000 DP, blue level-3 evolution cost 2 plus Seadramon alternate cost 0; On Play/When Digivolving bottoms one opposing level-3 Digimon, then with Seadramon/X Antibody in its sources prevents one opposing Tamer from suspending through that player's turn end; inherited attack once per turn draws 1 at 7 or fewer hand cards.
+- Knowledge base: no card-specific entries; the exact level, bottom destination, sequential conditional, source-stack union, Tamer restriction, duration, and hand boundary are unambiguous.
+- Implementation evidence: both entry bodies use an exact level-3 Return followed by a source-stack-gated opponent Tamer restriction. The generated restriction token `suspend` was not consumed by legality; the shared interpreter now normalizes it to canonical `beSuspended`. The inherited draw, alternate requirement, and exclusive `registerIrCard` registration remain direct.
+- Peer/stack evidence: a Seadramon-backed stack bottoms only the selected level-3 peer, preserves a level-4 peer, and prevents effect suspension of the selected Tamer on its controller's turn. A MegaSeadramon host with seven hand cards draws once to eight and not again that turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-024.test.ts` — 3 passed; `pnpm --filter @aegis/api exec vitest run src/engine/mechanic.test.ts -t 'Restrict beSuspended'` — 1 passed (117 skipped by focus).
+- Clause scores: stats/alternate evolution 2/2; dual level-3 bottom-deck action 2/2; source-stack condition 2/2; Tamer suspension restriction/duration 2/2; inherited draw boundary/once-per-turn 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-024.test.ts`).
