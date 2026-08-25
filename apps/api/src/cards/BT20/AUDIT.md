@@ -131,3 +131,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-011.test.ts`).
+
+## BT20-012 — Ginryumon
+
+- Catalog contract: red/black level 4 Vaccine Beast Dragon/X Antibody/Chronicle Digimon, play cost 5/6000 DP, red or black level-3 evolution cost 3 plus Ryudamon or Chronicle level-3 alternate cost 2; When Attacking may evolve self from hand into Hisyaryumon or Chronicle; inherited your-turn +2000 DP.
+- Knowledge base: no card-specific entries; the optional evolution still pays its printed cost because no waiver or reduction is printed.
+- Implementation evidence: the generated action omitted `payCost`, making the attack-triggered evolution free. It now explicitly pays and selects the matching alternate requirement before evolving; the self target, hand source, name/trait destination union, optionality, alternate base requirements, inherited DP action, and exclusive `registerIrCard` registration remain faithful.
+- Peer/stack evidence: a Ginryumon/Ryudamon evolution stack attacks and observably evolves into Hisyaryumon for its 3-memory alternate cost while retaining its sources; a hand ExVeemon non-match leaves the attacker unchanged. Ginryumon under Hisyaryumon grants +2000 only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-012.test.ts` — 3 passed.
+- Clause scores: stats/normal evolution 2/2; two alternate requirements 2/2; When Attacking optional self evolution 2/2; destination filter/paid hand transition 2/2; inherited DP/turn and stack preservation 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-012.test.ts`).
