@@ -131,3 +131,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: five real BT10 material cards execute a zero-cost DigiXros and become sources; deletion saves exactly three under Taiki and leaves two in trash; direct `digiXrosMatches` comparisons prove the four KB name-treatment negatives while accepting the actual named cards; a real black level 4 stack proves the second catalog evolution route.
 - Behavioral proof: the focused suite proves all static keyword values, exact DigiXros cost and zones, the Material Save 3 cap and eligibility, all four KB identity boundaries, and printed-cost black evolution.
 - Verification: focused suite — 5 passed; DigiXros/Material Save/keyword mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
+
+## BT10-014 — PileVolcamon — 10/10
+
+- Catalog evidence: red level 6 Digimon, play cost 10, 11000 DP; evolves from red level 5 for 3; form `Mega`, attribute `Data`, type `Cyborg`. When Digivolving grants Blitz, and its Your Turn aura gives itself +2000 DP.
+- Knowledge base: `node tools/kb/query.mjs card BT10-014` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: one When Digivolving keyword effect grants Blitz at the evolution window, while one Your Turn continuous modifier adds exactly 2000 DP to self. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-014", compiled)`.
+- Primitive trace: the evolution lifecycle pays the catalog cost and opens the When Digivolving window before turn transfer; Blitz offers its optional attack only when memory has crossed to the opponent and records acceptance for that permanent; the Your Turn continuous collector adds one non-stacking +2000 modifier and removes it when turn ownership changes.
+- Cross-card and stack proof: a real Asuramon red level 5 base evolves for 3 with memory crossing from 2 to -1, accepts Blitz, and attacks opposing security before the turn closes; the BT8-013 Blitz peer suite exercises the same prompt and attack authorization mechanism; repeated continuous recomputation proves aura idempotence.
+- Behavioral proof: the focused suite proves structural trigger/amount fidelity, ordinary catalog evolution, actual post-memory-crossing Blitz attack, 13000 DP on the owner's turn, 11000 DP on the opponent's turn, and no recompute stacking.
+- Verification: focused suite — 4 passed; Blitz peer regression — 2 passed; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
