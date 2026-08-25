@@ -167,3 +167,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-014.test.ts`).
+
+## BT20-015 — Hisyaryumon
+
+- Catalog contract: red/black level 5 Vaccine Beast Dragon/X Antibody/Chronicle, play cost 7/7000 DP, red or black level-4 evolution cost 4 plus Ginryumon or Chronicle level-4 alternate cost 3; On Play/When Digivolving may play Dorumon/Ryudamon from hand into empty breeding for free, then if resolving during any attack gives one allied Digimon Security Attack +1 and +5000 DP until the opponent turn ends; inherited your-turn suppresses Option Security effects checked by the host.
+- Knowledge base: Q4715 confirms “during an attack” includes resolution during an opponent's attack, not merely an attack by the controller.
+- Implementation evidence: the prior IR incorrectly played the rookie to the battle area and installed a future `whenAttacking` watcher, allowing a later attack to grant the bonus even when the entry effect had not resolved during that attack. The corrected dual-timing bodies play to an explicitly empty breeding slot and evaluate `duringAttack` immediately; one bound selection receives both modifiers. The inherited suppression and exclusive `registerIrCard` registration remain intact.
+- Peer/stack evidence: Ginryumon's When Attacking evolution reaches Hisyaryumon during the live attack, plays Ryudamon into empty breeding, and grants both modifiers to the same attacker. An occupied breeding slot preserves its resident and the hand candidate; Hisyaryumon under Royal Knight Jesmon suppresses an Option Security effect only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-015.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; dual entry timings and optional rookie filter 2/2; empty breeding/free placement 2/2; immediate during-attack bound bonus/duration 2/2; inherited Option Security suppression/turn scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-015.test.ts`).
