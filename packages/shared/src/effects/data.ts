@@ -1207,6 +1207,13 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT11-012: the printed three distinct DigiXros slots were collapsed to Shoutmon only.
+  "BT11-012": [
+    {
+      materials: [{ names: ["Shoutmon"] }, { names: ["Ballistamon"] }, { names: ["Dorulumon"] }],
+      count: 2,
+    },
+  ],
   "BT11-019": [
     {
       materials: [
