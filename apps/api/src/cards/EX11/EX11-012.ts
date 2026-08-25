@@ -7,6 +7,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // placedAs:"opponentDigimon" describes placement side.
 // Cost.to:"deckBottom" added on both return costs — "to the bottom of the deck" (runtime-effect review
 // EX11-012 finding: absent `to` defaults to hand per Cost.to in ir.ts).
+// The Petrification Token reminder text is implemented by TOKEN-Petrification-Token; its
+// [On Deletion] security trash is not an EX11-012 On Deletion effect.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -17,12 +19,6 @@ const compiled: CompiledCard = {
           keyword: "Rush",
           raw: "＜Rush＞",
         },
-      ],
-    },
-    {
-      trigger: "Static",
-      actions: [],
-      keywords: [
         {
           keyword: "Progress",
           raw: "＜Progress＞",
@@ -49,7 +45,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlayToken",
-          token: "Petrification",
+          token: "Petrification Token",
           amount: 1,
           controller: "mine",
           placedAs: "opponentDigimon",
@@ -90,7 +86,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlayToken",
-          token: "Petrification",
+          token: "Petrification Token",
           amount: 1,
           controller: "mine",
           placedAs: "opponentDigimon",
@@ -112,22 +108,6 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "OnDeletion",
-      actions: [
-        {
-          kind: "Trash",
-          target: {
-            filter: {
-              zone: "security",
-              controller: "mine",
-              position: "top",
-            },
-            count: 1,
-          },
-        },
-      ],
-    },
-    {
       trigger: "AllTurns",
       actions: [
         {
@@ -143,7 +123,7 @@ const compiled: CompiledCard = {
             },
           ],
           cost: {
-            kind: "delete",
+            kind: "deleteOwn",
             target: {
               filter: {
                 isToken: true,
