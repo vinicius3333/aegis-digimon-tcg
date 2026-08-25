@@ -11,22 +11,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Return",
-          target: {
-            filter: {
-              zone: "trash",
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Glowing Dawn"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          to: "hand",
+          kind: "CostGatedBlock",
           cost: {
             kind: "trashBottomFaceDownUnderTamer",
             controller: "mine",
@@ -41,6 +26,26 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          actions: [
+            {
+              kind: "Return",
+              target: {
+                filter: {
+                  zone: "trash",
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Glowing Dawn"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              to: "hand",
+            },
+          ],
         },
       ],
     },

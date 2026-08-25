@@ -278,10 +278,11 @@ export async function runSubTrigger(
     // whenTrashedFromDeck fires for a loose deck card (no permanent); the isSelfRef gate
     // is handled entirely by whenTrashedFromDeckGate below.
     event === "whenTrashedFromDeck" ||
-    // onDeletionOf resolves after the rule-processing seam may have deferred the event;
-    // the permanent is then gone, so use the deletion snapshot gate below instead of
+    // Deletion/leave events resolve after the causing effect or rule-processing seam may
+    // have moved the permanent, so use the removal snapshot gate below instead of
     // attempting to re-resolve the subject from the battle area.
     event === "onDeletionOf" ||
+    event === "whenLeavesPlay" ||
     event === "onDigivolutionCardDiscarded" ||
     event === "onDigivolutionCardsDiscardedBatch" ||
     event === "onDigiBurstCardDiscarded" ||
@@ -318,7 +319,7 @@ export async function runSubTrigger(
         }
       : undefined;
   const deletionSourceFilterGate =
-    event === "onDeletionOf" && sourceFilter !== undefined
+    (event === "onDeletionOf" || event === "whenLeavesPlay") && sourceFilter !== undefined
       ? (subCtx: EffectContext): boolean => {
           if (sourceFilter.isSelfRef === true) {
             const anchor = subCtx.source.permanent()?.permanentId;

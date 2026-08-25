@@ -59,7 +59,6 @@ const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
-          optional: true,
         },
       ],
     },
@@ -98,8 +97,6 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },

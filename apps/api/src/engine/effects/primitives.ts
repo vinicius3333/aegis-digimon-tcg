@@ -3327,6 +3327,26 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
   };
 
+  /**
+   * Publish the generic leave event while a returned permanent is still observable.
+   * `collectForReturn` removes the permanent and tears down its subscriptions, so every
+   * hand/deck/egg-deck/security destination must cross this awaited boundary first.
+   */
+  const fireWhenReturnedPermanentsLeave = async (instanceIds: string[]): Promise<void> => {
+    if (engine.fireSubTrigger === undefined) return;
+    const fired = new Set<string>();
+    for (const instanceId of instanceIds) {
+      let permanent: Permanent | undefined;
+      for (const owner of state.players) {
+        permanent = owner.battleArea.find((candidate) => candidate.topCard?.instanceId === instanceId);
+        if (permanent !== undefined) break;
+      }
+      if (permanent === undefined || fired.has(permanent.permanentId)) continue;
+      fired.add(permanent.permanentId);
+      await engine.fireSubTrigger("whenLeavesPlay", { deletedPermanentId: permanent.permanentId });
+    }
+  };
+
   const returnToHand = async (
     instanceIds: string[],
     opts?: { silent?: boolean; byEffectSeat?: Seat },
@@ -3354,6 +3374,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    await fireWhenReturnedPermanentsLeave(instanceIds);
     // Record which of the requested instances start in TRASH before the move, for
     // whenCardReturnsFromTrashToHand (BT15-082/BT16-011: "a card returns from your trash to
     // your hand") — the move itself is zone-agnostic, so the origin must be captured now.
@@ -3506,6 +3527,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (host !== undefined) stackReturns.push({ ...host, instanceId });
       }
     }
+    await fireWhenReturnedPermanentsLeave(instanceIds);
     // Collect the entire batch before reinserting any card. Some callers order cards that are
     // already in the destination deck (RevealAdd keeps revealed cards face-up in place); a
     // collect-and-insert loop mutates that deck between removals and can invert the requested
@@ -3669,6 +3691,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   /** Return loose cards to the bottom of their owners' Digi-Egg decks. */
   const returnToEggDeck = async (instanceIds: string[]): Promise<CardInstance[]> => {
+    await fireWhenReturnedPermanentsLeave(instanceIds);
     const moved: CardInstance[] = [];
     for (const instanceId of instanceIds) {
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
@@ -3786,6 +3809,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // from hand/deck/trash (not leaving the battle area) pass through untouched.
     if (opts?.detachPermanentTop !== true) {
       instanceIds = await filterBouncePrevented(instanceIds);
+      await fireWhenReturnedPermanentsLeave(instanceIds);
+    } else {
+      await fireWhenReturnedPermanentsLeave(
+        instanceIds.filter((instanceId) =>
+          state.players.some((owner) =>
+            owner.battleArea.some(
+              (permanent) => permanent.topCard?.instanceId === instanceId && permanent.stack.length === 0,
+            ),
+          ),
+        ),
+      );
     }
     const p = player(seat);
     const toTop = opts?.toTop ?? false;

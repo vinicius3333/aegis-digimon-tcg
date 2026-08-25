@@ -2082,7 +2082,16 @@ export class GameEngine {
       return;
     }
     if (this.shouldDeferNestedTiming()) {
-      this.pendingWindowSubTriggers.push(...this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+      // The event subject can leave the board before the causing effect finishes. Bind each
+      // context now, at trigger time, so the pending activation keeps the subject snapshot
+      // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
+      const subscriptions = this.subTriggers.subscriptionsFor(event);
+      const contexts = new Map<number, EffectContext>();
+      for (const sub of subscriptions) {
+        const ctx = this.buildSubTriggerContext(sub, payload);
+        if (ctx !== undefined) contexts.set(sub.id, ctx);
+      }
+      this.pendingWindowSubTriggers.push(...this.armedSubTriggers(subscriptions, payload, contexts));
       return;
     }
     // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was

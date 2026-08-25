@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST24-07 ShineGreymon", () => {
@@ -13,7 +14,8 @@ describe("ST24-07 ShineGreymon", () => {
         .map((keyword) => keyword.keyword),
     ).toEqual(["Raid", "Piercing", "SecurityAttack"]);
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
-      expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
+      const effect = compiled.effects.find((entry) => entry.trigger === trigger);
+      expect(effect).toMatchObject({
         frequency: "OncePerTurn",
         sharedUseKey: "ir-shared-0",
         actions: [
@@ -26,6 +28,7 @@ describe("ST24-07 ShineGreymon", () => {
           { kind: "ModifyDP", amount: -9000, duration: "forTheTurn" },
         ],
       });
+      expect(effect?.actions[1]).not.toHaveProperty("optional");
     }
     expect(compiled.effects.find((entry) => entry.trigger === "Main")).toMatchObject({
       actions: [
@@ -36,5 +39,46 @@ describe("ST24-07 ShineGreymon", () => {
         },
       ],
     });
+  });
+
+  it("applies the mandatory DP reduction after the optional Tamer play is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST24-06", as: "base" }],
+          hand: [
+            { card: "ST24-07", as: "shineGreymon" },
+            { card: "ST24-13", as: "declinedTamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shineGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "optional"));
+    const prompt = s.decisions.find((decision) => decision.req.kind === "optional");
+    expect(prompt).toBeDefined();
+    if (prompt !== undefined) {
+      expect(
+        s.engine.applyIntent(prompt.seat, {
+          type: "respondDecision",
+          decisionId: prompt.req.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.perm("opponent").currentDP === 1000);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("declinedTamer").instanceId);
+    expect(s.perm("opponent").currentDP).toBe(1000);
   });
 });

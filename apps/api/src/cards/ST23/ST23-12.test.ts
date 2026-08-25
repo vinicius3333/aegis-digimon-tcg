@@ -31,4 +31,33 @@ describe("ST23-12 Liollmon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === underId)).toBe(true);
     expect(s.perm("tamer").stack.some((card) => card.instanceId === underId)).toBe(false);
   });
+
+  it("can return the Glowing Dawn Digimon that was just trashed to pay the effect cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-085", as: "tamer", under: [{ card: "ST23-03", as: "cost", faceUp: false }] }],
+          hand: [{ card: "ST23-12", as: "chiropmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const costId = s.inst("cost").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.perm("tamer").stack[0]!.faceUp).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chiropmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === costId) &&
+        !s.perm("tamer").stack.some((card) => card.instanceId === costId),
+    );
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(costId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(false);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).not.toContain(costId);
+  });
 });
