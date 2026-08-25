@@ -82612,7 +82612,6 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -3000,
             "duration": "forTheTurn",
-            "optional": true,
             "scaling": {
               "per": 1,
               "filter": {
@@ -82647,7 +82646,6 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -3000,
             "duration": "forTheTurn",
-            "optional": true,
             "scaling": {
               "per": 1,
               "filter": {
@@ -82690,7 +82688,12 @@
     "residual": [],
     "digivolutionRequirement": [
       { "level": 3, "traits": ["CS"], "cost": 4, "isAlternate": true },
-      { "traits": ["Hudie"], "names": ["Erika Mishima"], "cost": 3, "isAlternate": true }
+      {
+        "namesExact": ["Erika Mishima"],
+        "cost": 3,
+        "isAlternate": true,
+        "controllerControls": { "kind": ["Tamer"], "traits": ["Hudie"], "min": 4 }
+      }
     ]
   },
   "BT23-102": {

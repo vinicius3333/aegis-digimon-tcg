@@ -902,6 +902,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field/coverage; resolves Security with a real level-3 CS Huckmon in hand and observes both the free-played Digimon and physical Option in battle; structurally verifies field scope, ordinary Main, exact Delay Tamer filter, Security zones/level, optional play, and mandatory placement.
 - Verification: focused suite — 5 passed after refreshing shared runtime data; shared Main Delay, hand/trash free play, kind/trait/level filtering, field waiver, Draw, Security source movement, and mandatory placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-101 — Hudiemon — 10/10
+
+- Catalog evidence: Green/yellow level-4 7000-DP Insectoid/Hudie/CS Digimon; evolves from level-3 CS for 4 or from Erika Mishima for 3 while controlling at least four Hudie Tamers; Alliance; On Play/When Digivolving may free-play one cost-5-or-lower CS card from hand, then mandatorily gives one opponent -3000 DP per friendly Hudie Digimon for the turn; When Attacking once per turn may return one CS Tamer to hand to activate one of this Digimon's On Play effects.
+- Knowledge base: Q5257/Q5319 cover simultaneous double Alliance and the retained first boost through DNA evolution; Q5389 preserves summoning sickness after evolving from a newly played Tamer; Q5571 fixes the scaled reduction to one target; Q5572-Q5573 defer derived On Play and rule-check deletion until Hudiemon finishes; Q6708 says Tamer evolution is not Digimon evolution and ignores Digimon-can't-evolve restrictions.
+- Defects corrected: authoritative shared IR made the mandatory DP tail optional and reduced the Erika path to loose name/trait fields without its four-Hudie-Tamer gate. It now matches the executable mandatory tail and exact alternate requirement; registration remains exclusively `registerIrCard("BT23-101", compiled)` with full coverage/no residuals.
+- Primitive trace: both entry timings optionally free-play a hand CS card at the inclusive cost-5 ceiling, then count live friendly Hudie Digimon and multiply -3000 onto one selected opponent; Alliance is continuously projected; the once-per-turn attack effect preflights/returns one CS Tamer and reactivates the source's On Play sequence; alternate evolution carries exact base and board predicates.
+- Behavioral proof: the focused suite checks every catalog field/coverage; resolves On Play with no eligible optional play, counts two real friendly Hudiemon, and mandatorily reduces exactly one 7000-DP opponent to 1000; structurally verifies both entry timings, nonoptional scaling, the attack cost/reactivation, Alliance, and both alternate evolution paths including the four-Tamer boundary.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared optional play plus mandatory “then,” live trait scaling, single-target DP, duration, ReactivateEffect, return cost, once-per-turn, Alliance, and alternate evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-101 through BT23-102.
+BT23-102.
