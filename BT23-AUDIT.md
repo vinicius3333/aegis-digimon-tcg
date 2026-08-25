@@ -695,6 +695,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; observes Blocker live; deletes a cost-3 Digimon while preserving a cost-5 Digimon; suspends Ciel's subject and proves a realistic two-card opposing stack loses only its top card to trash; then suspends another friendly Digimon and proves the opposing stack remains intact.
 - Verification: focused suite — 6 passed after refreshing shared runtime data; shared Blocker, inclusive play-cost deletion, physical-source suspension filtering, opposing selection, and De-Digivolve mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-078 — Gorou Matayoshi — 10/10
+
+- Catalog evidence: Red cost-3 Tamer with the corrected official name `Gorou Matayoshi`, type `CS`; Start of Your Main Phase gains 1 memory only if the opponent has a Digimon; Your Turn when a friendly played/evolved Digimon has an Avian/Bird/Beast/Animal/Sovereign trait other than Sea Animal or has CS, may return this Tamer to hand to give one friendly Digimon +3000 DP for the turn, then one friendly Digimon may attack; Security plays this card for free.
+- Knowledge base: the 2025-10-17 erratum changes `Goro` to `Gorou`. Q5353 makes returning this Tamer the required “by” cost and forbids resolving the subsequent attack when that cost is not paid.
+- Defects corrected: authoritative shared IR left the printed trait union/exclusion as an unevaluable raw condition and placed one Attack outside both event listeners, allowing an unrelated continuous pass to offer it independently. The audit moves the exact trait gate onto both trigger subjects and nests a separate post-cost Attack in each listener, matching the executable module; registration remains exclusively `registerIrCard("BT23-078", compiled)` with full coverage/no residuals.
+- Primitive trace: the start-main turn guard and opponent-presence predicate precede memory gain; each play/evolution listener filters the exact event subject by controller and the printed trait union/minus Sea Animal, returns Gorou as a paid optional cost, modifies one selected friendly Digimon for the turn, and only then offers an ordinary suspending attack; the Security source self-plays from security for zero.
+- Behavioral proof: the focused suite checks every catalog field, erratum spelling, and complete IR; gains memory on its controller's start-main but not the opponent's; accepts a qualifying CS play, returns the exact Tamer, gives +3000 DP, and produces a live attack suspension; declines the return and proves no movement, boost, or attack; and rejects a Sea Animal-only trigger subject.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared start-main guards, trait union/exclusion, compound cost, abort-on-decline, temporary DP, optional attack, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-078 through BT23-102.
+BT23-079 through BT23-102.

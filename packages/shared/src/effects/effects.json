@@ -80803,17 +80803,21 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [
+                { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
+                { "tokens": ["CS"], "match": "trait" }
+              ],
+              "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
+            },
             "actions": [
               {
                 "kind": "ModifyDP",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "amount": 3000,
                 "duration": "forTheTurn",
-                "condition": {
-                  "kind": "raw",
-                  "raw": "any of them have [Avian], [Bird], [Beast], [Animal] or [Sovereign] in any of their traits other than [Sea Animal] or the [CS] trait"
-                },
                 "cost": {
                   "kind": "return",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -80821,23 +80825,33 @@
                 },
                 "optional": true,
                 "abortOnDecline": true
+              },
+              {
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
           },
           {
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [
+                { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" },
+                { "tokens": ["CS"], "match": "trait" }
+              ],
+              "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
+            },
             "actions": [
               {
                 "kind": "ModifyDP",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "amount": 3000,
                 "duration": "forTheTurn",
-                "condition": {
-                  "kind": "raw",
-                  "raw": "any of them have [Avian], [Bird], [Beast], [Animal] or [Sovereign] in any of their traits other than [Sea Animal] or the [CS] trait"
-                },
                 "cost": {
                   "kind": "return",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -80845,14 +80859,14 @@
                 },
                 "optional": true,
                 "abortOnDecline": true
+              },
+              {
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "Attack",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "withoutSuspending": false,
-            "optional": true
           }
         ]
       },

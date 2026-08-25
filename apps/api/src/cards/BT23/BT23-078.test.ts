@@ -1,10 +1,27 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT23-078.js";
+import { compiled } from "./BT23-078.js";
 
 describe("BT23-078 Gorou Matayoshi", () => {
+  it("matches every catalog field, erratum spelling, and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-078")).toMatchObject({
+      cardId: "BT23-078",
+      nameEn: "Gorou Matayoshi",
+      colors: ["Red"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      forms: ["-"],
+      attributes: ["-"],
+      types: ["CS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("gains start-main memory only during Gorou's controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT23-078" }] },
@@ -41,6 +58,27 @@ describe("BT23-078 Gorou Matayoshi", () => {
     await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-078")).toBe(true);
     expect(s.perm("ally").currentDP).toBe(4000);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.isSuspended)).toBe(true);
+  });
+
+  it("declining the return cost also aborts the DP boost and attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-078", as: "gorou" },
+            { card: "BT23-017", as: "ally" },
+            { card: "BT23-006", as: "subject" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-078")).toBe(true);
+    expect(s.perm("ally").currentDP).toBe(1000);
+    expect(s.state.players[0]!.battleArea.every((permanent) => permanent.isSuspended === false)).toBe(true);
   });
 
   it("excludes Sea Animal-only Digimon from the trait gate", async () => {
