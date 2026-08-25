@@ -311,3 +311,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-026.test.ts`).
+
+## BT20-027 — Slayerdramon
+
+- Catalog contract: blue/red level 6 Vaccine Dragonkin, play cost 12/12000 DP, blue or red level-5 evolution cost 4 plus Wingdramon/Groundramon alternate cost 3; Piercing; On Play/When Digivolving trashes any three sources of one opposing Digimon then deletes one opposing stackless Digimon; opponent-security removal once per turn may unsuspend one allied Dracomon/Examon-text Digimon; inherited once per turn may suspend the host to prevent all matching allies leaving other than in battle.
+- Knowledge base: Q4315 gives Security-effect priority; Q4316/Q4317 define the unsuspend population using full printed text; Q4318 applies the same population to inherited prevention; Q4319 makes one activation protect every simultaneously leaving match.
+- Implementation evidence: both entry timings share ordered `TrashDigivolution` then stackless `Delete`; the removal watcher is opponent-security scoped, full-text filtered, optional, and once per turn. The inherited `wouldLeavePlay` replacement is nonbattle-only, affects all matches, and charges a self-suspend cost. Piercing, alternate requirements, and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: a three-source opponent loses exactly those sources and is then deleted while a peer remains. Security removal unsuspends a suspended Coredramon text match but not Ryudamon and cannot repeat that turn. Under GigaSeadramon, one suspension payment prevents two different matching Digimon from the same effect-deletion batch.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-027.test.ts` — 7 passed.
+- Clause scores: stats/Piercing/alternate evolution 2/2; dual three-source trash 2/2; sequential stackless deletion 2/2; text-filtered unsuspend/once-per-turn 2/2; inherited all-match nonbattle replacement/payment 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-027.test.ts`).
