@@ -89,6 +89,50 @@ describe("EX1-066 Analog Youth", () => {
     expect(s.state.players[0]!.eggDeck).toHaveLength(1);
   });
 
+  it("does not trigger when a level-3 Digimon with sources is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-066", as: "analog" },
+            { card: "BT1-009", as: "victim", under: ["BT1-001"] },
+          ],
+          eggDeck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+
+    expect(s.perm("analog").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.eggDeck).toHaveLength(1);
+  });
+
+  it("does not trigger when a level-5 Digimon without sources is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-066", as: "analog" },
+            { card: "EX1-061", as: "victim" },
+          ],
+          eggDeck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+
+    expect(s.perm("analog").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.eggDeck).toHaveLength(1);
+  });
+
   it("does not gain memory or hatch when Analog Youth is already suspended", async () => {
     const s = setupEngine(
       {

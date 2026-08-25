@@ -2009,16 +2009,21 @@ export class GameEngine {
   }
 
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
+    const deletedPermanent =
+      payload.deletedPermanentId === undefined ? undefined : this.access.permanentById(payload.deletedPermanentId);
+    if (deletedPermanent !== undefined) {
+      payload = {
+        deletedControllerSeat: deletedPermanent.controllerSeat,
+        deletedTopCardId: deletedPermanent.topCard?.cardId,
+        deletedDigivolutionCardCount: deletedPermanent.stack.length,
+        ...payload,
+      };
+    }
     if (this.ruleProcessing) {
-      const deletedControllerSeat =
-        payload.deletedPermanentId === undefined
-          ? undefined
-          : this.access.permanentById(payload.deletedPermanentId)?.controllerSeat;
       this.deferredRuleSubTriggers.push({
         event,
         payload: {
           turnSeat: this.state.turnSeat,
-          ...(deletedControllerSeat === undefined ? {} : { deletedControllerSeat }),
           ...payload,
         },
       });
