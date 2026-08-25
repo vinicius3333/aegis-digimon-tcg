@@ -142,3 +142,30 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-005.
+
+## BT9-006 — Pagumon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Purple level-2 Digi-Egg, `In-Training` form, `Lesser` type, no evolution recipe, no main or Security text, and the complete inherited text were checked in the catalog.
+2. **Inherited attack timing (1/1):** The effect is `isInherited` and triggers through a real public attack intent from a Pagumon evolution stack.
+3. **Optionality (1/1):** Refusal preserves the hand card and grants no DP, proving the “may” wrapper resolves before payment.
+4. **Payability boundary (1/1):** An empty hand cannot pay the trash cost and receives no bonus while the attack itself proceeds normally.
+5. **Any-card cost — Tamer (1/1):** A Tamer card is accepted as the one-card hand cost and moves observably to trash.
+6. **Any-card cost — Option (1/1):** An Option card is also accepted, proving the filter is not silently restricted to Digimon.
+7. **Amount and duration (1/1):** The qualifying carrier changes from 3000 to exactly 4000 DP via +1000 `forTheTurn`.
+8. **Recipient isolation (1/1):** `isSelfRef` modifies only the attacking carrier; a nearby friendly Digimon remains at printed DP.
+9. **Direct IR, registration, and KB (1/1):** The direct module has full coverage, no residual clauses, exactly one `registerIrCard("BT9-006", compiled)`, no legacy registration, and the KB query returns no rulings or ambiguity.
+10. **Reproducible verification (1/1):** Focused public-intent proof passed 5/5; workspace typecheck and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-006
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-006.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-006.test.ts --reporter=dot
+pnpm typecheck
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-006.
