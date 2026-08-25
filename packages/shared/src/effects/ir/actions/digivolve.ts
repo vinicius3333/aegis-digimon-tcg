@@ -26,6 +26,8 @@ export interface DeDigivolveAction extends ActionBase {
    * at or below this level, leaving it in place. Absent peels up to `amount` unconditionally.
    */
   stopAtLevel?: number;
+  /** Snapshot the opponent's post-De-Digivolve Digimon count before rule cleanup. */
+  trackOpponentDigimonCountAs?: string;
 }
 
 export interface DigivolveAction extends ActionBase {

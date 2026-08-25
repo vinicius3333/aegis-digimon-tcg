@@ -8,7 +8,7 @@ import { runDigivolve, runDigivolveViaPlacement } from "./digivolve.js";
 import { runAppFuse, runDnaDigivolve } from "./dna.js";
 import { runLink, runMindLink } from "./link.js";
 import { runPlaceUnder, runTrashDigivolution } from "./placeUnder.js";
-import type { Action } from "@aegis/shared";
+import { CardKind, type Action } from "@aegis/shared";
 
 export async function runDigivolutionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -46,6 +46,17 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         // The trashing effect's seat gates EX11-070's stacked-trash-lock (KB Q5943).
         for (const id of ids)
           ctx.fx.deDigivolve(id, amount, { byEffectSeat: ctx.source.ownerSeat, stopAtLevel: action.stopAtLevel });
+      }
+      if (action.trackOpponentDigimonCountAs !== undefined) {
+        const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
+        const count = ctx.game.player(opponent).battleArea.filter((permanent) => {
+          const top = permanent.topCard;
+          if (top === undefined) return false;
+          const kinds = ctx.game.definitionOf(top).kinds;
+          return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.DigiEgg);
+        }).length;
+        ctx.namedCounts ??= new Map();
+        ctx.namedCounts.set(action.trackOpponentDigimonCountAs, count);
       }
       return false;
     }
