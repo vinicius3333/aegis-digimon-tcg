@@ -20,6 +20,14 @@ import "../index.js";
 // instead of the battle area (test RED).
 
 describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () => {
+  it("performs security-to-hand and Recovery before the printed then-place tail", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions).toEqual([
+      expect.objectContaining({ kind: "SecurityManipulation", op: "toHand", toTop: true }),
+      expect.objectContaining({ kind: "SecurityManipulation", op: "addTop", source: "deck" }),
+      expect.objectContaining({ kind: "PlaceInBattleAreaSelf" }),
+    ]);
+  });
+
   it("targets an exact named host's top stacked card for the Delay effect", () => {
     const delay = compiled.effects.find((effect) => effect.trigger === "AllTurns");
     expect(delay).toMatchObject({ keywords: [{ keyword: "Delay" }] });
