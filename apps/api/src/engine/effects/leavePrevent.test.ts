@@ -176,7 +176,13 @@ function putPermanent(state: GameState, seat: Seat, permanentId: string, opts?: 
   return p;
 }
 
-type LeaveCause = "opponentEffect" | "byOpponentEffect" | "otherThanYourEffect" | "byEffect" | "otherThanBattle" | "any";
+type LeaveCause =
+  | "opponentEffect"
+  | "byOpponentEffect"
+  | "otherThanYourEffect"
+  | "byEffect"
+  | "otherThanBattle"
+  | "any";
 
 // IR builders for prevent scenarios (mirrors what the runtime record emits).
 function selfSuspendPrevent(cause: LeaveCause): CompiledCard {

@@ -43,8 +43,7 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
           ctx.lastEffectActed = false;
           return false;
         }
-        ctx.lastEffectActed =
-          (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing] })) === true;
+        ctx.lastEffectActed = (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing] })) === true;
         return false;
       }
       const compiled = runtimeCompiledCard(ctx.source.cardId);
