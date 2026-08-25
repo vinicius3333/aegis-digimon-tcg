@@ -731,3 +731,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-061.test.ts`).
+
+## BT20-062 — Candlemon
+
+- Catalog contract: purple level 3 Data Flame/Ghost, play cost 3/1000 DP, purple level-2 evolution cost 0; Retaliation; inherited On Deletion may trash 1 card in hand to delete 1 opposing level-4-or-lower Digimon.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: Retaliation is a resident static keyword consumed by the production battle cleanup. The inherited On Deletion action is stack scoped, optional, aborts on refusal, pays exactly one own hand card, and targets exactly one opponent Digimon through the inclusive level-4 boundary. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: standalone Candlemon loses to 5000-DP BT20-069 in battle and Retaliation deletes the winner. Under BT20-069, deletion of the host trashes one selected hand card and deletes level-4 BT20-066 while preserving level-5 BT20-071. Explicit refusal preserves both the hand cost and opponent target.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-062.test.ts` — 5 passed.
+- Clause scores: stats/evolution route 2/2; live Retaliation/battle result 2/2; inherited On Deletion stack scope 2/2; hand cost and level-4 boundary 2/2; optional refusal/final zones 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-062.test.ts`).
