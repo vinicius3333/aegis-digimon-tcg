@@ -334,7 +334,13 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       faceUp: !selected.faceDown,
     });
   }
-  if (toHand.length > 0) await ctx.fx.returnToHand(toHand);
+  if (toHand.length > 0) {
+    await ctx.fx.returnToHand(toHand);
+    // Follow-up clauses such as BT15-011's "If you added cards, trash 1 card in
+    // your hand" read this receipt through ifThisEffectActed. RevealAdd used to
+    // move the selected cards successfully while leaving the receipt false.
+    ctx.lastEffectActed = true;
+  }
   if (action.trackCount !== undefined) {
     ctx.namedCounts ??= new Map();
     ctx.namedCounts.set(action.trackCount, toHand.length);
