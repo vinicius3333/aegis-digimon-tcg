@@ -344,3 +344,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-012.
+
+## BT9-013 — OmniShoutmon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-5 Digimon, play cost 8, 8000 DP, `Ultimate`/`Vaccine`, complete `Dragonkin`/`X Antibody` traits, standard red-level-4 evolution for 3, and all printed text were checked.
+2. **Blitz timing (1/1):** A public standard evolution that passes 3 memory opens the real `activateBlitz` decision; accepting it authorizes and completes a public attack despite memory being on the opponent's side.
+3. **Standard legal evolution (1/1):** Public intents build Koromon-to-Agumon-X-to-Greymon, move the stack from breeding, and evolve to OmniShoutmon X for exactly 3.
+4. **Alternate legal evolution (1/1):** A complete red chain reaches OmniShoutmon and exercises the exact-name alternate route to OmniShoutmon X for 0.
+5. **Unsuspended-target permission (1/1):** The legally alternate-evolved stack successfully declares an attack against an opposing unsuspended Digimon.
+6. **Q1806 OmniShoutmon name branch (1/1):** The exact OmniShoutmon card name in the legal stack enables the permission.
+7. **Q1806 X Antibody distinction (1/1):** A card named exactly `X Antibody` enables the permission, while Greymon X's `X Antibody` trait alone does not.
+8. **Turn boundary (1/1):** The permission is absent during the opponent's turn even with an otherwise qualifying exact-name source.
+9. **Direct IR and registration (1/1):** The incorrect unsupported nested filter was replaced by the executable `digivolutionStackNameOrTrait` exact-name predicate; the module has full coverage, no residual clauses, one `registerIrCard` registration, no legacy registration, and a set-index import.
+10. **Reproducible verification (1/1):** Focused proof passed 5/5; the shared Blitz regression passed, workspace typecheck, focused formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-013
+rg -n 'Q1806' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-013.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-013.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/cards/BT8/BT8-013.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-013.ts apps/api/src/cards/BT9/BT9-013.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-013.
