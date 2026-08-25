@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-011.js";
 
@@ -27,22 +28,83 @@ describe("EX8-011", () => {
       amount: 2000,
       duration: "permanent",
     }));
-  it("applies the inherited DP increase on live state", async () => {
+  it("publishes the exact Reptile alternate route", () => {
+    expect(digivolutionRequirementsFor("EX8-011")).toContainEqual({
+      level: 3,
+      traits: ["Reptile"],
+      cost: 2,
+      isAlternate: true,
+    });
+  });
+
+  it("applies the inherited DP increase only during its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-011", as: "tyrannomon" }] }] },
     });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(5000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(3000);
   });
 
-  it("gains +3000 DP at the start of its controller's main phase", async () => {
+  it("plays the revealed card from security without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX8-011", as: "tyrannomon" }] } });
+    const instanceId = s.inst("tyrannomon").instanceId;
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tyrannomon"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("gains +3000 DP at the start of its controller's main phase through the public timing seam", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX8-011", as: "tyrannomon" }] } });
     await s.ready();
-    await (
-      s.engine as unknown as {
-        fireTiming(timing: EffectTiming, trigger: { subjectPermanentId: string }): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnStartMainPhase, { subjectPermanentId: s.perm("tyrannomon").permanentId });
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrannomon"));
     expect(s.perm("tyrannomon").currentDP).toBe(8000);
+  });
+
+  it("gains +3000 DP when digivolving through the off-color Reptile route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-029", as: "gabumon" }],
+        hand: [{ card: "EX8-011", as: "tyrannomon" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gabumon").permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gabumon").topCard.instanceId === s.inst("tyrannomon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("gabumon").currentDP).toBe(8000);
+  });
+
+  it("rejects the alternate route for an off-color non-Reptile level 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-028", as: "elecmon" }],
+        hand: [{ card: "EX8-011", as: "tyrannomon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("elecmon").permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
