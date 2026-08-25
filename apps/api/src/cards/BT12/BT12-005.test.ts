@@ -32,4 +32,39 @@ describe("BT12-005 Kozenimon", () => {
     await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-009"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
+
+  it("does not draw when the opponent plays a Digimon with Save", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-049", under: ["BT12-005"] }], deck: ["BT1-009"] },
+      1: { hand: [{ card: "BT12-008", as: "saved" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("saved").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-008"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("draws only once per turn across repeated qualifying plays", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT12-049", under: ["BT12-005"] }],
+        hand: [
+          { card: "BT12-008", as: "first" },
+          { card: "BT12-008", as: "second" },
+        ],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    s.state.memory = 20;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("first").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
 });
