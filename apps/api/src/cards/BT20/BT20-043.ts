@@ -114,9 +114,7 @@ export const compiled: CompiledCard = {
         {
           kind: "DnaDigivolve",
           materials: {
-            filter: {
-              isSelfRef: true,
-            },
+            filter: { controller: "mine", kind: ["Digimon"] },
             count: 2,
             includeRef: "self",
           },

@@ -503,3 +503,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-042.test.ts`).
+
+## BT20-043 — Varodurumon
+
+- Catalog contract: green/yellow level 6 Vaccine Holy Bird/ACCEL, play cost 12/12000 DP, green or yellow level-5 evolution cost 4 plus level-5 ACCEL alternate cost 3; its own play costs 5 less with an allied ACCEL Digimon; On Play/When Digivolving suspends all opposing Digimon, gives one ally +3000 DP for the turn, then one ally may attack; at own turn end it may DNA itself plus another ally into hand Chaosmon and then attack; inherited attack once per turn gives one opponent -4000 DP for the turn.
+- Knowledge base: Q4361 makes the DNA evolution's When Digivolving and follow-up When Attacking effects simultaneous/controller-ordered; Q4362 forbids a second Varodurumon's follow-up attack during the first attack.
+- Implementation evidence: the ACCEL-gated self reducer was absent from the strict verified registry and is now admitted at exact -5. The DNA action's generated material filter required `isSelfRef` for both of its count-2 materials, making self-plus-another impossible; it now selects two allied Digimon while retaining `includeRef:self`. Both entry bodies, the successful-DNA attack gate, inherited once-per-turn reduction, alternate requirement, and exclusive `registerIrCard` registration remain direct.
+- Peer/stack evidence: with Crowmon resident, Varodurumon pays 7, suspends two opposing Digimon, and gives Crowmon +3000 DP while the optional attack is declined. Varodurumon plus BanchoLeomon DNA into BT16-036 Chaosmon at turn end; the resulting stack attacks, its inherited -4000 applies, and the opposing target is deleted.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-043.test.ts` — 5 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts` — 173 passed.
+- Clause scores: stats/alternate evolution 2/2; conditional self-play reduction 2/2; dual all-suspend/buff/attack payload 2/2; self-plus-another Chaosmon DNA/follow-up attack 2/2; inherited -4000/attack/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: Q4361 ordering is owned by the shared simultaneous trigger stack after DNA; the focused fixture proves the full DNA-then-attack chain.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-043.test.ts`).
