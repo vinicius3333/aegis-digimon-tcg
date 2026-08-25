@@ -707,3 +707,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-059.test.ts`).
+
+## BT20-060 — Alphamon: Ouryuken
+
+- Catalog contract: black/yellow/red level 7 Vaccine Holy Warrior/X Antibody/Royal Knight/Chronicle ACE, play cost 9/16000 DP, black, yellow, or red level-6 evolution cost 6; Blast DNA Digivolve from Alphamon + Ouryumon; On Play/When Digivolving gives 1 opponent -15000 DP through the opponent's turn, then only when DNA digivolving trashes the opponent's top security and performs Recovery +1; all-turn once per turn, removal from either security stack gains 3 memory; Overflow -5.
+- Knowledge base: Q4398 delays the zero-DP rule deletion until the complete entry effect has resolved; Q4399 orders a Security effect ahead of other simultaneous triggers; Q4726 confirms the -15000 DP duration remains through the opponent's turn even if the memory gain interrupts turn progression.
+- Implementation evidence: both entry timings share the ordered DP/security/Recovery actions and the DNA-only gate. The exact Blast DNA material names route through the production DNA validator and entry payload. Audit found the security-removal watcher omitted its direction, which the shared primitive correctly defaults to the controller's own stack; adding `sourceFilter.controller: "any"` faithfully represents “security stacks” and makes the card observe its own opponent-security trash. ACE metadata, Overflow, and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: BT20-056 Alphamon plus BT20-018 Ouryumon is accepted, while substituting BT20-057 is rejected. Normal play and ordinary evolution apply only the DP reduction. The valid DNA path draws, trashes the opposing top security, recovers the next deck card, gains 3 memory, and only then removes the zero-DP opposing Digimon; explicit events for each player's security prove one shared once-per-turn budget.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-060.test.ts` — 9 passed.
+- Clause scores: stats/evolution/ACE/Overflow 2/2; exact Blast DNA declaration and rejection boundary 2/2; dual entry DP reduction/duration 2/2; Q4398 DNA-only trash/Recovery/zero-DP ordering 2/2; either-stack memory trigger/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-060.test.ts`).
