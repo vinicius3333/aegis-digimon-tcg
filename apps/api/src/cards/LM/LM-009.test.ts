@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-009.js";

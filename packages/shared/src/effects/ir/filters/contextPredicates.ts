@@ -13,8 +13,12 @@ export interface ContextPredicates {
   sameColorAsSelectionRef?: string;
   /** Printed play-cost ceiling from the currently attacking Digimon. */
   playCostLteAttackerLevel?: boolean;
-  /** Narrows an onDeletionOf watcher to deletion by DP reaching 0. */
-  deleteCause?: "dpReachedZero";
+  /**
+   * Narrows an onDeletionOf watcher to a removal cause: DP reaching 0, or deletion BY AN EFFECT
+   * ("when an effect deletes one of your other Digimon" — LM-016). The `onDeletionOf` payload
+   * carries the removal cause but no `byEffectSeat`, so this is the gate for the latter.
+   */
+  deleteCause?: "dpReachedZero" | "byEffect";
   /**
    * Level ceiling snapshotted from the `whenPlayed` subject, so it survives later level changes
    * or that Digimon leaving play (ST10-06, KB Q737/Q738).

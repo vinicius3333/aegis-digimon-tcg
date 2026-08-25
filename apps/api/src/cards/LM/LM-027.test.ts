@@ -25,7 +25,11 @@ async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<
 
 async function closeTurn(s: ReturnType<typeof setupEngine>, turn: Promise<void>): Promise<void> {
   const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-  if (mainPhase.isOpen) expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+  // Production may auto-end the Main phase; ending an already-closed one is not an assertion.
+  if (mainPhase.isOpen) {
+    const ended = s.engine.applyIntent(0, { type: "endPhase" });
+    if (!ended.ok) throw new Error(`Could not end the Main phase: ${ended.reason}`);
+  }
   await turn;
 }
 

@@ -75,7 +75,7 @@ describe("LM-012 Lamortmon", () => {
     s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("first").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("first").permanentId },
     });
     await settle(() => s.state.players[1]!.security.length === 2, 3000);
     expect(s.state.players[1]!.security).toHaveLength(2);
@@ -85,7 +85,7 @@ describe("LM-012 Lamortmon", () => {
     s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("second").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("other").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("other").permanentId },
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 3000);
 
@@ -109,7 +109,7 @@ describe("LM-012 Lamortmon", () => {
     s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("victim").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 3000);
 

@@ -1,6 +1,7 @@
 import {
   CardKind,
   EffectDuration,
+  type CardColor,
   type CardDefinition,
   type GameState,
   type Permanent,

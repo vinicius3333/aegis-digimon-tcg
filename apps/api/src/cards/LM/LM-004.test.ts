@@ -15,7 +15,7 @@ const entranceBoard = {
     ],
     hand: ["BT1-027", "BT1-027"],
   },
-} as const;
+};
 
 describe("LM-004 Thetismon", () => {
   it("trashes exactly two blue cards to unsuspend a Digimon and Kiyoshiro and gain Blocker", async () => {

@@ -6,7 +6,7 @@ import "./LM-001.js";
 
 // A three-color digivolution stack: Blue Armadillomon and Yellow Tsukaimon under a Red
 // MetalTyrannomon, so digivolving into Siriusmon leaves Blue/Yellow/Red beneath it.
-const threeColorBase = { card: "BT1-024", as: "base", under: ["BT1-027", "BT1-045"] } as const;
+const threeColorBase = { card: "BT1-024", as: "base", under: ["BT1-027", "BT1-045"] };
 
 describe("LM-001 Siriusmon", () => {
   it("blast-digivolves from hand in the counter window without paying the cost", async () => {
@@ -172,7 +172,7 @@ describe("LM-001 Siriusmon", () => {
     s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("siriusmon").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("first").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("first").permanentId },
     });
     await settle(() => s.state.players[1]!.battleArea.length === 1, 2000);
     expect(s.state.memory).toBe(2);
@@ -182,7 +182,7 @@ describe("LM-001 Siriusmon", () => {
     s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("ally").permanentId,
-      target: { kind: "digimon", permanentId: s.perm("second").permanentId },
+      target: { kind: "permanent", permanentId: s.perm("second").permanentId },
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);

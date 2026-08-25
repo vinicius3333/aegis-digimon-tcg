@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, Zone, getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -131,7 +131,7 @@ describe("LM-013 Diarbbitmon", () => {
 
     // Q4001: the top card goes back to the hand and everything under it is trashed.
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "LM-011")!;
-    played.stack.push(s.give(0, "trash", { card: "LM-008", as: "beneath" }));
+    played.stack.push(s.give(0, Zone.Trash, { card: "LM-008", as: "beneath" }));
 
     s.state.turnSeat = 1;
     // The DelayedEffect is a one-shot `endOfTurn` watcher; firing it raw keeps the armed

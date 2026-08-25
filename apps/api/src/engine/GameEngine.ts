@@ -604,24 +604,26 @@ export class GameEngine {
   ) {
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
     //   registration; wire the registry into the resolution path here.
-    this.continuous = new ContinuousEffectLedger((permanentId) => {
-      for (const player of this.state.players) {
-        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
-        if (permanent !== undefined) {
-          const definition = lookupDefinition(permanent.topCard.cardId);
-          if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+    this.continuous = new ContinuousEffectLedger(
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) {
+            const definition = lookupDefinition(permanent.topCard.cardId);
+            if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+          }
         }
-      }
-      return undefined;
-    },
-    undefined,
-    (permanentId) => {
-      for (const player of this.state.players) {
-        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
-        if (permanent !== undefined) return permanent.controllerSeat;
-      }
-      return undefined;
-    });
+        return undefined;
+      },
+      undefined,
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) return permanent.controllerSeat;
+        }
+        return undefined;
+      },
+    );
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
       return this.continuous.canGainMemoryFromEffect(seat, {
@@ -4297,7 +4299,12 @@ export class GameEngine {
       // makes the waiver observable. Deliberately not the full color subsystem (Phase 4).
       colorRequirementMet: (_state, seat, instance, definition, mode) =>
         this.continuous.hasColorWaiver(instance.instanceId) ||
-        this.printedColorRequirementMet(seat, definition, mode, this.continuous.colorRequirementAlternatives(instance.instanceId)),
+        this.printedColorRequirementMet(
+          seat,
+          definition,
+          mode,
+          this.continuous.colorRequirementAlternatives(instance.instanceId),
+        ),
       nextPermanentId: () => this.nextPermanentId(),
       // Pay-time interactive cost reduction (BeforePayCost): fire the played card's BeforePayCost
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the

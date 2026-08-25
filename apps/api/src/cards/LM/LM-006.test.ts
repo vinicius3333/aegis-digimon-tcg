@@ -53,9 +53,7 @@ describe("LM-006 Cthyllamon", () => {
       {
         0: { battleArea: [{ card: "LM-006", as: "cthyllamon" }] },
         1: {
-          battleArea: [
-            { card: "BT1-080", as: "stacked", under: ["BT1-027", "BT1-028", "BT1-045", "BT1-047"] },
-          ],
+          battleArea: [{ card: "BT1-080", as: "stacked", under: ["BT1-027", "BT1-028", "BT1-045", "BT1-047"] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

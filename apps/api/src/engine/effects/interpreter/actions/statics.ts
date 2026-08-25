@@ -175,7 +175,11 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
         typeof action.color === "string"
           ? ((action.color.charAt(0).toUpperCase() + action.color.slice(1).toLowerCase()) as CardColor)
           : undefined;
-      ctx.fx.waiveColorRequirement(ctx.source.instanceId, duration, alsoColor === undefined ? undefined : { alsoColor });
+      ctx.fx.waiveColorRequirement(
+        ctx.source.instanceId,
+        duration,
+        alsoColor === undefined ? undefined : { alsoColor },
+      );
       return false;
     }
     default:
