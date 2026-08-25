@@ -13,7 +13,7 @@ const compiled: CompiledCard = {
       // Replacement plus a SubTrigger whose Delete carried the never-read `playedByThisEffect`
       // filter, so nothing played the card and the turn-end Delete matched every permanent.
       // UntilOwnerTurnEndEffects + OnEndTurn gated on IsOwnerTurn => `DelayedDeletePlayed`.
-      // KB Q5732/Q5733 (and Q5036: the delete still applies after the played card digivolves,
+      // KB Q5155/Q5739-Q5740 (the delete still applies after the played card digivolves,
       // which the permanent-anchored watcher honors).
       trigger: "Main",
       isFromHand: true,
@@ -162,3 +162,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-057", compiled);
+
+export { compiled };

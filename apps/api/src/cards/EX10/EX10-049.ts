@@ -34,32 +34,26 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 2,
-          condition: {
-            kind: "zoneCount",
-            seat: "opponent",
-            zone: "trash",
-            op: "gte",
-            value: 10,
-            raw: "your opponent has 10 or more cards in their trash",
-          },
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levelComparison: {
-                op: "lte",
-                value: 3,
+          kind: "ConditionalBranch",
+          condition: { kind: "zoneCount", seat: "opponent", zone: "trash", op: "gte", value: 10 },
+          ifTrue: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+                count: 1,
               },
             },
-            count: 1,
-          },
+          ],
+          ifFalse: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 3 } },
+                count: 1,
+              },
+            },
+          ],
         },
       ],
     },
@@ -80,32 +74,26 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 2,
-          condition: {
-            kind: "zoneCount",
-            seat: "opponent",
-            zone: "trash",
-            op: "gte",
-            value: 10,
-            raw: "your opponent has 10 or more cards in their trash",
-          },
-        },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levelComparison: {
-                op: "lte",
-                value: 3,
+          kind: "ConditionalBranch",
+          condition: { kind: "zoneCount", seat: "opponent", zone: "trash", op: "gte", value: 10 },
+          ifTrue: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+                count: 1,
               },
             },
-            count: 1,
-          },
+          ],
+          ifFalse: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 3 } },
+                count: 1,
+              },
+            },
+          ],
         },
       ],
     },

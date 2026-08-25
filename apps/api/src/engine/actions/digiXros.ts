@@ -175,8 +175,9 @@ export function validateDigiXros(
   const materialIds = intent.digiXros.materialInstanceIds;
   if (materialIds.length === 0) return { ok: false, reason: "no-materials" };
 
-  // Resolve the chosen expander Tamers and aggregate the unlocked per-zone maxima (documented behavior takes the MAX
-  // across all active effects). An expander must be an unsuspended Tamer this seat controls whose
+  // Resolve the chosen expander Tamers and aggregate the unlocked per-zone maxima. Each Tamer
+  // is a separately paid effect, so multiple copies add their quotas (EX10-064 Q5178/Q5179).
+  // An expander must be an unsuspended Tamer this seat controls whose
   // trait gate accepts the card being played.
   //
   // AllowDigiXrosMaterialsFromTrash (CAP-C-14, BT21-030): the played card's own IR declares that
@@ -204,8 +205,8 @@ export function validateDigiXros(
     if (expander === undefined || !expander.appliesTo(definition)) {
       return { ok: false, reason: "invalid-expander" };
     }
-    underTamerMax = Math.max(underTamerMax, expander.underTamerMax);
-    trashMax = Math.max(trashMax, expander.trashMax);
+    underTamerMax += expander.underTamerMax;
+    trashMax += expander.trashMax;
   }
 
   // Resolve each chosen material to its source zone, gated by the unlocked maxima.

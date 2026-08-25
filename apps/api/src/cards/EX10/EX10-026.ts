@@ -67,7 +67,14 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
-      actions: [],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          optional: true,
+        },
+      ],
       keywords: [
         {
           keyword: "Save",

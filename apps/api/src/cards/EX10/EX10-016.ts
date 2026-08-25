@@ -16,7 +16,10 @@ const compiled: CompiledCard = {
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 2 },
           cost: {
             kind: "trash",
-            target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+            target: {
+              filter: { controller: "mine", kind: ["Digimon"], zone: "linked", isSelfRef: true },
+              count: 1,
+            },
             raw: "By trashing 1 of this Digimon's link cards",
           },
           optional: true,
@@ -30,6 +33,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Suspend",
@@ -58,6 +62,7 @@ const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
 export { compiled };

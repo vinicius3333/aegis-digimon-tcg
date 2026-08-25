@@ -32,10 +32,9 @@ export const compiled: CompiledCard = {
             {
               kind: "GainKeyword",
               target: {
-                filter: {
-                  useTriggerSource: true,
-                },
+                filter: {},
                 count: 1,
+                sourceRef: "triggerSubject",
               },
               keyword: {
                 keyword: "Alliance",

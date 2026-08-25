@@ -62,7 +62,14 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
-      actions: [],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          optional: true,
+        },
+      ],
       keywords: [
         {
           keyword: "Save",
@@ -75,7 +82,13 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "onDigivolutionCardDiscarded",
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: { isSelfRef: true },
+          hostFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+          },
           actions: [
             {
               kind: "Draw",

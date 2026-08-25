@@ -130,13 +130,9 @@ const compiled: CompiledCard = {
           event: "whenAttackTargetSwitched",
           actions: [
             {
-              kind: "Trash",
-              target: {
-                filter: {
-                  controller: "opponent",
-                },
-                count: 1,
-              },
+              kind: "trashSecurityTop",
+              controller: "opponent",
+              count: 1,
               condition: {
                 kind: "selfHasNameContaining",
                 names: ["Greymon"],

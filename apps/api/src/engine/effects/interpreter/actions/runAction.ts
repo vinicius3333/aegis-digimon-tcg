@@ -53,9 +53,19 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
-  // Per-action gate.
-  if (action.kind !== "RawUnparsed" && action.kind !== "ConditionalBranch" && action.condition) {
-    ctx.lastActionConditionMatched = evaluateCondition(ctx, action.condition);
+  if (action.kind === "PlayWithoutCost" && action.target.filter.sameColorAsReturned === true) {
+    ctx.lastReturnedColors = undefined;
+  }
+  // Per-action gate. `while` is the continuously re-evaluated spelling used by persistent
+  // actions: the recompute pass clears the old contribution, and this gate decides whether
+  // the action contributes again. Individual handlers may additionally use `while` to mark
+  // dynamic grants, but every action kind needs the same truth test (not only Aura/Restrict).
+  const gate =
+    action.kind === "RawUnparsed" || action.kind === "ConditionalBranch"
+      ? undefined
+      : (action.condition ?? ("while" in action ? action.while : undefined));
+  if (gate !== undefined) {
+    ctx.lastActionConditionMatched = evaluateCondition(ctx, gate);
     if (!ctx.lastActionConditionMatched) return false;
   } else {
     ctx.lastActionConditionMatched = true;
@@ -118,6 +128,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     return action.abortOnDecline === true;
   }
+  if (
+    action.kind === "CostModifier" &&
+    action.existingPermanent === true &&
+    candidatePermanents(ctx, action.target).length === 0
+  ) {
+    return action.abortOnDecline === true;
+  }
   // Unless a ruling explicitly allows paying the processing condition by itself, a redirect's
   // activation cost is payable only when the attack can actually be redirected. Preflight
   // candidates before the optional prompt and generic cost path; otherwise a card such as
@@ -175,12 +192,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.mode === "reduce" &&
     action.duration === "nextDigivolveThisTurn" &&
     action.cost?.kind === "trash";
+  let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
     if (action.optional && !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))) {
       return action.abortOnDecline === true;
     }
-    const paid = await payCost(ctx, action.cost, { paidCount: 0 });
+    const payment = { paidCount: 0 };
+    const paid = await payCost(ctx, action.cost, payment);
     if (!paid) return action.abortOnDecline === true;
+    costModifierPaidCount = payment.paidCount;
   }
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
@@ -198,6 +218,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "WaiveColorRequirement" &&
     action.optional
   ) {
+    if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
+      return action.abortOnDecline === true;
+    }
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI
     // never offers an action that the Hatch primitive would immediately no-op.
@@ -224,9 +247,30 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       const preflightTarget = applyPlayCostCeiling(ctx, action, action.target);
-      let candidates = candidateLooseInstances(ctx, preflightTarget, zones).filter(
+      const sameColorAsReturned = preflightTarget.filter.sameColorAsReturned === true;
+      const staticPreflightTarget = sameColorAsReturned
+        ? { ...preflightTarget, filter: { ...preflightTarget.filter, sameColorAsReturned: undefined } }
+        : preflightTarget;
+      let candidates = candidateLooseInstances(ctx, staticPreflightTarget, zones).filter(
         (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
       );
+      // A return-cost clause can define the play target's color dynamically. Preflight the
+      // pair transactionally: at least one currently returnable card must share a color with
+      // at least one currently playable card, otherwise paying the return first would strand
+      // the optional payload (EX10-068, Q5181/Q5182).
+      if (sameColorAsReturned && action.cost?.kind === "return" && action.cost.target !== undefined) {
+        const returnTarget = action.cost.target;
+        const returnZones = zoneList(returnTarget.filter.zone ?? "trash");
+        const returnable = candidateLooseInstances(ctx, returnTarget, returnZones);
+        const returnableColors = new Set(
+          returnable.flatMap((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).colors),
+        );
+        candidates = candidates.filter((candidate) =>
+          ctx.game
+            .definitionOf({ cardId: candidate.cardId } as never)
+            .colors.some((color) => returnableColors.has(color)),
+        );
+      }
       // A paid play with an activation cost must be transactional: do not offer it when
       // every legal target is unaffordable, otherwise the generic cost path below can move
       // the source card before `playInstances` discovers that memory cannot be paid.
@@ -284,16 +328,24 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // destination form a legal digivolution. In particular, "without paying the cost" does
     // not waive printed requirements (P-092 Q4182); do this before asking so the UI never
     // confirms an evolution the resolver will immediately discard.
-    if (
-      action.kind === "Digivolve" &&
-      !(
+    if (action.kind === "Digivolve") {
+      const hostBindingCost =
         action.cost?.kind === "place" &&
         action.cost.bindHostAs !== undefined &&
-        action.cost.bindHostAs === action.target.fromSelectionRef
-      ) &&
-      !canAttemptDigivolve(ctx, action)
-    )
-      return false;
+        action.cost.bindHostAs === action.target.fromSelectionRef &&
+        action.cost.underFilter !== undefined;
+      // The placement cost binds the exact base that the following digivolve must use.
+      // Before payment that binding does not exist, so preflight against the cost's host
+      // filter instead. This keeps the cost transactional: no legal trash/hand evolution
+      // means the source card is not first moved under the host (EX10-066).
+      const canAttempt = hostBindingCost
+        ? canAttemptDigivolve(ctx, {
+            ...action,
+            target: { filter: action.cost!.underFilter!, count: 1 },
+          })
+        : canAttemptDigivolve(ctx, action);
+      if (!canAttempt) return false;
+    }
     const costUnpayable = action.cost !== undefined && !canPayCost(ctx, action.cost as Cost);
     if (!costUnpayable) {
       const yes = await ctx.ask.optional(ctx, describeAction(action));
@@ -392,7 +444,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "DigivolveViaPlacement" &&
     action.cost?.kind === "trash" &&
     action.cost.target?.upTo === true
-      ? costPayment.paidCount
+      ? (costModifierPaidCount ?? costPayment.paidCount)
       : undefined;
   // The upTo-Digi-Burst paid count and a `scaling` ("for each") hint are two
   // independent multipliers; the current catalog never carries both (BT7-040 is the
@@ -408,8 +460,11 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // A `usePaidCount` scaling reads the count of cards actually paid by THIS action's cost
   // ("for every Tamer this effect suspended", BT17-041) rather than re-counting the board.
   const paidCountScale =
-    action.kind !== "RawUnparsed" && action.scaling?.usePaidCount === true
-      ? Math.floor(costPayment.paidCount / (action.scaling.per > 0 ? action.scaling.per : 1))
+    action.kind !== "RawUnparsed" && (action.scaling?.usePaidCount === true || costModifierPaidCount !== undefined)
+      ? Math.floor(
+          (costModifierPaidCount ?? costPayment.paidCount) /
+            (action.scaling?.per && action.scaling.per > 0 ? action.scaling.per : 1),
+        )
       : undefined;
   const scale =
     digiBurstScale !== undefined

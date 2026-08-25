@@ -619,6 +619,8 @@ export interface Primitives {
     instanceId: string,
     opts?: { costDelta?: number; useAsOption?: boolean; controllerSeat?: Seat },
   ): Promise<boolean>;
+  /** Current play cost of a live permanent after active play-cost modifiers. */
+  effectivePlayCost?(permanent: Permanent): number;
   /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
@@ -990,9 +992,9 @@ export interface Primitives {
    * the adjustment applies to; `setFixed` makes `delta` an absolute cost. Mirrors the
    */
   changePlayCost(
-    filter: (facts: { def: CardDefinition; controllerSeat: Seat }) => boolean,
+    filter: (facts: { def: CardDefinition; controllerSeat: Seat; permanentId?: string }) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean },
+    opts?: { setFixed?: boolean; continuous?: boolean },
   ): void;
 
   // --- continuous / static (static-continuous-effects subsystem) -------------
@@ -1870,4 +1872,6 @@ export interface EffectContext {
    * the count to loop its nested `action` that many times (BT2-041). Fresh per `runEffect`.
    */
   namedCounts?: Map<string, number>;
+  /** Colors snapshotted from cards paid by the current return cost. */
+  lastReturnedColors?: string[];
 }

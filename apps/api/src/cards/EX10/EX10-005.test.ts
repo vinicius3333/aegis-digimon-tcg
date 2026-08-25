@@ -8,7 +8,7 @@ describe("EX10-005 Pagumon", () => {
   it("draws once when an opponent deck card is trashed", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", linked: [{ card: "EX10-005", as: "pagumon" }] }],
+        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX10-005", as: "pagumon" }] }],
         deck: ["BT1-009"],
       },
     });
@@ -24,7 +24,7 @@ describe("EX10-005 Pagumon", () => {
   it("only reacts to the opponent deck and only once per turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", linked: [{ card: "EX10-005", as: "pagumon" }] }],
+        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX10-005", as: "pagumon" }] }],
         deck: ["BT1-009"],
       },
     });

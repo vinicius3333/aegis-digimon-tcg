@@ -3105,7 +3105,7 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(recorder.calls.filter(({ verb }) => verb === "placeUnder")).toHaveLength(0);
   });
 
-  it("PlaceUnder targetIsPermanent relocates a battle-area permanent under another", async () => {
+  it("PlaceUnder targetIsPermanent relocates a battle-area permanent at the requested stack position", async () => {
     const host = makeFakePermanent({
       permanentId: "HOST#1",
       controllerSeat: 0 as Seat,
@@ -3144,6 +3144,7 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
               target: { fromSelectionRef: "A", filter: {}, count: 1 },
               underSelectionRef: "B",
               targetIsPermanent: true,
+              position: "bottom",
             },
           ],
         },
@@ -3154,6 +3155,7 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(moved).toHaveLength(1);
     expect(moved[0]!.args[0]).toBe("HOST#1");
     expect(moved[0]!.args[1]).toBe("GUEST#1");
+    expect(moved[0]!.args[2]).toEqual({ belowTop: false });
   });
 
   it("MindLink relocates the source Tamer under a chosen Digimon", async () => {

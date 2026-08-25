@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // "For every 10 cards in your trash, add 3 to the play cost maximum" — the ceiling on
 //   which Digimon the Delete can target scales with trash count (playCostCeiling on Delete).
 //   See LANE_D.md: DeletePlayCostCeiling.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Counter",

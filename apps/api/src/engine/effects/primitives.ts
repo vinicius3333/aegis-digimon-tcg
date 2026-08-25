@@ -605,7 +605,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   const changePlayCost: Primitives["changePlayCost"] = (filter, delta, opts) => {
-    ledger.addPlayCostAdjustment(filter, delta, opts?.setFixed ?? false, continuousOpt());
+    ledger.addPlayCostAdjustment(filter, delta, opts?.setFixed ?? false, {
+      ...(opts?.continuous !== undefined ? { continuous: opts.continuous } : (continuousOpt() ?? {})),
+    });
   };
 
   /**
@@ -638,6 +640,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const controllerSeat = opts?.controllerSeat ?? ownerSeat;
     const cost = await effectDrivenPlayCost(instanceId, definition, controllerSeat, opts?.costDelta, opts?.useAsOption);
     return cost >= 0 && cost <= engine.memory.maxCostFor(controllerSeat);
+  };
+
+  const effectivePlayCost: NonNullable<Primitives["effectivePlayCost"]> = (permanent) => {
+    const definition = requireCardDefinition(permanent.topCard.cardId);
+    return ledger.playCostFor(
+      { def: definition, controllerSeat: permanent.controllerSeat, permanentId: permanent.permanentId },
+      normalizeCost(definition.playCost),
+    );
   };
 
   // --- play from hand / security --------------------------------------------
@@ -1023,7 +1033,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       } else if (opts.ignoreLevel) {
         const baseDef = requireCardDefinition(permanent.topCard.cardId);
         const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
-        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, { ignoreLevel: true });
+        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+          ignoreLevel: true,
+          ...(sourceZone === undefined ? {} : { sourceZone }),
+        });
         const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
         const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
         if (matched === undefined) return undefined;
@@ -1048,7 +1061,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const baseGranted =
           opts.virtualBase === undefined ? engine.baseGrantedDigivolve?.(seat, permanent, definition) : undefined;
         const alternate =
-          opts.virtualBase === undefined ? matchingAlternateDigivolutionRequirement(definition, baseDef) : undefined;
+          opts.virtualBase === undefined
+            ? matchingAlternateDigivolutionRequirement(definition, baseDef, {
+                ...(sourceZone === undefined ? {} : { sourceZone }),
+              })
+            : undefined;
         const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
         if (useAlternate && alternate.minNameStackNames !== undefined) {
           const required = alternate.minNameStackCount ?? 1;
@@ -4829,6 +4846,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     playFromHand,
     playFromSecurity,
     canAffordEffectPlay,
+    effectivePlayCost,
     playInstances,
     placeOptionAsPermanent,
     digivolveFromInstance,

@@ -5,6 +5,36 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
+const paidDeleteActions = [
+  {
+    kind: "PlaceUnder" as const,
+    target: {
+      filter: {
+        zone: "trash" as const,
+        controller: "mine" as const,
+        kind: ["Digimon" as const],
+        nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" as const }],
+      },
+      count: 3,
+      from: ["trash" as const],
+    },
+    position: "top" as const,
+    optional: true,
+    abortOnDecline: true,
+  },
+  {
+    kind: "Delete" as const,
+    target: {
+      filter: {
+        controller: "opponent" as const,
+        kind: ["Digimon" as const, "Tamer" as const],
+        hasDigivolutionCards: true,
+      },
+      count: 1,
+    },
+  },
+];
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -15,10 +45,14 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               isOpponentHand: true,
+              controller: "opponent",
+              zone: "hand",
             },
             count: 1,
+            from: ["hand"],
           },
           underFilter: {
+            controller: "opponent",
             or: [
               {
                 digivolutionBottom: true,
@@ -28,41 +62,9 @@ const compiled: CompiledCard = {
               },
             ],
           },
+          position: "bottom",
         },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon", "Tamer"],
-            },
-            count: 1,
-          },
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Bagra Army"],
-                    match: "trait",
-                  },
-                ],
-              },
-              count: 3,
-              from: ["trash"],
-            },
-            raw: "by placing 3 [Bagra Army] trait Digimon cards from your trash as this Digimon's top digivolution cards",
-            destination: "digivolutionStack",
-            position: "top",
-            host: "self",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
+        ...paidDeleteActions,
       ],
     },
     {
@@ -73,10 +75,14 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               isOpponentHand: true,
+              controller: "opponent",
+              zone: "hand",
             },
             count: 1,
+            from: ["hand"],
           },
           underFilter: {
+            controller: "opponent",
             or: [
               {
                 digivolutionBottom: true,
@@ -86,41 +92,9 @@ const compiled: CompiledCard = {
               },
             ],
           },
+          position: "bottom",
         },
-        {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon", "Tamer"],
-            },
-            count: 1,
-          },
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Bagra Army"],
-                    match: "trait",
-                  },
-                ],
-              },
-              count: 3,
-              from: ["trash"],
-            },
-            raw: "by placing 3 [Bagra Army] trait Digimon cards from your trash as this Digimon's top digivolution cards",
-            destination: "digivolutionStack",
-            position: "top",
-            host: "self",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
+        ...paidDeleteActions,
       ],
     },
     {
@@ -154,10 +128,16 @@ const compiled: CompiledCard = {
         {
           names: ["Bagramon"],
         },
+        {
+          names: ["DarkKnightmon"],
+        },
       ],
       count: 3,
+      costReduction: 3,
     },
   ],
 };
 
 registerIrCard("EX10-059", compiled);
+
+export { compiled };

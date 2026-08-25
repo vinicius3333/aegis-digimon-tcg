@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // is a distinct catalog alias nothing ever fires, and dropping the sourceFilter would fire on
 // ANY Digimon's link-card trash instead of only THIS Digimon's (per the printed "this
 // Digimon's link cards" text).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -64,9 +64,12 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["hand"],
           payCost: false,
           optional: true,
@@ -77,9 +80,12 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["digivolutionCards"],
           payCost: false,
           optional: true,
@@ -95,9 +101,12 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["hand"],
           payCost: false,
           optional: true,
@@ -108,9 +117,12 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["digivolutionCards"],
           payCost: false,
           optional: true,

@@ -452,6 +452,16 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       // card's own play/use cost) matches this source instance's card id for its owner.
       const seatsScope = seatsForController(ctx, filter);
       const selfCardId = ctx.source.cardId;
+      if (action.existingPermanent === true) {
+        const selected = await resolvePermanentTargets(ctx, want);
+        for (const permanentId of selected) {
+          ctx.fx.changePlayCost((facts) => facts.permanentId === permanentId, delta, {
+            ...(setMode ? { setFixed: true } : {}),
+            continuous: action.duration === "permanent",
+          });
+        }
+        return false;
+      }
       const predicate = (facts: { def: CardDefinition; controllerSeat: Seat }): boolean => {
         if (!seatsScope.includes(facts.controllerSeat)) return false;
         if (selfRef) {

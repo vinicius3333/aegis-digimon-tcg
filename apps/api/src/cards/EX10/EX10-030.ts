@@ -25,7 +25,7 @@ const compiled: CompiledCard = {
           },
           cost: {
             kind: "trash",
-            target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+            target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked", isSelfRef: true }, count: 1 },
             raw: "By trashing 1 of this Digimon's link cards",
           },
           optional: true,
@@ -56,9 +56,12 @@ const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["hand", "digivolutionCards"],
           payCost: false,
           optional: true,
@@ -78,9 +81,12 @@ const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["hand", "digivolutionCards"],
           payCost: false,
           optional: true,
@@ -93,6 +99,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinkTrashed",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "ModifyDP",
@@ -150,6 +157,7 @@ const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 export { compiled };

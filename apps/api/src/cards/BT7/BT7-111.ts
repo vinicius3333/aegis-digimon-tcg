@@ -91,6 +91,7 @@ const compiled: CompiledCard = {
       names: ["Lucemon"],
       cost: 7,
       isAlternate: true,
+      sourceZones: ["hand"],
     },
   ],
 };

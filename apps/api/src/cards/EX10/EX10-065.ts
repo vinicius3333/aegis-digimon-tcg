@@ -37,35 +37,34 @@ export const compiled: CompiledCard = {
             {
               kind: "GainKeyword",
               target: {
-                filter: {
-                  isTriggerSubject: true,
-                },
+                filter: {},
                 count: 1,
+                sourceRef: "triggerSubject",
               },
               keyword: {
                 keyword: "Rush",
                 raw: "＜Rush＞",
               },
               duration: "forTheTurn",
+              cost: {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by deleting this Tamer",
+              },
+              optional: true,
+              abortOnDecline: true,
             },
             {
               kind: "GainMemory",
               amount: 1,
             },
           ],
-          cost: {
-            kind: "deleteOwn",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "by deleting this Tamer",
-          },
-          optional: true,
-          abortOnDecline: true,
           raw: "When any of your Digimon with [Myotismon] in their names are played, by deleting this Tamer, 1 of those Digimon gains ＜Rush＞ for the turn. Then, gain 1 memory.",
         },
       ],

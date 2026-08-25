@@ -66,21 +66,6 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "untilActivated",
-            },
-            {
               kind: "Link",
               target: {
                 filter: {
@@ -96,16 +81,17 @@ export const compiled: CompiledCard = {
                 },
                 count: 1,
               },
-              onto: {
-                filter: {
-                  isSourceRef: true,
-                },
+              from: ["trash"],
+              recipient: {
+                filter: {},
+                count: 1,
+                sourceRef: "triggerSubject",
               },
               payCost: false,
               optional: true,
-              delayedEffect: true,
             },
           ],
+          delayArmedIntrinsic: true,
         },
       ],
     },

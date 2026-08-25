@@ -66,7 +66,14 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Ryoma Mogami", "Astamon"], cost: 7, isAlternate: true }],
+  digivolutionRequirement: [
+    {
+      namesExact: ["Astamon"],
+      cost: 7,
+      isAlternate: true,
+      controllerControls: { kind: ["Tamer"], namesExact: ["Ryoma Mogami"] },
+    },
+  ],
 };
 
 registerIrCard("EX10-023", compiled);

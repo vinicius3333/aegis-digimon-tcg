@@ -1,139 +1,94 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX10-063";
-
-function hasMineralOrRock(def: CardDefinition): boolean {
-  return (def.types ?? []).some((t) => t === "Mineral" || t === "Rock");
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-return-play`,
-          description:
-            "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, " +
-            "you may play 1 [Close] from your hand without paying the cost. Then, if you " +
-            "don't have a Digimon, you may play 1 [Sunarizamon] from your trash without " +
-            "paying the cost.",
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Close"], match: "nameExact" }] },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
           optional: true,
-          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          canActivate: (ctx) =>
-            source.isOnBattleArea() &&
-            Array.from(ctx.game.player(source.ownerSeat).hand).some(
-              (card) => ctx.game.definitionOf(card).nameEn === "Close",
-            ),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const closeCard = Array.from(owner.hand).find((c) => {
-              const def = ctx.game.definitionOf(c);
-              return def.nameEn === "Close";
-            });
-            if (closeCard !== undefined) {
-              const willPlayClose = await ctx.ask.optional(
-                ctx,
-                "Play 1 [Close] from your hand without paying the cost? (Tamer returns to deck)",
-              );
-              if (!willPlayClose) return;
-              await ctx.fx.returnToDeck([source.instanceId], { toTop: false });
-              await ctx.fx.playInstances([closeCard.instanceId], { payCost: false });
-            }
-
-            const hasDigimon = Array.from(owner.battleArea).some(
-              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-            );
-            if (!hasDigimon) {
-              const sunariCard = Array.from(owner.trash).find((c) => {
-                const def = ctx.game.definitionOf(c);
-                return def.nameEn === "Sunarizamon";
-              });
-              if (sunariCard !== undefined) {
-                const willPlaySunari = await ctx.ask.optional(
-                  ctx,
-                  "Play 1 [Sunarizamon] from your trash without paying the cost?",
-                );
-                if (willPlaySunari) {
-                  await ctx.fx.playInstances([sunariCard.instanceId], { payCost: false });
-                }
-              }
-            }
+          abortOnDecline: true,
+          cost: {
+            kind: "return",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            to: "deckBottom",
+            raw: "by returning this Tamer to the bottom of the deck",
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/digivolution-trash-gain-memory`,
-          description:
-            "[All Turns] When effects trash any of your [Mineral] or [Rock] trait Digimon's " +
-            "digivolution cards, by suspending this Tamer, gain 1 memory.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenDigivolutionTrashed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // A self-suspend cost is unpayable while this card is already suspended, so this watcher
-              // must not pad the prompt when several watchers order off one event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When Mineral/Rock digivolution trashed, suspend + gain memory.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const def = subCtx.game.definitionOf(subject.topCard);
-                return isDigimon(def) && hasMineralOrRock(def);
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              nameOrTrait: [{ tokens: ["Sunarizamon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          condition: {
+            kind: "allOf",
+            conditions: [
+              { kind: "ifThisEffectActed" },
+              { kind: "youHaveNone", filter: { controller: "mine", kind: ["Digimon"] } },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+          },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
               },
-              run: async (subCtx) => {
-                const selfPerm = subCtx.source.permanent();
-                if (selfPerm === undefined || selfPerm.isSuspended) return;
-                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
-                // choice: ask before suspending, and leave the Tamer untouched on a decline.
-                const willSuspend = await subCtx.ask.optional(subCtx, "Suspend Close to gain 1 memory?");
-                if (!willSuspend) return;
-                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-                if (!paid) return;
-                // [All Turns]: the trashing effect can resolve on either player's turn.
-                subCtx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX10-063", compiled);
+
+export { compiled };

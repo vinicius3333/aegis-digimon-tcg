@@ -32,6 +32,21 @@ export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kin
   const recipientFilter: Filter = { controller: "mine", kind: ["Digimon"], ...action.recipient.filter };
   const matches = (permanent: Permanent, filter: Filter): boolean =>
     permanentMatchesFilter(ctx, permanent, filter, ctx.source);
+  if (action.recipient.sourceRef === "triggerSubject") {
+    const id = ctx.trigger.subjectPermanentId;
+    const permanent = id === undefined ? undefined : ctx.game.permanentById(id);
+    return (
+      permanent !== undefined &&
+      matches(permanent, recipientFilter) &&
+      canLinkToTargetPermanent(
+        permanent,
+        recipientFilter,
+        matches,
+        ctx.game.definitionOf,
+        action.allowBreedingRecipient === true,
+      )
+    );
+  }
   return candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter }).some((permanent) =>
     canLinkToTargetPermanent(
       permanent,
@@ -59,14 +74,25 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     // may RECEIVE the link. Filter the candidate recipients through the predicate so an
     // ineligible recipient is never offered (server-authoritative — V4/V5).
     const matches = (p: Permanent, f: Filter): boolean => permanentMatchesFilter(ctx, p, f, ctx.source);
-    const recipients = candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter }).filter((p) =>
-      canLinkToTargetPermanent(
-        p,
-        recipientFilter,
-        matches,
-        ctx.game.definitionOf,
-        action.allowBreedingRecipient === true,
-      ),
+    const triggerRecipientId =
+      action.recipient.sourceRef === "triggerSubject" ? ctx.trigger.subjectPermanentId : undefined;
+    const triggerRecipient = triggerRecipientId === undefined ? undefined : ctx.game.permanentById(triggerRecipientId);
+    const recipientPool =
+      action.recipient.sourceRef === "triggerSubject"
+        ? triggerRecipient === undefined
+          ? []
+          : [triggerRecipient]
+        : candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter });
+    const recipients = recipientPool.filter(
+      (p) =>
+        matches(p, recipientFilter) &&
+        canLinkToTargetPermanent(
+          p,
+          recipientFilter,
+          matches,
+          ctx.game.definitionOf,
+          action.allowBreedingRecipient === true,
+        ),
     );
     if (recipients.length === 0) return;
     const recipientTarget = action.recipient.count === "all" ? recipients.length : (action.recipient.count ?? 1);
