@@ -137707,7 +137707,11 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -3000,
             "duration": "forTheTurn",
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "unit": "colors" }
+            "scaling": {
+              "per": 1,
+              "filter": { "isSelfRef": true, "zone": "digivolutionCards" },
+              "unit": "digivolutionCardColors"
+            }
           }
         ]
       },
@@ -137719,7 +137723,11 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -3000,
             "duration": "forTheTurn",
-            "scaling": { "per": 1, "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "unit": "colors" }
+            "scaling": {
+              "per": 1,
+              "filter": { "isSelfRef": true, "zone": "digivolutionCards" },
+              "unit": "digivolutionCardColors"
+            }
           }
         ]
       },
@@ -137734,9 +137742,27 @@
             "toTop": true
           },
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-            "condition": { "kind": "raw", "raw": "this Digimon has 4 or more colors in its digivolution cards" }
+            "kind": "SecurityManipulation",
+            "op": "trashTop",
+            "controller": "opponent",
+            "amount": 1,
+            "condition": {
+              "kind": "selfDigivolutionStackDistinctColorCount",
+              "op": "gte",
+              "value": 4,
+              "raw": "this Digimon has 4 or more colors in its digivolution cards"
+            }
+          },
+          {
+            "kind": "GainKeyword",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "keyword": { "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1＞" },
+            "condition": {
+              "kind": "selfDigivolutionStackDistinctColorCount",
+              "op": "gte",
+              "value": 4,
+              "raw": "this Digimon has 4 or more colors in its digivolution cards"
+            }
           }
         ],
         "frequency": "OncePerTurn"

@@ -2392,3 +2392,37 @@ for the individual evidence below.
   `PlaceInBattleAreaSelf` — 4/4; security activation — 2/2; interpreter — 171/171; capabilities —
   290/290; API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, ruling dependency, or unresolved limitation remains.
+
+## EX12-076 — Susanoomon — 10/10
+
+- **Printed contract:** Yellow/White/Red level-7 Digimon, play cost 16 and 16000 DP, normally
+  evolving from any level 6 for 6 or alternatively from a level-6 Hybrid, Shambala, or TS for 5.
+  Assembly -9 uses eight differently named Hybrid or Shambala cards. Rush, Raid, and Blocker are
+  always active. On play and when digivolving, every opposing Digimon loses 3000 DP for each
+  color among Susanoomon's digivolution cards. When attacking once per turn, it places one
+  opposing Digimon on top of security; if its digivolution cards have four or more colors, it
+  then trashes the opponent's top security and performs Recovery +1. The card is also treated as
+  having the Hybrid trait.
+- **KB evidence:** Q7194 says that if an immediate would-leave reaction removes Susanoomon while
+  the first part places the opposing Digimon in security, the conditional tail cannot use its
+  former digivolution cards and therefore neither trashes security nor recovers.
+- **Corrections:** the direct module was complete, but the aggregate calculated the DP penalty
+  from colors among allied Digimon instead of colors in Susanoomon's digivolution cards. Its
+  attack tail also used a generic trash operation with the wrong target/condition and omitted
+  Recovery +1. The aggregate now exactly mirrors the direct stack-color scaling and complete
+  conditional security tail.
+- **Behavioral proof:** one- and three-color stacks produce the exact global opposing DP penalty.
+  The attack effect places the chosen opposing Digimon on top of security; three colors stop
+  there, while four colors trash that card and recover one. For Q7194, a real BT24-018
+  would-leave replacement removes Susanoomon during the first part, preserves the intended
+  opposing Digimon, and proves that neither tail action occurs. The alternate cost accepts a
+  matching level-6 Hybrid for 5 and rejects a nonmatching level 6. Assembly accepts eight real,
+  differently named Shambala cards for the reduced cost 7 and rejects a duplicate name.
+- **Identity and verification:** catalog identity, Rule trait, both evolution routes, Assembly,
+  keywords, stack-color scaling, target/zones, once-per-turn scope, Q7194 interruption, full
+  coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality are
+  asserted. `EX12-076.test.ts` — 11/11; advanced keyword conformance — 30/30; Assembly
+  conformance — 20/20; effect-driven digivolution legality — 5/5; leave prevention — 10/10;
+  primitives — 126/126; interpreter — 171/171; capabilities — 290/290; shared build, API
+  typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
+  unsupported behavior, or unresolved ruling remains.
