@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
@@ -87,10 +87,9 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              fromSelectionRef: "buffedDigimon",
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "buffedDigimon",
           },
           keyword: {
             keyword: "Collision",
@@ -101,10 +100,9 @@ const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              fromSelectionRef: "buffedDigimon",
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "buffedDigimon",
           },
           keyword: {
             keyword: "Piercing",
@@ -115,10 +113,9 @@ const compiled: CompiledCard = {
         {
           kind: "Attack",
           target: {
-            filter: {
-              fromSelectionRef: "buffedDigimon",
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "buffedDigimon",
           },
           withoutSuspending: false,
           optional: false,
