@@ -184,9 +184,14 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Behavioral proof: isolated `BT13-021.test.ts` passed 5 tests in its own Vitest process: verifies the complete draw/aura IR; a real attack draws exactly one for each player; two same-turn attack timings still draw only once per player; an inherited host gains exactly +1000 DP at eight opposing hand cards; and it has no bonus at seven but gains it immediately when an eighth card enters the opponent's hand. Reverting either draw/controller, the frequency key, inherited self anchor, opponent seat, threshold, aura amount, or continuous recomputation makes a focused observable assertion fail.
 - Revalidation result: 10/10; no remaining card-specific queue.
 
-## BT13-022 — Kamemon — Pending
+## BT13-022 — Kamemon — 10/10
 
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+- Catalog evidence: Blue level 3 Digimon, play cost 3, 2000 DP; Rookie/Data/Cyborg; evolves from blue level 2 for 0. Its only printed executable clause is Blocker: during an opposing Digimon's attack, Kamemon may suspend to become the attack target.
+- Knowledge base: `node tools/kb/query.mjs card BT13-022` reviewed; no card-specific entries exist. The reminder text agrees with the shared Blocker rule and introduces no separate effect.
+- Implementation and primitive trace: `BT13-022.ts` represents the printed keyword as a Static IR effect with `keywords: [{ keyword: "Blocker" }]`, no actions, `coverage: "full"`, and an empty residual. Traced through static keyword installation, public continuous-ledger observation, `eligibleBlockers`, the defending-seat block window, `declareBlock`, suspension, defender switching, battle resolution, and deletion/security routing. Registration is exclusively `registerIrCard("BT13-022", compiled)`.
+- Peers, traits, evolution, timing, ownership, and frequency: BT13-068 is a same-set printed-Blocker peer using the identical keyword primitive; the comprehensive chapter-12 suites independently exercise that shared mechanism. Kamemon has no name/trait targeting, alternate evolution, inherited text, ownership ambiguity, or frequency key. The proof uses the opponent's attack timing, defending-seat intent, an unsuspended battle-area Kamemon, and its catalog DP.
+- Behavioral proof: isolated `BT13-022.test.ts` passed 3 tests: exact full-coverage IR shape; public observer exposure; and a real player-directed attack where Kamemon is offered, declared by its controller, suspended, becomes the defender, loses the 5000-vs-2000 battle, and is deleted while security remains untouched. Reverting the keyword, static installation, controller/zone eligibility, block-window target switch, suspension, or battle routing makes an observable focused assertion fail.
+- Revalidation result: 10/10; no remaining card-specific queue.
 
 ## BT13-023 — Jellymon — Pending
 
