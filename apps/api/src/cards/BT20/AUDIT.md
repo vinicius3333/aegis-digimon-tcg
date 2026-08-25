@@ -1187,3 +1187,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-099.test.ts`).
+
+## BT20-100 — The Last Guardian
+
+- Catalog contract: white Royal Knight cost-4 Option; Main reveals top 3, adds one Cool Boy and one Royal Knight/X-Antibody card, bottoms the rest, then places itself in battle; when an own Omnimon-named Digimon would leave, Delay may prevent one of those Digimon from leaving; Security may free-play Omekamon/Cool Boy from hand/trash, then places itself in battle.
+- Knowledge base: Q4905 confirms this Delay and other would-leave effects trigger simultaneously and remain activatable even when prevention ultimately keeps Omnimon in battle.
+- Implementation evidence: reveal groups are independent, rest destination and self placement are direct. The resident Delay replacement is own/exact-name scoped, targets the trigger source, prevents rather than reacts after movement, and has no cause restriction. Security preserves optional head and mandatory placement tail. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: partial Omnimon names qualify while unrelated Royal Knights do not; trigger-source targeting ensures a different Omnimon cannot be arbitrarily protected and shared pending ordering supports Q4905.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-100.test.ts` — 2 passed.
+- Clause scores: stats/Main reveal groups 2/2; deck-bottom/self battle placement 2/2; Omnimon would-leave Delay gate 2/2; exact trigger-source prevention/Q4905 2/2; Security name union/zones/free play/placement 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-100.test.ts`).
