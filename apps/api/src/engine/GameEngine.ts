@@ -1903,12 +1903,12 @@ export class GameEngine {
       // occurred and cannot retroactively trigger (BT24-082/Q5664, BT24-083/Q5667).
       // Keep ordinary timing windows live because derived triggers and mid-window
       // digivolutions intentionally join those resolution fixpoints.
-      const phaseBoundaryRootZones =
+      const phaseBoundarySourceLocations =
         timing === EffectTiming.OnStartTurn || timing === EffectTiming.OnStartMainPhase
           ? new Map(
               this.listCandidateInstances().map((instance) => [
                 instance.instanceId,
-                rootZoneOfLooseInstance(this.state, instance.instanceId),
+                this.candidateSourceLocation(instance.instanceId),
               ]),
             )
           : undefined;
@@ -1930,13 +1930,13 @@ export class GameEngine {
             timing,
             this.effectEnvironment(trigger),
             this.resolutionDeps(
-              phaseBoundaryRootZones === undefined
+              phaseBoundarySourceLocations === undefined
                 ? undefined
                 : () =>
-                    this.instancesById([...phaseBoundaryRootZones.keys()]).filter(
+                    this.instancesById([...phaseBoundarySourceLocations.keys()]).filter(
                       (instance) =>
-                        rootZoneOfLooseInstance(this.state, instance.instanceId) ===
-                        phaseBoundaryRootZones.get(instance.instanceId),
+                        this.candidateSourceLocation(instance.instanceId) ===
+                        phaseBoundarySourceLocations.get(instance.instanceId),
                     ),
               { outermost: wasOutermostWindow },
             ),
@@ -4112,6 +4112,41 @@ export class GameEngine {
       if (player.resolvingOption !== undefined) out.push(player.resolvingOption);
     }
     return out;
+  }
+
+  /**
+   * Identify the exact effect-source role occupied by an instance. Phase-boundary
+   * windows snapshot this value so an instance that was merely present in a stack,
+   * linked slot, or loose zone cannot gain a newly available printed effect after it
+   * moves during resolution of that same physical boundary.
+   */
+  private candidateSourceLocation(instanceId: string): string | undefined {
+    for (const [seat, player] of this.state.players.entries()) {
+      if (player === undefined) continue;
+      const permanentLocation = (area: "battle" | "breeding", permanent: Permanent): string | undefined => {
+        if (permanent.topCard?.instanceId === instanceId) return `${seat}:${area}:${permanent.permanentId}:top`;
+        if (permanent.stack.some((card) => card.instanceId === instanceId)) {
+          return `${seat}:${area}:${permanent.permanentId}:stack`;
+        }
+        if (permanent.linked.some((card) => card.instanceId === instanceId)) {
+          return `${seat}:${area}:${permanent.permanentId}:linked`;
+        }
+        return undefined;
+      };
+      for (const permanent of player.battleArea) {
+        const location = permanentLocation("battle", permanent);
+        if (location !== undefined) return location;
+      }
+      if (player.breeding !== undefined) {
+        const location = permanentLocation("breeding", player.breeding);
+        if (location !== undefined) return location;
+      }
+      if (player.hand.some((card) => card.instanceId === instanceId)) return `${seat}:hand`;
+      if (player.trash.some((card) => card.instanceId === instanceId)) return `${seat}:trash`;
+      if (player.security.some((card) => card.instanceId === instanceId && card.faceUp)) return `${seat}:security`;
+      if (player.resolvingOption?.instanceId === instanceId) return `${seat}:resolvingOption`;
+    }
+    return undefined;
   }
 
   /** Push a permanent's top card, digivolution-stack cards, and linked cards. */

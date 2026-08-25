@@ -44,6 +44,26 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Aegiomon", "Elecmon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

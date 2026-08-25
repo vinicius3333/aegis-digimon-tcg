@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-093.js";
@@ -43,6 +43,55 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
         },
       ],
     });
+  });
+
+  it("encodes the printed Security play from hand or trash", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Aegiomon", "Elecmon"], match: "nameExact" }],
+            },
+          },
+        },
+      ],
+    });
+  });
+
+  it.each([
+    ["Aegiomon from hand", "hand", "BT24-034"],
+    ["Elecmon from trash", "trash", "BT24-031"],
+  ] as const)("plays %s without paying the cost", async (_label, zone, card) => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT24-093", as: "temple" }],
+          [zone]: [{ card, as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("temple"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("target").instanceId,
+      ),
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("target").instanceId,
+      ),
+    ).toBe(true);
   });
 
   it("moves the top security card to hand, recovers 1 from deck to security, and lands in the battle area", async () => {

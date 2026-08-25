@@ -28,7 +28,6 @@ interface BorrowableEffect {
   sourceInstanceId: string;
   sourceCardId: string;
   sourcePermanentId?: string;
-  conferredToPermanentId?: string;
   triggerOrdinal: number;
 }
 
@@ -92,7 +91,6 @@ function borrowableFromCompiled(args: {
   sourceInstanceId: string;
   sourceCardId: string;
   sourcePermanentId?: string;
-  conferredToPermanentId?: string;
   trigger?: string;
 }): BorrowableEffect[] {
   const ordinals = new Map<string, number>();
@@ -107,7 +105,6 @@ function borrowableFromCompiled(args: {
       sourceInstanceId: args.sourceInstanceId,
       sourceCardId: args.sourceCardId,
       sourcePermanentId: args.sourcePermanentId,
-      conferredToPermanentId: args.conferredToPermanentId,
       triggerOrdinal,
     });
   }
@@ -190,7 +187,6 @@ function collectForeignCandidates(
             sourceInstanceId: stackCard.instanceId,
             sourceCardId: stackCard.cardId,
             sourcePermanentId: src.permanentId,
-            conferredToPermanentId: src.permanentId,
             trigger: conferral.trigger,
           }),
         );
