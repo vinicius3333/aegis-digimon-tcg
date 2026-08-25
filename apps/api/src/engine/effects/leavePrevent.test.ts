@@ -176,7 +176,7 @@ function putPermanent(state: GameState, seat: Seat, permanentId: string, opts?: 
   return p;
 }
 
-type LeaveCause = "byOpponentEffect" | "otherThanYourEffect" | "byEffect" | "otherThanBattle" | "any";
+type LeaveCause = "opponentEffect" | "byOpponentEffect" | "otherThanYourEffect" | "byEffect" | "otherThanBattle" | "any";
 
 // IR builders for prevent scenarios (mirrors what the runtime record emits).
 function selfSuspendPrevent(cause: LeaveCause): CompiledCard {
@@ -234,6 +234,17 @@ describe("leave-area prevent: self-protect, suspend cost", () => {
     await h.installPrevent(self, selfSuspendPrevent("byOpponentEffect"));
 
     // cause byEffect, resolvingSeat = owner (0) => byOpponentEffect must NOT fire.
+    await h.fx.deletePermanent([self.permanentId]);
+
+    expect(h.state.players[0]!.battleArea.find((p) => p.permanentId === "p1")).toBeUndefined();
+    expect(self.isSuspended).toBe(false);
+  });
+
+  it("accepts opponentEffect as the catalog compiler alias for byOpponentEffect", async () => {
+    const h = harness({ turnSeat: 0 });
+    const self = putPermanent(h.state, 0, "p1");
+    await h.installPrevent(self, selfSuspendPrevent("opponentEffect"));
+
     await h.fx.deletePermanent([self.permanentId]);
 
     expect(h.state.players[0]!.battleArea.find((p) => p.permanentId === "p1")).toBeUndefined();
