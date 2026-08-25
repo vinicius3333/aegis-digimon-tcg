@@ -45,8 +45,6 @@ export const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },
@@ -80,8 +78,6 @@ export const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },

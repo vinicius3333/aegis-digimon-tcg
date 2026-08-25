@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-059.js";
 import "./EX11-023.js";
 
 describe("EX11-059 Reina Oumi", () => {
+  it("preserves the printed dual-color NSo Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-059")).toMatchObject({
+      nameEn: "Reina Oumi",
+      colors: ["Yellow", "Purple"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["NSo", "LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    for (const trigger of ["StartOfYourMainPhase", "OnPlay"]) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[1]).toEqual({
+        kind: "GainMemory",
+        amount: 1,
+      });
+    }
+  });
+
   it("trashes an NSo card to draw and gain memory at the start of the main phase", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX11-059", as: "reina" }], hand: ["EX8-030"], deck: ["BT1-001"] } },
@@ -15,6 +33,7 @@ describe("EX11-059 Reina Oumi", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("reina"));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-030")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("uses the deleted NSo card from trash with a field NSo Digimon for DNA digivolution (Q5913)", async () => {
@@ -43,6 +62,7 @@ describe("EX11-059 Reina Oumi", () => {
     expect(dna).toBeDefined();
     expect(s.perm("reina").isSuspended).toBe(true);
     expect(dna?.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX8-033", "EX8-013"]));
+    assertNoLoudGap(s);
   });
 
   it("publishes full IR with distinct field and trash NSo material pools", () => {
