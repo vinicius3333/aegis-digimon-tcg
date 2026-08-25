@@ -911,3 +911,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-076.test.ts`).
+
+## BT20-077 — HeavyMetaldramon
+
+- Catalog contract: purple/red level 6 Virus Evil Dragon/LIBERATOR ACE, play cost 7/12000 DP, purple or red level-5 evolution cost 4 plus level-5 Dark Dragon/Evil Dragon alternate cost 3; Blast Digivolve; On Play/When Digivolving trashes down to 4 hand cards, then free-plays a trash Digimon under a base 8000-DP ceiling reduced by 2000 for each card this effect trashed; all-turn gives every own Dark Dragon/Evil Dragon +2000 DP, Rush, and Blocker; Overflow -4. The 2025-02-21 errata explicitly adds “without paying the cost.”
+- Knowledge base: the committed errata is authoritative and matches the direct `payCost:false` action.
+- Implementation evidence: both entry timings track their own variable trash count and feed it into a `lowerCeiling` DP modifier. The free play uses the errata cost waiver. The continuous all-turn effects share the complete trait union and all-target scope. Blast/ACE/Overflow and alternate evolution metadata are direct; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: BT20-075 and BT21-077 prove both alternate trait arms at cost 3. With 4 cards after play, BT20-074 at 8000 DP plays free; after evolution draws to 5 and trashes 1, the ceiling becomes 6000, allowing BT20-070 while excluding the 8000-DP peer. HeavyMetaldramon, BT20-075, and BT21-077 all gain the three continuous benefits, while Machine BT20-047 does not. Leaving battle charges 4 memory.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-077.test.ts` — 7 passed.
+- Clause scores: stats/evolution/Blast/ACE/Overflow 2/2; alternate trait union/cost 2/2; variable hand trash/count tracking 2/2; errata free play/scaled DP ceiling 2/2; all-turn trait population/DP/Rush/Blocker 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-077.test.ts`).
