@@ -770,6 +770,18 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const currentLevel = subject !== undefined ? ctx.game.definitionOf(subject.topCard).level : undefined;
       return currentLevel !== undefined && currentLevel === ctx.trigger.previousDigivolutionLevel;
     }
+    case "triggerSubjectStackHasSameLevel": {
+      const subject =
+        ctx.trigger.subjectPermanentId === undefined
+          ? undefined
+          : ctx.game.permanentById(ctx.trigger.subjectPermanentId);
+      const currentLevel = subject?.topCard === undefined ? undefined : ctx.game.definitionOf(subject.topCard).level;
+      return (
+        currentLevel !== undefined &&
+        subject !== undefined &&
+        subject.stack.some((card) => ctx.game.definitionOf(card).level === currentLevel)
+      );
+    }
     case "triggerDeletedLevelAtLeast": {
       const cardId = ctx.trigger.deletedTopCardId;
       const definition = cardId !== undefined ? getCardDefinition(cardId) : undefined;

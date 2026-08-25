@@ -1,25 +1,28 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-088.js";
 
 describe("BT22-088 Arisa Kinosaki", () => {
   it("requires returning this Tamer before resolving the then clause", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
+    expect(effect?.actions).toHaveLength(1);
     expect(effect?.actions[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      from: ["hand"],
-      optional: true,
-      abortOnDecline: true,
+      kind: "CostGatedBlock",
       cost: {
         kind: "return",
+        to: "deckBottom",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       },
-    });
-    expect(effect?.actions[1]).toMatchObject({
-      kind: "PlayWithoutCost",
-      from: ["trash"],
-      optional: true,
-      condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] } },
+      actions: [
+        { kind: "PlayWithoutCost", from: ["hand"], optional: true },
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          optional: true,
+          condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] } },
+        },
+      ],
     });
   });
 
@@ -70,5 +73,18 @@ describe("BT22-088 Arisa Kinosaki", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === arisaId)).toBe(true);
+  });
+
+  it("returns itself before playing Shoemon even without another Arisa in hand", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-088", as: "arisa" }], trash: [{ card: "BT22-020", as: "shoemon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await (
+      s.engine as unknown as { fireTiming(timing: EffectTiming, trigger: Record<string, never>): Promise<void> }
+    ).fireTiming(EffectTiming.OnStartMainPhase, {});
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-020"));
+
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-088")).toBe(true);
   });
 });

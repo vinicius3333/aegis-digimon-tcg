@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-038.js";
@@ -88,5 +90,29 @@ describe("BT22-038 Monzaemon", () => {
     expect(
       s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-001" || card.cardId === "BT1-002"),
     ).toHaveLength(1);
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("numemon"));
+    await settle();
+    expect(
+      s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-001" || card.cardId === "BT1-002"),
+    ).toHaveLength(1);
+  });
+
+  it("applies the inherited attack reduction only once from a realistic stack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-040", under: ["BT22-038"], as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-028", as: "target", dp: 10000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    await settle(() => s.perm("target").currentDP === 6000);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    await settle();
+
+    expect(s.perm("target").currentDP).toBe(6000);
   });
 });

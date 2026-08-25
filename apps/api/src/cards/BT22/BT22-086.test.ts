@@ -1,22 +1,23 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-086.js";
 
 describe("BT22-086 Yao Qinglan", () => {
   it("models the return-gated start-main sequence and empty-board Sangomon condition", () => {
     const start = compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase");
-    expect(start?.actions).toHaveLength(2);
+    expect(start?.actions).toHaveLength(1);
     expect(start?.actions[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      from: ["hand"],
+      kind: "CostGatedBlock",
       cost: { kind: "return", to: "deckBottom", target: { filter: { isSelfRef: true } } },
-      optional: true,
-      abortOnDecline: true,
-    });
-    expect(start?.actions[1]).toMatchObject({
-      kind: "PlayWithoutCost",
-      from: ["trash"],
-      condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] } },
+      actions: [
+        { kind: "PlayWithoutCost", from: ["hand"], optional: true },
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] } },
+        },
+      ],
     });
   });
 
@@ -55,5 +56,18 @@ describe("BT22-086 Yao Qinglan", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: id })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === id));
     expect(s.state.memory).toBe(2);
+  });
+
+  it("returns itself before playing Sangomon even without another Yao in hand", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-086", as: "yao" }], trash: [{ card: "BT22-018", as: "sangomon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await (
+      s.engine as unknown as { fireTiming(timing: EffectTiming, trigger: Record<string, never>): Promise<void> }
+    ).fireTiming(EffectTiming.OnStartMainPhase, {});
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-018"));
+
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-086")).toBe(true);
   });
 });

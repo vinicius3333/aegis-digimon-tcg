@@ -16,14 +16,20 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             excludeSelf: true,
-            kind: ["Digimon"],
-            nameOrTrait: [
+            or: [
               {
-                tokens: ["Puppet"],
-                match: "trait",
+                isToken: true,
+              },
+              {
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Puppet"],
+                    match: "trait",
+                  },
+                ],
               },
             ],
-            includeToken: true,
           },
           actions: [
             {

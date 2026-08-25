@@ -85,4 +85,13 @@ describe("BT22-046 Gargomon", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-091")).toBe(true);
   });
+
+  it("grants inherited +1000 DP in a CS evolution stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-047", under: ["BT22-046"], as: "host" }] },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(7000);
+  });
 });

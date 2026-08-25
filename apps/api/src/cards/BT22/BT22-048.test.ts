@@ -78,4 +78,11 @@ describe("BT22-048 Togemon", () => {
     expect(observe(s.engine).hasKeyword(togemon, "Raid")).toBe(false);
     expect(observe(s.engine).hasPierce(togemon)).toBe(false);
   });
+
+  it("applies inherited +2000 DP during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-052", under: ["BT22-048"], as: "host" }] } });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(14000);
+  });
 });

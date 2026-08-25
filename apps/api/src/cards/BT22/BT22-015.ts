@@ -83,8 +83,8 @@ export const compiled: CompiledCard = {
           },
           to: "deckBottom",
           scaling: {
-            per: 2,
-            unit: "digivolutionCards",
+            per: 1,
+            unit: "sameLevelDigivolutionPairs",
           },
         },
         {

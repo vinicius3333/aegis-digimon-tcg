@@ -449,7 +449,10 @@ export async function runDigivolveViaPlacement(
   const candidates = candidateLooseInstances(ctx, action.placeCost.target, ["trash"]);
   const placed = await pickLoose(ctx, action.placeCost.target, candidates);
   if (placed.length === 0) return;
-  await ctx.fx.placeUnder(hosts[0]!, placed, { belowTop: true, faceUp: true });
+  await ctx.fx.placeUnder(hosts[0]!, placed, {
+    belowTop: action.placeCost.position !== "bottom",
+    faceUp: true,
+  });
   const result = await ctx.fx.digivolveFromInstance(hosts[0]!, ctx.source.instanceId, {
     payCost: true,
     costOverride: action.cost,

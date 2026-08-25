@@ -63,7 +63,14 @@ export interface ReplacementAction extends ActionBase {
    * For "prevent": which removal causes the reaction watches. `ActionBase.cost` is the gate the
    * controller pays to prevent.
    */
-  leaveCause?: "byOpponentEffect" | "otherThanYourEffect" | "byEffect" | "byBattle" | "otherThanBattle" | "any";
+  leaveCause?:
+    | "opponentEffect"
+    | "byOpponentEffect"
+    | "otherThanYourEffect"
+    | "byEffect"
+    | "byBattle"
+    | "otherThanBattle"
+    | "any";
   /**
    * For "prevent": the protection is "can't LEAVE other than by deletion" (EX6-044). A
    * move/bounce/return is prevented but a DELETION is not (KB EX6-044 Q3771). Absent covers any

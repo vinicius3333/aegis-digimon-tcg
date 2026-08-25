@@ -6,6 +6,7 @@ import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
 import { runActivateEffect, runActivateForeignEffect, runActivateMain, runUseOptionWithoutCost } from "./borrowed.js";
+import { EffectTiming } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
 export async function runMetaAction(ctx: EffectContext, action: Action): Promise<boolean> {
@@ -30,6 +31,21 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
       return false;
     }
     case "ReactivateEffect": {
+      if (action.targetSource === "triggerSubject") {
+        const permanentId = ctx.trigger.subjectPermanentId;
+        if (permanentId === undefined) {
+          ctx.lastEffectActed = false;
+          return false;
+        }
+        const timing = action.fromTrigger === "Main" ? EffectTiming.OnDeclaration : undefined;
+        if (timing === undefined) {
+          unsupported(ctx, action, `trigger-subject reactivation does not support ${action.fromTrigger}`);
+          ctx.lastEffectActed = false;
+          return false;
+        }
+        ctx.lastEffectActed = (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing] })) === true;
+        return false;
+      }
       const compiled = runtimeCompiledCard(ctx.source.cardId);
       if (!compiled) return false;
       const factor = action.scaling ? scaleFactor(ctx, action.scaling) : 1;

@@ -15,15 +15,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
-              controller: "mine",
-              excludeSelf: true,
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Aqua", "Sea Animal"],
-                  match: "trait",
-                },
-              ],
+              boundRef: "sangomonHost",
             },
             count: 1,
           },
@@ -56,28 +48,22 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "target",
+            targetIsPermanent: true,
+            bindHostAs: "sangomonHost",
           },
           optional: true,
           abortOnDecline: true,
         },
         {
-          kind: "GrantStatic",
+          kind: "Restrict",
           target: {
             filter: {
-              controller: "mine",
-              excludeSelf: true,
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Aqua", "Sea Animal"],
-                  match: "trait",
-                },
-              ],
+              isSelfRef: true,
             },
             count: 1,
+            isSelf: true,
           },
-          grant: "protection",
-          tokens: ["beDeletedInBattle"],
+          restriction: "beDeletedInBattle",
           duration: "untilOpponentTurnEnd",
         },
       ],

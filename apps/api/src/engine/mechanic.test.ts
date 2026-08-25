@@ -4283,24 +4283,28 @@ describe("A3 wrong-permanent cluster — self-reference and compound-clause fixe
   // gets +/-N DP" handler => the ModifyDP target's controller flips to "opponent" (the OWN
   // Greymon never gets +3000 DP) and no GrantImmunity action exists at all.
   it("BT22-083 [All Turns]: whenAttackTargetSwitched grants +3000 DP and opponent-effect immunity to OWN Greymon", async () => {
-    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
-    const p0 = s.state.players[0] as PlayerState;
-    const p1 = s.state.players[1] as PlayerState;
-
-    const tamer = digimon(0, 0, "BT22-083");
-    p0.battleArea.push(tamer);
-    const ownGreymon = digimon(0, 5000, "AD1-001"); // "Greymon" in name
-    p0.battleArea.push(ownGreymon);
-    const oppControl = digimon(1, 5000, "AD1-001"); // also named Greymon — must stay untouched
-    p1.battleArea.push(oppControl);
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-083", as: "tamer" },
+            { card: "AD1-001", as: "ownGreymon", dp: 5000 },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "oppControl", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const tamer = s.perm("tamer");
+    const ownGreymon = s.perm("ownGreymon");
+    const oppControl = s.perm("oppControl");
     const dpBefore = ownGreymon.currentDP;
 
-    const engine = s.engine as unknown as {
-      recomputeContinuousEffects(): Promise<void>;
-      fireSubTrigger(event: string, payload: unknown): Promise<void>;
-    };
-    await engine.recomputeContinuousEffects();
-    await engine.fireSubTrigger("whenAttackTargetSwitched", { subjectPermanentId: tamer.permanentId });
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      subjectPermanentId: ownGreymon.permanentId,
+      attackerPermanentId: ownGreymon.permanentId,
+    });
     await settle(() => ownGreymon.currentDP !== dpBefore);
     await settle(() => false, 60);
 

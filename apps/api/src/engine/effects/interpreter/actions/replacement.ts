@@ -185,6 +185,7 @@ export async function runReplacement(
         // allowed through; only a move/bounce is prevented (KB EX6-044 Q3771).
         if (exceptDeletion && !isBounce) return false;
         switch (leaveCause) {
+          case "opponentEffect":
           case "byOpponentEffect":
             // Only an opponent's effect: removal must be effect-driven by a non-owner seat.
             return cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== ownerSeat;
@@ -415,6 +416,9 @@ export async function runReplacement(
     digisorptionRedirect: action.digisorptionRedirect,
     causeAllows: (cause, resolvingSeat) => {
       switch (action.leaveCause ?? "any") {
+        case "opponentEffect":
+        case "byOpponentEffect":
+          return cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== ctx.source.ownerSeat;
         case "byBattle":
           return cause === "byBattle";
         case "byEffect":

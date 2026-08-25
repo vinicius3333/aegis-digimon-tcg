@@ -46,28 +46,22 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "YourTurn",
+      trigger: "WhenLinking",
+      isLinked: true,
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenLinked",
-          actions: [
-            {
-              kind: "TrashDigivolution",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                  digivolutionCards: "hasAny",
-                },
-                count: 1,
-              },
-              amount: 1,
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-          ],
+            count: 1,
+          },
+          amount: 1,
         },
       ],
-      frequency: "OncePerTurn",
     },
   ],
   coverage: "full",

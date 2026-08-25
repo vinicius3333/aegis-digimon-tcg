@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { effectsOf } from "../../engine/effects/collect.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-011.js";
 
 describe("BT22-011 BlueMeramon", () => {
@@ -39,5 +43,47 @@ describe("BT22-011 BlueMeramon", () => {
         },
       ],
     });
+  });
+
+  it("pays exactly 3 and plays one eligible Flame Digimon from trash through public Main activation", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-011", as: "blueMeramon" }],
+          trash: [
+            { card: "BT22-010", as: "eligible" },
+            { card: "BT1-009", as: "nonmatch" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("blueMeramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-011/"),
+    )!.effectKey;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-010"));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-010")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
+  });
+
+  it("grants Alliance to a CS inherited host only during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-013", under: ["BT22-011"], as: "host" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(false);
   });
 });

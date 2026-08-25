@@ -230,7 +230,8 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Token exclusion/inclusion (CAP-H5-05): "<non-Token>" / "your Tokens". A card
   // with `isToken: true` is a spawned-by-effect token Digimon, not a deck-legal card.
   if (filter.excludeToken === true && def.isToken) return false;
-  if (filter.includeToken === true && !def.isToken) return false;
+  // `includeToken` widens an otherwise Digimon/trait filter to admit matching tokens; it is
+  // not a request to require a token. Token-only targeting is expressed by `isToken: true`.
   return true;
 }
 
