@@ -213,6 +213,13 @@ export function advance(engine: GameEngine) {
         await internals.primitives.digivolveFromInstance(permanentId, instanceId, opts);
         await internals.recomputeContinuousEffects();
       },
+      /** App Fuse through the production primitive when no player intent exposes the procedure. */
+      async appFuseInto(permanentId: string, instanceId: string): Promise<Permanent | undefined> {
+        await internals.recomputeContinuousEffects();
+        const result = await internals.primitives.appFuseInto(permanentId, instanceId);
+        await internals.recomputeContinuousEffects();
+        return result;
+      },
       /** Place an Option as a battle-area permanent without using its [Main] effect. */
       async placeOptionAsPermanent(instanceId: string): Promise<void> {
         await internals.recomputeContinuousEffects();
