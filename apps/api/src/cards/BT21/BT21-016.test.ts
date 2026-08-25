@@ -94,7 +94,7 @@ describe("BT21-016 Shoutmon (King Version)", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("king").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("target").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
