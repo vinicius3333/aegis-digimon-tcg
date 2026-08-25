@@ -455,3 +455,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-038.test.ts`).
+
+## BT20-039 — Diatrymon
+
+- Catalog contract: green/yellow level 4 Vaccine Ancient Bird/ACCEL, play cost 4/5000 DP, green or yellow level-3 evolution cost 3 plus level-3 ACCEL alternate cost 2; On Play/When Digivolving suspends one opposing Digimon; inherited Piercing.
+- Knowledge base: no card-specific rulings; timing, opponent/card-kind scope, count, alternate cost, and inherited keyword ownership are unambiguous.
+- Implementation evidence: separate On Play and When Digivolving effects share the exact one-opposing-Digimon suspend target. The inherited Static entry is Piercing, the ACCEL alternate requirement is exact, and registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: On Play suspends one of two opposing Digimon and preserves the other; evolution over Falcomon takes the ACCEL path and its resident reduction, paying exactly 1 before suspending the target. Crowmon with Diatrymon underneath deletes a weaker suspended opponent and Pierces the remaining security.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-039.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; On Play suspension 2/2; When Digivolving suspension 2/2; exact opponent/count scope 2/2; inherited Piercing/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-039.test.ts`).
