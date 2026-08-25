@@ -1574,6 +1574,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "opponent" },
             "actions": [
               {
                 "kind": "Delete",
@@ -5796,7 +5797,13 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "dp": { "op": "lte", "value": 3000 },
+                "dpAtMost": 3000,
+                "dpAtMostScaling": {
+                  "per": 1,
+                  "bonus": 2000,
+                  "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"], "colors": ["Red"] },
+                  "unit": "cards"
+                },
                 "nameOrTrait": [{ "tokens": ["Vegetation", "Fairy"], "match": "trait" }]
               },
               "count": 1
@@ -9227,30 +9234,21 @@
                 "colors": ["Red"],
                 "dp": { "op": "lte", "value": 3000 },
                 "nameOrTrait": [
-                  { "tokens": ["Avian", "Bird", "Beast", "Animal"], "match": "trait" },
-                  { "tokens": ["Sovereign"], "match": "trait" }
-                ]
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ],
+                "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
               },
               "count": 1
             },
             "from": ["hand"],
             "payCost": false,
             "optional": true
-          },
-          {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): add 2000 to the maximum DP of the card you can play by this effect",
-            "scaling": {
-              "per": 1,
-              "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"], "colors": ["Red"] },
-              "unit": "cards"
-            }
           }
         ]
       }
     ],
-    "coverage": "partial",
-    "residual": ["missing-primitive(unaudited): add 2000 to the maximum DP of the card you can play by this effect"]
+    "coverage": "full",
+    "residual": []
   },
   "BT11-017": {
     "effects": [
