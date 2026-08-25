@@ -959,3 +959,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-080.test.ts`).
+
+## BT20-081 — Fenriloogamon: Takemikazuchi
+
+- Catalog contract: purple/yellow level 7 Virus Dark Animal/X-Antibody/SoC/SEEKERS ACE, play cost 9/16000 DP and purple or yellow level-6 evolution cost 6; Blast DNA from Fenriloogamon + Kazuchimon; On Play/When Digivolving gives two opposing Digimon -10000 DP for the turn, then with a Tamer beneath itself deletes one opposing 10000-DP-or-lower Digimon; When Attacking may trash own top security as cost to reactivate one evolution effect; Overflow -5.
+- Knowledge base: Q4406 requires two distinct DP targets; the selection count supplies distinct permanents. Q4407 delays rule deletion at zero DP until the whole effect finishes, which is provided by the interpreter's effect-resolution boundary. Q4405 is definitional and introduces no extra card behavior.
+- Implementation evidence: exact Blast DNA names remain in the production-parsed keyword declaration. Both entry timings share the two-target DP modifier and Tamer-under conditional delete; the attack trigger encodes top-security trash as an optional paid cost before reactivation. ACE and Overflow are catalog metadata, and registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the Tamer condition inspects this Digimon's evolution cards, not global battle state; DP selection is opponent-only and uses a two-permanent selection, while deletion independently applies the inclusive post-modification ceiling.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-081.test.ts` — 3 passed.
+- Clause scores: stats/evolution/ACE/Overflow 2/2; exact Blast DNA materials 2/2; dual entry distinct DP modification/Q4406-Q4407 2/2; Tamer-under conditional delete boundary 2/2; attack top-security cost/reactivation 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-081.test.ts`).
