@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep, findEndBreedingControl } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -85,8 +86,7 @@ scenario("trigger-order", () => {
     // player's leftover memory); each Tamer costs 4, so playing one crosses the
     // gauge negative and ends that turn immediately — one Tamer per turn.
     const playTamerFromHand = async (name: RegExp) => {
-      const heading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-      fireEvent.click(within(heading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+      await endBreedingStep();
       const [tamerImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name });
       tap(tamerImg!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
@@ -155,7 +155,7 @@ scenario("trigger-order", () => {
     // Tai sets memory to 3, so T.K.'s identical <=2 gate is no longer active
     // when the resolver re-collects. Waiting for the next phase is the stable
     // public proof that the selected effect was accepted and the modal closed.
-    await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
+    await findEndBreedingControl();
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(within(yourBattleArea()).getAllByRole("img", { name: /tai kamiya/i })).toHaveLength(1);
     expect(within(yourBattleArea()).getAllByRole("img", { name: /t\.?k\.? takaishi/i })).toHaveLength(1);

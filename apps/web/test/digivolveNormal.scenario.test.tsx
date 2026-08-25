@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -92,8 +93,7 @@ scenario("digivolve-normal", () => {
     // (apps/api/src/engine/MainPhaseController.ts's checkTurnEnd), which is fine:
     // Agumon is already placed, and the crossing simply hands the turn to the
     // opponent (whose own pass banks the protagonist's next-turn +3 bonus).
-    const firstBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(firstBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     // Clicking "end phase" only sends the intent; the client's own phase state
     // updates asynchronously once the server round-trip lands. Wait for it — every
     // subsequent interaction below depends on genuinely being in the Main phase.
@@ -118,8 +118,7 @@ scenario("digivolve-normal", () => {
     // deliberately non-crossing so the Main phase — and the protagonist's own
     // turn — stays open for the stack-viewer assertion below, instead of racing
     // against the opponent's auto-pass handler advancing the match further.
-    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(0);

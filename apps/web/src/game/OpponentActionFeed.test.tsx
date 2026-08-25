@@ -5,16 +5,17 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { OpponentActionFeed, PlayLogSidebar } from "./OpponentActionFeedView";
 import type { OpponentActionItem } from "./opponentActionFeed";
+import { TIMINGS } from "./timings";
 
 afterEach(cleanup);
 
 function action(id: string, card: string): OpponentActionItem {
   return {
     id,
-    kind: "played",
-    titleKey: "feed.opponentPlayed",
+    kind: "attack",
+    titleKey: "feed.attackedYourSecurity",
     titleParams: { card },
-    durationMs: 2800,
+    durationMs: TIMINGS.feedAction,
   };
 }
 
@@ -34,7 +35,7 @@ describe("OpponentActionFeed", () => {
 
     expect(screen.getAllByRole("status")).toHaveLength(1);
     expect(screen.getByRole("status").textContent).toContain("Greymon");
-    expect(screen.getByText("Opponent played Agumon")).toBeTruthy();
+    expect(screen.getByText("Agumon attacked your security")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Open match history" }));
     expect(onOpenHistory).toHaveBeenCalledOnce();
   });

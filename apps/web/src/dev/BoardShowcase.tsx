@@ -425,11 +425,7 @@ function showcaseBurst(variant: PermanentBurst["variant"], overrides: Partial<Pe
 const ZONE_SHOWCASES: { label: string; showcase: ZoneShowcaseModel }[] = [
   {
     label: "opponent played a card",
-    showcase: { key: 1, kind: "play", cardId: CARDS.opponentChampion, seat: 1, color: "Blue" },
-  },
-  {
-    label: "opponent digivolved",
-    showcase: { key: 2, kind: "digivolve", cardId: CARDS.opponentUltimate, seat: 1, color: "Red" },
+    showcase: { key: 1, cardId: CARDS.opponentChampion, seat: 1, color: "Blue" },
   },
 ];
 
@@ -567,7 +563,7 @@ export function BoardShowcase() {
       <Section
         id="showcase-memory-arc"
         title="memory jump"
-        note="A change of two chips or more traces a red arc from the chip memory left to the one it landed on, over the yellow glow that marks where memory sits now. A single step keeps the marker pop alone. Reduced motion drops the arc."
+        note="A change of two chips or more traces a red arc from the chip memory left to the one it landed on, over the ringed chip that marks where memory sits now. A single step keeps the marker pop alone. Reduced motion drops the arc."
         stacked
       >
         <Case label="spent 5 memory (+3 → −2)">
@@ -936,7 +932,7 @@ export function BoardShowcase() {
       <Section
         id="showcase-notices"
         title="notice stack"
-        note="Corner-framed notices: the viewer's moments anchor bottom-left, the opponent's top-left, and anything a security card raised mirrors to the middle of the half the panels do not occupy."
+        note="Corner-framed notices: the viewer's moments anchor bottom-left, the opponent's top-right, and anything a security card raised mirrors to the middle of the half the panels do not occupy."
         stacked
       >
         {NOTICE_CASES.map(({ label, notices }) => (

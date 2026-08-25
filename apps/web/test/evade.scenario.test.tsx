@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -93,8 +94,7 @@ scenario("evade", () => {
     // barrier.scenario.test.tsx and target-decision.scenario.test.tsx rely on) —
     // handing the opponent 5 memory for turn 2, comfortably above MetalGreymon's
     // cost of 4.
-    const t1Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(t1Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
     const [shellmonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^shellmon$/i });

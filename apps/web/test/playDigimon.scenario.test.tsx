@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -57,15 +58,10 @@ scenario("play-digimon", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-    // The first player's Breeding window opens automatically (the egg deck is
-    // non-empty). Wait for the overlay's own heading — the board also has a
-    // persistent (always-rendered) "Breeding area" panel label, so a plain text
-    // query would resolve too early, before the match has even started, and the
-    // resulting "End phase" click would be rejected server-side (decision-pending).
-    // Scope the click to the overlay itself so it can't hit the sidebar's own
-    // (also always-present) "End phase" button while some other decision is open.
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    // The first player's breeding step opens automatically (the egg deck is
+    // non-empty). The board's turn control only reads "End breeding" inside that
+    // step, so waiting for that label is also what proves the match has started.
+    await endBreedingStep();
 
     // Both the protagonist's and the opponent's battle areas render this same
     // placeholder text, so findByText (which requires a single match) doesn't

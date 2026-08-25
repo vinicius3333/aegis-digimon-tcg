@@ -4,6 +4,7 @@ import { Encoder } from "@colyseus/schema";
 import { EVENT_CHANNEL, type ServerEvent } from "@aegis/shared";
 import { AegisRoom } from "./AegisRoom.js";
 import { RED_DECK } from "../engine/testDecks.js";
+import { DEFAULT_MAX_ACTION_DELAY_MS } from "../bot/BotPlayer.js";
 
 /**
  * Room-level coverage for the ready-gated match start (subsystem:
@@ -129,7 +130,8 @@ describe("AegisRoom ready-gated match start", () => {
     await Promise.resolve();
     expect(room.state.pendingDecision).toMatchObject({ seat: 1, kind: "mulligan" });
 
-    await vi.advanceTimersByTimeAsync(2_000);
+    // Past the ceiling of the bot's think-time window, wherever in it this seed lands.
+    await vi.advanceTimersByTimeAsync(DEFAULT_MAX_ACTION_DELAY_MS);
 
     expect(room.state.pendingDecision).toBeUndefined();
     expect(room.state.turnCount).toBe(1);

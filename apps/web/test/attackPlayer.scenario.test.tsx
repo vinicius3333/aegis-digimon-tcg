@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -71,8 +72,7 @@ scenario("attack-player", () => {
     // Turn 1: skip breeding, then play Biyomon (cost 3, memory 0 -> -3) — this
     // immediately crosses the gauge and ends the Main phase, handing the turn to
     // the opponent (whose own pass banks the protagonist's next-turn +3 bonus).
-    const firstBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(firstBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
     const [biyomonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^biyomon$/i });
@@ -87,8 +87,7 @@ scenario("attack-player", () => {
     // Turn 3 (protagonist's second turn; memory +3 from the pass-turn bonus): skip
     // breeding, then declare an attack with Biyomon (entered turn 1, so summoning
     // sickness — Comprehensive Rules §16-1 — has cleared by turn 3).
-    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(0);

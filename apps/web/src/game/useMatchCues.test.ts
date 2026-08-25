@@ -266,7 +266,7 @@ describe("zone-change showcases", () => {
 
     rerender([OPP_PLAY]);
     await advance(0);
-    expect(result.current.zoneShowcase).toMatchObject({ kind: "play", cardId: "BT1-010" });
+    expect(result.current.zoneShowcase).toMatchObject({ cardId: "BT1-010" });
     // The destination stays hidden while the card is being announced.
     expect(result.current.pendingPermanentIds.has("perm-9")).toBe(true);
     expect(result.current.permanentBursts.has("perm-9")).toBe(false);
@@ -289,6 +289,17 @@ describe("zone-change showcases", () => {
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.size).toBe(0);
     expect(result.current.permanentBursts.get("perm-8")).toMatchObject({ variant: "play" });
+  });
+
+  it("skips the hold for the opponent's digivolution but keeps the field burst", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([{ kind: "digivolved", seat: 1, permanentId: "perm-9", cardId: "BT1-011", mechanic: "normal" }]);
+    await advance(0);
+    expect(result.current.zoneShowcase).toBeNull();
+    expect(result.current.pendingPermanentIds.size).toBe(0);
+    expect(result.current.permanentBursts.get("perm-9")).toMatchObject({ variant: "evolve" });
   });
 
   it("burns over a digivolution and opens the breeding slot on a hatch", async () => {
