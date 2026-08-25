@@ -81307,9 +81307,27 @@
             },
             "from": ["hand"],
             "payCost": false,
+            "breeding": true,
+            "requiresEmpty": "breedingArea",
             "cost": {
-              "kind": "suspend",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "kind": "compound",
+              "costs": [
+                {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
+                },
+                {
+                  "kind": "return",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Hudie"], "match": "trait" }]
+                    },
+                    "count": 1
+                  }
+                }
+              ],
               "raw": "By suspending this Tamer and returning 1 of your Digimon with the [Hudie] trait to the hand"
             },
             "optional": true,
@@ -81324,7 +81342,11 @@
             "kind": "Aura",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "keyword", "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" } },
-            "while": { "kind": "raw", "raw": "this Digimon is [Hudiemon], [Eater Legion] or [Eater EDEN]" }
+            "while": {
+              "kind": "anyOf",
+              "conditions": [{ "kind": "selfHasName", "names": ["Hudiemon", "Eater Legion", "Eater EDEN"] }],
+              "raw": "this Digimon is [Hudiemon], [Eater Legion] or [Eater EDEN]"
+            }
           }
         ],
         "isInherited": true

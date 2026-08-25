@@ -749,6 +749,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves start-main turn ownership; adds a face-up Zaxon to friendly security, suspends Fei, gains memory, and draws at the <=7 boundary; at 8 cards gains memory without drawing; declines suspension and gets neither tail; and independently rejects wrong trait, opponent security, and face-down additions.
 - Verification: focused suite — 8 passed after refreshing shared runtime data; shared security-add event receipts, ownership/face-up/trait gates, suspension cost, acted-result chaining, hand-count boundary, memory, Draw, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-084 — Erika Mishima — 10/10
+
+- Catalog evidence: Green cost-4 Tamer, types `Hudie` and `CS`; Security plays it free; Start of Your Main Phase gains 1 memory while controlling a CS Digimon; End of Your Turn may suspend Erika and return one friendly Hudie Digimon to hand as a compound cost to play one level-3 CS Digimon from hand into an empty breeding area for free; inherited Your Turn grants Alliance only while the carrier is Hudiemon, Eater Legion, or Eater EDEN.
+- Knowledge base: Q5257/Q5319 establish simultaneous double-Alliance/When Attacking ordering and that DNA evolution produces an unsuspended Shakkoumon while retaining the first Alliance DP gain. Q5357 confirms a Digimon played into breeding does not trigger On Play.
+- Defects corrected: authoritative shared IR omitted the Hudie return half of the compound cost, breeding destination/empty-slot gate, and executable inherited-name condition. Additionally, generic play resolution paid activation costs before discovering an occupied breeding slot; the audit adds transactional empty-breeding preflight and synchronizes shared IR; registration remains exclusively `registerIrCard("BT23-084", compiled)` with full coverage/no residuals.
+- Primitive trace: start-main checks friendly CS; end-turn verifies the breeding destination is empty before offering or paying anything, atomically suspends Erika plus returns one Hudie, then moves one hand level-3 CS into breeding without On Play; inherited collection evaluates the carrier's effective name and projects Alliance only for the three printed names.
+- Behavioral proof: the focused suite checks catalog/coverage; atomically pays both costs and places Lopmon only in empty breeding; with occupied breeding proves neither cost is paid and the hand target remains; proves positive/negative start-main CS possession; observes inherited Alliance live on a realistic Hudiemon stack and absent from a nonmatching carrier; and structurally checks every cost/filter/destination clause.
+- Verification: focused suite — 8 passed after refreshing shared runtime data; shared compound costs, transactional breeding preflight, breeding play/On Play suppression, level/trait filtering, inherited effective-name aura, Alliance, start-main gate, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-084 through BT23-102.
+BT23-085 through BT23-102.
