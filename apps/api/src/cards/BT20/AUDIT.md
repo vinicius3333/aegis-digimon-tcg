@@ -1091,3 +1091,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-091.test.ts`).
+
+## BT20-092 — Battle NPC
+
+- Catalog contract: white LIBERATOR Tamer, play cost 4; start of own turn sets memory to 3 at 2 or less; On Play may place a hand level-3 Digimon beneath this Tamer as cost to draw 1; start of own main phase, only if controlling no Digimon, may free-play a cost-3-or-less Digimon from beneath this Tamer as the “By” action, then deletes this Tamer; Security free-plays itself.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: the draw cost routes the exact hand/level/kind source to this Tamer's evolution-stack bottom atomically. The main-phase condition is global own Digimon absence; optional under-this-Tamer play aborts the tail on refusal/failure, and successful play precedes self deletion. Memory and Security are direct; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the stored card may be any level-3 Digimon, while later play independently requires play cost 3 or less; this preserves the distinct printed boundaries and leaves a nonqualifying stored card underneath.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-092.test.ts` — 2 passed.
+- Clause scores: stats/Security 2/2; memory threshold 2/2; On Play paid placement/draw 2/2; no-Digimon and cost-3 under-stack play 2/2; optionality/order/self deletion 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-092.test.ts`).
