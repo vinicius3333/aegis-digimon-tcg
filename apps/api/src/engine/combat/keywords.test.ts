@@ -67,6 +67,10 @@ describe("resolved keyword contract", () => {
     expect(materialSaveCountOf("BT10-111")).toBe(1);
   });
 
+  it("reads Material Save count from IR when catalog text contains only reminder text", () => {
+    expect(materialSaveCountOf("BT15-012")).toBe(2);
+  });
+
   it.each(printedKeywordCases)("surfaces %s as the canonical %s keyword", (cardId, keyword) => {
     expect(resolveKeywords(permanent(cardId), { grantedKeywords: () => [] })).toContain(keyword);
   });

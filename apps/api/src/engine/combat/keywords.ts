@@ -1,4 +1,4 @@
-import { digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
+import { digiXrosRequirementFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import type { CardColor, CardDefinition, Keyword, Permanent } from "@aegis/shared";
 
 const PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = [
@@ -199,7 +199,15 @@ const MATERIAL_SAVE_COUNT = /[<＜]\s*Material\s+Save\s+(\d+)/i;
 export function materialSaveCountOf(holderCardId: string): number | undefined {
   const def = getCardDefinition(holderCardId);
   const match = MATERIAL_SAVE_COUNT.exec(def?.effectText ?? "");
-  return match === null ? undefined : Number(match[1]);
+  if (match !== null) return Number(match[1]);
+  // Some catalog exports retain only Material Save's reminder text and omit the
+  // keyword marker itself (BT15-012). The committed IR remains authoritative for
+  // the printed amount in that shape, so the execution seam must read it too.
+  for (const effect of getCompiledCard(holderCardId)?.effects ?? []) {
+    const keyword = effect.keywords?.find((entry) => entry.keyword === "MaterialSave");
+    if (keyword?.amount !== undefined) return keyword.amount;
+  }
+  return undefined;
 }
 
 /**

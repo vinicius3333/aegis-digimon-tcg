@@ -3999,7 +3999,11 @@
       {
         "trigger": "Security",
         "actions": [
-          { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
+          {
+            "kind": "Suspend",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "bindResultAs": "suspendedTarget"
+          },
           { "kind": "AddToHandSelf" }
         ],
         "isSecurity": true
@@ -8693,7 +8697,7 @@
           },
           {
             "kind": "ActivateEffect",
-            "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "fromSelectionRef": "suspendedTarget" },
             "effectType": "WhenDigivolving"
           },
           {
@@ -28259,7 +28263,11 @@
   },
   "BT15-011": {
     "effects": [
-      { "trigger": "Static", "actions": [] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -28293,7 +28301,11 @@
   },
   "BT15-012": {
     "effects": [
-      { "trigger": "Static", "actions": [] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [{ "keyword": "MaterialSave", "amount": 2, "raw": "＜Material Save 2＞" }]
+      },
       {
         "trigger": "StartOfYourTurn",
         "actions": [
@@ -28318,8 +28330,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd",
-            "condition": { "kind": "raw", "raw": "DigiXrosing with 2 cards" }
+            "duration": "untilOpponentNextUnsuspendPhase",
+            "condition": { "kind": "digiXrosCount", "minimum": 2, "raw": "DigiXrosing with 2 cards" }
           }
         ]
       },
@@ -28336,7 +28348,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digiXrosRequirement": [
+      { "materials": [{ "names": ["Shoutmon"] }, { "names": ["Ballistamon"] }], "count": 2 }
+    ]
   },
   "BT15-013": {
     "effects": [
