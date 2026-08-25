@@ -1,9 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT18-051.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT18-051.js";
 
 describe("BT18-051 Entmon", () => {
   it("reduces a suspended qualifying level-6 Plant digivolution by exactly two memory", async () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { isSelfRef: true, suspended: true },
+          into: { levels: [6], nameOrTrait: [{ tokens: ["Plant", "Vegetation"], match: "trait" }] },
+          actions: [{ kind: "Replacement", mode: "reduceCost", amount: 2 }],
+        },
+      ],
+    });
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }],
@@ -41,5 +55,33 @@ describe("BT18-051 Entmon", () => {
     ).toEqual({ ok: true });
     await settle(() => inactive.perm("entmon").topCard?.cardId === "EX3-045");
     expect(inactive.state.memory).toBe(5);
+    assertNoLoudGap(s);
+    assertNoLoudGap(inactive);
+  });
+
+  it("does not discount another suspended Digimon's qualifying evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT18-051", as: "entmon", suspended: true },
+          { card: "BT10-053", as: "other", suspended: true },
+        ],
+        hand: [{ card: "EX3-045", as: "hydramon" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("other").permanentId,
+        instanceId: s.inst("hydramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("other").topCard?.cardId === "EX3-045");
+
+    expect(s.state.memory).toBe(5);
+    assertNoLoudGap(s);
   });
 });

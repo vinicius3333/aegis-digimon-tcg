@@ -47220,7 +47220,12 @@
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",
-            "sourceFilter": { "controllerDefault": "mine", "suspended": true, "kind": ["Digimon"] },
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "isSelfRef": true,
+              "suspended": true,
+              "kind": ["Digimon"]
+            },
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
