@@ -76,7 +76,6 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
-          mode: "instead",
           actions: [
             {
               kind: "PlaceUnder",
