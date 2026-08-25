@@ -41,6 +41,36 @@ const compiled: CompiledCard = {
       ],
     },
     {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Blue"],
+                  levelComparison: { op: "eq", value: 5 },
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              playedByDecode: true,
+              allowDigiXros: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
       trigger: "EndOfYourTurn",
       actions: [
         {

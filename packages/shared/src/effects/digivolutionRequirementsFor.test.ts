@@ -56,6 +56,15 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     ]);
   });
 
+  it("keeps BT19-025's Blue Greymon and MailBirdramon DigiXros slots", () => {
+    expect(digiXrosRequirementFor("BT19-025")).toEqual([
+      {
+        count: 2,
+        materials: [{ names: ["Greymon"], colors: ["Blue"] }, { names: ["MailBirdramon"] }],
+      },
+    ]);
+  });
+
   it("keeps BT18-065's four Vemmon recipe and intrinsic trash gate", () => {
     expect(digiXrosRequirementFor("BT18-065")).toEqual([
       { materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 },

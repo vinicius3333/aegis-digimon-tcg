@@ -1123,6 +1123,14 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-025: [DigiXros -2] Blue [Greymon] x [MailBirdramon]. The generated aggregate
+  // retained only the first slot, allowing incomplete recipes and breaking Q3085 effect-play DigiXros.
+  "BT19-025": [
+    {
+      materials: [{ names: ["Greymon"], colors: ["Blue"] }, { names: ["MailBirdramon"] }],
+      count: 2,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {
