@@ -361,3 +361,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: two Plug-In Options plus an unrelated Option prove exact recovery candidates; a hand Plug-In and two-card deck prove paid Draw 2; a combined hand/trash fixture proves declining the entire modal leaves both candidate zones unchanged and only the ordinary evolution bonus draw occurs.
 - Behavioral proof: the focused suite proves structural outer-optionality and mandatory nested cost, exact mode availability, choice execution, candidate filters, cost-before-draw zones, Draw 2 amount, and whole-effect refusal atomicity.
 - Verification: focused suite — 4 passed; modal/cost/Return/Draw mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
+
+## BT10-037 — Weddinmon — 10/10
+
+- Catalog evidence: yellow level 5 Digimon, play cost 7, 8000 DP; evolves from yellow level 4 for 2; form `Ultimate`, attribute `Vaccine`, type `Fairy`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-037` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-037", compiled)`. All executable behavior is catalog-driven ordinary play and evolution.
+- Primitive trace: normal evolution validates exact yellow level 4, charges 2, and retains the base as a source; normal play validates affordability, charges printed cost 7, and creates an 8000-DP permanent without an effect window.
+- Cross-card and stack proof: a real yellow level 4 Shortmon base proves the catalog evolution transition, while a second physical Weddinmon proves direct play independently in the same fixture.
+- Behavioral proof: the focused suite asserts complete catalog identity, exact empty IR, printed-cost evolution, printed-cost play, final memory and zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
