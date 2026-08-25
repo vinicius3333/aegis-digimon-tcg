@@ -51,8 +51,7 @@ export const compiled: CompiledCard = {
           scaling: {
             per: 1,
             filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
+              zone: "digivolutionCards",
             },
             unit: "colors",
           },
