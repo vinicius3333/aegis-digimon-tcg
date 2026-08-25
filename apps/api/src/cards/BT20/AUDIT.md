@@ -395,3 +395,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-033.test.ts`).
+
+## BT20-034 — Boutmon
+
+- Catalog contract: yellow/green level 5 Vaccine Beastkin/Abadin Electronics/SEEKERS, play cost 7/7000 DP, purple or green level-4 evolution cost 4 plus level-4 Pulsemon-text or SEEKERS alternate cost 3; Fortitude; placing a Tamer in its sources prevents one opposing Digimon's When Digivolving effects through that opponent's turn end; inherited once per turn trashes opposing top security after a battle deletion.
+- Knowledge base: Q4333 defines Pulsemon in text across the complete printed card; Q4334–Q4338 define the same complete When Digivolving suppression boundaries as LoaderLeomon; Q4341 forbids the inherited effect when its host also dies in battle.
+- Implementation evidence: Fortitude is a direct Static keyword. The `onAddDigivolutionCards` watcher is resident on Boutmon, filters the added source to a Tamer, targets one opposing Digimon, and installs the canonical cross-turn timing restriction. The inherited surviving battle-deletion watcher trashes exactly one opposing top security once per turn; both alternate requirements and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: placing BT20-085 from hand under Boutmon observably installs the timing restriction on an opposing Digimon while Fortitude remains active. A 12000-DP Kazuchimon host carrying Boutmon deletes a suspended 1000-DP opponent, survives as Q4341 requires, and reduces opposing security from two to one.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-034.test.ts` — 3 passed.
+- Clause scores: stats/alternate full-text evolution 2/2; Fortitude 2/2; Tamer-source event/filter 2/2; timing restriction/target/duration 2/2; inherited surviving battle deletion/security/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-034.test.ts`).
