@@ -35,7 +35,13 @@ export function blastDnaMaterialsMatch(materialNames: readonly string[], require
   if (materialNames.length !== required.length) return false;
   const remaining = [...materialNames];
   for (const name of required) {
-    const index = remaining.indexOf(name);
+    const normalized = name.toLowerCase();
+    const index = remaining.findIndex((materialName) =>
+      materialName
+        .split("|")
+        .map((alias) => alias.trim().toLowerCase())
+        .includes(normalized),
+    );
     if (index < 0) return false;
     remaining.splice(index, 1);
   }

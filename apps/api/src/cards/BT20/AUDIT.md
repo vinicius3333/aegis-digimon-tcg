@@ -527,3 +527,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-044.test.ts`).
+
+## BT20-045 — Examon ACE
+
+- Catalog contract: green/red/blue level 7 Data Holy Warrior/Royal Knight ACE, play cost 9/15000 DP, green/red/blue level-6 evolution cost 5, Blast DNA Digivolve (Breakdramon + Slayerdramon), Overflow -5; Raid, Piercing, Blocker, Evade; DNA When Digivolving bottoms every opposing highest-DP Digimon; once per turn may unsuspend when any Digimon suspends.
+- Knowledge base: Q4314/Q4359 allow field Wingdramon/Groundramon aliases but reject those hand cards as Blast DNA materials; Q4368 says either player's suspension triggers the unsuspend.
+- Implementation evidence: the direct IR carries hand-only Blast DNA, four field keywords, DNA-gated all-highest Return, and an any-controller suspension watcher. Blast DNA validation previously read only printed material names, rejecting live field aliases; it now consumes effective field names and scoped DNA levels while still matching exactly one material per printed slot. Wingdramon's missing Examon-scoped level-6 override was repaired in atomic commit `a26c55a05`. Registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: field Groundramon and Wingdramon satisfy the named level-6 Blast DNA pair at zero memory; Examon merges them, bottoms both tied 8000-DP opponents, and preserves the 7000-DP peer. ACE/Overflow and all four keyword consumers are observable. Suspending either an allied or opposing Digimon unsuspends Examon.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-045.test.ts` — 5 passed; `pnpm --filter @aegis/api exec vitest run src/engine/interactionAudit.test.ts -t 'Blast DNA Digivolve'` — 2 passed; `pnpm --filter @aegis/api exec vitest run src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts -t 'Blast DNA Digivolve'` — 4 passed.
+- Clause scores: stats/ACE/Overflow/Blast DNA 2/2; four keywords 2/2; field alias/material legality 2/2; DNA-only all-highest bottom deck 2/2; any-controller suspension/unsuspend/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: a full unfiltered `interactionAudit.test.ts` run has one unrelated pre-existing optional-processing expectation failure; both affected Blast DNA tests in that file are green and final collection gates remain pending.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-045.test.ts`).

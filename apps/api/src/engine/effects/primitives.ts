@@ -51,7 +51,7 @@ import {
   partitionSpecOf,
 } from "../combat/keywords.js";
 import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
-import { ContinuousEffectLedger } from "./continuous.js";
+import { ContinuousEffectLedger, effectiveNames } from "./continuous.js";
 import { SubTriggerRegistry, type SubTriggerRootZone } from "./subtriggers.js";
 import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
@@ -1158,7 +1158,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ...materials.map((mat) => {
           const printed = requireCardDefinition(mat.topCard!.cardId);
           const effectiveLevel = continuous.dnaLevelFor(mat.permanentId, definition);
-          return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
+          const names = effectiveNames(continuous, mat, printed.nameEn ?? printed.cardId);
+          return { ...printed, ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }), nameEn: names.join(" | ") };
         }),
         ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
       ];
@@ -4251,7 +4252,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       ...materials.map((material) => {
         const printed = requireCardDefinition(material.topCard!.cardId);
         const effectiveLevel = continuous.dnaLevelFor(material.permanentId, into);
-        return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
+        const names = effectiveNames(continuous, material, printed.nameEn ?? printed.cardId);
+        return { ...printed, ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }), nameEn: names.join(" | ") };
       }),
       ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
     ];
@@ -5289,8 +5291,8 @@ function dnaMaterialSpecMatches(
   if (spec.color !== undefined && !material.colors.includes(spec.color as CardColor)) return false;
   if (spec.level !== undefined && material.level !== spec.level) return false;
   if (spec.names && spec.names.length > 0) {
-    const name = material.nameEn ?? material.cardId;
-    if (!spec.names.some((token) => name.includes(token))) return false;
+    const name = (material.nameEn ?? material.cardId).toLowerCase();
+    if (!spec.names.some((token) => name.includes(token.toLowerCase()))) return false;
   }
   if (spec.traits && spec.traits.length > 0) {
     if (!spec.traits.some((trait) => (material.types ?? []).includes(trait))) return false;
