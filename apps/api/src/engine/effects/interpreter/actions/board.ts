@@ -375,6 +375,13 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         const protectionDuration = toDuration(additionalEffect.duration ?? action.duration ?? "untilOpponentTurnEnd");
         for (const id of ids) ctx.fx.restrict(id, "beDeletedInBattle", protectionDuration);
       }
+      // A following action may say "that Digimon" and resolve through fromSelectionRef.
+      // GainKeyword already owns the target choice, so preserve the chosen identity just as
+      // ModifyDP and the other target-selecting primitives do.
+      if (ids.length > 0 && action.target.bindAs !== undefined) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(action.target.bindAs, ids[0]!);
+      }
       return false;
     }
     case "AddToHandSelf": {

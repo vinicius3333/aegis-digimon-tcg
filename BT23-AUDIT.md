@@ -839,6 +839,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage and field scope; with an established Big Bang Punch and Appmon recipient, fires the suspension event, trashes the Option, links a real Link-capable Appmon from hand to that exact recipient for free, and preserves an Appmon card lacking Link; structurally verifies nesting, source binding, and unrestricted Link-card filter delegation.
 - Verification: focused suite — 3 passed after refreshing shared runtime data; shared intrinsic Delay, suspension-subject filtering, trigger-source targeting, Link-mechanic eligibility, free linking, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-094 — Nanomachine Break — 10/10
+
+- Catalog evidence: Yellow cost-5 CS Option; color requirements may be ignored while a CS Digimon/Tamer is on the field; Main gives one opposing Digimon Security Attack -1 and prevents its When Digivolving/When Attacking effects through the opponent's turn end, then places this Option in battle; Your Turn on a friendly CS attack may activate Delay for the same paired restrictions; Security repeats Main.
+- Knowledge base: Q5368 defines “on the field” as battle area or breeding area. Q5369-Q5373 establish that both named activation timings are suppressed even when another effect tries to activate them, End of Attack remains available, an unactivatable “by” condition cannot be processed, and a suppressed once-per-turn effect is not consumed.
+- Defects corrected: authoritative shared IR omitted field-zone scope and every timing-disable action, and detached Security Attack -1 from a marker-style Delay grant. It now mirrors the executable same-target Main/Security sequences and intrinsic Delay listener. Generic GainKeyword also failed to retain `bindAs`, so a following “that Digimon” action resolved no target; the primitive now preserves its selected identity. Registration remains exclusively `registerIrCard("BT23-094", compiled)` with full coverage/no residuals.
+- Primitive trace: static color waiver checks CS Digimon/Tamers across battle/breeding; Main/Security select one opponent once, grant Security Attack -1 and reuse the bound identity for both timing masks through opponent turn end, then place the physical Option; the Your Turn listener filters the friendly CS attacker, pays established-card Delay, and performs the same bound pair.
+- Behavioral proof: the focused suite checks catalog/coverage and field scope; fires the attack listener with an established Option, observes exact Option trash, Security Attack -1, and both live timing masks on the same opposing Digimon; structurally verifies Main/Security binding, placement order, and Delay nesting.
+- Verification: focused suite — 3 passed after refreshing shared runtime data; affected timing-disable mechanism regressions — 3 passed; shared intrinsic Delay, same-target selection binding, numeric keyword, timing masks, duration, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-094 through BT23-102.
+BT23-095 through BT23-102.

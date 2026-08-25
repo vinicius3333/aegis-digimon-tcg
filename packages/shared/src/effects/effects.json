@@ -1197,6 +1197,7 @@
             "scaling": {
               "per": 1,
               "filter": {
+                "zone": ["battleArea", "breedingArea"],
                 "controllerDefault": "mine",
                 "kind": ["Digimon"],
                 "nameOrTrait": [{ "tokens": ["Blue Flare", "Xros Heart"], "match": "trait" }]
@@ -82104,8 +82105,18 @@
         "actions": [
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "BT23094MainTarget"
+            },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "DisableTimingEffect",
+            "target": { "fromSelectionRef": "BT23094MainTarget", "count": 1 },
+            "timings": ["whenDigivolving", "whenAttacking"],
             "duration": "untilOpponentTurnEnd"
           },
           { "kind": "PlaceInBattleAreaSelf" }
@@ -82125,27 +82136,42 @@
             "actions": [
               {
                 "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "target": {
+                  "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
+                  "count": 1,
+                  "bindAs": "BT23094DelayTarget"
+                },
+                "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
+                "duration": "untilOpponentTurnEnd"
+              },
+              {
+                "kind": "DisableTimingEffect",
+                "target": { "fromSelectionRef": "BT23094DelayTarget", "count": 1 },
+                "timings": ["whenDigivolving", "whenAttacking"],
+                "duration": "untilOpponentTurnEnd"
               }
             ]
-          },
-          {
-            "kind": "GainKeyword",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
-            "duration": "untilOpponentTurnEnd"
           }
-        ]
+        ],
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
       },
       {
         "trigger": "Security",
         "actions": [
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "BT23094SecTarget"
+            },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "DisableTimingEffect",
+            "target": { "fromSelectionRef": "BT23094SecTarget", "count": 1 },
+            "timings": ["whenDigivolving", "whenAttacking"],
             "duration": "untilOpponentTurnEnd"
           },
           { "kind": "PlaceInBattleAreaSelf" }
