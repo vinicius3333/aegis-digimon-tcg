@@ -16,12 +16,6 @@ export const compiled: CompiledCard = {
           keyword: "Rush",
           raw: "＜Rush＞",
         },
-      ],
-    },
-    {
-      trigger: "Static",
-      actions: [],
-      keywords: [
         {
           keyword: "Piercing",
           raw: "＜Piercing＞",

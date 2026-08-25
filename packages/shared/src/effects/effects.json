@@ -80308,7 +80308,15 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 6, "names": ["Belphemon"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 6,
+        "names": ["Belphemon"],
+        "excludeTraits": ["X Antibody"],
+        "cost": 2,
+        "isAlternate": true
+      }
+    ]
   },
   "BT23-071": {
     "effects": [
