@@ -899,3 +899,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-075.test.ts`).
+
+## BT20-076 — Imperialdramon: Dragon Mode
+
+- Catalog contract: purple/red level 6 Virus Ancient Dragon ACE, play cost 7/12000 DP, purple or red level-5 evolution cost 4; Blast DNA Digivolve from Dinobeemon + Paildramon; On Play/When Digivolving deletes 1 opponent at 11000 DP or less, then only when DNA digivolving may free-evolve itself into Imperialdramon: Fighter Mode from hand/trash; Overflow -4.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: exact Blast DNA names are consumed by the production Counter parser and validator. Both entry timings share the inclusive DP delete followed by a self-targeted, optional, hand/trash free evolution gated on `isDnaDigivolving`. ACE/Overflow metadata is direct, and registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: normal play and evolution delete 11000-DP BT20-059 while preserving 12000-DP BT20-076 and leave Fighter Mode in hand. Exact BT20-074 + BT20-016 Blast DNA succeeds, while substituting BT20-075 fails; valid DNA then free-evolves into BT20-020 from both hand and trash, retaining Dragon Mode and both materials in the stack. Deleting the ACE charges 4 memory.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-076.test.ts` — 8 passed.
+- Clause scores: stats/evolution/ACE/Overflow 2/2; exact Blast DNA declaration/rejection 2/2; dual entry 11000-DP boundary 2/2; DNA-only Fighter Mode gate/free cost 2/2; hand/trash source and stack preservation 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-076.test.ts`).
