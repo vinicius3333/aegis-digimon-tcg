@@ -6,6 +6,19 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT19-041 Dynasmon", () => {
+  it.each(["BT19-037", "BT19-011"])("legally digivolves from a yellow or red level-5 stack (%s)", async (base) => {
+    const s = setupEngine({ 0: {
+      battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT19-041", as: "dynas" }], deck: ["BT19-030"],
+    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("dynas").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT19-041");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
+  });
+
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
     "%s may trash top security to give the same friendly Digimon Blocker and +6000 DP",
     async (timing) => {
@@ -31,6 +44,35 @@ describe("BT19-041 Dynasmon", () => {
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dynas"));
     expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("dynas").currentDP).toBe(11000);
+    expect(observe(s.engine).hasKeyword(s.perm("dynas"), "Blocker")).toBe(false);
+  });
+
+  it("cannot pay the cost at zero security and grants neither DP nor Blocker", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT19-041", as: "dynas" }] } }, {
+      autoAcceptOptional: true, autoSelectCards: true,
+    });
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dynas"));
+    expect(s.perm("dynas").currentDP).toBe(11000);
+    expect(observe(s.engine).hasKeyword(s.perm("dynas"), "Blocker")).toBe(false);
+  });
+
+  it("keeps +6000 DP and Blocker through the owner's turn, then expires at the opponent's turn end", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT19-041", as: "dynas" }], security: ["BT19-030"], deck: ["BT19-031", "BT19-032"] },
+      1: { deck: ["BT19-030", "BT19-031"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dynas"));
+    expect(s.perm("dynas").currentDP).toBe(17000);
+    expect(observe(s.engine).hasKeyword(s.perm("dynas"), "Blocker")).toBe(true);
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("dynas").currentDP).toBe(17000);
+    expect(observe(s.engine).hasKeyword(s.perm("dynas"), "Blocker")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
     expect(s.perm("dynas").currentDP).toBe(11000);
     expect(observe(s.engine).hasKeyword(s.perm("dynas"), "Blocker")).toBe(false);
   });
@@ -61,5 +103,27 @@ describe("BT19-041 Dynasmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(1);
+  });
+
+  it("uses the would-leave Recovery only once across a second leave event", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: [{ card: "BT19-041", as: "dynas", under: ["BT19-029"] }],
+      security: ["BT19-030"], deck: ["BT19-031", "BT19-032"],
+    } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    await s.ready();
+    const driver = advance(s.engine);
+    driver.verb.enterEffectResolution(1, ["Digimon"]);
+    await driver.verb.deletePermanent([s.perm("dynas").permanentId], "byEffect");
+    driver.verb.leaveEffectResolution();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+
+    driver.verb.enterEffectResolution(1, ["Digimon"]);
+    await driver.verb.deletePermanent([s.perm("dynas").permanentId], "byEffect");
+    driver.verb.leaveEffectResolution();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
