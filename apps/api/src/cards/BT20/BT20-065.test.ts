@@ -58,7 +58,9 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     const engine = s.engine as unknown as Pick<GameEngine, "applyIntent"> & {
       recomputeContinuousEffects(): Promise<void>;
       primitives: { deletePermanent(ids: string[], cause?: string): Promise<number> };
-      continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
+      continuous: {
+        listCustomEffectGrants(): readonly { instanceId: string; token: string; duration: EffectDuration }[];
+      };
     };
 
     s.state.memory = 5;
