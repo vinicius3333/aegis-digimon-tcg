@@ -46450,7 +46450,7 @@
             "controller": "mine",
             "amount": 1,
             "condition": { "kind": "securityAtLeast", "value": 4 },
-            "optional": true
+            "optional": false
           }
         ]
       },
@@ -46479,7 +46479,7 @@
             "controller": "mine",
             "amount": 1,
             "condition": { "kind": "securityAtLeast", "value": 4 },
-            "optional": true
+            "optional": false
           }
         ]
       },
