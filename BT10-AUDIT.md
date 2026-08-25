@@ -421,3 +421,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: legal yellow evolution applies -1 to every opponent and a printed +1 peer remains keyword-bearing at net zero. BT12-017 proves printed-keyword immediate suppression, BT9-015 proves the current evolution effect resolves before subsequent suppression, and BT6-067 proves its conditional keyword qualifies only while Venusmon is unsuspended. An unrelated no-keyword opponent can attack Venusmon while a keyword-bearing peer can still attack another legal target.
 - Behavioral proof: six focused production cases prove exact IR and registration, legal evolution and all-target duration, positive/negative/net-zero qualification, source-specific attack restriction, printed-keyword immediate suppression, current-window ordering, and inactive/active conditional-keyword transitions. Existing BT10-110 production coverage proves Q2039; the attack-legality and timing primitives preserve Q1969/Q1970 boundaries.
 - Verification: focused Venusmon suite — 6 passed; shared keyword mechanism suite — 102 passed; additional collection/type/style gates remain scheduled for the collection checkpoint.
+
+## BT10-043 — Mushroomon — 10/10
+
+- Catalog evidence: green level 3 Digimon, play cost 2, 3000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Virus`, type `Vegetation`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-043` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-043", compiled)`. All executable behavior is catalog-driven ordinary play and evolution.
+- Primitive trace: normal evolution validates the exact green level-2 recipe, charges 0, performs the evolution draw, and retains the base as a source; normal play validates affordability, charges printed cost 2, and creates a 3000-DP permanent without an effect window.
+- Cross-card and stack proof: real green level-2 Bosamon proves the catalog evolution transition, while a second physical Mushroomon proves direct play independently in the same fixture.
+- Behavioral proof: the focused suite asserts complete catalog identity, exact empty IR, zero-cost legal evolution, printed-cost play, final memory and zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; focused lint/format and `git diff --check` — passed.
