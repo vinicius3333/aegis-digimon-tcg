@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST24-06 RizeGreymon", () => {
@@ -14,7 +15,7 @@ describe("ST24-06 RizeGreymon", () => {
         actions: [
           { kind: "ModifyDP", amount: -5000 },
           {
-            kind: "PlayWithoutCost",
+            kind: "Modal",
             optional: true,
             cost: {
               kind: "trash",
@@ -28,6 +29,20 @@ describe("ST24-06 RizeGreymon", () => {
                 },
               },
             },
+            options: [
+              [
+                {
+                  kind: "PlayWithoutCost",
+                  target: { filter: { kind: ["Digimon", "Tamer"], playCostLte: 5 } },
+                },
+              ],
+              [
+                {
+                  kind: "UseOptionWithoutCost",
+                  filter: { kind: ["Option"], playCostLte: 5 },
+                },
+              ],
+            ],
           },
         ],
       });
@@ -53,5 +68,50 @@ describe("ST24-06 RizeGreymon", () => {
         },
       ],
     });
+  });
+
+  it("uses an eligible DATA SQUAD Option after paying two Tamer-stack cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "ST24-13",
+              as: "firstTamer",
+              under: [{ card: "BT1-001", as: "firstCost", faceUp: false }],
+            },
+            {
+              card: "ST24-14",
+              as: "secondTamer",
+              under: [{ card: "BT1-002", as: "secondCost", faceUp: false }],
+            },
+          ],
+          hand: [
+            { card: "ST24-06", as: "rizeGreymon" },
+            { card: "ST24-07", as: "option" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferOptionIndex: 1,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rizeGreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstCost").instanceId, s.inst("secondCost").instanceId]),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("option").instanceId),
+    ).toBe(false);
   });
 });

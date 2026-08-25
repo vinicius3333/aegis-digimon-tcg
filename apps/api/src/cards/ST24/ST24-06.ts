@@ -14,9 +14,59 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.
 // Q6211: must trash all 2 required cards (can't partially meet "by" condition)
 // Q6212: can trash cards from under multiple Tamers (total 2)
-// NOTE: "play or use" encoded as PlayWithoutCost per established convention (BT25-073 is
-// identical text, also uses PlayWithoutCost, and Haiku audits it as faithful). The engine
-// resolves "play or use" at runtime based on card kind.
+const playOrUseDataSquad = {
+  kind: "Modal",
+  choose: 1,
+  labels: ["Play a DATA SQUAD card", "Use a DATA SQUAD Option"],
+  options: [
+    [
+      {
+        kind: "PlayWithoutCost",
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon", "Tamer"],
+            nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
+            playCostLte: 5,
+          },
+          count: 1,
+        },
+        from: ["hand"],
+        payCost: false,
+      },
+    ],
+    [
+      {
+        kind: "UseOptionWithoutCost",
+        filter: {
+          controller: "mine",
+          kind: ["Option"],
+          nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
+          playCostLte: 5,
+        },
+        from: ["hand"],
+        payCost: false,
+      },
+    ],
+  ],
+  cost: {
+    kind: "trash",
+    target: {
+      filter: {
+        controller: "mine",
+        zone: "digivolutionCards",
+        faceDown: true,
+        hostFilter: { kind: ["Tamer"] },
+        position: "bottom",
+      },
+      count: 2,
+    },
+    raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
+  },
+  optional: true,
+  abortOnDecline: true,
+};
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -34,42 +84,7 @@ const compiled: CompiledCard = {
           amount: -5000,
           duration: "forTheTurn",
         },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["DATA SQUAD"],
-                  match: "trait",
-                },
-              ],
-              playCostLte: 5,
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "digivolutionCards",
-                faceDown: true,
-                hostFilter: {
-                  kind: ["Tamer"],
-                },
-                position: "bottom",
-              },
-              count: 2,
-            },
-            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
+        playOrUseDataSquad,
       ],
       frequency: "OncePerTurn",
       sharedUseKey: "ir-shared-0",
@@ -89,42 +104,7 @@ const compiled: CompiledCard = {
           amount: -5000,
           duration: "forTheTurn",
         },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["DATA SQUAD"],
-                  match: "trait",
-                },
-              ],
-              playCostLte: 5,
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "digivolutionCards",
-                faceDown: true,
-                hostFilter: {
-                  kind: ["Tamer"],
-                },
-                position: "bottom",
-              },
-              count: 2,
-            },
-            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
+        playOrUseDataSquad,
       ],
       frequency: "OncePerTurn",
       sharedUseKey: "ir-shared-0",
@@ -144,42 +124,7 @@ const compiled: CompiledCard = {
           amount: -5000,
           duration: "forTheTurn",
         },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["DATA SQUAD"],
-                  match: "trait",
-                },
-              ],
-              playCostLte: 5,
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "digivolutionCards",
-                faceDown: true,
-                hostFilter: {
-                  kind: ["Tamer"],
-                },
-                position: "bottom",
-              },
-              count: 2,
-            },
-            raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
+        playOrUseDataSquad,
       ],
       frequency: "OncePerTurn",
       sharedUseKey: "ir-shared-0",

@@ -94717,15 +94717,21 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "kind": ["Option"] }, "count": 1 },
+            "kind": "UseOptionWithoutCost",
+            "filter": {
+              "controller": "mine",
+              "kind": ["Option"],
+              "playCostLte": 99,
+              "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+            },
             "from": ["trash"],
             "payCost": true,
             "reduceCostBy": 3,
+            "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
-                "filter": { "isSelfRef": true, "zone": "digivolutionCards", "kind": ["Option"] },
+                "filter": { "controller": "mine", "zone": "digivolutionCards", "kind": ["Option"] },
                 "count": 1
               },
               "raw": "By trashing 1 Option card from any of your Digimon's digivolution cards"
@@ -94741,15 +94747,21 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "kind": ["Option"] }, "count": 1 },
+            "kind": "UseOptionWithoutCost",
+            "filter": {
+              "controller": "mine",
+              "kind": ["Option"],
+              "playCostLte": 99,
+              "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+            },
             "from": ["trash"],
             "payCost": true,
             "reduceCostBy": 3,
+            "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
-                "filter": { "isSelfRef": true, "zone": "digivolutionCards", "kind": ["Option"] },
+                "filter": { "controller": "mine", "zone": "digivolutionCards", "kind": ["Option"] },
                 "count": 1
               },
               "raw": "By trashing 1 Option card from any of your Digimon's digivolution cards"
@@ -94932,19 +94944,23 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
+            "kind": "UseOptionWithoutCost",
             "target": {
               "filter": {
-                "orFilters": [
-                  { "trait": ["Three Musketeers"], "cardType": "Option" },
-                  { "trait": ["TS"], "cardType": "Option" }
+                "controller": "mine",
+                "kind": ["Option"],
+                "playCostLte": 99,
+                "nameOrTrait": [
+                  { "tokens": ["Three Musketeers"], "match": "trait" },
+                  { "tokens": ["TS"], "match": "trait" }
                 ]
               },
               "count": 1,
-              "from": "handOrDigivolution"
+              "source": "thisDigimon"
             },
+            "from": ["hand", "digivolutionCards"],
             "payCost": false,
-            "costReduction": 0,
+            "allowMultiColor": true,
             "optional": true
           }
         ],
@@ -94955,19 +94971,23 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
+            "kind": "UseOptionWithoutCost",
             "target": {
               "filter": {
-                "orFilters": [
-                  { "trait": ["Three Musketeers"], "cardType": "Option" },
-                  { "trait": ["TS"], "cardType": "Option" }
+                "controller": "mine",
+                "kind": ["Option"],
+                "playCostLte": 99,
+                "nameOrTrait": [
+                  { "tokens": ["Three Musketeers"], "match": "trait" },
+                  { "tokens": ["TS"], "match": "trait" }
                 ]
               },
               "count": 1,
-              "from": "handOrDigivolution"
+              "source": "thisDigimon"
             },
+            "from": ["hand", "digivolutionCards"],
             "payCost": false,
-            "costReduction": 0,
+            "allowMultiColor": true,
             "optional": true
           }
         ],
@@ -96292,9 +96312,22 @@
           },
           {
             "kind": "Link",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": { "isSelfRef": true },
+              "orFilters": [
+                {
+                  "controller": "mine",
+                  "zone": "trash",
+                  "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }],
+                  "hasLinkRequirement": true
+                }
+              ],
+              "count": 1,
+              "isSelf": true
+            },
             "recipient": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "from": ["hand"],
+            "from": ["trash"],
+            "allowBreedingRecipient": true,
             "payCost": false,
             "optional": true
           }
