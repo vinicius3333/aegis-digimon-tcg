@@ -79,6 +79,12 @@ export interface Target {
   source?: ZoneRef | ZoneRef[];
   /** For budget-based targeting. */
   totalDpCap?: number;
+  /**
+   * Resolve the DP budget from the SOURCE permanent's live DP instead of a printed number
+   * ("whose total DP adds up to equal or less than this Digimon's DP" — LM-021/LM-022). Wins
+   * over `totalDpCap`, which stays the fallback when the source is not on the field.
+   */
+  totalDpCapFromSourceDp?: boolean;
   /** Choose permanents whose printed play costs add up to at most this value. */
   totalPlayCostBudget?: number;
   /** Resolve the total play-cost budget from a previously bound permanent's printed cost. */

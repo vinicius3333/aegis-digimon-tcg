@@ -81,8 +81,14 @@ const compiled: CompiledCard = {
       names: ["Gabumon"],
       cost: 3,
       isAlternate: true,
-      condition: {
-        kind: "securityAtMost",
+      // `whileCondition` is the field the digivolve validator reads, and it accepts a
+      // `zoneCount` shape only; the previous `condition: { kind: "securityAtMost" }` was ignored
+      // outright, leaving the Cost 3 path available at any security count (Q4021).
+      whileCondition: {
+        kind: "zoneCount",
+        seat: "mine",
+        zone: "security",
+        op: "lte",
         value: 2,
         raw: "while you have 2 or fewer security cards",
       },

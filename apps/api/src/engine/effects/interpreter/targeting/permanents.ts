@@ -226,7 +226,11 @@ export function raiseDeletionDpCap(ctx: EffectContext, target: Target): Target {
  * a smaller legal subset chosen on the player's behalf.
  */
 export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Target): Promise<string[]> {
-  const baseBudget = target.totalDpCap;
+  // "whose total DP adds up to equal or less than THIS DIGIMON's DP" (LM-021): the budget is the
+  // source's LIVE DP, so a DP buff or reduction moves it. `totalDpCap` remains the fallback for
+  // a source that is not a battle-area permanent when the effect resolves.
+  const sourceDp = target.totalDpCapFromSourceDp === true ? ctx.source.permanent()?.currentDP : undefined;
+  const baseBudget = sourceDp ?? target.totalDpCap;
   if (baseBudget === undefined) return [];
   const sourcePermanentId = ctx.source.permanent()?.permanentId;
   const modifier = ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, sourcePermanentId) ?? 0;
