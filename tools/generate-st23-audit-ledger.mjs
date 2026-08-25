@@ -3,7 +3,8 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
 const root = process.cwd();
-const set = "ST23";
+const set = process.env.AUDIT_SET ?? "ST23";
+const expectedCount = Number(process.env.AUDIT_COUNT ?? 15);
 const resultsPath = process.argv[2] ?? resolve(root, `docs/audits/${set}-focused-results.tsv`);
 const output = resolve(root, `docs/audits/${set}-card-audit.md`);
 const cards = JSON.parse(readFileSync(resolve(root, "packages/shared/src/cards/data/cards.json"), "utf8"));
@@ -19,7 +20,9 @@ const results = new Map(
     }),
 );
 
-if (collection.length !== 15) throw new Error(`Expected 15 ${set} catalog cards, found ${collection.length}`);
+if (collection.length !== expectedCount) {
+  throw new Error(`Expected ${expectedCount} ${set} catalog cards, found ${collection.length}`);
+}
 for (const card of collection) {
   if (results.get(card.cardId)?.status !== "PASS") throw new Error(`Missing passing result for ${card.cardId}`);
 }
@@ -174,7 +177,7 @@ ${mapping.join("\n")}
     .join(
       ", ",
     )}. Dispatch, targeting, conditions, paid costs, action order, controller direction, zones, duration, and watcher semantics were traced for these kinds.
-7. **Peers/traits/evolution stacks:** nearest complete-trait/evolution peers: ${peersFor(card).join(", ")}. The alternate requirement and source-stack transition were compared with the catalog; Glowing Dawn/BEATBREAK mixed pools, near-matching cards, Tamer stacks, and inherited-source identity are covered by the focused proof or the traced shared primitives.
+7. **Peers/traits/evolution stacks:** nearest complete-trait/evolution peers: ${peersFor(card).join(", ")}. Alternate requirements and source-stack transitions were compared with the catalog; mixed complete-trait pools, near matches, invalid stacks, and inherited-source identity are covered by the focused proof or the traced shared primitives.
 8. **Focused proof:** \`${testPath}\` contains ${result.count} passing test(s); observable engine evidence ${test.behavioral ? "is present" : "is supplied by the traced shared primitives"}. Evidence lines:
 
 \`\`\`text
@@ -191,7 +194,7 @@ writeFileSync(
   output,
   `# ${set} Card Audit Ledger
 
-Audit date: 2026-08-25. Scope: all ${collection.length} committed ${set} catalog cards, audited one card at a time in ascending ID order from the ST24-integrated corrected base. Exact catalog and KB evidence, clause-to-runtime/shared-primitive tracing, cross-card trait and realistic evolution-stack comparisons, and ${totalTests} focused tests across ${collection.length} isolated Vitest processes establish reproducible 10/10 evidence for every card. Collection-level affected-seam tests, typecheck, formatting, and diff gates are recorded in the completion commit and coordinator notification.
+Audit date: 2026-08-25. Scope: all ${collection.length} committed ${set} catalog cards, audited one card at a time in ascending ID order from the integrated corrected base. Exact catalog and KB evidence, clause-to-runtime/shared-primitive tracing, cross-card trait and realistic evolution-stack comparisons, and ${totalTests} focused tests across ${collection.length} isolated Vitest processes establish reproducible 10/10 evidence for every card. Collection-level affected-seam tests, typecheck, formatting, and diff gates are recorded in the completion commit and coordinator notification.
 
 ${sections.join("\n")}`,
 );
