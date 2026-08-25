@@ -22,6 +22,10 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     expect(digivolutionRequirementsFor("EX11-026")).toEqual([{ level: 2, cost: 0, isAlternate: true }]);
   });
 
+  it("does not expose EX11-028's ordinary EvoCost as an alternate requirement", () => {
+    expect(digivolutionRequirementsFor("EX11-028")).toEqual([]);
+  });
+
   it("keeps BT24-059's Aqua and Sea Animal substring route alongside its TS route", () => {
     expect(digivolutionRequirementsFor("BT24-059")).toEqual([
       { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
