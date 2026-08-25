@@ -25,27 +25,27 @@ describe("BT12-050 Stingmon", () => {
   });
 
   it("gains 1 memory when it DNA digivolves into a blue Digimon", async () => {
-  const s = setupEngine({
-    0: {
-      battleArea: [
-        { card: "BT1-037", as: "exveemon" },
-        { card: "BT12-050", as: "stingmon" },
-      ],
-      hand: [{ card: "BT12-028", as: "paildramon" }],
-    },
-  });
-  s.state.memory = 0;
-  await s.ready();
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-037", as: "exveemon" },
+          { card: "BT12-050", as: "stingmon" },
+        ],
+        hand: [{ card: "BT12-028", as: "paildramon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
 
-  expect(
-    s.engine.applyIntent(0, {
-      type: "dnaDigivolve",
-      materialPermanentIds: [s.perm("exveemon").permanentId, s.perm("stingmon").permanentId],
-      instanceId: s.inst("paildramon").instanceId,
-    }),
-  ).toEqual({ ok: true });
-  await settle(() => s.state.memory === 1 && s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT12-028");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("exveemon").permanentId, s.perm("stingmon").permanentId],
+        instanceId: s.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1 && s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT12-028");
 
-  expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(1);
   });
 });
