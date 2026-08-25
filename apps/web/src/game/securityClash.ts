@@ -4,6 +4,7 @@
    owns the timeline the CSS keyframes are cut to. */
 
 import { getCardDefinition, isDigimon, type Seat } from "@aegis/shared";
+import { CLASH_OUTCOME_AT_MS, CLASH_REVEAL_AT_MS, CLASH_TOTAL_MS, TIMINGS } from "./timings";
 
 export type SecurityClashResolution = "battle" | "effect" | "trashed";
 export type SecurityClashSide = "you" | "opp";
@@ -37,20 +38,18 @@ export interface SecurityClashScene {
  * 170 + 300 ms because a web client has to stay readable without a camera cut.
  */
 export const SECURITY_CLASH_TIMINGS = {
-  attackerEnterMs: 150,
-  revealMs: 233,
-  holdMs: 1600,
-  outcomeMs: 350,
-  exitMs: 200,
+  attackerEnterMs: TIMINGS.clashAttackerEnter,
+  revealMs: TIMINGS.clashReveal,
+  holdMs: TIMINGS.clashHold,
+  outcomeMs: TIMINGS.clashOutcome,
+  exitMs: TIMINGS.clashExit,
 } as const;
 
-export const SECURITY_CLASH_REVEAL_AT_MS = SECURITY_CLASH_TIMINGS.attackerEnterMs;
+export const SECURITY_CLASH_REVEAL_AT_MS = CLASH_REVEAL_AT_MS;
 
-export const SECURITY_CLASH_OUTCOME_AT_MS =
-  SECURITY_CLASH_TIMINGS.attackerEnterMs + SECURITY_CLASH_TIMINGS.revealMs + SECURITY_CLASH_TIMINGS.holdMs;
+export const SECURITY_CLASH_OUTCOME_AT_MS = CLASH_OUTCOME_AT_MS;
 
-export const SECURITY_CLASH_TOTAL_MS =
-  SECURITY_CLASH_OUTCOME_AT_MS + SECURITY_CLASH_TIMINGS.outcomeMs + SECURITY_CLASH_TIMINGS.exitMs;
+export const SECURITY_CLASH_TOTAL_MS = CLASH_TOTAL_MS;
 
 const RESOLUTIONS: readonly string[] = ["battle", "effect", "trashed"];
 

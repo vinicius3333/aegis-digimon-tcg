@@ -15,7 +15,6 @@ import {
   type DecisionResponse,
   type DigiXrosRequirement,
   type Permanent,
-  type ServerEvent,
 } from "@aegis/shared";
 import { rejectionMessage } from "../rejectionMessages";
 import { useTranslation } from "../i18n";
@@ -31,8 +30,7 @@ import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
 import type { ColorName } from "../design/theme";
-import { playSound, type SoundKind } from "../design/sound";
-import { shouldPlayCue, soundForEvent, type CueTimestamps } from "./soundEvents";
+import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
@@ -67,7 +65,6 @@ import {
   canAttackWith,
   canVortexAttackWith,
   displayMemory,
-  eventsAfter,
   findPermanentInState,
   getDigivolveCostOptions,
   handCardEvolutionRoute,
@@ -113,26 +110,9 @@ import {
 import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
 import { AttackAnnouncementBanner, InfoPanelStack } from "./InfoPanelStack";
-import {
-  attackAnnouncementFromEvent,
-  buildInstanceSeatIndex,
-  dismissInfoPanel,
-  expireInfoPanels,
-  infoPanelFromEvent,
-  pushInfoPanel,
-  ATTACK_ANNOUNCE_MS,
-  INFO_PANEL_LIFETIME_MS,
-  type AttackAnnouncement,
-  type InfoPanel,
-  type InfoPanelLookup,
-} from "./infoPanels";
 import { SecurityClash } from "./SecurityClashView";
-import {
-  buildSecurityClashScene,
-  SECURITY_CLASH_TOTAL_MS,
-  type SecurityClashAttacker,
-  type SecurityClashScene,
-} from "./securityClash";
+import { useMatchCues } from "./useMatchCues";
+import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
@@ -189,19 +169,6 @@ const LANDSCAPE_PHONE_PERMANENT_WIDTH = 58;
 const NARROW_RAIL_QUERY = "(width < 1240px)";
 /** Slot width whose 1.16× permanent exactly fits the 104px rail's 84px content box. */
 const NARROW_RAIL_SLOT_WIDTH = 72;
-
-/** Card back sent from a deck pile to the hand that just grew, in board coordinates. */
-type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number };
-
-/** Must match `.game-draw-flight` in game.css. */
-const DRAW_FLIGHT_WIDTH = 30;
-const DRAW_FLIGHT_HEIGHT = 42;
-const DRAW_FLIGHT_MS = 340;
-/** The reference client's attack lunge is 150ms out and back (AttackProcess.cs pacing). */
-const ATTACK_LUNGE_MS = 300;
-const SECURITY_HIT_MS = 350;
-/** In 160ms, hold 300ms, out 160ms is the reference client's banner; 1s is the readable web port. */
-const TURN_BANNER_MS = 1000;
 
 /**
  * `deferred` marks a touch gesture whose direction is not yet known: the pointer is
@@ -315,49 +282,11 @@ export function GameScreen({
   const [securityView, setSecurityView] = useState<"you" | "opp" | null>(null); // which player's security modal is open
   const [picks, setPicks] = useState<string[]>([]);
   const [flash, setFlash] = useState<string | null>(null);
-  const [turnTransition, setTurnTransition] = useState<{
-    endingSeat: number;
-    nextSeat: number;
-    turnCount: number;
-  } | null>(null);
-  const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
-  const [recoveryToast, setRecoveryToast] = useState<{ seat: number; amount: number; key: number } | null>(null);
-  const [effectNotice, setEffectNotice] = useState<{
-    cardId: string;
-    timing?: string;
-    description?: string;
-    key: string;
-  } | null>(null);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
-  // Security-attack beats: the attacker leans at the shield, the shield flashes
-  // when a card is actually checked. Both are transient decoration.
-  const [attackLunge, setAttackLunge] = useState<{ permanentId: string; direction: "up" | "down" } | null>(null);
-  const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
-  const [drawFlights, setDrawFlights] = useState<DrawFlight[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
-  const [infoPanels, setInfoPanels] = useState<readonly InfoPanel[]>([]);
-  const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
-  const attackAnnounceTimerRef = useRef<number | undefined>(undefined);
-  const infoPanelSequenceRef = useRef(0);
-  // `cardsMoved` names only instance ids, so the panels need the board's current
-  // identity and ownership index to name the cards that just moved.
-  const infoLookupRef = useRef<InfoPanelLookup>({ cardId: () => undefined, seat: () => undefined });
-  const lastNoticeEventRef = useRef<ServerEvent | undefined>(undefined);
-  const securityClashTimerRef = useRef<number | undefined>(undefined);
-  const securityClashKeyRef = useRef(0);
-  // The card the checked player is defending against. A security check carries no
-  // attacker, so it is remembered from the attack that opened the check.
-  const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
-  const recoveryToastTimerRef = useRef<number | undefined>(undefined);
-  const effectNoticeTimerRef = useRef<number | undefined>(undefined);
   const inspectorTimerRef = useRef<number | undefined>(undefined);
-  const lungeTimerRef = useRef<number | undefined>(undefined);
-  const securityHitTimerRef = useRef<number | undefined>(undefined);
-  const turnBannerTimerRef = useRef<number | undefined>(undefined);
-  const drawFlightTimersRef = useRef<number[]>([]);
-  const drawFlightKeyRef = useRef(0);
-  const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
+  const flashTimerRef = useRef<number | undefined>(undefined);
   const [evoCostChoice, setEvoCostChoice] = useState<{
     handInstanceId: string;
     permanentId: string;
@@ -401,55 +330,43 @@ export function GameScreen({
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
   const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
 
-  // Cues are observed twice for your own actions (the intent handler fires one
-  // immediately, the server echo arrives later), so repeats are suppressed.
-  const cuePlayedAtRef = useRef<CueTimestamps>({});
-  const cueBaselineRef = useRef(false);
-  const playGameCue = (kind: SoundKind) => {
-    const now = Date.now();
-    if (!shouldPlayCue(kind, now, cuePlayedAtRef.current)) return;
-    cuePlayedAtRef.current[kind] = now;
-    playSound(kind);
-  };
-
-  /**
-   * Sends a card back from a deck pile to the hand that just grew. The reference client presents
-   * a draw centre-screen; the web port keeps the deck→hand read, which is what
-   * makes an opponent's draw visible at all.
-   */
-  const launchDrawFlight = (side: "you" | "opp") => {
-    const board = boardRef.current;
-    const source = side === "you" ? yourDeckRef.current : oppDeckRef.current;
-    const target = side === "you" ? yourHandDockRef.current : oppHandStripRef.current;
-    if (!board || !source || !target) return;
-    const boardRect = board.getBoundingClientRect();
-    const sourceRect = source.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    // Layout-free environments (jsdom) report zero boxes: no geometry, no flight,
-    // and so no timer is ever scheduled there.
-    if (!sourceRect.width || !targetRect.width) return;
-    const from = {
-      x: sourceRect.left + sourceRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
-      y: sourceRect.top + sourceRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
-    };
-    const to = {
-      x: targetRect.left + targetRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
-      y: targetRect.top + targetRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
-    };
-    const key = (drawFlightKeyRef.current += 1);
-    setDrawFlights((flights) => [...flights, { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y }]);
-    const timer = window.setTimeout(() => {
-      setDrawFlights((flights) => flights.filter((flight) => flight.key !== key));
-      drawFlightTimersRef.current = drawFlightTimersRef.current.filter((id) => id !== timer);
-    }, DRAW_FLIGHT_MS);
-    drawFlightTimersRef.current.push(timer);
-  };
-
   const ping = (message: string) => {
     playSound("error");
     setFlash(message);
-    window.setTimeout(() => setFlash(null), 1800);
+    if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = window.setTimeout(() => setFlash(null), TIMINGS.rejectionFlash);
   };
+
+  // Every cue the server provokes: sounds, panels, banners, the security clash,
+  // the draw flights. The hook sequences them on the animation queue; this
+  // component only renders what it reports.
+  const cues = useMatchCues({
+    events,
+    state,
+    viewerSeat,
+    mulliganOpen: decision?.kind === "mulligan",
+    anchors: {
+      board: boardRef,
+      yourDeck: yourDeckRef,
+      oppDeck: oppDeckRef,
+      yourHandDock: yourHandDockRef,
+      oppHandStrip: oppHandStripRef,
+    },
+    onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
+  });
+  const {
+    attackAnnouncement,
+    attackLunge,
+    drawFlights,
+    effectNotice,
+    infoPanels,
+    recoveryToast,
+    securityClash,
+    securityHitSeat,
+    turnTransition,
+  } = cues;
+  const playGameCue = cues.playCue;
+
   const clearSel = () => {
     setHandSel(null);
     setSelPerm(null);
@@ -479,136 +396,10 @@ export function GameScreen({
     matchKey: room?.roomId ?? roomCode ?? "pending-match",
   });
 
-  // Declared before the event effect below so the same commit refreshes the
-  // index first: a card is already in its new zone when its movement is narrated.
-  useEffect(() => {
-    if (!state) return;
-    const cardIds = buildInstanceIndex(state, viewerSeat);
-    const seats = buildInstanceSeatIndex(state);
-    infoLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
-  });
-
-  // Surface server rejections as a transient toast.
-  useEffect(() => {
-    const previous = lastNoticeEventRef.current;
-    const fresh = eventsAfter(events, previous);
-    lastNoticeEventRef.current = events.at(-1);
-    const rejection = [...fresh].reverse().find((event) => event.kind === "actionRejected");
-    const securityCheck = [...fresh].reverse().find((event) => event.kind === "securityChecked");
-    const recovery = [...fresh].reverse().find((event) => event.kind === "securityRecovered");
-    const resolvedEffect = [...fresh]
-      .reverse()
-      .find((event) => event.kind === "effectResolved" && event.seat === viewerSeat);
-    const turnEnd = [...fresh].reverse().find((event) => event.kind === "turnEnded");
-    const securityAttack = [...fresh]
-      .reverse()
-      .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
-    // The first pass is the baseline: a reconnect replays history, which must not
-    // replay its sounds or reopen every panel the match has ever shown.
-    const replayingHistory = !cueBaselineRef.current;
-    cueBaselineRef.current = true;
-    if (!replayingHistory) {
-      for (const event of fresh) {
-        const cue = soundForEvent(event, viewerSeat);
-        if (cue) playGameCue(cue);
-      }
-      const now = Date.now();
-      let announcement: AttackAnnouncement | null = null;
-      const opened: InfoPanel[] = [];
-      for (const event of fresh) {
-        infoPanelSequenceRef.current += 1;
-        const id = `info-panel-${infoPanelSequenceRef.current}`;
-        const panel = infoPanelFromEvent(event, viewerSeat, infoLookupRef.current, id, now);
-        if (panel) opened.push(panel);
-        announcement = attackAnnouncementFromEvent(event, viewerSeat, id, now) ?? announcement;
-      }
-      if (opened.length > 0) {
-        setInfoPanels((panels) =>
-          opened.reduce<readonly InfoPanel[]>(
-            (stack, panel) => pushInfoPanel(stack, panel),
-            expireInfoPanels(panels, now),
-          ),
-        );
-      }
-      if (announcement) {
-        if (attackAnnounceTimerRef.current) window.clearTimeout(attackAnnounceTimerRef.current);
-        setAttackAnnouncement(announcement);
-        attackAnnounceTimerRef.current = window.setTimeout(() => setAttackAnnouncement(null), ATTACK_ANNOUNCE_MS);
-      }
-    }
-    if (rejection?.kind === "actionRejected") ping(rejectionMessage(rejection.reason, t));
-    if (securityAttack?.kind === "attackDeclared") {
-      if (lungeTimerRef.current) window.clearTimeout(lungeTimerRef.current);
-      setAttackLunge({
-        permanentId: securityAttack.attackerPermanentId,
-        direction: securityAttack.seat === viewerSeat ? "up" : "down",
-      });
-      lungeTimerRef.current = window.setTimeout(() => setAttackLunge(null), ATTACK_LUNGE_MS);
-      securityAttackerRef.current = { seat: securityAttack.seat, cardId: securityAttack.attackerCardId };
-    }
-    if (securityCheck?.kind === "securityChecked") {
-      if (securityClashTimerRef.current) window.clearTimeout(securityClashTimerRef.current);
-      securityClashKeyRef.current += 1;
-      setSecurityClash(
-        buildSecurityClashScene({
-          key: securityClashKeyRef.current,
-          revealedCardId: securityCheck.revealedCardId,
-          resolution: securityCheck.resolution,
-          defenderSeat: securityCheck.seat,
-          viewerSeat,
-          attacker: securityAttackerRef.current,
-        }),
-      );
-      securityClashTimerRef.current = window.setTimeout(() => setSecurityClash(null), SECURITY_CLASH_TOTAL_MS);
-      if (securityHitTimerRef.current) window.clearTimeout(securityHitTimerRef.current);
-      setSecurityHitSeat(securityCheck.seat);
-      securityHitTimerRef.current = window.setTimeout(() => setSecurityHitSeat(null), SECURITY_HIT_MS);
-    }
-    if (recovery?.kind === "securityRecovered") {
-      if (recoveryToastTimerRef.current) window.clearTimeout(recoveryToastTimerRef.current);
-      setRecoveryToast({ seat: recovery.seat, amount: recovery.amount, key: Date.now() });
-      recoveryToastTimerRef.current = window.setTimeout(() => setRecoveryToast(null), 2800);
-    }
-    if (resolvedEffect?.kind === "effectResolved") {
-      if (effectNoticeTimerRef.current) window.clearTimeout(effectNoticeTimerRef.current);
-      setEffectNotice({
-        cardId: resolvedEffect.sourceCardId,
-        timing: resolvedEffect.timing,
-        description: resolvedEffect.description,
-        key: `${resolvedEffect.effectKey}-${events.length}`,
-      });
-      effectNoticeTimerRef.current = window.setTimeout(() => setEffectNotice(null), 2800);
-    }
-    if (turnEnd?.kind === "turnEnded") {
-      securityAttackerRef.current = undefined;
-      setTurnTransition({ endingSeat: turnEnd.endingSeat, nextSeat: turnEnd.nextSeat, turnCount: turnEnd.turnCount });
-      if (turnBannerTimerRef.current) window.clearTimeout(turnBannerTimerRef.current);
-      turnBannerTimerRef.current = window.setTimeout(() => setTurnTransition(null), TURN_BANNER_MS);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
-
-  // One timer for the whole stack, set to the oldest panel's remaining lifetime.
-  useEffect(() => {
-    if (infoPanels.length === 0) return;
-    const oldest = Math.min(...infoPanels.map((panel) => panel.createdAt));
-    const remaining = Math.max(0, oldest + INFO_PANEL_LIFETIME_MS - Date.now());
-    const timer = window.setTimeout(() => setInfoPanels((panels) => expireInfoPanels(panels, Date.now())), remaining);
-    return () => window.clearTimeout(timer);
-  }, [infoPanels]);
-
   useEffect(
     () => () => {
-      if (attackAnnounceTimerRef.current) window.clearTimeout(attackAnnounceTimerRef.current);
-      if (securityClashTimerRef.current) window.clearTimeout(securityClashTimerRef.current);
-      if (recoveryToastTimerRef.current) window.clearTimeout(recoveryToastTimerRef.current);
-      if (effectNoticeTimerRef.current) window.clearTimeout(effectNoticeTimerRef.current);
       if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-      if (lungeTimerRef.current) window.clearTimeout(lungeTimerRef.current);
-      if (securityHitTimerRef.current) window.clearTimeout(securityHitTimerRef.current);
-      if (turnBannerTimerRef.current) window.clearTimeout(turnBannerTimerRef.current);
-      for (const timer of drawFlightTimersRef.current) window.clearTimeout(timer);
-      drawFlightTimersRef.current = [];
+      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
     },
     [],
   );
@@ -700,19 +491,6 @@ export function GameScreen({
 
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
-
-  // A hand that grew was drawn into. The opening hand and a mulligan redeal are
-  // not draws, so the first observed pair is only a baseline.
-  const mulliganOpen = decision?.kind === "mulligan";
-  useEffect(() => {
-    if (you === undefined || opp === undefined) return;
-    const previous = handCountsRef.current;
-    handCountsRef.current = { you: you.handCount, opp: opp.handCount };
-    if (!previous || mulliganOpen) return;
-    if (opp.handCount > previous.opp) launchDrawFlight("opp");
-    if (you.handCount > previous.you) launchDrawFlight("you");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [you?.handCount, opp?.handCount]);
 
   // ----- pre-match / connection gates -----
   if (status === "reconnecting") {
@@ -1251,12 +1029,12 @@ export function GameScreen({
       setOppInspector({ permanentId, x: rect.right, y: rect.top });
     };
     if (immediate) open();
-    else inspectorTimerRef.current = window.setTimeout(open, 320);
+    else inspectorTimerRef.current = window.setTimeout(open, TIMINGS.inspectorOpen);
   };
 
   const hideOpponentInspector = () => {
     if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-    inspectorTimerRef.current = window.setTimeout(() => setOppInspector(null), 160);
+    inspectorTimerRef.current = window.setTimeout(() => setOppInspector(null), TIMINGS.inspectorClose);
   };
 
   function openOwnPermanent(permanentId: string) {
@@ -1811,7 +1589,13 @@ export function GameScreen({
   return (
     <main
       className="game-layout"
-      style={{ height: "100%", display: "flex", background: "var(--ds-background)", overflow: "hidden" }}
+      style={{
+        height: "100%",
+        display: "flex",
+        background: "var(--ds-background)",
+        overflow: "hidden",
+        ...BATTLE_TIMING_STYLE,
+      }}
     >
       <div
         className="game-board"
@@ -1953,12 +1737,7 @@ export function GameScreen({
           />
         ) : null}
 
-        {!state.gameOver ? (
-          <InfoPanelStack
-            panels={infoPanels}
-            onDismiss={(id: string) => setInfoPanels((panels) => dismissInfoPanel(panels, id))}
-          />
-        ) : null}
+        {!state.gameOver ? <InfoPanelStack panels={infoPanels} onDismiss={cues.dismissPanel} /> : null}
 
         {attackAnnouncement && !state.gameOver ? <AttackAnnouncementBanner announcement={attackAnnouncement} /> : null}
 

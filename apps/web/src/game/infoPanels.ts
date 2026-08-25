@@ -10,13 +10,14 @@
 
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import type { TranslationKey } from "../i18n";
+import { TIMINGS } from "./timings";
 
 /**
  * the reference client's Effects.HideShowCard waits 2.5 s, then runs a second 2.5 s accumulator
  * before closing the panel — about five seconds of reading time. It is started
  * without being awaited, so the panel never blocks the game.
  */
-export const INFO_PANEL_LIFETIME_MS = 5000;
+export const INFO_PANEL_LIFETIME_MS = TIMINGS.infoPanelLifetime;
 
 /**
  * the reference client has no attack banner at all — it announces an attack with outlines, a
@@ -24,13 +25,13 @@ export const INFO_PANEL_LIFETIME_MS = 5000;
  * takes the length of the reference client's other banners (ShowPhaseNotificationObject holds
  * for 0.3 s inside a ~0.25 s open/close pair) rounded up to a readable glance.
  */
-export const ATTACK_ANNOUNCE_MS = 1200;
+export const ATTACK_ANNOUNCE_MS = TIMINGS.attackAnnounce;
 
 /** Two panels fit beside the field without covering the board. */
 export const MAX_VISIBLE_INFO_PANELS = 2;
 
 /** Cards moved in quick succession belong to one panel, numbered 1..n. */
-export const INFO_PANEL_MERGE_WINDOW_MS = 1500;
+export const INFO_PANEL_MERGE_WINDOW_MS = TIMINGS.infoPanelMergeWindow;
 
 export type InfoPanelSide = "you" | "opp";
 

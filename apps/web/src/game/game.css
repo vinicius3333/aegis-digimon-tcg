@@ -760,7 +760,7 @@ button.opponent-action-feed__current:focus-visible {
   filter: drop-shadow(0 0 5px var(--battle-marker))
     drop-shadow(0 0 12px color-mix(in srgb, var(--battle-marker) 75%, transparent)) brightness(1.18);
   animation:
-    battle-marker-pop 300ms ease-out both,
+    battle-marker-pop var(--t-memory-marker-pop, 300ms) ease-out both,
     battle-marker-pulse 1.4s ease-in-out infinite;
 }
 
@@ -780,7 +780,7 @@ button.opponent-action-feed__current:focus-visible {
    marker move (MemoryObject.cs:96-102). The per-chip delay is set inline so the
    sweep runs outward in the direction memory actually moved. */
 .game-memory-coin--swept {
-  animation: battle-memory-sweep 120ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation: battle-memory-sweep var(--t-memory-sweep, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 @keyframes battle-memory-sweep {
@@ -938,7 +938,7 @@ button.opponent-action-feed__current:focus-visible {
      independent `translate` property instead of fighting it.
      the reference client drops the new hand card into its slot from 70px over 80ms Ease.OutBack
      (CardObjectController.cs:696); 120ms is the readable web compromise. */
-  animation: battle-hand-draw 120ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: battle-hand-draw var(--t-hand-draw, 120ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 @keyframes battle-hand-draw {
@@ -966,7 +966,7 @@ button.opponent-action-feed__current:focus-visible {
   border-radius: 5px;
   background: linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface));
   box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
-  animation: battle-draw-flight 340ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation: battle-draw-flight var(--t-draw-flight, 340ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 @keyframes battle-draw-flight {
@@ -989,7 +989,7 @@ button.opponent-action-feed__current:focus-visible {
 /* --- Card entering the battle area --------------------------------------- */
 
 .game-card-enter {
-  animation: battle-card-enter 320ms ease-out both;
+  animation: battle-card-enter var(--t-card-enter, 320ms) ease-out both;
 }
 
 @keyframes battle-card-enter {
@@ -1018,7 +1018,7 @@ button.opponent-action-feed__current:focus-visible {
   background: var(--battle-marker, #ffd23e);
   clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
   filter: drop-shadow(0 0 5px rgb(255 210 62 / 85%));
-  animation: battle-card-sparkle 900ms ease-out both;
+  animation: battle-card-sparkle var(--t-card-sparkle, 900ms) ease-out both;
 }
 
 /* The five stars sit on an arc over the card, popping outward from the centre. */
@@ -1076,11 +1076,11 @@ button.opponent-action-feed__current:focus-visible {
 /* The attacker leans at the shield it declared on. `translate` is used rather
    than `transform` so the permanent's inline highlight offset still applies. */
 .game-permanent-lunge--up {
-  animation: battle-lunge-up 300ms ease-out both;
+  animation: battle-lunge-up var(--t-attack-lunge, 300ms) ease-out both;
 }
 
 .game-permanent-lunge--down {
-  animation: battle-lunge-down 300ms ease-out both;
+  animation: battle-lunge-down var(--t-attack-lunge, 300ms) ease-out both;
 }
 
 @keyframes battle-lunge-up {
@@ -1106,7 +1106,7 @@ button.opponent-action-feed__current:focus-visible {
 /* The reference client shatters the security glass pane on every check; the web port reads that
    as a white flash plus a short shake on the shield badge. */
 .game-security-shield--hit {
-  animation: battle-security-hit 350ms ease-out both;
+  animation: battle-security-hit var(--t-security-hit, 350ms) ease-out both;
 }
 
 @keyframes battle-security-hit {
@@ -1136,11 +1136,11 @@ button.opponent-action-feed__current:focus-visible {
 /* TargetArrow.cs:118-157 — the arrow extends over 85ms, holds 70ms, and repeats
    once before it locks on. `pathLength` is normalised to 100 in the SVG. */
 .game-attack-arrow__stroke {
-  animation: battle-arrow-extend 380ms linear both;
+  animation: battle-arrow-extend var(--t-attack-arrow, 380ms) linear both;
 }
 
 .game-attack-arrow__head {
-  animation: battle-arrow-head 380ms step-end both;
+  animation: battle-arrow-head var(--t-attack-arrow, 380ms) step-end both;
 }
 
 @keyframes battle-arrow-extend {
@@ -1190,7 +1190,7 @@ button.opponent-action-feed__current:focus-visible {
   pointer-events: none;
   /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
      the in/out clips). 1s keeps it readable in a browser without stalling. */
-  animation: battle-banner 1s ease-in-out both;
+  animation: battle-banner var(--t-turn-banner, 1000ms) ease-in-out both;
 }
 
 .game-turn-banner span {
@@ -1252,7 +1252,7 @@ button.opponent-action-feed__current:focus-visible {
   box-shadow:
     0 0 0 1px rgb(0 0 0 / 60%),
     0 18px 60px rgb(0 0 0 / 65%) !important;
-  animation: battle-dialog-in 180ms ease-out both;
+  animation: battle-dialog-in var(--t-dialog-in, 180ms) ease-out both;
 }
 
 /* Inline flow sheets (mulligan) and floating combat prompts render inside the
@@ -1325,7 +1325,7 @@ button.opponent-action-feed__current:focus-visible {
   box-shadow: 0 10px 28px rgb(4 14 31 / 55%);
   pointer-events: auto;
   /* The reference client's SelectCommandPanel open clip runs 0.233 s. */
-  animation: info-panel-in 230ms ease-out;
+  animation: info-panel-in var(--t-info-panel-in, 230ms) ease-out;
 }
 
 .info-panel__header {
@@ -1423,7 +1423,7 @@ button.opponent-action-feed__current:focus-visible {
   translate: -50% 0;
   /* Centred by a translate, so its entrance can only fade — a keyframe that also
      owned `translate` would fight the centring. */
-  animation: attack-announcement-in 140ms ease-out;
+  animation: attack-announcement-in var(--t-attack-announce-in, 140ms) ease-out;
 }
 
 .attack-announcement__copy {
@@ -1472,7 +1472,7 @@ button.opponent-action-feed__current:focus-visible {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  animation: battle-clash-scene 2533ms linear both;
+  animation: battle-clash-scene var(--t-clash-total, 2533ms) linear both;
 }
 
 .battle-clash__badge {
@@ -1513,49 +1513,50 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
-  animation: battle-clash-enter-you 150ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation: battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
-  animation: battle-clash-enter-opp 150ms cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation: battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
 
 /* The reference client's YourEnterSecurityCard.anim (233ms): the card grows from
    almost nothing, arcs left, and burns off a white-out — it never flips. */
 .battle-clash__card[data-role="revealed"] .battle-clash__art {
-  animation: battle-security-reveal 233ms ease-out 150ms both;
+  animation: battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both;
 }
 
 .battle-clash[data-resolution="effect"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
-    battle-security-reveal 233ms ease-out 150ms both,
-    battle-clash-glow 350ms ease-out 1983ms both;
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-glow var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash[data-resolution="trashed"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
-    battle-security-reveal 233ms ease-out 150ms both,
-    battle-clash-fall 350ms cubic-bezier(0.32, 0, 0.67, 0) 1983ms both;
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-fall var(--t-clash-outcome, 350ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1983ms)
+      both;
 }
 
 /* A battle resolution shakes both cards, so each entrance keeps its own first
    animation and appends the impact rather than being replaced by it. */
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
-    battle-security-reveal 233ms ease-out 150ms both,
-    battle-clash-impact 350ms ease-out 1983ms both;
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
   animation:
-    battle-clash-enter-you 150ms cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact 350ms ease-out 1983ms both;
+    battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
   animation:
-    battle-clash-enter-opp 150ms cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact 350ms ease-out 1983ms both;
+    battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash__caption {
@@ -1609,7 +1610,7 @@ button.opponent-action-feed__current:focus-visible {
   inset: -0.6rem;
   border-radius: 50%;
   background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, var(--battle-attack) 45%, transparent 70%);
-  animation: battle-clash-burst 350ms ease-out 1983ms both;
+  animation: battle-clash-burst var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash__outcome {
