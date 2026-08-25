@@ -193,9 +193,14 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Behavioral proof: isolated `BT13-022.test.ts` passed 3 tests: exact full-coverage IR shape; public observer exposure; and a real player-directed attack where Kamemon is offered, declared by its controller, suspended, becomes the defender, loses the 5000-vs-2000 battle, and is deleted while security remains untouched. Reverting the keyword, static installation, controller/zone eligibility, block-window target switch, suspension, or battle routing makes an observable focused assertion fail.
 - Revalidation result: 10/10; no remaining card-specific queue.
 
-## BT13-023 — Jellymon — Pending
+## BT13-023 — Jellymon — 10/10
 
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+- Catalog evidence: Blue level 3 Digimon, play cost 3, 1000 DP; Rookie/Data/Mollusk; evolves from blue level 2 for 0. Printed clauses checked independently: Evade on Jellymon itself, and inherited When Attacking trash the bottom digivolution card of 1 opposing Digimon.
+- Knowledge base: `node tools/kb/query.mjs card BT13-023` reviewed; no card-specific entries exist. The bottom-of-stack direction, opponent ownership, one-target count, inherited source, and optional Evade prevention are explicit in the catalog/rules.
+- Implementation and primitive trace: `BT13-023.ts` maps Evade to a Static keyword record. Its inherited When Attacking action is `TrashDigivolution` with an opponent Digimon/has-sources/count-1 filter, `amount: 1`, and `fromTop: false`. Traced through static keyword installation, deletion interception, controller decision and suspension cost, inherited host/source discovery, attack trigger dispatch, opponent-only candidate resolution, bottom-card detachment, and owner trash routing. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-023", compiled)`.
+- Peers, traits, evolution, timing, ownership, and frequency: BT26-020 and BT24-050 use the same Evade ledger and decision seam; the chapter-16c suite covers the shared rule. The attack proof places Jellymon under a real host and gives only the opponent an eligible stack, showing inherited timing and controller perspective; the host's own Jellymon source remains attached. Neither clause is once per turn, and there is no alternate evolution or trait/name selector.
+- Behavioral proof: isolated `BT13-023.test.ts` passed 3 tests: exact full-coverage IR; a real inherited attack that removes only the opponent's bottom source to that owner's trash while preserving the top source and the attacking host's stack; and a real effect-deletion attempt where Jellymon's controller accepts Evade, Jellymon suspends, the deletion count is zero, and it remains in play. Reverting Evade installation, decision ownership/cost, inherited anchoring, attack timing, opponent filter, bottom direction, amount, or trash routing makes a focused observable assertion fail.
+- Revalidation result: 10/10; no remaining card-specific queue.
 
 ## BT13-024 — Gawappamon — Pending
 
