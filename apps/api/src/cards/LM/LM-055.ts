@@ -2,9 +2,13 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// LM-055 Sprint Dash Training
+// Same printed card as LM-054 Treadmill Training in green/red. Audit fix (LM audit): the
+// generated modules for LM-055 through LM-062 dropped part of the shared Delay clause — the
+// `reduceCost: 2` reduction, the `payCost: true` that makes the digivolution paid at all, or
+// both — so this file is templated from the audited LM-054 module with the colours and the
+// self-name swapped.
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -46,7 +50,7 @@ const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                colors: ["Red", "Green"],
+                colors: ["Green", "Red"],
               },
               count: 1,
               to: "hand",
@@ -74,26 +78,12 @@ const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            colors: ["Red", "Green"],
+            colors: ["Green", "Red"],
           },
           from: ["hand"],
+          reduceCost: 2,
+          payCost: true,
           optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the cost by 2",
-            },
-          ],
         },
       ],
       keywords: [
@@ -113,7 +103,7 @@ const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                colors: ["Red", "Green"],
+                colors: ["Green", "Red"],
               },
               count: 1,
               to: "hand",

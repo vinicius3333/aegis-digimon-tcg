@@ -1,7 +1,13 @@
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "LM-062";
+// LM-062 Breathing Training
+// Same printed card as LM-054 Treadmill Training in purple/yellow. Audit fix (LM audit): the
+// generated modules for LM-055 through LM-062 dropped part of the shared Delay clause — the
+// `reduceCost: 2` reduction, the `payCost: true` that makes the digivolution paid at all, or
+// both — so this file is templated from the audited LM-054 module with the colours and the
+// self-name swapped.
 
 const compiled: CompiledCard = {
   effects: [
@@ -10,15 +16,26 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "WaiveColorRequirement",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
           condition: {
             kind: "youHaveNone",
             filter: {
               zone: "battleArea",
               controllerDefault: "mine",
-              nameOrTrait: [{ tokens: ["Breathing Training"], match: "name" }],
+              nameOrTrait: [
+                {
+                  tokens: ["Breathing Training"],
+                  match: "name",
+                },
+              ],
             },
-            raw: "you don't have [Breathing Training] in the battle area",
+            raw: "you have don't have [Breathing Training] in the battle area",
           },
         },
       ],
@@ -29,10 +46,21 @@ const compiled: CompiledCard = {
         {
           kind: "RevealAdd",
           revealCount: 2,
-          add: [{ filter: { controllerDefault: "mine", colors: ["Purple", "Yellow"] }, count: 1, to: "hand" }],
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                colors: ["Purple", "Yellow"],
+              },
+              count: 1,
+              to: "hand",
+            },
+          ],
           rest: "deckBottom",
         },
-        { kind: "PlaceInBattleAreaSelf" },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
     },
     {
@@ -40,15 +68,30 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Digivolve",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          into: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Purple", "Yellow"] },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            colors: ["Purple", "Yellow"],
+          },
           from: ["hand"],
           reduceCost: 2,
           payCost: true,
           optional: true,
         },
       ],
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
       trigger: "Security",
@@ -56,10 +99,21 @@ const compiled: CompiledCard = {
         {
           kind: "RevealAdd",
           revealCount: 2,
-          add: [{ filter: { controllerDefault: "mine", colors: ["Purple", "Yellow"] }, count: 1, to: "hand" }],
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                colors: ["Purple", "Yellow"],
+              },
+              count: 1,
+              to: "hand",
+            },
+          ],
           rest: "deckBottom",
         },
-        { kind: "PlaceInBattleAreaSelf" },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
       isSecurity: true,
     },
@@ -68,4 +122,4 @@ const compiled: CompiledCard = {
   residual: [],
 };
 
-registerIrCard(cardId, compiled);
+registerIrCard("LM-062", compiled);

@@ -2,6 +2,13 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// LM-061 Punching Training
+// Same printed card as LM-054 Treadmill Training in black/red. Audit fix (LM audit): the
+// generated modules for LM-055 through LM-062 dropped part of the shared Delay clause — the
+// `reduceCost: 2` reduction, the `payCost: true` that makes the digivolution paid at all, or
+// both — so this file is templated from the audited LM-054 module with the colours and the
+// self-name swapped.
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -43,7 +50,7 @@ const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                colors: ["Red", "Black"],
+                colors: ["Black", "Red"],
               },
               count: 1,
               to: "hand",
@@ -71,11 +78,11 @@ const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            colors: ["Red", "Black"],
+            colors: ["Black", "Red"],
           },
           from: ["hand"],
+          reduceCost: 2,
           payCost: true,
-          costDelta: -2,
           optional: true,
         },
       ],
@@ -96,7 +103,7 @@ const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                colors: ["Red", "Black"],
+                colors: ["Black", "Red"],
               },
               count: 1,
               to: "hand",
