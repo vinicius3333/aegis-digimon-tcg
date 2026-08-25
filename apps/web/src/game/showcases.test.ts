@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
 import { COLORS } from "../design/theme";
-import { burstPalette, hasTurnStartDraw, permanentBurstFromEvent, zoneShowcaseFromEvent } from "./showcases";
+import {
+  burstPalette,
+  deletionAnchorIdsFromEvent,
+  hasTurnStartDraw,
+  permanentBurstFromEvent,
+  zoneShowcaseFromEvent,
+} from "./showcases";
 
 const VIEWER = 0;
 const OPPONENT = 1;
@@ -97,5 +103,37 @@ describe("turn-start draw", () => {
     expect(hasTurnStartDraw([{ kind: "phaseChanged", phase: "Main", turnSeat: VIEWER, turnCount: 3 }], VIEWER)).toBe(
       false,
     );
+  });
+});
+
+describe("deletions", () => {
+  it("names the permanents a combat resolution deleted", () => {
+    const combat: ServerEvent = {
+      kind: "combatResolved",
+      seat: OPPONENT,
+      attackerPermanentId: "perm-1",
+      deletedPermanentIds: ["perm-2", "perm-3"],
+    };
+    expect(deletionAnchorIdsFromEvent(combat)).toEqual(["perm-2", "perm-3"]);
+  });
+
+  it("names the card instances an effect trashed off the field", () => {
+    const moved: ServerEvent = { kind: "cardsMoved", instanceIds: ["inst-1"], from: "battleArea", to: "trash" };
+    expect(deletionAnchorIdsFromEvent(moved)).toEqual(["inst-1"]);
+  });
+
+  it("leaves every other movement and event alone", () => {
+    expect(deletionAnchorIdsFromEvent({ kind: "blocked", blockerPermanentId: "perm-4" })).toEqual([]);
+    expect(
+      deletionAnchorIdsFromEvent({ kind: "cardsMoved", instanceIds: ["inst-2"], from: "hand", to: "trash" }),
+    ).toEqual([]);
+    expect(
+      deletionAnchorIdsFromEvent({ kind: "cardsMoved", instanceIds: ["inst-3"], from: "battleArea", to: "hand" }),
+    ).toEqual([]);
+  });
+
+  it("burns a deletion orange out of a green ring and a shattering pane blue", () => {
+    expect(burstPalette("delete")).toEqual({ base: "#ff9f43", edge: "#3ddc84" });
+    expect(burstPalette("shatter")).toEqual({ base: "#e4f1ff", edge: "#3b82f6" });
   });
 });

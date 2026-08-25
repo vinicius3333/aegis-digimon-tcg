@@ -48,8 +48,19 @@ import {
   rejectionNotice,
   type MatchNotice,
 } from "./notices";
-import { buildSecurityClashScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import {
+  buildSecurityBranchScene,
+  buildSecurityBreakScene,
+  buildSecurityClashScene,
+  SECURITY_BRANCH_TOTAL_MS,
+  SECURITY_BREAK_TIMINGS,
+  type SecurityBranchScene,
+  type SecurityBreakScene,
+  type SecurityClashAttacker,
+  type SecurityClashScene,
+} from "./securityClash";
+import {
+  deletionAnchorIdsFromEvent,
   hasTurnStartDraw,
   permanentBurstFromEvent,
   zoneShowcaseFromEvent,
@@ -71,6 +82,27 @@ export type DrawBurst = { key: number; x: number; y: number };
 
 export type AttackLunge = { permanentId: string; direction: "up" | "down" };
 
+/** The shield break, and which of its two beats the defender's shield is playing. */
+export type SecurityBreakCue = SecurityBreakScene & { phase: "arm" | "break" };
+
+/** The green-and-orange burst left where a deleted permanent stood, in board coordinates. */
+export type DeleteBurst = { key: number; x: number; y: number };
+
+/** The unsuspend phase sweeping one player's board, ordered by slot. */
+export type UnsuspendSweep = { seat: Seat; key: number };
+
+/** Must match `.game-delete-burst` in game.css. */
+const DELETE_BURST_SIZE = 96;
+
+/** The phase name the protocol uses for the step that unsuspends the turn player's board. */
+const UNSUSPEND_PHASE = "Active";
+
+/** Slots the sweep staggers across before the last card has started turning. */
+const UNSUSPEND_SWEEP_SLOTS = 8;
+
+/** How long the whole board takes to finish unsuspending, last slot included. */
+const UNSUSPEND_SWEEP_MS = TIMINGS.suspendRotate + UNSUSPEND_SWEEP_SLOTS * TIMINGS.suspendStagger;
+
 /**
  * The centre-screen showcase and the security clash share one track, so the
  * board never holds two cards up at once — a security check replaces whatever
@@ -82,6 +114,12 @@ export type TurnTransitionCue = { endingSeat: number; nextSeat: number; turnCoun
 /** The board elements a draw flight is measured between. */
 export interface MatchCueAnchors {
   board: RefObject<HTMLDivElement | null>;
+  /**
+   * Where a permanent last stood, in board coordinates, by permanent id or by the instance
+   * id of its top card. Deletions are narrated after the board has already dropped the
+   * permanent, so the caller keeps the last measurement rather than the element.
+   */
+  permanentCenter?: (permanentId: string) => { x: number; y: number } | undefined;
   yourDeck: RefObject<HTMLDivElement | null>;
   oppDeck: RefObject<HTMLDivElement | null>;
   yourHandDock: RefObject<HTMLDivElement | null>;
@@ -100,6 +138,14 @@ export interface MatchCues {
   attackAnnouncement: AttackAnnouncement | null;
   turnTransition: TurnTransitionCue | null;
   securityClash: SecurityClashScene | null;
+  /** The defender's shield arming and shattering, ahead of the reveal. */
+  securityBreak: SecurityBreakCue | null;
+  /** The revealed card, held to the side while its effect resolves. */
+  securityBranch: SecurityBranchScene | null;
+  /** The player whose board the unsuspend phase is currently sweeping. */
+  unsuspendSweep: UnsuspendSweep | null;
+  /** Bursts left where permanents were deleted, in board coordinates. */
+  deleteBursts: readonly DeleteBurst[];
   /** The opponent's card, held centre-screen while its zone change is announced. */
   zoneShowcase: ZoneShowcase | null;
   /** The colour-keyed burst each permanent is currently playing, by permanent id. */
@@ -167,6 +213,10 @@ export function useMatchCues({
   const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
   const [turnTransition, setTurnTransition] = useState<TurnTransitionCue | null>(null);
   const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
+  const [securityBreak, setSecurityBreak] = useState<SecurityBreakCue | null>(null);
+  const [securityBranch, setSecurityBranch] = useState<SecurityBranchScene | null>(null);
+  const [unsuspendSweep, setUnsuspendSweep] = useState<UnsuspendSweep | null>(null);
+  const [deleteBursts, setDeleteBursts] = useState<readonly DeleteBurst[]>([]);
   const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
   const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
   const [drawFlights, setDrawFlights] = useState<readonly DrawFlight[]>([]);
@@ -193,6 +243,8 @@ export function useMatchCues({
   const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
   const securityClashKeyRef = useRef(0);
   const drawFlightKeyRef = useRef(0);
+  const deleteBurstKeyRef = useRef(0);
+  const unsuspendSweepKeyRef = useRef(0);
   const showcaseKeyRef = useRef(0);
   const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
   // Set when the draw phase is announced and spent by the hand that grows in the
@@ -357,37 +409,83 @@ export function useMatchCues({
     }
     if (securityCheck?.kind === "securityChecked") {
       securityClashKeyRef.current += 1;
+      const key = securityClashKeyRef.current;
       const scene = buildSecurityClashScene({
-        key: securityClashKeyRef.current,
+        key,
         revealedCardId: securityCheck.revealedCardId,
         resolution: securityCheck.resolution,
         defenderSeat: securityCheck.seat,
         viewerSeat,
         attacker: securityAttackerRef.current,
       });
+      const breakScene = buildSecurityBreakScene({ key, defenderSeat: securityCheck.seat, viewerSeat });
+      const branch = buildSecurityBranchScene({
+        key,
+        revealedCardId: securityCheck.revealedCardId,
+        resolution: securityCheck.resolution,
+        defenderSeat: securityCheck.seat,
+        viewerSeat,
+      });
+      // The whole check runs on the one centre-screen track, in the reference client's
+      // order: the shield arms, its glass breaks, the card is revealed, and only a card
+      // that resolves an effect detours to the side of the screen afterwards. The break
+      // carries the `replace`, so a check still cancels whatever showcase was mid-flight.
+      enqueue(shieldBreakStep(breakScene));
       enqueue({
-        id: `security-clash-${scene.key}`,
+        id: `security-clash-${key}`,
         track: CENTER_STAGE_TRACK,
-        replace: true,
         // The revealed card has to stay readable, motion preference or not.
         skippable: false,
         async run(context) {
-          setSecurityClash(scene);
-          await context.wait(CLASH_TOTAL_MS);
-          if (context.cancelled) return;
-          setSecurityClash(null);
+          try {
+            setSecurityClash(scene);
+            await context.wait(CLASH_TOTAL_MS);
+          } finally {
+            setSecurityClash((current) => (current?.key === scene.key ? null : current));
+          }
         },
       });
-      const hitSeat = securityCheck.seat;
+      if (branch) {
+        enqueue({
+          id: `security-branch-${key}`,
+          track: CENTER_STAGE_TRACK,
+          // It holds the revealed card next to the notice that explains it.
+          skippable: false,
+          async run(context) {
+            try {
+              setSecurityBranch(branch);
+              await context.wait(SECURITY_BRANCH_TOTAL_MS);
+            } finally {
+              setSecurityBranch((current) => (current?.key === branch.key ? null : current));
+            }
+          },
+        });
+      }
+    }
+    for (const event of fresh) {
+      for (const anchorId of deletionAnchorIdsFromEvent(event)) {
+        const step = deleteBurstStep(anchorId);
+        if (step) enqueue(step);
+      }
+    }
+    const unsuspendPhase = [...fresh]
+      .reverse()
+      .find((event) => event.kind === "phaseChanged" && event.phase === UNSUSPEND_PHASE);
+    if (unsuspendPhase?.kind === "phaseChanged") {
+      unsuspendSweepKeyRef.current += 1;
+      const sweep: UnsuspendSweep = { seat: unsuspendPhase.turnSeat, key: unsuspendSweepKeyRef.current };
       enqueue({
-        id: `security-hit-${scene.key}`,
-        track: "securityHit",
+        id: `unsuspend-sweep-${sweep.key}`,
+        track: "unsuspendSweep",
         replace: true,
         async run(context) {
-          setSecurityHitSeat(hitSeat);
-          await context.wait(TIMINGS.securityHit);
-          if (context.cancelled) return;
-          setSecurityHitSeat(null);
+          if (context.mode !== "live") return;
+          try {
+            setUnsuspendSweep(sweep);
+            await context.wait(UNSUSPEND_SWEEP_MS);
+          } finally {
+            setUnsuspendSweep((current) => (current?.key === sweep.key ? null : current));
+          }
         },
       });
     }
@@ -470,6 +568,64 @@ export function useMatchCues({
     if (you.handCount > previous.you) launchDrawFlight("you", turnStart.you);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [you?.handCount, opp?.handCount]);
+
+  /**
+   * The beat before the reveal: the defender's shield arms, its glass shatters, and the
+   * board holds while the shards clear. Pure motion — the clash that follows carries the
+   * information — so it is skipped outright unless the queue is live.
+   */
+  function shieldBreakStep(scene: SecurityBreakScene): AnimationStep {
+    return {
+      id: `security-break-${scene.key}`,
+      track: CENTER_STAGE_TRACK,
+      // The check owns the centre of the screen from here, so whatever was being
+      // announced there gives way at the break rather than during the reveal.
+      replace: true,
+      async run(context) {
+        if (context.mode !== "live") return;
+        try {
+          setSecurityBreak({ ...scene, phase: "arm" });
+          await context.wait(SECURITY_BREAK_TIMINGS.armMs);
+          if (context.cancelled) return;
+          setSecurityBreak({ ...scene, phase: "break" });
+          setSecurityHitSeat(scene.seat);
+          await context.wait(SECURITY_BREAK_TIMINGS.breakMs + SECURITY_BREAK_TIMINGS.holdMs);
+        } finally {
+          // A replacing cue cancels the wait; the shield must not be left mid-break.
+          setSecurityBreak((current) => (current?.key === scene.key ? null : current));
+          setSecurityHitSeat((seat) => (seat === scene.seat ? null : seat));
+        }
+      },
+    };
+  }
+
+  /**
+   * The burst left where a deleted permanent stood. The board has already dropped the
+   * permanent by the time the deletion is narrated, so the position comes from the last
+   * measurement the caller kept, by permanent id or by the id of the card that sat on top;
+   * with no measurement there is nowhere to draw it.
+   */
+  function deleteBurstStep(anchorId: string): AnimationStep | null {
+    const center = anchors.permanentCenter?.(anchorId);
+    if (!center) return null;
+    const key = (deleteBurstKeyRef.current += 1);
+    const burst: DeleteBurst = { key, x: center.x - DELETE_BURST_SIZE / 2, y: center.y - DELETE_BURST_SIZE / 2 };
+    return {
+      id: `delete-burst-${key}`,
+      // Several permanents can be deleted by one resolution, so each burst runs on its
+      // own track instead of queueing behind the others.
+      track: `deleteBurst-${key}`,
+      async run(context) {
+        if (context.mode !== "live") return;
+        try {
+          setDeleteBursts((bursts) => [...bursts, burst]);
+          await context.wait(TIMINGS.cardBurst);
+        } finally {
+          setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
+        }
+      },
+    };
+  }
 
   /**
    * One zone change, in the order the reference client plays it: the card is held
@@ -584,6 +740,10 @@ export function useMatchCues({
     attackAnnouncement,
     turnTransition,
     securityClash,
+    securityBreak,
+    securityBranch,
+    unsuspendSweep,
+    deleteBursts,
     zoneShowcase,
     permanentBursts,
     pendingPermanentIds,

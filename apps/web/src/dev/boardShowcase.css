@@ -110,3 +110,23 @@
   animation-delay: -160ms;
   animation-play-state: paused;
 }
+
+/* The shield break and the security-effect branch are held mid-sequence for the same
+   reason: both end on an empty frame in a match. */
+.board-showcase .game-security-shield--armed,
+.board-showcase .game-security-shield__shards i,
+.board-showcase .battle-edge-flash {
+  animation-delay: -120ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .battle-security-branch {
+  position: absolute;
+  animation-delay: -600ms;
+  animation-play-state: paused;
+}
+
+/* The count pops on mount here, where nothing has changed to earn it. */
+.board-showcase .game-security-shield__count {
+  animation: none;
+}

@@ -7,9 +7,17 @@ import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
-import { orderSecurityClashFighters, type SecurityClashFighter, type SecurityClashScene } from "./securityClash";
+import {
+  orderSecurityClashFighters,
+  type SecurityBranchScene,
+  type SecurityBreakScene,
+  type SecurityClashFighter,
+  type SecurityClashScene,
+} from "./securityClash";
 
 const CLASH_CARD_WIDTH = 116;
+
+const BRANCH_CARD_WIDTH = 122;
 
 const RESOLUTION_LABEL_KEYS = {
   battle: "overlay.securityBattle",
@@ -62,6 +70,44 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
         {fighters[1] ? <ClashCard fighter={fighters[1].fighter} role={fighters[1].role} /> : null}
       </div>
       <p className="battle-clash__outcome">{t(RESOLUTION_LABEL_KEYS[scene.resolution])}</p>
+    </div>
+  );
+}
+
+/**
+ * The light that washes in from the defending player's edge of the board while their
+ * shield breaks. Pure decoration: it says whose security is being spent without the
+ * viewer having to find the shield badge.
+ */
+export function SecurityEdgeFlash({ scene }: { scene: SecurityBreakScene }) {
+  return (
+    <div
+      className={`battle-edge-flash battle-edge-flash--${scene.side}`}
+      data-testid="security-edge-flash"
+      data-side={scene.side}
+      aria-hidden="true"
+    />
+  );
+}
+
+/**
+ * A revealed security card that resolves an effect, held on the half of the screen the
+ * side panels do not occupy while its effect notice reads next to it (the notice is
+ * mirrored to the same half by `noticeAnchor`, so the two are one moment).
+ */
+export function SecurityBranch({ scene }: { scene: SecurityBranchScene }) {
+  const { t } = useTranslation();
+  const cardName = getCardDefinition(scene.cardId)?.nameEn ?? scene.cardId;
+  return (
+    <div className="battle-security-branch" data-testid="security-branch" data-side={scene.side} role="status">
+      <figure className="battle-security-branch__frame">
+        <CardFull cardId={scene.cardId} width={BRANCH_CARD_WIDTH} />
+        <figcaption className="battle-security-branch__caption">
+          {t("overlay.securityResolving")}
+          <br />
+          {cardName}
+        </figcaption>
+      </figure>
     </div>
   );
 }

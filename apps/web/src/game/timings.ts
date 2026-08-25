@@ -33,6 +33,28 @@ export const TIMINGS = {
   attackAnnounceIn: 140,
   /** The security shield flashing when a card is actually checked. */
   securityHit: 350,
+  /** The defender's shield arming — the blue glass the reference client switches to. */
+  securityArm: 220,
+  /** The glass pane shattering (the reference client's `SecurityBreakGlass`, 250 ms). */
+  shieldBreak: 250,
+  /** The light that washes in from the defender's edge of the screen as the shield breaks. */
+  shieldFlash: 320,
+  /** The reference client's 60 + 170 + 100 ms of held frames between break and reveal. */
+  securityBreakHold: 330,
+  /** The revealed security card sliding out to its own side of the screen. */
+  securityBranchIn: 220,
+  /** How long the revealed card holds there while its effect notice reads. */
+  securityBranchHold: 1500,
+  /** The card leaving for the trash or the field. */
+  securityBranchOut: 220,
+  /** The security counter popping as it decrements. */
+  securityCountPop: 300,
+  /** One permanent's 90° suspend or unsuspend rotation. */
+  suspendRotate: 200,
+  /** Delay added per board slot so an unsuspend phase sweeps rather than snaps. */
+  suspendStagger: 60,
+  /** One lap of the stars orbiting a permanent that cannot attack yet. */
+  summoningOrbit: 4200,
   /** Centre-stage security check: the attacker sliding in to face the reveal. */
   clashAttackerEnter: 150,
   /** The revealed security card growing into place. */
@@ -90,6 +112,13 @@ export const CLASH_OUTCOME_AT_MS = CLASH_REVEAL_AT_MS + TIMINGS.clashReveal + TI
 /** End to end, which is also how long the scene stays mounted. */
 export const CLASH_TOTAL_MS = CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMINGS.clashExit;
 
+/** Shield break, end to end: the arm, the shatter, and the held frames after it. */
+export const SECURITY_BREAK_TOTAL_MS = TIMINGS.securityArm + TIMINGS.shieldBreak + TIMINGS.securityBreakHold;
+
+/** The security-effect branch, end to end: the slide out, the hold, and the exit. */
+export const SECURITY_BRANCH_TOTAL_MS =
+  TIMINGS.securityBranchIn + TIMINGS.securityBranchHold + TIMINGS.securityBranchOut;
+
 /** The centre-screen showcase, end to end: how long it stays mounted. */
 export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIMINGS.showcaseOut;
 
@@ -108,6 +137,12 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-attack-lunge": TIMINGS.attackLunge,
   "--t-attack-announce-in": TIMINGS.attackAnnounceIn,
   "--t-security-hit": TIMINGS.securityHit,
+  "--t-security-arm": TIMINGS.securityArm,
+  "--t-shield-break": TIMINGS.shieldBreak,
+  "--t-shield-flash": TIMINGS.shieldFlash,
+  "--t-security-branch": SECURITY_BRANCH_TOTAL_MS,
+  "--t-security-count-pop": TIMINGS.securityCountPop,
+  "--t-summoning-orbit": TIMINGS.summoningOrbit,
   "--t-clash-enter": TIMINGS.clashAttackerEnter,
   "--t-clash-reveal": TIMINGS.clashReveal,
   "--t-clash-outcome": TIMINGS.clashOutcome,

@@ -9,6 +9,7 @@ import { AttackArrow, BreedingSlot, Hand, MemoryGauge, PermanentView, Pile, type
 import { BlockOverlay, DecisionOverlay, GameOverOverlay, MulliganOverlay } from "../game/overlays";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../game/BoardDecisionRail";
 import { CardBurst } from "../game/CardBurst";
+import { SecurityBranch, SecurityEdgeFlash } from "../game/SecurityClashView";
 import { ZoneShowcase } from "../game/ZoneShowcase";
 import type { PermanentBurst, ZoneShowcase as ZoneShowcaseModel } from "../game/showcases";
 import { NoticeStack } from "../game/NoticeStack";
@@ -48,6 +49,7 @@ function permanent({
   currentDP,
   seat = 0,
   suspended = false,
+  summoningSick = false,
   stackCardIds = [],
   grantedKeywords = [],
 }: {
@@ -57,6 +59,7 @@ function permanent({
   currentDP?: number;
   seat?: Seat;
   suspended?: boolean;
+  summoningSick?: boolean;
   stackCardIds?: readonly string[];
   grantedKeywords?: readonly string[];
 }): Permanent {
@@ -67,6 +70,7 @@ function permanent({
   perm.baseDP = baseDP;
   perm.currentDP = currentDP ?? baseDP;
   perm.isSuspended = suspended;
+  perm.summoningSick = summoningSick;
   perm.stack.push(...stackCardIds.map((id, index) => cardInstance(`${permanentId}-under-${index}`, id, seat)));
   perm.grantedKeywords.push(...grantedKeywords);
   return perm;
@@ -548,6 +552,70 @@ export function BoardShowcase() {
       </Section>
 
       <Section
+        id="showcase-shield-break"
+        title="shield break"
+        note="What an attack on security plays before the reveal: the defender's shield arms, its pane shatters into shards over a blue burst, and the light washes in from the defender's edge of the board. Held mid-sequence here; in a match the three beats run back to back and reduced motion drops them."
+      >
+        <Case label="armed (attack declared)">
+          <Pile count={4} label="Security" shield="you" armed />
+        </Case>
+        <Case label="breaking (yours)">
+          <Pile count={3} label="Security" shield="you" breaking />
+        </Case>
+        <Case label="breaking (opponent's)">
+          <Pile count={2} label="Security" shield="opp" breaking />
+        </Case>
+        <Stage label="edge flash, viewer attacked" height={220}>
+          <SecurityEdgeFlash scene={{ key: 1, seat: 0, side: "you" }} />
+        </Stage>
+        <Stage label="edge flash, opponent attacked" height={220}>
+          <SecurityEdgeFlash scene={{ key: 2, seat: 1, side: "opp" }} />
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-security-branch"
+        title="security-effect branch"
+        note="A revealed security card that resolves an effect leaves the centre and holds on the half of the screen the side panels do not occupy, where its effect notice reads beside it."
+        stacked
+      >
+        <Stage label="viewer's security resolving" height={460}>
+          <SecurityBranch scene={{ key: 1, cardId: CARDS.option, side: "you" }} />
+        </Stage>
+        <Stage label="opponent's security resolving" height={460}>
+          <SecurityBranch scene={{ key: 2, cardId: CARDS.opponentChampion, side: "opp" }} />
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-summoning-ring"
+        title="summoning sickness and suspension"
+        note="The ring is server truth (`Permanent.summoningSick`): the Digimon entered this turn without ＜Rush＞ and cannot attack yet. Suspension turns the card 90° over 200 ms, staggered by slot when the unsuspend phase sweeps the board."
+      >
+        <Case label="cannot attack yet">
+          <PermanentView
+            perm={permanent({ permanentId: "p-sick", cardId: CARDS.champion, baseDP: 4000, summoningSick: true })}
+          />
+        </Case>
+        <Case label="fresh Tamer">
+          <PermanentView
+            perm={permanent({ permanentId: "p-sick-tamer", cardId: CARDS.tamer, baseDP: 0, summoningSick: true })}
+          />
+        </Case>
+        <Case label="suspended">
+          <PermanentView
+            perm={permanent({ permanentId: "p-turned", cardId: CARDS.ultimate, baseDP: 6000, suspended: true })}
+          />
+        </Case>
+        <Case label="suspended, late in the sweep">
+          <PermanentView
+            perm={permanent({ permanentId: "p-turned-late", cardId: CARDS.mega, baseDP: 12000, suspended: true })}
+            suspendDelayMs={180}
+          />
+        </Case>
+      </Section>
+
+      <Section
         id="showcase-zone-showcase"
         title="centre-screen showcase"
         note="What the board holds up when the opponent plays or digivolves: the card large in the middle, its destination hidden behind it, and the colour-keyed halo underneath. Held still here; in a match it grows in, waits ~900 ms and clears — a click anywhere skips it, and reduced motion drops it entirely."
@@ -596,6 +664,11 @@ export function BoardShowcase() {
             burst={showcaseBurst("evolve", { permanentId: "p-burst-breed", inBreeding: true })}
           />
         </Case>
+        <Stage label="permanent deleted" height={180}>
+          <span className="game-delete-burst" style={{ left: 60, top: 30 }}>
+            <CardBurst variant="delete" />
+          </span>
+        </Stage>
         <Stage label="turn-start draw lands" height={180}>
           <span className="game-draw-burst" style={{ left: 90, top: 66 }}>
             <CardBurst variant="draw" />

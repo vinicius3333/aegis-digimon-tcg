@@ -30,7 +30,7 @@ import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCou
 import { GameStateAccess, insertCard, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
-import { canAttackerDeclare } from "./combat/legality.js";
+import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { resolveKeywords } from "./combat/keywords.js";
 import { WinCheck, runSecurityCheck, type SecurityCheckDeps } from "./security/index.js";
@@ -2424,6 +2424,7 @@ export class GameEngine {
     }
     this.syncActivatableEffects();
     this.syncKeywords();
+    this.syncSummoningSickness();
     this.syncAttackTargets();
     this.syncHandAffordances();
   }
@@ -2691,6 +2692,23 @@ export class GameEngine {
     replaceIfChanged(perm.keywords, resolved);
     replaceIfChanged(perm.grantedKeywords, [...granted]);
     replaceIfChanged(perm.digiXrosNames, this.continuous.grantedDigiXrosNames(perm.permanentId));
+  }
+
+  /**
+   * Publish which permanents entered the field this turn without ＜Rush＞, i.e. which ones
+   * cannot declare an ordinary attack yet (Comprehensive Rules §16-1). Both seats and every
+   * phase, unlike {@link syncAttackTargets}: the client draws the summoning-sickness ring
+   * from this flag and must not re-derive the rule from `enterFieldTurnCount`.
+   */
+  private syncSummoningSickness(): void {
+    for (const player of this.state.players) {
+      for (const perm of player.battleArea) {
+        perm.summoningSick = hasSummoningSickness(perm, this.state.turnCount, this.continuous);
+      }
+      // A permanent in the raising area cannot attack at all, so summoning sickness has
+      // nothing to say about it.
+      if (player.breeding) player.breeding.summoningSick = false;
+    }
   }
 
   /**

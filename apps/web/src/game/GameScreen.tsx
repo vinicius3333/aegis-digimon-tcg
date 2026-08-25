@@ -16,6 +16,7 @@ import {
   type DecisionResponse,
   type DigiXrosRequirement,
   type Permanent,
+  type Seat,
 } from "@aegis/shared";
 import { rejectionMessage } from "../rejectionMessages";
 import { useTranslation } from "../i18n";
@@ -113,7 +114,7 @@ import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView"
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
 import { NoticeStack } from "./NoticeStack";
-import { SecurityClash } from "./SecurityClashView";
+import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClashView";
 import { ZoneShowcase } from "./ZoneShowcase";
 import { CardBurst } from "./CardBurst";
 import { useMatchCues } from "./useMatchCues";
@@ -318,6 +319,10 @@ export function GameScreen({
   const battlefield = useBattlefieldStyle();
   const boardRef = useRef<HTMLDivElement | null>(null);
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // Where each permanent last stood, in board coordinates. A deletion is narrated after
+  // the board has already dropped the permanent, so the burst needs the last measurement
+  // rather than the (gone) element.
+  const permCentersRef = useRef<Record<string, { x: number; y: number }>>({});
   const yourSecRef = useRef<HTMLDivElement | null>(null);
   const oppSecRef = useRef<HTMLDivElement | null>(null);
   const yourDeckRef = useRef<HTMLDivElement | null>(null);
@@ -346,6 +351,7 @@ export function GameScreen({
     mulliganOpen: decision?.kind === "mulligan",
     anchors: {
       board: boardRef,
+      permanentCenter: (permanentId) => permCentersRef.current[permanentId],
       yourDeck: yourDeckRef,
       oppDeck: oppDeckRef,
       yourHandDock: yourHandDockRef,
@@ -356,17 +362,29 @@ export function GameScreen({
   const {
     attackAnnouncement,
     attackLunge,
+    deleteBursts,
     drawBursts,
     drawFlights,
     pendingPermanentIds,
     permanentBursts,
+    securityBranch,
+    securityBreak,
     securityClash,
     securityHitSeat,
     sidePanels,
     turnTransition,
+    unsuspendSweep,
     zoneShowcase,
   } = cues;
   const playGameCue = cues.playCue;
+
+  /**
+   * The unsuspend phase sweeps a board rather than snapping it: each slot starts its
+   * rotation a little after the one before it. Only the sweeping seat is staggered — a
+   * single card suspending to declare an attack must turn immediately.
+   */
+  const unsuspendStagger = (seat: Seat, index: number) =>
+    unsuspendSweep?.seat === seat ? index * TIMINGS.suspendStagger : 0;
 
   const clearSel = () => {
     setHandSel(null);
@@ -492,6 +510,37 @@ export function GameScreen({
 
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
+
+  // Re-measured whenever the board's population changes, which is also the commit that
+  // drops a deleted permanent: the survivors are re-measured and the deleted permanent's
+  // last position stays behind for its burst.
+  const battleAreaSignature = `${you?.battleArea.map((p) => p.permanentId).join(",") ?? ""}|${
+    opp?.battleArea.map((p) => p.permanentId).join(",") ?? ""
+  }`;
+  const permInstanceIds = new Map(
+    [...(you?.battleArea ?? []), ...(opp?.battleArea ?? [])].flatMap((perm) =>
+      perm.topCard?.instanceId ? [[perm.permanentId, perm.topCard.instanceId] as const] : [],
+    ),
+  );
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const boardRect = board.getBoundingClientRect();
+    for (const [permanentId, element] of Object.entries(permRefs.current)) {
+      if (!element?.isConnected) continue;
+      const rect = element.getBoundingClientRect();
+      if (!rect.width) continue;
+      const center = {
+        x: rect.left + rect.width / 2 - boardRect.left,
+        y: rect.top + rect.height / 2 - boardRect.top,
+      };
+      permCentersRef.current[permanentId] = center;
+      // A deletion by an effect names the card instance rather than the permanent, so the
+      // top card is remembered as a second way in to the same position.
+      const topInstanceId = permInstanceIds.get(permanentId);
+      if (topInstanceId) permCentersRef.current[topInstanceId] = center;
+    }
+  }, [battleAreaSignature]);
 
   // ----- pre-match / connection gates -----
   if (status === "reconnecting") {
@@ -1414,7 +1463,13 @@ export function GameScreen({
         />
       ) : null}
 
+      {securityBreak && securityBreak.phase === "break" && !state.gameOver ? (
+        <SecurityEdgeFlash key={securityBreak.key} scene={securityBreak} />
+      ) : null}
+
       {securityClash && !state.gameOver ? <SecurityClash key={securityClash.key} scene={securityClash} /> : null}
+
+      {securityBranch && !state.gameOver ? <SecurityBranch key={securityBranch.key} scene={securityBranch} /> : null}
 
       {zoneShowcase && !securityClash && !state.gameOver ? (
         <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} />
@@ -1919,6 +1974,8 @@ export function GameScreen({
               compact={compactPiles}
               count={you.securityCount}
               shield="you"
+              armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
+              breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
               label={t("game.yourSecurityPile")}
               refEl={(el) => {
                 yourSecRef.current = el;
@@ -1956,7 +2013,7 @@ export function GameScreen({
                   {t("game.noDigimon")}
                 </span>
               ) : null}
-              {opp.battleArea.map((p) => {
+              {opp.battleArea.map((p, index) => {
                 // A drag is always a normal declaration; only the tap path can be in ＜Vortex＞ mode.
                 const isCand =
                   attackTargetIdsOf(attackerPerm, vortexMode).includes(p.permanentId) ||
@@ -1976,6 +2033,7 @@ export function GameScreen({
                     burst={permanentBursts.get(p.permanentId)}
                     pending={pendingPermanentIds.has(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
+                    suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
                     onClick={onOppPerm(p)}
                     onInspectStart={
                       !selPerm && !dragIsAttack
@@ -2030,7 +2088,7 @@ export function GameScreen({
                   {dragIsPlay ? t("game.dropToPlay") : t("game.noDigimon")}
                 </span>
               ) : null}
-              {you.battleArea.map((p) => {
+              {you.battleArea.map((p, index) => {
                 const isBase =
                   (handIsDigi && eligibleBase(p)) ||
                   (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(p.permanentId));
@@ -2051,6 +2109,7 @@ export function GameScreen({
                     burst={permanentBursts.get(p.permanentId)}
                     pending={pendingPermanentIds.has(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
+                    suspendDelayMs={unsuspendStagger(viewerSeat, index)}
                     drop={{ "data-drop": "perm-you", "data-id": p.permanentId }}
                     onClick={draggable ? undefined : onYourPerm(p)}
                     onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
@@ -2095,6 +2154,8 @@ export function GameScreen({
                 compact={compactPiles}
                 count={opp.securityCount}
                 shield="opp"
+                armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
+                breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
                 label={t("game.opponentSecurity")}
                 useSelectedSleeve={false}
                 refEl={(el) => {
@@ -2237,6 +2298,17 @@ export function GameScreen({
         </footer>
 
         {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
+
+        {deleteBursts.map((burst) => (
+          <span
+            key={burst.key}
+            aria-hidden="true"
+            className="game-delete-burst"
+            style={{ left: burst.x, top: burst.y }}
+          >
+            <CardBurst variant="delete" />
+          </span>
+        ))}
 
         {drawBursts.map((burst) => (
           <span key={burst.key} aria-hidden="true" className="game-draw-burst" style={{ left: burst.x, top: burst.y }}>

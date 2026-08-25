@@ -62,6 +62,13 @@ export class Permanent extends Schema {
   // DigiXros material. Kept separate from normal names because the grant must not
   // affect any other name-based rule or UI affordance.
   @type(["string"]) digiXrosNames = new ArraySchema<string>();
+  // Server-resolved summoning sickness (Comprehensive Rules §16-1): this permanent entered
+  // the field on the current turn and has no ＜Rush＞, so an ordinary attack declaration is
+  // refused. Projected for BOTH seats and every phase — unlike `attackablePermanentIds`,
+  // which is only populated for the turn player while a declaration is actually possible —
+  // because the client draws the summoning-sickness ring from it and must never rebuild the
+  // rule from `enterFieldTurnCount` and a turn counter.
+  @type("boolean") summoningSick = false;
   // Server-projected opponent permanents this Digimon may legally attack right now.
   // The client must not reconstruct combat rules from suspension or card text: grants
   // such as ST12-08 and target-scoped restrictions are already resolved here.

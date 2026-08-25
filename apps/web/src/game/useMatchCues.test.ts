@@ -4,7 +4,13 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
-import { CLASH_TOTAL_MS, SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
+import {
+  CLASH_TOTAL_MS,
+  SECURITY_BRANCH_TOTAL_MS,
+  SECURITY_BREAK_TOTAL_MS,
+  SHOWCASE_TOTAL_MS,
+  TIMINGS,
+} from "./timings";
 
 const playSound = vi.hoisted(() => vi.fn<(kind: string) => void>());
 vi.mock("../design/sound", () => ({ playSound }));
@@ -19,13 +25,22 @@ const ATTACK: ServerEvent = {
 };
 const CHECK: ServerEvent = { kind: "securityChecked", seat: 0, revealedCardId: "BT1-010", resolution: "battle" };
 const SECOND_CHECK: ServerEvent = { ...CHECK, revealedCardId: "BT1-011" };
+const EFFECT_CHECK: ServerEvent = { ...CHECK, resolution: "effect" };
 const TURN_END: ServerEvent = { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 4 };
+const COMBAT: ServerEvent = {
+  kind: "combatResolved",
+  seat: 1,
+  attackerPermanentId: "perm-1",
+  deletedPermanentIds: ["perm-dead"],
+};
+const UNSUSPEND_PHASE: ServerEvent = { kind: "phaseChanged", phase: "Active", turnSeat: 0, turnCount: 5 };
 const OPP_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT1-010", permanentId: "perm-9" };
 const YOUR_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-011", permanentId: "perm-8" };
 
 /** Nothing is laid out in jsdom, so a draw flight measures zero and never launches. */
 const anchors: MatchCueAnchors = {
   board: { current: null },
+  permanentCenter: (permanentId) => (permanentId === "perm-dead" ? { x: 120, y: 80 } : undefined),
   yourDeck: { current: null },
   oppDeck: { current: null },
   yourHandDock: { current: null },
@@ -93,19 +108,110 @@ describe("match cues", () => {
     rerender([ATTACK, CHECK]);
     await advance(0);
     expect(result.current.attackLunge).toEqual({ permanentId: "perm-1", direction: "down" });
-    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+    // The shield arms first, and the reveal waits for its glass to break.
+    expect(result.current.securityBreak).toMatchObject({ seat: 0, side: "you", phase: "arm" });
+    expect(result.current.securityClash).toBeNull();
+
+    await advance(TIMINGS.securityArm);
+    expect(result.current.securityBreak?.phase).toBe("break");
     expect(result.current.securityHitSeat).toBe(0);
 
-    // Each cue keeps its own clock: the lunge is over long before the clash is.
-    await advance(TIMINGS.attackLunge);
+    // Each cue keeps its own clock: the lunge is over long before the break is.
+    await advance(TIMINGS.attackLunge - TIMINGS.securityArm);
     expect(result.current.attackLunge).toBeNull();
-    expect(result.current.securityHitSeat).toBe(0);
-    await advance(TIMINGS.securityHit - TIMINGS.attackLunge);
+
+    await advance(SECURITY_BREAK_TOTAL_MS - TIMINGS.attackLunge);
+    expect(result.current.securityBreak).toBeNull();
     expect(result.current.securityHitSeat).toBeNull();
-    expect(result.current.securityClash).not.toBeNull();
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
 
     await advance(CLASH_TOTAL_MS);
     expect(result.current.securityClash).toBeNull();
+  });
+
+  it("mirrors the break to whichever seat is being checked", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([{ ...CHECK, seat: 1 }]);
+    await advance(0);
+    expect(result.current.securityBreak).toMatchObject({ seat: 1, side: "opp" });
+  });
+
+  it("holds a security card that resolves an effect to the side, after the reveal", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT_CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityBranch).toBeNull();
+
+    await advance(CLASH_TOTAL_MS);
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityBranch).toMatchObject({ cardId: "BT1-010", side: "you" });
+
+    await advance(SECURITY_BRANCH_TOTAL_MS);
+    expect(result.current.securityBranch).toBeNull();
+  });
+
+  it("leaves a plain check with no branch to hold", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS);
+    expect(result.current.securityBranch).toBeNull();
+  });
+
+  it("bursts where a deleted permanent stood, and only where one was measured", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([COMBAT]);
+    await advance(0);
+    expect(result.current.deleteBursts).toHaveLength(1);
+    expect(result.current.deleteBursts[0]).toMatchObject({ x: 120 - 48, y: 80 - 48 });
+
+    await advance(TIMINGS.cardBurst);
+    expect(result.current.deleteBursts).toEqual([]);
+
+    rerender([COMBAT, { ...COMBAT, deletedPermanentIds: ["perm-unmeasured"] }]);
+    await advance(0);
+    expect(result.current.deleteBursts).toEqual([]);
+  });
+
+  it("bursts for an effect that trashes a permanent off the field", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([{ kind: "cardsMoved", instanceIds: ["perm-dead"], from: "battleArea", to: "trash" }]);
+    await advance(0);
+    expect(result.current.deleteBursts).toHaveLength(1);
+  });
+
+  it("sweeps the unsuspend phase across the turn player's board", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([UNSUSPEND_PHASE]);
+    await advance(0);
+    expect(result.current.unsuspendSweep?.seat).toBe(0);
+
+    await advance(TIMINGS.suspendRotate + 8 * TIMINGS.suspendStagger);
+    expect(result.current.unsuspendSweep).toBeNull();
+  });
+
+  it("plays no combat animation for the history a reconnect replays", async () => {
+    const { result } = renderCues([ATTACK, EFFECT_CHECK, COMBAT, UNSUSPEND_PHASE]);
+    await advance(0);
+
+    expect(result.current.securityBreak).toBeNull();
+    expect(result.current.securityBranch).toBeNull();
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityHitSeat).toBeNull();
+    expect(result.current.deleteBursts).toEqual([]);
+    expect(result.current.unsuspendSweep).toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it("restarts a cue rather than letting the outgoing one clear the new state", async () => {
@@ -113,11 +219,11 @@ describe("match cues", () => {
     await advance(0);
 
     rerender([CHECK]);
-    await advance(CLASH_TOTAL_MS - 100);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - 100);
     const first = result.current.securityClash?.key;
 
     rerender([CHECK, SECOND_CHECK]);
-    await advance(100);
+    await advance(SECURITY_BREAK_TOTAL_MS + 100);
     expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
     expect(result.current.securityClash?.key).not.toBe(first);
 
@@ -211,6 +317,9 @@ describe("zone-change showcases", () => {
     await advance(0);
     expect(result.current.zoneShowcase).toBeNull();
     expect(result.current.pendingPermanentIds.size).toBe(0);
+    expect(result.current.securityBreak).not.toBeNull();
+
+    await advance(SECURITY_BREAK_TOTAL_MS);
     expect(result.current.securityClash).not.toBeNull();
   });
 

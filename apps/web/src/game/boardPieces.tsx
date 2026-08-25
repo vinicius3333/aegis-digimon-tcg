@@ -30,6 +30,16 @@ export interface HandEntry {
   digivolveTargetPermanentIds: readonly string[];
 }
 
+/** Shards the security pane breaks into, each thrown a fixed way so the break is stable. */
+const SHIELD_SHARDS = [
+  { x: -26, y: -22, spin: -140 },
+  { x: 22, y: -26, spin: 120 },
+  { x: -30, y: 14, spin: 95 },
+  { x: 28, y: 18, spin: -110 },
+  { x: -8, y: 32, spin: 160 },
+  { x: 10, y: -34, spin: -75 },
+] as const;
+
 export function Pile({
   count,
   label,
@@ -39,6 +49,8 @@ export function Pile({
   glow,
   compact,
   shield,
+  armed,
+  breaking,
   refEl,
   onClick,
   drop,
@@ -53,6 +65,10 @@ export function Pile({
   compact?: boolean;
   /** Render as a shield-shaped security counter (red for the viewer, blue for the opponent). */
   shield?: "you" | "opp";
+  /** The stack is under attack: the pane pulses before it breaks. */
+  armed?: boolean;
+  /** The pane is shattering on a security check. */
+  breaking?: boolean;
   refEl?: (el: HTMLDivElement | null) => void;
   onClick?: () => void;
   drop?: DropAttrs;
@@ -62,7 +78,7 @@ export function Pile({
   if (shield) {
     return (
       <div
-        className={`game-security-shield game-security-shield--${shield}${glow ? " game-security-shield--glow" : ""}${className ? ` ${className}` : ""}`}
+        className={`game-security-shield game-security-shield--${shield}${glow ? " game-security-shield--glow" : ""}${armed ? " game-security-shield--armed" : ""}${className ? ` ${className}` : ""}`}
         ref={refEl}
         onClick={onClick}
         onKeyDown={
@@ -80,7 +96,29 @@ export function Pile({
         {...(drop ?? {})}
         style={{ cursor: onClick ? "pointer" : "default", opacity: dim ? 0.5 : 1 }}
       >
-        <span className="game-security-shield__count" aria-hidden>
+        {breaking ? (
+          <span className="game-security-shield__burst" aria-hidden>
+            <CardBurst variant="shatter" />
+          </span>
+        ) : null}
+        {breaking ? (
+          <span className="game-security-shield__shards" aria-hidden>
+            {SHIELD_SHARDS.map((shard, index) => (
+              <i
+                key={index}
+                style={
+                  {
+                    "--shard-x": `${shard.x}px`,
+                    "--shard-y": `${shard.y}px`,
+                    "--shard-spin": `${shard.spin}deg`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </span>
+        ) : null}
+        {/* Re-keyed on the value so the pop restarts every time security moves. */}
+        <span key={count} className="game-security-shield__count" aria-hidden>
           {count}
         </span>
         <span className="game-security-shield__label" aria-hidden>
@@ -194,6 +232,9 @@ export function Pile({
 /** Stars in the entrance halo; each one is placed and delayed by its position in game.css. */
 const SPARKLE_INDEXES = [0, 1, 2, 3, 4];
 
+/** Stars orbiting a permanent that cannot attack yet, spaced evenly around the ellipse. */
+const SUMMONING_STAR_INDEXES = [0, 1, 2, 3, 4, 5];
+
 export function PermanentView({
   perm,
   highlight,
@@ -203,6 +244,7 @@ export function PermanentView({
   lunge,
   burst,
   pending,
+  suspendDelayMs,
   width,
   refCb,
   onClick,
@@ -223,6 +265,8 @@ export function PermanentView({
   burst?: PermanentBurst;
   /** Held back while the card is still being announced centre-screen. */
   pending?: boolean;
+  /** Staggers the suspend rotation so an unsuspend phase sweeps across the board. */
+  suspendDelayMs?: number;
   /** Explicit card width; overrides the `compact` default. */
   width?: number;
   refCb?: (el: HTMLDivElement | null) => void;
@@ -250,7 +294,11 @@ export function PermanentView({
   const cardName = def?.nameEn ?? topId;
   const activate = onKeyboardActivate ?? onClick;
   const interactive = !!activate || !!onPointerDown;
-  const stateLabel = perm.isSuspended ? ` (${t("overlay.suspended")})` : "";
+  const states = [
+    perm.isSuspended ? t("overlay.suspended") : undefined,
+    perm.summoningSick ? t("overlay.summoningSick") : undefined,
+  ].filter((state): state is string => state !== undefined);
+  const stateLabel = states.length ? ` (${states.join(", ")})` : "";
   const dpLabel = hasDpDelta
     ? `, ${perm.currentDP.toLocaleString()} DP, DP ${delta > 0 ? "+" : "−"}${formatDpDelta(Math.abs(delta))}`
     : "";
@@ -380,6 +428,7 @@ export function PermanentView({
           cardId={topId}
           width={permanentWidth}
           suspended={perm.isSuspended}
+          suspendDelayMs={suspendDelayMs}
           selected={highlight}
           attackable={candidate}
           dp={perm.currentDP}
@@ -391,6 +440,23 @@ export function PermanentView({
             <span key={i} className="game-card-sparkle" />
           ))}
         </span>
+        {/* Server truth (`Permanent.summoningSick`): this Digimon entered the field this
+            turn and has no ＜Rush＞, so it cannot declare an attack yet. */}
+        {perm.summoningSick ? (
+          <span className="game-summoning-ring" aria-hidden="true">
+            {SUMMONING_STAR_INDEXES.map((index) => (
+              <i
+                key={index}
+                style={
+                  {
+                    "--star-index": index,
+                    offsetDistance: `${(index * 100) / SUMMONING_STAR_INDEXES.length}%`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </span>
+        ) : null}
       </div>
       {perm.stack.length ? (
         <span

@@ -29,12 +29,12 @@ export interface ZoneShowcase {
 }
 
 /** The looks the shared burst component can wear. */
-export type BurstVariant = "play" | "evolve" | "hatch" | "draw";
+export type BurstVariant = "play" | "evolve" | "hatch" | "draw" | "delete" | "shatter";
 
 export interface PermanentBurst {
   key: number;
   permanentId: string;
-  variant: Exclude<BurstVariant, "draw">;
+  variant: Exclude<BurstVariant, "draw" | "shatter">;
   color: ColorName;
   /** The breeding area rather than the battle area, which is lit differently. */
   inBreeding: boolean;
@@ -133,9 +133,33 @@ export function burstPalette(variant: BurstVariant, color: ColorName = "Neutral"
       return { base: "#ffffff", edge: "#7fc4ff" };
     case "draw":
       return { base: "#d6e9ff", edge: "#2f6fe0" };
+    // A deletion burns orange out of a green ring, the reference client's colour for a
+    // Digimon leaving the field; a shattering pane is the same blue as the security glass.
+    case "delete":
+      return { base: "#ff9f43", edge: "#3ddc84" };
+    case "shatter":
+      return { base: "#e4f1ff", edge: "#3b82f6" };
     case "play":
       return { base: COLORS[color].base, edge: COLORS[color].edge };
   }
+}
+
+/** The zone names `cardsMoved` uses for a deletion: off the field, into the trash. */
+const BATTLE_AREA_ZONE = "battleArea";
+const TRASH_ZONE = "trash";
+
+/**
+ * What an event says just left the field, as ids the board can be asked to locate. A
+ * combat resolution names permanents; an effect that trashes a permanent narrates the card
+ * instance instead, so both are returned as anchors and the caller resolves whichever it
+ * has a last position for.
+ */
+export function deletionAnchorIdsFromEvent(event: ServerEvent): readonly string[] {
+  if (event.kind === "combatResolved") return event.deletedPermanentIds;
+  if (event.kind === "cardsMoved" && event.from === BATTLE_AREA_ZONE && event.to === TRASH_ZONE) {
+    return event.instanceIds;
+  }
+  return [];
 }
 
 /** The phase name the protocol uses for the draw step of a turn. */

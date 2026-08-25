@@ -452,10 +452,14 @@ function TokenInfo({ def, width, dp }: { def: CardDefinition; width: number; dp?
 
 /** Compact board card (top of a permanent, or a hand card on the board).
  *  Pass `info` to overlay the token's name, play cost, level, traits and DP. */
+/** The reference client's Stand_Rest / Rest_Stand clips are 200 ms with flat tangents. */
+const SUSPEND_ROTATE_MS = 200;
+
 export function CardMini({
   cardId,
   width = 88,
   suspended = false,
+  suspendDelayMs = 0,
   selected = false,
   attackable = false,
   onClick,
@@ -467,6 +471,8 @@ export function CardMini({
   cardId?: string;
   width?: number;
   suspended?: boolean;
+  /** Staggers the rotation, so an unsuspend phase sweeps the board instead of snapping. */
+  suspendDelayMs?: number;
   selected?: boolean;
   attackable?: boolean;
   onClick?: () => void;
@@ -504,11 +510,11 @@ export function CardMini({
           : attackable
             ? "0 0 0 2px var(--ds-warning-light), 0 6px 14px rgba(15,23,42,0.32)"
             : "inset 0 0 0 1px rgba(255,255,255,0.06), 0 4px 10px rgba(15,23,42,0.26)",
-        transform: suspended ? "rotate(90deg)" : "none",
+        // The individual `rotate` property rather than `transform`, so a caller that already
+        // owns the card's transform (the board's selection lift) cannot cancel the rotation.
+        rotate: suspended ? "90deg" : "0deg",
         transformOrigin: "center",
-        // 200ms ease-in-out matches the reference client's Stand_Rest / Rest_Stand clips, whose
-        // keys are flat-tangent (Assets/Animation/Battle).
-        transition: "transform 200ms ease-in-out, box-shadow 150ms, border-color 150ms",
+        transition: `rotate ${SUSPEND_ROTATE_MS}ms ease-in-out ${suspendDelayMs}ms, box-shadow 150ms, border-color 150ms`,
         cursor: onClick ? "pointer" : "default",
         overflow: "hidden",
       }}

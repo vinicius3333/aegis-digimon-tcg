@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildSecurityBranchScene,
+  buildSecurityBreakScene,
   buildSecurityClashScene,
   normalizeSecurityClashResolution,
   orderSecurityClashFighters,
+  SECURITY_BRANCH_TIMINGS,
+  SECURITY_BRANCH_TOTAL_MS,
+  SECURITY_BREAK_AT_MS,
+  SECURITY_BREAK_TIMINGS,
+  SECURITY_BREAK_TOTAL_MS,
   SECURITY_CLASH_TIMINGS,
   SECURITY_CLASH_TOTAL_MS,
 } from "./securityClash";
@@ -97,5 +104,42 @@ describe("security clash scene", () => {
     const beats = Object.values(SECURITY_CLASH_TIMINGS).reduce((total, beat) => total + beat, 0);
     expect(SECURITY_CLASH_TOTAL_MS).toBe(beats);
     expect(SECURITY_CLASH_TOTAL_MS).toBeLessThan(3000);
+  });
+});
+
+describe("shield break and the security-effect branch", () => {
+  it("breaks the checked player's own shield, mirrored per seat", () => {
+    expect(buildSecurityBreakScene({ key: 1, defenderSeat: 0, viewerSeat: 0 })).toEqual({
+      key: 1,
+      seat: 0,
+      side: "you",
+    });
+    expect(buildSecurityBreakScene({ key: 2, defenderSeat: 1, viewerSeat: 0 })).toEqual({
+      key: 2,
+      seat: 1,
+      side: "opp",
+    });
+  });
+
+  it("branches only for a card that resolves an effect", () => {
+    const branch = (resolution: string) =>
+      buildSecurityBranchScene({ key: 3, revealedCardId: OPTION_CARD_ID, resolution, defenderSeat: 1, viewerSeat: 0 });
+
+    expect(branch("effect")).toEqual({ key: 3, cardId: OPTION_CARD_ID, side: "opp" });
+    expect(branch("battle")).toBeNull();
+    expect(branch("trashed")).toBeNull();
+    expect(branch("nonsense-from-a-future-server")).toBeNull();
+  });
+
+  it("runs the break before the reveal and the branch after the clash", () => {
+    expect(SECURITY_BREAK_AT_MS).toBe(SECURITY_BREAK_TIMINGS.armMs);
+    expect(SECURITY_BREAK_TOTAL_MS).toBe(
+      SECURITY_BREAK_TIMINGS.armMs + SECURITY_BREAK_TIMINGS.breakMs + SECURITY_BREAK_TIMINGS.holdMs,
+    );
+    expect(SECURITY_BRANCH_TOTAL_MS).toBe(
+      SECURITY_BRANCH_TIMINGS.inMs + SECURITY_BRANCH_TIMINGS.holdMs + SECURITY_BRANCH_TIMINGS.outMs,
+    );
+    // The revealed card is readable centre-stage before it slides aside.
+    expect(SECURITY_BRANCH_TIMINGS.holdMs).toBeGreaterThan(SECURITY_BRANCH_TIMINGS.inMs);
   });
 });
