@@ -848,6 +848,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage and field scope; fires the attack listener with an established Option, observes exact Option trash, Security Attack -1, and both live timing masks on the same opposing Digimon; structurally verifies Main/Security binding, placement order, and Delay nesting.
 - Verification: focused suite — 3 passed after refreshing shared runtime data; affected timing-disable mechanism regressions — 3 passed; shared intrinsic Delay, same-target selection binding, numeric keyword, timing masks, duration, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-095 — Crescent Leaf — 10/10
+
+- Catalog evidence: Green cost-5 CS Option; color requirements may be ignored while a CS Digimon/Tamer is on the field; Main returns one opposing suspended Digimon to deck bottom then places this Option in battle; Your Turn on a friendly CS attack may activate Delay for the same return; Security repeats Main.
+- Knowledge base: Q5383 defines “on the field” as battle area or breeding area; the exact catalog and general suspended-target, stack-return, Delay, and placement rules otherwise control.
+- Defects corrected: authoritative shared IR omitted field-zone scope and detached the return from a marker-style Delay grant. It now mirrors the executable intrinsic Delay listener; registration remains exclusively `registerIrCard("BT23-095", compiled)` with full coverage/no residuals.
+- Primitive trace: static color waiver checks both field zones; Main/Security filter an opposing suspended Digimon and return its complete stack to true deck bottom before placing the Option; the CS attack listener pays established-card Delay and resolves the same suspended-only return.
+- Behavioral proof: the focused suite checks catalog/coverage and field scope; trashes an established Crescent Leaf on a CS attack, returns the exact suspended opponent to deck bottom, and preserves an unsuspended opponent; structurally verifies Delay nesting and Main/Security order.
+- Verification: focused suite — 3 passed after refreshing shared runtime data; shared intrinsic Delay, suspension filtering, stack return, deck-bottom ordering, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-095 through BT23-102.
+BT23-096 through BT23-102.
