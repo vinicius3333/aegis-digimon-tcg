@@ -983,6 +983,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
+      suppressWhenDigivolving?: boolean;
     },
   ): Promise<Permanent | undefined> => {
     const permanent = access.permanentById(targetPermanentId);
@@ -1113,9 +1114,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await opts?.beforeWhenDigivolving?.();
     // The digivolved-into card's OWN [When Digivolving] fires (it was digivolved BY AN EFFECT),
     // with `enteredByEffect` set to its controller (the producer for the BT25-084 by-effect gate).
-    await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat, {
-      ...(sourceZone !== undefined ? { digivolvedFromZone: sourceZone } : {}),
-    });
+    if (opts?.suppressWhenDigivolving !== true) {
+      await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat, {
+        ...(sourceZone !== undefined ? { digivolvedFromZone: sourceZone } : {}),
+      });
+    }
     return permanent;
   };
 

@@ -190,11 +190,9 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   // happens, read by a subsequent "then (if it digivolved)" Condition (KB BT19-084 Q3146-Q3150).
   ctx.lastDigivolveResult = false;
 
-  // CAP-G3: targetBreeding — the digivolve base is the controller's breeding-area Digimon
-  // (BT20-018 Ouryumon). Find the matching breeding permanent, move it to battle area via
-  // movePermanentZone("toBattle"), then proceed with the standard digivolveFromInstance path.
-  // KB Q4300: does NOT fire [When Digivolving] effects — the effect is a placement, not a
-  // normal digivolve window; the interpreter skips the digivolving-trigger chain here.
+  // CAP-G3: targetBreeding — resolve the controller's breeding-area Digimon in place.
+  // KB Q4300 says this evolution does not trigger [When Digivolving], and the card remains
+  // in breeding; moving it to battle first violated both parts of that ruling.
   if (action.target.targetBreeding === true) {
     const mine = ctx.source.ownerSeat;
     const breedingPerm = ctx.game.player(mine).breeding;
@@ -208,10 +206,6 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         if (!matchesKind) return;
       }
     }
-    const moved = await ctx.fx.movePermanentZone(breedingPerm.permanentId, "toBattle");
-    if (!moved) return;
-    // The breeding permanent is now in battle area; proceed as a standard Digivolve from here.
-    // (permanentIds will be the moved permanent's id)
     const pid = breedingPerm.permanentId;
     const intoTarget = digivolveIntoTarget(action);
     if (intoTarget === undefined) {
@@ -259,6 +253,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       ignoreLevel,
       ignoreRequirements,
       virtualBase: action.virtualBase,
+      suppressWhenDigivolving: true,
     });
     if (result !== undefined) {
       ctx.lastDigivolveResult = true;

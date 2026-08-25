@@ -203,3 +203,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-017.test.ts`).
+
+## BT20-018 — Ouryumon
+
+- Catalog contract: red/black level 6 Vaccine Beast Dragon/X Antibody/Chronicle, play cost 12/11000 DP and red or black level-5 evolution cost 3; Piercing; On Play/When Digivolving De-Digivolve 2, then during an attack may evolve a breeding Digimon into a level-6-or-lower Chronicle card from hand/trash for free; all turns once per turn, security removal deletes one opposing lowest-DP Digimon; inherited once-per-turn attack by Alphamon: Ouryuken trashes opposing top security.
+- Knowledge base: Q4300 says the breeding evolution does not trigger `[When Digivolving]`; Q4301 gives immediate Security effects priority over the simultaneously pending removal watchers; Q4716 confirms “during an attack” includes evolution caused during an opponent's attack.
+- Implementation evidence: the generated entry bodies incorrectly installed a future attack watcher instead of evaluating the current attack. They now run the free breeding evolution immediately behind `duringAttack`. The shared target-breeding path no longer moves the stack into battle and explicitly suppresses the resulting `[When Digivolving]` window per Q4300. De-Digivolve, Piercing, lowest-DP watcher, inherited name gate, and exclusive `registerIrCard` registration remain direct IR.
+- Peer/stack evidence: P-176 under a level-5 attacker evolves it into Ouryumon during the live attack; Ouryumon then evolves a complete Ginryumon/Ryudamon breeding stack into trash-resident Hisyaryumon without cost, preserving every source in breeding. Separate tests prove De-Digivolve 2, both-security-stack watcher direction and once-per-turn limit, lowest-DP selection, and Alphamon: Ouryuken inherited security trash.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-018.test.ts` — 5 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts` — 173 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/primitives.test.ts` — 129 passed, 1 unrelated pre-existing `returnToDeck` destination-label expectation (`deck` versus emitted `deckBottom`).
+- Clause scores: stats/Piercing/evolution 2/2; dual De-Digivolve timing/amount 2/2; immediate attack-gated breeding evolution and Q4300 stack semantics 2/2; lowest-DP security-removal watcher/once-per-turn 2/2; inherited name gate/top-security trash 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-018.test.ts`).
