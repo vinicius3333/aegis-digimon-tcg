@@ -161,7 +161,7 @@ export async function runPlaceUnder(
     }
     if (destId === undefined) return;
     for (const sourcePermanentId of sourceIds) {
-      await relocateByEffect(ctx, destId, sourcePermanentId, { belowTop: true });
+      await relocateByEffect(ctx, destId, sourcePermanentId, { belowTop: action.position !== "bottom" });
     }
     return;
   }

@@ -84,6 +84,8 @@ export interface BoardPredicates {
    * `digivolutionCards:"hasAny"`, which only asks whether the stack is non-empty.
    */
   digivolutionStackKind?: string[];
+  /** The STACK contains no card of any requested kind (BT20-003). */
+  digivolutionStackKindExclude?: string[];
   /**
    * Name/trait refs matched against cards UNDER the top card. `nameOrTrait` matches the TOP
    * card instead — BT9-095/097 need the [X Antibody] Option in the stack, not the name on top.

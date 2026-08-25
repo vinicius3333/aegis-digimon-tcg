@@ -3143,6 +3143,7 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
               target: { fromSelectionRef: "A", filter: {}, count: 1 },
               underSelectionRef: "B",
               targetIsPermanent: true,
+              position: "bottom",
             },
           ],
         },
@@ -3153,6 +3154,7 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(moved).toHaveLength(1);
     expect(moved[0]!.args[0]).toBe("HOST#1");
     expect(moved[0]!.args[1]).toBe("GUEST#1");
+    expect(moved[0]!.args[2]).toMatchObject({ belowTop: false });
   });
 
   it("MindLink relocates the source Tamer under a chosen Digimon", async () => {
