@@ -73,6 +73,10 @@ export interface Cost {
   stopIfZero?: boolean;
   /** Order cards selected by a compound bottom-deck return as one final choice. */
   orderReturnedCards?: boolean;
+  /** Dynamic loose-zone return count: move every matching card above this many remaining. */
+  leaveInZone?: number;
+  /** Do not reveal selected loose-card definitions to the player paying this cost. */
+  selectionHidden?: boolean;
   /**
    * Store how many cards the cost actually moved, for a later scaling or `countSource`
    * ("by placing up to N cards ... reduce by X for each card placed").

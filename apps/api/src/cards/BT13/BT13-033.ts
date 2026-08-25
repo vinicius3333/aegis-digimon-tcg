@@ -5,28 +5,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      trigger: "WhenDigivolving",
       actions: [
-        {
-          kind: "Digivolve",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          into: { name: "MirageGaogamon" },
-          payCost: false,
-          reduceCost: 0,
-        },
         {
           kind: "Return",
           target: {
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "name" }] },
+            filter: { controller: "opponent", kind: ["Digimon"] },
             count: 1,
           },
           to: "hand",
-        },
-        {
-          kind: "TrashDigivolution",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          amount: 1,
-          position: "top",
         },
         {
           kind: "GainMemory",
@@ -53,6 +40,9 @@ export const compiled: CompiledCard = {
             kind: "return",
             target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
             to: "deckBottom",
+            leaveInZone: 8,
+            selectionHidden: true,
+            orderReturnedCards: true,
           },
           optional: true,
           abortOnDecline: true,
@@ -62,6 +52,14 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      cost: 0,
+      isAlternate: true,
+      names: ["MirageGaogamon"],
+      burstDigivolve: { returnTamerNamesExact: ["Thomas H. Norstein"] },
+    },
+  ],
 };
 
 registerIrCard("BT13-033", compiled);

@@ -150,7 +150,12 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "hand") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
-    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    const required =
+      cost.leaveInZone !== undefined
+        ? Math.max(0, candidates.length - cost.leaveInZone)
+        : cost.target.count === "all"
+          ? candidates.length
+          : (cost.target.count ?? 1);
     return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
   }
   if (cost.kind === "return" && cost.target?.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
@@ -1030,17 +1035,33 @@ export async function payCost(
       }
       if (cost.target.filter.zone === "hand") {
         const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
-        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+        const n =
+          cost.leaveInZone !== undefined
+            ? Math.max(0, candidates.length - cost.leaveInZone)
+            : cost.target.count === "all"
+              ? candidates.length
+              : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
-        let chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        let chosen = await pickLoose(
+          ctx,
+          { ...cost.target, count: n },
+          candidates,
+          undefined,
+          ctx.ask,
+          cost.selectionHidden === true ? [] : undefined,
+        );
         if (chosen.length < n) return false;
         if (cost.orderReturnedCards === true && chosen.length > 1) {
           chosen =
             (await ctx.ask.orderCards?.(ctx, {
               candidates: chosen,
-              visibleCards: candidates
-                .filter((candidate) => chosen.includes(candidate.instanceId))
-                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+              ...(cost.selectionHidden === true
+                ? {}
+                : {
+                    visibleCards: candidates
+                      .filter((candidate) => chosen.includes(candidate.instanceId))
+                      .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+                  }),
               destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
             })) ?? chosen;
         }
