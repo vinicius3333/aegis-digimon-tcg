@@ -1151,3 +1151,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-096.test.ts`).
+
+## BT20-097 — The Apostle of Doom Descends!
+
+- Catalog contract: purple/black cost-3 X-Antibody/X Program Option; Main may evolve an own Digimon into a trash level-6-or-lower Dex/DeathX-named Digimon with cost reduced by 4, then places itself in battle; when an own DexDorugoramon would leave, enables Delay, which may return Dorumon from that leaving Digimon's evolution cards to hand as cost to free-play trash DeathXmon; Security may free-play Dorumon from hand/trash, then adds itself to hand.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: Main preserves reduced paid evolution and mandatory self placement. Audit bound the Delay return-cost target to the would-leave trigger subject so an unrelated Dorumon stack cannot pay; the exact name/stack zone/count and DeathXmon trash play remain direct. Security has correct name/zones/free play/self destination. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: Dex/DeathX is a name union with an inclusive level-6 ceiling, while the watcher uses exact DexDorugoramon; the trigger-subject reference preserves the printed “those Digimon's” stack relationship.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-097.test.ts` — 2 passed.
+- Clause scores: stats/Main evolution boundaries 2/2; mandatory battle placement 2/2; exact would-leave/Delay watcher 2/2; subject-stack Dorumon cost/DeathXmon free play 2/2; Security Dorumon zones/self hand 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-097.test.ts`).
