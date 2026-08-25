@@ -164,9 +164,11 @@ describe("choice rows lead with the affirmative action", () => {
 describe("match overlays opt into the mobile sheet", () => {
   // Every dialog-style overlay on the match screen must carry the shared classes,
   // otherwise it keeps its desktop centring on a phone and overflows the viewport.
+  // GameOverOverlay is deliberately absent: it is no longer a dialog on top of
+  // the board but the full-screen result splash, which owns the whole viewport
+  // and scrolls itself (asserted below) rather than sitting in a sheet.
   const OVERLAYS = [
     "BreedingOverlay",
-    "GameOverOverlay",
     "StackViewerOverlay",
     "TrashViewerOverlay",
     "DigiXrosMaterialOverlay",
@@ -180,6 +182,21 @@ describe("match overlays opt into the mobile sheet", () => {
     const next = overlaysSource.indexOf("\nexport function ", start + 1);
     const body = overlaysSource.slice(start, next === -1 ? undefined : next);
     expect(body).toContain("game-modal__panel");
+  });
+});
+
+describe("the result splash owns the whole screen", () => {
+  // It replaces the board rather than covering it, so on a phone it has to lay
+  // its own contents out and scroll them instead of relying on the sheet rules.
+  it("fills the viewport and scrolls its own contents", () => {
+    const rules = gameCss.slice(gameCss.indexOf(".game-result {"));
+    expect(rules).toMatch(/\.game-result \{[^}]*position:\s*absolute/);
+    expect(rules).toMatch(/\.game-result \{[^}]*inset:\s*0/);
+    expect(rules).toMatch(/\.game-result \{[^}]*overflow:\s*auto/);
+  });
+
+  it("sizes the one big word against the viewport", () => {
+    expect(gameCss).toMatch(/\.game-result__title \{[^}]*font-size:\s*clamp\(/);
   });
 });
 

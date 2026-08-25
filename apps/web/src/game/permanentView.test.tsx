@@ -260,7 +260,7 @@ describe("PermanentView activatable effects", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText("5")).toBeTruthy();
+    expect(screen.getByText("×5")).toBeTruthy();
     expect(screen.getByText("13K")).toBeTruthy();
     expect(screen.getByText((_, element) => element?.textContent === "↑DP 1K")).toBeTruthy();
   });

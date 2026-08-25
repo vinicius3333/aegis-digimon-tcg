@@ -22,6 +22,13 @@ const ARC_MIN_PEAK_Y = 4;
 const ARC_PEAK_BASE = 12;
 const ARC_PEAK_PER_CELL = 4;
 
+/**
+ * How high the prediction rises as a share of the arc a real change of the same
+ * size would draw. Under 1, so the prediction always nests inside the real arc
+ * and the two stay legible together.
+ */
+const PREDICTION_PEAK_SHARE = 0.8;
+
 /** The gauge value clamped to the chips that exist. */
 export function clampMemory(value: number): number {
   return Math.max(MEMORY_MIN, Math.min(MEMORY_MAX, value));
@@ -57,6 +64,22 @@ export function shouldDrawMemoryArc(from: number, to: number): boolean {
   return memoryCellDistance(from, to) >= MEMORY_ARC_MIN_CELLS;
 }
 
+/**
+ * Where memory would land if the held card were played for `cost`, clamped to the
+ * chips that exist. A prediction, not a ruling: the figure is the card's PRINTED
+ * cost, because the server projects legality (`playableFromHand`) but not the
+ * reduced cost it would actually charge. It gates nothing — the dashed line is
+ * decoration over the same gauge the real value keeps drawing.
+ */
+export function predictedMemory(current: number, cost: number): number {
+  return clampMemory(current - cost);
+}
+
+/** A prediction is worth drawing only when it would actually move the marker. */
+export function shouldDrawMemoryPrediction(from: number, to: number): boolean {
+  return memoryCellDistance(from, to) >= 1;
+}
+
 function round(value: number): number {
   return Math.round(value * 100) / 100;
 }
@@ -67,14 +90,32 @@ function round(value: number): number {
  * memory moved.
  */
 export function memoryArcPath(from: number, to: number): string {
+  return arcPath(from, to, arcPeakY(from, to));
+}
+
+/** How high the arc for a change of this size reaches, in the draw box. */
+function arcPeakY(from: number, to: number): number {
+  return Math.max(ARC_MIN_PEAK_Y, ARC_BASE_Y - (ARC_PEAK_BASE + memoryCellDistance(from, to) * ARC_PEAK_PER_CELL));
+}
+
+/** The quadratic from one chip to another, reaching `peakY` between them. */
+function arcPath(from: number, to: number, peakY: number): string {
   const startX = round(memoryCellCenterPercent(from));
   const endX = round(memoryCellCenterPercent(to));
-  const peakY = round(
-    Math.max(ARC_MIN_PEAK_Y, ARC_BASE_Y - (ARC_PEAK_BASE + memoryCellDistance(from, to) * ARC_PEAK_PER_CELL)),
-  );
   const controlX = round((startX + endX) / 2);
   // The control point of a quadratic sits twice as far out as the curve's own
   // apex, so it is placed above the peak the arc should actually reach.
-  const controlY = round(ARC_BASE_Y - (ARC_BASE_Y - peakY) * 2);
+  const controlY = round(ARC_BASE_Y - (ARC_BASE_Y - round(peakY)) * 2);
   return `M ${startX} ${ARC_BASE_Y} Q ${controlX} ${controlY} ${endX} ${ARC_BASE_Y}`;
+}
+
+/**
+ * The prediction arc: the same curve over the same chips, drawn shallower so it
+ * sits INSIDE the arc a real change of the same size would leave. The two can be
+ * on screen together — a card is picked up while the last change is still fading
+ * — and the nesting, plus the dashed dimmer stroke `game.css` gives it, is what
+ * keeps "what happened" and "what would happen" from reading as one line.
+ */
+export function memoryPredictionPath(from: number, to: number): string {
+  return arcPath(from, to, ARC_BASE_Y - (ARC_BASE_Y - arcPeakY(from, to)) * PREDICTION_PEAK_SHARE);
 }

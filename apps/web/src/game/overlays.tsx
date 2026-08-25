@@ -20,6 +20,8 @@ import { COLORS, colorKey } from "../design/theme";
 import { Icons } from "../design/icons";
 import { triggerCardId, triggerLabels } from "./boardModel";
 import { formatKeyword } from "./keywordDisplay";
+import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
+import { pendingFateBadge } from "./pendingFate";
 import { useTranslation, type Translate } from "../i18n";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
@@ -990,6 +992,9 @@ export function DecisionOverlay({
     if (total > 1) cardCopyLabels.set(candidate.instanceId, t("overlay.cardCopy", { index, total }));
   }
   const candidateCardWidth = wideDialog ? 154 : 110;
+  // The fate every picked target meets, or nothing when the engine did not
+  // project one for the action that raised this prompt.
+  const fateBadge = request.options?.targetFate ? pendingFateBadge(request.options.targetFate) : undefined;
   // Past this many the grid would wrap into rows taller than the sheet, so it
   // becomes one scrolling row with a visible track instead (reference #110).
   const scrollCandidates = candidates.length > 6;
@@ -1306,6 +1311,22 @@ export function DecisionOverlay({
                       {picks.indexOf(cand.instanceId) + 1}
                     </span>
                   ) : null}
+                  {/* What the effect will do to this card, once it has been
+                      chosen. Server truth: `options.targetFate` is projected from
+                      the IR action that raised the prompt, so the badge never
+                      guesses an outcome out of the prompt's English. */}
+                  {on && fateBadge ? (
+                    <span
+                      className={`game-fate-badge game-fate-badge--${fateBadge.tone} decision-overlay__fate`}
+                      data-fate={fateBadge.fate}
+                      // The prompt above already reads the effect out in full, so
+                      // the pill must not also rewrite this tile's own name.
+                      aria-hidden="true"
+                    >
+                      <i aria-hidden="true">{fateBadge.glyph}</i>
+                      {t(fateBadge.labelKey)}
+                    </span>
+                  ) : null}
                   {liveLabel ? (
                     <span
                       style={{
@@ -1595,6 +1616,18 @@ export function BreedingOverlay({
 }
 
 /* ---------------- GAME OVER ---------------- */
+
+/**
+ * The match's last moment. The reference client gives the ending the whole
+ * screen — a black field, one enormous WIN or LOSE, the reason under it and a
+ * single way out — rather than a dialog on top of a board nobody is playing any
+ * more, so this does the same: the board is hidden behind it, the word scales and
+ * lights up once, and then everything settles and stops moving.
+ *
+ * Both halves of the ending are server truth. `gameOver` carries a discriminated
+ * `result` and one of four `reason` codes; `gameOverSplash` only turns that pair
+ * into words (game/gameOverSplash.ts).
+ */
 export function GameOverOverlay({
   result,
   reason,
@@ -1602,80 +1635,33 @@ export function GameOverOverlay({
   onMenu,
   onRematch,
 }: {
-  result: "win" | "loss" | "draw";
+  result: GameOverOutcome;
   reason: string;
   stats: { value: number | string; label: string }[];
   onMenu: () => void;
   onRematch: () => void;
 }) {
   const { t } = useTranslation();
-  const won = result === "win";
-  const isDraw = result === "draw";
-  const accent = won ? "var(--ds-success)" : isDraw ? "var(--ds-fg-muted)" : "var(--ds-danger)";
-  const accentLight = won
-    ? "var(--ds-success-surface)"
-    : isDraw
-      ? "var(--ds-surface-muted)"
-      : "var(--ds-danger-surface)";
-  const title = won ? t("overlay.victory") : isDraw ? t("overlay.draw") : t("overlay.defeat");
+  const splash = gameOverSplash(result, reason);
   return (
-    <Scrim className="game-modal">
-      <Dialog className="game-over-dialog game-modal__panel" labelledBy="aegis-game-over-title">
-        <div
-          style={{
-            width: 84,
-            height: 84,
-            borderRadius: "50%",
-            margin: "0 auto 20px",
-            display: "grid",
-            placeItems: "center",
-            background: accentLight,
-            color: accent,
-          }}
-        >
-          {won ? <Icons.ShieldCheck size={44} /> : <Icons.Shield size={44} />}
-        </div>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: "var(--ds-fg-muted)",
-            marginBottom: 8,
-          }}
-        >
-          {t("overlay.matchComplete")}
-        </div>
-        <h1
-          id="aegis-game-over-title"
-          style={{
-            fontFamily: "var(--ds-font-display)",
-            fontWeight: 800,
-            fontSize: 44,
-            margin: "0 0 8px",
-            color: won ? "var(--ds-success)" : "var(--ds-fg)",
-          }}
-        >
-          {title}
+    <div
+      className={`game-result game-result--${splash.tone}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aegis-game-over-title"
+    >
+      <div className="game-result__rays" aria-hidden="true" />
+      <div className="game-result__panel">
+        <p className="game-result__eyebrow">{t("overlay.matchComplete")}</p>
+        <h1 id="aegis-game-over-title" className="game-result__title">
+          {t(splash.titleKey)}
         </h1>
-        <p style={{ color: "var(--ds-fg-secondary)", fontSize: 14.5, margin: "0 0 24px" }}>
-          {won
-            ? t("overlay.wonBy", { reason })
-            : isDraw
-              ? t("overlay.drawBy", { reason })
-              : t("overlay.lostBy", { reason })}
-        </p>
-        <div style={{ display: "flex", gap: 10, marginBottom: 26 }}>
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              style={{ flex: 1, padding: "12px 8px", borderRadius: 14, background: "var(--ds-surface-muted)" }}
-            >
-              <div style={{ fontFamily: "var(--ds-font-mono)", fontWeight: 600, fontSize: 22, color: "var(--ds-fg)" }}>
-                {s.value}
-              </div>
-              <div style={{ fontSize: 11, color: "var(--ds-fg-muted)", marginTop: 3 }}>{s.label}</div>
+        <p className="game-result__reason">{t(splash.reasonKey)}</p>
+        <div className="game-result__stats">
+          {stats.map((entry) => (
+            <div key={entry.label} className="game-result__stat">
+              <span className="game-result__stat-value">{entry.value}</span>
+              <span className="game-result__stat-label">{entry.label}</span>
             </div>
           ))}
         </div>
@@ -1687,8 +1673,8 @@ export function GameOverOverlay({
             {t("overlay.mainMenu")}
           </Button>
         </div>
-      </Dialog>
-    </Scrim>
+      </div>
+    </div>
   );
 }
 

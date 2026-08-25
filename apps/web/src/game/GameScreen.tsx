@@ -132,6 +132,10 @@ import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
 import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
+import { TargetingSpotlight } from "./TargetingSpotlight";
+import type { SpotlightSubject } from "./spotlight";
+import { pendingFateBadges } from "./pendingFate";
+import { predictedMemory } from "./memoryArc";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import {
   decisionPresentation,
@@ -372,12 +376,32 @@ export function GameScreen({
   // The drop area the pointer is currently over, so the ghost can carry the name
   // of the intent that release would send.
   const [dragHover, setDragHover] = useState<DropZoneHit | null>(null);
+  // Which hand card the pointer is over, so the memory gauge can trace where a
+  // play would put memory before the card is even picked up.
+  const [hoveredHandInstanceId, setHoveredHandInstanceId] = useState<string | undefined>(undefined);
+  // The hand card a refusal belongs to. The server's `actionRejected` names the
+  // intent and the reason, not the card, so the card is the one this client last
+  // sent a play for — the only thing that could have been refused.
+  const [shakeHandInstanceId, setShakeHandInstanceId] = useState<string | undefined>(undefined);
+  const lastPlayAttemptRef = useRef<string | undefined>(undefined);
+  // Measured boxes of the permanents a target prompt is offering, for the mask.
+  const [spotlightSubjects, setSpotlightSubjects] = useState<readonly SpotlightSubject[]>([]);
+  const [boardSize, setBoardSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
   // Declared before `cues` because the cue hook reports rejections through it;
   // both bodies only run once the other binding exists.
   const ping = (message: string) => {
     playSound("error");
     cues.raiseRejection(message);
+    const offending = lastPlayAttemptRef.current;
+    if (!offending) return;
+    setShakeHandInstanceId(offending);
+    // The class is what plays the shake, so it is taken off once the keyframes
+    // are done; a second refusal on the same card re-adds it and restarts them.
+    setTimeout(
+      () => setShakeHandInstanceId((current) => (current === offending ? undefined : current)),
+      TIMINGS.cardShake,
+    );
   };
 
   // Every cue the server provokes: sounds, panels, banners, the security clash,
@@ -401,6 +425,9 @@ export function GameScreen({
   const {
     attackAnnouncement,
     attackLunge,
+    combatImpactIds,
+    dpPulses,
+    phaseBanner,
     deleteBursts,
     drawBursts,
     drawFlights,
@@ -587,6 +614,53 @@ export function GameScreen({
     }
   }, [battleAreaSignature]);
 
+  // The mask's holes. The prompt's candidate list is written to the ref during
+  // render (it is derived far below, after the connection gates); the boxes are
+  // measured here, and the state is only replaced when the geometry actually
+  // moved, so an effect that runs on every commit still settles in one pass.
+  const spotlightRequestRef = useRef<{ ids: readonly string[]; suspended: ReadonlySet<string> }>({
+    ids: [],
+    suspended: new Set(),
+  });
+  const spotlightAppliedRef = useRef("");
+  useEffect(() => {
+    const board = boardRef.current;
+    const { ids, suspended } = spotlightRequestRef.current;
+    if (!board || ids.length === 0) {
+      if (spotlightAppliedRef.current !== "") {
+        spotlightAppliedRef.current = "";
+        setSpotlightSubjects([]);
+      }
+      return;
+    }
+    const boardRect = board.getBoundingClientRect();
+    const next: SpotlightSubject[] = [];
+    for (const id of ids) {
+      const element = permRefs.current[id];
+      if (!element?.isConnected) continue;
+      const rect = element.getBoundingClientRect();
+      if (!rect.width || !rect.height) continue;
+      next.push({
+        id,
+        x: rect.left - boardRect.left,
+        y: rect.top - boardRect.top,
+        width: rect.width,
+        height: rect.height,
+        suspended: suspended.has(id),
+      });
+    }
+    const signature = `${Math.round(boardRect.width)}x${Math.round(boardRect.height)}|${next
+      .map(
+        (subject) =>
+          `${subject.id}:${Math.round(subject.x)}:${Math.round(subject.y)}:${Math.round(subject.width)}:${Math.round(subject.height)}:${subject.suspended ? 1 : 0}`,
+      )
+      .join(",")}`;
+    if (signature === spotlightAppliedRef.current) return;
+    spotlightAppliedRef.current = signature;
+    setSpotlightSubjects(next);
+    setBoardSize({ width: boardRect.width, height: boardRect.height });
+  });
+
   // ----- pre-match / connection gates -----
   if (status === "reconnecting") {
     return (
@@ -758,6 +832,7 @@ export function GameScreen({
       }
     }
     if (room) {
+      lastPlayAttemptRef.current = instanceId;
       playGameCue("cardPlay");
       intents.playCard(room, instanceId);
     }
@@ -765,6 +840,7 @@ export function GameScreen({
   };
   const digivolve = (permanentId: string, instanceId: string, useAlternateCost?: boolean) => {
     if (room) {
+      lastPlayAttemptRef.current = instanceId;
       playGameCue("digivolve");
       intents.digivolve(room, permanentId, instanceId, useAlternateCost);
     }
@@ -1317,6 +1393,41 @@ export function GameScreen({
   };
   const decisionMin = viewerDecision?.options?.min ?? 1;
   const decisionMax = viewerDecision?.options?.max ?? 1;
+  // What the resolving effect will do to each target the viewer has picked. The
+  // fate is the server's own projection (`options.targetFate`); a prompt that
+  // carries none badges nothing.
+  const fateBadges = pendingFateBadges({ decision: viewerDecision, picks, viewerSeat });
+
+  // The cards a target selection currently offers, which is what the mask lights.
+  // Every id here is a server projection read back off the board — the attack
+  // targets the server listed for the chosen attacker, and the bases it listed
+  // for the chosen hand card. Only the tap flows arm the mask: a drag already
+  // carries its own ghost and outlined drop areas, and a second dark pass over
+  // that would be noise. The breeding step keeps its own dim (`breedingWindow`).
+  const spotlightIds = (() => {
+    if (breedingWindow) return [];
+    if (selPerm) return attackTargetIdsOf(attackerPerm, vortexMode);
+    if (handSel && handIsDigi) return you.battleArea.filter(eligibleBase).map((p) => p.permanentId);
+    return [];
+  })();
+  spotlightRequestRef.current = {
+    ids: spotlightIds,
+    suspended: new Set(allPermanents.filter((permanent) => permanent.isSuspended).map((p) => p.permanentId)),
+  };
+  const spotlightOpen = spotlightIds.length > 0;
+
+  // Where memory would land if the card in hand were played. The figure is the
+  // card's PRINTED cost — the server projects whether a play is legal, not what
+  // it would finally charge — so this is a dashed prediction and gates nothing.
+  const predictionCardId = (() => {
+    if (drag?.kind === "play" && drag.started) return drag.cardId;
+    if (hoveredHandInstanceId === undefined) return undefined;
+    const entry = handEntries.find((candidate) => candidate.instanceId === hoveredHandInstanceId);
+    return entry?.playableFromHand === true ? entry.cardId : undefined;
+  })();
+  const predictionCost = predictionCardId ? getCardDefinition(predictionCardId)?.playCost : undefined;
+  const memoryPrediction =
+    predictionCost !== undefined && predictionCost >= 0 ? predictedMemory(memory, predictionCost) : undefined;
 
   const triggerDetails =
     viewerDecision?.kind === "orderTriggers"
@@ -1993,6 +2104,12 @@ export function GameScreen({
           </aside>
         ) : null}
 
+        {phaseBanner ? (
+          <div className="game-phase-banner" key={phaseBanner.key} role="status">
+            <span>{t(phaseBanner.labelKey)}</span>
+          </div>
+        ) : null}
+
         {turnTransition ? (
           <div
             className={`game-turn-banner${
@@ -2012,6 +2129,11 @@ export function GameScreen({
               which keeps the raising area, the hand that digivolves into it and
               the turn control lit. Notices, panels and dialogs all sit above. */}
           {breedingWindow ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
+          {/* The board darkens around exactly the cards the server offered. It is
+              a drawing only — the lit cards underneath keep every pointer event. */}
+          {spotlightOpen ? (
+            <TargetingSpotlight subjects={spotlightSubjects} width={boardSize.width} height={boardSize.height} />
+          ) : null}
           {/* left column: opp deck+trash (top) | your security (bottom) */}
           <aside
             className="game-pile-column game-pile-column--left"
@@ -2118,6 +2240,10 @@ export function GameScreen({
                     highlight={decisionHighlightPermanentId === p.permanentId}
                     burst={permanentBursts.get(p.permanentId)}
                     pending={pendingPermanentIds.has(p.permanentId)}
+                    fate={fateBadges.get(p.permanentId)}
+                    shake={combatImpactIds.has(p.permanentId)}
+                    claw={combatImpactIds.has(p.permanentId)}
+                    dpPulse={dpPulses.get(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
                     onClick={onOppPerm(p)}
@@ -2137,6 +2263,7 @@ export function GameScreen({
                 compact={compactPiles}
                 phaseLabel={t(`game.phase.${state.phase}` as const)}
                 phaseSweeping={unsuspendSweep !== null}
+                prediction={memoryPrediction}
               />
               <TurnControl
                 state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
@@ -2197,6 +2324,10 @@ export function GameScreen({
                     highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}
                     burst={permanentBursts.get(p.permanentId)}
                     pending={pendingPermanentIds.has(p.permanentId)}
+                    fate={fateBadges.get(p.permanentId)}
+                    shake={combatImpactIds.has(p.permanentId)}
+                    claw={combatImpactIds.has(p.permanentId)}
+                    dpPulse={dpPulses.get(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     suspendDelayMs={unsuspendStagger(viewerSeat, index)}
                     drop={{
@@ -2387,6 +2518,8 @@ export function GameScreen({
                 if (entry) selectHandCard(entry);
               }}
               draggingInstanceId={dragIsPlay && drag?.kind === "play" ? drag.instanceId : undefined}
+              shakeInstanceId={shakeHandInstanceId}
+              onHoverChange={setHoveredHandInstanceId}
             />
           </div>
         </footer>

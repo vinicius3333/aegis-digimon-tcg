@@ -143,3 +143,43 @@
 .board-showcase .game-turn-banner span {
   animation: none;
 }
+
+/* The claw sweeps through and ends invisible, so the gallery holds it mid-swipe
+   the way a match sees it — a negative delay parks it inside the animation. */
+.board-showcase .game-claw__tine {
+  animation-delay: -140ms;
+  animation-play-state: paused;
+}
+
+/* Both halves of a DP pulse end faded out, so both are pinned part-way through. */
+.board-showcase .game-dp-pulse i,
+.board-showcase .game-dp-pulse em {
+  animation-delay: -260ms;
+  animation-play-state: paused;
+}
+
+/* The prediction arc fades in and stays, but the gallery renders it from a fixed
+   prop rather than a live drag: hold it at full strength. */
+.board-showcase .game-memory-prediction,
+.board-showcase .game-memory-prediction__marker {
+  animation: none;
+  opacity: 1;
+}
+
+/* The phase card wipes shut at the end of its own keyframes; the held frame
+   needs it pinned open. Its own inline `animation: none` covers the label. */
+.board-showcase .game-phase-banner span {
+  animation: none;
+}
+
+/* The result splash settles rather than loops, so it is simply shown at rest. */
+.board-showcase .game-result,
+.board-showcase .game-result__title {
+  animation: none;
+}
+
+/* The fate pill hangs above the card's top edge, which in the gallery's tight
+   rows would otherwise land on the section note. */
+#showcase-fate-badges .board-showcase__row {
+  padding-top: 1.6rem;
+}

@@ -3,7 +3,7 @@
    without playing a match. Reached at /dev/board; each section carries a stable
    id that tools/ui-review.mjs screenshots one by one. */
 
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
 import {
   AttackArrow,
@@ -15,6 +15,10 @@ import {
   TurnControl,
   type HandEntry,
 } from "../game/boardPieces";
+import { TargetingSpotlight } from "../game/TargetingSpotlight";
+import type { SpotlightSubject } from "../game/spotlight";
+import { pendingFateBadge } from "../game/pendingFate";
+import { TARGET_FATES, Phase } from "@aegis/shared";
 import { dragIntentLabelKey } from "../game/dragIntents";
 import { BlockOverlay, DecisionOverlay, GameOverOverlay, MulliganOverlay } from "../game/overlays";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../game/BoardDecisionRail";
@@ -62,6 +66,7 @@ function permanent({
   summoningSick = false,
   stackCardIds = [],
   grantedKeywords = [],
+  keywords = [],
 }: {
   permanentId: string;
   cardId: string;
@@ -72,6 +77,8 @@ function permanent({
   summoningSick?: boolean;
   stackCardIds?: readonly string[];
   grantedKeywords?: readonly string[];
+  /** Resolved active keywords, as the server projects them (drives the Blocker shield). */
+  keywords?: readonly string[];
 }): Permanent {
   const perm = new Permanent();
   perm.permanentId = permanentId;
@@ -83,6 +90,7 @@ function permanent({
   perm.summoningSick = summoningSick;
   perm.stack.push(...stackCardIds.map((id, index) => cardInstance(`${permanentId}-under-${index}`, id, seat)));
   perm.grantedKeywords.push(...grantedKeywords);
+  perm.keywords.push(...keywords);
   return perm;
 }
 
@@ -134,6 +142,8 @@ const TARGET_DECISION: DecisionRequest = {
     max: 1,
     timing: "Main",
     effectText: "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less.",
+    // Server-projected: the badge on a picked target reads this, never the prompt.
+    targetFate: "delete",
   },
 };
 
@@ -156,6 +166,9 @@ const HAND_SELECTION_DECISION: DecisionRequest = {
   promptText: "Select 2 cards to trash.",
   options: { candidateInstanceIds: ["hand-0", "hand-1", "hand-2"], min: 0, max: 2 },
 };
+
+/* The dual-colour and Blocker fixtures the persistent field badges are shown on. */
+const DUAL_COLOR_CARD = "AD1-004";
 
 const noop = () => {};
 
@@ -361,6 +374,57 @@ const ZONE_SHOWCASES: { label: string; showcase: ZoneShowcaseModel }[] = [
   },
 ];
 
+/**
+ * The spotlight over real, laid-out cards. The mask's holes are measured from
+ * the cards themselves, exactly as `GameScreen` measures them, so the showcase
+ * proves the geometry rather than restating it as hard-coded boxes.
+ */
+function SpotlightStage({ litIds, children }: { litIds: readonly string[]; children: ReactNode }) {
+  const boardRef = useRef<HTMLDivElement | null>(null);
+  const [subjects, setSubjects] = useState<readonly SpotlightSubject[]>([]);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useLayoutEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const boardRect = board.getBoundingClientRect();
+    setSize({ width: boardRect.width, height: boardRect.height });
+    setSubjects(
+      litIds.flatMap((id) => {
+        const element = board.querySelector<HTMLElement>(`[data-showcase-target="${id}"]`);
+        if (!element) return [];
+        const rect = element.getBoundingClientRect();
+        return [
+          {
+            id,
+            x: rect.left - boardRect.left,
+            y: rect.top - boardRect.top,
+            width: rect.width,
+            height: rect.height,
+            suspended: element.dataset.showcaseSuspended === "true",
+          },
+        ];
+      }),
+    );
+  }, [litIds]);
+  return (
+    <div ref={boardRef} style={{ position: "absolute", inset: 0 }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          gap: 32,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {children}
+      </div>
+      <TargetingSpotlight subjects={subjects} width={size.width} height={size.height} />
+    </div>
+  );
+}
+
 /* ---------------- scaffolding ---------------- */
 
 function Section({
@@ -531,6 +595,9 @@ export function BoardShowcase() {
         </Case>
         <Case label="ten cards (fan tightens)">
           <Hand cards={LARGE_HAND} startDrag={noop} selectCard={noop} />
+        </Case>
+        <Case label="refused play (0.25s shake, frozen)">
+          <Hand cards={MIXED_HAND} shakeInstanceId="hand-0" startDrag={noop} selectCard={noop} />
         </Case>
       </Section>
 
@@ -864,9 +931,187 @@ export function BoardShowcase() {
       </Section>
 
       <Section
+        id="showcase-field-badges"
+        title="persistent field badges"
+        note="The Blocker shield, the ×N digivolution-source count tinted by the top card, and the DP chip a dual-colour Digimon splits between both of its colours."
+      >
+        <Case label="blocker">
+          <PermanentView
+            perm={permanent({ permanentId: "b-1", cardId: CARDS.champion, baseDP: 4000, keywords: ["Blocker"] })}
+          />
+        </Case>
+        <Case label="×3 sources">
+          <PermanentView
+            perm={permanent({
+              permanentId: "b-2",
+              cardId: CARDS.mega,
+              baseDP: 12000,
+              stackCardIds: [CARDS.egg, CARDS.rookie, CARDS.champion],
+            })}
+          />
+        </Case>
+        <Case label="dual-colour DP chip">
+          <PermanentView perm={permanent({ permanentId: "b-3", cardId: DUAL_COLOR_CARD, baseDP: 13000 })} />
+        </Case>
+        <Case label="all three at once">
+          <PermanentView
+            perm={permanent({
+              permanentId: "b-4",
+              cardId: DUAL_COLOR_CARD,
+              baseDP: 13000,
+              stackCardIds: [CARDS.rookie, CARDS.champion],
+              keywords: ["Blocker"],
+            })}
+          />
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-fate-badges"
+        title="pending-fate badges"
+        note="What the resolving effect will do to a chosen target. The fate is the server's own projection (DecisionRequest.options.targetFate); a prompt that carries none badges nothing."
+      >
+        {TARGET_FATES.map((fate) => (
+          <Case key={fate} label={fate}>
+            <PermanentView
+              perm={permanent({ permanentId: `fate-${fate}`, cardId: CARDS.opponentChampion, baseDP: 4000, seat: 1 })}
+              fate={pendingFateBadge(fate)}
+            />
+          </Case>
+        ))}
+      </Section>
+
+      <Section
+        id="showcase-combat-impact"
+        title="combat impact and DP pulses"
+        note="Frozen frames: the claw and the shake a permanent takes for a battle it lost, and the particles a DP change throws off. A debuff that takes the Digimon to nothing holds four times as long."
+      >
+        <Case label="claw slash">
+          <PermanentView perm={permanent({ permanentId: "i-1", cardId: CARDS.champion, baseDP: 4000 })} claw />
+        </Case>
+        <Case label="buff pulse">
+          <PermanentView
+            perm={permanent({ permanentId: "i-2", cardId: CARDS.champion, baseDP: 4000, currentDP: 7000 })}
+            dpPulse={{ permanentId: "i-2", kind: "buff", from: 4000, to: 7000, key: 1 }}
+          />
+        </Case>
+        <Case label="debuff pulse">
+          <PermanentView
+            perm={permanent({ permanentId: "i-3", cardId: CARDS.champion, baseDP: 4000, currentDP: 1000 })}
+            dpPulse={{ permanentId: "i-3", kind: "debuff", from: 4000, to: 1000, key: 2 }}
+          />
+        </Case>
+        <Case label="debuff that kills (longer hold)">
+          <PermanentView
+            perm={permanent({ permanentId: "i-4", cardId: CARDS.champion, baseDP: 4000, currentDP: 0 })}
+            dpPulse={{ permanentId: "i-4", kind: "debuffFatal", from: 4000, to: 0, key: 3 }}
+          />
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-spotlight"
+        title="targeting spotlight"
+        note="The board darkens around exactly the cards the server offered. A suspended card keeps a turned hole. The mask draws only — every lit card underneath keeps its pointer events."
+        stacked
+      >
+        <Stage label="two legal targets, one of them suspended" height={280}>
+          <SpotlightStage litIds={["s-1", "s-2"]}>
+            <PermanentView
+              perm={permanent({ permanentId: "s-1", cardId: CARDS.opponentChampion, baseDP: 4000, seat: 1 })}
+              drop={{ "data-showcase-target": "s-1" }}
+            />
+            <PermanentView
+              perm={permanent({
+                permanentId: "s-2",
+                cardId: CARDS.opponentUltimate,
+                baseDP: 7000,
+                seat: 1,
+                suspended: true,
+              })}
+              drop={{ "data-showcase-target": "s-2", "data-showcase-suspended": "true" }}
+            />
+            <PermanentView perm={permanent({ permanentId: "s-3", cardId: CARDS.champion, baseDP: 4000, seat: 1 })} />
+          </SpotlightStage>
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-memory-prediction"
+        title="memory prediction"
+        note="Where memory would land if the held card were played: the same curve, drawn shallower and dashed so it nests inside the solid arc a real change leaves."
+        stacked
+      >
+        {[
+          { label: "cost 3 from +4", value: 4, prediction: 1 },
+          { label: "cost 6 from +2", value: 2, prediction: -4 },
+          { label: "prediction and a real change together", value: 4, prediction: 1, arc: { from: -2, to: 4 } },
+        ].map((sample) => (
+          <Case key={sample.label} label={sample.label}>
+            <div className="game-memory-band" style={{ position: "relative" }}>
+              <MemoryGauge value={sample.value} phaseLabel="Main" prediction={sample.prediction} arc={sample.arc} />
+            </div>
+          </Case>
+        ))}
+      </Section>
+
+      <Section
+        id="showcase-phase-banner"
+        title="phase banner and turn control"
+        note="The phase card wipes open and shut on a vertical blind. The control turns a ring while it is actionable and stops answering for 1.5s after a click."
+        stacked
+      >
+        {[Phase.Breeding, Phase.Main].map((phase) => (
+          <Case key={phase} label={`${phase} phase`}>
+            <div className="game-phase-banner" style={{ position: "relative" }}>
+              <span style={{ animation: "none" }}>{phase === Phase.Breeding ? "Breeding Phase" : "Main Phase"}</span>
+            </div>
+          </Case>
+        ))}
+        <Case label="turn control, actionable">
+          <div className="game-memory-band" style={{ position: "relative" }}>
+            <TurnControl state="endTurn" onEndPhase={noop} />
+          </div>
+        </Case>
+        <Case label="turn control, covered after a click">
+          <div className="game-memory-band" style={{ position: "relative" }}>
+            <TurnControl state="endTurn" covered onEndPhase={noop} />
+          </div>
+        </Case>
+        <Case label="turn control, waiting">
+          <div className="game-memory-band" style={{ position: "relative" }}>
+            <TurnControl state="waiting" onEndPhase={noop} />
+          </div>
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-result"
+        title="result splash"
+        note="The match's last moment: the board is hidden behind it, the word scales and lights up once, and the reason line names which of the four endings it was."
+        stacked
+      >
+        {(["win", "loss", "draw"] as const).map((outcome) => (
+          <Stage key={outcome} label={outcome} height={520}>
+            <GameOverOverlay
+              result={outcome}
+              reason={outcome === "draw" ? "deckOut" : "surrender"}
+              stats={[
+                { value: 12, label: "Turns" },
+                { value: 3, label: "Security left" },
+                { value: "8:42", label: "Duration" },
+              ]}
+              onMenu={noop}
+              onRematch={noop}
+            />
+          </Stage>
+        ))}
+      </Section>
+
+      <Section
         id="showcase-dialogs"
         title="dialogs"
-        note="Mulligan, block window, target decision and game over, each on its own framed stage."
+        note="Mulligan, block window and the target decision, each on its own framed stage. The result splash has a section of its own."
         stacked
       >
         <Stage label="mulligan" height={560}>
@@ -925,19 +1170,6 @@ export function BoardShowcase() {
               onRespond={noop}
             />
           </div>
-        </Stage>
-        <Stage label="game over" height={560}>
-          <GameOverOverlay
-            result="win"
-            reason="Opponent ran out of security."
-            stats={[
-              { value: 12, label: "Turns" },
-              { value: 3, label: "Security left" },
-              { value: "8:42", label: "Duration" },
-            ]}
-            onMenu={noop}
-            onRematch={noop}
-          />
         </Stage>
       </Section>
     </main>

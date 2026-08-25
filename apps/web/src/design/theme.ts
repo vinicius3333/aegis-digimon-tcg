@@ -42,6 +42,22 @@ export function paletteFor(colors: readonly (CardColor | string)[] | undefined):
   return COLORS[colorKey(colors?.[0])];
 }
 
+/**
+ * Both ends of a card's color band. A single-color card reports its own color
+ * twice with `split` false, so a caller can paint one gradient for every card and
+ * simply stop splitting where there is nothing to split.
+ */
+export function palettePairFor(colors: readonly (CardColor | string)[] | undefined): {
+  from: GameColor;
+  to: GameColor;
+  split: boolean;
+} {
+  const first = colorKey(colors?.[0]);
+  const second = colorKey(colors?.[1]);
+  const split = (colors?.length ?? 0) > 1 && second !== first;
+  return { from: COLORS[first], to: COLORS[split ? second : first], split };
+}
+
 const EMBLEMS = ["fang", "crest", "orb", "wing", "core", "thorn", "bolt", "eye", "ward", "sigil"] as const;
 export type Emblem = (typeof EMBLEMS)[number];
 

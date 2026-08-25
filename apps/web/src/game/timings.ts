@@ -103,6 +103,36 @@ export const TIMINGS = {
   inspectorOpen: 320,
   /** Grace period before the inspector closes again. */
   inspectorClose: 160,
+  /** A pending-fate badge dropping onto the target that just got picked. */
+  fateBadgeIn: 180,
+  /** The dashed prediction arc fading in under the memory chips. */
+  memoryPrediction: 200,
+  /** The targeting mask darkening the board around the legal targets. */
+  spotlightIn: 220,
+  /** One breath of the ring around a lit target inside the mask. */
+  spotlightPulse: 1600,
+  /** The reference client's 0.25s card shake (`DOShakePosition`), on a refusal and on a lost battle. */
+  cardShake: 250,
+  /** The beat the reference client holds after a shake before it moves on. */
+  cardShakeHold: 100,
+  /** The claw sweeping across a permanent that lost its battle (0.25s, ease-in-cubic). */
+  clawSlash: 250,
+  /** The particles a DP change throws off. */
+  dpPulse: 520,
+  /** The reference client holds a DP change 0.1s … */
+  dpPulseHold: 100,
+  /** … and four times as long when the debuff is the one that kills. */
+  dpPulseFatalHold: 400,
+  /** The phase card wiping open (the reference client's 0.2333s scale-Y blind). */
+  phaseBannerIn: 233,
+  /** The phase card, end to end: the 0.2333s wipe open, its 0.3s hold, and the wipe shut. */
+  phaseBanner: 766,
+  /** One lap of the ring turning around the turn control while it is actionable. */
+  turnControlPulse: 3200,
+  /** How long the turn control refuses a second click after the first (a UI guard, not a rule). */
+  turnControlCover: 1500,
+  /** The WIN / LOSE word scaling and glowing into place. */
+  resultSplashIn: 520,
 } as const;
 
 export type TimingName = keyof typeof TIMINGS;
@@ -128,6 +158,17 @@ export const SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold + TIM
 
 /** When the showcase starts clearing out, which is also when the field may reveal. */
 export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
+
+/** A shake and the beat held after it — how long a shake cue owns its track. */
+export const CARD_SHAKE_TOTAL_MS = TIMINGS.cardShake + TIMINGS.cardShakeHold;
+
+/** The claw and the shake run together, so the impact ends when the held beat does. */
+export const COMBAT_IMPACT_TOTAL_MS = Math.max(TIMINGS.clawSlash, TIMINGS.cardShake) + TIMINGS.cardShakeHold;
+
+/** A DP pulse, end to end: the particles plus the beat the new figure is held on. */
+export function dpPulseTotalMs(fatal: boolean): number {
+  return TIMINGS.dpPulse + (fatal ? TIMINGS.dpPulseFatalHold : TIMINGS.dpPulseHold);
+}
 
 /** The custom properties game.css reads, and the milliseconds behind each one. */
 export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
@@ -164,6 +205,16 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-notice-in": TIMINGS.noticeIn,
   "--t-dialog-in": TIMINGS.dialogIn,
   "--t-board-prompt-in": TIMINGS.boardPromptIn,
+  "--t-fate-badge-in": TIMINGS.fateBadgeIn,
+  "--t-memory-prediction": TIMINGS.memoryPrediction,
+  "--t-spotlight-in": TIMINGS.spotlightIn,
+  "--t-spotlight-pulse": TIMINGS.spotlightPulse,
+  "--t-card-shake": TIMINGS.cardShake,
+  "--t-claw-slash": TIMINGS.clawSlash,
+  "--t-dp-pulse": TIMINGS.dpPulse,
+  "--t-phase-banner": TIMINGS.phaseBanner,
+  "--t-turn-control-pulse": TIMINGS.turnControlPulse,
+  "--t-result-splash-in": TIMINGS.resultSplashIn,
 };
 
 /**

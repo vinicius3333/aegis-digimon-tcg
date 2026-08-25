@@ -100,6 +100,23 @@ export const COMBAT_PROMPT_EVENTS = [
 export type CombatPromptEvent = (typeof COMBAT_PROMPT_EVENTS)[number];
 
 /**
+ * What the action currently resolving will do to the permanents it is asking the
+ * player to pick. Projected by the engine from the IR action kind alone (there is
+ * one dispatch point, `runAction`), so the client can badge a chosen target with
+ * its coming fate instead of guessing one out of the prompt's printed English.
+ * Display-only: nothing in the rules reads it back.
+ */
+export type TargetFate =
+  | "delete"
+  | "trash"
+  | "returnToHand"
+  | "returnToDeck"
+  | "returnToEggDeck"
+  | "suspend"
+  | "unsuspend"
+  | "digivolve";
+
+/**
  * Sent on the dedicated "decision" channel when the engine pauses for input. The
  * engine awaits the matching respondDecision intent (correlated by decisionId).
  */
@@ -129,11 +146,32 @@ export interface DecisionRequest {
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause
     /** Exact clause that raised this decision, preserving main/inherited provenance without client-side guessing. */
     effectText?: string;
+    /** What the resolving action will do to the permanents picked here (`chooseTargets` only). */
+    targetFate?: TargetFate;
     promptKey?: "activateBlitz";
   };
 }
 
 export type DecisionKind = DecisionRequest["kind"];
+
+/**
+ * Runtime enumeration of TargetFate, pinned to the type the same way DECISION_KINDS
+ * is: a fate added to the union without a client badge fails typecheck here.
+ */
+export const TARGET_FATES = [
+  "delete",
+  "trash",
+  "returnToHand",
+  "returnToDeck",
+  "returnToEggDeck",
+  "suspend",
+  "unsuspend",
+  "digivolve",
+] as const satisfies readonly TargetFate[];
+
+type _TargetFatesComplete = Exclude<TargetFate, (typeof TARGET_FATES)[number]> extends never ? true : never;
+const _targetFatesComplete: _TargetFatesComplete = true;
+void _targetFatesComplete;
 
 /**
  * Runtime enumeration of DecisionKind, pinned to the type in both directions:

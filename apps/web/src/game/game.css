@@ -1222,6 +1222,10 @@ button.opponent-action-feed__current:focus-visible {
 /* The circular turn button rides the band's right edge, like the reference
    client's End Turn orb. */
 .game-end-turn-orb {
+  /* The turning ring is positioned against the orb itself, so the orb has to be
+     the containing block — otherwise the ring escapes to the nearest positioned
+     ancestor and paints a circle the size of the page. */
+  position: relative;
   z-index: 6;
   flex-shrink: 0;
   width: 5.4rem;
@@ -4741,4 +4745,659 @@ button.opponent-action-feed__current:focus-visible {
   [data-state="active"] {
     transition: none !important;
   }
+}
+
+/* ==========================================================================
+   DCGO feedback port — pending fate, prediction, spotlight, impact, result
+   ========================================================================== */
+
+/* --- Pending-fate badge -------------------------------------------------- */
+
+/* The reference client stacks its fate pills above the card's top edge in a
+   left-aligned column. Only one fate is ever open at a time here, so a single
+   pill sits in that column's place. */
+.game-fate-badge {
+  --fate-tint: rgb(47 164 255);
+
+  position: absolute;
+  top: -1.55rem;
+  left: -0.35rem;
+  z-index: 5;
+  display: inline-flex;
+  gap: 0.2rem;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  color: #10131c;
+  background: var(--fate-tint);
+  border-radius: 0.35rem;
+  box-shadow:
+    0 0 0 1px rgb(6 10 18 / 55%),
+    0 2px 6px rgb(0 0 0 / 45%);
+  animation: battle-fate-badge var(--t-fate-badge-in, 180ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.game-fate-badge i {
+  font-style: normal;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+/* The reference client's three pill colours: magenta for a deletion, blue for a
+   move, white for a digivolution. */
+.game-fate-badge--danger {
+  --fate-tint: rgb(255 109 233);
+}
+
+.game-fate-badge--neutral {
+  --fate-tint: rgb(47 164 255);
+}
+
+.game-fate-badge--good {
+  --fate-tint: rgb(255 255 255);
+}
+
+@keyframes battle-fate-badge {
+  0% {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.82);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- Blocker shield ------------------------------------------------------ */
+
+/* The one keyword the board is asked about every turn, so it gets a corner of
+   its own instead of a slot in the keyword strip. */
+.game-blocker-badge {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.45rem;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, #4d8ce6, #1e4f9c);
+  box-shadow:
+    0 0 0 1.5px rgb(6 10 18 / 70%),
+    0 0 8px rgb(77 140 230 / 55%);
+}
+
+.game-blocker-badge svg {
+  width: 0.72rem;
+  height: 0.72rem;
+  fill: #fff;
+}
+
+/* --- Card shake ---------------------------------------------------------- */
+
+/* The reference client's `DOShakePosition(0.25s, strength 8, vibrato 30,
+   fadeOut)`: a two-axis jitter that decays to nothing rather than a clean
+   left-right wobble. Used by a refused play and by a lost battle alike. */
+.game-permanent-shake,
+.game-hand-card--shake {
+  animation: battle-card-shake var(--t-card-shake, 250ms) linear both;
+}
+
+@keyframes battle-card-shake {
+  0% {
+    translate: 0 0;
+  }
+
+  12% {
+    translate: -7px 4px;
+  }
+
+  25% {
+    translate: 6px -5px;
+  }
+
+  37% {
+    translate: -5px -4px;
+  }
+
+  50% {
+    translate: 4px 4px;
+  }
+
+  62% {
+    translate: -3px 2px;
+  }
+
+  75% {
+    translate: 2px -2px;
+  }
+
+  87% {
+    translate: -1px 1px;
+  }
+
+  100% {
+    translate: 0 0;
+  }
+}
+
+/* --- Combat claw --------------------------------------------------------- */
+
+/* Three tapered gashes raked from the top-left corner down through the card, in
+   the quarter second the reference client's masked claw sprite takes to cross
+   it. Clipped to the card, so the claw appears out of the corner rather than
+   flying in over the board. */
+.game-claw {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 9px;
+}
+
+.game-claw svg {
+  width: 100%;
+  height: 100%;
+}
+
+.game-claw__tine {
+  fill: none;
+  stroke: rgb(255 246 240 / 92%);
+  stroke-width: 5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgb(255 120 90 / 85%));
+  /* Ease.InCubic — the swipe accelerates into the card. */
+  animation: battle-claw var(--t-claw-slash, 250ms) cubic-bezier(0.55, 0.055, 0.675, 0.19) both;
+  animation-delay: calc(var(--claw-index) * 24ms);
+}
+
+@keyframes battle-claw {
+  0% {
+    opacity: 0;
+    stroke-dasharray: 0 260;
+    stroke-dashoffset: 0;
+  }
+
+  22% {
+    opacity: 1;
+  }
+
+  70% {
+    stroke-dasharray: 120 260;
+    stroke-dashoffset: -60;
+  }
+
+  100% {
+    opacity: 0;
+    stroke-dasharray: 0 260;
+    stroke-dashoffset: -260;
+  }
+}
+
+/* --- DP pulse ------------------------------------------------------------ */
+
+/* Warm gold rising on a buff, red falling on a debuff, and the changed figure
+   riding out with the particles. A debuff that takes the Digimon to nothing
+   holds four times as long (the reference client's 0.1s → 0.4s stretch), which
+   is carried in `--dp-pulse-hold` by the component. */
+.game-dp-pulse {
+  --dp-tint: rgb(253 162 65);
+  --dp-rise: -26px;
+
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.game-dp-pulse--debuff,
+.game-dp-pulse--debuffFatal {
+  --dp-tint: rgb(255 86 86);
+  --dp-rise: 26px;
+}
+
+.game-dp-pulse i {
+  position: absolute;
+  bottom: 38%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--dp-tint);
+  box-shadow: 0 0 8px var(--dp-tint);
+  animation: battle-dp-particle var(--t-dp-pulse, 520ms) ease-out both;
+  animation-delay: calc(var(--dp-particle-index) * 26ms);
+}
+
+.game-dp-pulse em {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  font-family: var(--ds-font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-style: normal;
+  color: var(--dp-tint);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 75%);
+  translate: -50% 0;
+  animation: battle-dp-figure calc(var(--t-dp-pulse, 520ms) + var(--dp-pulse-hold, 100ms)) ease-out both;
+}
+
+@keyframes battle-dp-particle {
+  0% {
+    opacity: 0;
+    translate: calc(var(--dp-particle-x) - 50%) 0;
+    scale: 0.5;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    translate: calc(var(--dp-particle-x) - 50%) var(--dp-rise);
+    scale: 1.15;
+  }
+}
+
+@keyframes battle-dp-figure {
+  0% {
+    opacity: 0;
+    translate: -50% 0;
+    scale: 0.7;
+  }
+
+  22% {
+    opacity: 1;
+    scale: 1.15;
+  }
+
+  70% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  100% {
+    opacity: 0;
+    translate: -50% calc(var(--dp-rise) * 0.5);
+  }
+}
+
+/* --- Memory prediction --------------------------------------------------- */
+
+/* Where memory would land if the held card were played. It shares the real
+   arc's shape but hangs UNDER the chips and is dashed, so the two are never
+   read as one line when a card is picked up while a change is still fading. */
+.game-memory-prediction {
+  position: absolute;
+  top: var(--memory-track-pad-y);
+  left: var(--memory-track-pad-x);
+  z-index: 3;
+  width: calc(100% - var(--memory-track-pad-x) * 2);
+  height: calc(100% - var(--memory-track-pad-y) * 2);
+  overflow: visible;
+  pointer-events: none;
+  animation: battle-memory-prediction var(--t-memory-prediction, 200ms) ease-out both;
+}
+
+.game-memory-prediction path {
+  fill: none;
+  /* The reference client's prediction gradient, taken down to a dimmer dashed
+     stroke so it cannot be mistaken for the solid arc a real change draws. */
+  stroke: rgb(255 61 61 / 62%);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 4 4;
+}
+
+.game-memory-prediction__marker {
+  position: absolute;
+  top: calc(var(--memory-track-pad-y) * -0.35);
+  z-index: 3;
+  width: 0.36rem;
+  height: 0.36rem;
+  pointer-events: none;
+  background: rgb(255 61 61 / 90%);
+  border-radius: 50%;
+  box-shadow: 0 0 7px rgb(183 33 0 / 85%);
+  translate: -50% 0;
+  animation: battle-memory-prediction var(--t-memory-prediction, 200ms) ease-out both;
+}
+
+@keyframes battle-memory-prediction {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* --- Targeting spotlight ------------------------------------------------- */
+
+/* The board goes dark around exactly the cards the server offered. It draws
+   only: the lit cards underneath are the things that have to stay clickable, so
+   nothing here ever takes a pointer event. */
+.game-spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: battle-spotlight-in var(--t-spotlight-in, 220ms) ease-out both;
+}
+
+.game-spotlight__scrim {
+  fill: rgb(3 7 14 / 68%);
+}
+
+.game-spotlight__ring {
+  fill: none;
+  stroke: var(--battle-amber);
+  stroke-width: 2;
+  animation: battle-spotlight-ring var(--t-spotlight-pulse, 1600ms) ease-in-out infinite;
+}
+
+@keyframes battle-spotlight-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-spotlight-ring {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- Phase banner -------------------------------------------------------- */
+
+/* "Breeding Phase" / "Main Phase", wiped open and shut on the vertical blind the
+   reference client uses — 0.233s open, 0.3s held, 0.233s shut. */
+.game-phase-banner {
+  position: absolute;
+  top: 8%;
+  right: 0;
+  left: 0;
+  z-index: 70;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.game-phase-banner span {
+  padding: 0.34rem 2.4rem;
+  font-family: var(--ds-font-display);
+  font-size: clamp(0.95rem, 2.2vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: rgb(0 0 0 / 92%);
+  border-radius: 0.2rem;
+  animation: battle-phase-banner var(--t-phase-banner, 766ms) ease-in-out both;
+}
+
+@keyframes battle-phase-banner {
+  0% {
+    opacity: 0;
+    scale: 1 0;
+  }
+
+  15% {
+    opacity: 1;
+    scale: 1 0.8;
+  }
+
+  30%,
+  70% {
+    opacity: 1;
+    scale: 1 1;
+  }
+
+  85% {
+    scale: 1 0.2;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1 0;
+  }
+}
+
+/* --- Turn control ring and cover ----------------------------------------- */
+
+/* A ring turning slowly around the control for as long as it is the thing the
+   player is meant to press. */
+.game-end-turn-orb__ring {
+  position: absolute;
+  inset: -0.32rem;
+  pointer-events: none;
+  border: 2px dashed rgb(255 102 102 / 72%);
+  border-radius: 50%;
+  animation: battle-turn-ring var(--t-turn-control-pulse, 3200ms) linear infinite;
+}
+
+/* The cover is a debounce, not a state: it must not read as "your turn ended",
+   so the control only dims a little while it refuses a second click. */
+.game-end-turn-orb--covered {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.game-end-turn-orb--covered .game-end-turn-orb__ring {
+  opacity: 0.25;
+  animation-play-state: paused;
+}
+
+@keyframes battle-turn-ring {
+  0% {
+    rotate: 0deg;
+  }
+
+  100% {
+    rotate: 360deg;
+  }
+}
+
+/* --- Result splash ------------------------------------------------------- */
+
+/* The whole screen, the way the reference client ends a match: the board goes
+   dark behind it, one enormous word scales and lights up, and then everything
+   settles and stops moving. */
+.game-result {
+  --result-tint: rgb(255 214 102);
+
+  position: absolute;
+  inset: 0;
+  z-index: 96;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  overflow: auto;
+  background: rgb(0 0 0 / 82%);
+  animation: battle-result-in var(--t-result-splash-in, 520ms) ease-out both;
+}
+
+.game-result--loss {
+  --result-tint: rgb(255 108 108);
+}
+
+.game-result--draw {
+  --result-tint: rgb(178 190 214);
+}
+
+/* The light behind the word, which the settled state keeps at a low glow. */
+.game-result__rays {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 45% at 50% 38%, color-mix(in srgb, var(--result-tint) 26%, transparent), transparent);
+}
+
+.game-result__panel {
+  position: relative;
+  width: min(30rem, 100%);
+  text-align: center;
+}
+
+.game-result__eyebrow {
+  margin: 0 0 0.3rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(226 232 240 / 62%);
+}
+
+.game-result__title {
+  margin: 0 0 0.5rem;
+  font-family: var(--ds-font-display);
+  font-size: clamp(3rem, 12vw, 6.5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--result-tint);
+  text-shadow:
+    0 0 28px color-mix(in srgb, var(--result-tint) 55%, transparent),
+    0 4px 0 rgb(0 0 0 / 45%);
+  animation: battle-result-title var(--t-result-splash-in, 520ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.game-result__reason {
+  margin: 0 0 1.4rem;
+  font-size: 0.9rem;
+  color: rgb(226 232 240 / 82%);
+}
+
+.game-result__stats {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.4rem;
+}
+
+.game-result__stat {
+  flex: 1;
+  padding: 0.6rem 0.4rem;
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 0.7rem;
+}
+
+.game-result__stat-value {
+  display: block;
+  font-family: var(--ds-font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.game-result__stat-label {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.66rem;
+  color: rgb(226 232 240 / 62%);
+}
+
+@keyframes battle-result-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-result-title {
+  0% {
+    opacity: 0;
+    scale: 1.5;
+    filter: blur(8px);
+  }
+
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+  }
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Every badge, banner and splash below carries something to read, so it
+     appears at once and holds rather than being dropped. */
+  .game-fate-badge,
+  .game-phase-banner span,
+  .game-memory-prediction,
+  .game-memory-prediction__marker,
+  .game-spotlight,
+  .game-spotlight__ring,
+  .game-result,
+  .game-result__title {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+    animation: none;
+  }
+
+  /* A shake, a claw and a DP burst are motion with nothing to read: the notice
+     and the refreshed figure on the card already say what happened. */
+  .game-permanent-shake,
+  .game-hand-card--shake {
+    animation: none;
+  }
+
+  .game-claw,
+  .game-dp-pulse i {
+    display: none;
+  }
+
+  /* The figure is the half of the pulse that carries the number, so it stays. */
+  .game-dp-pulse em {
+    opacity: 1;
+    animation: none;
+  }
+
+  .game-end-turn-orb__ring {
+    animation: none;
+  }
+}
+
+/* The same pill inside the decision dialog, where a picked target is actually
+   looked at: bottom-right of its tile, clear of the order badge and the live
+   DP/suspended label on the other corners. */
+.decision-overlay__fate {
+  top: auto;
+  right: 0.35rem;
+  bottom: 2rem;
+  left: auto;
 }

@@ -11,9 +11,19 @@ import { useEnterAnimation } from "./animations";
 import { CardBurst } from "./CardBurst";
 import type { PermanentBurst } from "./showcases";
 import { linkCardSlots } from "./boardModel";
-import { memoryArcPath, memoryCellCenterFraction, shouldDrawMemoryArc } from "./memoryArc";
+import {
+  memoryArcPath,
+  memoryCellCenterFraction,
+  memoryPredictionPath,
+  shouldDrawMemoryArc,
+  shouldDrawMemoryPrediction,
+} from "./memoryArc";
 import { turnControlLabelKey, type TurnControlState } from "./turnControl";
 import { formatKeyword } from "./keywordDisplay";
+import { hasBlocker, sourceCountBadge } from "./fieldBadges";
+import type { PendingFateBadge } from "./pendingFate";
+import type { DpPulse } from "./dpPulse";
+import { TIMINGS } from "./timings";
 import { useTranslation } from "../i18n";
 
 type DropAttrs = Record<string, string>;
@@ -231,6 +241,57 @@ export function Pile({
   );
 }
 
+/** The three gashes of the claw, each a little behind the one above it. */
+const CLAW_TINE_INDEXES = [0, 1, 2];
+
+/**
+ * The claw the reference client rakes across a permanent that lost its battle:
+ * three tapered gashes swept corner to corner in a quarter of a second, ahead of
+ * the deletion burst. Drawn rather than drop-shadowed so the taper survives at the
+ * compact card widths a phone lays the board out at.
+ */
+export function ClawSlash() {
+  return (
+    <span className="game-claw" aria-hidden="true">
+      <svg viewBox="0 0 100 140" preserveAspectRatio="none" focusable="false">
+        {CLAW_TINE_INDEXES.map((index) => (
+          <path
+            key={index}
+            className="game-claw__tine"
+            style={{ "--claw-index": index } as CSSProperties}
+            d={`M ${-14 + index * 22} ${-6 + index * 4} C ${26 + index * 20} ${34 + index * 6}, ${52 + index * 18} ${72 + index * 6}, ${104 + index * 12} ${138 + index * 4}`}
+          />
+        ))}
+      </svg>
+    </span>
+  );
+}
+
+/** Where each DP particle leaves from, spread across the card rather than stacked. */
+const DP_PARTICLE_OFFSETS = [-34, -20, -7, 7, 20, 34];
+
+/**
+ * The particles a DP change throws off, and the refreshed figure riding with
+ * them. A debuff that takes the Digimon to nothing holds four times as long as an
+ * ordinary one — the reference client's own 0.1s → 0.4s stretch — because that is
+ * the change the player most needs to catch.
+ */
+export function DpPulseParticles({ pulse }: { pulse: DpPulse }) {
+  const hold = pulse.kind === "debuffFatal" ? TIMINGS.dpPulseFatalHold : TIMINGS.dpPulseHold;
+  return (
+    <span
+      className={`game-dp-pulse game-dp-pulse--${pulse.kind}`}
+      style={{ "--dp-pulse-hold": `${hold}ms` } as CSSProperties}
+      aria-hidden="true"
+    >
+      {DP_PARTICLE_OFFSETS.map((offset, index) => (
+        <i key={index} style={{ "--dp-particle-x": `${offset}px`, "--dp-particle-index": index } as CSSProperties} />
+      ))}
+      <em>{formatDpDelta(Math.abs(pulse.to - pulse.from))}</em>
+    </span>
+  );
+}
+
 /** Stars in the entrance halo; each one is placed and delayed by its position in game.css. */
 const SPARKLE_INDEXES = [0, 1, 2, 3, 4];
 
@@ -246,6 +307,10 @@ export function PermanentView({
   lunge,
   burst,
   pending,
+  fate,
+  shake,
+  claw,
+  dpPulse,
   suspendDelayMs,
   width,
   refCb,
@@ -263,6 +328,14 @@ export function PermanentView({
   compact?: boolean;
   /** Play the attack lunge, leaning toward the security stack in this direction. */
   lunge?: "up" | "down";
+  /** What an effect currently resolving is about to do to this permanent (server-projected). */
+  fate?: PendingFateBadge;
+  /** Shake the card: a refused action, or a battle it just lost. */
+  shake?: boolean;
+  /** Sweep the claw across the card, on the losing side of a battle. */
+  claw?: boolean;
+  /** The DP change this permanent is currently pulsing over. */
+  dpPulse?: DpPulse;
   /** The colour-keyed burst this permanent is playing, behind the card. */
   burst?: PermanentBurst;
   /** Held back while the card is still being announced centre-screen. */
@@ -285,13 +358,16 @@ export function PermanentView({
   const topId = perm.topCard?.cardId;
   if (!topId) return null;
   const def = getCardDefinition(topId);
-  const key = colorKey(def?.colors[0]);
-  const c = COLORS[key];
   const delta = perm.currentDP - perm.baseDP;
   const hasDpDelta = delta !== 0;
   const activeKeywords = [...perm.grantedKeywords].map(formatKeyword);
   const visibleKeywords = activeKeywords.slice(0, 3);
   const hiddenKeywordCount = activeKeywords.length - visibleKeywords.length;
+  // Server truth (`Permanent.keywords`): the resolved keyword list already folds a
+  // ＜Blocker＞ this Digimon only has because something granted it, so the shield is
+  // never read off the printed art.
+  const blocker = hasBlocker(perm);
+  const sources = sourceCountBadge(perm);
 
   const cardName = def?.nameEn ?? topId;
   const activate = onKeyboardActivate ?? onClick;
@@ -299,6 +375,9 @@ export function PermanentView({
   const states = [
     perm.isSuspended ? t("overlay.suspended") : undefined,
     perm.summoningSick ? t("overlay.summoningSick") : undefined,
+    // The coming fate joins the spoken state list rather than labelling the pill
+    // itself: a nested aria-label would rewrite the card's own accessible name.
+    fate ? t(fate.labelKey) : undefined,
   ].filter((state): state is string => state !== undefined);
   const stateLabel = states.length ? ` (${states.join(", ")})` : "";
   const dpLabel = hasDpDelta
@@ -334,7 +413,11 @@ export function PermanentView({
             : undefined
       }
       aria-describedby={onInspectStart ? "opponent-permanent-inspector" : undefined}
-      className={lunge ? `game-permanent-lunge--${lunge}` : undefined}
+      className={
+        [lunge ? `game-permanent-lunge--${lunge}` : "", shake ? "game-permanent-shake" : ""]
+          .filter(Boolean)
+          .join(" ") || undefined
+      }
       {...(drop ?? {})}
       style={{
         position: "relative",
@@ -459,19 +542,26 @@ export function PermanentView({
             ))}
           </span>
         ) : null}
+        {/* The claw the reference client sweeps over a permanent that lost its
+            battle, a beat before the shatter. Purely decorative, so it sits above
+            the art and takes no pointer events. */}
+        {claw ? <ClawSlash key={`claw-${perm.permanentId}`} /> : null}
+        {dpPulse ? <DpPulseParticles key={dpPulse.key} pulse={dpPulse} /> : null}
       </div>
-      {perm.stack.length ? (
+      {sources ? (
         <span
+          aria-label={t("game.digivolutionSources", { count: sources.count })}
           style={{
             position: "absolute",
             top: -7,
             left: -7,
             zIndex: 2,
-            background: c.base,
-            color: c.on,
-            width: 18,
+            background: COLORS[sources.color].base,
+            color: COLORS[sources.color].on,
+            minWidth: 18,
             height: 18,
-            borderRadius: "50%",
+            padding: "0 4px",
+            borderRadius: 9,
             display: "grid",
             placeItems: "center",
             fontFamily: "var(--ds-font-mono)",
@@ -480,7 +570,23 @@ export function PermanentView({
             boxShadow: "var(--ds-shadow-sm)",
           }}
         >
-          {perm.stack.length}
+          ×{sources.count}
+        </span>
+      ) : null}
+      {/* ＜Blocker＞ is the one keyword the board answers a question about every
+          turn ("can that thing stop my attack?"), so it gets a shield of its own
+          on the opposite corner rather than a slot in the keyword strip. */}
+      {blocker ? (
+        <span className="game-blocker-badge" aria-label={t("game.blockerBadge")}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 2.6 20 6v6.2c0 4.6-3.2 8-8 9.2-4.8-1.2-8-4.6-8-9.2V6z" />
+          </svg>
+        </span>
+      ) : null}
+      {fate ? (
+        <span className={`game-fate-badge game-fate-badge--${fate.tone}`} data-fate={fate.fate} aria-hidden="true">
+          <i aria-hidden="true">{fate.glyph}</i>
+          {t(fate.labelKey)}
         </span>
       ) : null}
       {hasDpDelta ? (
@@ -705,12 +811,32 @@ export function MemoryArc({ from, to }: { from: number; to: number }) {
   );
 }
 
+/**
+ * Where memory would land if the card the player is holding were played. Same
+ * shape as the arc above, hanging under the chips and dashed rather than solid,
+ * so the two never read as one line when both are on screen.
+ */
+export function MemoryPredictionArc({ from, to }: { from: number; to: number }) {
+  return (
+    <svg
+      className="game-memory-prediction"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={memoryPredictionPath(from, to)} vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
 export function MemoryGauge({
   value,
   compact,
   phaseLabel,
   phaseSweeping,
   arc,
+  prediction,
 }: {
   value: number;
   compact?: boolean;
@@ -720,6 +846,8 @@ export function MemoryGauge({
   phaseSweeping?: boolean;
   /** Forces the jump arc, for the showcase page — a match derives it from the value that changed. */
   arc?: { from: number; to: number };
+  /** Where memory would land if the held card were played, while one is hovered or dragged. */
+  prediction?: number;
 }) {
   const { t } = useTranslation();
   const gaugeLabel = t("game.memoryGauge", { memory: value > 0 ? `+${value}` : `${value}` });
@@ -792,6 +920,18 @@ export function MemoryGauge({
           aria-hidden="true"
         />
         {arcEnds ? <MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
+        {prediction !== undefined && shouldDrawMemoryPrediction(cv, prediction) ? (
+          <MemoryPredictionArc from={cv} to={prediction} />
+        ) : null}
+        {prediction !== undefined ? (
+          <span
+            className="game-memory-prediction__marker"
+            style={{
+              left: `calc(var(--memory-track-pad-x) + (100% - var(--memory-track-pad-x) * 2) * ${memoryCellCenterFraction(prediction)})`,
+            }}
+            aria-hidden="true"
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -803,19 +943,55 @@ export function MemoryGauge({
  * the same `endPhase` intent in both of its active states, because that is the
  * only intent the server advances a phase on.
  */
-export function TurnControl({ state, onEndPhase }: { state: TurnControlState; onEndPhase: () => void }) {
+export function TurnControl({
+  state,
+  onEndPhase,
+  covered: coveredOverride,
+}: {
+  state: TurnControlState;
+  onEndPhase: () => void;
+  /** Forces the debounce cover on, for the showcase page. */
+  covered?: boolean;
+}) {
   const { t } = useTranslation();
   const waiting = state === "waiting";
+  // The reference client parks an invisible disc over the control for 1.5s after
+  // a click, so a double tap cannot send a second endPhase into a phase that has
+  // already moved on. A UI guard only: the server refuses the repeat either way,
+  // and the control never LOOKS disabled — it just stops answering for the beat.
+  //
+  // The cover is also lifted the moment the control's own state changes, which is
+  // the board confirming the click landed. Without that, a player who ends the
+  // breeding step and then means to end the turn would have their second — and
+  // entirely different — action swallowed by a guard meant for a stutter.
+  const [cover, setCover] = useState<{ id: number; ms: number } | null>(null);
+  useEffect(() => {
+    if (!cover) return;
+    const timer = setTimeout(() => setCover((current) => (current?.id === cover.id ? null : current)), cover.ms);
+    return () => clearTimeout(timer);
+  }, [cover]);
+  useEffect(() => setCover(null), [state]);
+  const covered = coveredOverride ?? (!waiting && cover !== null);
   return (
     <button
       type="button"
       className={`game-end-turn-orb${waiting ? " game-end-turn-orb--waiting" : ""}${
         state === "endBreeding" ? " game-end-turn-orb--breeding" : ""
-      }`}
+      }${covered ? " game-end-turn-orb--covered" : ""}`}
       data-state={state}
       disabled={waiting}
-      onClick={onEndPhase}
+      aria-disabled={covered || undefined}
+      onClick={() => {
+        // Covered means the previous click is still in flight; swallow this one
+        // rather than disabling the button, which would read as "not your turn".
+        if (covered) return;
+        setCover({ id: Date.now(), ms: TIMINGS.turnControlCover });
+        onEndPhase();
+      }}
     >
+      {/* The ring the reference client turns around the control for as long as it
+          is the thing the player is meant to press. */}
+      {!waiting ? <span className="game-end-turn-orb__ring" aria-hidden="true" /> : null}
       {t(turnControlLabelKey(state))}
     </button>
   );
@@ -894,6 +1070,8 @@ export function Hand({
   selectCard,
   draggingInstanceId,
   selection,
+  shakeInstanceId,
+  onHoverChange,
   cardWidth = HAND_CARD_WIDTH,
   minExposure = HAND_MIN_EXPOSURE,
 }: {
@@ -903,6 +1081,10 @@ export function Hand({
   selectCard?: (index: number) => void;
   draggingInstanceId?: string;
   selection?: HandSelection;
+  /** The card a refused action was sent from: it shakes where it sits. */
+  shakeInstanceId?: string;
+  /** Which card the pointer is over, so the memory gauge can predict its play. */
+  onHoverChange?: (instanceId: string | undefined) => void;
   cardWidth?: number;
   /** How much of a buried card stays tappable. */
   minExposure?: number;
@@ -997,8 +1179,14 @@ export function Hand({
               // direct deterministic selection path without toggling twice.
               if (event.detail === 0) selectCard?.(i);
             }}
-            onMouseEnter={() => setHoveredIndex(i)}
-            onMouseLeave={() => setHoveredIndex(null)}
+            onMouseEnter={() => {
+              setHoveredIndex(i);
+              onHoverChange?.(entry.instanceId);
+            }}
+            onMouseLeave={() => {
+              setHoveredIndex(null);
+              onHoverChange?.(undefined);
+            }}
             role="button"
             tabIndex={0}
             aria-label={
@@ -1016,6 +1204,7 @@ export function Hand({
               drawn.has(entry.instanceId) ? "game-hand-card--drawn" : "",
               selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
               picked ? "game-hand-card--picked" : "",
+              shakeInstanceId === entry.instanceId ? "game-hand-card--shake" : "",
             ]
               .filter(Boolean)
               .join(" ")}

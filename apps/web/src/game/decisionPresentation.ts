@@ -26,6 +26,11 @@ export function decisionPresentation({
   sourcePermanentId?: string;
 }): DecisionPresentation {
   if (decision.kind === "optional") return sourcePermanentId === undefined ? "dialog" : "board";
+  // `chooseTargets` deliberately keeps the dialog. Its candidates are frequently
+  // cards that are NOT on the field (a revealed deck card, a card in the trash),
+  // and the grid is the only surface that can show those at all — so moving the
+  // on-field cases to the board would split one prompt across two answering
+  // surfaces depending on where its candidates happen to live.
   if (decision.kind !== "selectCards") return "dialog";
   const candidates = decision.options?.candidateInstanceIds ?? [];
   if (candidates.length === 0) return "dialog";

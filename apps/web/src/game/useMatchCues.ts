@@ -69,7 +69,9 @@ import {
   type ZoneShowcase,
 } from "./showcases";
 import { createAnimationQueue, type AnimationQueueMode, type AnimationStep } from "./animationQueue";
-import { CLASH_TOTAL_MS, SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
+import { phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
+import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
+import { CLASH_TOTAL_MS, COMBAT_IMPACT_TOTAL_MS, dpPulseTotalMs, SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
 
 /** Card back sent from a deck pile to the hand that just grew, in board coordinates. */
 export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number };
@@ -154,6 +156,12 @@ export interface MatchCues {
   /** Permanents held back from the board while their showcase is still up. */
   pendingPermanentIds: ReadonlySet<string>;
   attackLunge: AttackLunge | null;
+  /** "Breeding Phase" / "Main Phase", announced as the phase opens. */
+  phaseBanner: PhaseBanner | null;
+  /** Permanents currently taking the claw and the shake for a battle they lost. */
+  combatImpactIds: ReadonlySet<string>;
+  /** The DP change each permanent is currently pulsing over, by permanent id. */
+  dpPulses: ReadonlyMap<string, DpPulse>;
   securityHitSeat: number | null;
   drawFlights: readonly DrawFlight[];
   drawBursts: readonly DrawBurst[];
@@ -225,6 +233,9 @@ export function useMatchCues({
   const [zoneShowcase, setZoneShowcase] = useState<ZoneShowcase | null>(null);
   const [permanentBursts, setPermanentBursts] = useState<ReadonlyMap<string, PermanentBurst>>(new Map());
   const [pendingPermanentIds, setPendingPermanentIds] = useState<ReadonlySet<string>>(new Set());
+  const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
+  const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
+  const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
 
   // Cues are observed twice for your own actions (the intent handler fires one
   // immediately, the server echo arrives later), so repeats are suppressed.
@@ -247,6 +258,11 @@ export function useMatchCues({
   const deleteBurstKeyRef = useRef(0);
   const unsuspendSweepKeyRef = useRef(0);
   const showcaseKeyRef = useRef(0);
+  const phaseBannerKeyRef = useRef(0);
+  const dpPulseKeyRef = useRef(0);
+  // Last read of every permanent's live DP, so the next commit can tell which
+  // figures actually moved. The first read is only a baseline.
+  const dpByPermanentRef = useRef<Map<string, number> | null>(null);
   const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
   // Set when the draw phase is announced and spent by the hand that grows in the
   // same commit, which is what tells a turn-start draw from an effect draw.
@@ -464,10 +480,61 @@ export function useMatchCues({
         });
       }
     }
+    // A permanent that lost a battle takes the claw and the shake first, and its
+    // burst waits behind them — the reference client hits the card, then breaks
+    // it. Only combat deletions get the impact; an effect deletion has no blow
+    // to land.
+    const beaten = new Set<string>();
+    for (const event of fresh) {
+      if (event.kind !== "combatResolved") continue;
+      for (const permanentId of event.deletedPermanentIds) beaten.add(permanentId);
+    }
+    if (beaten.size > 0) {
+      const impacted: ReadonlySet<string> = new Set(beaten);
+      enqueue({
+        id: `combat-impact-${[...beaten].join(",")}`,
+        track: "combatImpact",
+        replace: true,
+        async run(context) {
+          if (context.mode !== "live") return;
+          try {
+            setCombatImpactIds(impacted);
+            await context.wait(COMBAT_IMPACT_TOTAL_MS);
+          } finally {
+            setCombatImpactIds((current) => (current === impacted ? new Set() : current));
+          }
+        },
+      });
+    }
     for (const event of fresh) {
       for (const anchorId of deletionAnchorIdsFromEvent(event)) {
-        const step = deleteBurstStep(anchorId);
+        const step = deleteBurstStep(anchorId, beaten.has(anchorId) ? COMBAT_IMPACT_TOTAL_MS : 0);
         if (step) enqueue(step);
+      }
+    }
+    const openedPhase = [...fresh].reverse().find((event) => event.kind === "phaseChanged");
+    if (openedPhase?.kind === "phaseChanged") {
+      phaseBannerKeyRef.current += 1;
+      const banner = phaseBannerFrom({
+        phase: openedPhase.phase,
+        turnSeat: openedPhase.turnSeat,
+        viewerSeat,
+        key: phaseBannerKeyRef.current,
+      });
+      if (banner) {
+        enqueue({
+          id: `phase-banner-${banner.key}`,
+          track: "phaseBanner",
+          replace: true,
+          // It names the phase the player is now in, so it keeps its time.
+          skippable: false,
+          async run(context) {
+            setPhaseBanner(banner);
+            await context.wait(TIMINGS.phaseBanner);
+            if (context.cancelled) return;
+            setPhaseBanner((current) => (current?.key === banner.key ? null : current));
+          },
+        });
       }
     }
     const unsuspendPhase = [...fresh]
@@ -552,6 +619,55 @@ export function useMatchCues({
     });
   }, [notices, queue]);
 
+  // A DP figure that moved gets a pulse. The driver is the synchronized
+  // `currentDP` itself: the engine has already applied every modifier by the time
+  // the number changes, so nothing here re-derives a rule. The first read is only
+  // a baseline, which is what keeps a reconnect from pulsing the whole board.
+  const dpSignature = state
+    ? [...state.players]
+        .flatMap((player) => [...player.battleArea, ...(player.breeding ? [player.breeding] : [])])
+        .map((permanent) => `${permanent.permanentId}:${permanent.currentDP}`)
+        .join(",")
+    : "";
+  useEffect(() => {
+    if (!state) return;
+    const current = new Map<string, number>();
+    for (const player of state.players) {
+      for (const permanent of player.battleArea) current.set(permanent.permanentId, permanent.currentDP);
+      if (player.breeding) current.set(player.breeding.permanentId, player.breeding.currentDP);
+    }
+    const previous = dpByPermanentRef.current;
+    dpByPermanentRef.current = current;
+    if (!previous || queue.getMode() !== "live") return;
+    const pulses = diffDpPulses({ previous, next: current, nextKey: dpPulseKeyRef.current });
+    if (pulses.length === 0) return;
+    dpPulseKeyRef.current += pulses.length;
+    for (const pulse of pulses) {
+      queue.enqueue({
+        id: `dp-pulse-${pulse.key}`,
+        // Several figures can move in one resolution, so each card pulses on its
+        // own track rather than queueing behind another card's.
+        track: `dpPulse-${pulse.permanentId}`,
+        replace: true,
+        async run(context) {
+          if (context.mode !== "live") return;
+          try {
+            setDpPulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
+            await context.wait(dpPulseTotalMs(pulse.kind === "debuffFatal"));
+          } finally {
+            setDpPulses((pulsing) => {
+              if (pulsing.get(pulse.permanentId)?.key !== pulse.key) return pulsing;
+              const next = new Map(pulsing);
+              next.delete(pulse.permanentId);
+              return next;
+            });
+          }
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dpSignature]);
+
   // A hand that grew was drawn into. The opening hand and a mulligan redeal are
   // not draws, so the first observed pair is only a baseline.
   const you = state?.players[viewerSeat];
@@ -607,7 +723,7 @@ export function useMatchCues({
    * measurement the caller kept, by permanent id or by the id of the card that sat on top;
    * with no measurement there is nowhere to draw it.
    */
-  function deleteBurstStep(anchorId: string): AnimationStep | null {
+  function deleteBurstStep(anchorId: string, delayMs = 0): AnimationStep | null {
     const center = anchors.permanentCenter?.(anchorId);
     if (!center) return null;
     const key = (deleteBurstKeyRef.current += 1);
@@ -619,6 +735,9 @@ export function useMatchCues({
       track: `deleteBurst-${key}`,
       async run(context) {
         if (context.mode !== "live") return;
+        // A permanent beaten in battle takes the blow before it breaks.
+        if (delayMs > 0) await context.wait(delayMs);
+        if (context.cancelled) return;
         try {
           setDeleteBursts((bursts) => [...bursts, burst]);
           await context.wait(TIMINGS.cardBurst);
@@ -750,6 +869,9 @@ export function useMatchCues({
     permanentBursts,
     pendingPermanentIds,
     attackLunge,
+    phaseBanner,
+    combatImpactIds,
+    dpPulses,
     securityHitSeat,
     drawFlights,
     drawBursts,

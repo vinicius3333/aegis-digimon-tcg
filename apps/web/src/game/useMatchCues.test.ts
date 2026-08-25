@@ -10,6 +10,7 @@ import {
   SECURITY_BREAK_TOTAL_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
+  COMBAT_IMPACT_TOTAL_MS,
 } from "./timings";
 
 const playSound = vi.hoisted(() => vi.fn<(kind: string) => void>());
@@ -168,7 +169,14 @@ describe("match cues", () => {
     await advance(0);
 
     rerender([COMBAT]);
+    // A permanent beaten in battle takes the claw and the shake first; the burst
+    // waits behind them rather than breaking the card before it is hit.
     await advance(0);
+    expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+    expect(result.current.deleteBursts).toEqual([]);
+
+    await advance(COMBAT_IMPACT_TOTAL_MS);
+    expect(result.current.combatImpactIds.size).toBe(0);
     expect(result.current.deleteBursts).toHaveLength(1);
     expect(result.current.deleteBursts[0]).toMatchObject({ x: 120 - 48, y: 80 - 48 });
 
@@ -176,7 +184,7 @@ describe("match cues", () => {
     expect(result.current.deleteBursts).toEqual([]);
 
     rerender([COMBAT, { ...COMBAT, deletedPermanentIds: ["perm-unmeasured"] }]);
-    await advance(0);
+    await advance(COMBAT_IMPACT_TOTAL_MS);
     expect(result.current.deleteBursts).toEqual([]);
   });
 

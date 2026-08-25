@@ -2,7 +2,7 @@ import { cardImageUrls, getCardDefinition, type CardDefinition } from "@aegis/sh
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCardSleeve } from "./sleeve";
-import { COLORS, colorKey, emblemFor, paletteFor, sigilPaths } from "./theme";
+import { COLORS, colorKey, emblemFor, paletteFor, palettePairFor, sigilPaths } from "./theme";
 
 /** True on hover-capable (desktop) pointers; false on touch/responsive devices. */
 function useHoverZoomEnabled(): boolean {
@@ -332,6 +332,7 @@ function TokenInfo({ def, width, dp }: { def: CardDefinition; width: number; dp?
   const scale = width / 92;
   const px = (n: number) => Math.round(n * scale);
   const c = paletteFor(def.colors);
+  const dpChip = palettePairFor(def.colors);
   const cost = def.playCost;
   const dpValue = dp ?? def.dp;
   const traits = [def.forms?.[0], def.attributes?.[0], def.types?.[0]].filter((t) => t && t !== "-") as string[];
@@ -434,8 +435,13 @@ function TokenInfo({ def, width, dp }: { def: CardDefinition; width: number; dp?
                 fontSize: px(9),
                 fontWeight: 700,
                 color: "#fff",
-                background: "rgba(255,255,255,0.14)",
-                border: `1px solid ${c.edge}`,
+                // A dual-colour Digimon carries both of its colours on the chip,
+                // which is the fastest read of "this counts as red AND blue" the
+                // board can give without a second badge.
+                background: dpChip.split
+                  ? `linear-gradient(90deg, ${dpChip.from.base} 0 50%, ${dpChip.to.base} 50% 100%)`
+                  : "rgba(255,255,255,0.14)",
+                border: `1px solid ${dpChip.split ? dpChip.to.edge : c.edge}`,
                 borderRadius: px(5),
                 padding: `${px(1)}px ${px(4)}px`,
                 lineHeight: 1.25,

@@ -6,7 +6,10 @@ import {
   memoryCellCenterPercent,
   memoryCellDistance,
   memoryCellIndex,
+  memoryPredictionPath,
+  predictedMemory,
   shouldDrawMemoryArc,
+  shouldDrawMemoryPrediction,
 } from "./memoryArc";
 
 describe("memory gauge geometry", () => {
@@ -61,5 +64,34 @@ describe("memoryArcPath", () => {
 
   it("stops rising once the arc reaches the top of the box", () => {
     expect(memoryArcPath(10, -10).split(" ")[5]).toBe(memoryArcPath(9, -10).split(" ")[5]);
+  });
+});
+
+describe("memory prediction", () => {
+  it("takes the cost off the current value and clamps it to the gauge", () => {
+    expect(predictedMemory(4, 3)).toBe(1);
+    expect(predictedMemory(-8, 6)).toBe(-10);
+    expect(predictedMemory(2, 0)).toBe(2);
+  });
+
+  it("draws only when the prediction would actually move the marker", () => {
+    expect(shouldDrawMemoryPrediction(3, 3)).toBe(false);
+    expect(shouldDrawMemoryPrediction(3, 2)).toBe(true);
+  });
+
+  it("nests inside the arc a real change of the same size would leave", () => {
+    // The two can be on screen at once — a card is picked up while the last
+    // change is still fading — so they must never be read as one line.
+    const prediction = memoryPredictionPath(5, 1);
+    const actual = memoryArcPath(5, 1);
+    const predictedApex = Number(prediction.split(" Q ")[1]!.split(" ")[1]);
+    const actualApex = Number(actual.split(" Q ")[1]!.split(" ")[1]);
+    expect(predictedApex).toBeGreaterThan(actualApex);
+  });
+
+  it("starts and ends on the chips it names, on the same baseline as the real arc", () => {
+    const path = memoryPredictionPath(6, 2);
+    expect(path.startsWith(`M ${Math.round(memoryCellCenterPercent(6) * 100) / 100} 60`)).toBe(true);
+    expect(path.endsWith(` ${Math.round(memoryCellCenterPercent(2) * 100) / 100} 60`)).toBe(true);
   });
 });

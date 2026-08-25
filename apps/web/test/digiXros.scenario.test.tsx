@@ -125,7 +125,7 @@ scenario("digi-xros", () => {
     const xrosPermEl = within(yourBattleArea())
       .getByRole("img", { name: /^shoutmon \+ starsword$/i })
       .closest('[data-drop="perm-you"]') as HTMLElement;
-    expect(within(xrosPermEl).getByText(/^1$/i)).toBeTruthy();
+    expect(within(xrosPermEl).getByText(/^×1$/i)).toBeTruthy();
 
     await opponent.leave();
   }, 20_000);
