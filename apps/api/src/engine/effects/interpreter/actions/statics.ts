@@ -114,10 +114,15 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
       // and runs `action.actions`. The scope is ALWAYS the opponent (the action name): force
       // controller:"opponent" onto the filter so a filter that omits it (P-075's IR carries only
       // `{kind:["Digimon"]}`) does not leak the aura onto the controller's own Digimon.
-      const candidates = candidatePermanents(ctx, {
-        filter: { ...(action.filter ?? { kind: ["Digimon"] }), controller: "opponent" },
-        count: "all",
-      } as Target);
+      const declaredTarget =
+        action.target ?? ({ filter: action.filter ?? { kind: ["Digimon"] }, count: "all" } as Target);
+      const targetIds = await resolvePermanentTargets(ctx, {
+        ...declaredTarget,
+        filter: { ...declaredTarget.filter, controller: "opponent" },
+      });
+      const candidates = targetIds
+        .map((permanentId) => ctx.game.permanentById(permanentId))
+        .filter((permanent): permanent is NonNullable<typeof permanent> => permanent !== undefined);
       const duration = toDuration(action.duration ?? "untilOpponentTurnEnd");
       for (const permanent of candidates) {
         // Anchor the watcher to its OWN permanent: `fireSubTrigger(event)` runs every watcher of

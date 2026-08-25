@@ -19,7 +19,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    owner (opponent) = the opponent loses 1 memory.
 // 2. Delete: DeleteByDPBudget asks for any combination whose live DP total is at most
 //    the stated budget. The name-only stack condition is preserved on the action.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

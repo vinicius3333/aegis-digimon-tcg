@@ -374,3 +374,32 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-013.
+
+## BT9-014 — WarGrowlmon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-5 Digimon, play cost 8, 8000 DP, `Ultimate`/`Virus`, complete `Cyborg`/`X Antibody` traits, standard red-level-4 evolution for 3, and all printed text were checked.
+2. **Alternate legal evolution (1/1):** Public intents build a complete Guilmon-X/Growlmon/Growlmon-X/WarGrowlmon chain and exercise the exact WarGrowlmon alternate evolution for 0.
+3. **Aura recipient count (1/1):** The shared action now resolves the printed target instead of ignoring it; deleting all three opposing candidates produces exactly two memory-loss triggers.
+4. **Aura body and ownership (1/1):** Each selected opponent Digimon receives `[On Deletion] Lose 1 memory`; deletion changes memory in the correct seat-relative direction.
+5. **Aura duration (1/1):** The installed watcher uses `untilOpponentTurnEnd`, matching the printed duration rather than a permanent grant.
+6. **Optional aggregate deletion (1/1):** The second action is an optional `DeleteByDPBudget`, allowing any legal combination rather than forcing a single target.
+7. **Exact budget and inherited modifiers (1/1):** Two 3000-DP targets fit the printed 6000 total; Guilmon X and Growlmon X inherited modifiers raise a legal combined selection to 8000.
+8. **Q1807 name boundary (1/1):** A WarGrowlmon exact-name source enables deletion, while an `X Antibody` trait-only Greymon X source does not.
+9. **Direct IR and registration (1/1):** The module has full coverage, no residual clauses, both ordered actions, exactly one `registerIrCard("BT9-014", compiled)` call, no legacy registration, and a set-index import.
+10. **Reproducible verification (1/1):** Focused proof passed 6/6; the shared granted-effect regression passed 2/2; API/workspace typecheck, focused formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-014
+rg -n 'Q1807' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-014.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-014.test.ts src/cards/BT15/BT15-068.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-014.ts apps/api/src/cards/BT9/BT9-014.test.ts apps/api/src/engine/effects/interpreter/actions/statics.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-014.
