@@ -20,6 +20,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks the exact catalog and IR contract, draws for a realistic Yokomon-under-CS Digimon stack, refuses the draw for a non-CS carrier, suppresses a second attack in the same turn, and permits two distinct Yokomon sources to draw independently.
 - Verification: focused suite — 4 passed; shared `condition.selfHasTrait` mechanism regression was already green at this unchanged seam; workspace typecheck remained green after BT23-001 and no production seam changed; `git diff --check` — passed.
 
+## BT23-003 — Motimon — 10/10
+
+- Catalog evidence: Black level 2 Digi-Egg; form `In-Training`, attribute `-`, types `Lesser` and `CS`; inherited text is `[Your Turn] [Once Per Turn] When any of your [CS] trait Option cards are placed in the battle area, this Digimon may attack`; no main or Security text and no evolution requirements.
+- Knowledge base: `node tools/kb/query.mjs card BT23-003` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: `BT23-003.ts` installs an inherited, once-per-turn `whenOptionPlayed` subtrigger during `YourTurn`, filters the event subject to the controller's CS-trait Option, and offers a self attack that suspends normally. The module registers exclusively through `registerIrCard("BT23-003", compiled)` with full coverage and no residual clauses.
+- Primitive trace: `PlaceInBattleAreaSelf`/`placeOptionAsPermanent` emits `whenOptionPlayed` only after producing the Option permanent; the subtrigger matches the payload's permanent definition and controller; `forceAttack` runs the full legal target, suspension, combat, and end-of-attack lifecycle; the generic optional wrapper resolves before combat; inherited frequency is keyed to the Motimon source instance.
+- Behavioral proof: the focused suite checks the exact catalog and IR contract, attacks after a controller-owned CS Option placement, suppresses a second placement that turn, rejects a non-CS Option and an opponent-owned CS Option, and proves the controller can refuse without suspending or changing security.
+- Verification: focused suite — 5 passed; Option-placement event regression — 1 passed (129 unrelated tests skipped); `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-003 through BT23-102.
+BT23-004 through BT23-102.
