@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-015.js";
 
 describe("EX8-015", () => {
@@ -26,5 +28,70 @@ describe("EX8-015", () => {
     });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+  });
+
+  it("uses the WarGrowlmon route for 1, gains 3000 DP, blocks returns, and deletes at 10000", async () => {
+    expect(digivolutionRequirementsFor("EX8-015")).toContainEqual({
+      names: ["WarGrowlmon"],
+      cost: 1,
+      isAlternate: true,
+    });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT2-017", as: "warGrowlmon" }],
+        hand: [{ card: "EX8-015", as: "xWarGrowlmon" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-024", as: "boundary" },
+          { card: "AD1-004", as: "above" },
+        ],
+      },
+    });
+    s.state.memory = 1;
+    const boundaryId = s.perm("boundary").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("warGrowlmon").permanentId,
+        instanceId: s.inst("xWarGrowlmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("warGrowlmon").currentDP).toBe(11000);
+    expect(observe(s.engine).isRestricted(s.perm("warGrowlmon"), "beReturned")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === boundaryId)).toBe(true);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("AD1-004");
+
+    await advance(s.engine).verb.returnToHand([s.perm("warGrowlmon").topCard.instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("does not delete without a WarGrowlmon- or X Antibody-name source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-010", as: "meramon" }],
+        hand: [{ card: "EX8-015", as: "xWarGrowlmon" }],
+      },
+      1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("meramon").permanentId,
+        instanceId: s.inst("xWarGrowlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("meramon").topCard.instanceId === s.inst("xWarGrowlmon").instanceId);
+
+    expect(s.perm("meramon").currentDP).toBe(11000);
+    expect(observe(s.engine).isRestricted(s.perm("meramon"), "beReturned")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
