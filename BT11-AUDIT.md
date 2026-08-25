@@ -226,3 +226,12 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Primitive trace: evolution validates blue level 3, pays 2, retains the source, and draws; attack publication carries the attacking permanent ID so each watcher stays bound to its host; zoneCount reads the opposing hand at activation; the inherited source is collected from the live stack, `youHave` scans controller battle-area Tamers, and Return selects the exact printed level before moving the target stack to its owner's hand.
 - Behavioral proof: the focused suite checks every catalog field and both complete watcher clauses, performs the exact evolution, gains at the eight-card boundary and only once across two attack events, rejects seven cards, returns one of two level 3 targets with a realistic inherited source and Tamer, preserves the level 4 negative, and suppresses the second inherited activation.
 - Verification: focused suite — 5 passed; workspace typecheck — passed; `git diff --check` — passed.
+
+## BT11-026 — Hyogamon — 10/10
+
+- Catalog evidence: Blue level 4 Digimon, play cost 5, 5000 DP, evolves from blue level 3 for 1; form `Champion`, attribute `Virus`, type `Ice-Snow`; no main, inherited, Security, alternate evolution, or keyword text.
+- Knowledge base: `node tools/kb/query.mjs card BT11-026` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the executable module is intentionally vanilla with an empty effect list, full coverage, and no residuals; registration is exclusively `registerIrCard("BT11-026", compiled)`.
+- Primitive trace: ordinary play validates the hand card, pays exactly 5, creates a 5000-DP permanent, and collects no card-effect timings; ordinary evolution validates a blue level-3 base, pays exactly 1, moves the former top into the evolution stack, and performs only the rules draw.
+- Behavioral proof: the focused suite checks every catalog field and absence of all effect-text fields, exact empty full-coverage IR and registry presence, performs the printed one-cost evolution while observing the retained base, and plays for exactly 5 while observing 5000 DP and no triggered side effects.
+- Verification: focused suite — 3 passed; workspace typecheck — passed; `git diff --check` — passed.
