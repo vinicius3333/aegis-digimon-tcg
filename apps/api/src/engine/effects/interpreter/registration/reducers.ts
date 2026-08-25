@@ -71,6 +71,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "P-174", // face-up [Nightmare Soldiers] in security -> -4
   "ST14-09", // reduce this card's play cost by 4 for every 10 cards in your trash
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
+  "BT21-030", // place 1 [Shoutmon] under itself -> -1 and enable trash DigiXros materials
   "BT8-043", // delete 1 purple [Cherubimon] -> -8
   "BT9-097", // condition: you have a Digimon with [X Antibody] card name in play -> -2 (KB Q1902)
   "BT9-095", // X Antibody card name in a Digimon's stack -> -2 (KB Q1899)

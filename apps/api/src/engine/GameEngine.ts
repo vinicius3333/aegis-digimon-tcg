@@ -5480,6 +5480,8 @@ export class GameEngine {
       payMemory: mem.payMemory,
       adjustedPlayCost: (_state, seat, definition, base) =>
         this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
+      finalizePlayCost: async (_state, _seat, instance, _definition, baseCost) =>
+        this.fireBeforePayCost(instance, baseCost, false),
       digiXrosNamesOf: (instanceId) => {
         const located = this.findInstance(instanceId);
         if (located === undefined) return [];
@@ -5496,6 +5498,7 @@ export class GameEngine {
       canSubstituteMaterial: (permanentId) => this.continuous.hasKeyword(permanentId, "DigiXrosSubstitute"),
       nextPermanentId: () => this.nextPermanentId(),
       placeUnder: (targetPermanentId, instanceIds) => this.primitives.placeUnder(targetPermanentId, instanceIds),
+      placePendingDigivolution: this.playCardDeps().placePendingDigivolution,
       relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
         this.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),
       suspendPermanent: async (permanentId) => {

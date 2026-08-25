@@ -25,18 +25,27 @@ export const compiled: CompiledCard = {
           event: "wouldBePlayed",
           mode: "reduceCost",
           amount: 1,
-          cost: {
-            kind: "placeUnder",
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Shoutmon"], match: "name" }],
+          actions: [
+            {
+              kind: "SelectBind",
+              target: {
+                filter: { names: ["Shoutmon"], controller: "mine", zone: "battleArea" },
+                count: 1,
+                bindAs: "bt21030Shoutmon",
               },
-              count: 1,
             },
-            raw: "by placing 1 of your [Shoutmon] under it",
-          },
+            {
+              kind: "TrashDigivolution",
+              target: { fromSelectionRef: "bt21030Shoutmon", filter: {}, count: 1 },
+              amount: 99,
+            },
+            {
+              kind: "PlaceUnder",
+              target: { fromSelectionRef: "bt21030Shoutmon", filter: {}, count: 1 },
+              targetIsPermanent: true,
+              underFilter: { names: ["Shoutmon X7: Superior Mode"] },
+            },
+          ],
           additionalEffects: [
             {
               kind: "AllowDigiXrosMaterialsFromTrash",
