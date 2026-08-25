@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT15/BT15-088.js";
 import "./BT13-010.js";
+import "./BT13-014.js";
 
 describe("BT13-010 Biyomon", () => {
   it("when played by an effect, may return Kristy Damon and digivolve into Garudamon for free", async () => {
