@@ -434,6 +434,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; adds one Hudie plus one CS Tamer and bottoms the exact remainder; from a realistic inherited stack plays only the eligible cost-5 Hudie, leaves a cost-6 peer in hand, observes the bound evolution lock, preserves the result through owner turn end, and deletes it at opponent turn end; and accepts off-color level-2 CS evolution for 0 while rejecting an off-color non-CS peer.
 - Verification: focused suite — 6 passed; shared RevealAdd, binding, play, restriction, delayed-deletion, end-turn ordering, inherited-frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-049 — Monodramon — 10/10
+
+- Catalog evidence: Black level 3, play cost 3, 1000 DP, standard black-level-2 evolution for 0 plus alternate level-2 CS evolution for 0; form `Rookie`, attribute `Vaccine`, types `Mini Dragon` and `CS`; at Start of Your Main Phase, trashing one Dragonkin, Cyborg, Device, or CS card from hand pays one shared cost for Draw 1 and gain 1 memory; inherited All Turns gives its carrier +1000 DP.
+- Knowledge base: `node tools/kb/query.mjs card BT23-049` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: the hand-authored compiled IR already corrects the runtime record's comma-truncated empty action and models one cost across both payloads; registration is exclusively `registerIrCard("BT23-049", compiled)` with full coverage and no residual clauses. The audit adds complete catalog, live inherited DP, and alternate-evolution evidence.
+- Primitive trace: the Draw action owns the single filtered hand-trash cost and aborts the remaining clause when payment is unavailable; successful payment trashes exactly one matching card, draws exactly one, then the uncosted second action gains exactly 1 memory; the inherited continuous modifier binds only the realistic carrier.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; pays with exactly one matching card while preserving a nonmatching hand card, draws the exact deck top, and gains 1 memory; proves an unpayable hand neither draws nor gains; observes inherited +1000 on a realistic stack; and accepts off-color level-2 CS evolution for 0 while rejecting an off-color non-CS peer.
+- Verification: focused suite — 5 passed; shared cost abort, multi-action clause, Draw, memory, hand-trait, inherited-continuous, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-049 through BT23-102.
+BT23-050 through BT23-102.
