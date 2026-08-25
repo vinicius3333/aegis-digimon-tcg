@@ -416,6 +416,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; suspends an opposing Digimon as the cost and observes the unsuspend lock; redirects a player attack to suspended Rosemon and resolves the redirected battle; observes Fortitude live; verifies the exact permanent-kind, ownership, trait, suspended, duration, optional, and frequency boundaries; and accepts off-color level-5 CS evolution while rejecting a non-CS peer.
 - Verification: focused suite — 7 passed; shared Fortitude, cross-controller suspension, unsuspend restriction, attack redirect, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-047 — Examon — 10/10
+
+- Catalog evidence: Green/red/blue level 7, play cost 15, 15000 DP, standard green-, red-, or blue-level-6 evolution for 5; form `Mega`, attribute `Data`, types `Holy Warrior`, `Royal Knight`, and `CS`; Piercing, Security Attack +1, and Partition green level 5 plus blue level 5; On Play/When Digivolving suspends five opposing Digimon/Tamers, prevents all opposing Digimon from unsuspending at their next unsuspend phase, then may attack; Your Turn once per turn, when opposing security is removed, trashes an effect-placed opposing Option and then deletes one suspended opposing Digimon/Tamer.
+- Knowledge base: Q5313 gives Security effects immediate priority over pending security-check/removal triggers. Q5314 limits the Option target to cards placed in battle area by an effect. Q5315 confirms a checked Memory Boost first enters battle through its Security effect and can then be trashed by Examon's pending watcher.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-047", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live keyword, own-security negative, and complete frequency evidence without changing execution.
+- Primitive trace: all three static keywords project through their consuming ledgers; both entry timings cap suspension at five across Digimon/Tamers, apply the next-unsuspend-phase restriction to every opposing Digimon including an unsuspended sixth, then offer the source attack; the turn watcher keys only opposing security removal, resolves after Security effects, filters battle-area Options by effect placement, continues to suspended deletion, and consumes one physical-source use.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; suspends exactly five of six opposing permanents while locking all opposing Digimon; trashes the first effect-placed Option and deletes the first suspended target, then proves a second event does nothing; proves own security removal does not trigger; and observes Piercing, Security Attack +1, and Partition live.
+- Verification: focused suite — 7 passed; shared Partition, keyword, security priority, placed-Option, mass suspension, next-unsuspend restriction, optional attack, and frequency mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-047 through BT23-102.
+BT23-048 through BT23-102.

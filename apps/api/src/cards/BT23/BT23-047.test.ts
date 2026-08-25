@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -7,6 +7,28 @@ import "../index.js";
 import { compiled } from "./BT23-047.js";
 
 describe("BT23-047 Examon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-047")).toMatchObject({
+      cardId: "BT23-047",
+      nameEn: "Examon",
+      colors: ["Green", "Red", "Blue"],
+      kinds: ["Digimon"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Green", level: 6, memoryCost: 5 },
+        { color: "Red", level: 6, memoryCost: 5 },
+        { color: "Blue", level: 6, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Holy Warrior", "Royal Knight", "CS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("suspends exactly five opposing Digimon/Tamers and locks every opposing Digimon's next unsuspend", async () => {
     const s = setupEngine(
       {
@@ -72,7 +94,12 @@ describe("BT23-047 Examon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondSuspendedId)).toBe(true);
   });
 
-  it("declares Piercing, Security Attack +1, and Partition", () => {
+  it("exposes Piercing, Security Attack +1, and Partition through live keyword seams", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-047", as: "exa" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasPierce(s.perm("exa"))).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("exa"), "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).hasKeyword(s.perm("exa"), "Partition")).toBe(true);
     expect(
       compiled.effects
         .filter((entry) => entry.trigger === "Static")
@@ -123,5 +150,23 @@ describe("BT23-047 Examon", () => {
         },
       ],
     });
+  });
+
+  it("ignores removal from its own security stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-047", as: "exa" }],
+        security: [{ card: "BT1-009", as: "ownSecurity" }],
+      },
+      1: {
+        battleArea: [
+          { card: "P-035", as: "option" },
+          { card: "BT1-009", as: "suspended", suspended: true },
+        ],
+      },
+    });
+    s.perm("option").placedByEffect = true;
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
   });
 });
