@@ -479,3 +479,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-040.test.ts`).
+
+## BT20-041 — Crowmon
+
+- Catalog contract: green/yellow level 5 Vaccine Mysterious Bird/ACCEL, play cost 6/6000 DP, green or yellow level-4 evolution cost 4 plus level-4 ACCEL alternate cost 3; On Play/When Digivolving suspends one opposing Digimon, gives one allied Digimon +3000 DP for the turn, then one allied Digimon may attack; inherited attack once per turn gives one opposing Digimon -4000 DP for the turn.
+- Knowledge base: no card-specific rulings; action order, independent allied/opposing targets, duration, optional attack, alternate cost, and inherited frequency are unambiguous.
+- Implementation evidence: both entry timings carry the same ordered Suspend, allied ModifyDP, and optional Attack actions. The inherited When Attacking entry targets one opponent, applies -4000 for the turn, and is source-scoped once per turn. Alternate evolution and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: playing Crowmon suspends a 6000-DP opponent, raises itself from 6000 to 9000, and takes the offered attack to delete that target. Groundramon with Crowmon underneath attacks a 6000-DP opponent; the inherited -4000 resolves before battle and the target is deleted.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-041.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; dual entry timing/suspension 2/2; allied +3000/duration 2/2; optional follow-up attack/order 2/2; inherited -4000/attack/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-041.test.ts`).
