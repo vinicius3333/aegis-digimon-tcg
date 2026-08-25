@@ -31,7 +31,13 @@ export const tokenDefinitions: readonly CardDefinition[] = [
   tok("Fujitsumon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Blue] }),
   tok("Uka no Mitama", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Yellow] }),
   tok("Gyuukimon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Purple] }),
-  tok("Pipe Fox", { level: 4, dp: 6000, playCost: 4, colors: [CardColor.Yellow] }),
+  tok("Pipe Fox", {
+    level: 4,
+    dp: 6000,
+    playCost: 4,
+    colors: [CardColor.Yellow],
+    effectText: "＜Blocker＞",
+  }),
   tok("Paishu", { dp: 6000, playCost: 0, colors: [CardColor.Yellow] }),
   tok("Kotenken", {
     dp: 9000,
