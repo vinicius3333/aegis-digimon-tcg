@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
           to: "deckBottom",
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",
@@ -59,6 +60,7 @@ const compiled: CompiledCard = {
           to: "deckBottom",
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",
@@ -93,6 +95,7 @@ const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",

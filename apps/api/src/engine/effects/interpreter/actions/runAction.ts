@@ -68,10 +68,16 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind === "Return" &&
     ((action.from?.length ?? 0) > 0 ||
       (action.target.filter.zone !== undefined && action.target.filter.zone !== "battleArea"));
+  const returnBoundProducedByCost =
+    action.kind === "Return" &&
+    action.cost?.kind === "place" &&
+    action.cost.storeAs !== undefined &&
+    action.target.filter.levelLte === action.cost.storeAs;
   if (
     action.kind === "Return" &&
     action.cost !== undefined &&
     !returnsLooseCard &&
+    !returnBoundProducedByCost &&
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
     (await resolvePermanentTargets(ctx, action.target)).length === 0
   ) {
