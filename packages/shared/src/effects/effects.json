@@ -47276,7 +47276,7 @@
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1,
-            "scaling": { "per": 1, "filter": { "controller": "mine" }, "unit": "security" }
+            "scaling": { "per": 1, "filter": { "controller": "mine", "faceUp": true }, "unit": "security" }
           }
         ]
       },
@@ -47287,7 +47287,7 @@
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1,
-            "scaling": { "per": 1, "filter": { "controller": "mine" }, "unit": "security" }
+            "scaling": { "per": 1, "filter": { "controller": "mine", "faceUp": true }, "unit": "security" }
           }
         ]
       },
