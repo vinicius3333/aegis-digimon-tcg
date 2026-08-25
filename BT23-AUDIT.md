@@ -164,6 +164,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog/IR clause, pays the restack cost and exact discounted memory, proves the no-source declaration boundary and optional refusal, observes the bottom-source ordering, and proves the inherited DP bonus switches on only during the opponent's turn.
 - Verification: focused suite — 6 passed; symmetric self-restack mechanism regression BT23-008 — passed; `git diff --check` — passed.
 
+## BT23-019 — Gekomon — 10/10
+
+- Catalog evidence: Blue level 4, play cost 4, 4000 DP, standard blue-level-3 evolution for 2 plus alternate level-3 CS evolution for 2; form `Champion`, attribute `Virus`, types `Amphibian` and `CS`; On Play and When Digivolving mandatorily trash any two digivolution cards from one opposing Digimon; inherited Blocker.
+- Knowledge base: `node tools/kb/query.mjs card BT23-019` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defect corrected: the direct IR omitted the inherited Blocker clause. The audited IR adds the inherited static keyword; registration remains exclusively `registerIrCard("BT23-019", compiled)` with full coverage and no residual clauses.
+- Primitive trace: both timings route through the same opposing-Digimon target filter and `TrashDigivolution` seam; the mandatory action removes two chosen sources from one host and clamps to the available count when fewer than two remain; the inherited static keyword is collected only from Gekomon in an evolution stack.
+- Behavioral proof: the focused suite checks catalog and complete IR, plays Gekomon and observes exactly two sources enter the opponent's trash, proves the one-source mandatory clamp, and accepts the off-color CS evolution recipe while rejecting a same-level non-CS base.
+- Verification: focused suite — 4 passed; shared trash-digivolution mechanism regression — covered by the interpreter suite; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-019 through BT23-102.
+BT23-020 through BT23-102.
