@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
           kind: "SetBaseDP",
           target: {
             filter: {
-              controller: "opponent",
+              controller: "any",
               kind: ["Digimon"],
             },
             count: 1,
@@ -53,7 +53,7 @@ const compiled: CompiledCard = {
           kind: "SetBaseDP",
           target: {
             filter: {
-              controllerDefault: "opponent",
+              controllerDefault: "any",
               kind: ["Digimon"],
             },
             count: 1,
@@ -81,6 +81,9 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: {
+            controller: "mine",
+          },
           actions: [
             {
               kind: "Unsuspend",

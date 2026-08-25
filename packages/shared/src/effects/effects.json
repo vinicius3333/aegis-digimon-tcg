@@ -46513,7 +46513,7 @@
         "actions": [
           {
             "kind": "SetBaseDP",
-            "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
             "value": 6000,
             "duration": "untilOpponentTurnEnd",
             "cost": {
@@ -46531,7 +46531,7 @@
         "actions": [
           {
             "kind": "SetBaseDP",
-            "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
             "value": 6000,
             "duration": "untilOpponentTurnEnd",
             "cost": {
@@ -46550,6 +46550,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "mine" },
             "actions": [
               { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
             ]
