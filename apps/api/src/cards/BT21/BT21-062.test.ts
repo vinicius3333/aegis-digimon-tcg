@@ -129,6 +129,7 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     const permanentId = s.perm("galacticmon").permanentId;
 
     expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(0);

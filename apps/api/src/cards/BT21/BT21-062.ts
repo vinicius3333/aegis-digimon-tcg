@@ -71,7 +71,7 @@ export const compiled: CompiledCard = {
                     zone: "digivolutionCards",
                     controller: "mine",
                     nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
-                    isSelfRef: true,
+                    hostFilter: { isSelfRef: true },
                   },
                   count: 4,
                 },
