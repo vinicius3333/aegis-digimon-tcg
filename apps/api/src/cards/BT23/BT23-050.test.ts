@@ -1,11 +1,37 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-050.js";
 
 describe("BT23-050 Ankylomon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-050")).toMatchObject({
+      cardId: "BT23-050",
+      nameEn: "Ankylomon",
+      colors: ["Black", "Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [
+        { color: "Yellow", level: 3, memoryCost: 3 },
+        { color: "Blue", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Free"],
+      types: ["Ankylosaur", "Hudie", "CS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Armadillomon"], cost: 2, isAlternate: true },
+      { level: 3, traits: ["CS"], cost: 2, isAlternate: true },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("finishes the DP reduction before optionally DNA digivolving into Shakkoumon", async () => {
     const s = setupEngine(
       {
@@ -31,7 +57,13 @@ describe("BT23-050 Ankylomon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === zeroId)).toBe(false);
   });
 
-  it("has Blocker as a main and inherited keyword", () => {
+  it("exposes Blocker directly and from a realistic inherited stack", async () => {
+    const direct = setupEngine({ 0: { battleArea: [{ card: "BT23-050", as: "anky" }] } });
+    await direct.ready();
+    expect(observe(direct.engine).hasKeyword(direct.perm("anky"), "Blocker")).toBe(true);
+    const inherited = setupEngine({ 0: { battleArea: [{ card: "BT23-053", as: "host", under: ["BT23-050"] }] } });
+    await inherited.ready();
+    expect(observe(inherited.engine).hasKeyword(inherited.perm("host"), "Blocker")).toBe(true);
     expect(
       compiled.effects
         .filter((entry) => entry.trigger === "Static")
@@ -64,5 +96,18 @@ describe("BT23-050 Ankylomon", () => {
         optional: true,
       });
     }
+  });
+
+  it.each(["BT1-027", "BT23-037"])("digivolves for 2 from an Armadillomon/level-3 CS base (%s)", (base) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT23-050", as: "anky" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("anky").instanceId,
+      }),
+    ).toEqual({ ok: true });
   });
 });

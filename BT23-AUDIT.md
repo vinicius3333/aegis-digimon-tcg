@@ -443,6 +443,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; pays with exactly one matching card while preserving a nonmatching hand card, draws the exact deck top, and gains 1 memory; proves an unpayable hand neither draws nor gains; observes inherited +1000 on a realistic stack; and accepts off-color level-2 CS evolution for 0 while rejecting an off-color non-CS peer.
 - Verification: focused suite — 5 passed; shared cost abort, multi-action clause, Draw, memory, hand-trait, inherited-continuous, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-050 — Ankylomon — 10/10
+
+- Catalog evidence: Black/yellow level 4, play cost 5, 5000 DP, standard yellow- or blue-level-3 evolution for 3 plus alternate Armadillomon or level-3 CS evolution for 2; form `Champion`, attribute `Free`, types `Ankylosaur`, `Hudie`, and `CS`; direct and inherited Blocker; On Play/When Digivolving gives one opponent -2000 DP through their turn end, then during its owner's turn two friendly Digimon may DNA evolve into hand Shakkoumon.
+- Knowledge base: Q5317 delays zero-DP rule deletion until the entire effect finishes. Q5318 prevents a Betamon-played, evolution-locked Ankylomon from being used as DNA material. Q5319 confirms derived On Play priority inside the Alliance window, the resulting Shakkoumon is unsuspended and available to the second Alliance, and the first Alliance DP gain remains on the original attacker.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-050", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live direct/inherited Blocker, and both alternate-evolution branch evidence without changing execution.
+- Primitive trace: both entry timings bind and apply the duration DP modifier before the optional owner-turn DNA action; DNA validates two legal, evolution-capable friendly materials and exact Shakkoumon in hand, merges both stacks unsuspended, then state-based actions remove zero-DP Digimon only after resolution; static Blocker is projected directly and from a real inherited stack.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; drives a target to zero, completes DNA into an unsuspended Shakkoumon containing both materials, and only then observes zero-DP deletion; observes Blocker directly and inherited; verifies the opponent-turn duration and owner-turn DNA gate; and accepts 2-cost evolution independently from Armadillomon and level-3 CS bases.
+- Verification: focused suite — 7 passed; shared zero-DP timing, DNA legality/merge, evolution-lock, Alliance, Blocker, duration, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-050 through BT23-102.
+BT23-051 through BT23-102.
