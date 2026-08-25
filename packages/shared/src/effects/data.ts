@@ -1113,6 +1113,16 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-014: Shoutmon EX6 requires five distinct named slots; the generated aggregate retained
+  // only OmniShoutmon and otherwise accepted an incomplete recipe.
+  "BT19-014": [
+    {
+      materials: ["OmniShoutmon", "ZeigGreymon", "AtlurBallistamon", "JaegerDorulumon", "RaptorSparrowmon"].map(
+        (name) => ({ names: [name] }),
+      ),
+      count: 2,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {
