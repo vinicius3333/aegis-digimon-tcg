@@ -11,7 +11,7 @@ describe("BT22-030 Musimon", () => {
     expect(yourTurn?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenLinked",
-      sourceFilter: { isSelfRef: true },
+      triggerFilter: { isSelfRef: true },
       actions: [
         {
           kind: "PlayWithoutCost",

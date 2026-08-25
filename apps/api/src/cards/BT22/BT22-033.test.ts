@@ -23,7 +23,7 @@ describe("BT22-033 Mediamon", () => {
         {
           kind: "SubTrigger",
           event: "whenLinked",
-          sourceFilter: { isSelfRef: true },
+          triggerFilter: { isSelfRef: true },
           actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true }],
         },
       ],

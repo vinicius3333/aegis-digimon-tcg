@@ -47,7 +47,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
-          sourceFilter: {
+          triggerFilter: {
             isSelfRef: true,
           },
           actions: [
