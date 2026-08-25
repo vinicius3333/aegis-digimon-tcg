@@ -1,151 +1,72 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { Action, CompiledCard, Filter } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX11-054";
-
-function hasReptileOrDragonkin(def: CardDefinition): boolean {
-  return (def.types ?? []).some((t) => t === "Reptile" || t === "Dragonkin");
-}
-
-async function subTriggerAction(
-  subCtx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0],
-  source: CardSource,
-): Promise<void> {
-  const selfPerm = subCtx.source.permanent();
-  if (selfPerm === undefined || selfPerm.isSuspended) return;
-  // "by suspending this Tamer" is a cost, and paying a cost is the controller's
-  // choice: ask before suspending, and leave the Tamer untouched on a decline.
-  const willSuspend = await subCtx.ask.optional(subCtx, "Suspend Owen Dreadnought to draw 1 card?");
-  if (!willSuspend) return;
-  const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-  if (!paid) return;
-  subCtx.fx.draw(source.ownerSeat, 1);
-  const owner = subCtx.game.player(source.ownerSeat);
-  const progressDigimon = Array.from(owner.battleArea)
-    .filter((p) => {
-      if (p.topCard === undefined) return false;
-      const definition = subCtx.game.definitionOf(p.topCard);
-      return isDigimon(definition) && definition.effectText?.includes("＜Progress＞");
-    })
-    .map((p) => p.permanentId);
-  if (progressDigimon.length > 0) {
-    const chosen = await subCtx.ask.chooseTargets(subCtx, {
-      candidates: progressDigimon,
-      min: 1,
-      max: 1,
-    });
-    if (chosen.length > 0) {
-      subCtx.fx.modifyDP(chosen[0]!, 3000, EffectDuration.UntilEachTurnEnd);
-    }
-  }
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartTurn) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-turn-set-memory`,
-          description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (_ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => ctx.game.state.memory <= 2,
-          resolve: async (ctx) => {
-            ctx.fx.setMemory(3);
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/played-sub`,
-          description:
-            "[All Turns] When a [Reptile]/[Dragonkin] trait Digimon is played, by suspending " +
-            "this Tamer, <Draw 1> and 1 Progress Digimon gets +3000 DP.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenPlayed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // A self-suspend cost is unpayable while this card is already suspended, so this watcher
-              // must not pad the prompt when several watchers order off one event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When Reptile/Dragonkin played, suspend + draw + dp.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const def = subCtx.game.definitionOf(subject.topCard);
-                return isDigimon(def) && hasReptileOrDragonkin(def);
-              },
-              run: async (subCtx) => await subTriggerAction(subCtx, source),
-            });
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/digivolve-sub`,
-          description:
-            "[All Turns] When a [Reptile]/[Dragonkin] trait Digimon digivolves, by suspending " +
-            "this Tamer, <Draw 1> and 1 Progress Digimon gets +3000 DP.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenOneOfYoursDigivolves",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // A self-suspend cost is unpayable while this card is already suspended, so this watcher
-              // must not pad the prompt when several watchers order off one event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When Reptile/Dragonkin digivolves, suspend + draw + dp.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const def = subCtx.game.definitionOf(subject.topCard);
-                return isDigimon(def) && hasReptileOrDragonkin(def);
-              },
-              run: async (subCtx) => await subTriggerAction(subCtx, source),
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
+const suspendCost = {
+  kind: "suspend",
+  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+} as const;
+const progress: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  keywords: ["Progress"],
+};
+const reptileOrDragonkin: Filter = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [
+    { match: "trait", tokens: ["Reptile"] },
+    { match: "trait", tokens: ["Dragonkin"] },
+  ],
+};
+const reward: Action[] = [
+  {
+    kind: "Draw",
+    controller: "mine",
+    amount: 1,
+    cost: suspendCost,
+    optional: true,
+    abortOnDecline: true,
   },
+  {
+    kind: "ModifyDP",
+    target: { filter: progress, count: 1 },
+    amount: 3000,
+    duration: "forTheTurn",
+  },
+];
+
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourTurn",
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        { kind: "SubTrigger", event: "whenPlayed", sourceFilter: reptileOrDragonkin, actions: reward },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: reptileOrDragonkin,
+          actions: reward,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX11-054", compiled);
