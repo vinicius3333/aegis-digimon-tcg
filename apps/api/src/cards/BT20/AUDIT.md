@@ -1055,3 +1055,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-088.test.ts`).
+
+## BT20-089 — Code Cracker Fang & Hacker Judge
+
+- Catalog contract: purple/yellow SoC/Abadin Electronics/SEEKERS Tamer, play cost 4; Security free-play; start of own main phase gains 1 memory if the opponent has a Digimon; when any own Digimon is played or evolves may Mind Link to an own Digimon with Pulsemon in its text or SoC/SEEKERS; inherited qualifying host gains Alliance, Piercing, and Barrier and at end of every turn may free-play an Eiji Nagasumi from its evolution cards.
+- Knowledge base: Q4430 defines the broad “Pulsemon in its text” search surface. Q5555 confirms this card itself qualifies as Eiji Nagasumi while underneath and may play itself.
+- Implementation evidence: audit removed a complete dead handwritten module shadowing the direct IR, leaving executable behavior solely in the compiled declaration. The Rule name grant supports Q5555; two event watchers share Mind Link qualification, resident inherited keywords use the same text/trait union, and the stack-source Eiji play is optional/free. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: Mind Link excludes hosts already containing a Tamer, while text matching and SoC/SEEKERS semantic traits form an OR union. The inherited effects bind to the resulting host stack and can later extract this card by its granted Eiji name.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-089.test.ts` — 3 passed.
+- Clause scores: stats/Security/rule names 2/2; conditional memory 2/2; dual-event Mind Link target union 2/2; inherited three-keyword qualification 2/2; end timing/Q5555 stack play 2/2.
+- Score: 10/10.
+- Ambiguity: the committed catalog omits the Rule line, but Q5555 and the committed direct implementation jointly establish the alternate-name treatment.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-089.test.ts`).
