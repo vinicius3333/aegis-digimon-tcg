@@ -90,7 +90,14 @@
       },
       {
         "trigger": "Static",
-        "actions": [],
+        "actions": [
+          {
+            "kind": "GrantStatic",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "grant": "name",
+            "tokens": ["OmniShoutmon", "ZeigGreymon"]
+          }
+        ],
         "isInherited": true,
         "keywords": [{ "keyword": "Raid", "raw": "＜Raid＞" }]
       }
@@ -9324,7 +9331,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["OmniShoutmon"] }], "count": 3 }]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["OmniShoutmon"] }, { "names": ["ZeigGreymon"] }], "count": 3 }]
   },
   "BT11-019": {
     "effects": [
