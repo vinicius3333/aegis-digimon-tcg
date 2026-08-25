@@ -671,3 +671,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-056.test.ts`).
+
+## BT20-057 — Gankoomon
+
+- Catalog contract: black level 6 Data Holy Warrior/Royal Knight, play cost 12/12000 DP, black or red level-5 evolution cost 4; when played with an allied Huckmon/Jesmon/Sistermon-named Digimon, play cost -4; Reboot and Blocker; On Play/When Digivolving, 1 ally may free-evolve into a level-6-or-lower Huckmon/Jesmon/Sistermon-named or Royal Knight Digimon from hand/trash.
+- Knowledge base: Q4294 confirms this card's self reduction stacks with the separate play reduction that can play it, for a total reduction of 6 in that scenario.
+- Implementation evidence: the explicit self `wouldBePlayed` reducer and named-presence condition were structurally correct but BT20-057 was missing from the deliberately verified self-reducer allowlist, so payment stayed 12. Its catalog-proven entry now admits the reducer at Before Pay Cost. Both static keywords and both optional free Digivolve actions are direct, enforce level/name-or-trait/source zones and ordinary evolution legality, and registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: Sistermon Ciel makes Gankoomon cost 8 while a Machine peer leaves it at 12. On Play evolves BT20-016 into hand BT20-017 Jesmon free; When Digivolving evolves a second BT20-054 into trash BT20-056 Alphamon free, covering the named and Royal Knight arms and both zones. Refusal leaves the target unchanged, while Gankoomon publishes Reboot and Blocker.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-057.test.ts` — 7 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter/registration/module.test.ts` — 1 passed; `pnpm typecheck` — passed.
+- Clause scores: stats/evolution routes 2/2; conditional self play reduction 2/2; live Reboot/Blocker 2/2; dual entry hand/trash/name/Royal Knight evolution 2/2; free cost/legality/optional refusal 2/2.
+- Score: 10/10.
+- Ambiguity: Q4294 references BT20-05 in its rendered question, but the ruling's self-reduction stacking principle is clear and does not alter this card's isolated -4 clause.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-057.test.ts`).

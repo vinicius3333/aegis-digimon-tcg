@@ -86,6 +86,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT23-036", // condition: opponent has a 10000+ DP Digimon -> self play cost -5
   "BT20-036", // condition: you have an [ACCEL] Digimon -> self play cost -5
   "BT20-043", // condition: you have an [ACCEL] Digimon -> self play cost -5
+  "BT20-057", // condition: you have a Huckmon/Jesmon/Sistermon-named Digimon -> self play cost -4
   "BT8-097", // scaling: Option use cost -1 per opposing Digimon (floor applied by play path)
   "BT25-044", // 6 or fewer total security cards -> -5 (Q7004 effect-driven stacking)
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
