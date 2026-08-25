@@ -719,3 +719,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-060.test.ts`).
+
+## BT20-061 — Impmon
+
+- Catalog contract: purple/red level 3 Virus Evil/LIBERATOR, play cost 3/1000 DP, purple or red level-2 evolution cost 1 plus Yaamon alternate cost 0; On Play reveals 3, adds 1 Evil/Dark Dragon/Evil Dragon-trait card and 1 Yuuki, then bottoms the rest; inherited Your Turn +2000 DP.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: the committed RevealAdd has two independent one-card selection groups, the complete three-trait union, exact Yuuki-name match, and deck-bottom remainder. The alternate evolution metadata coexists with the ordinary level/color route and is selected explicitly when both match. The inherited continuous modifier is self/stack scoped and owner-turn guarded. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: EX7-006 Yaamon supports the cost-0 path while the ordinary purple/red level-2 route remains cost 1. A mixed reveal adds BT20-069 through the Dark Dragon arm and BT20-090 Yuuki while rejecting/bottoming Machine BT20-047. Under BT20-069, Impmon raises the host from 5000 to 7000 only on its controller's turn; a standalone copy receives no inherited modifier.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-061.test.ts` — 5 passed.
+- Clause scores: stats/ordinary evolution 2/2; exact Yaamon alternate cost 2/2; reveal count and independent additions 2/2; trait/name boundaries and deck-bottom remainder 2/2; inherited stack/turn DP scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-061.test.ts`).
