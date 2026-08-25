@@ -578,6 +578,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; deletes one friendly Digimon before deleting an opposing level 4; proves declining the cost preserves both source and target; and deletes a realistic Phantomon-over-Bakemon stack to observe exactly 1 inherited memory.
 - Verification: focused suite — 5 passed; shared own-deletion cost, optional refusal, level ceiling, entry timing, inherited On Deletion, and memory mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-065 — Phantomon — 10/10
+
+- Catalog evidence: Purple level 5, play cost 7, 7000 DP, standard purple-level-4 evolution for 3; form `Ultimate`, attribute `Virus`, types `Ghost` and `LIBERATOR`; hand Main while Violet Inboots is present places one Bakemon from trash beneath any friendly Ghostmon as the cost, then evolves that same host into this hand card for 3 ignoring requirements; direct and inherited On Deletion may play a level-4-or-lower Ghost Digimon from trash for free.
+- Knowledge base: Q5334 applies BT21-065 Ghostmon's 1-cost evolution reduction to the hand Main's fixed cost, producing a cost of 2. Q5335 confirms Phantomon's hand Main and another independent evolution effect cannot be activated simultaneously.
+- Defect corrected: the hand Main placed Bakemon but never evolved because the loose “this card” candidate used an unusable `isSelfRef` definition filter and the fixed numeric `cost` field was not the interpreter's supported override. The audit binds `source: "triggerSource"`, uses an ordinary friendly-Digimon loose filter narrowed to that source, and encodes `costOverride: 3`; registration remains exclusively `registerIrCard("BT23-065", compiled)` with full coverage and no residual clauses.
+- Primitive trace: declaration preflight requires Violet Inboots, selects one Bakemon and one Ghostmon, places the former at that host's true stack bottom, retains the bound permanent id, then consumes only the activating hand instance and evolves for fixed cost 3 minus applicable live reductions while ignoring requirements; both deletion variants filter trash at the inclusive level-4 ceiling and play one Ghost for free.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; activates the hand Main, places Bakemon under BT21-065 Ghostmon, evolves the bound host into the exact hand Phantomon, and pays 2 after the Q5334 reduction; proves the declaration is unavailable without Violet Inboots; plays only an eligible level-4 Ghost on direct deletion; and repeats the free play through a realistic inherited Necromon-over-Phantomon stack.
+- Verification: focused suite — 8 passed; shared hand Main declaration, conditional availability, bound placement/evolution, fixed-cost reduction, ignore-requirements, direct/inherited On Deletion, level/trait filtering, and free play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-065 through BT23-102.
+BT23-066 through BT23-102.
