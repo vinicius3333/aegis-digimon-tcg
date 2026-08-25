@@ -995,3 +995,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-083.test.ts`).
+
+## BT20-084 — Sistermon Ciel (Awakened)
+
+- Catalog contract: white level 4 Data Puppet, play cost 5/6000 DP and alternate evolution from Sistermon Ciel for 1; trash/all-turns when any own Digimon is played may free-evolve an own Sistermon Ciel into this trash card; On Play/When Digivolving prevents one opposing Digimon or Tamer from suspending through the end of its controller's turn; end of every turn moves this Digimon's top stacked card to own top security.
+- Knowledge base: Q4412 confines the first effect to trash. Q4413 makes it simultaneous with the played card's On Play effect, while Q4414 prevents the played card's pending On Play effect from activating if it first evolves and ceases to be that Digimon.
+- Implementation evidence: the watcher is explicitly trash-resident, own-play scoped, optional, self-card sourced, requirement-ignoring, and cost-free. Both entry timings share the opposing kind union and correct duration. The end timing uses the dedicated top evolution-card to top-security operation. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: exact Sistermon Ciel name matching permits the base name while excluding unrelated Sistermon names; the security action removes only the top underlying card and leaves the Awakened top in battle.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-084.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; trash watcher and free self evolution 2/2; Q4412-Q4414 source/pending timing 2/2; dual entry suspension restriction 2/2; end-of-all-turns stack-to-top-security behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-084.test.ts`).
