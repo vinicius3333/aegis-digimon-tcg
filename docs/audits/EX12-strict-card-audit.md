@@ -2261,3 +2261,30 @@ for the individual evidence below.
   interpreter — 171/171; capabilities — 290/290; shared build, API typecheck, focused formatting,
   focused lint, and `git diff --check` passed. No residual IR, unsupported behavior, or unresolved
   ruling remains.
+
+## EX12-071 — Saneiketsu Invitation — 10/10
+
+- **Printed contract:** Black/blue/red cost-3 Shambala/SW Option with an SW Use Requirement. Main
+  may trash one SW card from hand as its “By” cost, then draws 2 and places this card in the
+  battle area. When an allied SW Digimon is played, intrinsic Delay may evolve one allied SW
+  Digimon into a hand Saneiketsu without paying the cost. Security activates Main.
+- **KB evidence:** Q6886 says neither Draw 2 nor the post-“After” placement can resolve without
+  trashing the SW card. “Without paying the cost” waives only evolution cost: the printed effect
+  does not waive digivolution requirements, so the ordinary route remains mandatory.
+- **Corrections:** the aggregate was stale partial IR: Main remained `RawUnparsed`, Delay was
+  modeled as a keyword grant separated from its Digivolve payload, and a residual remained. It
+  now exactly mirrors the direct executable costed Draw/self-placement and intrinsic Delay
+  SubTrigger with its nested, requirement-preserving, zero-cost Saneiketsu evolution.
+- **Behavioral proof:** a white-only SW permanent proves the Use Requirement waiver independently
+  of the Option's three colors. Paying the cost draws 2 and places the Option; both an unpayable
+  cost and an explicit decline prevent both results, proving Q6886. A real SW card play consumes
+  an aged Delay and evolves the selected level-5 SW host into Nezhamon for 0. A level-3 host
+  remains unchanged and the target stays in hand, proving requirements were not ignored.
+  Security executes the same Main.
+- **Identity and verification:** catalog identity, filters/zones/costs, Delay timing, Security,
+  full coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality
+  are asserted. `EX12-071.test.ts` — 8/8; effect-driven digivolution legality — 5/5; advanced
+  keyword conformance — 30/30; `PlaceInBattleAreaSelf` — 4/4; subtrigger seams — 22/22; security
+  activation — 2/2; interpreter — 171/171; capabilities — 290/290; shared build, API typecheck,
+  focused formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported
+  behavior, ruling dependency, or unresolved limitation remains.
