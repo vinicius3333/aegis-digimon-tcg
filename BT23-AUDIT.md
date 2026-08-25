@@ -785,6 +785,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; returns the exact field Violet to deck bottom, plays a different hand instance, then plays trash Ghostmon; declines the return and proves neither movement nor Ghostmon tail; fires a Ghost evolution with another Digimon present, suspends Violet, observes Rush only on the Ghost subject; and structurally checks all clauses.
 - Verification: focused suite — 6 passed after refreshing shared runtime data; shared start-main snapshot behavior, deck-bottom cost, conditional trash play, abort-on-decline, physical evolution-subject binding, Tamer suspension, Rush duration, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-088 — K — 10/10
+
+- Catalog evidence: Purple cost-3 Tamer, type `CS`; Start of Your Main Phase may trash one Undead/Dark Animal/CS card from hand to gain 1 memory; End of Your Turn may delete this Tamer to evolve one friendly Digimon into a level-5-or-lower Undead/Dark Animal from trash for free; Security plays this card for free.
+- Knowledge base: no card-specific rulings are recorded locally; the exact catalog text and general optional “by” cost, loose-zone trait/level filtering, evolution legality, transactional preflight, and Security rules therefore control.
+- Defects corrected: none; direct and authoritative shared IR already agree on every executable clause, with exclusive `registerIrCard("BT23-088", compiled)` registration, full coverage, and no residuals.
+- Primitive trace: start-main preflights a matching hand card, trashes the selected physical instance as the optional cost, then gains 1; end-turn preflights both a legal friendly recipient and eligible level-5-or-lower trash destination before deleting K, moves the selected trash card onto the stack without memory payment, and preserves normal evolution legality; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; trashes a real Undead while preserving an ineligible hand card and gains exactly 1 memory; deletes K and evolves Dracmon into trash Sangloupmon for zero; supplies only an otherwise matching level-6 GranDracmon and proves K is not deleted and the base remains unchanged; and structurally checks all clauses.
+- Verification: focused suite — 6 passed; shared hand-trash cost, trait union, memory gain, transactional optional digivolution preflight, self-deletion cost, level ceiling, trash evolution, free payment, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-088 through BT23-102.
+BT23-089 through BT23-102.
