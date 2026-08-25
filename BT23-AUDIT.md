@@ -452,6 +452,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; drives a target to zero, completes DNA into an unsuspended Shakkoumon containing both materials, and only then observes zero-DP deletion; observes Blocker directly and inherited; verifies the opponent-turn duration and owner-turn DNA gate; and accepts 2-cost evolution independently from Armadillomon and level-3 CS bases.
 - Verification: focused suite — 7 passed; shared zero-DP timing, DNA legality/merge, evolution-lock, Alliance, Blocker, duration, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-051 — Golemon — 10/10
+
+- Catalog evidence: Black/red level 4, play cost 5, 5000 DP, standard black- or red-level-3 evolution for 3 plus alternate level-3 CS evolution for 2; form `Champion`, attribute `Virus`, types `Mineral`, `Hudie`, and `CS`; Alliance and Blocker; All Turns once per turn, when this Digimon suspends, deletes one opposing 4000-DP-or-less Digimon; during Your Turn it cannot attack opposing Digimon.
+- Knowledge base: `node tools/kb/query.mjs card BT23-051` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-051", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live keyword, and alternate-evolution evidence without changing execution.
+- Primitive trace: Alliance and Blocker project through the live keyword ledger; the physical-source suspension watcher selects one opponent at the inclusive 4000-DP ceiling and consumes its use once per turn; the Your Turn continuous restriction removes only Digimon attack targets while preserving legal player attacks.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; suspends Golemon to delete exactly one 4000-DP target, preserves a second low target and a 5000-DP negative, then proves a second same-turn suspension does nothing; rejects an opposing-Digimon attack while accepting a player attack; observes Alliance and Blocker live; and accepts off-color level-3 CS evolution for 2 while rejecting an off-color non-CS peer.
+- Verification: focused suite — 7 passed; shared Alliance, Blocker, suspension event, DP ceiling, frequency, attack-target restriction, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-051 through BT23-102.
+BT23-052 through BT23-102.
