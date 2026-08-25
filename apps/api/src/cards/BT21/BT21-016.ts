@@ -62,7 +62,6 @@ export const compiled: CompiledCard = {
             excludeToken: true,
           },
           optional: true,
-          abortOnDecline: true,
         },
         {
           kind: "PlaceUnder",
