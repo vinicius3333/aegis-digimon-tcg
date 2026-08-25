@@ -1,6 +1,8 @@
+import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 // Self-register every card module so the engine drives the REGISTERED BT20-065 IR.
 import "./index.js";
 import { compiled } from "./BT20-065.js";
@@ -18,6 +20,18 @@ import { compiled } from "./BT20-065.js";
  */
 
 describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () => {
+  it("publishes the printed stats and both zero-cost evolution routes", () => {
+    expect(getCardDefinition("BT20-065")).toMatchObject({
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      evoCosts: [
+        { color: "Purple", level: 2, memoryCost: 0 },
+        { color: "Red", level: 2, memoryCost: 0 },
+      ],
+    });
+  });
+
   it("retains inherited Retaliation", () => {
     expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "Static",
@@ -44,7 +58,9 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     const engine = s.engine as unknown as Pick<GameEngine, "applyIntent"> & {
       recomputeContinuousEffects(): Promise<void>;
       primitives: { deletePermanent(ids: string[], cause?: string): Promise<number> };
-      continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
+      continuous: {
+        listCustomEffectGrants(): readonly { instanceId: string; token: string; duration: EffectDuration }[];
+      };
     };
 
     s.state.memory = 5;
@@ -62,6 +78,9 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
           g.instanceId === recipient.topCard!.instanceId && g.token === "[On Deletion] Lose 1 memory.",
       ),
     ).toBe(true);
+    expect(grants.find((grant) => grant.instanceId === recipient.topCard!.instanceId)?.duration).toBe(
+      EffectDuration.UntilOpponentTurnEnd,
+    );
 
     s.state.memory = 5; // isolate the granted effect's delta from the play/cost's own changes
 
@@ -106,5 +125,19 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     await settle(() => !p1.battleArea.some((p) => p.permanentId === recipient.permanentId));
 
     expect(s.state.memory).toBe(5);
+  });
+
+  it("grants Retaliation only as an inherited stack keyword", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-066", under: ["BT20-065"], as: "host" },
+          { card: "BT20-065", as: "standalone" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Retaliation")).toBe(false);
   });
 });

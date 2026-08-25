@@ -60,6 +60,11 @@ export const compiled: CompiledCard = {
           grant: "name",
           tokens: ["Slayerdramon"],
         },
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true, zone: "battleArea" }, count: 1, isSelf: true },
+          grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] },
+        },
       ],
     },
     {

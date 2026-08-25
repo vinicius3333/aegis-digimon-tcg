@@ -169,6 +169,7 @@ export const compiled: CompiledCard = {
     {
       level: 6,
       traits: ["Vortex Warriors"],
+      basePlayCostMin: 10,
       cost: 1,
       isAlternate: true,
     },

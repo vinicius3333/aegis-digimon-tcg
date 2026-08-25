@@ -142,6 +142,8 @@ export const compiled: CompiledCard = {
             raw: "＜Rush＞",
           },
           duration: "forTheTurn",
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Attack",
@@ -154,7 +156,6 @@ export const compiled: CompiledCard = {
             sameTarget: true,
           },
           withoutSuspending: true,
-          optional: true,
           condition: { kind: "ifThisEffectActed" },
         },
       ],

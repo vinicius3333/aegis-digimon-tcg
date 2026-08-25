@@ -455,7 +455,11 @@ async function runSecurityAdd(
       : action.op === "addBottom"
         ? false
         : (await ctx.ask.chooseOption(ctx, ["Top of security", "Bottom of security"])) === 0;
-  const opts = { toTop, faceUp: action.faceDown === true ? false : action.faceUp };
+  const opts = {
+    toTop,
+    faceUp: action.faceDown === true ? false : action.faceUp,
+    detachPermanentTop: action.detachPermanentTop,
+  };
   const baseCount = action.amount ?? 1;
   const count = action.scaling === undefined ? baseCount : baseCount * scaleFactor(ctx, action.scaling);
   const ownController = action.controller === "opponent" ? ("opponent" as const) : ("mine" as const);

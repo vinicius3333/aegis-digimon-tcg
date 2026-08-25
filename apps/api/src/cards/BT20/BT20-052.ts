@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               faceUp: true,
+              detachPermanentTop: true,
               optional: true,
             },
           ],

@@ -186,7 +186,10 @@ export function validateDnaDigivolve(
   if (costWaived) {
     const required = blastDnaMaterialNames(found.instance.cardId);
     if (required !== undefined) {
-      const materialNames = materials.map((material) => definitionOf(material.topCard!.cardId).nameEn);
+      const effectiveDefinitions =
+        deps.effectiveMaterialDefinitions?.(state, materials, definition) ??
+        materials.map((material) => definitionOf(material.topCard!.cardId));
+      const materialNames = effectiveDefinitions.map((material) => material.nameEn);
       if (!blastDnaMaterialsMatch(materialNames, required)) return { ok: false, reason: "invalid-evolution" };
     }
     return { ok: true, instance: found.instance, definition, materials, costWaived: true, cost: 0 };

@@ -30,12 +30,17 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
       frequency: "OncePerTurn",
       actions: [
-        { kind: "GainKeyword", keyword: { keyword: "Rush" }, duration: "forTheTurn" },
+        {
+          kind: "GainKeyword",
+          keyword: { keyword: "Rush" },
+          duration: "forTheTurn",
+          optional: true,
+          abortOnDecline: true,
+        },
         {
           kind: "Attack",
           target: { sameTarget: true },
           withoutSuspending: true,
-          optional: true,
           condition: { kind: "ifThisEffectActed" },
         },
       ],

@@ -66,7 +66,7 @@ export const compiled: CompiledCard = {
           kind: "Digivolve",
           target: {
             filter: {
-              zone: "breedingArea",
+              zone: "breeding",
               controller: "mine",
               kind: ["Digimon"],
               levelComparison: { op: "gte", value: 3 },

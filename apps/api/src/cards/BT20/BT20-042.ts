@@ -75,7 +75,19 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           grant: "name",
-          tokens: ["Breakdramon", "Examon"],
+          tokens: ["Breakdramon"],
+        },
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+              zone: "battleArea",
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] },
         },
       ],
     },

@@ -107,9 +107,11 @@ export const compiled: CompiledCard = {
                 filter: {
                   isSelfRef: true,
                 },
+                count: 1,
+                isSelf: true,
               },
               faceUp: true,
-              fromDigivolutionTop: true,
+              detachPermanentTop: true,
             },
           ],
           optional: true,
