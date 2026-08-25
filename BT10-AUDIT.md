@@ -211,3 +211,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: absent/present Kiriha boards prove the mutually exclusive branches; MetalGreymon X proves exact-name recovery; MailBirdramon under Blue Flare Greymon against one versus two opponents proves both gates, shared target, and once-per-turn consumption; deletion beside Kiriha proves Save zones.
 - Behavioral proof: the focused suite proves free Kiriha play and unchanged post-source-play memory, exact recovery, near-name rejection, attack-and-block restriction on one target, threshold negative, repeated-trigger suppression, and Save.
 - Verification: focused suite — 7 passed; Return/PlayWithoutCost/restriction/Save mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
+
+## BT10-022 — Brachiomon — 10/10
+
+- Catalog evidence: blue/black level 5 Digimon, play cost 6, 9000 DP; evolves from blue or black level 4 for 3; form `Ultimate`, attribute `Data`, type `Plesiosaur`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-022` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-022", compiled)`. All executable behavior is catalog-driven ordinary play and evolution.
+- Primitive trace: normal play validates hand ownership and affordability, charges printed cost 6, and creates a 9000-DP permanent without an effect decision; evolution matches either printed color at exact level 4, charges 3, and retains the base as a source.
+- Cross-card and stack proof: a real black level 4 Golemon base proves the black evolution route and source transition, while a second Brachiomon proves direct play independently in the same fixture; metadata pins both blue and black recipes.
+- Behavioral proof: the focused suite asserts complete catalog identity, exact empty IR, printed-cost black evolution, printed-cost play, final memory and zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
