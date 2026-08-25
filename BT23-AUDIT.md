@@ -515,6 +515,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; returns exactly three distinct matching names and pays 6 instead of 11, while two matches remain untouched and pay the printed 11; creates the 6000-DP token with all three live keywords before counting other Digimon and deletes a play-cost-7 target; and verifies both entry timings' optional-token/mandatory-delete structure.
 - Verification: focused suite — 6 passed; API typecheck for the shared reducer registry was previously green in this audit segment; shared exact-count cost, deck top/bottom choice, token, scaling ceiling, and mandatory deletion mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-058 — Craniamon — 10/10
+
+- Catalog evidence: Black level 6, play cost 11, 11000 DP, standard black-level-5 evolution for 3 plus alternate level-5 CS evolution for 3; form `Mega`, attribute `Vaccine`, types `Holy Warrior`, `Royal Knight`, and `CS`; Reboot and Blocker; All Turns may suspend itself to prevent one friendly Digimon or Tamer from leaving through an opponent's effect; All Turns once per turn, when this Digimon suspends, deletes every opposing Digimon tied for the lowest play cost.
+- Knowledge base: `node tools/kb/query.mjs card BT23-058` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-058", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live keyword, executable replacement, and alternate-evolution evidence without changing execution.
+- Primitive trace: Reboot and Blocker project through the live keyword ledger; the leave replacement filters one friendly Digimon or Tamer and only an opponent-effect cause, offers prevention, suspends Craniamon as its all-or-nothing cost, and thereby emits the suspension event; the physical-source once-per-turn watcher then finds the minimum opposing Digimon play cost and deletes every tie.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; suspends Craniamon to prevent an opponent-effect deletion of an ally, proves the ally remains, and observes the resulting deletion of only the lowest-cost opponent; independently deletes all tied lowest-cost opponents when suspended; observes Reboot and Blocker live; verifies the exact replacement and once-per-turn shapes; and accepts off-color level-5 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 7 passed; shared leave prevention, suspension cost/event, all-tied superlative deletion, frequency, Reboot, Blocker, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-058 through BT23-102.
+BT23-059 through BT23-102.
