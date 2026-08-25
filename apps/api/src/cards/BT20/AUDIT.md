@@ -179,3 +179,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-015.test.ts`).
+
+## BT20-016 — Paildramon
+
+- Catalog contract: red/purple level 5 Free Dragonkin, play cost 8/8000 DP and red or purple level-4 evolution cost 4; On Play/When Digivolving gives one allied Digimon Piercing and +4000 DP for the turn, then self may attack; at all times an impending deletion of an allied Paildramon/Dinobeemon may instead DNA evolve two allied Digimon into Imperialdramon: Dragon Mode in hand; inherited Security Attack +1.
+- Knowledge base: Q4297 permits applying the complete buff and declining the subsequent attack; Q4298 forbids declaring the granted attack while another attack is already in progress; Q4299 establishes that using the leaving Digimon as DNA material means the newly merged Digimon does not leave.
+- Implementation evidence: both entry timings bind the chosen keyword recipient and reuse it for the DP modifier, followed by a separately optional self attack. The shared `GainKeyword` primitive now honors its declared `bindAs` contract just like other targeted actions. The all-turn replacement matches either protected name and performs an optional paid two-material DNA evolution; registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: the focused test plays Paildramon, observes Piercing and +4000 on the same chosen ally while declining the attack, then independently deletes a field Paildramon beside Dinobeemon and observes both become sources under BT20-076 Dragon Mode rather than the result leaving. A realistic host stack observes inherited Security Attack +1.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-016.test.ts` — 4 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts` — 173 passed.
+- Clause scores: stats/evolution 2/2; dual entry timing and same-target buff 2/2; separately optional/legal attack 2/2; deletion replacement and Q4299 DNA survival 2/2; inherited Security Attack/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-016.test.ts`).

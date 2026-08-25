@@ -18,6 +18,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "paildramonBoostTarget",
           },
           keyword: {
             keyword: "Piercing",
@@ -27,13 +28,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "paildramonBoostTarget" },
           amount: 4000,
           duration: "forTheTurn",
         },
@@ -57,11 +52,9 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
+            filter: { controller: "mine", kind: ["Digimon"] },
             count: 1,
+            bindAs: "paildramonBoostTarget",
           },
           keyword: {
             keyword: "Piercing",
@@ -71,13 +64,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          target: { filter: {}, count: 1, fromSelectionRef: "paildramonBoostTarget" },
           amount: 4000,
           duration: "forTheTurn",
         },
