@@ -4608,6 +4608,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         : []),
       ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
     ];
+    if (candidates.length === 0) return;
     const chosen = await engine.ask.selectInstances(
       controllerSeat,
       candidates,
@@ -4615,7 +4616,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       1,
       "Choose the attack target for the forced attack.",
     );
-    if (candidates.length === 0) return;
     const pick = chosen[0] ?? candidates[0]!;
     const target: AttackTarget = pick === PLAYER ? { kind: "player" } : { kind: "permanent", permanentId: pick };
 

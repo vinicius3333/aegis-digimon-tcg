@@ -2328,6 +2328,27 @@ describe("primitives: forced-attack target legality", () => {
     expect(h.selectionCandidates.at(-1)).toEqual([h.s.perm("legal").permanentId]);
     expect(resolvedTarget).toEqual({ kind: "permanent", permanentId: h.s.perm("legal").permanentId });
   });
+
+  it("ends without opening a target decision when a Digimon-only forced attack has no legal target", async () => {
+    let resolvedTarget: AttackTarget | undefined;
+    const combat: CombatPort = {
+      isAttacking: false,
+      currentAttackerId: undefined,
+      resolveAttack: async (_seat, _attacker, target) => {
+        resolvedTarget = target;
+      },
+      redirectTarget: () => false,
+      endAttack: () => false,
+      runEvadeDecision: async () => false,
+      runBarrierDecision: async () => false,
+    };
+    const h = harness({ combat, board: { 0: { battleArea: [{ card: "BT9-055", as: "grandis" }] } } });
+
+    await h.fx.forceAttack(h.s.perm("grandis").permanentId, { attackPlayer: false });
+
+    expect(h.selectionCandidates).toHaveLength(0);
+    expect(resolvedTarget).toBeUndefined();
+  });
 });
 
 describe("Primitives completeness guard (no declared-but-unassigned methods)", () => {
