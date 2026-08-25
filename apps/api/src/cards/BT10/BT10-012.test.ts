@@ -2,9 +2,24 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-012.js";
+import { compiled } from "./BT10-012.js";
 
 describe("BT10-012 Shoutmon X4B", () => {
+  it("encodes the exact DigiXros recipe and keeps only the placement optional", () => {
+    expect(compiled.digiXrosRequirement).toEqual([
+      {
+        materials: [{ names: ["Shoutmon X4"] }, { names: ["Beelzemon"] }],
+        count: 2,
+      },
+    ]);
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
+      expect(effect.actions[0]).toMatchObject({ kind: "PlaceUnder", optional: true });
+      expect(effect.actions[1]).toMatchObject({ kind: "Return" });
+      expect(effect.actions[1]).not.toHaveProperty("optional");
+    }
+  });
+
   it("DigiXroses with Shoutmon X4 and Beelzemon, takes a Xros Heart card from under a Tamer, and returns two from trash", async () => {
     const s = setupEngine(
       {
@@ -155,6 +170,33 @@ describe("BT10-012 Shoutmon X4B", () => {
       expect.arrayContaining([s.inst("dondokomon").instanceId, s.inst("starmons").instanceId]),
     );
     assertNoLoudGap(s);
+  });
+
+  it("returns two Xros Heart cards even when the optional placement is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-012", as: "x4b", under: ["BT10-082"] }],
+          hand: [{ card: "BT10-034", as: "placementCandidate" }],
+          trash: [
+            { card: "BT10-007", as: "dondokomon" },
+            { card: "BT10-029", as: "starmons" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("x4b"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("placementCandidate").instanceId,
+        s.inst("dondokomon").instanceId,
+        s.inst("starmons").instanceId,
+      ]),
+    );
+    expect(s.perm("x4b").stack.map((card) => card.instanceId)).not.toContain(s.inst("placementCandidate").instanceId);
   });
 
   it("does not treat Beelzemon: Blast Mode as the exact Beelzemon source", async () => {
