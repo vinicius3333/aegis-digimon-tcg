@@ -46,7 +46,7 @@ const compiled: CompiledCard = {
             amount: -1,
             raw: "＜Security Attack -1＞",
           },
-          duration: "forTheTurn",
+          duration: "untilOpponentTurnEnd",
           condition: {
             kind: "isOpponentsTurn",
             raw: "it's your opponent's turn",
@@ -60,9 +60,10 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            sameTarget: true,
           },
           timings: ["whenDigivolving"],
-          duration: "forTheTurn",
+          duration: "untilOpponentTurnEnd",
           condition: {
             kind: "isOpponentsTurn",
             raw: "it's your opponent's turn",
@@ -101,7 +102,7 @@ const compiled: CompiledCard = {
             amount: -1,
             raw: "＜Security Attack -1＞",
           },
-          duration: "forTheTurn",
+          duration: "untilOpponentTurnEnd",
           condition: {
             kind: "isOpponentsTurn",
             raw: "it's your opponent's turn",
@@ -115,9 +116,10 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            sameTarget: true,
           },
           timings: ["whenDigivolving"],
-          duration: "forTheTurn",
+          duration: "untilOpponentTurnEnd",
           condition: {
             kind: "isOpponentsTurn",
             raw: "it's your opponent's turn",
