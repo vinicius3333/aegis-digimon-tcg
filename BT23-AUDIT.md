@@ -290,6 +290,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; plays an eligible Angemon from Shakkoumon's own sources before Shakkoumon leaves; separately proves the inherited reaction from a realistic carrier while excluding an ineligible source; and verifies the granted attack, DNA-only De-Digivolve, source zones, ownership exclusion, and OR filter structures.
 - Verification: focused suite — 6 passed; shared aura/immunity, DNA, Barrier, and leave-reaction mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-033 — Beautymon — 10/10
+
+- Catalog evidence: Yellow/black level 5, play cost 8, 8000 DP, standard yellow- or black-level-4 evolution for 4; forms `Ult.` and `Appmon`, attribute `Life`, type `Beauty`; zero-cost App Fusion from Coordemon and Consulmon; Barrier; On Play/When Digivolving may link a level-4-or-lower Link-capable Digimon from trash or its sources for free; Your Turn once per turn, when linked, recovers if security is at most five, then gives one opponent -1000 DP per resulting security card through their turn end; Link onto Appmon costs 3, contributes 4000 DP, and protects the host from opposing hand/deck returns and De-Digivolve through the opponent's turn end.
+- Knowledge base: Q5280 excludes cards without Link from the free link effect; Q5281 makes the scaled DP loss independent of whether the conditional recovery occurred, so it always counts the live post-recovery security stack.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-033", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, exact recovery/scaling boundary, App Fusion, and linked-protection evidence without changing execution.
+- Primitive trace: App Fusion accepts either material order for 0; free Link searches trash and the carrier stack, enforces printed Link and the inclusive level-4 ceiling; the linked watcher conditionally recovers first and only then scales the mandatory DP modifier; player Link validates Appmon, pays exactly 3, applies +4000 DP, and normalizes protections to the enforced `beReturned` and `cantBeDeDigivolved` restrictions.
+- Behavioral proof: the focused suite checks catalog and complete IR; at six security skips recovery but still applies -6000; at five recovers to six first and applies the same -6000; excludes a no-Link trash peer; proves both App Fusion orders; and links Beautymon for 3 with +4000 DP and both observable protections.
+- Verification: focused suite — 8 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-033 through BT23-102.
+BT23-034 through BT23-102.
