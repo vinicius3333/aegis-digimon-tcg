@@ -471,6 +471,9 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // EX11-024 has only its ordinary yellow Lv.5 EvoCost row. The generated IR incorrectly
   // duplicated that row as a printed alternate [Digivolve] requirement.
   "EX11-024": [],
+  // EX11-026 prints an unrestricted [Digivolve] Lv.2: Cost 0 route in addition to
+  // its ordinary green EvoCost row; the generated fallback currently omits it.
+  "EX11-026": [{ level: 2, cost: 0, isAlternate: true }],
   // BT12-081: Astamon's Save alternate path is restricted to yellow, green, or purple Lv.4 bases.
   "BT12-081": [{ cost: 3, isAlternate: true, level: 4, texts: ["Save"], colors: ["Yellow", "Green", "Purple"] }],
   // BT12-083: the Save alternate path is restricted to red, black, or purple Lv.4 bases.
