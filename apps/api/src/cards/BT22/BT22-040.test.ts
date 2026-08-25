@@ -40,6 +40,7 @@ describe("BT22-040 Cendrillmon", () => {
           battleArea: [
             { card: "BT22-040", as: "cendrillmon" },
             { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
           ],
         },
       },
@@ -55,6 +56,7 @@ describe("BT22-040 Cendrillmon", () => {
 
     await primitives.deletePermanent([s.perm("first").permanentId], "byEffect");
     await settle(() => familiarCount() === 1);
+    await primitives.deletePermanent([s.perm("second").permanentId], "byEffect");
     await settle();
 
     expect(familiarCount()).toBe(1);
