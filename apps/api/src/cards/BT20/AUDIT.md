@@ -299,3 +299,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-025.test.ts`).
+
+## BT20-026 — MegaSeadramon (X Antibody)
+
+- Catalog contract: blue level 5 Data Aquatic/X Antibody, play cost 8/8000 DP, blue level-4 evolution cost 3 plus MegaSeadramon alternate cost 0; On Play/When Digivolving bottoms one opposing level-4-or-lower Digimon, then with MegaSeadramon/X Antibody in its sources prevents one opposing Digimon from suspending through its turn end; inherited your-turn prevents the host's attack target from changing.
+- Knowledge base: no card-specific entries; the inclusive level boundary, source-stack union, sequential restriction, duration, and attack-target lock are unambiguous.
+- Implementation evidence: both entry bodies use an inclusive level comparison followed by the stack-gated suspension restriction now normalized by the shared restriction seam. The inherited action writes the dedicated attack-target-change restriction on self during its controller's turn. The alternate requirement and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: a MegaSeadramon source stack bottoms a level-4 peer, preserves level 5, and prevents effect suspension of the selected Digimon. Under Slayerdramon, the inherited restriction keeps a player-directed attack from being redirected by an available Blocker, so security is checked and the Blocker remains.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-026.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; dual bottom-deck timing 2/2; inclusive level boundary 2/2; source-gated suspension lock/duration 2/2; inherited attack-target lock/turn/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-026.test.ts`).
