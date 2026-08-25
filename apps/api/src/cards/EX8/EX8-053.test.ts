@@ -172,25 +172,60 @@ describe("EX8-053", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("digivolves legally from a black level 5 for the standard cost 3", async () => {
+  it("builds the legal black level-4 to level-5 to EX8-053 stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX8-050", as: "level5" }],
+        battleArea: [{ card: "EX8-049", as: "lineage" }],
+        hand: [
+          { card: "EX8-050", as: "gogmamon" },
+          { card: "EX8-053", as: "bancho" },
+        ],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lineage").permanentId,
+        instanceId: s.inst("gogmamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("lineage").topCard.cardId === "EX8-050");
+    expect(s.state.memory).toBe(3);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lineage").permanentId,
+        instanceId: s.inst("bancho").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("lineage").topCard.cardId === "EX8-053");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("lineage").stack.map((card) => card.cardId)).toEqual(["EX8-049", "EX8-050"]);
+  });
+
+  it("rejects standard evolution from an off-color level 5", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-079", as: "purpleLevel5" }],
         hand: [{ card: "EX8-053", as: "bancho" }],
       },
     });
     s.state.memory = 3;
     await s.ready();
+
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("level5").permanentId,
+        permanentId: s.perm("purpleLevel5").permanentId,
         instanceId: s.inst("bancho").instanceId,
       }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("level5").topCard.cardId === "EX8-053");
-
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("level5").stack.map((card) => card.cardId)).toContain("EX8-050");
+    ).toMatchObject({ ok: false });
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("purpleLevel5").topCard.cardId).toBe("BT10-079");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX8-053")).toBe(true);
   });
 });
