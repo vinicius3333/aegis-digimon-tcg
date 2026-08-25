@@ -371,3 +371,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-031.test.ts`).
+
+## BT20-032 — Bulkmon
+
+- Catalog contract: yellow/green level 4 Vaccine Dragonkin/Abadin Electronics/SEEKERS, play cost 6/6000 DP, purple or green level-3 evolution cost 3 plus Pulsemon or level-3 SEEKERS alternate cost 2; On Play/When Digivolving may move top security to hand at three or more, then recovers one from deck at two or fewer; inherited once per turn gains 1 memory after deleting an opponent in battle.
+- Knowledge base: Q4325 forbids the inherited effect when its host and the opposing Digimon are deleted at the same timing.
+- Implementation evidence: both entry timings carry the optional top-security move followed sequentially by a mandatory live security-count check and deck recovery. The inherited continuous watcher is source-scoped to `whenDeletesInBattle`, once per turn, and gains exactly one memory. Both alternate requirements and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: from exactly three security, accepting the first action puts a security card in hand, then the now-two count recovers BT20-013 from deck back to three. A 7000-DP Boutmon host with Bulkmon underneath deletes a suspended 1000-DP opponent, survives as Q4325 requires, and gains exactly one memory.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-032.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; dual timing 2/2; optional three-plus security move 2/2; sequential two-or-fewer recovery 2/2; inherited surviving battle deletion/memory/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-032.test.ts`).
