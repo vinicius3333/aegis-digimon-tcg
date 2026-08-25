@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -6,6 +7,24 @@ import "../index.js";
 import { compiled } from "./BT23-034.js";
 
 describe("BT23-034 Sakuyamon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-034")).toMatchObject({
+      cardId: "BT23-034",
+      nameEn: "Sakuyamon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Yellow", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Shaman", "Zaxon", "CS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["CS"], cost: 3, isAlternate: true }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
   it("pays 5 less with a Zaxon Tamer and applies both riders to one opposing Digimon", async () => {
     const s = setupEngine(
       {
@@ -99,5 +118,52 @@ describe("BT23-034 Sakuyamon", () => {
       toTop: false,
       faceUp: true,
     });
+  });
+
+  it("does not reduce the play cost without a Zaxon Tamer", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT23-034", as: "sakuyamon" }] } });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("sakuyamon").instanceId,
+      ),
+    );
+    expect(s.state.memory).toBe(-1);
+  });
+
+  it("accepts off-color level-5 CS evolution and rejects an off-color non-CS peer", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT23-023", as: "base" }],
+        hand: [{ card: "BT23-034", as: "sakuyamon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    legal.state.memory = 3;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("sakuyamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.instanceId === legal.inst("sakuyamon").instanceId);
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "base" }], hand: [{ card: "BT23-034", as: "sakuyamon" }] },
+    });
+    await illegal.ready();
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("sakuyamon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
   });
 });

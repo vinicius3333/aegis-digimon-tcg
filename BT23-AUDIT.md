@@ -299,6 +299,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; at six security skips recovery but still applies -6000; at five recovers to six first and applies the same -6000; excludes a no-Link trash peer; proves both App Fusion orders; and links Beautymon for 3 with +4000 DP and both observable protections.
 - Verification: focused suite — 8 passed; `git diff --check` — passed.
 
+## BT23-034 — Sakuyamon — 10/10
+
+- Catalog evidence: Yellow level 6, play cost 11, 11000 DP, standard yellow-level-5 evolution for 3 plus alternate level-5 CS evolution for 3; form `Mega`, attribute `Data`, types `Shaman`, `Zaxon`, and `CS`; play cost is reduced by 5 while a friendly Zaxon Tamer is present; a shared once-per-turn On Play/When Digivolving/When Attacking effect prevents one opponent from activating When Digivolving effects and gives that same Digimon -6000 DP through the opponent's turn end; On Deletion places Sakuyamon face up at security bottom.
+- Knowledge base: Q5282/Q5284 suppress triggered and effect-activated When Digivolving clauses; Q5283 preserves a shared When Attacking timing; Q5285 forbids paying a suppressed clause's activation cost; Q5286 confirms suppression does not consume shared frequency; Q5289-Q5292 establish face-up security visibility, normal checks and Security activation, and face-down conversion on shuffle.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-034", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, reducer-negative, and alternate-evolution evidence without changing execution.
+- Primitive trace: the pay-time self reducer requires a Tamer with Zaxon and subtracts exactly 5; all three effect timings share one source frequency key and bind the DP modifier to the restricted target; On Deletion retains the deleted source identity to add the exact card face up at security bottom; face-up cards remain revealed through checking and are normalized face down by security shuffle.
+- Behavioral proof: the focused suite checks catalog and complete IR; pays 6 with a Zaxon Tamer and proves the printed 11 without one; applies both riders to one target; places the deleted card face up behind existing security; and accepts an off-color level-5 CS evolution while rejecting an off-color level-5 non-CS base.
+- Verification: focused suite — 8 passed; shared timing-disable and face-up-security mechanisms have dedicated capability/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-034 through BT23-102.
+BT23-035 through BT23-102.
