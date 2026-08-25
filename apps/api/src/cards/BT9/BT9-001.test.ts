@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-001.js";
@@ -67,7 +67,7 @@ describe("BT9-001 Koromon", () => {
     }
   });
 
-  it("preserves Koromon as the inherited source through a legal breeding evolution", async () => {
+  it("applies +1000 DP on the same stack built by a legal breeding evolution", async () => {
     const s = setupEngine({
       0: {
         breeding: { card: "BT9-001", as: "koromon" },
@@ -82,7 +82,13 @@ describe("BT9-001 Koromon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("koromon").topCard.instanceId === s.inst("agumon").instanceId);
+    s.state.phase = Phase.Breeding;
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("koromon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding === undefined);
     expect(s.perm("koromon").stack.map((card) => card.cardId)).toContain("BT9-001");
+    expect(s.perm("koromon").currentDP).toBe(3000);
     expect(s.state.memory).toBe(0);
   });
 });

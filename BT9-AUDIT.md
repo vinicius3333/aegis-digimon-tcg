@@ -14,7 +14,7 @@ This ledger is built strictly in ascending card-ID order. A card receives 10/10 
 6. **Amount and recipient (1/1):** `Aura` targets `isSelfRef` and applies `modifyDP: 1000` only to the live carrier, with no other friendly permanent modified.
 7. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT9-001` returns no rulings, errata, restrictions, or unresolved ambiguity.
 8. **Direct IR and registration (1/1):** `apps/api/src/cards/BT9/BT9-001.ts` has `coverage: "full"`, an empty residual list, and exactly one executable registration: `registerIrCard("BT9-001", compiled)`; it contains no `registerCard` call.
-9. **Primitive and stack trace (1/1):** `runStaticAction` re-evaluates the aura continuously; `selfHasNameContaining` checks the carrier's live top-card English name with case-insensitive OR semantics; a public legal breeding evolution preserves Koromon beneath Agumon X at cost 0 before the inherited stack scenarios are evaluated.
+9. **Primitive and stack trace (1/1):** `runStaticAction` re-evaluates the aura continuously; `selfHasNameContaining` checks the carrier's live top-card English name with case-insensitive OR semantics; a public legal breeding evolution and breeding-area move preserve Koromon beneath Agumon X, whose DP is then observed at 3000 on that same constructed stack.
 10. **Reproducible verification (1/1):** Focused proof passed 4/4, the `LANE-F-14` shared name-condition regression passed 4/4, workspace typecheck passed, and `git diff --check` passed.
 
 ### Reproduce
